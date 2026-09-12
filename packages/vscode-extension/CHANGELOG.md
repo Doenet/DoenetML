@@ -1,5 +1,498 @@
 # @doenet/vscode-extension
 
+## 0.7.27
+
+### Patch Changes
+
+- ef11eec: Add `<chart type="box">`.
+
+    ```xml
+    <chart type="box">
+      <shortDescription>Scores by section</shortDescription>
+      <yLabel>score</yLabel>
+      <series><label>9am</label>52 61 63 68 70 71 75 78 84 91</series>
+      <series><label>1pm</label>44 55 58 60 62 65 66 70 72 96</series>
+    </chart>
+    ```
+
+    A box plot per series, side by side. This is the first chart type whose `<series>` holds **raw observations** rather than one value per category, and that turns the axis around: a whole series is now one position on it, which is what every plotting package means by `aes(x = group, y = value)`. So a box chart has no categories — its positions are its series, named under each box by that series' own `<label>` — and writing `categories` on one is reported rather than dropped in silence, since the names are text an author wrote for a reader. `$chart.categories` reports nothing for a box plot for the same reason.
+
+    The box runs from the first quartile to the third with the median drawn across it; the whiskers reach the furthest observation within one and a half interquartile ranges of the box, with a cap across each end; and an observation beyond that is drawn as a point of its own. A whisker ends on a datum that is in the data rather than on the fence, and a side whose quartile is already the extreme gets no whisker, since the box's own edge is the mark. A series of one observation, or of one value repeated, draws as a line at that value — every one of the five numbers is there.
+
+    The vertical axis is the data's and is not anchored to zero, as a line or scatter chart's is not: a box plot's numbers are positions on a scale rather than lengths measured from a baseline. A box chart draws no legend whichever way `legend` is written, because the names are already under the boxes and a legend would spend width to repeat the axis; `$chart.showLegend` reports that.
+
+    Every `<series>` now reports its own summary — `minimum`, `quartile1`, `median`, `quartile3`, `maximum` and `outliers` — whatever chart was drawn from it, so a sentence or an `<answer>` beside the picture can say what the picture shows. These come from the same definition `<summaryStatistics>` uses, extracted so that a table of quartiles and a box plot of the same column cannot disagree on the page. They are interpolated percentiles, not Tukey's hinges, which differ on some sample sizes.
+
+    Each box carries its five-number summary as an annotation and each outlier its own, so a box plot is navigable by screen reader like every other chart. They are the only chart annotations that need words to be read at all — five numbers at one position have nothing but their naming to tell them apart — so the wording is a translatable message rather than English built in the worker.
+
+    An observation that is not a finite number is left out of the summary rather than read as zero, and the chart says so: a dropped observation moves every quartile of the box drawn from it and leaves nothing on the page to notice.
+
+    `<summaryStatistics>` reports the same median it always did on any column of ordinary numbers, and a different one at two edges of the range a number can hold. Its median is now computed by ordering the values and taking the middle one, or the midpoint of the two middle ones — the same value the 50th percentile interpolates to, and unchanged for every column whose values are ordinary. Two things change:
+
+    - A column near the top of the range no longer overflows before it halves. The median of a column of `1e308` and `1.5e308` was reported as infinite and is now reported as `1.25e308`.
+    - Values are ordered by size rather than by a comparison that reads values agreeing to twelve significant digits as equal, so a column of readings that close reports its middle value rather than whichever of them happened to be written first: the median of `1 1.0000000000001 1.00000000000005` was reported as `1` and is now reported as `1.00000000000005`. `quartile1` and `quartile3` still order such a column by that comparison and are as unreliable on it as they were before.
+
+    Closes #1880.
+
+- 2ac19a7: Add `<chart>`, a chart of values with named categories. `type` picks which chart is drawn; `bar` is the first.
+
+    ```xml
+    <chart type="bar" categories="North South East West" displayValues>
+      <shortDescription>Population by region</shortDescription>
+      <yLabel>people</yLabel>
+      <number>41</number><number>63</number><number>18</number><number>78</number>
+    </chart>
+    ```
+
+    One tag with a `type` rather than a tag per chart. A pie chart, a box plot and a scatter plot differ in how the same list of values is drawn rather than in what an author is doing, so the choice belongs in an attribute — where it can also be computed, letting a document chart the same data both ways without duplicating the tag around it.
+
+    `type` has **no default**. `<chart>` on its own draws nothing at all and warns that no chart type was named, and a type it does not recognize is reported and then treated the same way. Defaulting to `bar` would let documents come to rely on it, and `bar` is not the chart most authors reach for first.
+
+    A rejected attribute value now says which of the two things happened to it. Where the attribute has a default, the message still names the value used in its place — "Invalid value `sideways` for attribute `displayMode`, using value `block`". Where it has none, the attribute is dropped rather than replaced, and the message now says so: "Invalid value `pie` for attribute `type`, ignoring it", where it used to report a fallback to `null` — a value no author could have written. Seven attributes are in that second group, `<chart type>` among them.
+
+    Bare numbers are read as values, so `<chart type="bar">41 63 18</chart>` draws three bars without wrapping each in a `<number>`.
+
+    Categories are labels rather than values: the bars are evenly spaced whatever a category says, so `categories="1 5 6"` writes 1, 5, 6 under three equally spaced bars. They are read as text, so a number, a word, or a `<tally>`'s own `.categories` all name bars the same way — `<chart type="bar" categories="$counts.categories">$counts</chart>` charts a tally with nothing else to write.
+
+    A value that is not a finite number gets no bar, and that is reported as a warning. Its place on the axis is kept, so the remaining bars stay under their own categories rather than shifting along.
+
+    The vertical axis scales itself: one tick above the tallest bar so it never touches the frame, and labeled values a whole number of steps from zero, which is the baseline the bars are measured from. `yMin` and `yMax` override it, and may each be set on their own; bars are still measured from zero, so a bound that crosses them cuts them off at the frame and a bar lying entirely outside it does not appear. A value of zero keeps its slot and its category label, so a `<tally>` category nothing landed in does not drop out of the chart.
+
+    `size` and `width` and `aspectRatio` size a chart the way they size a `<graph>`, and `barWidth` is the fraction of its slot each category fills. `values`, `categories`, `yMin`, `yMax`, `barWidth` and `aspectRatio` all read back off the chart, and the last four report **what it was drawn with** — the axis an automatic chart chose for itself, and the fallback used in place of a width or a ratio the chart could not honor.
+
+    Every bar carries its category and value as an annotation, so the chart is navigable by screen reader rather than merely present, and a `<shortDescription>` becomes the description of the figure as a whole. The chart renders through PreFigure, whose runtime is fetched the first time a page draws through it. A `<chart>` with no type draws nothing, so it fetches nothing either.
+
+    Closes #1833.
+
+- 32af628: Add `<chart type="line">` and `<chart type="scatter">`, and a numeric horizontal axis for them.
+
+    ```xml
+    <chart type="scatter">
+      <xLabel>height</xLabel>
+      <yLabel>weight</yLabel>
+      <series x="1.5 1.6 1.7 1.8"><label>control</label>55 62 70 79</series>
+      <series x="1.5 1.6 1.7 1.8"><label>treated</label>58 66 72 84</series>
+    </chart>
+    ```
+
+    The two types go together because they need the same thing and nothing else does: a horizontal axis that carries numbers. A bar chart labels its axis with one tick mark per category, at 1, 2, 3 — a category is a label and the spacing between them means nothing. A scatter plot's `x` is a measurement, so the distance between two points is part of what the chart says.
+
+    `<series x="…">` gives a series its horizontal coordinates, read against the values position by position. A value with no `x` beside it cannot be placed and is reported rather than drawn, which is what a series given fewer coordinates than values produces. One series carrying an `x` settles the axis for every series in the chart, so a series that gives none alongside one that does has no coordinates for any of its values and is reported the same way — placing it at 1, 2, 3 instead would put it by position on an axis measured in something else.
+
+    `type="line"` reads either kind of axis. Without an `x` its points sit under `categories`, exactly where a bar chart's bars sit, so `<chart type="line" categories="Mon Tue Wed">12 19 15</chart>` needs no coordinates at all; with an `x` the axis carries numbers. That is what makes one type serve both a time series and a category-by-category comparison. A scatter falls back the same way when no series carries an `x` at all — its points take the same slots, and with nothing joining them the chart reads as a dot plot down the categories. Points are never re-ordered — a path that doubles back is drawn as one, because a path through time is a real chart and sorting it would quietly draw something else.
+
+    A line draws a marker at each point unless `markers="false"`. The default is not only about how a short series reads: a marker is an element, and an element is what an annotation can point at, so with markers off a screen reader can reach the line but not walk it point by point. `displayValues` prints each point's value above it on a line or scatter chart as it does above a bar, and does so whether or not the markers are drawn.
+
+    `xMin` and `xMax` bound the horizontal axis, mirroring `yMin`/`yMax`, and report what the chart was drawn with. They apply only where the axis carries numbers; a bar chart, and a line or scatter chart no series of which carries an `x`, ignore them and report nothing for them.
+
+    Neither axis of a line or scatter chart is anchored to zero. A point is not a length measured from a baseline, so there is nothing for the axis to be measured from — forcing zero into the axis of a scatter of adult heights would push every point into a corner. A bar chart still always includes zero, because its bars are measured from it.
+
+    Part of #437.
+
+- 3073c50: Add `<chart type="pie">`.
+
+    ```xml
+    <chart type="pie" categories="North South East West">
+      <shortDescription>Population by region</shortDescription>
+      41 63 18 78
+    </chart>
+    ```
+
+    One slice per value, each one that value's share of the total. The slices run clockwise from twelve o'clock in the order the values are given, rather than sorted by size, so a pie beside a bar chart of the same data reads as the same data. `categories` names them.
+
+    The shares are taken against the largest value rather than against the sum, which is the only way the ratios survive data at the top of the double range: a sum saturates there, and two values of `1e308` drawn as shares of a saturated total came out as a 200-degree slice beside a 160-degree one. Ordinary data is unaffected: the ratios are the same in exact arithmetic, and the angles agree to within the last of the twelve digits one is written to.
+
+    A pie is the one chart with no axes, so it reads neither `xMin`/`xMax` nor `yMin`/`yMax`, and `$chart.xMin` and the other three report nothing for one. An `<xLabel>` or `<yLabel>` has no axis to name either: it is not drawn, and the chart says so rather than dropping the text in silence — put it in a `<title>` instead. A pie is also the one chart that colors _within_ a series: its slices are what a reader tells apart, so each takes the next `styleNumber` in turn. The run starts at the drawn series' own number, so `<series styleNumber="4">` draws a pie's first slice in the style a bar chart of that same markup draws its bars in, and the slices after it continue from there.
+
+    The slice names go in the legend, and around the rim at each slice's middle when `legend="false"` leaves no legend to hold them — so they are always somewhere. `displayValues` prints each value beyond the rim, beside its slice's name where that is there too, which keeps a pie's text off its marks the way every other type already keeps it off theirs: a value inside a slice is unreadable against a dark fill, and against a patterned one there is no single color that would read. An `outsideRight` legend is then placed past those values where the chart is wide enough to hold both, and beside them where it is not; and a `<title>` is lifted clear of them only as far as the margin it was granted. That last part is shared with the other types, so a line or scatter chart drawn entirely at or below zero — where the horizontal axis and its numbers move to the top of the box — now places its title low enough to fit where before it could be drawn partly outside the picture.
+
+    Four things a pie can be asked to draw and cannot, each reported on its own because the fix for each is different: a value that is not a finite number, a negative value (a slice is a share of a total, and a pie has no baseline for one to hang from), values that total zero, and more than one `<series>` — a pie draws the first and says so. A value left out is left out of the total as well, so the remaining slices are shares of what was actually charted. A value of zero is a share of nothing and gets no slice, but keeps its place in the run of colors.
+
+    Every slice carries its name and value as an annotation, so a pie is navigable by screen reader like every other chart.
+
+    Closes #1879.
+
+- f1bb837: Give `<chart>` several series, a title and a legend.
+
+    ```xml
+    <chart type="bar" categories="North South East West" layout="grouped">
+      <title>Population by region</title>
+      <shortDescription>Population by region, 2024 against 2025</shortDescription>
+      <yLabel>people</yLabel>
+      <series><label>2024</label>41 63 18 78</series>
+      <series><label>2025</label>45 60 22 80</series>
+    </chart>
+    ```
+
+    `<series>` is one group of the data. Every standard statistical plotting package describes a chart the same way — data, a mark, and encodings that map the data onto position and color — and this is that shape in markup: `type` is the mark, a `<series>` is the group the color encoding splits on, and its children are the values. That is what lets the chart types still to come take the data each of them needs: one value per category for a bar or a line, a column of observations for a box plot or a histogram.
+
+    A chart written with bare values and no `<series>` has one unnamed series holding them all, so a simple chart stays as simple as it was.
+
+    A series carries its own `<label>`, which names it in the legend, and its own `styleNumber`. Series take consecutive style numbers unless one names its own, so several groups come out in different colors without being asked to; `<chart styleNumber="3">` starts its series at 3, and a chart of one series is drawn in exactly the style the chart asked for.
+
+    `layout` says how the series share a category's slot. `grouped`, the default, stands them side by side and divides `barWidth` between them, so the bars can be compared across categories and across series alike; `stacked` puts them one above another so each slot shows its total, with negative values stacking downward from the baseline rather than through the positive ones.
+
+    A `<title>` child is drawn above the chart, inside the picture rather than beside it, so it survives being printed or exported — and it becomes the caption of a tactile rendering, which no text placed around the chart could do.
+
+    The legend is drawn as soon as a series has a label, keyed off the bars themselves so its swatches cannot disagree with the colors they name. `legend="false"` suppresses it, and `legendPosition` says where it goes: **outside the plot to the right by default**, in a margin widened to hold it, which is where ggplot2 and Vega-Lite put one and is the only placement that cannot cover the data — a legend three series deep occupies the top third of the plot's right-hand edge, which any chart with tall bars on the right will reach. `outsideBottom` spends height instead of width. The four inside corners — the same names `<legend>` already uses inside a `<graph>` — spend neither and may overlap, which is the author's choice to make. `$chart.showLegend` reports whether a legend is drawn rather than whether one was asked for, so it is false for a chart whose series carry no labels and for one whose named series have no value that could be drawn.
+
+    A screen reader now walks the chart series by series and then bar by bar within a series, instead of meeting every bar of every group as one flat list.
+
+    `$chart.values` is every value in the chart, series by series; `$chart.numSeries` says how many groups there are, and a named `<series>` reports its own `values` on its own.
+
+    Values written beside a `<series>` belong to no group and are not drawn, which is now reported rather than left to be inferred from a missing bar.
+
+    `hide` works on a `<series>` and on a chart's `<title>`, which it previously did not. A hidden `<series>` is left out of the chart **entirely** — out of the drawing the way a hidden `<point>` is left out of a `<graph>`, and out of `values`, `numSeries` and the categories the axis is as long as. That last part is a deliberate choice rather than a precedent: `hide` elsewhere in DoenetML suppresses rendering without touching data, and a `<binCounts hide>` still feeds a chart. A series exists only to be drawn, so a chart's totals describe the chart a reader can see — `<sum>$c.values</sum>` beside a chart with a hidden series reports what is on the page rather than a number nothing accounts for. The series itself still reports its own `values` under its own name, and hiding one does not recolor the series after it. Hiding the **chart** is a different thing from hiding its series: `<chart hide>` takes the picture off the page without emptying it, so a `<sum>` of its values written beside it still totals what the chart holds.
+
+    A series the author did not label is announced to a screen reader as "series 2" rather than as a bare "2", which was indistinguishable from the categories and values announced on the levels either side of it. The phrase is localized, so it is not English generated in the worker.
+
+    A stacked chart whose segments total more than a double can hold is now drawn against the top of its frame, rather than coming back from PreFigure with the overflowing part of it missing, and `displayValues` labels are drawn over every bar rather than under the segment stacked above them.
+
+    The reference page is reorganized around this, and the sampling-simulation walkthroughs that were on it move to a new **Charting a Simulation** guide. `<chart>` also gains its first browser tests, covering the renderer hand-off, the build request, the framing, and screen-reader navigation of the series.
+
+    Part of #437.
+
+- 9415cc1: A reference to a list keeps the list's commas, and the whitespace an author writes around the items of a list no longer lands in front of a comma.
+
+    `$r[1]` and `$g` showed `1234` where the composite they name showed `1, 2, 3, 4`, in the rendered list and in `text` alike. A reference that lands on a composite copies its replacements, and did so recursively down to plain components — which is what makes `$mp[1]` reach the point inside a repeat item rather than the `<setup>` beside it — but recursing that far also flattened away every composite in between, and with it the `asList` that made the replacements a list. The recursion now stops at a composite that can be a list of its own, so the reference copies that composite and the list survives; composites that cannot be a list are still recursed through, so what a reference resolves to is unchanged.
+
+    Whitespace at the end of a list item no longer lands in front of the comma that follows it. `<group asList><group><number>1</number> </group><group><number>2</number> </group></group>` read `1 , 2` and now reads `1, 2`.
+
+    The whitespace an author puts between the items of a list group is where the commas go, in `text` as in the rendered list. `<group asList><number>1</number> <number>2</number></group>` had a `text` of `1, , 2`; it now reads `1, 2`, and an empty composite among the items, such as a sequence of length zero, changes nothing.
+
+    Underneath, the commas were being worked out four times over from the same data — once for the renderers, once for `text`, once for the string a `<math>` parses, and once for the FlatDast the prototype renderers read. Those four now share one implementation of the grouping, so where the commas go is decided once for all of them.
+
+- b01246e: Editor: stop warning about `<group>`, `<repeat>` and friends inside `<math>`, `<numberList>` and other containers that take one specific component type.
+
+    These composites expand to copies of whatever the author puts inside them, so the schema cannot predict what they become and must accept them wherever their content would be accepted. `<math>1 + <group>2 3</group></math>` and `<numberList><sort>3 1 2</sort></numberList>` both work, but the editor flagged them as invalid. This affects `<group>`, `<repeat>`, `<repeatForSequence>`, `<select>`, `<module>`, `<collect>`, `<shuffle>` and `<sort>`, plus `<setup>`, which produces no replacements at all and so is now allowed anywhere. The tag completion menu offers them in those containers too.
+
+    One known gap: the editor no longer flags `<setup>`, `<sort>` or `<collect>` alongside an `<option>` inside `<select>`, which still fails to build (#1875).
+
+    In the other direction, `<split>` and `<intersection>` do have predictable replacement types — `text` and `point` respectively — so they are now checked against those. That widens where they are accepted (a `<point>` is welcome in more places than "any graphical component" was) while correctly rejecting `<split>` inside graphical-only containers such as `<constrainTo>`. `<sortIndices>` keeps its own `number` replacement type rather than following `<sort>`, so it is still rejected where a number doesn't belong.
+
+- baa6096: Add counting operators: `<tally>` and `<binCounts>`.
+
+    `<count>` reports how many values a list holds. These two answer the more ordinary question asked of data — _how many of each?_ — which is the second half of any sampling activity: with them, you can say not only which subpopulation every individual landed in but how many landed in each.
+
+    **`<tally>`** counts how many times each category appears. It is type-generic, comparing values exactly as `<sort>` does, so it counts a `<textList>` as readily as a `<numberList>`.
+
+    ```xml
+    <textList name="fruit">apple fig apple pear fig apple</textList>
+    <tally name="t">$fruit</tally>   <!-- 3, 2, 1 over apple, fig, pear -->
+    ```
+
+    Name the categories with `categories` to fix which are counted and in what order; omit it and the categories are the distinct values present, in sorted order — sorted rather than first-seen, so the same data reads the same way however it arrived. Either way they read back as `.categories`, so a table or a chart is driven off the same component that did the counting. Declaring them is also what keeps a slot for the categories nothing matched: `<tally categories="1 2 3 4">` over a sample that never produced a 3 still reports a 0 in third place, so the counts stay lined up with the categories they are counts of.
+
+    A category is read to match the values, so there is nothing to declare for it: `categories="apple fig"` counts words, `categories="true false"` counts booleans, and `categories="1/2 1"` counts halves, each still labeling its count as it was written. `type` is what bare string children are read as — `<tally type="text">apple fig apple</tally>` — and, written out, it also decides how `categories` is read.
+
+    **`<binCounts>`** counts how many values fall into each interval between the cut points given by `bins`, which is what a histogram of a continuous quantity needs. `n + 1` cut points define `n` intervals, and they read back as `.binEdges`, so whatever displays the counts can say what interval each covers. Bare numbers are read as values, the way `<sum>` reads them, so `<binCounts bins="0 1 2">0 1/2 1 3/2 2</binCounts>` counts five of them.
+
+    A value landing exactly on a cut point has to be counted on one side or the other, and there is no universal convention — NumPy, matplotlib and Julia close bins on the left; R, pandas and Excel close them on the right. `closed` chooses, and defaults to `"left"` (`[a, b)`), matching the class intervals of most statistics textbooks. Whichever way it points, **the outermost cut point is always included**, so neither the smallest nor the largest value is silently dropped. A value outside the outermost cut points falls in no bin, and so does a `<number>` whose content does not parse, so `<binCounts>` counts need not sum to the size of the sample. A value that is not numeric _by type_ is a different matter: a text or a boolean is something no pair of cut points could ever hold, so rather than dropping it and reporting counts that quietly mean less than they say, `<binCounts>` warns and reports 0 for every bin.
+
+    Both are composites that create their counts fresh as `<number>` components, so `$counts[2]`, `<sum>$counts</sum>` and `<numberList>$counts</numberList>` all work on the result, and a count reads as a number wherever one is expected, including as a path index. Bins that do not describe a set of intervals, values matching none of the declared categories, and a `categories` that names the same category twice are all reported rather than left silent.
+
+    Together with the operators already in place, a sampling simulation takes the same handful of tags whatever the size of the sample — no `<repeat>` over the draws, and one count per category however many were drawn:
+
+    ```xml
+    <numberList name="pop">30 45 12 60</numberList>
+    <cumulativeSum name="cum">$pop</cumulativeSum>
+    <number name="total"><sum>$pop</sum></number>
+
+    <sampleRandomNumbers name="draws" type="discreteUniform" from="1" to="$total" numSamples="500" />
+    <searchSorted name="which" target="$draws">$cum</searchSorted>
+    <tally name="counts" categories="1 2 3 4">$which</tally>
+    ```
+
+    The same answer is available in one step as `<binCounts bins="0 $cum" closed="right">$draws</binCounts>`, without the intermediate list of subpopulation indices — use whichever you also want to show.
+
+    Closes #1832.
+
+- a9828c1: Add hypergeometric, binomial, and Poisson distributions to `<sampleRandomNumbers>` and `<selectRandomNumbers>`.
+
+    Until now the only distributions available were `uniform`, `discreteUniform`, and `gaussian`, so there was no way to sample count data without building it by hand.
+
+    `type="hypergeometric"` counts the successes obtained when drawing `numDraws` items _without replacement_ from a population of `numTotal` items containing `numSuccesses` successes. `type="binomial"` counts the successes in `numTrials` independent trials that each succeed with the given `probability`, defaulting to a single fair trial. `type="poisson"` is determined entirely by its `mean`, which defaults to 1 rather than the 0 that `gaussian` uses, since a Poisson distribution with mean 0 always returns 0.
+
+    The `mean`, `variance`, and `standardDeviation` properties report the exact values for each new distribution. Invalid parameters produce `NaN` for both the samples and those properties, along with a warning describing what is wrong. Those warnings are shown wherever the document's other warnings are, rather than only in the browser console; the long-standing warning about an invalid `gaussian` mean or standard deviation is now shown there too.
+
+    Because these distributions are drawn one item, trial, or event at a time, parameters that would need more than ten million draws for a single sample are refused the same way impossible ones are, rather than leaving the page unresponsive while they ran. The limit is far above any population, trial count, or rate that arises in practice; it is there so that mistyping an extra digit reports a problem instead of freezing the activity. Parameters an order of magnitude below it are still sampled as asked, with a warning that sampling may be slow.
+
+    A fractional `numSamples` now draws the same count from every distribution, rounding up as `uniform` always has. Alongside unusable parameters — a `gaussian` with a negative `variance`, say — a fractional count used to break the document instead of reporting `NaN`.
+
+    Counts must also be whole numbers small enough to stay exact — up to about nine quadrillion. Past that, neighboring whole numbers stop being distinguishable, so drawing from such a population would not do what it says; it is refused rather than sampled.
+
+    The new distributions draw with the generator's full precision rather than its default 32 bits, so a success rarer than about one in four billion — a large population with few successes, or a very small `probability` — happens as often as asked rather than being rounded up to that floor. The hypergeometric is exact for every population it accepts; a `binomial` `probability` below about one in nine quadrillion is smaller than any value a draw can take, so it occurs at that floor instead, which would take on the order of nine quadrillion samples to notice.
+
+    A `gaussian` whose spread or center describes no distribution now reports `NaN` for `mean`, `variance` and `standardDeviation`, as the other distributions already did, instead of reporting a plausible-looking spread beside `NaN` samples; an infinite spread is recognized as unusable rather than sampled. The explanation also survives a reload, and `<selectRandomNumbers>` holds its distribution parameters fixed alongside the selection they produced.
+
+- c874e0d: Keep an index inside an attribute such as `target` pointing where it did when the content holding it is copied.
+
+    Copying content whose attribute references something by index, as in
+
+    ```xml
+    <numberList name="m">11 22 33 44</numberList>
+
+    <repeatForSequence from="2" to="3" valueName="i" name="items">
+      <updateValue target="$m[$i]" newValue="99" type="number" />
+    </repeatForSequence>
+
+    <repeat for="$items" valueName="v">$v</repeat>
+    ```
+
+    lost the index in the copy: the two buttons written by the `repeatForSequence` set `m[2]` and `m[3]` as intended, but the copies the `<repeat>` made rendered as buttons with no target and did nothing when pressed, warning "No referent found for reference: `$m[$i]`". Where the `<repeat>` also named its items `i`, evaluating such a copy raised "Something went wrong as path index is not an integer" instead.
+
+    An index inside a reference in content already followed its copy; one inside a reference in an attribute now does too, so each copied button changes the entry of `m` the button it was copied from changes. That holds however the content was copied — by a `<repeat>`, by a `<collect>`, by a `<shuffle>`, or by an `extend` of an enclosing section — and for the other attributes that take references: a copied `<ref to="$m[$i]">`, for one, now links to the entry the reference it was copied from links to.
+
+- 7ffbbf5: Recognize an index written inside a reference in two places that were quietly dropping it.
+
+    `referencesAreResponses` now records the input an index names when that index is itself a reference, or an expression written around one such as `$inputs[$i - 1]`:
+
+    ```xml
+    <setup><group name="inputs"><mathInput name="a" /><mathInput name="b" /></group></setup>
+    <repeat name="r" for="1 2" valueName="i">
+      <answer>
+        <award referencesAreResponses="$inputs[$i]"><when>$inputs[$i] = 1</when></award>
+      </answer>
+    </repeat>
+    ```
+
+    Written with a literal index — `$inputs[1]` — an award like this recorded the response all along. Written with `$i`, it graded correctly but stored nothing: `currentResponses` and `submittedResponses` came back empty, with no warning, so a question scored right and kept no answer. Inside a `<repeat>`, where the index is the iteration value, `$i` is the only thing there is to write.
+
+    The two writings of the index need not match letter for letter, only land in the same place: `referencesAreResponses="$inputs[$holder.i]"` matches a `<when>` that says `$inputs[$i]`.
+
+    An index that cannot be applied is now reported when it is written in a `target`. `<updateValue target="$p.styleDescription[1]" />` names an index on a property that is not a list, and said nothing at all; the same reference in `extend` or in ordinary text has always warned `Cannot reference index $p.styleDescription[1]`. The warning arrives when the target is read — on the press for `<updateValue>`, at once for a running `<animateFromSequence>` — which is where those components' other target warnings already arrive.
+
+    Closes #1845. `<callAction target="$p.styleDescription[1]" />` remains silent and #1565 stays open for it: it rejects any property in a `target` before an index is ever applied, so it needs a message about the property rather than this one about the index.
+
+- c5f39d5: Read a list operator's bare string children as what they look like, instead of refusing them.
+
+    `<sort>d a b</sort>` rendered nothing at all. So did `<tally>apple fig apple</tally>`, `<shuffle>d a b</shuffle>`, and every other component that reads its children as a list of comparable values. Each reported that a `type` attribute was required, ignored the string, and produced an empty result — for markup that says exactly what it means.
+
+    They are now read by their content: every whitespace-separated piece naming a number makes the list numeric, and anything else makes it text.
+
+    ```xml
+    <sort>10 2 1</sort>          <!-- 1, 2, 10   — ordered by value -->
+    <sort>d a b</sort>           <!-- a, b, d    — ordered alphabetically -->
+    <sort>10 2 x</sort>          <!-- 10, 2, x   — one word, so all text -->
+    <tally>apple fig apple</tally>
+    ```
+
+    This is the rule the values already followed when they arrived as components: `allAreNumeric` is true only when every value is numeric, and a single text among numbers sends the whole list to a text comparison. Applying it to bare strings means an author who writes `1 10 3` and an author who references a `<numberList>` get the same answer.
+
+    A piece names a number when Doenet's own math parser works one out of it, so `1/2`, `2^3`, `sqrt(4)`, `pi` and `min(1,2)` all count, and `x`, `2x`, `true` and `NaN` do not. JavaScript's numeric literals are not consulted, so `1e5` and `0x10` are words here: scientific notation has to be asked for and is spelled with a capital `E`, and hexadecimal is not DoenetML notation at all. An author who wants an exponent read writes `<mathList parseScientificNotation="true">1E3 2 5E2</mathList>` and references it.
+
+    `type` is now an override rather than a requirement, for when the look is misleading — `007 008` counts the numbers 7 and 8, and `type="text"` keeps the leading zeros. It still governs only bare strings; a referenced component keeps the type it already has.
+
+    A `type` naming something that is not one of the four is now reported and then **dropped**, so the string children are read exactly as they would be with no `type` at all. It used to be replaced with `math`, so `<tally type="txt">apple fig apple</tally>` read its three words as maths and reported its categories as `a p p l e` and `f i g`. This covers the string children only: `categories` and `target` resolve an invalid `type` separately and still replace it, so `<tally type="txt" categories="apple fig">` counts nothing either way.
+
+    Two diagnostics are retired in place and one is added: `doenet-w0013` asked for a type nothing needs any more, and `doenet-w0014` named a `math` fallback that no longer happens. `doenet-w0145` replaces the second and says what now occurs.
+
+    Affects `<sort>`, `<shuffle>`, `<sortIndices>`, `<tally>`, `<argMin>`, `<argMax>`, `<indexOf>` and `<searchSorted>`. Only `<sort>` and `<shuffle>` have shipped, and two existing documents change:
+
+    - One that mixes a reference with a bare string. `<sort>$mi 3</sort>` used to sort the reference alone and drop the `3`; it now sorts both.
+    - One with a `type` that is not one of the four. Those strings used to be read as maths, so `<sort type="txt">1/2 2 1</sort>` rendered `1/2, 1, 2` and now renders `0.5, 1, 2`, and `<sort type="letters">d a b</sort>` produces text rather than maths, so `.latex` on an item no longer resolves. Both already reported the type as invalid.
+
+- bb9c5a2: Fix two defects in the automatic commas placed between the replacements of a list composite.
+
+    A `<math>` containing a list next to a component froze the document. To decide whether the comma-separated list needs parentheses around it, the core looks at what sits on either side of it, walking past whitespace to find it — but that walk never advanced its index, so it never ended when the neighbor was a component rather than a string. `<math><number>3</number> <numberList>1 2</numberList></math>`, and the same with the list first, both hung.
+
+    Commas also appeared around a replacement that cannot be a list item, whenever the composite was not the first thing in its container. A composite holding something that can't be part of a list — a `<me>`, say — is shown without commas, but the record of which replacements are eligible was kept in step with the parent's children rather than with the composite's own, so the answer slid by however far the composite sat from the start. `<p><group asList><numberList>1 2</numberList><me>x</me></group></p>` was correct while `<p>lead <group asList><numberList>1 2</numberList><me>x</me></group></p>` was not.
+
+- d7b0338: Add list operators: cumulative scans and index-returning operators.
+
+    Ten new components in two families. Until now every math operator reduced a list to a single value — `<sum>`, `<min>`, `<mean>` — so nothing turned a list into another list, and nothing reported a _position_ within one.
+
+    **Cumulative scans** map a list to another of the same length: `<cumulativeSum>`, `<cumulativeProduct>`, `<cumulativeMin>`, `<cumulativeMax>`, and `<differences>`, which is one shorter and undoes `<cumulativeSum>` apart from its first value. They accumulate numerically when every input is a number and symbolically otherwise, so `<cumulativeSum>x y z</cumulativeSum>` gives `x, x+y, x+y+z`. The result is an ordinary list: `$cum[3]`, `<sum>$cum</sum>` and `<numberList>$cum</numberList>` all work on it, and rounding attributes pass through to each value.
+
+    **Index-returning operators** report a position rather than a value: `<argMin>`, `<argMax>`, `<indexOf>`, `<searchSorted>` and `<sortIndices>`. Indices are 1-based to match `$list[1]`, and `0` means "no such element". They order values exactly as `<sort>` does: numerically when every value is numeric, alphabetically otherwise. Because DoenetML already indexes by reference, a returned position composes with any list in the document: with `<argMax name="best">$scores</argMax>`, the top scorer is `$names[$best]`. `<sortIndices>` accepts everything `<sort>` accepts, including `sortByProp`, so `$names[$perm[1]]` orders one list by another list's ordering.
+
+    The `target` of `<indexOf>` and `<searchSorted>` is a _list_, and the result has one position per target. A single target still reads as a single index, so `$pop[$which]` works as before, but a thousand targets are searched by one operator rather than a thousand. That is what makes sampling from a weighted population three lines, where a `<repeat>` stops being practical long before the sample is interesting:
+
+    ```xml
+    <numberList name="pop">30 45 12 60</numberList>
+    <cumulativeSum name="cum">$pop</cumulativeSum>
+    <number name="total"><sum>$pop</sum></number>
+    <sampleRandomNumbers name="draws" type="discreteUniform" from="1" to="$total" numSamples="500" />
+    <searchSorted name="which" target="$draws">$cum</searchSorted>
+    ```
+
+    Two existing behaviors change. `<sort>` and `<shuffle>` no longer force an explicit `type` onto reference children, which used to fuse a referenced list into the single string it renders as: `<sort type="text">$names Zoe</sort>` now sorts four names rather than the two values `"Ann, Cal, Bob"` and `"Zoe"`. The one thing this removes is coercing a reference to a different type. And `<sort type="boolean">true false</sort>`, which silently rendered nothing at all, now orders booleans as text, putting `false` before `true`.
+
+    Getting a `0` out of an index operator is reported when it means the question could not be answered: omitting `target` is a warning, and having no values to look through is an info message. A target simply absent from the list is not reported — that `0` is what `<indexOf>` is for.
+
+    The `type` attribute of `<sort>`, `<shuffle>` and the five index operators now declares the values it accepts — `number`, `math`, `text` and `boolean` — so the editor offers them and anything else is flagged as it is written. The set is unchanged; it was simply never declared. `<sort>`, `<shuffle>` and the sequence components (`<sequence>`, `<selectFromSequence>`, `<repeatForSequence>`, `<animateFromSequence>`) now highlight the few attributes that define what they do, so the editor and the reference pages lead with those.
+
+    Closes #1816. Closes #1817. Closes #1823. Closes #1831.
+
+- 0281713: Add `<sampleMultivariateRandomNumber>`, which draws a vector-valued random number.
+
+    Every existing sampling component produces numbers that are independent of one another. This one draws a single sample whose numbers are drawn _together_: `numInCategories` describes a population split into categories, `numDraws` items are drawn from it without replacement, and the component expands to one number per category giving how many of the drawn items came from each. The counts always sum to `numDraws`.
+
+    ```doenet
+    <p>An urn holds 5 red, 3 blue, and 2 green marbles. Draw 4 without replacement:</p>
+    <p><sampleMultivariateRandomNumber name="draw" type="hypergeometric" numInCategories="5 3 2" numDraws="4" /></p>
+    <p>Red: $draw[1], blue: $draw[2], green: $draw[3]</p>
+    ```
+
+    The `numCategories`, `numTotal`, `means`, and `variances` properties describe the distribution, and the `resample` action draws a fresh set.
+
+    `type` accepts only `hypergeometric` so far, and is required rather than defaulting to it. It is unlikely to remain the most natural default — a joint normal distribution is the more usual multivariate one — so naming the distribution in every document means adding others later cannot change what an existing document does.
+
+    Invalid parameters produce `NaN` for the samples and for `means` and `variances`, along with a warning describing what to change; `numCategories` and `numTotal` go on reporting the population the component read. Because each category is drawn in turn, parameters that could need more than ten million random draws for a single sample are refused the same way, instead of leaving the page unresponsive while they ran.
+
+    Counts must be whole numbers small enough to stay exact — each category, the population they add up to, and `numDraws` all up to about nine quadrillion. Past that, neighboring whole numbers stop being distinguishable, so drawing from such a population would not do what it says; it is refused rather than sampled.
+
+    Each category's count is drawn as a hypergeometric against the part of the population not yet accounted for, so the whole vector is drawn exactly, with no smallest probability it rounds away, for every population accepted.
+
+- 279b2b6: Stop two core traversals from taking exponential time when composites nest inside one another.
+
+    A repeat whose iterations refer to the previous iteration, as in
+
+    ```xml
+    <numberList name="vals"><sequence from="1" to="16" /></numberList>
+
+    <repeatForSequence from="1" to="16" valueName="i" name="cumSums">
+      <number><conditionalContent>
+        <case condition="$i=1">$vals[1]</case>
+        <else>$cumSums[$i-1] + $vals[$i]</else>
+      </conditionalContent></number>
+    </repeatForSequence>
+    ```
+
+    hung the document rather than loading it. At 8 iterations it took 4 seconds and at 10 it took 3 minutes, with each further iteration multiplying the cost by about four, so the 16 iterations above would have needed several days.
+
+    The cost was not in evaluating the recurrence. Components form a directed acyclic graph rather than a tree: a composite's replacements are spliced in as children of the composite's parent while the composite goes on pointing at them as replacements, so the same component is reachable along several paths. Each iteration of the repeat above adds a `<conditionalContent>` → `<group>` → copy chain, which makes the previous iteration reachable four ways, and two traversals walked every path separately:
+
+    - `allPotentialRendererTypes`, which collects the renderers a document may need to load, recursed into children and into replacements. It now walks each component once, which loses nothing because every path contributed to the same set of renderer types.
+    - `ancestorsIncludingComposites`, used when propagating dependency blockers, walked up both the parent chain and the chain of the composite a replacement came from — chains that converge on the same ancestors. It now remembers the ancestors it has already worked out for a component.
+
+    The renderer types collected are unchanged. The example above loads in a few seconds, and cost now grows with the number of components rather than exponentially.
+
+    Documents that nest composites only a few deep — the overwhelming majority — were never affected and are unchanged.
+
+- 232baf3: Upgrade the bundled PreFigure runtime from 0.6.7 to 0.7.6.
+
+    Nothing a Doenet author writes behaves differently. The upgrade was checked
+    against the parts of PreFigure the renderers actually depend on, and they are
+    unchanged: every element and attribute the graph and chart renderers emit is
+    still accepted, `alignment_displacement` — which fixes where a label or legend
+    sits relative to its anchor — is byte-identical, and the legend's geometry
+    (`outer_padding`, `vertical-skip`, the key width and the box width formula) is
+    the same. The `fill-pattern` vocabulary is unchanged, so patterned fills keep
+    their meaning.
+
+    What is new upstream is mostly elsewhere: circuit diagrams, an adapter schema,
+    and `hticks`/`vticks` for controlling tick marks, none of which Doenet emits
+    yet. Two changes are worth having. `annotations.py` now skips comments and
+    processing instructions rather than trying to annotate them, which is a class
+    of crash rather than a cosmetic fix. And the MathJax label extraction now
+    resolves its XPath in the XHTML namespace, which is how labels are found at
+    all when the label tree carries one.
+
+    Two schema definitions were also relaxed: `coordinates` and `group` moved from
+    an interleave of element groups to a free choice of them, which permits the
+    mixed ordering our diagrams already emit.
+
+    The chart and graph renderers reserve their margins from measurements taken
+    against a real PreFigure render — how wide a legend's key is drawn, how wide a
+    character is at 14px. Those measurements were taken at 0.6.7 and none of the
+    constants behind them moved in 0.7.6, so no margin needed recalibrating. The
+    opt-in live suites (`RUN_LIVE_PREFIGURE_VALIDATION=1`) measure the drawn
+    geometry rather than predicting it, and are the check to run against the build
+    service once it is upgraded to match.
+
+- c7803ee: Finish resolving a reference that indexes into a repeat nested inside another repeat.
+
+    With the repeats inside a `<p>` or any other element, a reference to an inner item written directly in the document dropped its last index. `$a[2][1][3]` and `$a[2].b[3]` returned the whole inner repeat — all three of its items rather than the third — and `<number extend="$a[2][1][3]" />` written that way came out as `NaN`, since it was extending three items rather than one. The same references written inside a `<p>` of their own, or as the content of a `<number>`, were already correct: those are resolved after the repeats have expanded, and so never passed through the intermediate state that got stuck.
+
+    A reference resolved before the repeat it indexes into exists gets a provisional answer, to be resolved again once that repeat expands. The second resolution did run and did find the right component, but the reference kept the component it had been paired with the first time: the flag marking it as mid-resolution was left set when an attempt gave up early, and while that flag is set the reference is never told to rebuild what it points at. The flag is now cleared however the attempt ends.
+
+- ae0b2c9: Stop warning that a repeat's `valueName` has no referent when a reference lifts it out of the repeat.
+
+    Referencing one iteration of a repeat, as in
+
+    ```xml
+    <repeatForSequence from="1" to="5" valueName="i" name="xiValues">
+      <number>$i</number>
+    </repeatForSequence>
+    <m>x_3 = $xiValues[3]</m>
+    ```
+
+    copies the iteration's `<number>` — and the `$i` inside it — to where the reference appears. The copy was then re-resolved from where it landed, and `i` lives inside the repeat, invisible from the `<m>`, so the document reported "No referent found for reference: `$i`" even though the reference had resolved and the value showed correctly. The warning went away if the reference or the `<number>` wrapper was removed, which is what made it look spurious.
+
+    Re-resolving from where a copy lands is what lets each iteration of a repeat bind `$i` to its own value, so that stays. A copy that lands somewhere the name is out of scope now falls back on resolving the reference where the component it shadows sits — which is where the reference came from and still points — and keeps falling back however many times the reference has been copied, so referencing the `<m>` above stays quiet too.
+
+    A reference that resolves nowhere still reports the same warning it always did, at the same place.
+
+    Closes #1424.
+
+- 6dd9fce: Stop a repeat's `valueName` from capturing a same-named reference inside an index of the items it repeats over.
+
+    Repeating over iterations that index something by the iteration value, as in
+
+    ```xml
+    <mathList name="popSizes">1163 1164 292 290</mathList>
+
+    <repeatForSequence from="1" to="4" valueName="i" name="countByPop">
+      <round>$popSizes[$i]</round>
+    </repeatForSequence>
+
+    <repeat for="$countByPop" valueName="i">$i</repeat>
+    ```
+
+    took the whole document down with "Something went wrong as path index is not an integer". A repeat names each item it creates after its `valueName`, so the `<round>` copies here are named `i`; the `$i` inside `$popSizes[$i]` that each copy carried then found the copy it sits inside rather than the iteration value it was written to mean. Indexing by the component the index belongs to is circular, so the index came out an error rather than an integer, which is a state the reference machinery treats as impossible.
+
+    A reference copied inside a path index now shadows the one it was copied from, the way a copied child does, and a reference that resolves onto a component containing it now prefers a candidate origin that resolves elsewhere. Together those keep the copied `$i` pointing at the iteration value it named in the original.
+
+    A reference that means its own container and has nowhere else to resolve from, such as the `$P` in `P`'s own label, still resolves the way it did.
+
+    An index written inside an attribute rather than inside the content — the `$i` of `<updateValue target="$m[$i]" />` — is not covered. Copying content that holds one still loses the index, as it did before.
+
+- f1bb837: Editor: report a `<series>` written outside a `<chart>`, and stop reporting a narrowed child merely for being wrapped in a composite.
+
+    A `<series>` means nothing outside a `<chart>`, but the schema had it inheriting from `_base` and so accepted it at the root of a document, in a `<section>`, and in every other container that takes arbitrary content — where it would be built, drawn by nothing, and never mentioned. It is now narrowed to the one element whose child groups name it, so the editor says "Element `<series>` is not allowed inside of `<section>`" where the mistake was made, and tag completion stops offering it where it cannot go.
+
+    That narrowing is the mechanism `<shortDescription>` already used, and it had a matching gap: a component narrowed this way no longer reaches the `_base` that a content-transparent composite's child groups are written in terms of, so `<chart><repeat><series>…</series></repeat></chart>` was reported as a series in the wrong place — as `<chart><group><shortDescription>…</shortDescription></group></chart>` already was. A composite that takes arbitrary content and expands to copies of it is accepted wherever its container accepts children, and by the same argument it now accepts whatever its container would have. Building one series per group of the data is exactly what a `<repeat>` is for. A composite that takes named children instead — `<select>`, which takes `<option>`, and `<collect>`, which takes none — is left alone, so the editor still reports anything else written inside one.
+
+    Part of #437.
+
+- 7b93b42: `<summaryStatistics>` now summarizes values written in the document, and is available to authors.
+
+    It was excluded from the schema, autocomplete and the reference docs, with a comment saying it would stay that way "until the data-source story is implemented" — its only input was a column of a `<dataFrame>`, and a data frame could only load a CSV over a URL. So it could not see data that lives in the document, which is where a simulation's data lives.
+
+    The data-source story has a much smaller answer than a data-frame platform: **the data can just be in the document.**
+
+    ```xml
+    <numberList name="scores">72 91 65 88 79 91 84</numberList>
+
+    <summaryStatistics name="stats">$scores</summaryStatistics>
+
+    <p>The mean is $stats.mean and the median is $stats.median.</p>
+    ```
+
+    Every statistic is a readable property as well as a table cell, so a sentence and the table cannot disagree. Values that are not numbers count as missing and are left out, which is why `count` reports how many values were usable rather than how many were given.
+
+    Bare numbers work as children, so `<summaryStatistics>4 9 2</summaryStatistics>` summarizes three values without wrapping each in a `<number>`. They are read as `<sum>` reads them, so a bare `1/2` is half rather than nothing.
+
+    `statisticsToDisplay` chooses the columns. `default`, `all` and `fiveNumberSummary` name a set of statistics rather than excluding the ones written beside them, so `statisticsToDisplay="default sum"` shows the standard selection _and_ the sum; whatever order they are asked for in, the columns appear in a fixed order. `fiveNumberSummary` is the minimum, quartiles, median and maximum — the five values a box plot draws, named so a document can say what it means rather than list five statistics.
+
+    **The `source`/`column` data-frame path is removed rather than kept.** It could not have worked: `sourceName` depended on a `dependencyType` of `attributeTargetComponentNames`, declared through an attribute option `createTargetComponentNames`, and neither name exists anywhere else in the codebase — no dependency type is registered under it. Because `sourceName` was defined unconditionally, _every_ use of `<summaryStatistics>` threw while its dependencies were built, whether or not a `source` was given. The component has never run. Summarizing a data frame can come back with the data-frame story, written against dependency types that exist; `<dataFrame>` itself is untouched and still excluded.
+
+    Four further things that could only surface once the component ran at all:
+
+    - The statistics are plain numbers, but they were passed to `roundForDisplay`, which takes and returns math-expressions — it threw, and would have handed the renderer an `Expression` to put in a table cell. They are now lifted into an expression for rounding and rendered back to a string.
+    - `count` was rounded along with everything else, so `displayDigits="3"` would have reported 1234 observations as 1230. A count is an exact tally and is no longer rounded, while every other statistic rounds in the table and in a reference to it alike.
+    - An empty list reached `sum`, which reduces without an initial value, and `Math.min`, which answers `Infinity` for nothing. Reachable now that children supply the data — a `<repeat>` that produced nothing — so every statistic but `count` reports nothing rather than failing.
+    - `padZeros` and `avoidScientificNotation` were accepted as attributes but had nothing to act on: the rounded value went to the table with no display parameters written out with it, so `displayDecimals="3" padZeros` would have shown a mean of 1.5 as `1.5`, and `avoidScientificNotation` would have left a small mean in scientific notation. Both now apply, alongside `displayDigits`, `displayDecimals` and `displaySmallAsZero`.
+
+    The table itself is drawn for the first time, so it is drawn properly: its cells take the spacing `<tabular>` gives its own, a rule separates the headings from the values, and the caption is the table's `<caption>` — its accessible name — rather than a paragraph that happens to sit above it. It had declared a border color and a border radius that nothing could apply: `border-color` is not inherited, so a color declared on the `<table>` never reaches a cell, and a border radius does nothing on a table with collapsed borders. The rule under the headings now carries the theme color itself.
+
+    Also removed: `byCategoryColumn`, an attribute that was declared but never implemented; and the renderer's `width`/`height` styling, read from state variables the component does not define, so both were always `undefined`. The caption no longer names a column, since there is no longer a column to name. Every one of its 346 translations was written around that column name, so all of them are retired with it: a reader in another language sees the English caption until it is translated again.
+
+    The `statisticsToDisplay` values — `default`, `all`, `fiveNumberSummary`, and the twelve statistics — now reach autocomplete and the reference page, which the component's own comment noted they did not.
+
+    Closes #1834.
+
 ## 0.7.26
 
 ### Patch Changes
