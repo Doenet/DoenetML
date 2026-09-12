@@ -911,3 +911,53 @@ describe("regressions found by the second review", () => {
         expect(await updateSyntax(source)).toEqual(correctSource);
     });
 });
+
+describe("regressions found by the third review", () => {
+    let source: string;
+    let correctSource: string;
+
+    it("renames a reference written inside a dollar-less source's index", async () => {
+        source = `<selectFromSequence assignNames="a b" numToSelect="2" /><copy source="g/list[$a]" />`;
+        correctSource = `<selectFromSequence name="a" numToSelect="2" /><copy source="g.list[$a[1]]" />`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+
+    it("reports a leading ../ as well as one in the middle", async () => {
+        // There is nothing to drop, but the reference still ends up somewhere the author
+        // did not write.
+        const res = await updateSyntaxFromV06toV07(`<copy source="../f" />`, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toEqual(`<copy source="f" />`);
+        expect(res.vfile.messages).toHaveLength(1);
+    });
+
+    it("does not promote an assigned name that v0.7 would reject", async () => {
+        source = `<selectFromSequence assignNames="1abc" /> $1abc`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).not.toContain(`name="1abc"`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "assign-names/invalid-name",
+        );
+    });
+
+    it("keeps a copy's own name when the assigned name matches it", async () => {
+        source = `<math name="m">5</math><copy source="m" name="a" assignNames="a" /> $a`;
+        correctSource = `<math name="m">5</math><copy source="m" name="a" /> $a`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+
+    it("normalizes a padded name a copy already had", async () => {
+        source = `<math name="m">5</math><copy source="m" name=" a " assignNames="b" /> $b`;
+        correctSource = `<math name="m">5</math><copy source="m" name="a" /> $a`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+});

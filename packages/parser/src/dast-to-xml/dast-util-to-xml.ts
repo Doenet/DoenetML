@@ -186,7 +186,7 @@ export function nodesToXml(
         }
         case "macro": {
             if ((node as unknown as DastMacroV6).version === "0.6") {
-                return macroToStringV6(node as any);
+                return macroToStringV6(node as any, forceParens);
             }
             const macro = unwrappedMacroToString(node, options);
 
@@ -200,7 +200,7 @@ export function nodesToXml(
         }
         case "function": {
             if ((node as unknown as DastMacroV6).version === "0.6") {
-                return macroToStringV6(node as any);
+                return macroToStringV6(node as any, forceParens);
             }
             const macro = unwrappedMacroToString(node, options);
 

@@ -154,16 +154,19 @@ function convertAssignNames(
         node.attributes[findKey(node, "name") ?? ""]?.children ?? [],
     ).trim();
 
-    if (existingName && existingName !== assignedName) {
-        // The element keeps the name it already had, so the assigned name is simply
-        // another way of spelling it and references can be pointed at it.
-        context.registry.register(
-            assignedName,
-            [makeIndexedPathPart(existingName, [])],
-            origin,
-            file,
-        );
+    if (existingName) {
+        // The element keeps the name it already had, so an assigned name that differs is
+        // simply another way of spelling it and references can be pointed at it.
+        if (existingName !== assignedName) {
+            context.registry.register(
+                assignedName,
+                [makeIndexedPathPart(existingName, [])],
+                origin,
+                file,
+            );
+        }
         deleteAssignNames(node);
+        setCompositeName(node, existingName);
         return;
     }
 

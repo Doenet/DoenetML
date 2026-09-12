@@ -14,6 +14,7 @@ import {
     readAssignNames,
     setCompositeName,
 } from "./assign-names/context";
+import { isValidReferenceableName } from "./assign-names/rename-registry";
 import { registerCompositeAssignNames } from "./assign-names/register-composite";
 import { visitAll } from "./assign-names/visit-all";
 
@@ -100,6 +101,7 @@ export const upgradeAssignNames: Plugin<
                     : undefined;
             if (
                 onlyPiece !== undefined &&
+                isValidReferenceableName(onlyPiece) &&
                 !findAttribute(node, "name") &&
                 !context.existingNames.has(onlyPiece) &&
                 !context.claimedNames.has(onlyPiece) &&

@@ -1,5 +1,6 @@
 import { describe, expect, it } from "vitest";
 import { lezerToDast } from "../src/lezer-to-dast";
+import { lezerToDastV6 } from "../src/lezer-to-dast/lezer-to-dast-v6";
 import { toXml } from "../src/dast-to-xml/dast-util-to-xml";
 import util from "util";
 import { DastRoot } from "../src/types";
@@ -57,6 +58,11 @@ describe("parser", () => {
         // A function macro with no arguments needs the same treatment.
         dast = lezerToDast(`$$(f)_0`);
         expect(toXml(dast)).toEqual("$$(f)_0");
+
+        // The v0.6 serializer needs the same treatment, since `toXml` accepts a v0.6 tree.
+        expect(toXml(lezerToDastV6(`$(x)_0`) as any)).toEqual(`$(x)_0`);
+        // ...and drops them again when nothing would run on, as the v0.7 one does.
+        expect(toXml(lezerToDastV6(`$(x) 0`) as any)).toEqual(`$x 0`);
 
         // ...but a macro that is not followed by a name character stays unwrapped.
         for (const src of [`$x 0`, `$x-0`, `<p>$x</p>`, `$x!`, `$x$y`]) {

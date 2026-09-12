@@ -1,5 +1,6 @@
 import {
     DastElement,
+    DastMacro,
     DastMacroPathPart,
     DastRoot,
     isDastElement,
@@ -88,8 +89,12 @@ function renameRawReferenceAttribute(
         return;
     }
     // A cheap pre-check so we don't reparse every `source` attribute in the document.
+    // The split has to break on everything that can separate names, including the `$` and
+    // brackets of a reference written inside an index (`g.list[$a]`).
     if (
-        !value.split(/[.[\]]/).some((piece) => registry.hasReplacement(piece))
+        !value
+            .split(/[^A-Za-z0-9_-]+/)
+            .some((piece) => registry.hasReplacement(piece))
     ) {
         return;
     }
@@ -109,7 +114,14 @@ function renameRawReferenceAttribute(
         return;
     }
 
-    child.value = toXml(renamePath(path, registry, file, node.position));
+    // The path can hold references of its own inside its indices (`g.list[$a]`), so walk
+    // it the same way the rest of the document is walked rather than only rewriting the
+    // top level.
+    const asMacro: DastMacro = { type: "macro", path, attributes: {} };
+    visitAllMacros(asMacro, (macro) => {
+        macro.path = renamePath(macro.path, registry, file, node.position);
+    });
+    child.value = toXml(asMacro.path);
 }
 
 /**

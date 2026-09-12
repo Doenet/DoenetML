@@ -205,12 +205,14 @@ function collapseParentPathParts(
     let warned = false;
     for (const part of path) {
         if (part.name === "..") {
+            // A leading `..` has nothing to drop, but the reference still ends up
+            // pointing somewhere the author did not write, so it is reported either way.
             if (newPath.length > 0) {
                 newPath.pop();
-                if (!warned) {
-                    warned = true;
-                    warn();
-                }
+            }
+            if (!warned) {
+                warned = true;
+                warn();
             }
             continue;
         }
