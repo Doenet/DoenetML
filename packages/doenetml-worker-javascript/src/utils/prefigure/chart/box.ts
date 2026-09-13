@@ -3,8 +3,8 @@
  * series names.
  *
  * The first type whose series holds raw observations rather than one value per
- * category. That is what turns the axis around: every other type reads a series
- * position by position against shared categories, and here a whole series
+ * category. That is what turns the axis around: a chart of categories reads a
+ * series position by position against them, and here a whole series
  * becomes one position — which is `aes(x = group, y = value)`, the standard
  * reading rather than a Doenet-specific one.
  *
@@ -512,8 +512,8 @@ export function createBoxChartPrefigureXML({
         xTicks: null,
         // A box chart's positions are named by the series' own `<label>`, which
         // may hold an `<m>` — the one type whose axis names can carry math,
-        // since every other type names its positions from `categories`, a
-        // `textList`. Read off the rendering rather than the geometry, which is
+        // since a chart of categories names its positions from `categories`, a
+        // `textList`, and a histogram names its bins by their cut points. Read off the rendering rather than the geometry, which is
         // renderer-neutral and has no business knowing how a name is typeset.
         // One slot per series, in the same order, so the indices line up.
         slots: geometry.slots.map((slot, seriesIndex) => ({

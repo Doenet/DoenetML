@@ -219,10 +219,10 @@ describe("chart box prefigure tests @group4", async () => {
 
             // A tick mark's content goes through PreFigure's own label
             // machinery, so an `<m>` in it is typeset the way one in a legend
-            // entry is. A box chart is the only type that can reach this: every
-            // other names its positions from `categories`, which is a
-            // `textList` and so is text and nothing else — and those names are
-            // still written as they always were.
+            // entry is. A box chart is the only type that can reach this: a
+            // chart of categories names its positions from `categories`, which
+            // is a `textList` and so is text and nothing else — and those names
+            // are still written as they always were.
             expect(xml).toContain(">Group <m>x</m></tick-mark>");
             expect(xml).toContain(">plain</tick-mark>");
             // The drawn names, and only those. The annotation still carries
@@ -245,8 +245,8 @@ describe("chart box prefigure tests @group4", async () => {
     </chart>
     `);
 
-            // The same fallback `categories` makes on every other type: the
-            // position itself, 1, 2, 3.
+            // The same fallback `categories` makes on every type that uses it:
+            // the position itself, 1, 2, 3.
             expect(xml).toContain(">1</tick-mark>");
             expect(xml).toContain(">2</tick-mark>");
         });

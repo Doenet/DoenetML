@@ -25,7 +25,7 @@ The vertical axis is the data's and is not anchored to zero, as a line or scatte
 
 Every `<series>` now reports its own summary — `minimum`, `quartile1`, `median`, `quartile3`, `maximum` and `outliers` — whatever chart was drawn from it, so a sentence or an `<answer>` beside the picture can say what the picture shows. These come from the same definition `<summaryStatistics>` uses, extracted so that a table of quartiles and a box plot of the same column cannot disagree on the page. They are interpolated percentiles, not Tukey's hinges, which differ on some sample sizes.
 
-Each box carries its five-number summary as an annotation and each outlier its own, so a box plot is navigable by screen reader like every other chart. They are the only chart annotations that need words to be read at all — five numbers at one position have nothing but their naming to tell them apart — so the wording is a translatable message rather than English built in the worker.
+Each box carries its five-number summary as an annotation and each outlier its own, so a box plot is navigable by screen reader like every other chart. They are the first chart annotations that need words to be read at all — five numbers at one position have nothing but their naming to tell them apart — so the wording is a translatable message rather than English built in the worker.
 
 An observation that is not a finite number is left out of the summary rather than read as zero, and the chart says so: a dropped observation moves every quartile of the box drawn from it and leaves nothing on the page to notice.
 

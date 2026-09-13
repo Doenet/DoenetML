@@ -142,6 +142,35 @@ describe("Chart prefigure renderer live validation @group4", () => {
                     expectText:
                         "box (bounds that cut the box and its whiskers)",
                 },
+                {
+                    doenetML: `
+    <chart type="histogram" name="c" displayValues>
+      <shortDescription>Ten observations</shortDescription>
+      <xLabel>height</xLabel>
+      <yLabel>how many</yLabel>
+      <series><label>heights</label>2 3 3 4 4 4 5 5 6 9</series>
+    </chart>`,
+                    expectText:
+                        "histogram (bins chosen from the data, with a legend)",
+                },
+                {
+                    doenetML: `
+    <chart type="histogram" name="c" bins="0 5 10 20">
+      <title>Scores</title>
+      <shortDescription>Scores in uneven bands</shortDescription>
+      1 2 3 4 5 6 7 8 9 11 12
+    </chart>`,
+                    expectText:
+                        "histogram (cut points of differing widths, one empty bin)",
+                },
+                {
+                    doenetML: `
+    <chart type="histogram" name="c" bins="3" xMin="-5" xMax="20">
+      <shortDescription>Bounds wider than the bins</shortDescription>
+      2 3 3 4 4 4 5 5 6 9
+    </chart>`,
+                    expectText: "histogram (an axis wider than its bars)",
+                },
             ];
 
             for (const c of cases) {
@@ -1108,6 +1137,221 @@ describe("Chart prefigure renderer live validation @group4", () => {
                             pictureHeight + 0.5,
                         );
                     }
+                }
+            }
+        },
+    );
+
+    it.skipIf(!RUN_LIVE_PREFIGURE_VALIDATION)(
+        "optional: a histogram's bars are drawn adjacent, standing on the axis",
+        async () => {
+            // A histogram says what it says through two relations between its
+            // bars — no gap between them, and heights that compare — and the
+            // XML carries neither: it holds a corner and a size per bar, in
+            // data coordinates, and what turns those into pixels is the
+            // bounding box and the margins. A chart whose bars overlapped by a
+            // pixel, or whose baseline came out somewhere other than the axis,
+            // would pass every assertion in `chart-histogram.test.ts`.
+            //
+            // Each rectangle reaches the SVG as a `<path>` carrying its handle,
+            // so its four corners are readable.
+            for (const [what, doenetML, counts] of [
+                [
+                    "bins chosen from the data",
+                    `<chart type="histogram" name="c"><series><label>A</label>2 3 3 4 4 4 5 5 6 9</series></chart>`,
+                    [3, 5, 1, 1],
+                ],
+                [
+                    "cut points of differing widths, one of them empty",
+                    `<chart type="histogram" name="c" bins="0 5 10 20">1 2 3 4 5 6 7 8 9</chart>`,
+                    [4, 5, 0],
+                ],
+                [
+                    "a small chart with many bins",
+                    `<chart type="histogram" name="c" size="small" bins="12">1 2 3 4 5 6 7 8 9 10 11 12 13 14 15 16 17 18</chart>`,
+                    null,
+                ],
+                [
+                    "an axis wider than the bars",
+                    `<chart type="histogram" name="c" bins="3" xMin="-5" xMax="20">2 3 3 4 4 4 5 5 6 9</chart>`,
+                    null,
+                ],
+            ] as [string, string, number[] | null][]) {
+                const prefigureXML = await getPrefigureXML(doenetML, "c");
+                const result =
+                    await validatePrefigureXMLAgainstBuildService(prefigureXML);
+                expect(result.ok, `${what}: build failed`).toBe(true);
+
+                const svg: string = result.body?.svg ?? "";
+                const pictureWidth = Number(
+                    svg.match(/<svg[^>]*width="([\d.]+)"/)?.[1],
+                );
+                const pictureHeight = Number(
+                    svg.match(/<svg[^>]*height="([\d.]+)"/)?.[1],
+                );
+
+                const bars = [
+                    ...svg.matchAll(
+                        /<path id="[^"]*?bin-(\d+)" d="M ([\d.-]+) ([\d.-]+) L ([\d.-]+) ([\d.-]+) L ([\d.-]+) ([\d.-]+) L ([\d.-]+) ([\d.-]+) Z"[^>]*stroke-width="([\d.]+)"/g,
+                    ),
+                ].map((bar) => ({
+                    index: Number(bar[1]),
+                    left: Number(bar[2]),
+                    right: Number(bar[4]),
+                    // The path runs from the lower left along the baseline and
+                    // back, so the first and third corners are the two heights.
+                    baseline: Number(bar[3]),
+                    top: Number(bar[7]),
+                    stroke: Number(bar[10]),
+                }));
+
+                expect(
+                    bars.length,
+                    `${what}: no bars were drawn`,
+                ).toBeGreaterThan(0);
+                expect(
+                    bars.map((bar) => bar.index),
+                    `${what}: the bars are not in order`,
+                ).eqls(bars.map((_unused, ind) => ind + 1));
+
+                for (const [ind, bar] of bars.entries()) {
+                    // Adjacent: each bar starts exactly where the one before it
+                    // ended. Half a pixel of slack, since the coordinates are
+                    // rounded to a tenth on the way into the SVG.
+                    if (ind > 0) {
+                        expect(
+                            bar.left,
+                            `${what}: bar ${bar.index} does not meet the one before it`,
+                        ).closeTo(bars[ind - 1].right, 0.5);
+                    }
+                    expect(
+                        bar.right,
+                        `${what}: bar ${bar.index} has no width`,
+                    ).toBeGreaterThan(bar.left);
+
+                    // Standing on one baseline, which is the count axis' zero:
+                    // a bar whose bottom moved would be drawn as a count it is
+                    // not.
+                    expect(
+                        bar.baseline,
+                        `${what}: bar ${bar.index} does not stand on the baseline`,
+                    ).closeTo(bars[0].baseline, 0.5);
+
+                    // Up the picture, which is down the SVG's y.
+                    expect(
+                        bar.top,
+                        `${what}: bar ${bar.index} is drawn below the baseline`,
+                    ).toBeLessThanOrEqual(bar.baseline);
+
+                    // Inside the picture, stroke included.
+                    expect(
+                        bar.left - bar.stroke / 2,
+                        `${what}: bar ${bar.index} reaches past the left edge`,
+                    ).toBeGreaterThan(-0.5);
+                    expect(bar.right + bar.stroke / 2).toBeLessThan(
+                        pictureWidth + 0.5,
+                    );
+                    expect(
+                        bar.top - bar.stroke / 2,
+                        `${what}: bar ${bar.index} reaches past the top edge`,
+                    ).toBeGreaterThan(-0.5);
+                    expect(bar.baseline + bar.stroke / 2).toBeLessThan(
+                        pictureHeight + 0.5,
+                    );
+                }
+
+                // And the heights are the counts: twice as many observations
+                // is twice as tall, measured from the baseline the bars share.
+                if (counts !== null) {
+                    expect(bars.length, `${what}: wrong number of bars`).eq(
+                        counts.length,
+                    );
+                    const tallest = Math.max(...counts);
+                    const unit =
+                        (bars[0].baseline - bars[counts.indexOf(tallest)].top) /
+                        tallest;
+                    for (const [ind, count] of counts.entries()) {
+                        expect(
+                            bars[0].baseline - bars[ind].top,
+                            `${what}: bar ${ind + 1} is not drawn at its count`,
+                        ).closeTo(unit * count, 0.6);
+                    }
+                }
+            }
+        },
+    );
+
+    it.skipIf(!RUN_LIVE_PREFIGURE_VALIDATION)(
+        "optional: every cut point the axis promises carries a drawn number",
+        async () => {
+            // The gap this closes: nothing else in the repository can see a
+            // label that was *not* drawn. The vitest suites assert on the XML
+            // string, and the cases above ask the build service only for an
+            // SVG — so an axis asked to number a place outside its own bounding
+            // box passes both, because PreFigure drops such a label in silence.
+            // Two defects reached review that way, both in the numbers under a
+            // histogram's outermost bars, and both invisible until the rendered
+            // SVG was read.
+            //
+            // A label reaches the SVG as MathJax, carrying its value in
+            // `data-semantic-speech` — grouped, so 1013.15 arrives as
+            // "1 comma 013.15" — and rounded to about six digits, which is why
+            // the comparison below is a tolerance rather than a string match.
+            //
+            // Every fixture here is labeled at every cut point (a stride of
+            // one), and none of them has a cut point at zero: PreFigure draws
+            // no label where the two axes cross, which is a rule of its own
+            // rather than anything this chart decides.
+            for (const [what, doenetML, expected] of [
+                [
+                    "a requested count over data carrying more than twelve digits",
+                    `<chart type="histogram" name="c" bins="5">1.234567890123456 3 5 7 9.876543210987654</chart>`,
+                    [
+                        1.234567890123456, 2.962962954, 4.691358018,
+                        6.419753082, 8.148148146, 9.876543210987654,
+                    ],
+                ],
+                [
+                    "bins narrow beside their own magnitude",
+                    `<chart type="histogram" name="c" bins="6">1013.21 1013.26 1013.29 1013.15 1013.33 1013.16 1013.29 1013.16 1013.17 1013.34 1013.32</chart>`,
+                    [
+                        1013.15, 1013.18167, 1013.21333, 1013.245, 1013.27667,
+                        1013.30833, 1013.34,
+                    ],
+                ],
+                [
+                    // Scores rather than the small sample used elsewhere: the
+                    // sweep below reads every label in the picture, and a cut
+                    // point that is also a count would be found on the vertical
+                    // axis whether or not the horizontal one drew it.
+                    "cut points the chart chose",
+                    `<chart type="histogram" name="c">52 61 63 68 70 71 75 78 84 91 55 58 60 62 65 66 70 72 88 94</chart>`,
+                    [50, 60, 70, 80, 90, 100],
+                ],
+            ] as [string, string, number[]][]) {
+                const prefigureXML = await getPrefigureXML(doenetML, "c");
+                const result =
+                    await validatePrefigureXMLAgainstBuildService(prefigureXML);
+                expect(result.ok, `${what}: build failed`).toBe(true);
+
+                const svg: string = result.body?.svg ?? "";
+                const drawn = [
+                    ...svg.matchAll(/data-semantic-speech="([^"]*)"/g),
+                ].map((label) =>
+                    Number(
+                        label[1].replace(/ comma /g, "").replace(/\s+/g, ""),
+                    ),
+                );
+
+                for (const cutPoint of expected) {
+                    expect(
+                        drawn.some(
+                            (value) =>
+                                Math.abs(value - cutPoint) <=
+                                Math.abs(cutPoint) * 1e-5,
+                        ),
+                        `${what}: no number drawn at the cut point ${cutPoint}`,
+                    ).toBe(true);
                 }
             }
         },

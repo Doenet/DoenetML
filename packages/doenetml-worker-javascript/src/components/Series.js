@@ -94,7 +94,7 @@ export default class Series extends BaseComponent {
         attributes.x = {
             createComponentOfType: "numberList",
             description:
-                "The horizontal coordinate of each value, for a chart whose marks are placed by measurement. Without it a series is drawn under `categories`, at 1, 2, 3 and so on.",
+                "The horizontal coordinate of each value, for a chart whose marks are placed by measurement. Without it a line or scatter chart draws its marks under `categories`, at 1, 2, 3 and so on. A box plot and a histogram read a series as raw observations and take their positions from the data itself, so neither reads it.",
             highlighted: true,
         };
 

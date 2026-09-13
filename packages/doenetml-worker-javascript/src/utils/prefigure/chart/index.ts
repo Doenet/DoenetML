@@ -1,6 +1,6 @@
 /**
  * PreFigure assembly for `<chart>` — bars, points and the lines through them,
- * pies, and box plots.
+ * pies, box plots, and histograms.
  *
  * Kept apart from `graph.ts` because a chart is not a graph with data in it: it
  * owns its own bounding box, it sizes its own axes from the data, and it has no
@@ -13,8 +13,8 @@
  * - `scale.ts` — the arithmetic behind an axis: rounding, tick steps, bounds.
  * - `frame.ts` — what a chart is drawn *in*: the margins, the axes and their
  *   labels, the legend, the title and the annotation tree.
- * - `bar.ts`, `point.ts`, `pie.ts`, `box.ts` — one chart type each: the
- *   geometry its values come to, and the marks drawn from it.
+ * - `bar.ts`, `point.ts`, `pie.ts`, `box.ts`, `histogram.ts` — one chart type
+ *   each: the geometry its values come to, and the marks drawn from it.
  *
  * This file is what the rest of the worker imports. It holds the union of the
  * geometries and the one question `<chart>` asks about a legend before any XML
@@ -26,6 +26,7 @@ import type { BarChartGeometry } from "./bar";
 import type { PointChartGeometry } from "./point";
 import type { PieChartGeometry } from "./pie";
 import type { BoxChartGeometry } from "./box";
+import type { HistogramChartGeometry } from "./histogram";
 
 export type { BarChartGeometry, BarGeometry, BarLayout } from "./bar";
 export { computeBarChartGeometry, createBarChartPrefigureXML } from "./bar";
@@ -47,12 +48,23 @@ export { computePieChartGeometry, createPieChartPrefigureXML } from "./pie";
 export type { BoxChartGeometry, BoxGeometry } from "./box";
 export { computeBoxChartGeometry, createBoxChartPrefigureXML } from "./box";
 
+export type { HistogramBinGeometry, HistogramChartGeometry } from "./histogram";
+export {
+    computeHistogramChartGeometry,
+    createHistogramChartPrefigureXML,
+    MAX_REQUESTED_BINS,
+} from "./histogram";
+
 export type { ChartSeriesValues } from "./scale";
 export type { ChartSeriesRendering } from "./frame";
 
 /** Any of the geometries a `<chart>` produces, whichever type was named. */
 export type ChartGeometry =
-    BarChartGeometry | PointChartGeometry | PieChartGeometry | BoxChartGeometry;
+    | BarChartGeometry
+    | PointChartGeometry
+    | PieChartGeometry
+    | BoxChartGeometry
+    | HistogramChartGeometry;
 
 /**
  * Whether the legend this chart would draw has anything to put in it.
@@ -76,10 +88,28 @@ export function chartLegendHasItems(geometry: ChartGeometry | null): boolean {
     }
 
     // A box chart names each series on the axis, under the box drawn from it,
-    // so it has nothing left for a legend to say. Every other type draws
-    // several series into the same space and needs a key to tell them apart.
+    // so it has nothing left for a legend to say. The types that draw several
+    // series into the same space need a key to tell them apart, and a
+    // histogram, which draws one, names that one the way a bar chart of one
+    // group does.
     if (geometry.kind === "box") {
         return false;
+    }
+
+    // A histogram draws one series, so what its legend can name is that series
+    // — the same rule as a bar chart of one group, applied to the one mark a
+    // histogram has to point at.
+    if (geometry.kind === "histogram") {
+        return (
+            geometry.bins.length > 0 &&
+            geometry.series.some(
+                (oneSeries) =>
+                    labelMarkup({
+                        label: oneSeries.label,
+                        labelHasLatex: false,
+                    }) !== null,
+            )
+        );
     }
 
     // A pie is the one type that colors *within* a series, so its legend names

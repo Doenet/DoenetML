@@ -1083,6 +1083,18 @@ sample-multivariate-type-not-specified =
 tally-values-outside-categories =
     Some values matched none of the declared categories, so they were not counted.
 
+# Raised by `<chart type="histogram">` when an observation falls outside the
+# outermost cut points. Only cut points an author wrote can leave any — bins the
+# chart chooses cover the data — so this says what a written `bins` left out.
+# Info rather than a warning, for the reason the message above is: leaving part
+# of a sample out of a picture is something an author may have meant, and a
+# column fed by an input passes through values outside the bins while a student
+# is typing. It deliberately does not say how many: the diagnostics queue is
+# append-only and deduplicates by message, so a count would leave one permanent
+# entry behind for every number the column passed through.
+chart-histogram-values-outside-bins =
+    Some observations fell outside the `bins` cut points, so they were not counted in any bar.
+
 # Raised by `<tally>` when `categories` names the same category more than once.
 # A warning rather than info: unlike a stray value, a repeated category is a
 # property of what the author wrote, so it stays true of a settled document. The
@@ -1216,3 +1228,54 @@ chart-box-values-not-drawable =
 # a reader to see.
 chart-box-categories-ignored =
     A box plot names each of its boxes after the series it was drawn from, so `categories` was not used. Give each `<series>` a `<label>` instead.
+
+# Raised by `<chart type="histogram">` for an observation that is not a finite
+# number, which falls in no bin. Its own message rather than the box plot's,
+# because what is lost differs: there a quartile moves, here a bar is one
+# shorter. No count, for the reason the others give: the queue deduplicates by
+# message, and the number changes as an input is typed into.
+chart-histogram-values-not-drawable =
+    A histogram counts finite numbers, so an observation that is not one fell in no bin.
+
+# Raised by `<chart type="histogram">` holding more than one `<series>` that is
+# not hidden — a hidden one is dropped before the count, like any drawn child of
+# a container that is hidden on its own account. Two samples counted into the
+# same bars would have to be stacked or drawn through each other, and neither is
+# a reading a histogram can be given without being told which was meant.
+chart-histogram-one-series =
+    A histogram draws one series, so only the first was drawn. Chart the others separately, or compare them with `type="box"`.
+
+# Raised by `<chart type="histogram">` whose `bins` is a single number that is
+# not a number of bins: not a whole number, not positive, or more bins than a
+# picture can hold. $bins is what the author wrote and $maximum the most that
+# may be asked for. Two or more numbers are read as cut points instead, and are
+# reported by the message below.
+chart-histogram-bin-count-invalid =
+    `bins` must be a whole number of bins from 1 to { $maximum }, or two or more cut points, but { $bins } was given. Choosing bins from the data instead.
+
+# Raised by `<chart type="histogram">` whose `bins` holds two or more numbers
+# that do not describe bins to draw. `<binCounts>` has a message of its own for
+# the same list, and this one differs in what happens next: a chart has data to
+# choose bins from, so it draws those rather than drawing nothing.
+#
+# A cut point that is not finite is reported here too, where `<binCounts>`
+# counts into a bin with no far end quite happily — a bar with no far end is not
+# something a picture can hold.
+chart-histogram-cut-points-invalid =
+    Each `bins` cut point must be a finite number at least as large as the one before it. Choosing bins from the data instead.
+
+# Raised by `<chart type="histogram">` carrying a `categories` attribute. A
+# histogram has no categories: its positions are the bins it divided the scale
+# into, named by the numbers they run between, so the names in `categories` are
+# authored text with nowhere on the page to go — which is worth a message where
+# an ignored *attribute* is not, because what was dropped is something the
+# author wrote for a reader to see.
+chart-histogram-categories-ignored =
+    A histogram names its bars by the cut points they run between, so `categories` was not used. Give `bins` the cut points you want instead.
+
+# Raised by `<chart type="histogram">` carrying a `barWidth` attribute. The gap
+# a `barWidth` below 1 leaves is what says two bars stand for separate things,
+# and a histogram's bars are neighboring stretches of one continuous scale —
+# so there is no slot for a width to be a fraction of.
+chart-histogram-bar-width-ignored =
+    A histogram's bars are adjacent, with no gap between them, so `barWidth` was not used. Give `bins` fewer cut points to draw wider bars.

@@ -83,8 +83,19 @@ export function saturatingAdd(total: number, value: number): number {
  * never labeled 0, 0.5, 1 — which would invite reading half a thing — and 0
  * for one that is not, so that a chart of proportions gets ticks inside the
  * unit interval rather than only at its ends.
+ *
+ * `intervals` is how many of them to aim for. An axis wants a handful, which is
+ * the default; a histogram choosing its own bins asks for as many as its rule
+ * says, and gets a width off the same ladder — which is what makes its cut
+ * points numbers a reader recognizes, and so numbers the axis can be labeled
+ * at. The step is never below `span / intervals`, so asking for more intervals
+ * never yields fewer.
  */
-function niceTickStep(span: number, minStep: number): number {
+export function niceTickStep(
+    span: number,
+    minStep: number,
+    intervals: number = TARGET_TICK_INTERVALS,
+): number {
     if (Number.isNaN(span) || span <= 0) {
         return Math.max(minStep, 1);
     }
@@ -94,13 +105,10 @@ function niceTickStep(span: number, minStep: number): number {
     // step of 1 would ask for an impossible number of labels, so scale to the
     // largest magnitude the range can actually hold.
     if (!Number.isFinite(span)) {
-        return Math.max(
-            minStep,
-            snapNumber(Number.MAX_VALUE / TARGET_TICK_INTERVALS),
-        );
+        return Math.max(minStep, snapNumber(Number.MAX_VALUE / intervals));
     }
 
-    const rough = span / TARGET_TICK_INTERVALS;
+    const rough = span / intervals;
     const magnitude = 10 ** Math.floor(Math.log10(rough));
     // A subnormal span underflows the power of ten to 0, which would make the
     // step 0 and every tick `NaN`. There is no representable round step below

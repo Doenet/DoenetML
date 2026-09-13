@@ -301,6 +301,7 @@ export type MessageKey =
     | "math-embedded-input-blank-ordinal"
     | "chart-box-summary"
     | "chart-box-outlier"
+    | "chart-histogram-bin"
     | "line-segment-attributes-ignored-with-endpoints"
     | "line-segment-attributes-ignored-with-endpoint-and-midpoint"
     | "line-segment-midpoint-offset-without-midpoint"
@@ -537,6 +538,7 @@ export type MessageKey =
     | "sample-multivariate-draws-too-many"
     | "sample-multivariate-type-not-specified"
     | "tally-values-outside-categories"
+    | "chart-histogram-values-outside-bins"
     | "tally-repeated-category"
     | "bin-counts-missing-bins"
     | "bin-counts-too-few-cut-points"
@@ -554,6 +556,12 @@ export type MessageKey =
     | "chart-pie-axis-name-ignored"
     | "chart-box-values-not-drawable"
     | "chart-box-categories-ignored"
+    | "chart-histogram-values-not-drawable"
+    | "chart-histogram-one-series"
+    | "chart-histogram-bin-count-invalid"
+    | "chart-histogram-cut-points-invalid"
+    | "chart-histogram-categories-ignored"
+    | "chart-histogram-bar-width-ignored"
     | "editor-update-viewer"
     | "editor-update-viewer-title"
     | "editor-variant"
@@ -921,6 +929,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "math-embedded-input-blank-ordinal",
     "chart-box-summary",
     "chart-box-outlier",
+    "chart-histogram-bin",
     "line-segment-attributes-ignored-with-endpoints",
     "line-segment-attributes-ignored-with-endpoint-and-midpoint",
     "line-segment-midpoint-offset-without-midpoint",
@@ -1157,6 +1166,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "sample-multivariate-draws-too-many",
     "sample-multivariate-type-not-specified",
     "tally-values-outside-categories",
+    "chart-histogram-values-outside-bins",
     "tally-repeated-category",
     "bin-counts-missing-bins",
     "bin-counts-too-few-cut-points",
@@ -1174,6 +1184,12 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "chart-pie-axis-name-ignored",
     "chart-box-values-not-drawable",
     "chart-box-categories-ignored",
+    "chart-histogram-values-not-drawable",
+    "chart-histogram-one-series",
+    "chart-histogram-bin-count-invalid",
+    "chart-histogram-cut-points-invalid",
+    "chart-histogram-categories-ignored",
+    "chart-histogram-bar-width-ignored",
     "editor-update-viewer",
     "editor-update-viewer-title",
     "editor-variant",

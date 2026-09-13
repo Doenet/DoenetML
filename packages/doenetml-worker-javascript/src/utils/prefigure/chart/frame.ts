@@ -375,7 +375,7 @@ const TITLE_SCALE = 1.4;
 export const TITLE_MARGIN = 14 * TITLE_SCALE + 10;
 
 /** A run of labeled values on one axis. */
-type AxisTicks = { first: number; last: number; step: number };
+export type AxisTicks = { first: number; last: number; step: number };
 
 /**
  * The run of labeled values inside `min`…`max`, a whole number of steps from
@@ -757,13 +757,12 @@ export function assembleChartDiagram({
     yTicks: AxisTicks;
     /** Null when the horizontal axis carries category names instead of numbers. */
     xTicks: AxisTicks | null;
-    /** Null when the horizontal axis is numeric. */
     /**
      * Null when the horizontal axis is numeric. `labelHasLatex` says the name
      * carries math to typeset rather than characters to print — true only of a
      * box chart, whose positions are named by a `<label>` that may hold an
-     * `<m>`, where every other type names them from `categories`, which is a
-     * `textList` and so is text and nothing else.
+     * `<m>`, where a chart of categories names them from `categories`, which is
+     * a `textList` and so is text and nothing else.
      */
     slots: { center: number; label: string; labelHasLatex?: boolean }[] | null;
     widthPx: number;

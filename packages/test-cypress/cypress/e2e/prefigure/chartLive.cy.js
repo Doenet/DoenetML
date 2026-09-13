@@ -512,6 +512,123 @@ liveDescribe("Live chart rendering @group4", { tags: ["@group4"] }, () => {
             .and("contain.text", "Scores in two sections");
     });
 
+    it("draws a histogram with its bars adjacent and its bins navigable", () => {
+        cy.window().then((win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+<text name="ready">ready</text>
+<chart name="h" type="histogram">
+  <title>Heights</title>
+  <shortDescription>Ten heights, binned</shortDescription>
+  <xLabel>height</xLabel>
+  <yLabel>how many</yLabel>
+  <series><label>heights</label>2 3 3 4 4 4 5 5 6 9</series>
+</chart>
+`,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#ready").should("have.text", "ready");
+        cy.get("#h .svg svg", { timeout: 30000 }).should("exist");
+
+        // The horizontal axis is numbered at the cut points the bars are
+        // divided at, which is what lets a reader read a bar's stretch off the
+        // axis. Those numbers are MathJax labels rather than `<text>`, so they
+        // are read from their speech.
+        cy.get("#h .svg svg").should(($svg) => {
+            const spoken = [
+                ...$svg[0].querySelectorAll("[data-semantic-speech]"),
+            ]
+                .map((el) => el.getAttribute("data-semantic-speech"))
+                .map((speech) => speech.trim());
+            for (const edge of ["2", "4", "6", "8", "10"]) {
+                expect(spoken, `the axis should be labeled ${edge}`).to.include(
+                    edge,
+                );
+            }
+            expect($svg.text()).to.include("Heights");
+        });
+
+        // Measured by the browser rather than read off the path data: what a
+        // histogram says, it says through the relations between its bars, and
+        // what turns data coordinates into pixels is the bounding box and the
+        // margins.
+        cy.get("#h .svg svg").then(($svg) => {
+            const svg = $svg[0];
+            const counts = [3, 5, 1, 1];
+            const bars = counts.map((_unused, ind) => {
+                const bar = svg.querySelector(`[id$="bin-${ind + 1}"]`);
+                expect(bar, `bin ${ind + 1}`).to.exist;
+                return bar.getBoundingClientRect();
+            });
+
+            bars.forEach((bar, ind) => {
+                if (ind > 0) {
+                    // Adjacent: no gap, and no overlap either. The stroke is
+                    // shared between neighbors, so the slack is one stroke
+                    // width.
+                    expect(
+                        Math.abs(bar.left - bars[ind - 1].right),
+                        `bin ${ind + 1} should meet the bin before it`,
+                    ).to.be.at.most(5);
+                }
+                // Every bar stands on one baseline, and is as tall as its
+                // count says. Measured against the tallest, since the pixels
+                // per observation are what the margins decide.
+                expect(
+                    Math.abs(bar.bottom - bars[0].bottom),
+                    `bin ${ind + 1} should stand on the baseline`,
+                ).to.be.at.most(2);
+                const perObservation = bars[1].height / counts[1];
+                expect(
+                    Math.abs(bar.height - perObservation * counts[ind]),
+                    `bin ${ind + 1} should be drawn at its count`,
+                ).to.be.at.most(5);
+            });
+
+            expectNothingClipped(svg, "#h");
+        });
+
+        // The tree diagcess walks: figure, then a bin. There is no level
+        // between them, a histogram drawing one series.
+        cy.get("#h .cml", { timeout: 30000 }).should(($cml) => {
+            const annotations = [...$cml[0].querySelectorAll("annotation")];
+            const figure = annotations.find((el) =>
+                (el.getAttribute("id") ?? "").endsWith("figure"),
+            );
+            expect(figure, "figure annotation").to.exist;
+
+            const children = [...figure.querySelectorAll("children > *")].map(
+                (el) => el.textContent.trim(),
+            );
+            expect(children).to.have.length(4);
+            children.forEach((markId, ind) => {
+                expect(markId.endsWith(`bin-${ind + 1}`)).to.be.true;
+            });
+
+            // Each says what its bar stands for: the stretch it covers, and
+            // how many fell in it.
+            const firstBin = annotations.find((el) =>
+                (el.getAttribute("id") ?? "").endsWith("bin-1"),
+            );
+            expect(firstBin.getAttribute("speech2")).to.equal(
+                "2 to 4, count 3",
+            );
+        });
+
+        cy.get("#h .ChemAccess-element", { timeout: 30000 })
+            .should("have.attr", "has-svg", "true")
+            .and("have.attr", "has-cml", "true");
+
+        cy.get("#h .ChemAccess-element").click({ force: true });
+        cy.get("#h .cacc-message", { timeout: 30000 })
+            .should("exist")
+            .and("contain.text", "Ten heights, binned");
+    });
+
     it("navigates the bars through their series", () => {
         cy.window().then((win) => {
             win.postMessage(
