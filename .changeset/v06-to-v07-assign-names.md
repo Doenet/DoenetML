@@ -24,8 +24,10 @@ alternative text screen readers need (it now becomes the `<shortDescription>` v0
 an external copy's assigned name was dropped so references to it went nowhere,
 `<image source="a/b.png">` had its slashes turned into dots, and `<copy source="../f">`
 became `source="...f"`, a function macro nested in another's arguments or indices inside
-an attribute was left in v0.6 syntax, and a `<copy>` of something the document could not
-build was renamed to `<_error>`, which is not an element anyone can write.
+an attribute was left in v0.6 syntax, a `<copy>` that had to be left alone because its
+referent could not be found lost its `prop` and so quietly copied the whole component, and
+a `<copy>` of something the document could not build was renamed to `<_error>`, which is
+not an element anyone can write.
 
 The same assigned name can appear in more than one v0.6 namespace, and a reference said
 which it meant by writing the namespace in front of it. Only one of them can keep the bare

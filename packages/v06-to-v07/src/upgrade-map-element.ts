@@ -14,6 +14,7 @@ import {
     readAssignNames,
 } from "./assign-names/context";
 import { registerCompositeAssignNames } from "./assign-names/register-composite";
+import { makeTemplatePositionMap } from "./assign-names/composite-info";
 
 /**
  * Upgrade the `<map>` element to the new syntax.
@@ -70,6 +71,14 @@ export const upgradeMapElement: Plugin<
                         ancestorNames: namespaceChainOf(info.parents, context),
                         context,
                         file,
+                        // A nested name such as `assignNames="(a b)"` counts positions
+                        // inside one iteration, which are the template's children — and
+                        // v0.6 skipped bare text there while v0.7 counts it.
+                        positionMap: makeTemplatePositionMap(
+                            templateNode,
+                            node,
+                            file,
+                        ),
                     }) ?? name;
             }
 

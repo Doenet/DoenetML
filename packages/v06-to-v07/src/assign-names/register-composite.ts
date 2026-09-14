@@ -8,10 +8,11 @@ import { PositionMap, registerAssignNames } from "./register-assign-names";
  * Parse an element's `assignNames`, pick the v0.7 name the composite will carry, and
  * register the indexed path that replaces each assigned name.
  *
- * Returns the chosen name, or `undefined` when the value could not be parsed (in which
- * case a message has been recorded and nothing was registered). The caller is responsible
- * for putting the name on the element — `<map>` puts it on the `<repeat>` it produces
- * rather than on the element that carried `assignNames`.
+ * Returns the chosen name, or `undefined` when the value names nothing — either because
+ * it could not be parsed (in which case a message has been recorded) or because it parsed
+ * to no names at all, as `assignNames="()"` does. Nothing is registered in either case.
+ * The caller is responsible for putting the name on the element — `<map>` puts it on the
+ * `<repeat>` it produces rather than on the element that carried `assignNames`.
  */
 export function registerCompositeAssignNames({
     node,
@@ -47,6 +48,12 @@ export function registerCompositeAssignNames({
             origin,
             file,
         });
+        return undefined;
+    }
+
+    if (parsed.pieces.length === 0) {
+        // A value such as `assignNames="()"` hands out no names, so there is nothing to
+        // register and no reason to give the composite a name it never had.
         return undefined;
     }
 

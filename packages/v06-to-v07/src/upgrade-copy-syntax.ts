@@ -85,6 +85,8 @@ async function resolveCopyTags(
         node: DastElement;
         referentType: Promise<string>;
         referentName: string;
+        /** The `prop` attribute to drop, but only once the referent has resolved. */
+        propKey?: string;
     }[] = [];
 
     visit(tree, (node) => {
@@ -98,13 +100,16 @@ async function resolveCopyTags(
         }
         // There may be a `prop` attribute which specifies which prop from `source` to copy.
         // In the new syntax, this is always accessed with a `.<prop name>` suffix.
+        let propKey: string | undefined;
         if (node.attributes["prop"]) {
             const propName = toXml(node.attributes["prop"].children).trim();
             if (propName) {
                 referentName += `.${propName}`;
             }
-            // Remove the `prop` attribute, as it is no longer needed
-            delete node.attributes["prop"];
+            // Noted, but not removed yet: if the referent cannot be resolved the `<copy>`
+            // is left as it was, and dropping `prop` there would quietly widen what it
+            // copies while the diagnostic claims the tag was untouched.
+            propKey = "prop";
         }
 
         // `assignNames` has already become a `name` in `upgradeCopyElements`, which runs
@@ -114,6 +119,7 @@ async function resolveCopyTags(
             node,
             referentType: findReferentType(core, referentName),
             referentName,
+            propKey,
         });
     });
 
@@ -122,9 +128,16 @@ async function resolveCopyTags(
         node,
         referentType: referentPromise,
         referentName,
+        propKey,
     } of referenced) {
         try {
             const referentType = await referentPromise;
+
+            // Now that the conversion is going through, `prop` is carried by the
+            // reference itself and the attribute is redundant.
+            if (propKey) {
+                delete node.attributes[propKey];
+            }
 
             const targetTag =
                 toXml(node.attributes["link"]?.children || []).toLowerCase() ===

@@ -142,9 +142,38 @@ export function makePositionMap(
         return undefined;
     }
 
-    const maps = branches.map((branch) => branchPositionMap(branch.children));
+    return positionMapForBranches(
+        branches.map((branch) => branch.children),
+        node,
+        file,
+    );
+}
+
+/**
+ * The `<map>` counterpart of {@link makePositionMap}: its `<template>` is the single
+ * branch, and its children sit at the same depth as an `<option>`/`<case>`'s do — one
+ * index for the iteration, then one for the position within it.
+ */
+export function makeTemplatePositionMap(
+    template: DastElement,
+    node: DastElement,
+    file: VFile,
+): PositionMap | undefined {
+    return positionMapForBranches([template.children], node, file);
+}
+
+/**
+ * Build the {@link PositionMap} for a set of sibling replacement lists, each of which v0.6
+ * named by counting only its non-primitive members.
+ */
+function positionMapForBranches(
+    branches: DastElementContent[][],
+    node: DastElement,
+    file: VFile,
+): PositionMap | undefined {
+    const maps = branches.map((children) => branchPositionMap(children));
     const first = maps[0];
-    if (maps.every((m) => isIdentity(m))) {
+    if (first === undefined || maps.every((m) => isIdentity(m))) {
         return undefined;
     }
     if (!maps.every((m) => sameMap(m, first))) {
@@ -166,6 +195,9 @@ export function makePositionMap(
         },
     );
 
+    // Depth 1 picks the branch (the `<case>`/`<option>`, or the `<map>` iteration); depth
+    // 2 picks a member of it, which is the only level whose members are authored children
+    // rather than generated replacements.
     const insideGroupingDepth = 2;
     return (depth, ordinal) => {
         if (depth !== insideGroupingDepth) {

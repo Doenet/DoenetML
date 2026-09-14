@@ -1142,3 +1142,65 @@ describe("regressions found by the seventh review", () => {
         );
     });
 });
+
+describe("regressions found by the eighth review", () => {
+    let source: string;
+
+    it("keeps `prop` on a <copy> whose referent cannot be resolved", async () => {
+        // The referent type decides what the `<copy>` becomes, so when it cannot be
+        // found the tag is left alone and reported. Dropping `prop` on the way past
+        // would quietly turn "the x of it" into "all of it".
+        source = `<copy source="missing" prop="x" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`prop="x"`);
+        expect(xml).toContain(`<copy`);
+        expect(res.vfile.messages.length).toBeGreaterThan(0);
+    });
+
+    it("removes `prop` once the referent does resolve", async () => {
+        source = `<point name="P">(1,2)</point><copy source="P" prop="x" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        const xml = toXml(res.dast);
+        expect(xml).not.toContain(`prop=`);
+        expect(xml).toContain(`extend="$P.x"`);
+    });
+
+    it("does not invent a name for an assignNames that names nothing", async () => {
+        // `assignNames="()"` parses successfully but hands out no names, so the
+        // `<map>` has nothing to be called.
+        source = `<map assignNames="()"><template><p>hi</p></template><sources alias="v"><sequence from="1" to="2" /></sources></map>`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).not.toContain("name=");
+        expect(xml).toContain("<repeatForSequence");
+    });
+
+    it("counts a map template's bare text when mapping nested positions", async () => {
+        // v0.6 skipped the text when handing `a` out, so `a` was the `<math>`; v0.7
+        // counts the text as a replacement, which puts the `<math>` second.
+        source = `<map assignNames="(a)"><template>text <math>x</math></template><sources alias="v"><sequence from="1" to="2" /></sources></map> $a`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`$a[1][2]`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "assign-names/primitive-skew",
+        );
+    });
+
+    it("leaves an all-element map template at the identity mapping", async () => {
+        source = `<map assignNames="(a b)"><template><math>x</math><math>y</math></template><sources alias="v"><sequence from="1" to="2" /></sources></map> $a $b`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`$a[1][1] $a[1][2]`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).not.toContain(
+            "assign-names/primitive-skew",
+        );
+    });
+});
