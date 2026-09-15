@@ -141,6 +141,10 @@ function renameRawReferenceAttribute(
             file,
             node.position,
             enclosingNames,
+            // A copy's `source` says what it copies, which is never the copy itself:
+            // `<copy source="../x0" assignNames="x0">` names its result `x0` while
+            // reaching out of the namespace for the `x0` it copies.
+            node,
         );
     });
     child.value = toXml(asMacro.path);
@@ -166,6 +170,8 @@ function renamePath(
     place?: DastElement["position"],
     /** The namespaces the reference itself sits inside, outermost first. */
     enclosingNames: string[] = [],
+    /** The element the reference is written on; see `RenameOrigin.element`. */
+    writtenOn?: DastElement,
 ): DastMacroPathPart[] {
     if (!path.some((part) => registry.hasReplacement(part.name))) {
         return path;
@@ -175,10 +181,11 @@ function renamePath(
         // which is how a name assigned in more than one of them is told apart.
         // Where the reference is written, followed by the namespaces it names on its
         // way in: a `$a` inside `g2` means g2's `a`, and so does `$(g2/a)` from outside.
-        const target = registry.get(part.name, [
-            ...enclosingNames,
-            ...path.slice(0, partIndex).map((p) => p.name),
-        ]);
+        const target = registry.get(
+            part.name,
+            [...enclosingNames, ...path.slice(0, partIndex).map((p) => p.name)],
+            writtenOn,
+        );
         if (!target?.replacement) {
             return [part];
         }

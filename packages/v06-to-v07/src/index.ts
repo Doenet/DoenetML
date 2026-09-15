@@ -25,8 +25,13 @@ import { upgradeCopyElements } from "./upgrade-copy-elements";
 import { upgradeListProps } from "./upgrade-list-props";
 import { upgradeAssignNames } from "./upgrade-assign-names";
 import { applyAssignNameRenames } from "./apply-assign-name-renames";
-import { createAssignNamesContext } from "./assign-names/context";
+import {
+    AssignNamesContext,
+    createAssignNamesContext,
+} from "./assign-names/context";
 import { markAsPropAccess } from "./assign-names/prop-access-parts";
+import { convertAssignNames } from "./upgrade-copy-elements";
+import { namespaceChainOf } from "./assign-names/context";
 import { isModuleComponentType } from "./core-info/determine-prop-type";
 
 export type Options = {
@@ -61,7 +66,7 @@ export async function updateSyntaxFromV06toV07_root(
         .use(upgradePathSlashesToDots)
         .use(removeNewNamespaceAttribute)
         .use(upgradeRefElement)
-        .use(copySourceToExtendOrCopy)
+        .use(copySourceToExtendOrCopy, assignNamesContext)
         .use(upgradeCollectElement, assignNamesContext)
         .use(upgradeMapElement, assignNamesContext)
         .use(upgradeAssignNames, assignNamesContext)
@@ -147,15 +152,18 @@ const ensureDollarBeforeNamesOnSpecificAttributes: Plugin<
  * If `link="false"` is set, `copy` is used instead of `extend`.
  * If `assignNames` is set, the assigned name is added on via a `.` onto the extend attribute.
  */
-const copySourceToExtendOrCopy: Plugin<[], DastRoot, DastRoot> = () => {
-    return (tree) => {
-        visit(tree, (node) => {
+const copySourceToExtendOrCopy: Plugin<
+    [AssignNamesContext],
+    DastRoot,
+    DastRoot
+> = (context) => {
+    return (tree, file) => {
+        visit(tree, (node, info) => {
             if (!isDastElement(node)) {
                 return;
             }
             const copySourceAttr = node.attributes["copySource"];
             const linkAttr = node.attributes["link"];
-            const assignNamesAttr = node.attributes["assignNames"];
             const copyPropAttr = node.attributes["copyProp"];
 
             if (!copySourceAttr) {
@@ -199,14 +207,17 @@ const copySourceToExtendOrCopy: Plugin<[], DastRoot, DastRoot> = () => {
                 }
             }
 
-            // If `assignNames` has only one name (i.e. no spaces are present),
-            // it becomes the name of the component
-            if (
-                assignNamesAttr &&
-                toXml(assignNamesAttr.children).trim().indexOf(" ") === -1
-            ) {
-                assignNamesAttr.name = "name";
-            }
+            // This element is the copy, so its single assigned name is simply its
+            // `name`. It goes through the shared converter rather than being renamed
+            // here so that the name is claimed from the same pool every other pass draws
+            // from — otherwise a later `assignNames="a"` elsewhere would happily take it
+            // too and the document would carry two components called `a`.
+            convertAssignNames(
+                node,
+                namespaceChainOf(info.parents, context),
+                context,
+                file,
+            );
 
             // If there is a `link` attribute, remove it
             if (linkAttr) {

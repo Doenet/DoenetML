@@ -18,6 +18,13 @@ export function isValidReferenceableName(name: string): boolean {
 export type RenameOrigin = {
     /** The element that carried the `assignNames` attribute; used in messages. */
     elementName: string;
+    /**
+     * The element that ends up carrying the new name. A reference written *on* that
+     * element cannot mean the name it is about to take — `<copy source="../x0"
+     * assignNames="x0">` reaches out of its namespace for the thing it copies — so
+     * renames from this origin are not applied there.
+     */
+    element?: DastElement;
     position?: DastElement["position"];
     /**
      * The `name`s of the elements enclosing the composite, outermost first.
@@ -133,7 +140,12 @@ export class RenameRegistry {
      * that wins; one recorded with no enclosing names matches anything, which is what
      * keeps an unscoped document behaving exactly as before.
      */
-    get(name: string, precedingNames: string[] = []): RenameTarget | undefined {
+    get(
+        name: string,
+        precedingNames: string[] = [],
+        /** Skip renames that would point a reference at the element carrying it. */
+        writtenOn?: DastElement,
+    ): RenameTarget | undefined {
         const targets = this._renames.get(name);
         if (!targets || targets.length === 0) {
             return undefined;
@@ -142,6 +154,9 @@ export class RenameRegistry {
         let best: RenameTarget | undefined;
         let bestScore = -1;
         for (const target of targets) {
+            if (writtenOn && target.origin.element === writtenOn) {
+                continue;
+            }
             const scope = target.origin.ancestorNames ?? [];
             if (!isSuffixOf(scope, precedingNames)) {
                 continue;

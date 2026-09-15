@@ -1346,3 +1346,72 @@ describe("regressions found by the ninth review", () => {
         );
     });
 });
+
+describe("regressions found by the tenth review", () => {
+    let source: string;
+
+    it("does not let copySource and a composite both take one name", async () => {
+        // The `copySource` path promoted its assigned name to `name` without claiming
+        // it, so a later `assignNames` took the same one and v0.7 saw two components
+        // called `a`.
+        source = `<math name="m">x</math><math copySource="m" assignNames="a" /><selectFromSequence assignNames="a" from="1" to="5" /> $a`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml.match(/name="a"/g) ?? []).toHaveLength(1);
+    });
+
+    it("points a reference at the copySource element that took its name", async () => {
+        source = `<math name="m">x</math><math copySource="m" assignNames="a" /> $a`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<math extend="$m" name="a" />`);
+        expect(xml).toContain(`$a`);
+    });
+
+    it("keeps an assigned name that collides only in another namespace", async () => {
+        // v0.6 resolved `$a` inside `g2` to `g2`'s own `a` — the copy — and only
+        // outside it to the point. A whole-document collision check gave the copy a
+        // generated name but registered nothing, stranding the inner reference.
+        source = `<group name="g1"><point name="a">(1,2)</point></group><group name="g2" newNamespace><copy source="../g1" assignNames="a" /> $a</group>`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        // The point keeps the bare name, the copy takes a generated one, and the
+        // reference inside g2 follows the copy rather than the point.
+        expect(xml).toContain(`<point name="a">(1,2)</point>`);
+        expect(xml).toContain(
+            `<group name="g2"><copy source="g1" name="copy" /> $copy</group>`,
+        );
+        expect(res.vfile.messages.map((m) => m.ruleId)).not.toContain(
+            "copy/name-already-taken",
+        );
+    });
+
+    it("does not point a copy's own source at the copy", async () => {
+        // `source` says what is copied and `assignNames` names the result, so the two
+        // are different components even when they are spelled the same. Redirecting
+        // the source would make the copy copy itself.
+        source = `<math name="x0">-5</math><exercise name="ex" newNamespace><copy source="../x0" assignNames="x0" /><p>$x0</p></exercise>`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toContain(
+            `<copy source="x0" name="copy" /><p>$copy</p>`,
+        );
+    });
+
+    it("still refuses a name held by a component in the same namespace", async () => {
+        source = `<point name="a">(1,2)</point><copy source="a" assignNames="a" /> $a`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "copy/name-already-taken",
+        );
+    });
+});

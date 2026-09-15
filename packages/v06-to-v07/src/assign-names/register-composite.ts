@@ -37,6 +37,7 @@ export function registerCompositeAssignNames({
         elementName: node.name,
         position: node.position,
         ancestorNames,
+        element: node,
     };
     const parsed = breakStringInPiecesBySpacesOrParens(assignNamesValue);
     if (!parsed.success) {

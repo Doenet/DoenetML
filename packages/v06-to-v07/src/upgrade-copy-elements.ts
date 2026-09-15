@@ -12,6 +12,7 @@ import { breakStringInPiecesBySpacesOrParens } from "./assign-names/break-into-p
 import {
     AssignNamesContext,
     namespaceChainOf,
+    nameTakenInScope,
     deleteAssignNames,
     readAssignNames,
     setCompositeName,
@@ -237,7 +238,8 @@ const COPY_OWN_ATTRIBUTES = new Set([
 ]);
 
 /**
- * Give a `<copy>` the name its references will be converted to.
+ * Give a copy — a `<copy>` element or an element carrying `copySource` — the name its
+ * references will be converted to.
  *
  * A single assigned name is the component's `name`. When the element already carries a
  * `name`, or when something else has taken the assigned one, the assigned name is an alias
@@ -249,7 +251,7 @@ const COPY_OWN_ATTRIBUTES = new Set([
  * an external document, on one this converter cannot even read. Those are reported and
  * left alone rather than guessed at.
  */
-function convertAssignNames(
+export function convertAssignNames(
     node: DastElement,
     ancestorNames: string[],
     context: AssignNamesContext,
@@ -264,6 +266,7 @@ function convertAssignNames(
         elementName: node.name,
         position: node.position,
         ancestorNames,
+        element: node,
     };
     const parsed = breakStringInPiecesBySpacesOrParens(assignNamesValue);
     const names =
@@ -289,15 +292,20 @@ function convertAssignNames(
         node.attributes[findKey(node, "name") ?? ""]?.children ?? [],
     ).trim();
 
-    // A name already carried by a real component is not ours to take, and references to
-    // it were never about this copy. A name claimed by another `assignNames` is a
-    // different matter: v0.6 namespaces allowed that, so this copy takes a name of its
-    // own and the references reaching into *its* namespace are pointed at it.
+    // A name already carried by a real component *in this copy's own namespace* is not
+    // ours to take, and references to it were never about this copy. One in a different
+    // namespace is a different matter, and so is a name claimed by another
+    // `assignNames`: v0.6 allowed both, so this copy takes a name of its own and the
+    // references reaching into *its* namespace are pointed at it.
     const nameBelongsToAnother =
         !isValidReferenceableName(assignedName) ||
-        context.existingNames.has(assignedName);
+        nameTakenInScope(context, assignedName, ancestorNames);
+    // Whether the bare name is still *available* is a whole-document question, though:
+    // once the namespaces are gone, only one component can carry it.
     const nameIsTaken =
-        nameBelongsToAnother || context.claimedNames.has(assignedName);
+        nameBelongsToAnother ||
+        context.existingNames.has(assignedName) ||
+        context.claimedNames.has(assignedName);
 
     if (existingName) {
         // The element keeps the name it already had, so an assigned name that differs is

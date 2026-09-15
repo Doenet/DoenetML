@@ -119,6 +119,7 @@ export const upgradeAssignNames: Plugin<
                         elementName: node.name,
                         position: node.position,
                         ancestorNames: namespaceChainOf(parents, context),
+                        element: node,
                     },
                     file,
                 );

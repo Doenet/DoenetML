@@ -42,6 +42,16 @@ export type AssignNamesContext = {
      * from outside, but it still keeps its contents apart from a sibling's.
      */
     namespaceElements: WeakMap<DastElement, string>;
+    /**
+     * For each name carried by a `name=` attribute, the v0.6 namespaces it sat in,
+     * outermost first — the same shape `namespaceChainOf` produces.
+     *
+     * {@link existingNames} answers "can anything still be called this?", which after
+     * flattening is a question about the whole document. This answers the different
+     * question of whether a reference written somewhere was already about a real
+     * component, which v0.6 resolved per namespace.
+     */
+    existingNameScopes: Map<string, string[][]>;
 };
 
 export function createAssignNamesContext(
@@ -83,13 +93,52 @@ export function createAssignNamesContext(
         // namespace is exactly the one nobody can write a path into.
         namespaceElements.set(node, name || `\u0000ns${++unnamedCount}`);
     });
-    return {
+    const context: AssignNamesContext = {
         registry: new RenameRegistry(existingNames),
         uniqueName: createUniqueNameFactory(tree),
         existingNames,
         claimedNames: new Set(),
         namespaceElements,
+        existingNameScopes: new Map(),
     };
+    // A second pass, because working out a name's namespace chain needs the map of
+    // namespace elements the first pass just built.
+    visit(tree, (node, info) => {
+        if (!isDastElement(node)) {
+            return;
+        }
+        const nameAttr = findAttribute(node, "name");
+        const name = nameAttr ? toXml(nameAttr.children).trim() : "";
+        if (!name) {
+            return;
+        }
+        const scopes = context.existingNameScopes.get(name) ?? [];
+        scopes.push(namespaceChainOf(info.parents as DastElement[], context));
+        context.existingNameScopes.set(name, scopes);
+    });
+    return context;
+}
+
+/**
+ * Whether a real component called `name` sits in the very namespace `ancestorNames`
+ * names — the only place a bare reference written there would have found one instead of
+ * an assigned name, since v0.6 let a nearer assignment shadow an outer component.
+ */
+export function nameTakenInScope(
+    context: AssignNamesContext,
+    name: string,
+    ancestorNames: string[] | undefined,
+): boolean {
+    const scopes = context.existingNameScopes.get(name);
+    if (!scopes) {
+        return false;
+    }
+    const here = ancestorNames ?? [];
+    return scopes.some(
+        (scope) =>
+            scope.length === here.length &&
+            scope.every((segment, i) => segment === here[i]),
+    );
 }
 
 /**
