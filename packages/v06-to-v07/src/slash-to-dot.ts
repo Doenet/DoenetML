@@ -136,46 +136,22 @@ export const upgradePathSlashesToDots: Plugin<
 };
 
 /**
- * Gather the v0.6 macros in `nodes`, descending into the arguments of a function macro.
+ * Gather the v0.6 macros written directly in `nodes`.
  *
  * The usual traversal never enters an attribute, so this is how macros inside one are
- * found. It has to recurse: `$$f($$(g/h)(2))` is a function macro whose argument is
- * another function macro, and converting the outer one leaves the inner one alone (see
- * the note in `v06FunctionMacroToV07FunctionMacro`). Collecting outermost-first matches
- * what the ordinary traversal does for macros outside an attribute.
+ * found. Only the outermost need collecting: `v06MacroToV07Macro` converts everything
+ * nested inside one — path indices, `{...}` attributes, the `accessedProp` chain and
+ * function arguments — and does so by building new nodes, so collecting the originals
+ * too would hand this pass objects that are no longer in the tree.
  */
 function collectV06Macros(
     nodes: readonly unknown[],
     macros: (DastMacroV6 | DastFunctionMacroV6)[],
 ) {
     for (const node of nodes) {
-        if (!isV06MacroOrFunctionMacro(node)) {
-            continue;
+        if (isV06MacroOrFunctionMacro(node)) {
+            macros.push(node);
         }
-        macros.push(node);
-        collectNestedV06Macros(node, macros);
-    }
-}
-
-/**
- * The one place a v0.6 macro holds another that converting it does not reach: a function
- * macro's arguments, which `v06FunctionMacroToV07FunctionMacro` deliberately passes
- * through untouched.
- *
- * Everywhere else a macro can nest — path indices, `{...}` attributes, and the
- * `accessedProp` chain — `v06MacroToV07Macro` converts recursively, and it does so by
- * building *new* nodes. Collecting those originals as well would hand this pass objects
- * that are no longer in the tree, so converting them would have no effect on the output.
- */
-function collectNestedV06Macros(
-    node: DastMacroV6 | DastFunctionMacroV6,
-    macros: (DastMacroV6 | DastFunctionMacroV6)[],
-) {
-    if (node.type !== "function") {
-        return;
-    }
-    for (const argument of node.input || []) {
-        collectV06Macros(argument, macros);
     }
 }
 
@@ -284,11 +260,35 @@ function v06FunctionMacroToV07FunctionMacro(
     return {
         type: "function",
         path: macro.path,
-        // This cast may be incorrect, but we will leave it to the other processors to upgrade the
-        // the syntax of function arguments.
-        input: funcMacro.input as DastElementContent[][] | null,
+        input: convertArguments(funcMacro.input, warn),
         position: funcMacro.position,
     };
+}
+
+/**
+ * Convert the macros written in a function macro's arguments.
+ *
+ * Anything that is not a macro is passed through as the very same node, so an element
+ * argument is still the one the ordinary traversal will reach and its own contents are
+ * not converted twice.
+ */
+function convertArguments(
+    input: DastFunctionMacroV6["input"],
+    warn: ParentPathWarner,
+): DastElementContent[][] | null {
+    if (!input) {
+        return null;
+    }
+    return input.map((argument) =>
+        (argument as DastNodesV6[]).map((node) => {
+            if (isV06MacroOrFunctionMacro(node)) {
+                return node.type === "macro"
+                    ? v06MacroToV07Macro(node, warn)
+                    : v06FunctionMacroToV07FunctionMacro(node, warn);
+            }
+            return node;
+        }),
+    ) as DastElementContent[][];
 }
 
 function v06IndexToV07Index(

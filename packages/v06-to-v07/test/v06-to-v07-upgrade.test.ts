@@ -1482,3 +1482,45 @@ describe("regressions found by the eleventh review", () => {
         );
     });
 });
+
+describe("regressions found by the twelfth review", () => {
+    let source: string;
+
+    it("converts a function macro nested in another's arguments inside an index", async () => {
+        // Converting the index builds a new function node, so its arguments have to be
+        // converted as part of that rather than left for a later worklist pass.
+        source = `<p a="$list[$$f($$(g/h)(2))]" />`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(`<p a="$list[$$f($$g.h(2))]" />`);
+    });
+
+    it("converts a function macro nested in another's arguments inside a macro attribute", async () => {
+        source = `<p a="$list{fixed=$$f($$(g/h)(2))}" />`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(`<p a="$list{fixed=$$f($$g.h(2))}" />`);
+    });
+
+    it("keeps `prop` on an external copy that was left for manual conversion", async () => {
+        // The copy narrows what it copies, so `upgradeCopyElements` leaves it alone;
+        // stripping its prop here would widen a tag the diagnostics call untouched.
+        source = `<copy uri="doenet:cid=x" vmin="1" prop="maths" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`prop="maths"`);
+        expect(xml).toContain(`<copy`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "external-copy/narrowed",
+        );
+    });
+
+    it("still drops an all-items prop from a copy it converts", async () => {
+        source = `<copy source="x" prop="maths" />`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(`<copy source="x" />`);
+    });
+});

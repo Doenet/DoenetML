@@ -102,15 +102,12 @@ function rewritePropAttribute(node: DastElement) {
     if (!ALL_ITEMS_PROPS.has(prop) && !numbered) {
         return;
     }
-    if (!numbered) {
-        // An "all items" prop is the list itself, so there is nothing to move.
-        delete node.attributes[propKey];
-        return;
-    }
 
-    // A numbered prop becomes an index on the source, so the prop may only be dropped
-    // once that has actually happened — otherwise the copy silently widens from one item
-    // to the whole list.
+    // Whatever the prop says, dropping it only makes sense on a copy this converter is
+    // actually converting. One with no usable `source` is being left as it is — an
+    // external `<copy uri="doenet:...">` that kept its `prop` because it narrows what it
+    // copies, above all — and taking the prop off it would silently widen a tag the
+    // diagnostics say was untouched.
     const sourceKey = findKey(node, "source");
     if (!sourceKey) {
         return;
@@ -120,6 +117,16 @@ function rewritePropAttribute(node: DastElement) {
     if (!source) {
         return;
     }
+
+    if (!numbered) {
+        // An "all items" prop is the list itself, so there is nothing to move.
+        delete node.attributes[propKey];
+        return;
+    }
+
+    // A numbered prop becomes an index on the source, so the prop may only be dropped
+    // once that has actually happened — otherwise the copy silently widens from one item
+    // to the whole list.
     const hadDollar = source.startsWith("$");
     let path: DastMacroPathPart[];
     try {
