@@ -56,10 +56,24 @@ export function createAssignNamesContext(
         if (!isDastElement(node)) {
             return;
         }
-        const hasNewNamespace = Object.keys(node.attributes).some(
+        const newNamespaceKey = Object.keys(node.attributes).find(
             (key) => key.toLowerCase() === "newnamespace",
         );
-        if (!hasNewNamespace) {
+        if (newNamespaceKey === undefined) {
+            return;
+        }
+        // v0.6 read this as a primitive boolean (`createPrimitiveOfType: "boolean"` in
+        // `BaseComponent.js`), and an attribute written with no value arrives as the
+        // string `"true"`. Everything else had to be the literal `true` to count, so
+        // `newNamespace="false"` created no namespace and must not become a boundary
+        // here — descendants would be scoped to something that never existed, and an
+        // outer reference to one of their assigned names would stop matching.
+        const newNamespaceValue = toXml(
+            node.attributes[newNamespaceKey].children,
+        )
+            .trim()
+            .toLowerCase();
+        if (newNamespaceValue !== "" && newNamespaceValue !== "true") {
             return;
         }
         const nameAttr = findAttribute(node, "name");

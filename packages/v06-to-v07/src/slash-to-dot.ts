@@ -2,7 +2,6 @@ import { Plugin } from "unified";
 import {
     DastElementContent,
     DastFunctionMacro,
-    DastAttributeV6,
     DastFunctionMacroV6,
     DastMacro,
     DastMacroPathPart,
@@ -33,6 +32,20 @@ export const upgradePathSlashesToDots: Plugin<
     DastRoot
 > = () => {
     return (tree, file) => {
+        // Reports one `..` in `original`. Called while the node is still in v0.6 shape,
+        // which is the only shape `v06macroToString` understands.
+        const warnParentPath: ParentPathWarner = (original) => {
+            file.message(
+                `There is no equivalent to the $(../x) syntax; a best-guess was made when converting ${v06macroToString(
+                    original as any,
+                )}`,
+                {
+                    start: original.position?.start,
+                    end: original.position?.end,
+                },
+            );
+        };
+
         visit(
             tree,
             // @ts-ignore
@@ -49,31 +62,24 @@ export const upgradePathSlashesToDots: Plugin<
                     }
                 }
                 for (const node of macros) {
+                    // `..` is collapsed as part of the conversion rather than afterwards,
+                    // because converting a macro *copies* the macros nested in its path
+                    // indices and `{...}` attributes. Collapsing only the outermost
+                    // result would leave those copies — the ones that end up in the tree
+                    // — still carrying their `..`.
                     const macro =
                         node.type === "macro"
-                            ? v06MacroToV07Macro(node)
-                            : v06FunctionMacroToV07FunctionMacro(node);
-                    // Anything the diagnostic needs has to be taken now: the node is
-                    // about to be emptied, and `v06macroToString` only understands the
-                    // v0.6 shape, which the converted macro no longer has.
-                    const originalText = v06macroToString(node as any);
-                    const originalPosition = node.position;
+                            ? v06MacroToV07Macro(node, warnParentPath)
+                            : v06FunctionMacroToV07FunctionMacro(
+                                  node,
+                                  warnParentPath,
+                              );
                     // We mutate in place. Clear the node of its old properties
                     // and splice in the new values.
                     Object.keys(node).forEach((key) => {
                         // @ts-ignore
                         delete node[key];
                     });
-                    macro.path = collapseParentPathParts(macro.path, () =>
-                        file.message(
-                            `There is no equivalent to the $(../x) syntax; a best-guess was made when converting ${originalText}`,
-                            {
-                                start: originalPosition?.start,
-                                end: originalPosition?.end,
-                            },
-                        ),
-                    );
-
                     Object.assign(node, macro);
                 }
             },
@@ -110,14 +116,11 @@ export const upgradePathSlashesToDots: Plugin<
                 );
                 return;
             }
-            const upgradedSource = v06MacroToV07Macro(reparsedSource[0]);
-            upgradedSource.path = collapseParentPathParts(
-                upgradedSource.path,
-                () =>
-                    file.message(
-                        `There is no equivalent to the ../x syntax; a best-guess was made when converting source="${sourceName}"`,
-                        { place: node.position },
-                    ),
+            const upgradedSource = v06MacroToV07Macro(reparsedSource[0], () =>
+                file.message(
+                    `There is no equivalent to the ../x syntax; a best-guess was made when converting source="${sourceName}"`,
+                    { place: node.position },
+                ),
             );
             // Source attributes are not parsed as macros, so we turn back into a string and remove the dollar sign.
             const newSourceName = toXml(upgradedSource.path);
@@ -155,36 +158,24 @@ function collectV06Macros(
 }
 
 /**
- * The places a v0.6 macro can hold another one: a function macro's arguments, the macro
- * its path indices are written with, its `{...}` attributes, and — for a function macro —
- * the macro it wraps.
+ * The one place a v0.6 macro holds another that converting it does not reach: a function
+ * macro's arguments, which `v06FunctionMacroToV07FunctionMacro` deliberately passes
+ * through untouched.
+ *
+ * Everywhere else a macro can nest — path indices, `{...}` attributes, and the
+ * `accessedProp` chain — `v06MacroToV07Macro` converts recursively, and it does so by
+ * building *new* nodes. Collecting those originals as well would hand this pass objects
+ * that are no longer in the tree, so converting them would have no effect on the output.
  */
 function collectNestedV06Macros(
     node: DastMacroV6 | DastFunctionMacroV6,
     macros: (DastMacroV6 | DastFunctionMacroV6)[],
 ) {
-    if (node.type === "function") {
-        for (const argument of node.input || []) {
-            collectV06Macros(argument, macros);
-        }
-        if (node.macro) {
-            collectNestedV06Macros(node.macro, macros);
-        }
+    if (node.type !== "function") {
         return;
     }
-    for (const part of node.path || []) {
-        for (const index of part.index || []) {
-            collectV06Macros(index.value, macros);
-        }
-    }
-    const attributes: DastAttributeV6[] = Array.isArray(node.attributes)
-        ? node.attributes
-        : Object.values(node.attributes ?? {});
-    for (const attribute of attributes) {
-        collectV06Macros(attribute.children, macros);
-    }
-    if (node.accessedProp) {
-        collectNestedV06Macros(node.accessedProp, macros);
+    for (const argument of node.input || []) {
+        collectV06Macros(argument, macros);
     }
 }
 
@@ -225,16 +216,36 @@ function collapseParentPathParts(
 }
 
 /**
+ * Called once per macro whose path contained a `..`, with the macro still in v0.6 shape.
+ */
+type ParentPathWarner = (original: DastMacroV6 | DastFunctionMacroV6) => void;
+
+/**
  * Convert a v0.6 macro to a v0.7 macro.
  * This conversion changes all `$(foo/bar)` into `$foo.bar`
+ *
+ * Macros nested in the path's indices and in `{...}` attributes are converted too, which
+ * means they are replaced by new nodes — so everything about them, `..` collapsing
+ * included, has to be settled here.
  */
-function v06MacroToV07Macro(macro: DastMacroV6): DastMacro {
-    const path: DastMacro["path"] = flattenedAccessedProps(macro);
+function v06MacroToV07Macro(
+    macro: DastMacroV6,
+    warn: ParentPathWarner,
+    /**
+     * The node a `..` diagnostic names. A function macro converts the macro it wraps but
+     * should still be reported as the whole `$$f(...)` the author wrote.
+     */
+    reportAs: DastMacroV6 | DastFunctionMacroV6 = macro,
+): DastMacro {
+    const path: DastMacro["path"] = collapseParentPathParts(
+        flattenedAccessedProps(macro, warn),
+        () => warn(reportAs),
+    );
 
     const { accessedProp, version, attributes, ...rest } = macro;
     return {
         ...rest,
-        attributes: v06AttributeToV07Attribute(mergeAttributes(macro)),
+        attributes: v06AttributeToV07Attribute(mergeAttributes(macro), warn),
         path,
     };
 }
@@ -265,9 +276,10 @@ function mergeAttributes(macro: DastMacroV6): DastMacroV6["attributes"] {
  */
 function v06FunctionMacroToV07FunctionMacro(
     funcMacro: DastFunctionMacroV6,
+    warn: ParentPathWarner,
 ): DastFunctionMacro {
     // A function macro is a macro with an input.
-    const macro = v06MacroToV07Macro(funcMacro.macro);
+    const macro = v06MacroToV07Macro(funcMacro.macro, warn, funcMacro);
 
     return {
         type: "function",
@@ -281,17 +293,29 @@ function v06FunctionMacroToV07FunctionMacro(
 
 function v06IndexToV07Index(
     index: DastMacroV6["path"][number]["index"],
+    warn: ParentPathWarner,
 ): DastMacro["path"][number]["index"] {
     return index.map((ind) => ({
         ...ind,
-        value: ind.value.map((v) =>
-            v.type === "macro" ? v06MacroToV07Macro(v) : v,
-        ),
+        // @ts-ignore -- see the note on `value` below
+        // The DAST types say an index holds only text and plain macros, but the v0.6
+        // parser does put a function macro in one (`$list[$$(g/h)(2)]`), so both have
+        // to be converted here — this is the only pass that reaches them.
+        value: ind.value.map((v: DastNodesV6) => {
+            if (v.type === "macro") {
+                return v06MacroToV07Macro(v, warn);
+            }
+            if (v.type === "function") {
+                return v06FunctionMacroToV07FunctionMacro(v, warn);
+            }
+            return v;
+        }) as DastMacro["path"][number]["index"][number]["value"],
     }));
 }
 
 function v06AttributeToV07Attribute(
     attrs: DastMacroV6["attributes"],
+    warn: ParentPathWarner,
 ): DastMacro["attributes"] {
     const ret: DastMacro["attributes"] = {};
     // The types might be lying to us...
@@ -300,10 +324,10 @@ function v06AttributeToV07Attribute(
         const children: DastMacro["attributes"][string]["children"] =
             attr.children.map((c) => {
                 if (c.type === "macro") {
-                    return v06MacroToV07Macro(c);
+                    return v06MacroToV07Macro(c, warn);
                 }
                 if (c.type === "function") {
-                    return v06FunctionMacroToV07FunctionMacro(c);
+                    return v06FunctionMacroToV07FunctionMacro(c, warn);
                 }
                 return c;
             });
@@ -317,18 +341,21 @@ function v06AttributeToV07Attribute(
 /**
  * Flatten the `accessedProps` of a macro from the v0.6 into a v0.7 path.
  */
-function flattenedAccessedProps(macro: DastMacroV6): DastMacro["path"] {
+function flattenedAccessedProps(
+    macro: DastMacroV6,
+    warn: ParentPathWarner,
+): DastMacro["path"] {
     const path = macro.path.map((p) => {
         return {
             ...p,
-            index: v06IndexToV07Index(p.index),
+            index: v06IndexToV07Index(p.index, warn),
         };
     });
     if (macro.accessedProp) {
         // Everything the `accessedProp` chain contributes was written after a `.`, so it
         // names a prop rather than a component. Nothing downstream can tell once the two
         // are in one flat path, so record it now; see `assign-names/prop-access-parts.ts`.
-        const propParts = flattenedAccessedProps(macro.accessedProp);
+        const propParts = flattenedAccessedProps(macro.accessedProp, warn);
         propParts.forEach(markAsPropAccess);
         return [...path, ...propParts];
     }

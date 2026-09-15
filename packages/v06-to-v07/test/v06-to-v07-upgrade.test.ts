@@ -1204,3 +1204,98 @@ describe("regressions found by the eighth review", () => {
         );
     });
 });
+
+describe("regressions found by the ninth review", () => {
+    let source: string;
+
+    it('treats newNamespace="false" as no namespace at all', async () => {
+        // v0.6 read `newNamespace` as a primitive boolean, so only a bare attribute or
+        // the literal `true` made a namespace. Scoping the inner assignment to a
+        // boundary that never existed would stop the outer `$a` from matching it.
+        source = `<p newNamespace="false"><selectFromSequence assignNames="a b" numToSelect="2" from="1" to="5" /></p> $a`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toContain(`$a[1]`);
+    });
+
+    it("still honours a bare newNamespace", async () => {
+        source = `<p newNamespace><selectFromSequence assignNames="a b" numToSelect="2" from="1" to="5" /> $a</p>`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toContain(`$a[1]`);
+    });
+
+    it("collapses `..` in a macro nested inside another macro's index", async () => {
+        // Converting the outer macro copies the macros in its indices, so collapsing
+        // only the outer result left the copy that reaches the tree with its `..`.
+        source = `<p a="$list[$(x/../b)]" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).not.toContain("..");
+        expect(xml).toEqual(`<p a="$list[$b]" />`);
+    });
+
+    it("collapses `..` in a macro nested inside a macro attribute", async () => {
+        source = `<p a="$list{fixed=$(x/../b)}" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).not.toContain("..");
+    });
+
+    it("reports each `..` exactly once", async () => {
+        source = `<p a="$list[$(x/../b)]" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(
+            res.vfile.messages.filter((m) => (m.reason || "").includes("../x")),
+        ).toHaveLength(1);
+    });
+
+    it("drops a v0.6 copy control rather than reinterpreting it as a module attribute", async () => {
+        source = `<copy uri="doenet:cid=abc" vmin="-1" link="false" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<module`);
+        expect(xml).toContain(`vmin="-1"`);
+        expect(xml).not.toContain(`link=`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "external-copy/dropped-copy-controls",
+        );
+    });
+
+    it("leaves an external copy alone when it narrows what it copies", async () => {
+        source = `<copy uri="doenet:cid=abc" vmin="-1" prop="x" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<copy`);
+        expect(xml).toContain(`prop="x"`);
+        expect(xml).not.toContain(`<module`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "external-copy/narrowed",
+        );
+    });
+
+    it("still converts an ordinary parameterized external copy", async () => {
+        source = `<copy uri="doenet:cid=abc" vmin="-1" assignNames="a" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(
+            `<module copy="doenet:cid=abc" vmin="-1" name="a"`,
+        );
+        expect(res.vfile.messages.map((m) => m.ruleId)).not.toContain(
+            "external-copy/dropped-copy-controls",
+        );
+    });
+});
