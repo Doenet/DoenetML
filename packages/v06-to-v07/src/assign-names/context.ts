@@ -27,8 +27,17 @@ export type AssignNamesContext = {
     existingNames: Set<string>;
     /**
      * Assigned names that have already been promoted to some composite's `name`. Two
-     * composites can carry the same `assignNames` token, and v0.7 will not accept the
-     * duplicate `name` that would result.
+     * composites can carry the same `assignNames` token, and only one of them can end up
+     * with the bare name.
+     *
+     * This pool is deliberately document-wide, which is stricter than v0.7 requires:
+     * v0.7 resolves a name by searching outwards from the reference, so two components
+     * with the same name are fine as long as they sit under different parents, and a
+     * reference that could see both is the only thing that fails (`NonUniqueReferent` in
+     * `ref_resolve`). Being strict costs a generated name in the handful of places where
+     * an assigned name is already used elsewhere, and buys output that cannot be
+     * ambiguous however the references are written. Relaxing it to "taken only by a
+     * sibling" is a deliberate design change, not an oversight.
      */
     claimedNames: Set<string>;
     /**
