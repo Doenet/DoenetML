@@ -1,6 +1,9 @@
 import { DastElement } from "@doenet/parser";
 import { VFile } from "vfile";
-import { breakStringInPiecesBySpacesOrParens } from "./break-into-pieces";
+import {
+    breakStringInPiecesBySpacesOrParens,
+    firstLeafName,
+} from "./break-into-pieces";
 import { AssignNamesContext, chooseCompositeName } from "./context";
 import { PositionMap, registerAssignNames } from "./register-assign-names";
 
@@ -52,9 +55,10 @@ export function registerCompositeAssignNames({
         return undefined;
     }
 
-    if (parsed.pieces.length === 0) {
-        // A value such as `assignNames="()"` hands out no names, so there is nothing to
-        // register and no reason to give the composite a name it never had.
+    if (firstLeafName(parsed.pieces) === undefined) {
+        // A value such as `assignNames="()"` — or `"(())"`, which parses to nested empty
+        // groups — hands out no names at any depth, so there is nothing to register and
+        // no reason to give the composite a name it never had.
         return undefined;
     }
 

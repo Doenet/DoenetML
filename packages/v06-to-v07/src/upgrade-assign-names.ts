@@ -1,7 +1,10 @@
 import { Plugin } from "unified";
 import { DastElement, DastRoot, isDastElement } from "@doenet/parser";
 import { VFile } from "vfile";
-import { breakStringInPiecesBySpacesOrParens } from "./assign-names/break-into-pieces";
+import {
+    breakStringInPiecesBySpacesOrParens,
+    firstLeafName,
+} from "./assign-names/break-into-pieces";
 import {
     findAttribute,
     lookupComposite,
@@ -83,9 +86,10 @@ export const upgradeAssignNames: Plugin<
             const parsed =
                 breakStringInPiecesBySpacesOrParens(assignNamesValue);
 
-            if (parsed.success && parsed.pieces.length === 0) {
-                // A value such as `assignNames="()"` names nothing at all, so there is
-                // nothing to convert and no reason to invent a name for the composite.
+            if (parsed.success && firstLeafName(parsed.pieces) === undefined) {
+                // A value such as `assignNames="()"` — or `"(())"` — names nothing at any
+                // depth, so there is nothing to convert and no reason to invent a name
+                // for the composite.
                 deleteAssignNames(node);
                 return;
             }

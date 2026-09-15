@@ -1600,3 +1600,47 @@ describe("regressions found by the fourteenth review", () => {
         expect(toXml(res.dast)).toContain(`<math extend="$g.m" />`);
     });
 });
+
+describe("regressions found by the fifteenth review", () => {
+    let source: string;
+
+    it("leaves a prop written in a raw source attribute alone", async () => {
+        // v0.6 dot notation reached a prop and never a component, but serializing the
+        // source back to text made `p.y` indistinguishable from `p/y`, so the `y`
+        // matched an assigned name and became that composite's index.
+        source = `<selectFromSequence assignNames="x y" numToSelect="2" from="1" to="5" /><point name="p">(1,2)</point><copy source="p.y" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<copy source="p.y" />`);
+        expect(xml).not.toContain(`p.x[2]`);
+    });
+
+    it("still rewrites a namespace segment written with a slash", async () => {
+        source = `<selectFromSequence assignNames="x y" numToSelect="2" from="1" to="5" /><copy source="p/y" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toContain(`<copy source="p.x[2]" />`);
+    });
+
+    it("drops a nested empty assignNames without inventing a name", async () => {
+        // `(())` parses successfully but holds no leaf name at any depth.
+        source = `<selectFromSequence assignNames="(())" numToSelect="2" from="1" to="5" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toEqual(
+            `<selectFromSequence numToSelect="2" from="1" to="5" />`,
+        );
+    });
+
+    it("still names a composite whose only name is nested", async () => {
+        source = `<selectFromSequence assignNames="((a))" numToSelect="2" from="1" to="5" /> $a`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toContain(`name="a"`);
+    });
+});

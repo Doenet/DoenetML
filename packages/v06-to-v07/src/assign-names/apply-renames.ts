@@ -11,7 +11,7 @@ import { visitAll, visitAllMacros } from "./visit-all";
 import { RenameRegistry } from "./rename-registry";
 import { AssignNamesContext, namespaceChainOf } from "./context";
 import { reparseAttribute } from "../reparse-attribute";
-import { isPropAccess } from "./prop-access-parts";
+import { isPropAccess, restoreRawPropPositions } from "./prop-access-parts";
 
 /**
  * Attributes whose value is a bare (dollar-less) reference at the point where renames are
@@ -137,6 +137,11 @@ function renameRawReferenceAttribute(
         );
         return;
     }
+
+    // Parsing the text back cannot tell a prop from a namespace segment — both are
+    // spelled with a `.` by now — so put back the marks recorded before the value was
+    // serialized.
+    restoreRawPropPositions(node, attrName, path);
 
     // The path can hold references of its own inside its indices (`g.list[$a]`), so walk
     // it the same way the rest of the document is walked rather than only rewriting the

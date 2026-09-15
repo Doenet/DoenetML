@@ -14,7 +14,11 @@ import {
     visit,
 } from "@doenet/parser";
 import { parseMacrosV06, v06macroToString } from "@doenet/parser/v06";
-import { markAsPropAccess } from "./assign-names/prop-access-parts";
+import {
+    isPropAccess,
+    markAsPropAccess,
+    markRawPropPositions,
+} from "./assign-names/prop-access-parts";
 
 /**
  * Upgrade namespace path syntax.
@@ -101,8 +105,13 @@ export const upgradePathSlashesToDots: Plugin<
                 return;
             }
             const sourceName = toXml(sourceAttr.children).trim();
-            if (!sourceName.includes("/")) {
-                return; // No slashes, nothing to do
+            const hasSlash = sourceName.includes("/");
+            // A dot is worth parsing even with no slash to remove. Serializing the path
+            // back to text loses the difference between `p/y` and `p.y`, and the later
+            // rename pass needs it: v0.6 dot notation reached a prop and never a
+            // component, so a prop must not be rewritten into an assigned name's index.
+            if (!hasSlash && !sourceName.includes(".")) {
+                return; // Nothing to rewrite and nothing to remember
             }
             // We need to reparse the source name as a macro to remove the slashes.
             const reparsedSource = parseMacrosV06(`$(${sourceName})`);
@@ -110,10 +119,12 @@ export const upgradePathSlashesToDots: Plugin<
                 reparsedSource.length !== 1 ||
                 reparsedSource[0].type !== "macro"
             ) {
-                file.message(
-                    `Could not reparse "source" attribute that contains a slash: "${sourceName}".`,
-                    { place: node.position },
-                );
+                if (hasSlash) {
+                    file.message(
+                        `Could not reparse "source" attribute that contains a slash: "${sourceName}".`,
+                        { place: node.position },
+                    );
+                }
                 return;
             }
             const upgradedSource = v06MacroToV07Macro(reparsedSource[0], () =>
@@ -122,8 +133,20 @@ export const upgradePathSlashesToDots: Plugin<
                     { place: node.position },
                 ),
             );
+            // Which parts were props is about to be lost, so record it while the parsed
+            // path still says so.
+            markRawPropPositions(
+                node,
+                "source",
+                upgradedSource.path.flatMap((part, index) =>
+                    isPropAccess(part) ? [index] : [],
+                ),
+            );
             // Source attributes are not parsed as macros, so we turn back into a string and remove the dollar sign.
             const newSourceName = toXml(upgradedSource.path);
+            if (newSourceName === sourceName) {
+                return;
+            }
             sourceAttr.children = [
                 {
                     type: "text",
