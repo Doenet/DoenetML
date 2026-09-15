@@ -1644,3 +1644,50 @@ describe("regressions found by the fifteenth review", () => {
         expect(toXml(res.dast)).toContain(`name="a"`);
     });
 });
+
+describe("regressions found by the sixteenth review", () => {
+    let source: string;
+
+    it("converts assignNames written inside a reference's attributes", async () => {
+        // This copy does not exist as an element until `upgradeAttributeSyntax` makes
+        // one, long after the shared assign-name pass has run, so its `assignNames`
+        // survived into the output — which v0.7 rejects — and `$a` went nowhere.
+        source = `<math name="x">1</math>$x{assignNames="a"} $a`;
+        const res = await updateSyntaxFromV06toV07(source);
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<math name="a" extend="$x" />`);
+        expect(xml).not.toContain(`assignNames`);
+    });
+
+    it("reports an attribute-syntax assigned name it could not keep", async () => {
+        // References were rewritten before this plugin ran, so a name that has to give
+        // way cannot be repaired automatically.
+        source = `<math name="a">0</math><math name="x">1</math>$x{assignNames="a"}`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).not.toContain(`assignNames`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "assign-names/late-attribute-assignment",
+        );
+    });
+
+    it("converts a numbered list prop written into a raw source", async () => {
+        source = `<mathList name="eq"><math>1</math><math>2</math></mathList><copy source="eq.math2" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).toContain(`<math extend="$eq[2]" />`);
+    });
+
+    it("converts an all-items list prop written into a raw source", async () => {
+        source = `<mathList name="eq"><math>1</math><math>2</math></mathList><copy source="eq.maths" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).toContain(`<mathList extend="$eq" />`);
+    });
+
+    it("leaves a namespace segment named like a list prop alone", async () => {
+        // `$(g/maths)` names a component; only a prop access may be folded into an index.
+        source = `<group name="g" newNamespace><math name="maths">1</math></group><copy source="g/maths" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toContain(`<copy source="g.maths" />`);
+    });
+});

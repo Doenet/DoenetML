@@ -77,7 +77,7 @@ export async function updateSyntaxFromV06toV07_root(
         .use(removeConstraintsElement)
         .use(removeDefinitionsElement);
     if (!options.doNotUpgradeAttributeSyntax) {
-        processor = processor.use(upgradeAttributeSyntax);
+        processor = processor.use(upgradeAttributeSyntax, assignNamesContext);
     }
     if (!options.doNotUpgradeCopyTags) {
         processor = processor.use(upgradeCopySyntax);

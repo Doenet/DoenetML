@@ -11,6 +11,7 @@ import { parseReferencePath } from "./assign-names/apply-renames";
 import {
     isPropAccess,
     markAsPropAccess,
+    restoreRawPropPositions,
 } from "./assign-names/prop-access-parts";
 
 /**
@@ -45,9 +46,56 @@ export const upgradeListProps: Plugin<[], DastRoot, DastRoot> = () => {
                 return;
             }
             rewritePropAttribute(node);
+            rewriteRawSourceAttribute(node);
         });
     };
 };
+
+/**
+ * Elements whose `source` is still plain text at this point, so the list prop in it is
+ * not a macro path that the pass above would reach. `slash-to-dot.ts` writes them this
+ * way on purpose; see `RAW_REFERENCE_ATTRS` in `apply-renames.ts`.
+ */
+const ELEMENTS_WITH_RAW_SOURCE = new Set(["copy", "extract"]);
+
+/**
+ * The same rewrite again for `<copy source="eq.math2" />`, where the list prop is written
+ * into the reference rather than as a separate `prop` attribute.
+ */
+function rewriteRawSourceAttribute(node: DastElement) {
+    if (!ELEMENTS_WITH_RAW_SOURCE.has(node.name.toLowerCase())) {
+        return;
+    }
+    const sourceKey = findKey(node, "source");
+    if (!sourceKey) {
+        return;
+    }
+    const attr = node.attributes[sourceKey];
+    if (attr.children.length !== 1 || attr.children[0].type !== "text") {
+        return;
+    }
+    const child = attr.children[0];
+    const value = child.value.trim();
+    // Only a dotted path can hold one of these props, and the `$` form is a macro that
+    // the pass above already handled.
+    if (!value || value.startsWith("$") || !value.includes(".")) {
+        return;
+    }
+    let path: DastMacroPathPart[];
+    try {
+        path = parseReferencePath(value);
+    } catch {
+        return;
+    }
+    // Parsing text cannot tell a prop from a namespace segment, and `rewritePath` acts
+    // only on props — so put back what `slash-to-dot` recorded before serializing.
+    restoreRawPropPositions(node, sourceKey, path);
+    const rewritten = rewritePath(path);
+    if (rewritten === path) {
+        return;
+    }
+    child.value = toXml(rewritten);
+}
 
 /**
  * Drop a list-item prop from a path, folding what it selected into an index on the part
