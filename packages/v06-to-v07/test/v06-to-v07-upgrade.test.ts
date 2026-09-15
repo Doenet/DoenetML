@@ -1257,15 +1257,36 @@ describe("regressions found by the ninth review", () => {
         ).toHaveLength(1);
     });
 
-    it("drops a v0.6 copy control rather than reinterpreting it as a module attribute", async () => {
+    it("says `link` by choosing between copy and extend", async () => {
+        // v0.7 has no `link`: `extend` is always linked and `copy` never is.
         source = `<copy uri="doenet:cid=abc" vmin="-1" link="false" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<module copy="doenet:cid=abc" vmin="-1"`);
+        expect(xml).not.toContain(`link=`);
+    });
+
+    it('uses extend for link="true"', async () => {
+        source = `<copy uri="doenet:cid=abc" vmin="-1" link="true" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<module extend="doenet:cid=abc" vmin="-1"`);
+        expect(xml).not.toContain(`link=`);
+    });
+
+    it("drops a v0.6 copy control rather than reinterpreting it as a module attribute", async () => {
+        source = `<copy uri="doenet:cid=abc" vmin="-1" assignNamesSkip="1" />`;
         const res = await updateSyntaxFromV06toV07(source, {
             doNotUpgradeCopyTags: true,
         });
         const xml = toXml(res.dast);
         expect(xml).toContain(`<module`);
         expect(xml).toContain(`vmin="-1"`);
-        expect(xml).not.toContain(`link=`);
+        expect(xml).not.toContain(`assignNamesSkip`);
         expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
             "external-copy/dropped-copy-controls",
         );

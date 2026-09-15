@@ -125,15 +125,28 @@ export const upgradeCopyElements: Plugin<
                 delete node.attributes[key];
             }
 
+            // v0.7 has no `link`: an `extend` attribute is always linked and a `copy`
+            // attribute never is, so the choice between them says it instead.
+            //
+            // With no `link` at all, v0.6 linked everything *except* a copy by cid/uri
+            // and a copy of a module (`Copy.js`'s `link` state variable) — and this is
+            // both — so the default here is the unlinked `copy`.
+            const linkKey = findKey(node, "link");
+            const targetTag =
+                linkKey && isTrueValue(node, linkKey) ? "extend" : "copy";
+            if (linkKey) {
+                delete node.attributes[linkKey];
+            }
+
             // Parameters passed to a v0.6 `<copy uri>` are a module's custom attributes.
             node.name = "module";
-            renameAttrInPlace(node, uriKey, "copy");
+            renameAttrInPlace(node, uriKey, targetTag);
 
             if (dropped.length > 0) {
                 file.message(
                     `Dropped ${dropped.join(
                         ", ",
-                    )} from <copy uri="${uri}">: they controlled how v0.6 copied, and a <module copy="doenet:..."> has no equivalent. Note that the result is an unlinked copy; use "extend" instead of "copy" if the original link mattered.`,
+                    )} from <copy uri="${uri}">: they controlled how v0.6 copied, and a <module ${targetTag}="doenet:..."> has no equivalent.`,
                     {
                         place: node.position,
                         ruleId: "external-copy/dropped-copy-controls",
@@ -143,7 +156,7 @@ export const upgradeCopyElements: Plugin<
             }
 
             file.message(
-                `Converted <copy uri="${uri}"> to <module copy="${uri}">, passing ${passedAttributes.join(", ")}. The identifier in the URI is a v0.6 one; replace it with the v0.7 content id of the converted module, and check that the target really is a <module>.`,
+                `Converted <copy uri="${uri}"> to <module ${targetTag}="${uri}">, passing ${passedAttributes.join(", ")}. The identifier in the URI is a v0.6 one; replace it with the v0.7 content id of the converted module, and check that the target really is a <module>.`,
                 {
                     place: node.position,
                     ruleId: "external-copy/needs-new-content-id",
@@ -188,14 +201,14 @@ const COPY_NARROWING_ATTRIBUTES = new Set([
  * The subset of {@link COPY_OWN_ATTRIBUTES} that only told v0.6 *how* to copy. These can
  * be dropped — with a note — because the converted element does not copy the v0.6 way.
  *
- * `assignNames` is not here: it has already become a `name` by this point. Neither is
- * `newNamespace`, which `removeNewNamespaceAttribute` deletes earlier, nor `name`, which
- * a `<module>` keeps.
+ * `link` is not here: v0.7 says the same thing by choosing between the `extend` and
+ * `copy` attributes, so it is translated rather than dropped. Nor is `assignNames`, which
+ * has already become a `name` by this point, or `newNamespace`, which
+ * `removeNewNamespaceAttribute` deletes earlier, or `name`, which a `<module>` keeps.
  */
 const COPY_CONTROL_ATTRIBUTES = new Set([
     "assignnamesskip",
     "assignnewnamespaces",
-    "link",
     "sourceattributestoignore",
 ]);
 
@@ -376,4 +389,13 @@ function findKey(node: DastElement, attrName: string): string | undefined {
     return Object.keys(node.attributes).find(
         (key) => key.toLowerCase() === attrName.toLowerCase(),
     );
+}
+
+/**
+ * Whether a v0.6 primitive-boolean attribute reads as true. Written with no value it
+ * arrives as the string `"true"`; written with one it has to be the literal `true`.
+ */
+function isTrueValue(node: DastElement, key: string): boolean {
+    const value = toXml(node.attributes[key].children).trim().toLowerCase();
+    return value === "" || value === "true";
 }
