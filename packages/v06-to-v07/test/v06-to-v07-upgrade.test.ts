@@ -1415,3 +1415,70 @@ describe("regressions found by the tenth review", () => {
         );
     });
 });
+
+describe("regressions found by the eleventh review", () => {
+    let source: string;
+
+    it("does not point a macro-valued source at the copy itself", async () => {
+        // The self-reference guard reached only the raw-text `source`; a `source`
+        // holding a real macro went through the macro pass and was redirected.
+        source = `<math name="x0">-5</math><exercise name="ex" newNamespace><copy source="$x0" assignNames="x0" /><p>$x0</p></exercise>`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toContain(
+            `<copy source="$x0" name="copy" /><p>$copy</p>`,
+        );
+    });
+
+    it("still rewrites a reference among the element's own children", async () => {
+        // Ownership stops at the element boundary: this `$a` is inside the composite,
+        // not written on it, so it is rewritten as usual.
+        source = `<conditionalContent assignNames="(a b)"><case condition="true"><text>x</text><text>y</text></case></conditionalContent> $a $b`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toContain(`$a[1][1] $a[1][2]`);
+    });
+
+    it("reports an unusable assigned name as such", async () => {
+        source = `<copy source="m" assignNames="1abc" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const ruleIds = res.vfile.messages.map((m) => m.ruleId);
+        expect(ruleIds).toContain("assign-names/invalid-name");
+        expect(ruleIds).not.toContain("copy/name-already-taken");
+    });
+
+    it("keeps a hyphenated name readable in a collect's from", async () => {
+        // `$foo-bar` is `$foo` minus `bar`; only `$(foo-bar)` names the component.
+        source = `<group name="foo-bar"><point name="p">(1,2)</point></group><collect componentTypes="point" source="foo-bar" name="pts" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(toXml(res.dast)).toContain(`from="$(foo-bar)"`);
+    });
+
+    it("trims a collect's name before building the hoisted list", async () => {
+        source = `<collect componentTypes="point" source="g" name=" c " prop="x" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`name="collect_c"`);
+        expect(xml).toContain(`<mathList name="c" extend="$collect_c.x" />`);
+    });
+
+    it("generates a list name when the collect's name is unusable", async () => {
+        source = `<collect componentTypes="point" source="g" name="" prop="x" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).not.toContain(`name=""`);
+        expect(xml).toMatch(
+            /<mathList name="list\d*" extend="\$collect_list\d*\.x" \/>/,
+        );
+    });
+});

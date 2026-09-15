@@ -9,8 +9,17 @@ import {
 /**
  * `parents` is the chain of enclosing elements, nearest first, as `visit` from
  * `@doenet/parser` reports it.
+ *
+ * `attributeOwner` is the element in whose *attribute* the node sits, when it does. A
+ * node among an element's children has none, and descending into an element's children
+ * clears it, so it always names the nearest element the node is written *on* rather than
+ * merely inside.
  */
-type Visitor = (node: DastNodes, parents: DastElement[]) => void;
+type Visitor = (
+    node: DastNodes,
+    parents: DastElement[],
+    attributeOwner?: DastElement,
+) => void;
 
 /**
  * Like `visit` from `@doenet/parser`, but it *also* descends into places that `visit`
@@ -28,29 +37,34 @@ type Visitor = (node: DastNodes, parents: DastElement[]) => void;
  * is meant for whole-tree rewrites.
  */
 export function visitAll(tree: DastNodes, visitor: Visitor) {
-    walk(tree, []);
+    walk(tree, [], undefined);
 
-    function walk(node: DastNodes, parents: DastElement[]) {
+    function walk(
+        node: DastNodes,
+        parents: DastElement[],
+        attributeOwner: DastElement | undefined,
+    ) {
         // Macros are visited post-order; everything else pre-order.
         const isMacro = node.type === "macro" || node.type === "function";
         if (!isMacro) {
-            visitor(node, parents);
+            visitor(node, parents, attributeOwner);
         }
         const innerParents = isDastElement(node) ? [node, ...parents] : parents;
 
         if (isDastElement(node)) {
             for (const attr of Object.values(node.attributes)) {
-                walkArray(attr.children as DastNodes[], innerParents);
+                // Everything under here is written *on* `node`.
+                walkArray(attr.children as DastNodes[], innerParents, node);
             }
         }
 
         if (node.type === "macro") {
-            walkMacroAttributes(node, innerParents);
-            walkMacroPath(node, innerParents);
+            walkMacroAttributes(node, innerParents, attributeOwner);
+            walkMacroPath(node, innerParents, attributeOwner);
             // v0.6 macros chain their props rather than flattening them into `path`.
             const accessedProp = (node as any).accessedProp;
             if (accessedProp) {
-                walk(accessedProp as DastNodes, innerParents);
+                walk(accessedProp as DastNodes, innerParents, attributeOwner);
             }
         }
 
@@ -58,49 +72,67 @@ export function visitAll(tree: DastNodes, visitor: Visitor) {
             // A v0.6 function macro wraps a macro instead of carrying a `path`.
             const inner = (node as any).macro;
             if (inner) {
-                walk(inner as DastNodes, innerParents);
+                walk(inner as DastNodes, innerParents, attributeOwner);
             }
-            walkMacroPath(node, innerParents);
+            walkMacroPath(node, innerParents, attributeOwner);
             for (const inputPart of node.input || []) {
-                walkArray(inputPart as DastNodes[], innerParents);
+                walkArray(
+                    inputPart as DastNodes[],
+                    innerParents,
+                    attributeOwner,
+                );
             }
         }
 
         if ("children" in node && Array.isArray(node.children)) {
-            walkArray(node.children as DastNodes[], innerParents);
+            // A child is inside the element, not written on it, so ownership stops here.
+            walkArray(
+                node.children as DastNodes[],
+                innerParents,
+                isDastElement(node) ? undefined : attributeOwner,
+            );
         }
 
         if (isMacro) {
-            visitor(node, parents);
+            visitor(node, parents, attributeOwner);
         }
     }
 
-    function walkMacroAttributes(node: DastMacro, parents: DastElement[]) {
+    function walkMacroAttributes(
+        node: DastMacro,
+        parents: DastElement[],
+        attributeOwner: DastElement | undefined,
+    ) {
         // v0.6 macros store attributes in an array, v0.7 in a record.
         const attrs: { children: unknown }[] = Array.isArray(node.attributes)
             ? (node.attributes as any)
             : Object.values(node.attributes);
         for (const attr of attrs) {
-            walkArray(attr.children as DastNodes[], parents);
+            walkArray(attr.children as DastNodes[], parents, attributeOwner);
         }
     }
 
     function walkMacroPath(
         node: DastMacro | DastFunctionMacro,
         parents: DastElement[],
+        attributeOwner: DastElement | undefined,
     ) {
         for (const part of node.path || []) {
             for (const index of part.index) {
-                walkArray(index.value as DastNodes[], parents);
+                walkArray(index.value as DastNodes[], parents, attributeOwner);
             }
         }
     }
 
-    function walkArray(nodes: DastNodes[], parents: DastElement[]) {
+    function walkArray(
+        nodes: DastNodes[],
+        parents: DastElement[],
+        attributeOwner: DastElement | undefined,
+    ) {
         // The array may be mutated in place while we traverse, so index rather than
         // caching the length.
         for (let i = 0; i < nodes.length; i++) {
-            walk(nodes[i], parents);
+            walk(nodes[i], parents, attributeOwner);
         }
     }
 }
@@ -115,9 +147,10 @@ export function visitAllMacros(
     visitor: (
         node: DastMacro | DastFunctionMacro,
         parents: DastElement[],
+        attributeOwner?: DastElement,
     ) => void,
 ) {
-    visitAll(tree, (node, parents) => {
+    visitAll(tree, (node, parents, attributeOwner) => {
         if (node.type !== "macro" && node.type !== "function") {
             return;
         }
@@ -128,6 +161,6 @@ export function visitAllMacros(
         if (!Array.isArray((node as { path?: unknown }).path)) {
             return;
         }
-        visitor(node, parents);
+        visitor(node, parents, attributeOwner);
     });
 }

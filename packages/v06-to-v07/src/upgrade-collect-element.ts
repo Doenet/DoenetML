@@ -10,6 +10,7 @@ import {
     toXml,
     visit,
 } from "@doenet/parser";
+import { VFile } from "vfile";
 import { renameAttrInPlace } from "./rename-attr-in-place";
 import { reparseAttribute } from "./reparse-attribute";
 import { determinePropType } from "./core-info/determine-prop-type";
@@ -21,6 +22,8 @@ import {
     setCompositeName,
 } from "./assign-names/context";
 import { registerCompositeAssignNames } from "./assign-names/register-composite";
+import { parseReferencePath } from "./assign-names/apply-renames";
+import { isValidReferenceableName } from "./assign-names/rename-registry";
 
 /**
  * Upgrade the `<collect>` element to the new syntax.
@@ -52,26 +55,14 @@ export const upgradeCollectElement: Plugin<
             if (node.attributes["componentTypes"]) {
                 renameAttrInPlace(node, "componentTypes", "componentType");
             }
-            // `source` is now `from`
-            if (node.attributes["source"]) {
-                renameAttrInPlace(node, "source", "from");
-                // Ensure the value starts with a dollar sign
-                const fromValue = toXml(node.attributes["from"].children);
-                if (!fromValue.startsWith("$")) {
-                    node.attributes["from"].children = reparseAttribute(
-                        `$${fromValue}`,
-                    );
+            // `source` — or `target`, which meant the same thing — is now `from`
+            for (const oldKey of ["source", "target"]) {
+                if (!node.attributes[oldKey]) {
+                    continue;
                 }
-            } else if (node.attributes["target"]) {
-                // `target` could also now be`from`
-                renameAttrInPlace(node, "target", "from");
-                // Ensure the value starts with a dollar sign
-                const fromValue = toXml(node.attributes["from"].children);
-                if (!fromValue.startsWith("$")) {
-                    node.attributes["from"].children = reparseAttribute(
-                        `$${fromValue}`,
-                    );
-                }
+                renameAttrInPlace(node, oldKey, "from");
+                makeFromAReference(node, file);
+                break;
             }
             const assignNamesValue = readAssignNames(node);
             if (!assignNamesValue) {
@@ -134,9 +125,17 @@ export const upgradeCollectElement: Plugin<
             // The `mathList` will have the name originally given to the `collect`
             // We need a new name for the collect.
 
-            const listName = node.attributes["name"]
-                ? toXml(node.attributes["name"].children)
-                : context.uniqueName("list");
+            // Read the name the way every other pass does — trimmed — and generate one
+            // when there is nothing usable. An untrimmed or empty value would end up
+            // both as the list's `name` and inside the reference built below, where
+            // `$collect_ c .x` does not parse.
+            const authoredListName = node.attributes["name"]
+                ? toXml(node.attributes["name"].children).trim()
+                : "";
+            const listName =
+                authoredListName && isValidReferenceableName(authoredListName)
+                    ? authoredListName
+                    : context.uniqueName("list");
             const collectName = context.uniqueName(`collect_${listName}`);
             node.attributes["name"] = {
                 type: "attribute",
@@ -165,9 +164,16 @@ export const upgradeCollectElement: Plugin<
                     extend: {
                         type: "attribute",
                         name: "extend",
-                        children: reparseAttribute(
-                            `$${collectName}.${propName}`,
-                        ),
+                        children: [
+                            {
+                                type: "macro",
+                                path: [
+                                    ...parseReferencePath(collectName),
+                                    ...parseReferencePath(propName),
+                                ],
+                                attributes: {},
+                            },
+                        ],
                     },
                 },
                 children: [],
@@ -176,3 +182,35 @@ export const upgradeCollectElement: Plugin<
         });
     };
 };
+
+/**
+ * Turn a `from` holding a bare component name into a real reference.
+ *
+ * Prefixing the text with a `$` is not enough: a hyphenated name only parses inside
+ * `$(...)`, and `$foo-bar` would be read as `$foo` minus `bar`.
+ */
+function makeFromAReference(node: DastElement, file: VFile) {
+    const attr = node.attributes["from"];
+    const value = toXml(attr.children).trim();
+    if (!value || value.startsWith("$")) {
+        return;
+    }
+    try {
+        attr.children = [
+            {
+                type: "macro",
+                path: parseReferencePath(value),
+                attributes: {},
+            },
+        ];
+    } catch {
+        file.message(
+            `Could not read "${value}" as the name of what <collect> collects from.`,
+            {
+                place: node.position,
+                ruleId: "collect/unparsable-from",
+                source: "v06-to-v07",
+            },
+        );
+    }
+}

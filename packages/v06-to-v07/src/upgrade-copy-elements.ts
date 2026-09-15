@@ -292,13 +292,16 @@ export function convertAssignNames(
         node.attributes[findKey(node, "name") ?? ""]?.children ?? [],
     ).trim();
 
+    // A name v0.7 cannot spell is a different problem from a name someone else holds,
+    // and saying so sends the author to the wrong fix.
+    const nameIsUnusable = !isValidReferenceableName(assignedName);
     // A name already carried by a real component *in this copy's own namespace* is not
     // ours to take, and references to it were never about this copy. One in a different
     // namespace is a different matter, and so is a name claimed by another
     // `assignNames`: v0.6 allowed both, so this copy takes a name of its own and the
     // references reaching into *its* namespace are pointed at it.
     const nameBelongsToAnother =
-        !isValidReferenceableName(assignedName) ||
+        nameIsUnusable ||
         nameTakenInScope(context, assignedName, ancestorNames);
     // Whether the bare name is still *available* is a whole-document question, though:
     // once the namespaces are gone, only one component can carry it.
@@ -320,7 +323,7 @@ export function convertAssignNames(
                 file,
             );
         } else if (existingName !== assignedName) {
-            reportNameAlreadyTaken(node, assignedName, file);
+            reportUnusableName(node, assignedName, nameIsUnusable, file);
         }
         deleteAssignNames(node);
         setCompositeName(node, existingName);
@@ -331,7 +334,7 @@ export function convertAssignNames(
         const generated = context.uniqueName("copy");
         if (nameBelongsToAnother) {
             // References to it were never about this copy, so they are left alone.
-            reportNameAlreadyTaken(node, assignedName, file);
+            reportUnusableName(node, assignedName, nameIsUnusable, file);
         } else {
             // Another `assignNames` holds the bare name, but this copy is somewhere else,
             // so references that reach into its namespace are pointed at it.
@@ -378,11 +381,23 @@ function warnAboutExternalRef(node: DastElement, file: any) {
     );
 }
 
-function reportNameAlreadyTaken(
+function reportUnusableName(
     node: DastElement,
     assignedName: string,
+    nameIsUnusable: boolean,
     file: VFile,
 ) {
+    if (nameIsUnusable) {
+        file.message(
+            `<${node.name}> assigns the name "${assignedName}", which v0.7 cannot use as a name — it must start with a letter and hold only letters, digits, underscores and hyphens. A generated name was used instead and references to "${assignedName}" were left alone.`,
+            {
+                place: node.position,
+                ruleId: "assign-names/invalid-name",
+                source: "v06-to-v07",
+            },
+        );
+        return;
+    }
     file.message(
         `<${node.name}> assigns the name "${assignedName}", but something else in the document is already called that. References to "${assignedName}" were left pointing where they already pointed.`,
         {

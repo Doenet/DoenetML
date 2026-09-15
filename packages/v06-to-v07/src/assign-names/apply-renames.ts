@@ -18,11 +18,14 @@ import { isPropAccess } from "./prop-access-parts";
  * applied. `slash-to-dot.ts` deliberately writes `<copy source="...">` back as plain text
  * so that `upgradeCopySyntax` can parse it later, so these are not macros and would be
  * missed by a macro-only pass.
+ *
+ * `<collect>` is deliberately absent: `upgradeCollectElement` has already turned its
+ * `source`/`target` into a `from` holding a real macro, which the macro pass above
+ * rewrites.
  */
 const RAW_REFERENCE_ATTRS: Record<string, string[]> = {
     copy: ["source"],
     extract: ["source"],
-    collect: ["source", "target"],
 };
 
 /**
@@ -43,13 +46,18 @@ export function applyRefRenames(
         return;
     }
 
-    visitAllMacros(tree, (node, parents) => {
+    visitAllMacros(tree, (node, parents, attributeOwner) => {
         node.path = renamePath(
             node.path,
             registry,
             file,
             node.position,
             namespaceChainOf(parents, context),
+            // A reference written on an element cannot mean the name that element is
+            // about to take: `<copy source="$x0" assignNames="x0">` reaches elsewhere
+            // for the thing it copies. References among its *children* are a different
+            // matter and keep their ownership clear, so `visitAll` reports none for them.
+            attributeOwner,
         );
     });
 
