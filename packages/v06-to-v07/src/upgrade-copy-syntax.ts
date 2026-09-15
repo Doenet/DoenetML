@@ -251,9 +251,13 @@ async function findReferentType(
                 continue;
             }
             referentType = foundType;
+            // `printPathWithoutIndices` drops the indices from *every* part, not just
+            // the last, so all of them are unaccounted for. A dynamic index on an
+            // earlier segment (`g[$i].m`) has to count too: `g.m` may well resolve, but
+            // to a different component than the one the author indexed into.
             unresolvedIndex = keepIndices
                 ? []
-                : pathParts[pathParts.length - 1].index;
+                : pathParts.flatMap((part) => part.index);
             unresolvedProps = path.slice(i);
             break search;
         }

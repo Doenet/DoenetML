@@ -1564,3 +1564,39 @@ describe("regressions found by the thirteenth review", () => {
         expect(toXml(res.dast)).toContain(`<math extend="$m" />`);
     });
 });
+
+describe("regressions found by the fourteenth review", () => {
+    let source: string;
+
+    it("rejects a dynamic index on a non-final path segment", async () => {
+        // Dropping the indices to resolve `g.m` finds a real component, but not the
+        // one `g[$i].m` asks for, so its type must not be used.
+        source = `<number name="i">1</number><group name="g"><math name="m">x</math></group><copy source="g[$i].m" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<copy source="g[$i].m" />`);
+        expect(
+            res.vfile.messages.some((m) =>
+                (m.reason || "").includes("unresolved indices"),
+            ),
+        ).toBe(true);
+    });
+
+    it("still rejects a dynamic index on the final segment", async () => {
+        source = `<number name="i">1</number><group name="g"><math name="m">x</math></group><copy source="g[$i]" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).toContain(`<copy source="g[$i]" />`);
+    });
+
+    it("still resolves a literal index the core can follow", async () => {
+        source = `<selectFromSequence name="s" numToSelect="2" from="1" to="5" /><copy source="s[1]" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).toContain(`<number extend="$s[1]" />`);
+    });
+
+    it("still resolves an index-free path through a group", async () => {
+        source = `<group name="g"><math name="m">x</math></group><copy source="g.m" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).toContain(`<math extend="$g.m" />`);
+    });
+});
