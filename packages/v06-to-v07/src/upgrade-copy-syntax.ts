@@ -96,6 +96,17 @@ async function resolveCopyTags(
         if (!isDastElement(node) || node.name !== "copy") {
             return;
         }
+        // A `uri` still on a `<copy>` means `upgradeCopyElements` declined to convert it
+        // and reported why. Its target is another document, so resolving a `source`
+        // against *this* one would rename the element and leave the `uri` behind on
+        // something the diagnostics say was left alone.
+        if (
+            Object.keys(node.attributes).some(
+                (key) => key.toLowerCase() === "uri",
+            )
+        ) {
+            return;
+        }
         let referentName = toXml(node.attributes["source"]?.children);
         if (!referentName) {
             // No source, nothing to do

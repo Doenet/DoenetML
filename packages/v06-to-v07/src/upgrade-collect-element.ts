@@ -24,6 +24,7 @@ import {
 import { registerCompositeAssignNames } from "./assign-names/register-composite";
 import { parseReferencePath } from "./assign-names/apply-renames";
 import { isValidReferenceableName } from "./assign-names/rename-registry";
+import { markAsPropAccess } from "./assign-names/prop-access-parts";
 
 /**
  * Upgrade the `<collect>` element to the new syntax.
@@ -169,7 +170,7 @@ export const upgradeCollectElement: Plugin<
                                 type: "macro",
                                 path: [
                                     ...parseReferencePath(collectName),
-                                    ...parseReferencePath(propName),
+                                    ...propPathParts(propName),
                                 ],
                                 attributes: {},
                             },
@@ -213,4 +214,18 @@ function makeFromAReference(node: DastElement, file: VFile) {
             },
         );
     }
+}
+
+/**
+ * The path parts naming a prop, marked as such.
+ *
+ * `applyAssignNameRenames` runs after this plugin and rewrites any path part that matches
+ * an assigned name. Without the mark, a `<collect prop="y">` sitting in a document where
+ * something else assigned the name `y` would have its prop rewritten into that
+ * composite's index — `$collect_vals.y` becoming `$collect_vals.x[2]`.
+ */
+function propPathParts(propName: string) {
+    const parts = parseReferencePath(propName);
+    parts.forEach(markAsPropAccess);
+    return parts;
 }

@@ -1524,3 +1524,43 @@ describe("regressions found by the twelfth review", () => {
         ).toEqual(`<copy source="x" />`);
     });
 });
+
+describe("regressions found by the thirteenth review", () => {
+    let source: string;
+
+    it("does not let a rename rewrite a collect's hoisted prop", async () => {
+        // `applyAssignNameRenames` runs after the collect is hoisted, so without the
+        // prop-access mark the `y` in `$collect_vals.y` matched the assigned name `y`
+        // and became that composite's index.
+        source = `<selectFromSequence assignNames="x y" numToSelect="2" from="1" to="5" /><collect componentTypes="point" source="g" name="vals" prop="y" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(
+            `<mathList name="vals" extend="$collect_vals.y" />`,
+        );
+        expect(xml).not.toContain(`$collect_vals.x`);
+    });
+
+    it("leaves an unconverted external copy out of local referent resolution", async () => {
+        // The copy narrows what it copies, so it keeps its `uri` and is reported rather
+        // than converted. Resolving its `source` here would rename the element and
+        // strand the `uri` on it.
+        source = `<math name="m">z</math><copy uri="doenet:cid=x" source="m" vmin="1" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        const xml = toXml(res.dast);
+        expect(xml).toContain(
+            `<copy uri="doenet:cid=x" source="m" vmin="1" />`,
+        );
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "external-copy/narrowed",
+        );
+    });
+
+    it("still resolves an ordinary local copy", async () => {
+        source = `<math name="m">z</math><copy source="m" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).toContain(`<math extend="$m" />`);
+    });
+});
