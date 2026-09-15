@@ -1306,6 +1306,32 @@ describe("regressions found by the ninth review", () => {
         );
     });
 
+    it("copies rather than extends a module, which v0.6 never linked", async () => {
+        // v0.6's default for `link` was "linked, unless this copies by cid/uri or the
+        // target is a module", so a module copy has to become `copy`, not `extend`.
+        source = `<setup><module name="m"><p>hi</p></module></setup><copy source="m" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<module copy="$m" />`);
+        expect(xml).not.toContain(`extend=`);
+    });
+
+    it("extends a non-module referent, which v0.6 did link", async () => {
+        source = `<point name="P">(1,2)</point><copy source="P" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).toContain(`<point extend="$P" />`);
+    });
+
+    it("copies rather than extends a module reached through copySource", async () => {
+        source = `<setup><module name="m"><p>hi</p></module></setup><module copySource="m" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<module copy="$m" />`);
+        expect(xml).not.toContain(`extend=`);
+    });
+
     it("still converts an ordinary parameterized external copy", async () => {
         source = `<copy uri="doenet:cid=abc" vmin="-1" assignNames="a" />`;
         const res = await updateSyntaxFromV06toV07(source, {

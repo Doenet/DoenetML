@@ -17,7 +17,10 @@ import { renameAttrInPlace } from "./rename-attr-in-place";
 import { reparseAttribute } from "./reparse-attribute";
 import { parseReferencePath } from "./assign-names/apply-renames";
 import { createCoreForLookup } from "./core-info/core";
-import { determinePropType } from "./core-info/determine-prop-type";
+import {
+    determinePropType,
+    isModuleComponentType,
+} from "./core-info/determine-prop-type";
 
 /**
  * Upgrade the type-less `<copy>` tag to have the same type as its referent.
@@ -139,13 +142,23 @@ async function resolveCopyTags(
                 delete node.attributes[propKey];
             }
 
-            const targetTag =
-                toXml(node.attributes["link"]?.children || []).toLowerCase() ===
-                "false"
+            // v0.7 has no `link`: an `extend` attribute is always linked and a `copy`
+            // attribute never is, so the choice between them says it instead.
+            //
+            // With no `link` at all, v0.6 did not always link. Its default was "linked,
+            // unless this is a copy by cid/uri or the target is a module" (the `link`
+            // state variable in v0.6's `Copy.js`), and the referent type is what says
+            // whether the second case applies.
+            const linkAttr = node.attributes["link"];
+            const targetTag = linkAttr
+                ? toXml(linkAttr.children).trim().toLowerCase() === "false"
                     ? "copy"
-                    : "extend";
+                    : "extend"
+                : isModuleComponentType(referentType)
+                  ? "copy"
+                  : "extend";
             // If there is a `link` attribute, delete it as it is no longer needed
-            if (node.attributes["link"]) {
+            if (linkAttr) {
                 delete node.attributes["link"];
             }
 

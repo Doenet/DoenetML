@@ -27,6 +27,7 @@ import { upgradeAssignNames } from "./upgrade-assign-names";
 import { applyAssignNameRenames } from "./apply-assign-name-renames";
 import { createAssignNamesContext } from "./assign-names/context";
 import { markAsPropAccess } from "./assign-names/prop-access-parts";
+import { isModuleComponentType } from "./core-info/determine-prop-type";
 
 export type Options = {
     doNotUpgradeCopyTags?: boolean;
@@ -160,10 +161,18 @@ const copySourceToExtendOrCopy: Plugin<[], DastRoot, DastRoot> = () => {
             if (!copySourceAttr) {
                 return;
             }
-            const targetTag =
-                toXml(linkAttr?.children || []).toLowerCase() === "false"
+            // v0.7 has no `link`: `extend` is always linked and `copy` never is, so the
+            // choice between them says it instead. With no `link` at all, v0.6 linked
+            // everything except a copy by cid/uri and a copy of a module (the `link`
+            // state variable in v0.6's `Copy.js`); here the element's own name is the
+            // type of what is being copied, so it answers the module question.
+            const targetTag = linkAttr
+                ? toXml(linkAttr.children).trim().toLowerCase() === "false"
                     ? "copy"
-                    : "extend";
+                    : "extend"
+                : isModuleComponentType(node.name)
+                  ? "copy"
+                  : "extend";
 
             const baseValue = toXml(copySourceAttr.children).trim();
             let extendValue = baseValue.startsWith("$")
