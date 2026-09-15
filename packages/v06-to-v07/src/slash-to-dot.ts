@@ -44,8 +44,9 @@ export const upgradePathSlashesToDots: Plugin<
                     original as any,
                 )}`,
                 {
-                    start: original.position?.start,
-                    end: original.position?.end,
+                    place: original.position,
+                    ruleId: "no-v07-equivalent/parent-path",
+                    source: "v06-to-v07",
                 },
             );
         };
@@ -122,7 +123,11 @@ export const upgradePathSlashesToDots: Plugin<
                 if (hasSlash) {
                     file.message(
                         `Could not reparse "source" attribute that contains a slash: "${sourceName}".`,
-                        { place: node.position },
+                        {
+                            place: node.position,
+                            ruleId: "copy/unparsable-source",
+                            source: "v06-to-v07",
+                        },
                     );
                 }
                 return;
@@ -130,7 +135,11 @@ export const upgradePathSlashesToDots: Plugin<
             const upgradedSource = v06MacroToV07Macro(reparsedSource[0], () =>
                 file.message(
                     `There is no equivalent to the ../x syntax; a best-guess was made when converting source="${sourceName}"`,
-                    { place: node.position },
+                    {
+                        place: node.position,
+                        ruleId: "no-v07-equivalent/parent-path",
+                        source: "v06-to-v07",
+                    },
                 ),
             );
             // Which parts were props is about to be lost, so record it while the parsed

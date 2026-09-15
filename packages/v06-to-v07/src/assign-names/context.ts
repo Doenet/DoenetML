@@ -14,6 +14,7 @@ import {
     createUniqueNameFactory,
 } from "../utils";
 import { renameAttrInPlace } from "../rename-attr-in-place";
+import { VFile } from "vfile";
 import { findAttribute } from "./composite-info";
 
 /**
@@ -165,6 +166,7 @@ export function chooseCompositeName(
     pieces: NamePieces,
     fallbackBase: string,
     context: AssignNamesContext,
+    file?: VFile,
 ): string {
     const nameAttr = findAttribute(node, "name");
     const existingName = nameAttr ? toXml(nameAttr.children).trim() : "";
@@ -173,6 +175,16 @@ export function chooseCompositeName(
     // reject it independently and the two would disagree.
     if (existingName && isValidReferenceableName(existingName)) {
         return existingName;
+    }
+    if (existingName) {
+        file?.message(
+            `<${node.name}> is called "${existingName}", which v0.7 cannot use as a name — it must start with a letter and hold only letters, digits, underscores and hyphens. A different name was used instead.`,
+            {
+                place: node.position,
+                ruleId: "assign-names/invalid-name",
+                source: "v06-to-v07",
+            },
+        );
     }
 
     const firstName = firstLeafName(pieces);

@@ -83,6 +83,8 @@ export const upgradeModuleElement: Plugin<[], DastRoot, DastRoot> = () => {
                         `Module "customAttribute" is missing a "componentType"; the syntax cannot be upgraded with a "componentType".`,
                         {
                             place: customAttributeNode.position,
+                            ruleId: "module/custom-attribute-without-type",
+                            source: "v06-to-v07",
                         },
                     );
                     continue;

@@ -198,7 +198,11 @@ async function resolveCopyTags(
         } catch (e) {
             file.message(
                 `Could not resolve referent type for <copy> tag with source="${referentName}": ${e}`,
-                node.position?.start,
+                {
+                    place: node.position,
+                    ruleId: "copy/unresolved-referent",
+                    source: "v06-to-v07",
+                },
             );
             continue;
         }

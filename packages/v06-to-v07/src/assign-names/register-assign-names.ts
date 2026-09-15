@@ -80,19 +80,10 @@ export function registerAssignNames({
             const depth = indexPath.length + 1;
             const position = positionMap(depth, i + 1);
             if (position === undefined) {
-                // v0.6 handed this ordinal no replacement, so the name it carries named
-                // nothing. Registering it anyway would point its references at a
+                // v0.6 handed this ordinal no replacement, so every name under it named
+                // nothing. Registering them anyway would point their references at a
                 // replacement that belongs to a different name.
-                if (typeof piece === "string") {
-                    file.message(
-                        `The assignNames token "${piece}" on <${origin.elementName}> named nothing in v0.6 — there are fewer components at that position than names — so references to it were not converted.`,
-                        {
-                            place: origin.position,
-                            ruleId: "assign-names/names-nothing",
-                            source: "v06-to-v07",
-                        },
-                    );
-                }
+                reportNamesNothing(piece);
                 return;
             }
             const indices = [...indexPath, position];
@@ -118,5 +109,21 @@ export function registerAssignNames({
                 registerPieces(piece, indices);
             }
         });
+    }
+
+    /** Report every name under a piece that v0.6 gave no replacement to. */
+    function reportNamesNothing(piece: NamePieces[number]) {
+        if (typeof piece !== "string") {
+            piece.forEach(reportNamesNothing);
+            return;
+        }
+        file.message(
+            `The assignNames token "${piece}" on <${origin.elementName}> named nothing in v0.6 — the position it was given holds no component — so references to it were not converted.`,
+            {
+                place: origin.position,
+                ruleId: "assign-names/names-nothing",
+                source: "v06-to-v07",
+            },
+        );
     }
 }

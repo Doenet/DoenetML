@@ -1592,7 +1592,9 @@ describe("regressions found by the fourteenth review", () => {
         expect(xml).toContain(`<copy source="g[$i].m" />`);
         expect(
             res.vfile.messages.some((m) =>
-                (m.reason || "").includes("unresolved indices"),
+                (m.reason || "").includes(
+                    `"g[$i].m" because it has unresolved`,
+                ),
             ),
         ).toBe(true);
     });
@@ -1603,7 +1605,7 @@ describe("regressions found by the fourteenth review", () => {
         expect(toXml(res.dast)).toContain(`<copy source="g[$i]" />`);
         expect(
             res.vfile.messages.some((m) =>
-                (m.reason || "").includes("unresolved indices"),
+                (m.reason || "").includes(`"g[$i]" because it has unresolved`),
             ),
         ).toBe(true);
     });
@@ -1723,6 +1725,11 @@ describe("regressions found by the read-only review pass", () => {
         expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
             "collect/unparsable-prop",
         );
+        // The fallback is deliberately not a valid reference — it is there to be found
+        // and fixed by hand, so pin it rather than let it drift.
+        expect(toXml(res.dast)).toContain(
+            `<mathList name="q1" extend="$collect_q1.x y" />`,
+        );
     });
 
     it("does not adopt an existing name v0.7 cannot use", async () => {
@@ -1735,6 +1742,10 @@ describe("regressions found by the read-only review pass", () => {
         const xml = toXml(res.dast);
         expect(xml).toContain(`<mathList name="q1" extend="$collect_q1.x" />`);
         expect(xml).toContain(`<p>$q1[1] $q1[2]</p>`);
+        // ...and the name that was dropped is reported rather than vanishing.
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "assign-names/invalid-name",
+        );
     });
 
     it("converts a source with surrounding whitespace", async () => {
@@ -1807,5 +1818,74 @@ describe("regressions found by the read-only review pass", () => {
         expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
             "assign-names/names-nothing",
         );
+    });
+});
+
+describe("regressions found by the second review pass", () => {
+    let source: string;
+
+    it("reads a `<collect>`'s `prop` however it was capitalized", async () => {
+        // The `<copy>` site was made case-insensitive but this one was not, so the
+        // hoist never happened and the references pointed at the collected components
+        // rather than at the prop that was asked for.
+        source = `<collect componentTypes="point" source="p1" Prop="x" assignNames="a b" />$a $b`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).toContain(`<mathList name="a" extend="$collect_a.x" />`);
+        expect(xml).not.toContain(`Prop=`);
+    });
+
+    it("reports every name under a dropped group, not just a bare one", async () => {
+        // `(a b)` sits at a position the branch does not fill, so neither name was
+        // registered — and neither was reported, because only a string piece was.
+        source = `<conditionalContent assignNames="(q (a b))"><case condition="true">text<p>1</p></case></conditionalContent>$q $a $b`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const reported = res.vfile.messages
+            .filter((m) => m.ruleId === "assign-names/names-nothing")
+            .map((m) => m.reason);
+        expect(reported).toHaveLength(2);
+        expect(reported.join(" ")).toContain(`"a"`);
+        expect(reported.join(" ")).toContain(`"b"`);
+    });
+
+    it("names the element the author wrote when a `<template>` name is lost", async () => {
+        source = `<map assignNames="a b"><template name="tmplname" newNamespace><p>x</p></template><sources alias="n"><math>1</math><math>2</math></sources></map>`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const message = res.vfile.messages.find(
+            (m) => m.ruleId === "map/name-overwritten",
+        );
+        expect(message?.reason).toContain(`<template name="tmplname">`);
+    });
+
+    it("refuses an existing name v0.7 cannot use on a `<copy>` too", async () => {
+        // `chooseCompositeName` rejects such a name for every other composite; the copy
+        // path adopted it and pointed the references at a string v0.7 cannot parse.
+        source = `<point name="p1" /><copy source="p1" name="2bad" assignNames="a" />$a`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        const xml = toXml(res.dast);
+        expect(xml).not.toContain(`2bad`);
+        expect(xml).toContain(`$a`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
+            "assign-names/invalid-name",
+        );
+    });
+
+    it("gives every diagnostic a rule name", async () => {
+        // The changeset says problems are reported with a rule name so they can be
+        // grouped; seven messages had none.
+        source = `<map assignNames="a"><sources alias="n"><math>1</math></sources></map><p>$(../x)</p>`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(res.vfile.messages.length).toBeGreaterThan(0);
+        expect(res.vfile.messages.every((m) => m.ruleId)).toBe(true);
     });
 });

@@ -52,7 +52,11 @@ export const upgradeMapElement: Plugin<
                 // We don't know how to convert in this case
                 file.message(
                     `Map element must have both a template and sources children to be converted`,
-                    { place: node.position },
+                    {
+                        place: node.position,
+                        ruleId: "map/missing-template-or-sources",
+                        source: "v06-to-v07",
+                    },
                 );
                 // We always must have a template and a sources.
                 return;
@@ -153,6 +157,11 @@ export const upgradeMapElement: Plugin<
                     children: reparseAttribute(groupName),
                 };
 
+                // Reported before the rename below, so the message names the element
+                // the author actually wrote rather than the one it becomes.
+                if (name) {
+                    warnIfNameLost(templateNode, name, file);
+                }
                 // `<template>` becomes a `<repeat>`
                 templateNode.name = "repeat";
                 templateNode.attributes["for"] = {
@@ -161,7 +170,6 @@ export const upgradeMapElement: Plugin<
                     children: reparseAttribute(`$${groupName}`),
                 };
                 if (name) {
-                    warnIfNameLost(templateNode, name, file);
                     templateNode.attributes["name"] = {
                         type: "attribute",
                         name: "name",

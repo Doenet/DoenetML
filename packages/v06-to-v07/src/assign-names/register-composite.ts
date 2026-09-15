@@ -67,6 +67,7 @@ export function registerCompositeAssignNames({
         parsed.pieces,
         fallbackBase,
         context,
+        file,
     );
     registerAssignNames({
         assignNamesValue,

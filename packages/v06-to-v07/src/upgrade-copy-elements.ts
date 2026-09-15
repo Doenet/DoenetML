@@ -313,6 +313,23 @@ export function convertAssignNames(
         context.existingNames.has(assignedName) ||
         context.claimedNames.has(assignedName);
 
+    // An existing name v0.7 cannot use is not one references can be pointed at, so it is
+    // no more adoptable than an unusable assigned one. `chooseCompositeName` applies the
+    // same rule on the path every other composite takes.
+    if (existingName && !isValidReferenceableName(existingName)) {
+        file.message(
+            `<${node.name}> is called "${existingName}", which v0.7 cannot use as a name — it must start with a letter and hold only letters, digits, underscores and hyphens. A generated name was used instead and references to "${assignedName}" were left alone.`,
+            {
+                place: node.position,
+                ruleId: "assign-names/invalid-name",
+                source: "v06-to-v07",
+            },
+        );
+        deleteAssignNames(node);
+        setCompositeName(node, context.uniqueName("copy"));
+        return;
+    }
+
     if (existingName) {
         // The element keeps the name it already had, so an assigned name that differs is
         // simply another way of spelling it and references can be pointed at it — unless

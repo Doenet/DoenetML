@@ -114,8 +114,11 @@ describe("parser", () => {
 });
 
 describe("a following `.` or `[` is still absorbed", () => {
-    // Long-standing behaviour, recorded so that a change to `isNameChar` is visible
-    // rather than silent: these print as one macro, not as a macro followed by text.
+    // Recorded so that a change to `isNameChar` is visible rather than silent. This is
+    // NOT round-tripping: the input parses as a macro followed by the literal text `.y`,
+    // while the printed form parses as one macro with a two-part path — so printing
+    // changes what it means. Long-standing, and out of scope for the run-on fix above,
+    // which covers only a following name character.
     it("does not parenthesize before a prop access or an index", () => {
         expect(toXml(lezerToDast(`$(x).y`))).toEqual(`$x.y`);
         expect(toXml(lezerToDast(`$(x)[1]`))).toEqual(`$x[1]`);

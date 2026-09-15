@@ -108,12 +108,20 @@ export const upgradeCollectElement: Plugin<
                 return;
             }
 
-            const propAttr = node.attributes["prop"];
-            const propName = toXml(propAttr?.children).trim();
+            // v0.6 attribute names were case-insensitive and nothing normalizes `prop`,
+            // so find it however it was written — otherwise the hoist below never
+            // happens and the references point at the collected components rather than
+            // at the prop that was asked for.
+            const propKey = Object.keys(node.attributes).find(
+                (key) => key.toLowerCase() === "prop",
+            );
+            const propName = propKey
+                ? toXml(node.attributes[propKey].children).trim()
+                : "";
             if (!propName) {
                 return;
             }
-            delete node.attributes["prop"];
+            delete node.attributes[propKey!];
             // Create a new `<setup>` element
             const setup: DastElement = {
                 type: "element",
@@ -153,7 +161,11 @@ export const upgradeCollectElement: Plugin<
             if (!listType) {
                 file.message(
                     `Could not determine type for prop "${propName}" of component type "${componentType}". Using "math" as default.`,
-                    { place: node.position },
+                    {
+                        place: node.position,
+                        ruleId: "collect/unknown-prop-type",
+                        source: "v06-to-v07",
+                    },
                 );
                 listType = "math";
             }
