@@ -64,6 +64,7 @@ export const COMPOSITES: Record<string, CompositeSpec> = {
         count: { kind: "always-one" },
         grouping: { childName: "case", alsoMatch: ["else"] },
     },
+    lorem: { name: "lorem", count: { kind: "unknown" } },
     sort: { name: "sort", count: { kind: "unknown" } },
     shuffle: { name: "shuffle", count: { kind: "unknown" } },
     group: { name: "group", count: { kind: "unknown" } },
@@ -172,8 +173,9 @@ function positionMapForBranches(
     file: VFile,
 ): PositionMap | undefined {
     const maps = branches.map((children) => branchPositionMap(children));
+    // Both callers guarantee at least one branch.
     const first = maps[0];
-    if (first === undefined || maps.every((m) => isIdentity(m))) {
+    if (maps.every((m) => isIdentity(m))) {
         return undefined;
     }
     if (!maps.every((m) => sameMap(m, first))) {
@@ -203,7 +205,11 @@ function positionMapForBranches(
         if (depth !== insideGroupingDepth) {
             return ordinal;
         }
-        return first[ordinal - 1] ?? ordinal;
+        // An ordinal past the end named nothing in v0.6, so there is no position to map
+        // it to. Falling back to the ordinal itself would hand it an index another name
+        // already owns, turning a reference that went nowhere into one that points at
+        // someone else's replacement.
+        return first[ordinal - 1];
     };
 }
 

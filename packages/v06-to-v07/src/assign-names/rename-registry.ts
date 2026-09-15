@@ -150,7 +150,6 @@ export class RenameRegistry {
         if (!targets || targets.length === 0) {
             return undefined;
         }
-        this._matched.add(name);
         let best: RenameTarget | undefined;
         let bestScore = -1;
         for (const target of targets) {
@@ -169,6 +168,11 @@ export class RenameRegistry {
         // Nothing matched, so the reference is not reaching into any of the namespaces
         // that assigned this name. Only a registration that was never scoped can speak
         // for it; guessing at one of the scoped ones would point it somewhere arbitrary.
+        // A lookup that matched nothing is not a use, so `unused()` still reports the
+        // name as never reached.
+        if (best) {
+            this._matched.add(name);
+        }
         return best;
     }
 

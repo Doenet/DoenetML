@@ -3,6 +3,7 @@ import {
     DastAttribute,
     DastElement,
     DastElementContent,
+    DastMacroPathPart,
     DastRoot,
     DastRootContent,
     isDastElement,
@@ -133,6 +134,11 @@ export const upgradeCollectElement: Plugin<
             const authoredListName = node.attributes["name"]
                 ? toXml(node.attributes["name"].children).trim()
                 : "";
+            // `chooseCompositeName` has already registered the renames against this
+            // name, so a name it cannot use has to be rejected there rather than here;
+            // see the guard in `context.ts`. Reaching this point with an unusable one
+            // would mean the references point at a name nothing carries.
+
             const listName =
                 authoredListName && isValidReferenceableName(authoredListName)
                     ? authoredListName
@@ -170,7 +176,7 @@ export const upgradeCollectElement: Plugin<
                                 type: "macro",
                                 path: [
                                     ...parseReferencePath(collectName),
-                                    ...propPathParts(propName),
+                                    ...propPathParts(propName, node, file),
                                 ],
                                 attributes: {},
                             },
@@ -224,8 +230,28 @@ function makeFromAReference(node: DastElement, file: VFile) {
  * something else assigned the name `y` would have its prop rewritten into that
  * composite's index — `$collect_vals.y` becoming `$collect_vals.x[2]`.
  */
-function propPathParts(propName: string) {
-    const parts = parseReferencePath(propName);
+function propPathParts(
+    propName: string,
+    node: DastElement,
+    file: VFile,
+): DastMacroPathPart[] {
+    let parts: DastMacroPathPart[];
+    try {
+        parts = parseReferencePath(propName);
+    } catch {
+        // v0.6 accepted values a reference cannot express, such as `prop="x y"`. The
+        // caller has already decided to hoist, so emit something the author can see and
+        // repair rather than throwing out of the whole conversion.
+        file.message(
+            `<collect prop="${propName}"> could not be turned into a reference, so the generated list extends a path that needs fixing by hand.`,
+            {
+                place: node.position,
+                ruleId: "collect/unparsable-prop",
+                source: "v06-to-v07",
+            },
+        );
+        return [{ type: "pathPart", name: propName, index: [] }];
+    }
     parts.forEach(markAsPropAccess);
     return parts;
 }

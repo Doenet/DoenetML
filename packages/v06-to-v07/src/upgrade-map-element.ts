@@ -6,6 +6,7 @@ import {
     replaceNode,
     toXml,
 } from "@doenet/parser";
+import { VFile } from "vfile";
 import { reparseAttribute } from "./reparse-attribute";
 import {
     AssignNamesContext,
@@ -99,6 +100,7 @@ export const upgradeMapElement: Plugin<
                 // We have a `<sequence>` node. This gets converted to a `<repeatForSequence>` node.
 
                 if (name) {
+                    warnIfNameLost(sequenceNode, name, file);
                     sequenceNode.attributes["name"] = {
                         type: "attribute",
                         name: "name",
@@ -159,6 +161,7 @@ export const upgradeMapElement: Plugin<
                     children: reparseAttribute(`$${groupName}`),
                 };
                 if (name) {
+                    warnIfNameLost(templateNode, name, file);
                     templateNode.attributes["name"] = {
                         type: "attribute",
                         name: "name",
@@ -185,3 +188,25 @@ export const upgradeMapElement: Plugin<
         });
     };
 };
+
+/**
+ * Report a `name` that is about to be overwritten.
+ *
+ * The `<sequence>` and the `<template>` become the `<repeat>` that takes the map's name,
+ * so a name either of them carried has nowhere to go. References to it were resolved
+ * before this plugin ran, so they cannot be redirected either.
+ */
+function warnIfNameLost(node: DastElement, newName: string, file: VFile) {
+    const existing = toXml(node.attributes["name"]?.children).trim();
+    if (!existing || existing === newName) {
+        return;
+    }
+    file.message(
+        `<${node.name} name="${existing}"> becomes the <repeat> that takes the name "${newName}", so "${existing}" is gone; references to it need fixing by hand.`,
+        {
+            place: node.position,
+            ruleId: "map/name-overwritten",
+            source: "v06-to-v07",
+        },
+    );
+}

@@ -67,6 +67,11 @@ describe("parser", () => {
             `$$f($(x)_0)`,
         );
         expect(toXml(lezerToDastV6(`$a[$(x)_0]`) as any)).toEqual(`$a[$(x)_0]`);
+        // The macro-attribute path renders through `arrayToString`, which nothing else
+        // reaches.
+        expect(toXml(lezerToDastV6(`$a{b="$(x)_0"}`) as any)).toEqual(
+            `$a{b="$(x)_0"}`,
+        );
 
         // ...and drops them again when nothing would run on, as the v0.7 one does.
         expect(toXml(lezerToDastV6(`$(x) 0`) as any)).toEqual(`$x 0`);
@@ -105,5 +110,16 @@ describe("parser", () => {
             ],
         } as unknown as DastRoot;
         expect(toXml(tree)).toEqual("$(x)_0");
+    });
+});
+
+describe("a following `.` or `[` is still absorbed", () => {
+    // Long-standing behaviour, recorded so that a change to `isNameChar` is visible
+    // rather than silent: these print as one macro, not as a macro followed by text.
+    it("does not parenthesize before a prop access or an index", () => {
+        expect(toXml(lezerToDast(`$(x).y`))).toEqual(`$x.y`);
+        expect(toXml(lezerToDast(`$(x)[1]`))).toEqual(`$x[1]`);
+        expect(toXml(lezerToDastV6(`$(x).y`) as any)).toEqual(`$x.y`);
+        expect(toXml(lezerToDastV6(`$(x)[1]`) as any)).toEqual(`$x[1]`);
     });
 });

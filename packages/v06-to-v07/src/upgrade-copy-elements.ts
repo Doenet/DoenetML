@@ -8,6 +8,7 @@ import {
 } from "@doenet/parser";
 import { VFile } from "vfile";
 import { renameAttrInPlace } from "./rename-attr-in-place";
+import { isV06True } from "./utils";
 import { breakStringInPiecesBySpacesOrParens } from "./assign-names/break-into-pieces";
 import {
     AssignNamesContext,
@@ -134,7 +135,9 @@ export const upgradeCopyElements: Plugin<
             // both — so the default here is the unlinked `copy`.
             const linkKey = findKey(node, "link");
             const targetTag =
-                linkKey && isTrueValue(node, linkKey) ? "extend" : "copy";
+                linkKey && isV06True(node.attributes[linkKey])
+                    ? "extend"
+                    : "copy";
             if (linkKey) {
                 delete node.attributes[linkKey];
             }
@@ -412,13 +415,4 @@ function findKey(node: DastElement, attrName: string): string | undefined {
     return Object.keys(node.attributes).find(
         (key) => key.toLowerCase() === attrName.toLowerCase(),
     );
-}
-
-/**
- * Whether a v0.6 primitive-boolean attribute reads as true. Written with no value it
- * arrives as the string `"true"`; written with one it has to be the literal `true`.
- */
-function isTrueValue(node: DastElement, key: string): boolean {
-    const value = toXml(node.attributes[key].children).trim().toLowerCase();
-    return value === "" || value === "true";
 }

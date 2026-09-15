@@ -1,4 +1,5 @@
 import {
+    DastNodes,
     DastRoot,
     DastRootV6,
     isDastElement,
@@ -93,4 +94,21 @@ export function getUniqueName(
     baseName: string,
 ): string {
     return createUniqueNameFactory(tree)(baseName);
+}
+
+/**
+ * Whether a v0.6 primitive-boolean attribute reads as true.
+ *
+ * v0.6 parsed these as `rawString.trim().toLowerCase() === "true"`, with a valueless
+ * attribute arriving as the string `"true"` (`expandDoenetML.js`). So `link="0"` and
+ * `newNamespace="yes"` were both *false*, not merely "not false".
+ */
+export function isV06True(
+    attr: { children: DastNodes[] } | undefined,
+): boolean {
+    if (!attr) {
+        return false;
+    }
+    const value = toXml(attr.children).trim().toLowerCase();
+    return value === "" || value === "true";
 }

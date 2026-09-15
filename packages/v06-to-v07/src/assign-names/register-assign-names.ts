@@ -17,7 +17,14 @@ import {
  * whereas v0.7's `[i]` counts every replacement including text. When they differ, the
  * caller supplies a map. `depth` is 1-based (1 is the composite's own replacements).
  */
-export type PositionMap = (depth: number, ordinal: number) => number;
+/**
+ * Maps an ordinal to the v0.7 index at that depth, or `undefined` when v0.6's ordinal
+ * named nothing there — see `makePositionMap`.
+ */
+export type PositionMap = (
+    depth: number,
+    ordinal: number,
+) => number | undefined;
 
 const identityPositionMap: PositionMap = (_depth, ordinal) => ordinal;
 
@@ -71,7 +78,24 @@ export function registerAssignNames({
     function registerPieces(pieces: NamePieces, indexPath: number[]) {
         pieces.forEach((piece, i) => {
             const depth = indexPath.length + 1;
-            const indices = [...indexPath, positionMap(depth, i + 1)];
+            const position = positionMap(depth, i + 1);
+            if (position === undefined) {
+                // v0.6 handed this ordinal no replacement, so the name it carries named
+                // nothing. Registering it anyway would point its references at a
+                // replacement that belongs to a different name.
+                if (typeof piece === "string") {
+                    file.message(
+                        `The assignNames token "${piece}" on <${origin.elementName}> named nothing in v0.6 — there are fewer components at that position than names — so references to it were not converted.`,
+                        {
+                            place: origin.position,
+                            ruleId: "assign-names/names-nothing",
+                            source: "v06-to-v07",
+                        },
+                    );
+                }
+                return;
+            }
+            const indices = [...indexPath, position];
             if (typeof piece === "string") {
                 if (!isValidReferenceableName(piece)) {
                     file.message(

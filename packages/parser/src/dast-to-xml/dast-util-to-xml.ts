@@ -312,8 +312,10 @@ function macroNeedsParens(macro: DastMacro | DastFunctionMacro): boolean {
  * Whether `char` can appear in the middle of a macro name, so that a macro printed
  * immediately before it would swallow it.
  *
- * A `.` or `[` would also be absorbed, but v0.6 documents rely on that to express a prop
- * access written outside the parentheses, so those are deliberately left alone.
+ * Only name characters count. A following `.` or `[` is absorbed too — `$(x).y` prints as
+ * `$x.y`, which reparses as one macro rather than a macro followed by text — but that is
+ * long-standing behaviour that the surrounding code and its callers already assume, and
+ * changing it is a separate question from the one this guard answers.
  */
 function isNameChar(char: string): boolean {
     return /^[a-zA-Z0-9_]$/.test(char);

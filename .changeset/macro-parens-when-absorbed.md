@@ -7,6 +7,6 @@
 "doenet-vscode-extension": patch
 ---
 
-Keep the parentheses on a reference when the text right after it would otherwise become
-part of the reference. Printing DoenetML no longer turns `$(x)_0` into `$x_0`, which meant
-something different.
+Keep the parentheses on a reference when a letter, digit or underscore follows it and
+would otherwise be read as part of the name. Printing DoenetML no longer turns `$(x)_0`
+into `$x_0`, which meant something different.

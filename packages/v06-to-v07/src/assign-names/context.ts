@@ -168,7 +168,10 @@ export function chooseCompositeName(
 ): string {
     const nameAttr = findAttribute(node, "name");
     const existingName = nameAttr ? toXml(nameAttr.children).trim() : "";
-    if (existingName) {
+    // A name v0.7 cannot use is not one the references can be pointed at, and a caller
+    // that rebuilds a name from this one (`<collect>` derives `collect_<name>`) would
+    // reject it independently and the two would disagree.
+    if (existingName && isValidReferenceableName(existingName)) {
         return existingName;
     }
 

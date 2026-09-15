@@ -33,6 +33,7 @@ import { markAsPropAccess } from "./assign-names/prop-access-parts";
 import { convertAssignNames } from "./upgrade-copy-elements";
 import { namespaceChainOf } from "./assign-names/context";
 import { isModuleComponentType } from "./core-info/determine-prop-type";
+import { isV06True } from "./utils";
 
 export type Options = {
     doNotUpgradeCopyTags?: boolean;
@@ -175,9 +176,9 @@ const copySourceToExtendOrCopy: Plugin<
             // state variable in v0.6's `Copy.js`); here the element's own name is the
             // type of what is being copied, so it answers the module question.
             const targetTag = linkAttr
-                ? toXml(linkAttr.children).trim().toLowerCase() === "false"
-                    ? "copy"
-                    : "extend"
+                ? isV06True(linkAttr)
+                    ? "extend"
+                    : "copy"
                 : isModuleComponentType(node.name)
                   ? "copy"
                   : "extend";

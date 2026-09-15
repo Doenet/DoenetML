@@ -154,9 +154,11 @@ export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
     }
 
     // `core` is only optional so that `releaseCores` can run before it is built; past the
-    // initialization above it always exists.
+    // initialization above it always exists, so this is a type guard rather than a case
+    // that can arise. It still releases, so that it cannot become a leak if that changes.
     const readyCore = core;
     if (!readyCore) {
+        await releaseCores();
         throw Error("The DoenetML core was not initialized.");
     }
 

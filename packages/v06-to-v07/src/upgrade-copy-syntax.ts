@@ -14,6 +14,7 @@ import {
 } from "@doenet/parser";
 import { VFile } from "vfile";
 import { renameAttrInPlace } from "./rename-attr-in-place";
+import { isV06True } from "./utils";
 import { reparseAttribute } from "./reparse-attribute";
 import { parseReferencePath } from "./assign-names/apply-renames";
 import { createCoreForLookup } from "./core-info/core";
@@ -107,23 +108,27 @@ async function resolveCopyTags(
         ) {
             return;
         }
-        let referentName = toXml(node.attributes["source"]?.children);
+        let referentName = toXml(node.attributes["source"]?.children).trim();
         if (!referentName) {
             // No source, nothing to do
             return;
         }
         // There may be a `prop` attribute which specifies which prop from `source` to copy.
         // In the new syntax, this is always accessed with a `.<prop name>` suffix.
-        let propKey: string | undefined;
-        if (node.attributes["prop"]) {
-            const propName = toXml(node.attributes["prop"].children).trim();
+        // v0.6 attribute names were case-insensitive and nothing normalizes `prop`, so
+        // find it however it was written.
+        const propKey = Object.keys(node.attributes).find(
+            (key) => key.toLowerCase() === "prop",
+        );
+        if (propKey) {
+            const propName = toXml(node.attributes[propKey].children).trim();
             if (propName) {
                 referentName += `.${propName}`;
             }
-            // Noted, but not removed yet: if the referent cannot be resolved the `<copy>`
-            // is left as it was, and dropping `prop` there would quietly widen what it
-            // copies while the diagnostic claims the tag was untouched.
-            propKey = "prop";
+            // The attribute is noted but not removed yet: if the referent cannot be
+            // resolved the `<copy>` is left as it was, and dropping `prop` there would
+            // quietly widen what it copies while the diagnostic claims the tag was
+            // untouched.
         }
 
         // `assignNames` has already become a `name` in `upgradeCopyElements`, which runs
@@ -160,17 +165,19 @@ async function resolveCopyTags(
             // unless this is a copy by cid/uri or the target is a module" (the `link`
             // state variable in v0.6's `Copy.js`), and the referent type is what says
             // whether the second case applies.
-            const linkAttr = node.attributes["link"];
-            const targetTag = linkAttr
-                ? toXml(linkAttr.children).trim().toLowerCase() === "false"
-                    ? "copy"
-                    : "extend"
+            const linkKey = Object.keys(node.attributes).find(
+                (key) => key.toLowerCase() === "link",
+            );
+            const targetTag = linkKey
+                ? isV06True(node.attributes[linkKey])
+                    ? "extend"
+                    : "copy"
                 : isModuleComponentType(referentType)
                   ? "copy"
                   : "extend";
             // If there is a `link` attribute, delete it as it is no longer needed
-            if (linkAttr) {
-                delete node.attributes["link"];
+            if (linkKey) {
+                delete node.attributes[linkKey];
             }
 
             // Rename the `copy` tag to the same type as the referent

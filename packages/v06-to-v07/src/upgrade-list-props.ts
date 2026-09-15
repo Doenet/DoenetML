@@ -1,4 +1,5 @@
 import { Plugin } from "unified";
+import { VFile } from "vfile";
 import {
     DastElement,
     DastMacroPathPart,
@@ -30,10 +31,11 @@ const NUMBERED_ITEM_PROP = /^(math|text|number|boolean)(\d+)$/;
 /**
  * Elements whose `prop` attribute names a prop of what their `source` points at.
  */
-const ELEMENTS_WITH_PROP = new Set(["copy", "collect", "extract"]);
+// `collect` is absent: `upgradeCollectElement` consumes its `prop` long before this runs.
+const ELEMENTS_WITH_PROP = new Set(["copy", "extract"]);
 
 export const upgradeListProps: Plugin<[], DastRoot, DastRoot> = () => {
-    return (tree) => {
+    return (tree, file) => {
         visitAllMacros(tree, (node) => {
             node.path = rewritePath(node.path);
         });
@@ -45,7 +47,7 @@ export const upgradeListProps: Plugin<[], DastRoot, DastRoot> = () => {
             ) {
                 return;
             }
-            rewritePropAttribute(node);
+            rewritePropAttribute(node, file);
             rewriteRawSourceAttribute(node);
         });
     };
@@ -140,7 +142,7 @@ function rewritePath(path: DastMacroPathPart[]): DastMacroPathPart[] {
  * The same rewrite for `<copy prop="maths" source="x" />`, whose `source` is still plain
  * text at this point in the pipeline.
  */
-function rewritePropAttribute(node: DastElement) {
+function rewritePropAttribute(node: DastElement, file: VFile) {
     const propKey = findKey(node, "prop");
     if (!propKey) {
         return;
@@ -167,7 +169,21 @@ function rewritePropAttribute(node: DastElement) {
     }
 
     if (!numbered) {
-        // An "all items" prop is the list itself, so there is nothing to move.
+        // An "all items" prop is the list itself, so there is nothing to move — but only
+        // on a tag that is actually becoming a reference. `<extract>` has no v0.7 form
+        // and survives verbatim, so taking its prop off would leave a tag that no longer
+        // says what it extracts and no diagnostic saying so.
+        if (node.name.toLowerCase() === "extract") {
+            file.message(
+                `<extract prop="${prop}"> has no v0.7 equivalent and was left as it is; the prop names the whole list, which v0.7 reaches as $${source}.`,
+                {
+                    place: node.position,
+                    ruleId: "no-v07-equivalent/extract",
+                    source: "v06-to-v07",
+                },
+            );
+            return;
+        }
         delete node.attributes[propKey];
         return;
     }
