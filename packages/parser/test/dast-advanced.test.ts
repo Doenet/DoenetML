@@ -1256,6 +1256,25 @@ describe("DAST", async () => {
                 ]);
             });
 
+            it("a bracket group holding a parse error", () => {
+                // The stray closing tag leaves an `error` node between the
+                // brackets. An index's `value` has no room for one — carried
+                // in, it is a deserialization failure in the core rather than
+                // the diagnostic the author needs — so the group is declined
+                // and the error stays in the sibling array where it can still
+                // be reported.
+                const source = `$a[<n/> </badclose>]`;
+                expect(indicesOf(source)).toHaveLength(0);
+                expect(childrenOf(source)).toMatchObject([
+                    { type: "macro" },
+                    { type: "text", value: "[" },
+                    { type: "element", name: "n" },
+                    { type: "text", value: " " },
+                    { type: "error" },
+                    { type: "text", value: "]" },
+                ]);
+            });
+
             it("an unclosed bracket, but says so", () => {
                 expect(indicesOf(`$a[<n/>`)).toHaveLength(0);
                 expect(childrenOf(`$a[<n/>`)).toMatchObject([

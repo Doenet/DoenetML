@@ -6979,6 +6979,53 @@ describe("Extend and references tests @group2", async () => {
             );
         });
 
+        it("reports an invalid name on the index element rather than failing the document", async () => {
+            // The `_error` normalization makes for a bad name cannot be left in
+            // the index's own `value`, which holds only text, references and
+            // elements: the core would fail to read the document at all and the
+            // page would go blank. The name is dropped, the index still works,
+            // and the error is reported from the paragraph.
+            const { text, diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<number name="bad name">2</number>]</p>
+            `);
+            expect(text).eq("300");
+            expect(diagnostics.errors.length).eq(1);
+            expect(diagnostics.errors[0].message).contain(
+                "Invalid attribute name='bad name'",
+            );
+        });
+
+        it("reports an invalid component name written in the index", async () => {
+            // The other half of the same problem: here the element cannot stay
+            // either, so the index is left empty and reads like any other index
+            // that resolves to nothing.
+            const { diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<_weird>2</_weird>]</p>
+            `);
+            expect(diagnostics.errors.length).eq(1);
+            expect(diagnostics.errors[0].message).contain(
+                'Invalid component name "_weird"',
+            );
+        });
+
+        it("leaves malformed markup between the brackets to its own parse error", async () => {
+            // A stray closing tag leaves an `error` node between the brackets,
+            // which an index cannot carry either. The brackets stay literal, as
+            // they were before an element could index, and the parse error is
+            // what the author is told about.
+            const { text, diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<number>2</number> </badclose>]</p>
+            `);
+            expect(text).eq("100, 300, 200, 50[2 ]");
+            expect(diagnostics.errors.length).eq(1);
+            expect(diagnostics.errors[0].message).contain(
+                "Found closing tag `</badclose>`",
+            );
+        });
+
         it("renders an element written as a function macro's argument", async () => {
             // Not an index, but the same parent chain: a function reference's
             // arguments are parented to the reference too. This shape parsed

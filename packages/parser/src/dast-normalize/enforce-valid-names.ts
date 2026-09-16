@@ -27,6 +27,25 @@ export const pluginEnforceValidNames: Plugin<[], DastRoot, DastRoot> = () => {
                 return;
             }
 
+            // Where an `_error` may be written, and whether this element may
+            // simply be replaced by one.
+            //
+            // An `_error` belongs in a `children` array, which is the only
+            // place the flattener will take one. An element written between a
+            // reference's index brackets lives in that index's `value`
+            // instead, and one written as a function reference's argument
+            // lives in that reference's `input` — and both of those admit only
+            // text, references and elements, so an `_error` left in either is
+            // not a diagnostic but a deserialization failure that takes the
+            // whole document down. In those two places the offending element
+            // is lifted out of where it was written and the error is reported
+            // from the nearest enclosing element instead.
+            const siblings = info.parents[0]?.children;
+            const replaceableInPlace =
+                info.index !== undefined &&
+                info.containingArray !== undefined &&
+                info.containingArray === siblings;
+
             // Ensure component names cannot start with `_`
             if (startsWithNonLetter(node.name) && node.name !== "_error") {
                 const name = node.name;
@@ -39,12 +58,17 @@ export const pluginEnforceValidNames: Plugin<[], DastRoot, DastRoot> = () => {
                 });
 
                 // Replace this element with an `_error` element.
-                // `containingArray` rather than `parents[0].children`: for an
-                // ordinary child the two are the same array, but an element
-                // written inside a reference's index brackets lives in that
-                // index's `value` instead, and `info.index` counts along it.
-                if (info.index !== undefined && info.containingArray) {
-                    info.containingArray.splice(info.index, 1, dastError);
+                if (replaceableInPlace) {
+                    info.containingArray!.splice(info.index!, 1, dastError);
+                } else if (siblings) {
+                    // Not a `children` array. Drop the element from wherever it
+                    // was written — `info.index` counts along that array, so
+                    // `containingArray` is the one to splice — and report from
+                    // the nearest element.
+                    if (info.index !== undefined && info.containingArray) {
+                        info.containingArray.splice(info.index, 1);
+                    }
+                    siblings.push(dastError);
                 } else {
                     // If for some reason we don't have an index, append the error to the root
                     console.warn(
@@ -80,12 +104,18 @@ export const pluginEnforceValidNames: Plugin<[], DastRoot, DastRoot> = () => {
                     // Remove the `name` attribute and insert an `_error` element right after this element
                     delete node.attributes.name;
 
-                    if (info.index !== undefined && info.containingArray) {
-                        info.containingArray.splice(
-                            info.index + 1,
+                    if (replaceableInPlace) {
+                        info.containingArray!.splice(
+                            info.index! + 1,
                             0,
                             dastError,
                         );
+                    } else if (siblings) {
+                        // The element itself stays where it was written — only
+                        // its `name` was invalid, and that has just been
+                        // removed — so the error is simply reported from the
+                        // nearest element.
+                        siblings.push(dastError);
                     } else {
                         // If for some reason we don't have an index, append the error to the root
                         console.warn(

@@ -80,6 +80,18 @@ export function gobblePropIndices(nodes: DastRootContent[]): DastRootContent[] {
                 // it would silently change `$(x)[1]` and `$x{z}[5]`.
                 break;
             }
+            if (group.content.some((n) => n.type === "error")) {
+                // The markup between the brackets is malformed — a stray closing
+                // tag, say. The `error` node the parser left there has to stay in
+                // the sibling array, where the flattener turns it into an
+                // `_error`: an index's `value` holds only text, references and
+                // elements, so an error carried into one is a deserialization
+                // failure that takes the whole document down rather than the
+                // diagnostic the author needs. Declining leaves the brackets
+                // literal, exactly as they were before an element could index,
+                // and leaves the parse error where it can still be reported.
+                break;
+            }
             const closedBy = whatClosedThePath(node);
             if (closedBy) {
                 if (closedBy !== "unknown") {

@@ -4,7 +4,7 @@ import { lezerToDast } from "../src/lezer-to-dast";
 import { toXml } from "../src/dast-to-xml/dast-util-to-xml";
 import { normalizeDocumentDast } from "../src/dast-normalize/normalize-dast";
 import { extractDastErrors } from "../src";
-import type { DastElement } from "../src/types";
+import type { DastElement, DastMacro } from "../src/types";
 
 const origLog = console.log;
 console.log = (...args) => {
@@ -936,16 +936,55 @@ describe("Normalize dast", async () => {
         });
 
         it("validates a name written on an element in an index", () => {
-            // The error replaces the element inside the index's own `value`,
-            // which is why the pass splices into `containingArray` rather than
-            // into the nearest element's children.
+            // The `_error` is reported from the nearest element rather than
+            // from the index's own `value`, which holds only text, references
+            // and elements — an `_error` carried into one is a deserialization
+            // failure in the core rather than a diagnostic.
             const dast = normalizeDocumentDast(
                 lezerToDast(`<p>$a[<number name="1st">1</number>]</p>`),
             );
-            const errors = extractDastErrors(dast);
-            expect(errors).toMatchObject([
+            expect(extractDastErrors(dast)).toMatchObject([
                 { type: "error", code: "doenet-e0025" },
             ]);
+            const p = (dast.children[0] as DastElement).children[0];
+            expect(p).toMatchObject({
+                name: "p",
+                children: [{ type: "macro" }, { type: "error" }],
+            });
+            // The element itself stays in the index — only its name was
+            // invalid, and that has been removed — so the index still resolves.
+            const macro = (p as DastElement).children[0] as DastMacro;
+            expect(macro.path[0].index[0].value).toMatchObject([
+                { type: "element", name: "number", attributes: {} },
+            ]);
+        });
+
+        it("collects an error from inside an element written in an index", () => {
+            // Here the error does belong where it was put — a `children` array
+            // inside the index element — so what the index's own `value` needs
+            // is a collector that descends into it.
+            const dast = normalizeDocumentDast(
+                lezerToDast(
+                    `<p>$a[<indexOf><number name="1st">1</number></indexOf>]</p>`,
+                ),
+            );
+            expect(extractDastErrors(dast)).toMatchObject([
+                { type: "error", code: "doenet-e0025" },
+            ]);
+        });
+
+        it("does not leave an element with an invalid component name in an index", () => {
+            // The element cannot be replaced by the `_error` where it sits, so
+            // it is lifted out and the error is reported from the nearest
+            // element. An empty index reads as any other index that resolves to
+            // nothing.
+            const dast = normalizeDocumentDast(
+                lezerToDast(`<p>$a[<_weird>1</_weird>]</p>`),
+            );
+            expect(extractDastErrors(dast)).toMatchObject([
+                { type: "error", code: "doenet-e0024" },
+            ]);
+            expect(toXml(dast)).toEqual(`<document><p>$a[]</p></document>`);
         });
     });
 });
