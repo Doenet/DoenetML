@@ -175,18 +175,18 @@ function collectBracketGroup(
  *
  * The grammar hangs an index off a *path part* (`PathPart = name PropIndex*`), so an
  * index can only follow the path itself. Anything written after the path has closed
- * it: `$x{z}` ends with its brace block and `$(x)` with its closing paren, which is
- * why `$x{z}[5]` and `$(x)[1]` are a macro followed by literal text today. Comparing
- * the reference's end offset with its last path part's end offset detects both
- * without needing the source string.
+ * it: `$x{z}` ends with its brace block, `$(x)` with its closing paren and `$$f(1)`
+ * with its argument list, which is why `$x{z}[5]`, `$(x)[1]` and `$$f(1)[2]` are a
+ * reference followed by literal text today. Comparing the reference's end offset with
+ * its last path part's end offset detects all three without needing the source string.
  *
- * `"unknown"` means the two cannot be told apart for want of position data, which the
+ * `"unknown"` means the reason cannot be told for want of position data, which the
  * grammar always supplies; the caller then declines the brackets without reporting a
  * reason it does not have.
  */
 function whatClosedThePath(
     macro: DastMacro | DastFunctionMacro,
-): "braces" | "parens" | "unknown" | undefined {
+): "braces" | "parens" | "arguments" | "unknown" | undefined {
     const lastPart = macro.path[macro.path.length - 1] as
         DastMacroPathPart | undefined;
     const macroEnd = macro.position?.end?.offset;
@@ -197,13 +197,30 @@ function whatClosedThePath(
     if (macroEnd === partEnd) {
         return undefined;
     }
+    if (macro.type === "function" && macro.input != null) {
+        // `$$f(1)`. The argument list is what runs past the path, and the index
+        // belongs before it — `$$f[2](1)` — not inside the parentheses, where it
+        // would become another argument.
+        return "arguments";
+    }
+    // What is left is a parenthesized path or a brace block, told apart by where the
+    // path starts: `$(x)` and `$$(f)` write the path inside parens, so it begins one
+    // character further in than the bare `$x` that a `{…}` block follows.
+    const macroStart = macro.position?.start?.offset;
+    const firstStart = macro.path[0]?.position?.start?.offset;
+    const sigilLength = macro.type === "function" ? 2 : 1;
+    if (
+        macroStart == null ||
+        firstStart == null ||
+        firstStart > macroStart + sigilLength
+    ) {
+        return "parens";
+    }
     // `$x{…}`. The grammar still parses a brace block, but v0.7 gives it no
     // meaning — `set_ref` in the Rust flattener drops a reference's attributes
     // outright, so `$x{link="false"}` renders exactly as `$x` — which makes the
     // braces the only thing standing between this reference and its index.
-    return Object.keys((macro as DastMacro).attributes ?? {}).length > 0
-        ? "braces"
-        : "parens";
+    return "braces";
 }
 
 /**
@@ -257,18 +274,24 @@ function attachIndex(
 function indexWarning(
     macro: DastMacro | DastFunctionMacro,
     openBracket: DastText,
-    reason: "braces" | "parens" | "unclosed",
+    reason: "braces" | "parens" | "arguments" | "unclosed",
 ): DastError {
-    const name = macro.path.map((part) => part.name).join(".");
+    // The sigil belongs to `name` because a function macro carries two of them:
+    // quoting `$$f` as `$f` would name a component the author did not write.
+    const name =
+        (macro.type === "function" ? "$$" : "$") +
+        macro.path.map((part) => part.name).join(".");
     const remedy = {
         braces: "`{…}` is not part of a reference, so `[…]` written after it is ordinary text. Remove the `{…}`.",
         parens: "`$(…)` ends a reference, so `[…]` written after it is ordinary text. Write the index inside the parentheses instead.",
+        arguments:
+            "A function reference's arguments end it, so `[…]` written after them is ordinary text. Write the index before the arguments, as `$$f[…](…)`.",
         unclosed: "Its `[` is never closed.",
     }[reason];
 
     return codedDastError({
         code: "doenet-w0162",
-        message: `The element in brackets after \`$${name}\` was not read as an index. ${remedy}`,
+        message: `The element in brackets after \`${name}\` was not read as an index. ${remedy}`,
         args: { name, reason } as DiagnosticArgs,
         error_type: "warning",
         position:

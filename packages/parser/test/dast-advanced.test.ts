@@ -1223,6 +1223,25 @@ describe("DAST", async () => {
                 }
             });
 
+            it("a function macro already closed by its arguments", () => {
+                // `$$f[1](y)` is how the grammar spells an indexed function
+                // macro, so `$$f(1)[…]` has ended before the brackets — the
+                // same as `$(x)[…]`, but the remedy is the opposite one, and
+                // the reference has to be quoted back with both its `$`s.
+                const children = childrenOf(`$$f(1)[<n/>]`);
+                expect(children).toMatchObject([
+                    { type: "function" },
+                    {
+                        type: "error",
+                        error_type: "warning",
+                        args: { name: "$$f", reason: "arguments" },
+                    },
+                    { type: "text", value: "[" },
+                    { type: "element", name: "n" },
+                    { type: "text", value: "]" },
+                ]);
+            });
+
             it("a bracket group with no element in it", () => {
                 // Nothing here the macro parser had not already decided about.
                 expect(childrenOf(`$x{z}[5]`)).toMatchObject([

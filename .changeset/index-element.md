@@ -24,11 +24,12 @@ references and elements the way `$myList[$k + 1]` already could. Naming the elem
 referencing it — `<indexOf name="io" …/>` then `$myList[$io]` — remains fully supported
 and is still the better form when the same position is wanted more than once.
 
-Two shapes still cannot take an index, because the reference has already ended before
-the brackets: `$(x)[…]`, where the closing paren ended it, and `$x{z}[…]`, where a
-`{…}` block did. Those now say so instead of rendering the element between literal
-brackets. For `$(x)[…]` the index belongs inside the parentheses; for `$x{z}[…]` the
-remedy is to delete the `{…}`, which v0.7 drops on the floor anyway.
+Three shapes still cannot take an index, because the reference has already ended before
+the brackets: `$(x)[…]`, where the closing paren ended it, `$x{z}[…]`, where a `{…}`
+block did, and `$$f(1)[…]`, where the argument list did. All three now say so instead of
+rendering the element between literal brackets, and each says what to write instead —
+the index inside the parentheses for `$(x)[…]`, before the arguments for `$$f(1)[…]`,
+and for `$x{z}[…]` no braces at all, which v0.7 drops on the floor anyway.
 
 A name written on an element inside an index resolves from the surrounding document,
 and the element itself is not rendered where it was written.
