@@ -6978,5 +6978,20 @@ describe("Extend and references tests @group2", async () => {
                 "was not read as an index",
             );
         });
+
+        it("renders an element written as a function macro's argument", async () => {
+            // Not an index, but the same parent chain: a function reference's
+            // arguments are parented to the reference too. This shape parsed
+            // before #1909 and was asserted at the DAST layer, but it had never
+            // been run end to end, and building the resolver for it threw
+            // `unreachable` out of the core.
+            const { text, diagnostics } = await textOf(`
+    <function name="f" variables="x">x^2</function>
+    <p name="p1">$$f(<math>3</math>)</p>
+            `);
+            expect(text).eq("9");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
     });
 });

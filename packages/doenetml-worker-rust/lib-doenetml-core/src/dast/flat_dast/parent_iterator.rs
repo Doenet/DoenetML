@@ -5,12 +5,14 @@ use super::{
 
 /// An iterator that iterates over the parent elements of a node.
 ///
-/// A node's parent is not always an element. Content that a reference owns — what
-/// is written between its index brackets, as in `$myList[<indexOf …/>]` — is
-/// parented to the reference itself rather than to any element (see
-/// `dast_path_to_flat_path`). Such a node is stepped over: the ancestors of
-/// something written inside a reference are the ancestors of that reference, which
-/// is what lets a name written in an index resolve from the surrounding document.
+/// A node's parent is not always an element. Content that a reference owns is
+/// parented to the reference itself rather than to any element: what is written
+/// between its index brackets, as in `$myList[<indexOf …/>]` (see
+/// `dast_path_to_flat_path`), and what is written as a function reference's
+/// argument, as in `$$f(<math>3</math>)` (see `set_function_ref_input`). Such a
+/// node is stepped over: the ancestors of something written inside a reference are
+/// the ancestors of that reference, which is what lets a name written in an index
+/// resolve from the surrounding document.
 pub struct ParentIterator<'a> {
     start_node: Option<&'a FlatNode>,
     current_element: Option<&'a FlatElement>,

@@ -302,7 +302,7 @@ function indexWarning(
         braces: "`{…}` is not part of a reference, so `[…]` written after it is ordinary text. Remove the `{…}`.",
         parens: "`$(…)` ends a reference, so `[…]` written after it is ordinary text. Write the index inside the parentheses instead.",
         arguments:
-            "A function reference's arguments end it, so `[…]` written after them is ordinary text. Write the index before the arguments, as `$$f[…](…)`.",
+            "A function reference's arguments end it, so `[…]` written after them is ordinary text. An index goes before the arguments, as `$$f[…](…)`, where it picks which function to call; to index what the call returns, give the result a name and index that.",
         unclosed: "Its `[` is never closed.",
     }[reason];
 

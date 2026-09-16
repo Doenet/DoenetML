@@ -20,16 +20,20 @@ reference expanded in full, the brackets survived as literal text, and the eleme
 rendered its value between them — `100, 300, 200, 50[1]` — with nothing reported.
 
 Any element works, not just `<indexOf>`, and the brackets may hold a mixture of text,
-references and elements the way `$myList[$k + 1]` already could. Naming the element and
-referencing it — `<indexOf name="io" …/>` then `$myList[$io]` — remains fully supported
-and is still the better form when the same position is wanted more than once.
+references and elements the way `$myList[$k + 1]` already could. A name written on an
+element inside an index resolves from the surrounding document, and the element itself
+is not rendered where it was written. Naming the element and referencing it —
+`<indexOf name="io" …/>` then `$myList[$io]` — remains fully supported and is still the
+better form when the same position is wanted more than once.
 
 Three shapes still cannot take an index, because the reference has already ended before
 the brackets: `$(x)[…]`, where the closing paren ended it, `$x{z}[…]`, where a `{…}`
-block did, and `$$f(1)[…]`, where the argument list did. All three now say so instead of
-rendering the element between literal brackets, and each says what to write instead —
-the index inside the parentheses for `$(x)[…]`, before the arguments for `$$f(1)[…]`,
-and for `$x{z}[…]` no braces at all, which v0.7 drops on the floor anyway.
+block did, and `$$f(1)[…]`, where the argument list did. They still render the element
+between literal brackets, as they always have, but each now warns and says what to
+write instead — the index inside the parentheses for `$(x)[…]`, before the arguments
+for `$$f(1)[…]`, and for `$x{z}[…]` no braces at all, which v0.7 drops on the floor
+anyway.
 
-A name written on an element inside an index resolves from the surrounding document,
-and the element itself is not rendered where it was written.
+Writing an element as a function macro's argument — `$$f(<math>3</math>)` — no longer
+stops the document. It parsed correctly, but registering the names in it hit a node
+whose parent was the reference rather than an element, and the document failed to load.

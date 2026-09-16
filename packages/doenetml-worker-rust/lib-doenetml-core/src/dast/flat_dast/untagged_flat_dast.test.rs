@@ -118,6 +118,38 @@ fn can_iterate_parents_of_an_element_written_inside_an_index() {
 }
 
 #[test]
+fn can_iterate_parents_of_an_element_written_as_a_function_reference_argument() {
+    // The same shape one layer over: a function reference's arguments are parented
+    // to the function reference. This one is not new — `$$f(<math>3</math>)` has
+    // parsed into an element argument for as long as `gobbleFunctionArguments` has
+    // existed — so before the iterator learned to step over a non-element parent,
+    // building the resolver for it panicked.
+    let dast_root =
+        dast_root_no_position(r#"<document><a><x>$$f(<c name="n"/>)</x></a></document>"#);
+    let flat_root = FlatRoot::from_dast(&dast_root);
+
+    let c_idx = flat_root
+        .nodes
+        .iter()
+        .find_map(|node| match node {
+            FlatNode::Element(element) if element.name == "c" => Some(element.idx),
+            _ => None,
+        })
+        .expect("the element written as an argument should be a node of its own");
+
+    assert!(matches!(
+        flat_root.nodes[flat_root.nodes[c_idx].parent().unwrap()],
+        FlatNode::FunctionRef(_)
+    ));
+
+    let parent_names = FlatRootOrFragment::Root(&flat_root)
+        .parent_iter(c_idx)
+        .map(|e| e.name.clone())
+        .collect::<Vec<_>>();
+    assert_eq!(vec!["x", "a", "document"], parent_names);
+}
+
+#[test]
 fn can_print_to_xml() {
     let dast_root = dast_root_no_position(r#"<document><a><b></b><x><c/></x></a></document>"#);
     let flat_root = FlatRoot::from_dast(&dast_root);

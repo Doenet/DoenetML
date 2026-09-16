@@ -758,13 +758,15 @@ parser-node-unconvertible = Could not convert node { $node } to Dast node.
 #
 # The `arguments` branch is about `$$f(1)[…]`. An index goes before a function
 # reference's arguments, not inside them, where it would become one more
-# argument.
+# argument. It is not the same index the author wrote, though: before the
+# arguments it chooses which function is called, not part of what the call
+# returns, so the message also points at naming the result.
 
 index-element-not-used-as-index =
     The element in brackets after `{ $name }` was not read as an index. { $reason ->
         [braces] `{"{…}"}` is not part of a reference, so `[…]` written after it is ordinary text. Remove the `{"{…}"}`.
         [parens] `$(…)` ends a reference, so `[…]` written after it is ordinary text. Write the index inside the parentheses instead.
-        [arguments] A function reference's arguments end it, so `[…]` written after them is ordinary text. Write the index before the arguments, as `$$f[…](…)`.
+        [arguments] A function reference's arguments end it, so `[…]` written after them is ordinary text. An index goes before the arguments, as `$$f[…](…)`, where it picks which function to call; to index what the call returns, give the result a name and index that.
        *[unclosed] Its `[` is never closed.
     }
 
