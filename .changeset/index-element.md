@@ -26,6 +26,11 @@ is not rendered where it was written. Naming the element and referencing it —
 `<indexOf name="io" …/>` then `$myList[$io]` — remains fully supported and is still the
 better form when the same position is wanted more than once.
 
+Editor support inside the brackets lags behind: once the brackets balance, attribute
+and tag completion and hover no longer see the element written between them, though
+while they are still unbalanced — which is most of typing — it is an ordinary child and
+the editor behaves as usual.
+
 Three shapes still cannot take an index, because the reference has already ended before
 the brackets: `$(x)[…]`, where the closing paren ended it, `$x{z}[…]`, where a `{…}`
 block did, and `$$f(1)[…]`, where the argument list did. They still render the element
