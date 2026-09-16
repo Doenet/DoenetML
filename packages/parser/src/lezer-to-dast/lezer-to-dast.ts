@@ -290,7 +290,11 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                 );
                 // Indices are gobbled before function arguments so that a
                 // gobbled index closes the path first, which is what lets
-                // `$$f[<n/>](y)` work the way the grammar's `$$f[1](y)` does.
+                // `$$f[<n/>](y)` parse the way the grammar's `$$f[1](y)` does.
+                // Parsing is as far as that shape gets: a function reference
+                // whose index holds a component and which is then called fails
+                // to build, `$$f[$k](y)` included, so it is a parse-level
+                // equivalence and not a working spelling.
                 children = gobbleFunctionArguments(
                     gobblePropIndices(children),
                 ) as DastElementContent[];

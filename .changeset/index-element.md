@@ -30,9 +30,9 @@ Three shapes still cannot take an index, because the reference has already ended
 the brackets: `$(x)[…]`, where the closing paren ended it, `$x{z}[…]`, where a `{…}`
 block did, and `$$f(1)[…]`, where the argument list did. They still render the element
 between literal brackets, as they always have, but each now warns and says what to
-write instead — the index inside the parentheses for `$(x)[…]`, before the arguments
-for `$$f(1)[…]`, and for `$x{z}[…]` no braces at all, which v0.7 drops on the floor
-anyway.
+write instead — for `$(x)[…]` give the element a name and write the index inside the
+parentheses, as `$(x[$idx])`; for `$$f(1)[…]` give the result of the call a name and
+index that; and for `$x{z}[…]` no braces at all, which v0.7 drops on the floor anyway.
 
 Writing an element as a function macro's argument — `$$f(<math>3</math>)` — no longer
 stops the document. It parsed correctly, but registering the names in it hit a node

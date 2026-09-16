@@ -198,9 +198,11 @@ function whatClosedThePath(
         return undefined;
     }
     if (macro.type === "function" && macro.input != null) {
-        // `$$f(1)`. The argument list is what runs past the path, and the index
-        // belongs before it — `$$f[2](1)` — not inside the parentheses, where it
-        // would become another argument.
+        // `$$f(1)`. The argument list is what runs past the path. Writing the
+        // index inside the parentheses would make it one more argument, and
+        // writing it before them — `$$f[2](1)` — picks which function is called
+        // rather than part of what the call returns, so neither is the index the
+        // author wrote. See `indexWarning` for what the message offers instead.
         return "arguments";
     }
     // What is left is a parenthesized path or a brace block, told apart by where the
@@ -298,11 +300,16 @@ function indexWarning(
     const name =
         (macro.type === "function" ? "$$" : "$") +
         macro.path.map((part) => part.name).join(".");
+    // Each remedy has to work for the element the author actually wrote, which is
+    // what makes the wording specific: an element written inside `$(…)` is not
+    // read there either, so the `parens` remedy has to name it first, and an
+    // element index written before a function reference's arguments does not
+    // work at all.
     const remedy = {
         braces: "`{…}` is not part of a reference, so `[…]` written after it is ordinary text. Remove the `{…}`.",
-        parens: "`$(…)` ends a reference, so `[…]` written after it is ordinary text. Write the index inside the parentheses instead.",
+        parens: "`$(…)` ends a reference, so `[…]` written after it is ordinary text. Give the element a name and write the index inside the parentheses, as `$(x[$idx])`.",
         arguments:
-            "A function reference's arguments end it, so `[…]` written after them is ordinary text. An index goes before the arguments, as `$$f[…](…)`, where it picks which function to call; to index what the call returns, give the result a name and index that.",
+            "A function reference's arguments end it, so `[…]` written after them is ordinary text. An index written before the arguments would pick which function to call rather than part of what it returns; to index the result, give the result a name and index that.",
         unclosed: "Its `[` is never closed.",
     }[reason];
 

@@ -1162,7 +1162,10 @@ describe("DAST", async () => {
             ]);
         });
 
-        it("indexes a function macro, as the grammar's `$$f[1](y)` does", () => {
+        it("parses an index on a function macro, as `$$f[1](y)` does", () => {
+            // A parse-level equivalence only. A called function reference whose
+            // index holds a component does not build — `$$f[$k](y)` does not
+            // either — so this pins the shape, not a working spelling.
             const dast = lezerToDast(`$$f[<n/>](y)`);
             const fn = dast.children[0] as DastFunctionMacro;
             expect(fn.type).toBe("function");

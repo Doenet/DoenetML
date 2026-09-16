@@ -249,9 +249,9 @@ describe("Coded DAST errors render to the English the parser wrote", () => {
             ...normalizedErrors(`<p>$x{z}[<number>1</number>]</p>`),
             // So did the closing paren of the `$(…)` form.
             ...normalizedErrors(`<p>$(x)[<number>1</number>]</p>`),
-            // A function reference's argument list closed it. Here the index
-            // goes *before* the arguments, so this branch says something
-            // different from the `parens` one above.
+            // A function reference's argument list closed it. There is nowhere
+            // around the arguments to put this index, so this branch says
+            // something different again from the `parens` one above.
             ...normalizedErrors(`<p>$$f(1)[<number>1</number>]</p>`),
             // The bracket is never closed.
             ...normalizedErrors(`<p>$x[<number>1</number></p>`),
