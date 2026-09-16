@@ -4,7 +4,13 @@ use super::{
 };
 
 /// An iterator that iterates over the parent elements of a node.
-/// If a non-element parent is encountered, the iterator will panic.
+///
+/// A node's parent is not always an element. Content that a reference owns — what
+/// is written between its index brackets, as in `$myList[<indexOf …/>]` — is
+/// parented to the reference itself rather than to any element (see
+/// `dast_path_to_flat_path`). Such a node is stepped over: the ancestors of
+/// something written inside a reference are the ancestors of that reference, which
+/// is what lets a name written in an index resolve from the surrounding document.
 pub struct ParentIterator<'a> {
     start_node: Option<&'a FlatNode>,
     current_element: Option<&'a FlatElement>,
@@ -31,33 +37,36 @@ impl<'a> Iterator for ParentIterator<'a> {
     type Item = &'a FlatElement;
 
     fn next(&mut self) -> Option<Self::Item> {
-        let unwrap_parent_index = |idx: Index| {
+        // If we have a start node, we look for its parent; otherwise we carry on
+        // from the element we last returned.
+        let mut next_idx: Option<Index> = match self.start_node.take() {
+            Some(start) => start.parent(),
+            None => self.current_element.and_then(|e| e.parent),
+        };
+
+        loop {
+            let Some(idx) = next_idx else {
+                self.current_element = None;
+                return None;
+            };
             if let Some(stop_idx) = self.stop_idx
                 && idx == stop_idx
             {
+                self.current_element = None;
                 return None;
             }
-            let parent = self.flat_root_or_fragment.get_node(idx);
-            if let FlatNode::Element(parent) = parent {
-                Some(parent)
-            } else {
-                panic!("Parent of node is not an element")
+            match self.flat_root_or_fragment.get_node(idx) {
+                FlatNode::Element(parent) => {
+                    self.current_element = Some(parent);
+                    return Some(parent);
+                }
+                // A reference, function reference or error that owns this node as
+                // its content. It is not an ancestor element itself, so keep
+                // climbing from where it sits.
+                non_element => {
+                    next_idx = non_element.parent();
+                }
             }
-        };
-
-        // If we have a start node, we look for its parent.
-        if let Some(start) = self.start_node.take() {
-            let parent_idx: Option<Index> = start.parent();
-            let parent = parent_idx.and_then(unwrap_parent_index);
-            self.current_element = parent;
-            parent
-        } else {
-            let parent = self
-                .current_element
-                .and_then(|e| e.parent)
-                .and_then(unwrap_parent_index);
-            self.current_element = parent;
-            parent
         }
     }
 }

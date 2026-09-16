@@ -8,7 +8,7 @@ import {
     DastRoot,
     DastRootContent,
 } from "../types";
-import { visit } from "../pretty-printer/normalize/utils/visit";
+import { visitIncludingPathIndices } from "../pretty-printer/normalize/utils/visit";
 import { isDastElement } from "../types-util";
 import { repeatSugar } from "./component-sugar/repeat";
 import { conditionalContentSugar } from "./component-sugar/conditionalContent";
@@ -55,7 +55,7 @@ export function normalizeDocumentDast(
  */
 const pluginChangeCdataToText: Plugin<[], DastRoot, DastRoot> = () => {
     return (tree) => {
-        visit(tree, (node) => {
+        visitIncludingPathIndices(tree, (node) => {
             if (node.type === "cdata") {
                 // @ts-ignore
                 node.type = "text";
@@ -73,7 +73,7 @@ const pluginRemoveCommentsInstructionsAndDocStrings: Plugin<
     DastRoot
 > = () => {
     return (tree) => {
-        visit(tree, (node) => {
+        visitIncludingPathIndices(tree, (node) => {
             if (node.type === "element" || node.type === "root") {
                 node.children = node.children.filter(
                     (n) =>
@@ -125,7 +125,7 @@ const pluginEnsureDocumentElement: Plugin<[], DastRoot, DastRoot> = () => {
  */
 const pluginExpandAliasedElements: Plugin<[], DastRoot, DastRoot> = () => {
     return (tree) => {
-        visit(tree, (node) => {
+        visitIncludingPathIndices(tree, (node) => {
             if (isDastElement(node)) {
                 const expansion = ELEMENT_EXPANSIONS[node.name];
                 if (expansion) {
@@ -161,7 +161,7 @@ const pluginExpandAliasedElements: Plugin<[], DastRoot, DastRoot> = () => {
 const pluginAddCompatibilityNames: Plugin<[], DastRoot, DastRoot> = () => {
     const counts: Record<string, number> = {};
     return (tree) => {
-        visit(tree, (node) => {
+        visitIncludingPathIndices(tree, (node) => {
             if (isDastElement(node)) {
                 const typeCount = (counts[node.name] =
                     (counts[node.name] ?? 0) + 1);
@@ -183,7 +183,7 @@ const pluginAddCompatibilityNames: Plugin<[], DastRoot, DastRoot> = () => {
  */
 const pluginComponentSugar: Plugin<[], DastRoot, DastRoot> = () => {
     return (tree) => {
-        visit(tree, (node) => {
+        visitIncludingPathIndices(tree, (node) => {
             if (!isDastElement(node)) {
                 return;
             }

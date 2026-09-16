@@ -1,7 +1,7 @@
 import { Plugin } from "unified";
 import { DastElement, DastError, DastRoot } from "../types";
 import { codedDastError } from "../coded-dast-error";
-import { visit } from "../pretty-printer/normalize/utils/visit";
+import { visitIncludingPathIndices } from "../pretty-printer/normalize/utils/visit";
 import { isDastElement } from "../types-util";
 
 /**
@@ -442,7 +442,7 @@ export const pluginApplyDeprecations: Plugin<[], DastRoot, DastRoot> = () => {
     return (tree) => {
         const warnings: DastError[] = [];
 
-        visit(tree, (node) => {
+        visitIncludingPathIndices(tree, (node) => {
             if (!isDastElement(node)) {
                 return;
             }

@@ -10,6 +10,7 @@ import {
 } from "../src/types";
 import { MacroParser } from "../src/macros/parser";
 import { gobbleFunctionArguments } from "../src/lezer-to-dast/gobble-function-arguments";
+import { toXml } from "../src/dast-to-xml/dast-util-to-xml";
 
 const origLog = console.log;
 console.log = (...args) => {
@@ -1073,5 +1074,184 @@ describe("DAST", async () => {
             },
           }
         `);
+    });
+
+    describe("elements inside index brackets", () => {
+        /** The index contents of `$name`'s last path part, with positions dropped. */
+        function indicesOf(source: string) {
+            const dast = lezerToDast(source);
+            const macro = dast.children.find(
+                (n): n is DastMacro | DastFunctionMacro =>
+                    n.type === "macro" || n.type === "function",
+            );
+            if (!macro) {
+                return undefined;
+            }
+            const lastPart = macro.path[macro.path.length - 1];
+            return filterPositionInfo(
+                structuredClone(lastPart.index) as any,
+            ) as any[];
+        }
+
+        /** The sibling nodes of a parse, with positions dropped. */
+        function childrenOf(source: string) {
+            return filterPositionInfo(lezerToDast(source) as any)
+                .children as any[];
+        }
+
+        it("moves the element into the index and leaves no brackets behind", () => {
+            // The shape from #1909. Everything the author wrote between the
+            // brackets becomes the index, and no `[` or `]` survives as text.
+            const source = `$myList[<indexOf target="100">$myList</indexOf>]`;
+            expect(indicesOf(source)).toMatchObject([
+                {
+                    type: "index",
+                    value: [{ type: "element", name: "indexOf" }],
+                },
+            ]);
+            expect(childrenOf(source)).toHaveLength(1);
+        });
+
+        it("takes any element, not just the one the issue named", () => {
+            for (const name of ["number", "math", "argMin"]) {
+                expect(
+                    indicesOf(`$myList[<${name}>1</${name}>]`),
+                ).toMatchObject([{ value: [{ type: "element", name }] }]);
+            }
+        });
+
+        it("takes mixed text and elements, as `$a[$k+2]` already did", () => {
+            expect(indicesOf(`$a[1 + <n/>]`)).toMatchObject([
+                {
+                    value: [
+                        { type: "text", value: "1 + " },
+                        { type: "element", name: "n" },
+                    ],
+                },
+            ]);
+        });
+
+        it("takes several indices in a row", () => {
+            expect(indicesOf(`$a[<n/>][<m/>]`)).toMatchObject([
+                { value: [{ type: "element", name: "n" }] },
+                { value: [{ type: "element", name: "m" }] },
+            ]);
+        });
+
+        it("attaches the index to the path part it follows", () => {
+            const dast = lezerToDast(`$a.x[<n/>].y`);
+            const macro = dast.children[0] as DastMacro;
+            expect(macro.path.map((p) => p.name)).toEqual(["a", "x"]);
+            expect(macro.path[0].index).toHaveLength(0);
+            expect(macro.path[1].index).toHaveLength(1);
+        });
+
+        it("is not confused by brackets written inside the element", () => {
+            // `x[1]` is in `<b>`'s own children, so it never reaches the sibling
+            // array where the bracket depth is counted.
+            expect(indicesOf(`$a[<b>x[1]</b>]`)).toMatchObject([
+                {
+                    value: [
+                        {
+                            type: "element",
+                            name: "b",
+                            children: [{ type: "text", value: "x[1]" }],
+                        },
+                    ],
+                },
+            ]);
+        });
+
+        it("indexes a function macro, as the grammar's `$$f[1](y)` does", () => {
+            const dast = lezerToDast(`$$f[<n/>](y)`);
+            const fn = dast.children[0] as DastFunctionMacro;
+            expect(fn.type).toBe("function");
+            expect(
+                filterPositionInfo(structuredClone(fn.path) as any),
+            ).toMatchObject([
+                { name: "f", index: [{ value: [{ name: "n" }] }] },
+            ]);
+            // The index closed the path, so the parens are still read as input.
+            expect(fn.input).toMatchObject([[{ type: "text", value: "y" }]]);
+        });
+
+        it("round-trips back to the source it was written as", () => {
+            for (const source of [
+                `$myList[<indexOf target="100">$myList</indexOf>]`,
+                // Self-closing tags come back spaced, which is the printer's
+                // own style and not something the index changes.
+                `$a[<n />][<m />]`,
+                `$a[1 + <n />]`,
+            ]) {
+                expect(toXml(lezerToDast(source))).toEqual(source);
+            }
+        });
+
+        describe("leaves alone", () => {
+            it("a bracket the reference does not touch", () => {
+                // A space means the macro parser already declined the bracket,
+                // and so do we.
+                expect(childrenOf(`$a [<n/>]`)).toMatchObject([
+                    { type: "macro" },
+                    { type: "text", value: " [" },
+                    { type: "element", name: "n" },
+                    { type: "text", value: "]" },
+                ]);
+            });
+
+            it("brackets in prose, which keep their single text node", () => {
+                expect(childrenOf(`see [1] here`)).toMatchObject([
+                    { type: "text", value: "see [1] here" },
+                ]);
+            });
+
+            it("a reference already closed by braces or parens", () => {
+                // The DAST-level counterparts of the grammar assertions in
+                // `macro-parse.test.ts` for `$x{z}[5]` and `$(x)[1]`. `$x{…}`
+                // carries no meaning in v0.7 — the flattener drops a
+                // reference's attributes — but it still parses, so the shape
+                // still has to be declined rather than claimed.
+                for (const source of [`$x{z}[<n/>]`, `$(x)[<n/>]`]) {
+                    expect(indicesOf(source)).toHaveLength(0);
+                    expect(childrenOf(source)).toMatchObject([
+                        { type: "macro" },
+                        { type: "error", error_type: "warning" },
+                        { type: "text", value: "[" },
+                        { type: "element", name: "n" },
+                        { type: "text", value: "]" },
+                    ]);
+                }
+            });
+
+            it("a bracket group with no element in it", () => {
+                // Nothing here the macro parser had not already decided about.
+                expect(childrenOf(`$x{z}[5]`)).toMatchObject([
+                    { type: "macro" },
+                    { type: "text", value: "[5]" },
+                ]);
+                expect(indicesOf(`$a[1]`)).toMatchObject([
+                    { value: [{ type: "text", value: "1" }] },
+                ]);
+            });
+
+            it("an unclosed bracket, but says so", () => {
+                expect(indicesOf(`$a[<n/>`)).toHaveLength(0);
+                expect(childrenOf(`$a[<n/>`)).toMatchObject([
+                    { type: "macro" },
+                    { type: "error", error_type: "warning" },
+                    { type: "text", value: "[" },
+                    { type: "element", name: "n" },
+                ]);
+            });
+        });
+
+        it("grows the reference's position over the moved element", () => {
+            // `sourceLocation.ts` in the worker quotes a reference by spanning
+            // its path parts' positions, so the path part has to grow too.
+            const source = `$a[<n/>]`;
+            const macro = lezerToDast(source).children[0] as DastMacro;
+            expect(macro.position!.end.offset).toBe(source.length);
+            expect(macro.path[0].position!.end.offset).toBe(source.length);
+        });
     });
 });

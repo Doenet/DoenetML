@@ -451,7 +451,18 @@ export type DastMacro = Omit<_Macro, "attributes" | "path"> & {
 };
 export type DastMacroPathPart = Omit<_PathPart, "index"> & {
     index: (Omit<_PropIndex, "value"> & {
-        value: (DastText | DastMacro)[];
+        /**
+         * What is written between the brackets of an index.
+         *
+         * Wider than the grammar's own `PropIndex["value"]`, in two ways it has
+         * always been wider in practice. `macros.peggy` admits a `FunctionMacro`
+         * here, so `$m[$$f(2)]` has always produced one. And an element gets here
+         * the way a function macro's arguments do — not from the grammar, which
+         * only ever sees text, but from a post-pass over the assembled siblings
+         * once the elements between the brackets exist as nodes. See
+         * `gobblePropIndices` (#1909).
+         */
+        value: (DastText | DastMacro | DastFunctionMacro | DastElement)[];
         source_doc?: number;
     })[];
     source_doc?: number;

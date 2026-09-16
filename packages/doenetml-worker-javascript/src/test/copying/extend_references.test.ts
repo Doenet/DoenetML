@@ -6873,4 +6873,97 @@ describe("Extend and references tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq(" there");
     });
+
+    describe("an element written inside index brackets", () => {
+        // #1909. An element between the brackets is moved into the index by the
+        // parser's `gobblePropIndices`, and from the resolver down it is the same
+        // shape as the `$myList[$io]` the docs recommend.
+
+        async function textOf(doenetML: string, path = "p1") {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return {
+                text: stateVariables[await resolvePathToNodeIdx(path)]
+                    .stateValues.text,
+                diagnostics: getDiagnosticsByType(core),
+            };
+        }
+
+        it("indexes with a bare <number>", async () => {
+            const { text, diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<number>2</number>]</p>
+            `);
+            expect(text).eq("300");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+
+        it("indexes with an <indexOf>, the case the issue was filed for", async () => {
+            const { text, diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<indexOf target="100">$myList</indexOf>]</p>
+            `);
+            expect(text).eq("100");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+
+        it("agrees with the named-and-referenced form it replaces", async () => {
+            // The workaround the docs show. Both spellings must give the same
+            // answer, since they become the same thing at the resolver.
+            const inline = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<argMin>$myList</argMin>]</p>
+            `);
+            const named = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <argMin name="am">$myList</argMin>
+    <p name="p1">$myList[$am]</p>
+            `);
+            expect(inline.text).eq(named.text);
+            expect(inline.text).eq("50");
+        });
+
+        it("does not also render the element where it was written", async () => {
+            // The element becomes an isolated component hanging off the
+            // reference, not a child of the paragraph, so its own value must not
+            // appear beside the answer.
+            const { text } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">before $myList[<indexOf target="200">$myList</indexOf>] after</p>
+            `);
+            expect(text).eq("before 200 after");
+        });
+
+        it("resolves a reference written inside the index element", async () => {
+            // `$myList` inside the `<indexOf>` has to resolve from where the
+            // reference sits, which is what the parent chain has to deliver for a
+            // node whose parent is the reference rather than an element.
+            const { text } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <number name="wanted">300</number>
+    <p name="p1">$myList[<indexOf target="$wanted">$myList</indexOf>]</p>
+            `);
+            expect(text).eq("300");
+        });
+
+        it("warns, rather than saying nothing, when the brackets cannot index", async () => {
+            // `$(…)` closes the reference, so the brackets are ordinary text —
+            // the same as before #1909, except that it is now reported.
+            const { diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$(myList)[<number>2</number>]</p>
+            `);
+            expect(diagnostics.warnings.length).eq(1);
+            expect(diagnostics.warnings[0].message).contain(
+                "was not read as an index",
+            );
+        });
+    });
 });

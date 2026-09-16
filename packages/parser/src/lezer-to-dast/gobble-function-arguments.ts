@@ -117,15 +117,21 @@ export function gobbleFunctionArguments(
 }
 
 /**
- * Split the text node at the chars `(`, `)`, and `,`.
+ * Split the text node at each of `specialChars`, which defaults to `(`, `)`,
+ * and `,`.
+ *
+ * `gobblePropIndices` passes `/[\[\]]/` to get the same treatment for brackets.
  */
-export function splitTextAtSpecialChars(node: DastText): DastText[] {
-    const pos = node.value.search(/[\(\),]/);
+export function splitTextAtSpecialChars(
+    node: DastText,
+    specialChars: RegExp = /[\(\),]/,
+): DastText[] {
+    const pos = node.value.search(specialChars);
     if (pos < 0) {
         return [node];
     }
     const [left, middle, right] = splitTextNodeAt(node, pos);
-    const ret = [left, middle, ...splitTextAtSpecialChars(right)];
+    const ret = [left, middle, ...splitTextAtSpecialChars(right, specialChars)];
 
     return ret.filter((node) => node.value !== "");
 }
@@ -206,7 +212,7 @@ function hasClosingParen(nodes: DastNodes[]): boolean {
 /**
  * Trim any leading or trailing whitespace.
  */
-function trimWhitespace<T extends DastNodes>(nodes: T[]): T[] {
+export function trimWhitespace<T extends DastNodes>(nodes: T[]): T[] {
     const firstNode = nodes[0];
     const lastNode = nodes[nodes.length - 1];
 

@@ -743,6 +743,25 @@ parse-close-tag-mismatched = Invalid DoenetML: Mismatched closing tag. Expected 
 # it is.
 parser-node-unconvertible = Could not convert node { $node } to Dast node.
 
+## Reference indices
+
+# Raised when an element sits in brackets immediately after a reference but the
+# brackets cannot be read as an index. $name is the reference's path as the
+# author wrote it, without the leading `$`. $reason says why the brackets could
+# not be read, as a key rather than a phrase, so the whole sentence is
+# translatable rather than assembled from halves.
+#
+# The `braces` branch is about `$x{…}`, which v0.7 no longer gives any meaning:
+# it still parses, but the braces and whatever is in them are dropped. So the
+# remedy is to delete them, not to write the index somewhere else around them.
+
+index-element-not-used-as-index =
+    The element in brackets after `${ $name }` was not read as an index. { $reason ->
+        [braces] `{"{…}"}` is not part of a reference, so `[…]` written after it is ordinary text. Remove the `{"{…}"}`.
+        [parens] `$(…)` ends a reference, so `[…]` written after it is ordinary text. Write the index inside the parentheses instead.
+       *[unclosed] Its `[` is never closed.
+    }
+
 ## Names
 
 # $reason says which rule the name broke, as a key rather than a phrase, so the

@@ -482,6 +482,7 @@ export type MessageKey =
     | "parse-close-tag-without-open-tag"
     | "parse-close-tag-mismatched"
     | "parser-node-unconvertible"
+    | "index-element-not-used-as-index"
     | "name-attribute-invalid"
     | "component-name-invalid-start"
     | "answer-video-watched-missing-video"
@@ -1110,6 +1111,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "parse-close-tag-without-open-tag",
     "parse-close-tag-mismatched",
     "parser-node-unconvertible",
+    "index-element-not-used-as-index",
     "name-attribute-invalid",
     "component-name-invalid-start",
     "answer-video-watched-missing-video",

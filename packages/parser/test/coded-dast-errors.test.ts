@@ -238,6 +238,24 @@ describe("Coded DAST errors render to the English the parser wrote", () => {
         expectRoundTrip(errors);
     });
 
+    it("an element in index brackets that cannot be an index", () => {
+        // All three branches of the message's `reason` selector. An element
+        // between the brackets is what each has in common; what differs is why
+        // the brackets could not be read as an index.
+        const errors = [
+            // A `{…}` block closed the reference before the brackets. The
+            // block itself means nothing in v0.7, which is why the message
+            // says to delete it rather than to move the index around it.
+            ...normalizedErrors(`<p>$x{z}[<number>1</number>]</p>`),
+            // So did the closing paren of the `$(…)` form.
+            ...normalizedErrors(`<p>$(x)[<number>1</number>]</p>`),
+            // The bracket is never closed.
+            ...normalizedErrors(`<p>$x[<number>1</number></p>`),
+        ];
+        expect(codedErrors(errors).length).toBe(3);
+        expectRoundTrip(errors);
+    });
+
     it("external references", async () => {
         const fetchExternalDoenetML = (uri: string) =>
             uri === "doenet:selfReferential"

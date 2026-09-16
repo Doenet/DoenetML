@@ -1,6 +1,6 @@
 import { Plugin } from "unified";
 import { DastMacro, DastRoot } from "../types";
-import { visit } from "../pretty-printer/normalize/utils/visit";
+import { visitIncludingPathIndices } from "../pretty-printer/normalize/utils/visit";
 import { isDastElement } from "../types-util";
 
 /**
@@ -14,7 +14,7 @@ export const pluginConvertPretextAttributes: Plugin<
     DastRoot
 > = () => {
     return (tree) => {
-        visit(tree, (node) => {
+        visitIncludingPathIndices(tree, (node) => {
             if (!isDastElement(node)) {
                 return;
             }

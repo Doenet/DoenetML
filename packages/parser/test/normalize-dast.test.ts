@@ -906,4 +906,46 @@ describe("Normalize dast", async () => {
             },
         ]);
     });
+
+    describe("reaches inside a reference's index brackets", () => {
+        // An index could only hold text and references until `gobblePropIndices`
+        // began moving elements into one, so `visit` did not descend there. These
+        // cover the `includePathIndices` option that lets normalization in.
+
+        it("strips comments from an element written in an index", () => {
+            const dast = normalizeDocumentDast(
+                lezerToDast(`<p>$a[<number>1<!-- drop me --></number>]</p>`),
+            );
+            expect(toXml(dast)).toEqual(
+                `<document><p>$a[<number>1</number>]</p></document>`,
+            );
+        });
+
+        it("expands an aliased element written in an index", () => {
+            const dast = normalizeDocumentDast(
+                lezerToDast(`<p>$a[<section>1</section>]</p>`),
+            );
+            // `<section>` is an alias for `<division type="section">`, so what
+            // lands in the index is the expansion, not the name as written.
+            // Asserted by what it contains rather than whole: the expansion
+            // also picks up the component sugar a `<division>` gets anywhere
+            // else, which is the point, but not what this test is pinning.
+            const xml = toXml(dast);
+            expect(xml).toContain(`<division type="section">`);
+            expect(xml).not.toContain(`<section`);
+        });
+
+        it("validates a name written on an element in an index", () => {
+            // The error replaces the element inside the index's own `value`,
+            // which is why the pass splices into `containingArray` rather than
+            // into the nearest element's children.
+            const dast = normalizeDocumentDast(
+                lezerToDast(`<p>$a[<number name="1st">1</number>]</p>`),
+            );
+            const errors = extractDastErrors(dast);
+            expect(errors).toMatchObject([
+                { type: "error", code: "doenet-e0025" },
+            ]);
+        });
+    });
 });

@@ -1,7 +1,7 @@
 import { Plugin } from "unified";
 import { DastElement, DastError, DastRoot } from "../types";
 import { codedDastError } from "../coded-dast-error";
-import { visit } from "../pretty-printer/normalize/utils/visit";
+import { visitIncludingPathIndices } from "../pretty-printer/normalize/utils/visit";
 import { isDastElement } from "../types-util";
 import { toXml } from "..";
 
@@ -22,7 +22,7 @@ function containsInvalidNameCharacters(str: unknown): boolean {
  */
 export const pluginEnforceValidNames: Plugin<[], DastRoot, DastRoot> = () => {
     return (tree) => {
-        visit(tree, (node, info) => {
+        visitIncludingPathIndices(tree, (node, info) => {
             if (!isDastElement(node)) {
                 return;
             }
@@ -38,9 +38,13 @@ export const pluginEnforceValidNames: Plugin<[], DastRoot, DastRoot> = () => {
                     position: node.position,
                 });
 
-                // Replace this element with an `_error` element
-                if (info.index !== undefined && info.parents[0]) {
-                    info.parents[0].children.splice(info.index, 1, dastError);
+                // Replace this element with an `_error` element.
+                // `containingArray` rather than `parents[0].children`: for an
+                // ordinary child the two are the same array, but an element
+                // written inside a reference's index brackets lives in that
+                // index's `value` instead, and `info.index` counts along it.
+                if (info.index !== undefined && info.containingArray) {
+                    info.containingArray.splice(info.index, 1, dastError);
                 } else {
                     // If for some reason we don't have an index, append the error to the root
                     console.warn(
@@ -76,8 +80,8 @@ export const pluginEnforceValidNames: Plugin<[], DastRoot, DastRoot> = () => {
                     // Remove the `name` attribute and insert an `_error` element right after this element
                     delete node.attributes.name;
 
-                    if (info.index !== undefined && info.parents[0]) {
-                        info.parents[0].children.splice(
+                    if (info.index !== undefined && info.containingArray) {
+                        info.containingArray.splice(
                             info.index + 1,
                             0,
                             dastError,
