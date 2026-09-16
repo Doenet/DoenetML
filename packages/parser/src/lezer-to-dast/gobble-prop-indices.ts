@@ -232,11 +232,28 @@ function attachIndex(
 ): void {
     const lastPart = macro.path[macro.path.length - 1];
 
+    // Comments, XML instructions and doctypes are dropped here, which is the only
+    // place they can be. `pluginRemoveCommentsInstructionsAndDocStrings` reaches
+    // them only in a `children` array, and an index's contents are not children of
+    // anything — so a comment left in the group would survive into `index.value`,
+    // a node type that field does not admit, and would turn a working
+    // `$myList[<number>2</number>]` into an unresolvable mixed-content index.
+    // Adjacent text is merged again so that the whitespace either side of a
+    // dropped comment trims as the single run of whitespace it reads as.
+    const content = mergeAdjacentTextInArray(
+        group.content.filter(
+            (node) =>
+                node.type !== "comment" &&
+                node.type !== "instruction" &&
+                node.type !== "doctype",
+        ) as any,
+    ) as DastRootContent[];
+
     // The group may hold references and function macros of its own, so it gets the
     // same two passes the top level gets.
     const value = trimWhitespace(
         gobbleFunctionArguments(
-            gobblePropIndices(group.content),
+            gobblePropIndices(content),
         ) as DastElementContent[],
     ) as (DastText | DastMacro | DastFunctionMacro | DastElement)[];
 

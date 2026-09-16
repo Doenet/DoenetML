@@ -6953,6 +6953,19 @@ describe("Extend and references tests @group2", async () => {
             expect(text).eq("300");
         });
 
+        it("is not broken by a comment written beside the element", async () => {
+            // A comment is invisible to the reader, so it must be invisible to
+            // the index too: left in, it makes the index two nodes and the
+            // reference stops resolving.
+            const { text, diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<!-- the second one --><number>2</number>]</p>
+            `);
+            expect(text).eq("300");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+
         it("warns, rather than saying nothing, when the brackets cannot index", async () => {
             // `$(…)` closes the reference, so the brackets are ordinary text —
             // the same as before #1909, except that it is now reported.

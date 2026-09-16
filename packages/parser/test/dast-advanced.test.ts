@@ -1264,6 +1264,21 @@ describe("DAST", async () => {
             });
         });
 
+        it("drops a comment written beside the element", () => {
+            // Comments are removed from a `children` array by normalization,
+            // but an index's contents are nobody's children, so they have to go
+            // here. Left in, the index would hold two nodes instead of one and
+            // would not resolve — a comment, which an author expects to be able
+            // to add anywhere, would silently stop the index working.
+            expect(indicesOf(`$a[<!-- which one --><n/>]`)).toMatchObject([
+                { value: [{ type: "element", name: "n" }] },
+            ]);
+            // Whatever whitespace surrounded the comment trims with the rest.
+            expect(indicesOf(`$a[ <!-- which one --> <n/> ]`)).toMatchObject([
+                { value: [{ type: "element", name: "n" }] },
+            ]);
+        });
+
         it("grows the reference's position over the moved element", () => {
             // `sourceLocation.ts` in the worker quotes a reference by spanning
             // its path parts' positions, so the path part has to grow too.
