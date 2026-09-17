@@ -750,8 +750,6 @@ export default class Spreadsheet extends BlockComponent {
         // `cells`, one entry per position, `false` wherever no `<cell>` backs
         // the position (an empty cell, or one supplied by a `<dataFrame>`).
         stateVariableDefinitions.cellsFixed = {
-            description:
-                "Whether each cell is fixed, so cannot be edited in the spreadsheet.",
             additionalStateVariablesDefined: [
                 {
                     variableName: "cellsInHeader",
