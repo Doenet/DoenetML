@@ -7,6 +7,7 @@ import {
     DastFunctionMacro,
     DastMacro,
     DastRootContent,
+    DastText,
 } from "../src/types";
 import { MacroParser } from "../src/macros/parser";
 import { gobbleFunctionArguments } from "../src/lezer-to-dast/gobble-function-arguments";
@@ -1326,6 +1327,31 @@ describe("DAST", async () => {
                 expect(childrenOf(`see [1] here`)).toMatchObject([
                     { type: "text", value: "see [1] here" },
                 ]);
+            });
+
+            it("the span of prose holding a character reference", () => {
+                // Declining the brackets has to give the text back as it was,
+                // span included. Two passes split this array on brackets and
+                // merge it again, and the second of them works on text the
+                // first already merged — text whose value is shorter than the
+                // source it came from, since `&amp;` is five characters of one.
+                // The split used to end such a node where its *characters* ran
+                // out, four short, in the middle of the entity.
+                for (const source of [
+                    `<p>$a[ and X &amp; Y]</p>`,
+                    `<p>$a[ oops. Rates &amp; fees [here]</p>`,
+                ]) {
+                    const paragraph = lezerToDast(source)
+                        .children[0] as DastElement;
+                    const text = paragraph.children[1] as DastText;
+                    expect(text.type).toEqual("text");
+                    expect(
+                        source.slice(
+                            text.position!.start.offset,
+                            text.position!.end.offset,
+                        ),
+                    ).toEqual(source.slice(5, source.indexOf("</p>")));
+                }
             });
 
             it("a reference already closed by braces or parens", () => {

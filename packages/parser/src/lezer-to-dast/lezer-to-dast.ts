@@ -292,12 +292,13 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                         (n) => lezerNodeToDastNode(n) as DastElementContent[],
                     ),
                 );
-                // Indices are gobbled before function arguments so that a
-                // gobbled index closes the path first — which is what lets
-                // `$$f[<n/>]` take its index at all, and what lets
-                // `gobblePropIndices` see that an argument list follows and
-                // decline `$$f[<n/>](y)` rather than claim brackets the worker
-                // cannot build. Reversing the two would hide both.
+                // Indices are gobbled before function arguments so that the
+                // brackets are out of the sibling array by the time the
+                // arguments are looked for. `gobbleFunctionArguments` takes an
+                // argument list only from the node directly after the
+                // reference, so with `[`, the element and `]` still sitting
+                // there it would see `[` where it needs `(` and leave
+                // `$$f[<n/>](y)` uncalled. Reversing the two loses the call.
                 // The third pass reports `$$f(<n/>)[<m/>]`, which the first
                 // cannot see: until the arguments are gobbled, that reference is
                 // followed by `(` rather than `[`.

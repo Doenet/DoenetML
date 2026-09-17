@@ -121,6 +121,16 @@ export function gobbleFunctionArguments(
  * and `,`.
  *
  * `gobblePropIndices` passes `/[\[\]]/` to get the same treatment for brackets.
+ *
+ * The pieces always end where `node` ended, so merging them back gives the node
+ * it started from. That is not automatic: `splitTextNodeAt` works out every
+ * boundary but the last by counting characters of `value`, which is one short
+ * per character reference — `&amp;` is five characters of source and one of
+ * value. Only the final piece carries the real end, and when the text ends on a
+ * special character that piece is empty and filtered away, taking the end with
+ * it. `gobblePropIndices` splits text that an earlier pass of its own already
+ * merged, so it is the one that meets this: a node holding `&amp;` and ending
+ * in `]` came back four characters short, stopping inside the entity.
  */
 export function splitTextAtSpecialChars(
     node: DastText,
@@ -133,7 +143,12 @@ export function splitTextAtSpecialChars(
     const [left, middle, right] = splitTextNodeAt(node, pos);
     const ret = [left, middle, ...splitTextAtSpecialChars(right, specialChars)];
 
-    return ret.filter((node) => node.value !== "");
+    const kept = ret.filter((node) => node.value !== "");
+    const last = kept[kept.length - 1];
+    if (last?.position && node.position) {
+        last.position.end = { ...node.position.end };
+    }
+    return kept;
 }
 
 const DEFAULT_POSITION = {
