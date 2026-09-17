@@ -4,7 +4,7 @@ import { lezerToDast } from "../src/lezer-to-dast";
 import { toXml } from "../src/dast-to-xml/dast-util-to-xml";
 import { normalizeDocumentDast } from "../src/dast-normalize/normalize-dast";
 import { extractDastErrors } from "../src";
-import type { DastElement } from "../src/types";
+import type { DastElement, DastMacro } from "../src/types";
 
 const origLog = console.log;
 console.log = (...args) => {
@@ -905,5 +905,165 @@ describe("Normalize dast", async () => {
                 type: "error",
             },
         ]);
+    });
+
+    describe("reaches inside a reference's index brackets", () => {
+        // An index could only hold text and references until `gobblePropIndices`
+        // began moving elements into one, so `visit` did not descend there. These
+        // cover the `includePathIndices` option that lets normalization in.
+
+        it("strips comments from an element written in an index", () => {
+            const dast = normalizeDocumentDast(
+                lezerToDast(`<p>$a[<number>1<!-- drop me --></number>]</p>`),
+            );
+            expect(toXml(dast)).toEqual(
+                `<document><p>$a[<number>1</number>]</p></document>`,
+            );
+        });
+
+        it("strips a comment written beside the element, and its whitespace", () => {
+            // The parser leaves this one in so the pretty-printer can round-trip
+            // it; removing it is this pass's job. Left in, the index would hold
+            // two nodes instead of one and would not resolve — a comment, which
+            // an author expects to be able to write anywhere, would silently
+            // stop the index working.
+            for (const source of [
+                `<p>$a[<!-- which one --><n/>]</p>`,
+                `<p>$a[ <!-- which one --> <n/> ]</p>`,
+            ]) {
+                const dast = normalizeDocumentDast(lezerToDast(source));
+                expect(toXml(dast)).toEqual(
+                    `<document><p>$a[<n />]</p></document>`,
+                );
+            }
+        });
+
+        it("expands an aliased element written in an index", () => {
+            const dast = normalizeDocumentDast(
+                lezerToDast(`<p>$a[<section>1</section>]</p>`),
+            );
+            // `<section>` is an alias for `<division type="section">`, so what
+            // lands in the index is the expansion, not the name as written.
+            // Asserted by what it contains rather than whole: the expansion
+            // also picks up the component sugar a `<division>` gets anywhere
+            // else, which is the point, but not what this test is pinning.
+            const xml = toXml(dast);
+            expect(xml).toContain(`<division type="section">`);
+            expect(xml).not.toContain(`<section`);
+        });
+
+        it("strips a doctype written in an index", () => {
+            // A doctype really can be written between the brackets at root
+            // level, so the raw parse carries one and this pass takes it out.
+            const raw: any = lezerToDast(`$a[<!DOCTYPE html><n/>]`);
+            expect(
+                raw.children[0].path[0].index[0].value.map((n: any) => n.type),
+            ).toEqual(["doctype", "element"]);
+            expect(
+                toXml(
+                    normalizeDocumentDast(
+                        lezerToDast(`$a[<!DOCTYPE html><n/>]`),
+                    ),
+                ),
+            ).toEqual(`<document>$a[<n />]</document>`);
+        });
+
+        it("strips a comment written as a function reference's argument", () => {
+            // A function reference's arguments are nobody's children either, so
+            // the filter has to reach them too. Left in, the comment does not
+            // fail to deserialize — the core's text node carries its tag but
+            // does not check it — so the comment's own words arrive as content
+            // and render.
+            const dast = normalizeDocumentDast(
+                lezerToDast(`<p>$$f(<!-- c --><math>3</math>)</p>`),
+            );
+            expect(toXml(dast)).toEqual(
+                `<document><p>$$f(<math>3</math>)</p></document>`,
+            );
+            // The parse keeps it, so the pretty-printer still round-trips.
+            expect(
+                toXml(lezerToDast(`<p>$$f(<!-- c --><math>3</math>)</p>`)),
+            ).toContain(`<!-- c -->`);
+        });
+
+        it("collects an error from a function reference's element argument", () => {
+            // A function reference's arguments are no more anybody's children
+            // than an index's contents are, so the error there needs collecting
+            // too or the language server never shows it.
+            const errors = extractDastErrors(
+                normalizeDocumentDast(
+                    lezerToDast(
+                        `<p>$$f(<b><number name="1st">1</number></b>)</p>`,
+                    ),
+                ),
+            );
+            expect(errors).toMatchObject([{ code: "doenet-e0025" }]);
+        });
+
+        it("validates every invalid element in an index, not just the first", () => {
+            // Reporting one removes it from the index's `value`, so the next
+            // shifts into that slot. The walk has to be told to resume there
+            // rather than stepping over it.
+            const dast = normalizeDocumentDast(
+                lezerToDast(`<p>$a[<_bad/><_alsoBad/>]</p>`),
+            );
+            const errors = extractDastErrors(dast);
+            expect(errors).toMatchObject([
+                { code: "doenet-e0024" },
+                { code: "doenet-e0024" },
+            ]);
+        });
+
+        it("validates a name written on an element in an index", () => {
+            // The `_error` is reported from the nearest element rather than
+            // from the index's own `value`, which holds only text, references
+            // and elements — an `_error` carried into one is a deserialization
+            // failure in the core rather than a diagnostic.
+            const dast = normalizeDocumentDast(
+                lezerToDast(`<p>$a[<number name="1st">1</number>]</p>`),
+            );
+            expect(extractDastErrors(dast)).toMatchObject([
+                { type: "error", code: "doenet-e0025" },
+            ]);
+            const p = (dast.children[0] as DastElement).children[0];
+            expect(p).toMatchObject({
+                name: "p",
+                children: [{ type: "macro" }, { type: "error" }],
+            });
+            // The element itself stays in the index — only its name was
+            // invalid, and that has been removed — so the index still resolves.
+            const reference = (p as DastElement).children[0] as DastMacro;
+            expect(reference.path[0].index[0].value).toMatchObject([
+                { type: "element", name: "number", attributes: {} },
+            ]);
+        });
+
+        it("collects an error from inside an element written in an index", () => {
+            // Here the error does belong where it was put — a `children` array
+            // inside the index element — so what the index's own `value` needs
+            // is a collector that descends into it.
+            const dast = normalizeDocumentDast(
+                lezerToDast(
+                    `<p>$a[<indexOf><number name="1st">1</number></indexOf>]</p>`,
+                ),
+            );
+            expect(extractDastErrors(dast)).toMatchObject([
+                { type: "error", code: "doenet-e0025" },
+            ]);
+        });
+
+        it("does not leave an element with an invalid component name in an index", () => {
+            // The element cannot be replaced by the `_error` where it sits, so
+            // it is lifted out and the error is reported from the nearest
+            // element. An empty index reads as any other index that resolves to
+            // nothing.
+            const dast = normalizeDocumentDast(
+                lezerToDast(`<p>$a[<_weird>1</_weird>]</p>`),
+            );
+            expect(extractDastErrors(dast)).toMatchObject([
+                { type: "error", code: "doenet-e0024" },
+            ]);
+            expect(toXml(dast)).toEqual(`<document><p>$a[]</p></document>`);
+        });
     });
 });

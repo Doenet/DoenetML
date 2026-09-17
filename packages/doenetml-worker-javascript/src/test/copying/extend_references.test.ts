@@ -6873,4 +6873,242 @@ describe("Extend and references tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
         ).eq(" there");
     });
+
+    describe("an element written inside index brackets", () => {
+        // #1909. An element between the brackets is moved into the index by the
+        // parser's `gobblePropIndices`, and from the resolver down it is the same
+        // shape as the `$myList[$io]` the docs recommend.
+
+        async function textOf(doenetML: string, path = "p1") {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return {
+                text: stateVariables[await resolvePathToNodeIdx(path)]
+                    .stateValues.text,
+                diagnostics: getDiagnosticsByType(core),
+            };
+        }
+
+        it("indexes with a bare <number>", async () => {
+            const { text, diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<number>2</number>]</p>
+            `);
+            expect(text).eq("300");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+
+        it("indexes with an <indexOf>, the case the issue was filed for", async () => {
+            const { text, diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<indexOf target="100">$myList</indexOf>]</p>
+            `);
+            expect(text).eq("100");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+
+        it("agrees with the named-and-referenced form it replaces", async () => {
+            // The workaround the docs show. Both spellings must give the same
+            // answer, since they become the same thing at the resolver.
+            const inline = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<argMin>$myList</argMin>]</p>
+            `);
+            const named = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <argMin name="am">$myList</argMin>
+    <p name="p1">$myList[$am]</p>
+            `);
+            expect(inline.text).eq(named.text);
+            expect(inline.text).eq("50");
+        });
+
+        it("does not also render the element where it was written", async () => {
+            // The element becomes an isolated component hanging off the
+            // reference, not a child of the paragraph, so its own value must not
+            // appear beside the answer.
+            const { text } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">before $myList[<indexOf target="200">$myList</indexOf>] after</p>
+            `);
+            expect(text).eq("before 200 after");
+        });
+
+        it("resolves a reference written inside the index element", async () => {
+            // `$myList` inside the `<indexOf>` has to resolve from where the
+            // reference sits, which is what the parent chain has to deliver for a
+            // node whose parent is the reference rather than an element.
+            const { text } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <number name="wanted">300</number>
+    <p name="p1">$myList[<indexOf target="$wanted">$myList</indexOf>]</p>
+            `);
+            expect(text).eq("300");
+        });
+
+        it("is not broken by a comment written beside the element", async () => {
+            // A comment is invisible to the reader, so it must be invisible to
+            // the index too: left in, it makes the index two nodes and the
+            // reference stops resolving.
+            const { text, diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<!-- the second one --><number>2</number>]</p>
+            `);
+            expect(text).eq("300");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+
+        it("does not render a comment written as a function argument", async () => {
+            // The comment used to arrive as content and render — `9 c²` — since
+            // the core reads an unrecognised node as text rather than rejecting
+            // it. Normalization removes it, so the call is just the call.
+            const { text, diagnostics } = await textOf(`
+    <function name="f" variables="x">x^2</function>
+    <p name="p1">$$f(<!-- c --><math>3</math>)</p>
+            `);
+            expect(text).eq("9");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+
+        it("ignores whitespace written inside the index element", async () => {
+            // `<indexOf>` takes a child of any type, so a newline before
+            // `$myList` becomes a `<string>` child and hence one of the values
+            // searched. Blank children are removed from index contents for that
+            // reason; written on one line the removal never runs, so this is the
+            // spelling that actually exercises it.
+            const spaced = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<indexOf target="200">
+        $myList
+    </indexOf>]</p>
+            `);
+            const compact = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<indexOf target="200">$myList</indexOf>]</p>
+            `);
+            expect(spaced.text).eq("200");
+            expect(spaced.text).eq(compact.text);
+            expect(spaced.diagnostics.errors.length).eq(0);
+            expect(spaced.diagnostics.warnings.length).eq(0);
+        });
+
+        it("survives a declined reference written inside a claimed index", async () => {
+            // The inner `$(x)[…]` cannot be indexed, and the warning saying so
+            // used to land inside the outer index, where Rust has no variant for
+            // it — the whole document failed to deserialize rather than
+            // reporting anything.
+            const { text, diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[$(x)[<number>1</number>]]</p>
+            `);
+            expect(typeof text).eq("string");
+            expect(diagnostics.errors.length).eq(0);
+            expect(
+                diagnostics.warnings.some((w: any) =>
+                    w.message.includes("was not read as an index"),
+                ),
+            ).eq(true);
+        });
+
+        it("leaves a called function reference's index alone rather than killing the document", async () => {
+            // `$$f[1](y)` parses, but the worker cannot build a component-valued
+            // index on a reference it then calls — it emits the index component
+            // twice and throws. Claiming these brackets would turn what used to
+            // render as harmless text into a blank page, so they stay text.
+            const { text, diagnostics } = await textOf(`
+    <function name="f" variables="x">x^2</function>
+    <p name="p1">$$f[<number>1</number>](3)</p>
+            `);
+            expect(text).eq("x²[1](3)");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(1);
+            expect(diagnostics.warnings[0].message).contain(
+                "give the result a name and index that",
+            );
+        });
+
+        it("warns, rather than saying nothing, when the brackets cannot index", async () => {
+            // `$(…)` closes the reference, so the brackets are ordinary text —
+            // the same as before #1909, except that it is now reported.
+            const { diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$(myList)[<number>2</number>]</p>
+            `);
+            expect(diagnostics.warnings.length).eq(1);
+            expect(diagnostics.warnings[0].message).contain(
+                "was not read as an index",
+            );
+        });
+
+        it("reports an invalid name on the index element rather than failing the document", async () => {
+            // The `_error` normalization makes for a bad name cannot be left in
+            // the index's own `value`, which holds only text, references and
+            // elements: the core would fail to read the document at all and the
+            // page would go blank. The name is dropped, the index still works,
+            // and the error is reported from the paragraph.
+            const { text, diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<number name="bad name">2</number>]</p>
+            `);
+            expect(text).eq("300");
+            expect(diagnostics.errors.length).eq(1);
+            expect(diagnostics.errors[0].message).contain(
+                "Invalid attribute name='bad name'",
+            );
+        });
+
+        it("reports an invalid component name written in the index", async () => {
+            // The other half of the same problem: here the element cannot stay
+            // either, so the index is left empty and reads like any other index
+            // that resolves to nothing.
+            const { diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<_weird>2</_weird>]</p>
+            `);
+            expect(diagnostics.errors.length).eq(1);
+            expect(diagnostics.errors[0].message).contain(
+                'Invalid component name "_weird"',
+            );
+        });
+
+        it("leaves malformed markup between the brackets to its own parse error", async () => {
+            // A stray closing tag leaves an `error` node between the brackets,
+            // which an index cannot carry either. The brackets stay literal, as
+            // they were before an element could index, and the parse error is
+            // what the author is told about.
+            const { text, diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<number>2</number> </badclose>]</p>
+            `);
+            expect(text).eq("100, 300, 200, 50[2 ]");
+            expect(diagnostics.errors.length).eq(1);
+            expect(diagnostics.errors[0].message).contain(
+                "Found closing tag `</badclose>`",
+            );
+        });
+
+        it("renders an element written as a function reference's argument", async () => {
+            // Not an index, but the same parent chain: a function reference's
+            // arguments are parented to the reference too. This shape parsed
+            // before #1909 and was asserted at the DAST layer, but it had never
+            // been run end to end, and building the resolver for it threw
+            // `unreachable` out of the core.
+            const { text, diagnostics } = await textOf(`
+    <function name="f" variables="x">x^2</function>
+    <p name="p1">$$f(<math>3</math>)</p>
+            `);
+            expect(text).eq("9");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+    });
 });

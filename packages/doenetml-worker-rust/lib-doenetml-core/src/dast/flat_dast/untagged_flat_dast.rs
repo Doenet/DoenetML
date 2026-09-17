@@ -597,7 +597,8 @@ impl FlatRootOrFragment<'_> {
     }
 
     /// Iterate over the parent elements of a node.
-    /// If for some reason the node has a non-element parent, the iterator will panic.
+    /// A non-element parent — a reference that owns the node as its content — is
+    /// stepped over rather than returned; see [`ParentIterator`].
     pub fn parent_iter(&'_ self, start_idx: Index) -> ParentIterator<'_> {
         let start = self.get_node(start_idx);
         let stop_idx = match self {

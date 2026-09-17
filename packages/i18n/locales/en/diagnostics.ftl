@@ -743,6 +743,48 @@ parse-close-tag-mismatched = Invalid DoenetML: Mismatched closing tag. Expected 
 # it is.
 parser-node-unconvertible = Could not convert node { $node } to Dast node.
 
+## Reference indices
+
+# Raised when an element sits in brackets immediately after a reference but the
+# brackets cannot be read as an index. $name is the reference as the author wrote
+# it, including its leading sigil — one `$` for a reference and two for a
+# function reference. $reason says why the brackets could not be read, as a key
+# rather than a phrase, so the whole sentence is translatable rather than
+# assembled from halves.
+#
+# The `braces` branch is about `$x{…}`, which v0.7 no longer gives any meaning:
+# it still parses, but the braces and whatever is in them are dropped. So the
+# remedy is to delete them, not to write the index somewhere else around them.
+#
+# The other five: `parens` and `parensFunction` are `$(x)[…]` and `$$(f)[…]`,
+# which differ only in which sigil the remedy shows — following the `$(…)` one
+# for a function reference would turn it into an ordinary reference. `arguments`
+# is `$$f(1)[…]`, where the argument list ran past the path. `called` is
+# `$$f[<n/>](y)`, where the index is where the grammar wants it but a computed
+# one on a reference that is then called cannot be built. `unclosed` is the
+# default because it states a fact rather than offering a remedy.
+#
+# The `parens` branch is about `$(x)[…]`. The index does belong inside the
+# parentheses, but an element written in there is not read as an index either —
+# what is between `$(` and `)` is read as text — so the remedy is to name the
+# element first and reference it inside the parentheses.
+#
+# The `arguments` branch is about `$$f(1)[…]`. Neither place around the
+# arguments takes the index the author wrote: inside the parentheses it would
+# become one more argument, and before them it would choose which function is
+# called rather than part of what the call returns. So the message offers the
+# one spelling that does work, which is to name the result and index that.
+
+index-element-not-used-as-index =
+    The element in brackets after `{ $name }` was not read as an index. { $reason ->
+        [braces] `{"{…}"}` is not part of a reference, so `[…]` written after it is ordinary text. Remove the `{"{…}"}`.
+        [parens] `$(…)` ends a reference, so `[…]` written after it is ordinary text. Give the element a name and write the index inside the parentheses, as `$(x[$idx])`.
+        [parensFunction] `$$(…)` ends a function reference, so `[…]` written after it is ordinary text. Give the element a name and write the index inside the parentheses, as `$$(f[$idx])`.
+        [arguments] A function reference's arguments end it, so `[…]` written after them is ordinary text. An index written before the arguments would pick which function to call rather than part of what it returns; to index the result, give the result a name and index that.
+        [called] An index before a function reference's arguments picks which function to call, and a computed one there is not supported. To index what the call returns, give the result a name and index that.
+       *[unclosed] Its `[` is never closed.
+    }
+
 ## Names
 
 # $reason says which rule the name broke, as a key rather than a phrase, so the

@@ -39,6 +39,7 @@ import {
 } from "./lezer-to-dast-utils";
 import { parseMacros } from "../macros";
 import { gobbleFunctionArguments } from "./gobble-function-arguments";
+import { gobblePropIndices } from "./gobble-prop-indices";
 import { findNodesWithPositionInfo } from "../dast-to-xml/utils";
 
 /**
@@ -74,7 +75,9 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
     const offsetMap = createOffsetToPositionMap(source);
     return {
         type: "root",
-        children: gobbleFunctionArguments(lezerNodeToDastNode(node)),
+        children: gobbleFunctionArguments(
+            gobblePropIndices(lezerNodeToDastNode(node)),
+        ),
         position: lezerNodeToPosition(node, offsetMap),
         sources: [source],
     };
@@ -285,8 +288,14 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                         (n) => lezerNodeToDastNode(n) as DastElementContent[],
                     ),
                 );
+                // Indices are gobbled before function arguments so that a
+                // gobbled index closes the path first — which is what lets
+                // `$$f[<n/>]` take its index at all, and what lets
+                // `gobblePropIndices` see that an argument list follows and
+                // decline `$$f[<n/>](y)` rather than claim brackets the worker
+                // cannot build. Reversing the two would hide both.
                 children = gobbleFunctionArguments(
-                    children,
+                    gobblePropIndices(children),
                 ) as DastElementContent[];
 
                 return [

@@ -98,6 +98,18 @@ type VisitOptions = {
      * only nodes will be past to `visitor`.
      */
     includeArrays?: boolean;
+    /**
+     * Whether to descend into a reference's `path[i].index[j].value`, where an
+     * index's contents live.
+     *
+     * Off by default, and deliberately so. An index could only ever hold text and
+     * references until `gobblePropIndices` began moving elements into one (#1909),
+     * so several walkers were written knowing this one does not go there —
+     * `v06-to-v07`'s `visitAll` covers indices *itself*, and would traverse them
+     * twice if this were widened for everyone. Turn it on where a pass has to reach
+     * an element written inside an index, as `normalizeDocumentDast` does.
+     */
+    includePathIndices?: boolean;
 };
 
 const DEFAULT_CONTEXT: VisitorContext = {};
@@ -126,6 +138,27 @@ export type VisitInfo = {
 };
 
 /**
+ * {@link visit}, also descending into what is written between a reference's index
+ * brackets. See `includePathIndices`.
+ *
+ * Normalization uses this rather than `visit`, because an element can be written in
+ * an index — `$myList[<indexOf …/>]` — and one that no plugin reaches keeps its
+ * comments and misses alias expansion, deprecations, name validation and sugar.
+ */
+export function visitIncludingPathIndices<Opts extends VisitOptions>(
+    tree: DastNodes | DastNodes[] | DastNodesV6 | DastNodesV6[],
+    visitor:
+        | Visitor<VisitorTypeFromOptions<Opts>>
+        | Visitors<VisitorTypeFromOptions<Opts>>,
+    options?: Opts,
+) {
+    return visit(tree, visitor, {
+        ...(options as Opts),
+        includePathIndices: true,
+    });
+}
+
+/**
  * Visit children of tree which pass a test. This is an enhanced version of unified's visit utility.
  *
  * @param tree Abstract syntax tree to walk
@@ -142,6 +175,7 @@ export function visit<Opts extends VisitOptions>(
         startingContext = DEFAULT_CONTEXT,
         test = () => true,
         includeArrays = false,
+        includePathIndices = false,
     } = options || {};
     let enter: Visitor<VisitorTypeFromOptions<Opts>> | undefined;
     let leave: Visitor<VisitorTypeFromOptions<Opts>> | undefined;
@@ -199,6 +233,34 @@ export function visit<Opts extends VisitOptions>(
                       }),
                   )
                 : result;
+        }
+
+        if (
+            includePathIndices &&
+            !Array.isArray(node) &&
+            (node.type === "macro" || node.type === "function") &&
+            // A v0.6 function reference stores its path under `macro` instead, and
+            // v0.6 indices never hold elements, so leave that shape alone.
+            "path" in node
+        ) {
+            // What is written between a reference's index brackets. A reference has
+            // no `children`, and the function-reference branch below reaches only its
+            // `input`, so without this an element moved into an index by
+            // `gobblePropIndices` would never be visited at all.
+            for (const pathPart of node.path) {
+                for (const propIndex of pathPart.index) {
+                    const result = walk(propIndex.value as DastNodes[], {
+                        key: "value",
+                        index: undefined,
+                        parents,
+                        context,
+                        containingArray: undefined,
+                    });
+                    if (result[0] === EXIT) {
+                        return result;
+                    }
+                }
+            }
         }
 
         if (Array.isArray(node)) {

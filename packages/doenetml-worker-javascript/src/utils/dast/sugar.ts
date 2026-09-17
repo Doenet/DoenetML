@@ -13,6 +13,7 @@ import {
 import {
     expandAllUnflattenedAttributes,
     expandUnflattenedToSerializedComponents,
+    unwrapSource,
 } from "./convertNormalizedDast";
 import { convertToErrorComponent } from "./errors";
 import { diagnosticCodeFrom } from "../diagnostics";
@@ -313,6 +314,36 @@ export function applySugar({
                         .components[0] as SerializedComponent;
                     diagnostics.push(...res.diagnostics);
                     nComponents = res.nComponents;
+                }
+            }
+
+            // What is written between a reference's index brackets. These are
+            // not children of the reference, so nothing above reaches them, but
+            // an element can be written there — `$myList[<indexOf …/>]` (#1909)
+            // — and an `<indexOf>` that never gets its sugar never reads its
+            // own `target`.
+            //
+            // `originalPath` only: `unresolvedPath` is overwritten from the
+            // resolver's own output before anything instantiates it, so sugaring
+            // it would spend component indices on components that never exist.
+            //
+            // `parentAttributes` is deliberately not passed down. An index
+            // component is not a child of the reference, and
+            // `ComponentWithSelectableType`'s sugar reads `parentAttributes.type`.
+            if (newComponent.extending) {
+                for (const pathPart of unwrapSource(newComponent.extending)
+                    .originalPath) {
+                    for (const indexPiece of pathPart.index) {
+                        const res = applySugar({
+                            serializedComponents: indexPiece.value,
+                            componentInfoObjects,
+                            nComponents,
+                            stateIdInfo,
+                        });
+                        indexPiece.value = res.components;
+                        diagnostics.push(...res.diagnostics);
+                        nComponents = res.nComponents;
+                    }
                 }
             }
 

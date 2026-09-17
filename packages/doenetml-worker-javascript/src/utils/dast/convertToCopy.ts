@@ -291,6 +291,19 @@ export function convertRefsToCopies({
                                 type: "unflattened",
                                 componentType: "integer",
                                 componentIdx: nComponents++,
+                                // This wrapper is not something an author wrote,
+                                // so it does not get an author's sugar. Without
+                                // this, now that `applySugar` reaches an index's
+                                // contents (#1909), `<number>`'s operator sugar
+                                // fires on the pieces of an ordinary `$a[$i+1]`
+                                // and builds a `<math>` that nothing needs —
+                                // two extra components per index, and per
+                                // iteration inside a `<repeat>`. The components
+                                // written between the brackets still get their
+                                // own sugar: `skipSugar` stops only this
+                                // component's instructions, not the recursion
+                                // into its children.
+                                skipSugar: true,
                                 attributes: {},
                                 doenetAttributes: {},
                                 children: res.components,

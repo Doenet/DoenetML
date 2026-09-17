@@ -117,15 +117,21 @@ export function gobbleFunctionArguments(
 }
 
 /**
- * Split the text node at the chars `(`, `)`, and `,`.
+ * Split the text node at each of `specialChars`, which defaults to `(`, `)`,
+ * and `,`.
+ *
+ * `gobblePropIndices` passes `/[\[\]]/` to get the same treatment for brackets.
  */
-export function splitTextAtSpecialChars(node: DastText): DastText[] {
-    const pos = node.value.search(/[\(\),]/);
+export function splitTextAtSpecialChars(
+    node: DastText,
+    specialChars: RegExp = /[\(\),]/,
+): DastText[] {
+    const pos = node.value.search(specialChars);
     if (pos < 0) {
         return [node];
     }
     const [left, middle, right] = splitTextNodeAt(node, pos);
-    const ret = [left, middle, ...splitTextAtSpecialChars(right)];
+    const ret = [left, middle, ...splitTextAtSpecialChars(right, specialChars)];
 
     return ret.filter((node) => node.value !== "");
 }
@@ -149,6 +155,15 @@ export function splitTextNodeAt(
     }
     const { rowMap, columnMap } = createOffsetToPositionMap(value);
 
+    // `rowMap`/`columnMap` are relative to this node's own text. A column only
+    // continues the node's start column while we are still on the row it began
+    // on; once a newline has been crossed the column restarts from 1, and adding
+    // the node's start column again puts it that many characters too far right.
+    const columnAt = (i: number) =>
+        rowMap[i] === 0
+            ? columnMap[i] + position.start.column
+            : columnMap[i] + 1;
+
     const leftValue = value.slice(0, pos);
     const left: DastText = {
         type: "text",
@@ -158,7 +173,7 @@ export function splitTextNodeAt(
             end: {
                 offset: (position.start.offset || 0) + leftValue.length,
                 line: rowMap[pos] + position.start.line,
-                column: columnMap[pos] + position.start.column,
+                column: columnAt(pos),
             },
         },
     };
@@ -170,12 +185,12 @@ export function splitTextNodeAt(
             start: {
                 offset: (position.start.offset || 0) + pos,
                 line: rowMap[pos] + position.start.line,
-                column: columnMap[pos] + position.start.column,
+                column: columnAt(pos),
             },
             end: {
                 offset: (position.start.offset || 0) + pos + 1,
                 line: rowMap[pos + 1] + position.start.line,
-                column: columnMap[pos + 1] + position.start.column,
+                column: columnAt(pos + 1),
             },
         },
     };
@@ -189,7 +204,7 @@ export function splitTextNodeAt(
             start: {
                 offset: (position.start.offset || 0) + pos + 1,
                 line: rowMap[pos + 1] + position.start.line,
-                column: columnMap[pos + 1] + position.start.column,
+                column: columnAt(pos + 1),
             },
         },
     };
@@ -206,7 +221,7 @@ function hasClosingParen(nodes: DastNodes[]): boolean {
 /**
  * Trim any leading or trailing whitespace.
  */
-function trimWhitespace<T extends DastNodes>(nodes: T[]): T[] {
+export function trimWhitespace<T extends DastNodes>(nodes: T[]): T[] {
     const firstNode = nodes[0];
     const lastNode = nodes[nodes.length - 1];
 

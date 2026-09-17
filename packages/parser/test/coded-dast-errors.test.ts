@@ -238,6 +238,44 @@ describe("Coded DAST errors render to the English the parser wrote", () => {
         expectRoundTrip(errors);
     });
 
+    it("an element in index brackets that cannot be an index", () => {
+        // All six branches of the message's `reason` selector. An element
+        // between the brackets is what each has in common; what differs is why
+        // the brackets could not be read as an index.
+        const errors = [
+            // A `{…}` block closed the reference before the brackets. The
+            // block itself means nothing in v0.7, which is why the message
+            // says to delete it rather than to move the index around it.
+            ...normalizedErrors(`<p>$x{z}[<number>1</number>]</p>`),
+            // So did the closing paren of the `$(…)` form.
+            ...normalizedErrors(`<p>$(x)[<number>1</number>]</p>`),
+            // And of the `$$(…)` form, which needs its own example: following
+            // the `$(x[$idx])` advice there would turn a function reference
+            // into an ordinary one.
+            ...normalizedErrors(`<p>$$(f)[<number>1</number>]</p>`),
+            // A function reference's argument list closed it. There is nowhere
+            // around the arguments to put this index, so this branch says
+            // something different again from the `parens` one above.
+            ...normalizedErrors(`<p>$$f(1)[<number>1</number>]</p>`),
+            // The bracket is never closed.
+            ...normalizedErrors(`<p>$x[<number>1</number></p>`),
+            // An index on a function reference that is then called.
+            ...normalizedErrors(`<p>$$f[<number>1</number>](3)</p>`),
+        ];
+        expect(codedErrors(errors).length).toBe(6);
+        expect(codedErrors(errors).map((e) => (e as any).args.name)).toEqual([
+            "$x",
+            "$x",
+            // The sigil comes from the reference, so a function reference keeps
+            // both of its `$`s rather than being quoted back as `$f`.
+            "$$f",
+            "$$f",
+            "$x",
+            "$$f",
+        ]);
+        expectRoundTrip(errors);
+    });
+
     it("external references", async () => {
         const fetchExternalDoenetML = (uri: string) =>
             uri === "doenet:selfReferential"

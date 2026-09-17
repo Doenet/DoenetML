@@ -250,6 +250,7 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0159": "chart-histogram-cut-points-invalid",
     "doenet-w0160": "chart-histogram-categories-ignored",
     "doenet-w0161": "chart-histogram-bar-width-ignored",
+    "doenet-w0162": "index-element-not-used-as-index",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

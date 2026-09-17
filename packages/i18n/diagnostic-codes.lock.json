@@ -258,5 +258,6 @@
     "doenet-w0158": "chart-histogram-bin-count-invalid",
     "doenet-w0159": "chart-histogram-cut-points-invalid",
     "doenet-w0160": "chart-histogram-categories-ignored",
-    "doenet-w0161": "chart-histogram-bar-width-ignored"
+    "doenet-w0161": "chart-histogram-bar-width-ignored",
+    "doenet-w0162": "index-element-not-used-as-index"
 }

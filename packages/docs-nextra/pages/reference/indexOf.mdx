@@ -98,6 +98,30 @@ Finding a position in one list and reading it out of another is the usual reason
 want `<indexOf>{:dn}` rather than a test for membership.
 
 
+---
+
+### Example: indexing without naming the lookup
+
+
+```doenet-editor-horiz
+<setup>
+  <textList name="symbols">H He Li Be</textList>
+  <numberList name="masses">1.008 4.003 6.94 9.012</numberList>
+</setup>
+
+<p>The atomic mass of Li is $masses[<indexOf type="text" target="Li">$symbols</indexOf>].</p>
+```
+
+
+
+The `<indexOf>{:dn}` can be written between the index brackets instead of being named
+and referenced. Both find the same position, so which to use is a matter of how the
+sentence reads: naming it keeps a long index out of the prose, and is what to do when
+the same position is wanted more than once.
+
+
+
+
 
 ---
 

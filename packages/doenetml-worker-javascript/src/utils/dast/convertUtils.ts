@@ -1,5 +1,6 @@
 import { ComponentInfoObjects } from "../componentInfoObjects";
 import { SerializedComponent } from "./types";
+import { unwrapSource } from "./convertNormalizedDast";
 
 /**
  * Unless a component's class specifies `includeBlankStringChildren`,
@@ -41,6 +42,23 @@ export function removeBlankStringChildren(
                         componentInfoObjects,
                     )[0] as SerializedComponent;
                     newComponent.attributes[attrName] = attribute;
+                }
+            }
+
+            // Also what is written between a reference's index brackets, for the
+            // same reason the sugar pass goes there (#1909): `<indexOf>` takes a
+            // child of any type, so a newline written before `$myList` would
+            // otherwise become a `<string>` child and hence one of the values
+            // searched. `originalPath` only, matching `applySugar`.
+            if (newComponent.extending) {
+                for (const pathPart of unwrapSource(newComponent.extending)
+                    .originalPath) {
+                    for (const indexPiece of pathPart.index) {
+                        indexPiece.value = removeBlankStringChildren(
+                            indexPiece.value,
+                            componentInfoObjects,
+                        );
+                    }
                 }
             }
 
