@@ -67,7 +67,7 @@ only in the last position.
 
 ```xml
 <function name="f" variables="x">x^2</function>
-<function name="g" variables="a,b">a+b</function>
+<function name="g" variables="a b">a+b</function>
 
 <p>$$g($$f(<math>3</math>), 1)</p>
 ```

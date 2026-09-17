@@ -7234,7 +7234,7 @@ describe("Extend and references tests @group2", async () => {
             // anywhere else: this rendered `3 x² + 1`.
             const functions = `
     <function name="f" variables="x">x^2</function>
-    <function name="g" variables="a,b">a+b</function>`;
+    <function name="g" variables="a b">a+b</function>`;
 
             for (const reference of [
                 `$$g($$f(<math>3</math>), 1)`,
