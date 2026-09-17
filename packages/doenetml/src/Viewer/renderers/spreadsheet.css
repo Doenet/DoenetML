@@ -1,35 +1,12 @@
 /*
- * A cell of a `<row header="true">` inside a `<spreadsheet>`.
+ * A cell of a `<row header="true">` inside a `<spreadsheet>`. `<tabular>` marks
+ * one by rendering a `<th>`, which is bold on its own; Handsontable draws every
+ * data cell as a `<td>`, so a spreadsheet has to say it here. What makes the
+ * cell a header to a screen reader is set in `spreadsheet.tsx`, not here.
  *
- * `<tabular>` marks such a cell by rendering it as a `<th>`, which the browser
- * emphasizes on its own. A spreadsheet has no such lever: Handsontable draws
- * every data cell as a plain `<td>`, and what it offers per cell without
- * taking over the drawing of the cell entirely is a class name (given by the
- * `cells` option in `spreadsheet.tsx`). So the emphasis is stated here
- * instead.
- *
- * Bold and nothing else, deliberately. A header row was drawn on the shading
- * the theme gives its own `A`, `B`, `C` and `1`, `2`, `3` label strip, and that
- * turned out to be the wrong signal twice over: a grid showing those labels put
- * an author's header row in the same shading as the labels, so the two ran
- * together; and `header` on a `fixed` row — the combination an author reaches
- * for, since a header is exactly the row a reader should not edit — lost the
- * shading anyway to `.handsontable .htDimmed`, which sets a read-only cell's
- * background with `!important`. Weight is the one signal that survives both,
- * and it matches what a `<tabular>` header cell gets from being a `<th>`.
- *
- * Nothing else in the grid sets `font-weight` on a cell — the themes set it
- * once, on their own root, for the table to inherit — so naming the class
- * alongside `.handsontable` is enough to win, and `!important` is not needed
- * for the bold to survive on a cell that is also `fixed`. `spreadsheet.cy.js`
- * holds both of those, and that a header cell is *not* drawn like the labels.
- *
- * A background would be a different fight, and this selector would lose it.
- * Handsontable gives every rendered row an even/odd class and paints the cell
- * background through it, with `.handsontable tr.ht__row_even td` — two classes
- * and two elements against this rule's two classes and one. Anything added here
- * that a theme also sets on a data cell needs the row named as well, or it will
- * simply not appear.
+ * Weight only: anything a theme also sets on a data cell — a background, say —
+ * loses to `.handsontable tr.ht__row_even td` at this specificity and silently
+ * does nothing.
  */
 .handsontable td.doenet-spreadsheet-header-cell {
     font-weight: 700;
