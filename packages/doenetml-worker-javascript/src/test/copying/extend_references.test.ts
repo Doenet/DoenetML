@@ -7227,6 +7227,28 @@ describe("Extend and references tests @group2", async () => {
             );
         });
 
+        it("calls a nested function reference in any argument, not only the last", async () => {
+            // An element argument is what makes a nested call need the parser's
+            // post-pass rather than the grammar, and only the last argument was
+            // passed back through it. So the inner call simply did not happen
+            // anywhere else: this rendered `3 x² + 1`.
+            const functions = `
+    <function name="f" variables="x">x^2</function>
+    <function name="g" variables="a,b">a+b</function>`;
+
+            for (const reference of [
+                `$$g($$f(<math>3</math>), 1)`,
+                `$$g(1, $$f(<math>3</math>))`,
+            ]) {
+                const { text, diagnostics } = await textOf(
+                    `${functions}<p name="p1">${reference}</p>`,
+                );
+                expect(text, reference).eq("10");
+                expect(diagnostics.errors.length, reference).eq(0);
+                expect(diagnostics.warnings.length, reference).eq(0);
+            }
+        });
+
         it("renders an element written as a function reference's argument", async () => {
             // Not an index, but the same parent chain: a function reference's
             // arguments are parented to the reference too. This shape parsed

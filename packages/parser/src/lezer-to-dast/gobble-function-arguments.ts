@@ -76,8 +76,18 @@ export function gobbleFunctionArguments(
             // Commas separate arguments, but they may appear inside of balanced parenthesis. E.g. `$$f( (a,b) )`
             // is a function with exactly one argument of `(a,b)`.
             if (nextNode.value === "," && parenDepth <= 1) {
+                // Recursed like the closing-paren branch below. Without it only
+                // the *last* argument got this treatment, so a nested call whose
+                // own arguments hold an element — the one shape that needs this
+                // pass rather than the grammar — stayed uncalled anywhere but
+                // last: `$$g($$f(<n/>), 1)` left `$$f` a bare reference
+                // followed by literal text, where `$$g(1, $$f(<n/>))` called it.
                 functionNode.input!.push(
-                    trimWhitespace(currentFunctionArg as DastElementContent[]),
+                    trimWhitespace(
+                        gobbleFunctionArguments(
+                            currentFunctionArg,
+                        ) as DastElementContent[],
+                    ),
                 );
                 currentFunctionArg = [];
                 i++;

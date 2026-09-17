@@ -1622,6 +1622,58 @@ describe("DAST", async () => {
             }
         });
 
+        it("builds a nested call in any argument, not only the last", () => {
+            // Only the final argument was passed back through
+            // `gobbleFunctionArguments`; at a comma the argument was stored as
+            // it stood. So a nested call whose own arguments hold an element —
+            // the one shape that needs this pass rather than the grammar —
+            // stayed uncalled anywhere but last.
+            const innerOf = (source: string) => {
+                const outer = lezerToDast(source)
+                    .children[0] as DastFunctionMacro;
+                const inner = outer
+                    .input!.flat()
+                    .find((n: any) => n.type === "function") as
+                    DastFunctionMacro | undefined;
+                return inner?.input == null ? "uncalled" : "called";
+            };
+
+            expect(innerOf(`$$g($$f(<n/>), 1)`)).toBe("called");
+            expect(innerOf(`$$g(1, $$f(<n/>))`)).toBe("called");
+            expect(innerOf(`$$g($$f(<n/>), 1, 2)`)).toBe("called");
+
+            // Which is what lets the brackets after such a call be reported
+            // wherever it is written, rather than only in the last argument.
+            // The warning stays inside the argument that earned it, so this
+            // counts the whole tree rather than the top-level siblings.
+            const warningsIn = (source: string) => {
+                let found = 0;
+                const walk = (node: any) => {
+                    if (Array.isArray(node)) {
+                        return node.forEach(walk);
+                    }
+                    if (node && typeof node === "object") {
+                        if (node.type === "error") {
+                            found++;
+                        }
+                        for (const value of Object.values(node)) {
+                            if (value && typeof value === "object") {
+                                walk(value);
+                            }
+                        }
+                    }
+                };
+                walk(lezerToDast(source));
+                return found;
+            };
+            for (const source of [
+                `$$g($$f(<n/>)[<m/>], 1)`,
+                `$$g(1, $$f(<n/>)[<m/>])`,
+            ]) {
+                expect(warningsIn(source), source).toBe(1);
+            }
+        });
+
         it("reports those same shapes when they are written as a function argument", () => {
             // `gobbleFunctionArguments` moves an argument out of the sibling
             // array into `input`, where a pass that walks siblings cannot
