@@ -8,23 +8,29 @@
  * `cells` option in `spreadsheet.tsx`). So the emphasis is stated here
  * instead.
  *
- * The colors come from the variables the active Handsontable theme defines for
- * its own A/B/C and 1/2/3 header strip, so a header row matches that strip and
- * follows the document into dark mode without a second rule. The weight does
- * not: `--ht-header-font-weight` is the table's ordinary weight in both classic
- * themes, and an author writing `header` is asking for bold.
+ * Bold and nothing else, deliberately. A header row was drawn on the shading
+ * the theme gives its own `A`, `B`, `C` and `1`, `2`, `3` label strip, and that
+ * turned out to be the wrong signal twice over: a grid showing those labels put
+ * an author's header row in the same shading as the labels, so the two ran
+ * together; and `header` on a `fixed` row — the combination an author reaches
+ * for, since a header is exactly the row a reader should not edit — lost the
+ * shading anyway to `.handsontable .htDimmed`, which sets a read-only cell's
+ * background with `!important`. Weight is the one signal that survives both,
+ * and it matches what a `<tabular>` header cell gets from being a `<th>`.
  *
- * The selector is longer than it looks like it needs to be because of what it
- * has to outrank. Handsontable gives every rendered row an even/odd class and
- * paints the cell background through it, with `.handsontable tr.ht__row_even
- * td` — two classes and two elements. A rule naming only the class loses to
- * that and the background never appears, which is what happens if the `tbody
- * tr` below is dropped. It is still outranked by `.handsontable .htDimmed`,
- * which sets a read-only cell's background with `!important`, so a header cell
- * that is also `fixed` keeps only the bold; `spreadsheet.cy.js` covers both.
+ * Nothing else in the grid sets `font-weight` on a cell — the themes set it
+ * once, on their own root, for the table to inherit — so naming the class
+ * alongside `.handsontable` is enough to win, and `!important` is not needed
+ * for the bold to survive on a cell that is also `fixed`. `spreadsheet.cy.js`
+ * holds both of those, and that a header cell is *not* drawn like the labels.
+ *
+ * A background would be a different fight, and this selector would lose it.
+ * Handsontable gives every rendered row an even/odd class and paints the cell
+ * background through it, with `.handsontable tr.ht__row_even td` — two classes
+ * and two elements against this rule's two classes and one. Anything added here
+ * that a theme also sets on a data cell needs the row named as well, or it will
+ * simply not appear.
  */
-.handsontable tbody tr td.doenet-spreadsheet-header-cell {
-    background-color: var(--ht-header-background-color);
-    color: var(--ht-header-foreground-color);
+.handsontable td.doenet-spreadsheet-header-cell {
     font-weight: 700;
 }

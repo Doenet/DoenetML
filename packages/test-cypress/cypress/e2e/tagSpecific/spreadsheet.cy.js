@@ -1636,7 +1636,7 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
         });
     });
 
-    it("a header row is shaded like the spreadsheet's own row and column labels, in light mode and in dark", () => {
+    it("a header row is set apart by weight alone, not by a shading that would read as the grid's own labels", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -1662,40 +1662,48 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
 
         const cell = (row, column) =>
             `#spreadsheet1 tbody > :nth-child(${row}) > :nth-child(${column + 1})`;
-        // The `1`, `2`, `3` strip down the left of the grid, which is drawn in
-        // the same shading as the `A`, `B`, `C` strip across the top.
-        // Handsontable keeps the label strip in an overlay table as well as in
-        // the main one, so the selector matches twice and the first match is
-        // the one in the grid proper.
+        // The `1`, `2`, `3` strip down the left of the grid, drawn in the same
+        // shading as the `A`, `B`, `C` strip across the top. Handsontable
+        // keeps the label strip in an overlay table as well as in the main
+        // one, so the selector matches twice and the first match is the one in
+        // the grid proper.
         const rowLabel = (row) =>
             cy
                 .get(`#spreadsheet1 tbody > :nth-child(${row}) > :nth-child(1)`)
                 .first();
 
-        // A header cell takes its background from the theme, and so does the
-        // label strip, so the two are compared against each other rather than
-        // against a literal color. An ordinary cell is checked too: without it
-        // the comparison would also pass if the whole grid were one color.
-        const headerShadingMatchesTheLabels = () => {
-            rowLabel(1)
+        // A header cell is drawn on the same background as an ordinary cell,
+        // and a different one from the labels: a header row that took the
+        // labels' shading would run into the `A`, `B`, `C` strip above it and
+        // read as part of it. The backgrounds come from the theme, so they are
+        // compared against each other rather than against a literal color.
+        const headerLooksLikeADataCellAndNotLikeTheLabels = () => {
+            cy.get(cell(2, 1))
                 .invoke("css", "background-color")
-                .then((labelBackground) => {
+                .then((dataBackground) => {
                     cy.get(cell(1, 1)).should(
                         "have.css",
                         "background-color",
-                        labelBackground,
+                        dataBackground,
                     );
-                    cy.get(cell(2, 1)).should(
+                    rowLabel(1).should(
                         "not.have.css",
                         "background-color",
-                        labelBackground,
+                        dataBackground,
                     );
                 });
         };
 
         rowLabel(1).should("have.text", "1");
-        headerShadingMatchesTheLabels();
 
+        // what does set the header row apart is its weight
+        cy.get(cell(1, 1)).should("have.css", "font-weight", "700");
+        cy.get(cell(1, 2)).should("have.css", "font-weight", "700");
+        cy.get(cell(2, 1)).should("not.have.css", "font-weight", "700");
+        headerLooksLikeADataCellAndNotLikeTheLabels();
+
+        // and it stays that way in dark mode, where a leftover shading would
+        // be at its most obvious
         rowLabel(1)
             .invoke("css", "background-color")
             .then((lightBackground) => {
@@ -1710,9 +1718,8 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
                     lightBackground,
                 );
 
-                // the shading is the theme's, so it follows the document into
-                // dark mode
-                headerShadingMatchesTheLabels();
+                cy.get(cell(1, 1)).should("have.css", "font-weight", "700");
+                headerLooksLikeADataCellAndNotLikeTheLabels();
             });
     });
 
@@ -1856,7 +1863,7 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
             text: "typed",
         });
     });
-    it("a header row that is also fixed keeps its emphasis, and gives its shading up to the read-only cell's background", () => {
+    it("a header row that is also fixed is still bold, and is drawn like any other header row", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -1865,6 +1872,9 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
     <spreadsheet minNumRows="3" minNumColumns="3" name="spreadsheet1">
       <row header fixed>
         <cell>label</cell>
+      </row>
+      <row header>
+        <cell>open label</cell>
       </row>
       <row>
         <cell fixed>locked</cell>
@@ -1882,30 +1892,22 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
         const cell = (row, column) =>
             `#spreadsheet1 tbody > :nth-child(${row}) > :nth-child(${column + 1})`;
 
-        // `header` and `fixed` are independent, so a cell can carry both
+        // `header` and `fixed` are independent, so a cell can carry both.
+        // Protecting a header row is the combination an author reaches for,
+        // so it is the one that has to come out looking right.
         cy.get(cell(1, 1)).should(
             "have.class",
             "doenet-spreadsheet-header-cell",
         );
         cy.get(cell(1, 1)).should("have.class", "htDimmed");
 
-        // the bold of a header row survives, and belongs to `header` alone:
-        // a cell that is only fixed is not bold
+        // the bold survives `fixed`: Handsontable sets a read-only cell's
+        // color and background with `!important` but does not touch its
+        // weight, so a fixed header cell is emphasized exactly as an unfixed
+        // one is, and a cell that is only fixed is not bold at all
         cy.get(cell(1, 1)).should("have.css", "font-weight", "700");
-        cy.get(cell(2, 1)).should("not.have.css", "font-weight", "700");
-
-        // the header shading does not survive: Handsontable sets a read-only
-        // cell's background with `!important`, so a fixed header cell is drawn
-        // on the same background as any other fixed cell
-        cy.get(cell(2, 1))
-            .invoke("css", "background-color")
-            .then((readOnlyBackground) => {
-                cy.get(cell(1, 1)).should(
-                    "have.css",
-                    "background-color",
-                    readOnlyBackground,
-                );
-            });
+        cy.get(cell(2, 1)).should("have.css", "font-weight", "700");
+        cy.get(cell(3, 1)).should("not.have.css", "font-weight", "700");
     });
 
     it("cell flags reach the copies of the cells that fixedRowsTop and fixedColumnsLeft pin in place", () => {
@@ -1935,11 +1937,10 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
 
         // A pinned row or column is not moved out of the grid: it is drawn a
         // second time, in a table of its own that floats over the scrolling
-        // one. So every cell in the pinned region has a copy that the rules
-        // and the read-only flag have to reach too, or a header row scrolled
-        // under a pinned row would lose its shading at the moment it is
-        // pinned. The copies live under `.ht_clone_*`; the scrolling grid is
-        // `.ht_master`.
+        // one. So every cell in the pinned region has a copy that the header
+        // rule and the read-only flag have to reach too, or a header row would
+        // lose its emphasis at the moment it is pinned. The copies live under
+        // `.ht_clone_*`; the scrolling grid is `.ht_master`.
         const inClone = (clone, text) =>
             cy.contains(`#spreadsheet1 .${clone} tbody td`, text);
 
@@ -1949,11 +1950,6 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
         inClone("ht_clone_inline_start", "head1").should(
             "have.class",
             "doenet-spreadsheet-header-cell",
-        );
-        inClone("ht_clone_inline_start", "head1").should(
-            "have.css",
-            "font-weight",
-            "700",
         );
         inClone("ht_clone_inline_start", "lockA").should(
             "have.class",
@@ -1966,29 +1962,24 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
             "doenet-spreadsheet-header-cell",
         );
 
-        // the shading is there, not just the class: compared against the `1`,
-        // `2`, `3` strip drawn in the same pinned column, and against a cell
-        // of the same copy that is in no header row
-        cy.get("#spreadsheet1 .ht_clone_inline_start tbody th")
-            .first()
-            .invoke("css", "background-color")
-            .then((labelBackground) => {
-                inClone("ht_clone_inline_start", "head1").should(
-                    "have.css",
-                    "background-color",
-                    labelBackground,
-                );
-                inClone("ht_clone_top", "head2").should(
-                    "have.css",
-                    "background-color",
-                    labelBackground,
-                );
-                inClone("ht_clone_inline_start", "lockA").should(
-                    "not.have.css",
-                    "background-color",
-                    labelBackground,
-                );
-            });
+        // the emphasis is really drawn in the copies, not just the class
+        // applied: compared against a cell of the same copy that is in no
+        // header row
+        inClone("ht_clone_inline_start", "head1").should(
+            "have.css",
+            "font-weight",
+            "700",
+        );
+        inClone("ht_clone_top", "head2").should(
+            "have.css",
+            "font-weight",
+            "700",
+        );
+        inClone("ht_clone_inline_start", "lockA").should(
+            "not.have.css",
+            "font-weight",
+            "700",
+        );
 
         // the pinned copy of a fixed cell opens no editor either
         inClone("ht_clone_inline_start", "lockA").click({ force: true });

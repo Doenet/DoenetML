@@ -54,8 +54,8 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
                 // itself, which is a different thing from the A/B/C strip that
                 // claimed `header="yes"` just above. Read per cell rather than
                 // per row so that the emphasis lands on exactly the cells the
-                // grid shades: a header row narrower than the grid leaves the
-                // positions past its last `<cell>` unmarked in both.
+                // grid emphasizes: a header row narrower than the grid leaves
+                // the positions past its last `<cell>` unmarked in both.
                 const rowInHeader = cellsInHeader?.[spreadsheetRowIndex - 1];
                 return (
                     <row key={rowIndex} header={header} bottom="minor">
