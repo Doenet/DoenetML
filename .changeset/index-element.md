@@ -48,6 +48,6 @@ write instead — for `$(x)[…]` give the element a name and write the index in
 parentheses, as `$(x[$idx])`; for `$$f(1)[…]` give the result of the call a name and
 index that; and for `$x{z}[…]` no braces at all, which v0.7 drops on the floor anyway.
 
-Writing an element as a function macro's argument — `$$f(<math>3</math>)` — no longer
+Writing an element as a function reference's argument — `$$f(<math>3</math>)` — no longer
 stops the document. It parsed correctly, but registering the names in it hit a node
 whose parent was the reference rather than an element, and the document failed to load.

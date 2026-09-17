@@ -1296,6 +1296,19 @@ describe("DAST", async () => {
             expect(indicesOf(`$$f[<n/>]`)).toMatchObject([
                 { value: [{ type: "element", name: "n" }] },
             ]);
+            // And an opening paren is not a call on its own. Without a closing
+            // one `gobbleFunctionArguments` builds nothing, so the failure this
+            // guard avoids cannot happen and the index is safe to take.
+            for (const source of [`$$f[<n/>](`, `$$f[<n/>]( y`]) {
+                expect(indicesOf(source)).toMatchObject([
+                    { value: [{ type: "element", name: "n" }] },
+                ]);
+                expect(
+                    childrenOf(source).some((n: any) => n.type === "error"),
+                ).toBe(false);
+            }
+            // An empty argument list is still a call.
+            expect(indicesOf(`$$f[<n/>]()`)).toHaveLength(0);
         });
 
         it("keeps a warning about the brackets' own contents out of the index", () => {

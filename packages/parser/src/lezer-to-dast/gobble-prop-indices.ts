@@ -218,7 +218,17 @@ function isCallFollowing(
     group: BracketGroup,
 ): boolean {
     const next = nodes[group.closeIdx + 1];
-    return next?.type === "text" && next.value.startsWith("(");
+    if (!(next?.type === "text" && next.value.startsWith("("))) {
+        return false;
+    }
+    // An opening paren alone is not a call. `gobbleFunctionArguments` builds one
+    // only when a closing paren follows too, so `$$f[<n/>](` leaves the
+    // reference uncalled and the `(` as text — and an index is perfectly safe
+    // there, because the failure this guard avoids needs a call to happen.
+    // Mirrors `hasClosingParen` in that pass, down to looking only at text.
+    return nodes
+        .slice(group.closeIdx + 1)
+        .some((node) => node.type === "text" && node.value.includes(")"));
 }
 
 /**
