@@ -2263,4 +2263,44 @@ describe("Spreadsheet tag tests @group1", async () => {
             [false, false, true],
         ]);
     });
+    it("a cell placed outside the grid does not take the document down with it", async () => {
+        // `rowNum` and `colNum` are free-form text, so they can name a
+        // position that is not a grid position: `rowNum="0"` is one row above
+        // the first row, and `rowNum="1.5"` is between two rows. Such a cell
+        // is placed nowhere, the same way it contributes nothing to `cells`.
+        for (const placement of [
+            `rowNum="0" colNum="1"`,
+            `rowNum="1" colNum="0"`,
+            `rowNum="1.5" colNum="1"`,
+            `rowNum="-2" colNum="1"`,
+            `rowNum="!" colNum="1"`,
+        ]) {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+  <spreadsheet name="ss" minNumRows="2" minNumColumns="2">
+    <cell ${placement} fixed>nowhere</cell>
+  </spreadsheet>
+  `,
+            });
+
+            const ssIdx = await resolvePathToNodeIdx("ss");
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+
+            expect(stateVariables[ssIdx].stateValues.cells).eqls([
+                ["", ""],
+                ["", ""],
+            ]);
+            expect(stateVariables[ssIdx].stateValues.cellsFixed).eqls([
+                [false, false],
+                [false, false],
+            ]);
+            expect(stateVariables[ssIdx].stateValues.cellsInHeader).eqls([
+                [false, false],
+                [false, false],
+            ]);
+        }
+    });
 });

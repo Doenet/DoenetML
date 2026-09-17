@@ -788,10 +788,11 @@ export default class Spreadsheet extends BlockComponent {
 
                 const cellsFixed = [];
                 const cellsInHeader = [];
-                // Built by loop rather than `new Array(numRows)`: `numRows` and
-                // `numColumns` are just `number`s, and `cells` sizes itself by
-                // the same `i < size` comparison, so a non-integer minimum
-                // lands on the same dimensions here instead of throwing.
+                // Built by loop rather than `new Array(numRows)`: `minNumRows`
+                // and `minNumColumns` are `number`s, not integers, and
+                // `new Array(2.5)` throws. (A non-integer dimension draws
+                // nothing either way — `cells` comes back empty — but it must
+                // not take the document down with it.)
                 for (let rowInd = 0; rowInd < numRows; rowInd++) {
                     const fixedRow = [];
                     const inHeaderRow = [];
@@ -811,7 +812,18 @@ export default class Spreadsheet extends BlockComponent {
                         continue;
                     }
                     const [rowInd, colInd] = rowCol;
-                    if (!(rowInd < numRows && colInd < numColumns)) {
+                    // `rowNum` and `colNum` are free-form text, so a cell can
+                    // ask for a position that is not a grid position at all:
+                    // `rowNum="0"` maps to -1 and `rowNum="1.5"` to 0.5, and
+                    // neither names a row that was built above.
+                    if (
+                        !Number.isInteger(rowInd) ||
+                        !Number.isInteger(colInd) ||
+                        rowInd < 0 ||
+                        colInd < 0 ||
+                        rowInd >= numRows ||
+                        colInd >= numColumns
+                    ) {
                         continue;
                     }
                     cellsFixed[rowInd][colInd] =

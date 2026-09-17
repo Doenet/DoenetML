@@ -50,13 +50,13 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
                     return null; // Skip hidden rows
                 }
                 const header = inHeaderRow ? "yes" : undefined;
-                // A `<row header="true">` of the spreadsheet itself, which is
-                // a different thing from the A/B/C strip that claimed
-                // `header="yes"` just above. Faked with `<em>`, the same way
-                // the row-number column below fakes its own header.
-                const inDoenetHeaderRow = Boolean(
-                    cellsInHeader?.[spreadsheetRowIndex - 1]?.some(Boolean),
-                );
+                // The cells of a `<row header="true">` of the spreadsheet
+                // itself, which is a different thing from the A/B/C strip that
+                // claimed `header="yes"` just above. Read per cell rather than
+                // per row so that the emphasis lands on exactly the cells the
+                // grid shades: a header row narrower than the grid leaves the
+                // positions past its last `<cell>` unmarked in both.
+                const rowInHeader = cellsInHeader?.[spreadsheetRowIndex - 1];
                 return (
                     <row key={rowIndex} header={header} bottom="minor">
                         {row.map((cell, colIndex) => {
@@ -68,11 +68,14 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
                             if (hiddenColumns.includes(spreadsheetColIndex)) {
                                 return null; // Skip hidden columns
                             }
+                            const inDoenetHeaderCell = Boolean(
+                                rowInHeader?.[spreadsheetColIndex - 1],
+                            );
                             return (
                                 <cell key={colIndex} right="minor">
                                     {
                                         // Pretext cannot have both a row and column header, so we have to fake it.
-                                        inHeaderColumn || inDoenetHeaderRow ? (
+                                        inHeaderColumn || inDoenetHeaderCell ? (
                                             <em>{cell}</em>
                                         ) : (
                                             cell

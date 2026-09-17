@@ -1567,6 +1567,10 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
         <cell fixed>locked</cell>
         <cell>open</cell>
       </row>
+      <row>
+        <cell>6</cell>
+        <cell fixed>= A3 * 2</cell>
+      </row>
     </spreadsheet>
     `,
                 },
@@ -1598,10 +1602,16 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
         cy.get(cell(2, 1)).should("have.class", "htDimmed");
         cy.get(cell(2, 2)).should("not.have.class", "htDimmed");
 
-        // clicking a fixed cell builds no editor at all, so its text stands
+        // clicking a fixed cell selects it — so it can still be copied — but
+        // builds no editor at all, so its text stands
         cy.get(cell(2, 1)).click({ force: true });
+        cy.get(cell(2, 1)).should("have.class", "current");
         cy.get("#spreadsheet1 .handsontableInput").should("not.exist");
         cy.get(cell(2, 1)).should("have.text", "locked");
+
+        // a fixed cell still evaluates its formula; read-only is about
+        // editing, not about what the cell shows
+        cy.get(cell(3, 2)).should("have.text", "12");
 
         // an unfixed cell still edits
         enterSpreadsheetText({
@@ -1609,6 +1619,146 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
             column: 2,
             text: "changed",
             clear: true,
+        });
+    });
+    it("cell flags stay with their cells when rows and columns are hidden", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <text name="a">a</text>
+    <spreadsheet minNumRows="3" minNumColumns="3" name="spreadsheet1"
+      hiddenRows="1" hiddenColumns="1">
+      <row>
+        <cell>gone1</cell>
+        <cell>gone2</cell>
+        <cell>gone3</cell>
+      </row>
+      <row header>
+        <cell>head1</cell>
+        <cell>head2</cell>
+        <cell>head3</cell>
+      </row>
+      <row>
+        <cell>plain1</cell>
+        <cell fixed>locked</cell>
+        <cell>plain3</cell>
+      </row>
+    </spreadsheet>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#a").should("have.text", "a"); // to wait for page to load
+
+        // Selected by text rather than by position, so the assertions hold
+        // whatever the hidden row and column do to the grid's geometry: what
+        // is being checked is that each flag reached the cell it describes.
+        cy.contains("#spreadsheet1 td", "head2").should(
+            "have.class",
+            "doenet-spreadsheet-header-cell",
+        );
+        cy.contains("#spreadsheet1 td", "head3").should(
+            "have.class",
+            "doenet-spreadsheet-header-cell",
+        );
+        cy.contains("#spreadsheet1 td", "locked").should(
+            "have.class",
+            "htDimmed",
+        );
+        cy.contains("#spreadsheet1 td", "plain3").should(
+            "not.have.class",
+            "htDimmed",
+        );
+        cy.contains("#spreadsheet1 td", "plain3").should(
+            "not.have.class",
+            "doenet-spreadsheet-header-cell",
+        );
+        // the hidden row and column really are hidden: Handsontable drops
+        // them from the DOM rather than rendering them invisibly
+        cy.contains("#spreadsheet1 td", "gone2").should("not.exist");
+        cy.contains("#spreadsheet1 td", "head1").should("not.exist");
+    });
+
+    it("a cell that becomes fixed while the page is open turns read-only", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <text name="a">a</text>
+    <booleanInput name="bi" />
+    <spreadsheet minNumRows="2" minNumColumns="2" name="spreadsheet1">
+      <row>
+        <cell fixed="$bi">maybe</cell>
+        <cell>open</cell>
+      </row>
+    </spreadsheet>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#a").should("have.text", "a"); // to wait for page to load
+
+        const cell = (row, column) =>
+            `#spreadsheet1 tbody > :nth-child(${row}) > :nth-child(${column + 1})`;
+
+        cy.get(cell(1, 1)).should("not.have.class", "htDimmed");
+
+        cy.get("#bi").click();
+
+        cy.get(cell(1, 1)).should("have.class", "htDimmed");
+        cy.get(cell(1, 2)).should("not.have.class", "htDimmed");
+
+        // and the grid now refuses the edit it would have taken before
+        cy.get(cell(1, 1)).click({ force: true });
+        cy.get("#spreadsheet1 .handsontableInput").should("not.exist");
+        cy.get(cell(1, 1)).should("have.text", "maybe");
+
+        cy.get("#bi").click();
+        cy.get(cell(1, 1)).should("not.have.class", "htDimmed");
+        enterSpreadsheetText({ row: 1, column: 1, text: "yes", clear: true });
+    });
+    it("a fixed spreadsheet is read-only throughout, an unfixed one is not", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <text name="a">a</text>
+    <spreadsheet minNumRows="2" minNumColumns="2" name="spreadsheet1" fixed>
+      <row><cell>given</cell></row>
+    </spreadsheet>
+    <spreadsheet minNumRows="2" minNumColumns="2" name="spreadsheet2">
+      <row><cell>given</cell></row>
+    </spreadsheet>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#a").should("have.text", "a"); // to wait for page to load
+
+        const cell = (id, row, column) =>
+            `#${id} tbody > :nth-child(${row}) > :nth-child(${column + 1})`;
+
+        // the cell an author wrote and the empty position beside it are both
+        // read-only, though only the first has a `<cell>` behind it
+        cy.get(cell("spreadsheet1", 1, 1)).should("have.class", "htDimmed");
+        cy.get(cell("spreadsheet1", 2, 2)).should("have.class", "htDimmed");
+        cy.get(cell("spreadsheet1", 2, 2)).click({ force: true });
+        cy.get("#spreadsheet1 .handsontableInput").should("not.exist");
+
+        // without `fixed`, the same empty position still edits
+        cy.get(cell("spreadsheet2", 2, 2)).should("not.have.class", "htDimmed");
+        enterSpreadsheetText({
+            id: "spreadsheet2",
+            row: 2,
+            column: 2,
+            text: "typed",
         });
     });
 });

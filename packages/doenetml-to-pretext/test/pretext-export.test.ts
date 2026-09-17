@@ -494,6 +494,23 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("spreadsheet header row is emphasized only where it has cells", async () => {
+        source = `<spreadsheet minNumRows="2" minNumColumns="3" columnHeaders="false" rowHeaders="false">
+  <row header>
+    <cell>name</cell>
+  </row>
+  <row>
+    <cell>a</cell>
+    <cell>1</cell>
+  </row>
+</spreadsheet>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular><row bottom=\"minor\"><cell right=\"minor\"><em>name</em></cell><cell right=\"minor\"></cell><cell right=\"minor\"></cell></row><row bottom=\"minor\"><cell right=\"minor\">a</cell><cell right=\"minor\">1</cell><cell right=\"minor\"></cell></row></tabular>"`,
+        );
+    });
+
     // TODO: un-skip when direct <md> conversion behavior is finalized
     it.skip("<md> is rendered as numbered display math", async () => {
         source = `<md><mrow>\\frac{1}{2}</mrow></md>`;
