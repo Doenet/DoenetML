@@ -258,6 +258,37 @@ describe("DoenetSourceObject", () => {
         expect(node).toMatchObject({ type: "element", name: "booleanInput" });
     });
 
+    it("Finds an element written between a reference's index brackets", () => {
+        // #1909 moved such an element out of the enclosing element's children
+        // and into `path[i].index[j].value`, where no DAST walk reached it. The
+        // editor then reported the enclosing `<p>` and a `body` cursor, so
+        // attribute completion and hover stopped working inside the element.
+        const source = `<p>$myList[<indexOf target="100">$myList</indexOf>]</p>`;
+        const sourceObj = new DoenetSourceObject(source);
+        const offset = source.indexOf("<indexOf") + "<indexOf ".length;
+        const { cursorPosition, node } =
+            sourceObj.elementAtOffsetWithContext(offset);
+        expect(cursorPosition).toEqual("attributeName");
+        expect(node).toMatchObject({ type: "element", name: "indexOf" });
+    });
+
+    it("Gives an index element the enclosing element as its parent", () => {
+        // Not the reference. A name written in an index resolves from the
+        // surrounding document, which is what the core's `ParentIterator` does
+        // by stepping over the reference, so the editor has to agree.
+        const source = `<p>$myList[<indexOf name="io">$myList</indexOf>]</p>`;
+        const sourceObj = new DoenetSourceObject(source);
+        const offset = source.indexOf("<indexOf") + 1;
+        const node = sourceObj.elementAtOffset(offset);
+        expect(node).toMatchObject({ type: "element", name: "indexOf" });
+        expect(sourceObj.getParent(node!)).toMatchObject({
+            type: "element",
+            name: "p",
+        });
+        // And its name is addressable from the document, as it is in the core.
+        expect(sourceObj.getAddressableNamesAtOffset(0)).toContainEqual(["io"]);
+    });
+
     it("Can get cursor position when element contains macro", () => {
         let source: string;
         let sourceObj: DoenetSourceObject;
