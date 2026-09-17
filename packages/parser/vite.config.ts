@@ -71,8 +71,11 @@ export function pegjsLoader(options = {}) {
             // element index. Naming any start rules replaces the default, so
             // `top` has to stay listed. The match is on the directory because
             // the v0.6 grammar is also called `macros.peggy` and has no such
-            // rule.
-            if (filename.match(/macros\/macros\.(pegjs|peggy)$/)) {
+            // rule — and it accepts either separator, because `path.relative`
+            // gives back backslashes on Windows, where a slash-only pattern
+            // would silently leave the grammar with only its default entry
+            // point and fail every tail parse.
+            if (filename.match(/macros[\\/]macros\.(pegjs|peggy)$/)) {
                 defaultOptions.allowedStartRules = ["top", "MacroTail"];
             }
             if (filename.match(/latex\.(pegjs|peggy)$/)) {

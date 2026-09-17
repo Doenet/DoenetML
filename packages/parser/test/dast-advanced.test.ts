@@ -1272,6 +1272,49 @@ describe("DAST", async () => {
                 );
             });
 
+            it("reports source offsets, not decoded ones, around a character reference", () => {
+                // The tail is parsed from decoded text, where `&#50;` is one
+                // character and the source spends five. Adding that offset to
+                // the run's start would put everything after an entity four
+                // characters early — wrong ranges for the editor and for any
+                // diagnostic that slices the source.
+                const endOf = (source: string) => {
+                    const reference = lezerToDast(source).children.find(
+                        (n): n is DastMacro => n.type === "macro",
+                    )!;
+                    return {
+                        reference: reference.position?.end.offset,
+                        lastIndex: reference.path.flatMap((p) => p.index).at(-1)
+                            ?.position?.end.offset,
+                    };
+                };
+
+                // An index written as an entity, claimed by the tail.
+                expect(endOf(`$a[<n/>][&#50;]`)).toEqual({
+                    reference: 15,
+                    lastIndex: 15,
+                });
+                // And with a path part after it, so the mapping is exercised
+                // past the entity rather than only up to it.
+                expect(endOf(`$a[<n/>][&#50;].x`)).toEqual({
+                    reference: 17,
+                    lastIndex: 15,
+                });
+                // An entity inside a claimed path part.
+                expect(endOf(`$a[<n/>].x&#50;y rest`)).toMatchObject({
+                    reference: 16,
+                });
+                // And inside a brace block, which the reference also spans.
+                expect(endOf(`$a[<n/>]{z="&#50;"}`)).toMatchObject({
+                    reference: 19,
+                });
+                // The literal spelling is unchanged, which is the control.
+                expect(endOf(`$a[<n/>][2]`)).toEqual({
+                    reference: 11,
+                    lastIndex: 11,
+                });
+            });
+
             it("round-trips back to the source it was written as", () => {
                 for (const source of [
                     `$pts[<n />].x`,

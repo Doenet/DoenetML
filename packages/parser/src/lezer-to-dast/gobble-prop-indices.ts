@@ -20,10 +20,7 @@ import {
     trimWhitespace,
 } from "./gobble-function-arguments";
 import { parseMacroTail } from "../macros";
-import {
-    OffsetToPositionMap,
-    updateNodePositionData,
-} from "./lezer-to-dast-utils";
+import { OffsetToPositionMap } from "./lezer-to-dast-utils";
 
 /**
  * An index can be written with an element in it — `$myList[<indexOf …/>]` — but the
@@ -385,16 +382,28 @@ function graftTail(
         return false;
     }
 
-    // Everything `MacroTail` built is positioned relative to `joined`; shift it
-    // to where that text actually sits. `updateNodePositionData` is the same
-    // helper `reprocessTextForMacros` uses for the whole-text parse.
+    // Everything `MacroTail` built is positioned relative to `joined`; map it
+    // back onto the document a run node at a time, so a character reference
+    // earlier in the run does not push everything after it out of place.
     const claimed: unknown[] = [
         ...tail.index,
         ...tail.parts,
         ...(attrs ? Object.values(attrs) : []),
     ];
     for (const node of findNodesWithPositionInfo(claimed as any)) {
-        updateNodePositionData(node, first, offsetMap);
+        if (!node.position) {
+            continue;
+        }
+        node.position.start = pointAtDecoded(
+            run,
+            node.position.start.offset ?? 0,
+            offsetMap,
+        ) as typeof node.position.start;
+        node.position.end = pointAtDecoded(
+            run,
+            node.position.end.offset ?? 0,
+            offsetMap,
+        ) as typeof node.position.end;
     }
 
     const lastPart = reference.path[reference.path.length - 1];
@@ -421,8 +430,8 @@ function graftTail(
     // what lets `whatClosedThePath` go on telling `$a[<n/>]{z}[<m/>]` from
     // `$a[<n/>][<m/>]`.
     if (reference.position) {
-        reference.position.end = pointAt(
-            first,
+        reference.position.end = pointAtDecoded(
+            run,
             consumed,
             offsetMap,
         ) as typeof reference.position.end;
@@ -435,7 +444,7 @@ function graftTail(
                   type: "text",
                   value: leftover,
                   position: {
-                      start: pointAt(first, consumed, offsetMap),
+                      start: pointAtDecoded(run, consumed, offsetMap),
                       end: { ...last.position.end },
                   },
               } as DastText,
@@ -447,29 +456,57 @@ function graftTail(
 }
 
 /**
- * The document position `relativeOffset` characters into `textNode`'s value.
+ * The document position at `decodedOffset` characters into the joined value of
+ * `run`.
  *
- * `relativeOffset` counts characters of the *decoded* value, and the source may
- * spend more than one on each — `&amp;` is five characters of source and one of
- * value — so this is exact only while the characters before it are literal.
- * They are for every path a tail can claim, since `.x`, `[2]` and the like hold
- * no character references. A tail that claims *past* one (`$a[<n/>][&amp;]`, an
- * index whose content is an entity) reports positions four characters short.
- * `updateNodePositionData`, which rebases the nodes the tail claimed, adds the
- * same way, so the two agree with each other and the round trip through `toXml`
- * is unaffected either way.
+ * The tail is parsed from the run's *decoded* text, so its offsets count one
+ * character per `&#50;` where the source spends five. Adding such an offset to
+ * the run's start would put everything after a character reference four or more
+ * characters early — wrong ranges, for the editor and for anything that slices
+ * the source to quote a diagnostic.
+ *
+ * Mapping a node at a time is what avoids it. Every node in the run carries its
+ * own source span, and at this point in the pass a character reference is still
+ * a node of its own — `mergeAdjacentTextInArray` does not run until the pass
+ * returns — so an offset always lands on a node boundary and comes back exact.
+ * That holds for the shapes that motivated this (`$a[<n/>][&#50;]`, an index
+ * written as an entity), for a tail claimed past one, and for entities inside a
+ * `{…}` block.
+ *
+ * The arithmetic in the middle branch is the fallback for an offset strictly
+ * inside a node, which is exact unless that node holds a character reference
+ * before the offset. No document has been found that produces one, for the
+ * reason above; it is a defined answer rather than a claim that the case
+ * cannot arise.
  */
-function pointAt(
-    textNode: DastText,
-    relativeOffset: number,
+function pointAtDecoded(
+    run: DastText[],
+    decodedOffset: number,
     offsetMap: OffsetToPositionMap,
 ) {
-    const offset = (textNode.position?.start.offset ?? 0) + relativeOffset;
-    return {
+    const point = (offset: number) => ({
         offset,
         line: offsetMap.rowMap[offset] + 1,
         column: offsetMap.columnMap[offset] + 1,
-    };
+    });
+
+    let decoded = 0;
+    for (const node of run) {
+        const start = node.position?.start.offset ?? 0;
+        const end = node.position?.end.offset ?? start;
+        if (decodedOffset === decoded) {
+            return point(start);
+        }
+        if (decodedOffset < decoded + node.value.length) {
+            return point(start + (decodedOffset - decoded));
+        }
+        if (decodedOffset === decoded + node.value.length) {
+            return point(end);
+        }
+        decoded += node.value.length;
+    }
+    const last = run[run.length - 1];
+    return point(last.position?.end.offset ?? 0);
 }
 
 /**
