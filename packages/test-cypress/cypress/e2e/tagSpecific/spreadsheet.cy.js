@@ -1602,12 +1602,26 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
         cy.get(cell(2, 1)).should("have.class", "htDimmed");
         cy.get(cell(2, 2)).should("not.have.class", "htDimmed");
 
-        // clicking a fixed cell selects it — so it can still be copied — but
-        // builds no editor at all, so its text stands
+        // clicking a fixed cell selects it but builds no editor at all, so its
+        // text stands
         cy.get(cell(2, 1)).click({ force: true });
         cy.get(cell(2, 1)).should("have.class", "current");
         cy.get("#spreadsheet1 .handsontableInput").should("not.exist");
         cy.get(cell(2, 1)).should("have.text", "locked");
+
+        // and, being selected, it can still be copied: a copy of the selection
+        // carries the fixed cell's text
+        cy.window().then((win) => {
+            const clipboardData = new win.DataTransfer();
+            win.document.querySelector(cell(2, 1)).dispatchEvent(
+                new win.ClipboardEvent("copy", {
+                    clipboardData,
+                    bubbles: true,
+                    cancelable: true,
+                }),
+            );
+            expect(clipboardData.getData("text/plain")).to.eq("locked");
+        });
 
         // a fixed cell still evaluates its formula; read-only is about
         // editing, not about what the cell shows
@@ -1621,6 +1635,87 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
             clear: true,
         });
     });
+
+    it("a header row is shaded like the spreadsheet's own row and column labels, in light mode and in dark", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <text name="a">a</text>
+    <spreadsheet minNumRows="3" minNumColumns="3" name="spreadsheet1">
+      <row header>
+        <cell>name</cell>
+        <cell>value</cell>
+      </row>
+      <row>
+        <cell>plain</cell>
+        <cell>open</cell>
+      </row>
+    </spreadsheet>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#a").should("have.text", "a"); // to wait for page to load
+
+        const cell = (row, column) =>
+            `#spreadsheet1 tbody > :nth-child(${row}) > :nth-child(${column + 1})`;
+        // The `1`, `2`, `3` strip down the left of the grid, which is drawn in
+        // the same shading as the `A`, `B`, `C` strip across the top.
+        // Handsontable keeps the label strip in an overlay table as well as in
+        // the main one, so the selector matches twice and the first match is
+        // the one in the grid proper.
+        const rowLabel = (row) =>
+            cy
+                .get(`#spreadsheet1 tbody > :nth-child(${row}) > :nth-child(1)`)
+                .first();
+
+        // A header cell takes its background from the theme, and so does the
+        // label strip, so the two are compared against each other rather than
+        // against a literal color. An ordinary cell is checked too: without it
+        // the comparison would also pass if the whole grid were one color.
+        const headerShadingMatchesTheLabels = () => {
+            rowLabel(1)
+                .invoke("css", "background-color")
+                .then((labelBackground) => {
+                    cy.get(cell(1, 1)).should(
+                        "have.css",
+                        "background-color",
+                        labelBackground,
+                    );
+                    cy.get(cell(2, 1)).should(
+                        "not.have.css",
+                        "background-color",
+                        labelBackground,
+                    );
+                });
+        };
+
+        rowLabel(1).should("have.text", "1");
+        headerShadingMatchesTheLabels();
+
+        rowLabel(1)
+            .invoke("css", "background-color")
+            .then((lightBackground) => {
+                cy.window().then((win) => {
+                    win.postMessage({ darkMode: "dark" }, "*");
+                });
+                cy.get('[data-theme="dark"]').should("exist");
+                // wait for the grid itself to be repainted, not just the page
+                rowLabel(1).should(
+                    "not.have.css",
+                    "background-color",
+                    lightBackground,
+                );
+
+                // the shading is the theme's, so it follows the document into
+                // dark mode
+                headerShadingMatchesTheLabels();
+            });
+    });
+
     it("cell flags stay with their cells when rows and columns are hidden", () => {
         cy.window().then(async (win) => {
             win.postMessage(
@@ -1799,9 +1894,9 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
         cy.get(cell(1, 1)).should("have.css", "font-weight", "700");
         cy.get(cell(2, 1)).should("not.have.css", "font-weight", "700");
 
-        // the shading does not survive: Handsontable marks a read-only cell
-        // with `!important`, so a fixed header cell is shaded as read-only
-        // rather than as a header
+        // the header shading does not survive: Handsontable sets a read-only
+        // cell's background with `!important`, so a fixed header cell is drawn
+        // on the same background as any other fixed cell
         cy.get(cell(2, 1))
             .invoke("css", "background-color")
             .then((readOnlyBackground) => {

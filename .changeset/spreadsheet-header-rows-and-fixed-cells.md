@@ -10,8 +10,8 @@ A `<spreadsheet>` now shows which of its cells are header cells and which cannot
 
 `header` on a `<row>` inside a `<spreadsheet>` draws that row's cells in bold, against the
 same shading the grid uses for its `A`, `B`, `C` and `1`, `2`, `3` labels — the attribute
-already meant this inside a `<tabular>`, but a spreadsheet ignored it. It is emphasis only:
-a header row is edited like any other.
+already marked a header row inside a `<tabular>`, but a spreadsheet ignored it. It is
+emphasis only: a header row is edited like any other.
 
 ```xml
 <spreadsheet minNumRows="3" minNumColumns="3">

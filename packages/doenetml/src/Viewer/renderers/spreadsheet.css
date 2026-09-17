@@ -3,9 +3,10 @@
  *
  * `<tabular>` marks such a cell by rendering it as a `<th>`, which the browser
  * emphasizes on its own. A spreadsheet has no such lever: Handsontable draws
- * every data cell as a plain `<td>`, and the only handle it offers per cell is
- * a class name (given by the `cells` option in `spreadsheet.tsx`). So the
- * emphasis is stated here instead.
+ * every data cell as a plain `<td>`, and what it offers per cell without
+ * taking over the drawing of the cell entirely is a class name (given by the
+ * `cells` option in `spreadsheet.tsx`). So the emphasis is stated here
+ * instead.
  *
  * The colors come from the variables the active Handsontable theme defines for
  * its own A/B/C and 1/2/3 header strip, so a header row matches that strip and
@@ -13,10 +14,16 @@
  * not: `--ht-header-font-weight` is the table's ordinary weight in both classic
  * themes, and an author writing `header` is asking for bold.
  *
- * `.handsontable td` is what the theme styles, so the class is qualified with
- * the same tag to outrank it.
+ * The selector is longer than it looks like it needs to be because of what it
+ * has to outrank. Handsontable gives every rendered row an even/odd class and
+ * paints the cell background through it, with `.handsontable tr.ht__row_even
+ * td` — two classes and two elements. A rule naming only the class loses to
+ * that and the background never appears, which is what happens if the `tbody
+ * tr` below is dropped. It is still outranked by `.handsontable .htDimmed`,
+ * which sets a read-only cell's background with `!important`, so a header cell
+ * that is also `fixed` keeps only the bold; `spreadsheet.cy.js` covers both.
  */
-.handsontable td.doenet-spreadsheet-header-cell {
+.handsontable tbody tr td.doenet-spreadsheet-header-cell {
     background-color: var(--ht-header-background-color);
     color: var(--ht-header-foreground-color);
     font-weight: 700;
