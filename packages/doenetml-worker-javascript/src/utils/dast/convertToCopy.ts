@@ -262,6 +262,13 @@ export function convertRefsToCopies({
                             comp.componentType === "integer"
                         ) {
                             // round value
+                            // Remember what was written first. Now that an
+                            // element can be written between the brackets
+                            // (#1909), a `<number>` retyped here is markup the
+                            // author typed, and an attribute error naming
+                            // `<integer>` would name a component that appears
+                            // nowhere in their document (#1919).
+                            comp.authoredComponentType = comp.componentType;
                             comp.componentType = "integer";
                             return {
                                 value: [comp],

@@ -23,6 +23,17 @@ export type UnflattenedComponent = {
     extending?: Source<UnflattenedRefResolution>;
     originalIdx?: number;
     state: Record<string, any>;
+    /**
+     * The component type as the author wrote it, when it is no longer what
+     * `componentType` says.
+     *
+     * An index has to evaluate to a whole number, so a lone `<number>` written
+     * between a reference's brackets is retyped to `integer` on the way through
+     * (`convertToCopy`). That is right for the value and wrong for a message: an
+     * attribute error on markup the author typed must name the tag they typed.
+     * Absent whenever nothing retyped the component, which is almost always.
+     */
+    authoredComponentType?: string;
 };
 
 export function isUnflattenedComponent(

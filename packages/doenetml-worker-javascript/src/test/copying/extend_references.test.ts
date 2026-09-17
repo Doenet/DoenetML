@@ -7066,6 +7066,24 @@ describe("Extend and references tests @group2", async () => {
             );
         });
 
+        it("names the component the author wrote when its attribute is invalid", async () => {
+            // An index has to round, so a lone `<number>` between the brackets
+            // is retyped to `integer` on the way through. The retype is right
+            // for the value and wrong for the message: the author wrote
+            // `<number>` and there is no `<integer>` anywhere in the document
+            // (#1919). That branch was unreachable from authored markup until
+            // an element could be written in an index at all.
+            const { diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<number bogusAttr="1">2</number>]</p>
+            `);
+            expect(diagnostics.errors.length).eq(1);
+            expect(diagnostics.errors[0].message).contain(
+                'Invalid attribute "bogusAttr" for a component of type `<number>`',
+            );
+            expect(diagnostics.errors[0].message).not.contain("integer");
+        });
+
         it("reports an invalid component name written in the index", async () => {
             // The other half of the same problem: here the element cannot stay
             // either, so the index is left empty and reads like any other index

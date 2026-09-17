@@ -397,6 +397,7 @@ export function expandUnflattenedToSerializedComponents({
                 componentInfoObjects,
                 nComponents,
                 stateIdInfo,
+                authoredComponentType: component.authoredComponentType,
             });
             let attributes: Record<string, SerializedAttribute> =
                 expandResult.attributes;
@@ -617,12 +618,18 @@ export function expandAllUnflattenedAttributes({
     componentInfoObjects,
     nComponents,
     stateIdInfo,
+    authoredComponentType,
 }: {
     unflattenedAttributes: Record<string, UnflattenedAttribute>;
     componentClass: DoenetMLComponentClass<any>;
     componentInfoObjects: ComponentInfoObjects;
     nComponents: number;
     stateIdInfo?: { prefix: string; num: number };
+    /**
+     * The tag the author wrote, when the component has since been retyped.
+     * Only a message uses it; validation still answers to `componentClass`.
+     */
+    authoredComponentType?: string;
 }): {
     attributes: Record<string, SerializedAttribute>;
     diagnostics: DiagnosticRecord[];
@@ -678,7 +685,12 @@ export function expandAllUnflattenedAttributes({
                 code: "doenet-e0004",
                 args: {
                     attribute: attr,
-                    componentType: componentClass.componentType,
+                    // What the author wrote, not what the component was
+                    // retyped to. Naming `<integer>` for a `<number>` written
+                    // between index brackets points at markup that is nowhere
+                    // in their document (#1919).
+                    componentType:
+                        authoredComponentType ?? componentClass.componentType,
                 },
             });
         }
