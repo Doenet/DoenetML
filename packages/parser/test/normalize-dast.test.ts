@@ -935,6 +935,20 @@ describe("Normalize dast", async () => {
             expect(xml).not.toContain(`<section`);
         });
 
+        it("validates every invalid element in an index, not just the first", () => {
+            // Reporting one removes it from the index's `value`, so the next
+            // shifts into that slot. The walk has to be told to resume there
+            // rather than stepping over it.
+            const dast = normalizeDocumentDast(
+                lezerToDast(`<p>$a[<_bad/><_alsoBad/>]</p>`),
+            );
+            const errors = extractDastErrors(dast);
+            expect(errors).toMatchObject([
+                { code: "doenet-e0024" },
+                { code: "doenet-e0024" },
+            ]);
+        });
+
         it("validates a name written on an element in an index", () => {
             // The `_error` is reported from the nearest element rather than
             // from the index's own `value`, which holds only text, references

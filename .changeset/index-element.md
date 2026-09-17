@@ -26,6 +26,12 @@ is not rendered where it was written. Naming the element and referencing it —
 `<indexOf name="io" …/>` then `$myList[$io]` — remains fully supported and is still the
 better form when the same position is wanted more than once.
 
+One more shape is left alone for a different reason: an index on a function reference
+that is then called, as in `$$f[<number>1</number>](3)`. An index there picks which
+function to call rather than part of what it returns, and a computed one is not
+supported, so the brackets stay literal and warn rather than failing to build. To index
+what a call returns, give the result a name and index that.
+
 Two rough edges to know about. A reference's path stops at the index, so
 `$pts[<number>2</number>].x` renders the point and a stray `.x` rather than the
 x-coordinate; name the element and write `$pts[$i].x` for that. And editor support

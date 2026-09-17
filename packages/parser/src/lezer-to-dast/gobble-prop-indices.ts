@@ -92,6 +92,21 @@ export function gobblePropIndices(nodes: DastRootContent[]): DastRootContent[] {
                 // and leaves the parse error where it can still be reported.
                 break;
             }
+            if (node.type === "function" && isCallFollowing(split, group)) {
+                // `$$f[<n/>](y)`. The grammar takes this — an index on a function
+                // reference picks which function to call, and `$$f[1](y)` parses —
+                // but the worker cannot build a *component-valued* index on a
+                // reference that is then called: it emits the index component
+                // twice and throws `Found a duplicate componentIdx`, which blanks
+                // the page. That failure is not ours (`$$f[$k](3)` throws it with
+                // an ordinary reference index too) but claiming these brackets
+                // would newly route an author into it, where before they rendered
+                // as harmless literal text. So leave them literal and say why.
+                ret.push(
+                    indexWarning(node, split[i + 1] as DastText, "called"),
+                );
+                break;
+            }
             const closedBy = whatClosedThePath(node);
             if (closedBy) {
                 if (closedBy !== "unknown") {
@@ -132,18 +147,17 @@ function isOpenBracket(node: DastRootContent | undefined): boolean {
 }
 
 /**
- * Whether the first node after the `[` at `openIdx` is an element, ignoring
- * whitespace. Used only to decide whether an unclosed bracket is worth reporting.
+ * Whether an element appears anywhere after the `[` at `openIdx`. Used only to
+ * decide whether an unclosed bracket is worth reporting.
+ *
+ * The whole remainder is scanned rather than just the first node, because an index
+ * may hold mixed content: `$a[1 + <n/>` is the unclosed spelling of `$a[1 + <n/>]`,
+ * which *is* claimed, and reporting one but not the other would be arbitrary. The
+ * adjacency of the `[` to the reference is what keeps prose out of this — a bracket
+ * the reference does not touch never reaches here.
  */
 function elementFollows(nodes: DastRootContent[], openIdx: number): boolean {
-    for (let i = openIdx + 1; i < nodes.length; i++) {
-        const node = nodes[i];
-        if (node.type === "text" && !/\S/.test(node.value)) {
-            continue;
-        }
-        return node.type === "element";
-    }
-    return false;
+    return nodes.slice(openIdx + 1).some((node) => node.type === "element");
 }
 
 type BracketGroup = {
@@ -180,6 +194,24 @@ function collectBracketGroup(
         content.push(node);
     }
     return null;
+}
+
+/**
+ * Whether an argument list opens immediately after this bracket group, which makes
+ * the reference a *called* function reference.
+ *
+ * The grammar puts a function reference's index before its arguments
+ * (`FunctionMacro = "$$" path input?`, and `PropIndex` sits inside the path), and
+ * `gobbleFunctionArguments` likewise only takes an argument list that is an
+ * immediate sibling — so requiring the `(` to sit directly after the `]` matches
+ * what both of them would do with it.
+ */
+function isCallFollowing(
+    nodes: DastRootContent[],
+    group: BracketGroup,
+): boolean {
+    const next = nodes[group.closeIdx + 1];
+    return next?.type === "text" && next.value.startsWith("(");
 }
 
 /**
@@ -305,7 +337,7 @@ function attachIndex(
 function indexWarning(
     macro: DastMacro | DastFunctionMacro,
     openBracket: DastText,
-    reason: "braces" | "parens" | "arguments" | "unclosed",
+    reason: "braces" | "parens" | "arguments" | "called" | "unclosed",
 ): DastError {
     // The sigil belongs to `name` because a function macro carries two of them:
     // quoting `$$f` as `$f` would name a component the author did not write.
@@ -322,6 +354,7 @@ function indexWarning(
         parens: "`$(…)` ends a reference, so `[…]` written after it is ordinary text. Give the element a name and write the index inside the parentheses, as `$(x[$idx])`.",
         arguments:
             "A function reference's arguments end it, so `[…]` written after them is ordinary text. An index written before the arguments would pick which function to call rather than part of what it returns; to index the result, give the result a name and index that.",
+        called: "An index before a function reference's arguments picks which function to call, and a computed one there is not supported. To index what the call returns, give the result a name and index that.",
         unclosed: "Its `[` is never closed.",
     }[reason];
 

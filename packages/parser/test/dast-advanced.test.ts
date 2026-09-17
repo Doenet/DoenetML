@@ -1162,22 +1162,6 @@ describe("DAST", async () => {
             ]);
         });
 
-        it("parses an index on a function macro, as `$$f[1](y)` does", () => {
-            // A parse-level equivalence only. A called function reference whose
-            // index holds a component does not build — `$$f[$k](y)` does not
-            // either — so this pins the shape, not a working spelling.
-            const dast = lezerToDast(`$$f[<n/>](y)`);
-            const fn = dast.children[0] as DastFunctionMacro;
-            expect(fn.type).toBe("function");
-            expect(
-                filterPositionInfo(structuredClone(fn.path) as any),
-            ).toMatchObject([
-                { name: "f", index: [{ value: [{ name: "n" }] }] },
-            ]);
-            // The index closed the path, so the parens are still read as input.
-            expect(fn.input).toMatchObject([[{ type: "text", value: "y" }]]);
-        });
-
         it("round-trips back to the source it was written as", () => {
             for (const source of [
                 `$myList[<indexOf target="100">$myList</indexOf>]`,
@@ -1299,6 +1283,49 @@ describe("DAST", async () => {
             expect(indicesOf(`$a[ <!-- which one --> <n/> ]`)).toMatchObject([
                 { value: [{ type: "element", name: "n" }] },
             ]);
+        });
+
+        it("declines an index on a function reference that is then called", () => {
+            // `$$f[1](y)` parses, but the worker cannot build a component-valued
+            // index on a reference it then calls. Claiming these brackets would
+            // route an author into a thrown `Found a duplicate componentIdx`
+            // where before they rendered as literal text, so they stay literal.
+            expect(indicesOf(`$$f[<n/>](y)`)).toHaveLength(0);
+            const children = childrenOf(`$$f[<n/>](y)`);
+            expect(children.slice(0, 4)).toMatchObject([
+                { type: "function" },
+                { type: "error", error_type: "warning" },
+                { type: "text", value: "[" },
+                { type: "element", name: "n" },
+            ]);
+            // The call is left as written. `gobbleFunctionArguments` splits on
+            // its own delimiters, so the tail arrives as several text nodes.
+            expect(
+                children
+                    .slice(4)
+                    .map((n: any) => n.value)
+                    .join(""),
+            ).toBe("](y)");
+            expect((children[0] as any).input).toBe(null);
+            // Uncalled, the same index is taken.
+            expect(indicesOf(`$$f[<n/>]`)).toMatchObject([
+                { value: [{ type: "element", name: "n" }] },
+            ]);
+        });
+
+        it("reports an unclosed bracket whose element is not the first thing in it", () => {
+            // `$a[1 + <n/>` is the unclosed spelling of a mixed-content index
+            // that is claimed when it closes, so it warns like the simple one.
+            for (const source of [`$a[<n/>`, `$a[1 + <n/>`]) {
+                expect(childrenOf(source).slice(0, 2)).toMatchObject([
+                    { type: "macro" },
+                    { type: "error", error_type: "warning" },
+                ]);
+            }
+            // Still nothing to say when no element is involved at all.
+            expect(
+                childrenOf(`$a[1 + 2`).some((n: any) => n.type === "error"),
+            ).toBe(false);
         });
 
         it("grows the reference's position over the moved element", () => {

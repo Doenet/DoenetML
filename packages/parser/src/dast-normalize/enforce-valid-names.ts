@@ -1,7 +1,10 @@
 import { Plugin } from "unified";
 import { DastElement, DastError, DastRoot } from "../types";
 import { codedDastError } from "../coded-dast-error";
-import { visitIncludingPathIndices } from "../pretty-printer/normalize/utils/visit";
+import {
+    SKIP,
+    visitIncludingPathIndices,
+} from "../pretty-printer/normalize/utils/visit";
 import { isDastElement } from "../types-util";
 import { toXml } from "..";
 
@@ -60,14 +63,26 @@ export const pluginEnforceValidNames: Plugin<[], DastRoot, DastRoot> = () => {
                 // Replace this element with an `_error` element.
                 if (replaceableInPlace) {
                     info.containingArray!.splice(info.index!, 1, dastError);
-                } else if (siblings) {
+                } else if (
+                    siblings &&
+                    info.index !== undefined &&
+                    info.containingArray
+                ) {
                     // Not a `children` array. Drop the element from wherever it
                     // was written — `info.index` counts along that array, so
                     // `containingArray` is the one to splice — and report from
                     // the nearest element.
-                    if (info.index !== undefined && info.containingArray) {
-                        info.containingArray.splice(info.index, 1);
-                    }
+                    const removedAt = info.index;
+                    info.containingArray.splice(removedAt, 1);
+                    siblings.push(dastError);
+                    // Whatever followed has shifted into this slot, so hand the
+                    // index back: `visit` increments on its own and would step
+                    // straight over it, leaving a second invalid element in the
+                    // same index unchecked. `SKIP` because the element is gone
+                    // and its children have gone with it. `replace-node.ts`
+                    // returns an index after a deletion for the same reason.
+                    return [SKIP, removedAt];
+                } else if (siblings) {
                     siblings.push(dastError);
                 } else {
                     // If for some reason we don't have an index, append the error to the root

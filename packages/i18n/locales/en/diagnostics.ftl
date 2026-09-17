@@ -772,6 +772,7 @@ index-element-not-used-as-index =
         [braces] `{"{…}"}` is not part of a reference, so `[…]` written after it is ordinary text. Remove the `{"{…}"}`.
         [parens] `$(…)` ends a reference, so `[…]` written after it is ordinary text. Give the element a name and write the index inside the parentheses, as `$(x[$idx])`.
         [arguments] A function reference's arguments end it, so `[…]` written after them is ordinary text. An index written before the arguments would pick which function to call rather than part of what it returns; to index the result, give the result a name and index that.
+        [called] An index before a function reference's arguments picks which function to call, and a computed one there is not supported. To index what the call returns, give the result a name and index that.
        *[unclosed] Its `[` is never closed.
     }
 

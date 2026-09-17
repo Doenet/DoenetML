@@ -6966,6 +6966,23 @@ describe("Extend and references tests @group2", async () => {
             expect(diagnostics.warnings.length).eq(0);
         });
 
+        it("leaves a called function reference's index alone rather than killing the document", async () => {
+            // `$$f[1](y)` parses, but the worker cannot build a component-valued
+            // index on a reference it then calls — it emits the index component
+            // twice and throws. Claiming these brackets would turn what used to
+            // render as harmless text into a blank page, so they stay text.
+            const { text, diagnostics } = await textOf(`
+    <function name="f" variables="x">x^2</function>
+    <p name="p1">$$f[<number>1</number>](3)</p>
+            `);
+            expect(text).eq("x²[1](3)");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(1);
+            expect(diagnostics.warnings[0].message).contain(
+                "give the result a name and index that",
+            );
+        });
+
         it("warns, rather than saying nothing, when the brackets cannot index", async () => {
             // `$(…)` closes the reference, so the brackets are ordinary text —
             // the same as before #1909, except that it is now reported.
