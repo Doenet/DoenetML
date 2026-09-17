@@ -7,6 +7,38 @@
 
 top = (Macro / FunctionMacro / Text)*
 
+// A second entry point, used by `gobblePropIndices` to carry on parsing a
+// reference's path after an element index has been re-associated with it.
+//
+// An element between the brackets splits the text the macro parser is given, so
+// `$a[<n/>].x` reaches this grammar as `$a`, then `[`, the element, `]`, and a
+// separate `.x`. The post-pass attaches the index and then hands the text that
+// follows the `]` to this rule, which parses as much of it as a path could have
+// claimed and gives back what is left.
+//
+// `SimplePathPart`, not `PathPart`: only a simple path can still be open to an
+// index, since `$(…)` and `$$(…)` have already closed theirs, and `Ident` would
+// admit a part that `$a.3-b` cannot write.
+//
+// Every part is optional and `remainder` takes whatever is left, so this rule
+// cannot fail. Nothing wraps the parser in a try/catch — which is safe today only
+// because `top` cannot fail either — so a rule that could throw would be a new
+// way for the whole document to stop parsing.
+MacroTail
+    = index:PropIndex*
+      parts:("." @SimplePathPart)*
+      attrsOffset:CurrentOffset
+      attrs:PropAttrs?
+      remainder:$(.*) {
+            return { type: "macroTail", index, parts, attrsOffset, attrs, remainder };
+        }
+
+// A zero-width rule reporting how far the parse has got. `MacroTail` uses it to
+// mark where a `{…}` block would begin, because only a plain reference can carry
+// one — `FunctionMacro` has no `PropAttrs`, so `$$f[1]{z}` leaves the braces as
+// text and `$$f[<n/>]{z}` has to do the same.
+CurrentOffset = "" { return location().start.offset; }
+
 // Identifiers. Scoped identifiers can only be used inside of `$(..)` notation.
 SimpleIdent = $([a-zA-Z_] [a-zA-Z0-9_]*)
 

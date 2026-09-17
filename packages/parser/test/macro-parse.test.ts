@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { mergeAdjacentTextInArray } from "../src/dast-to-xml/utils";
 import { MacroParser } from "../src/macros/parser";
+import { parseMacroTail } from "../src/macros";
 import { MacroParser as MacroParserV06 } from "../src/macros-v6/parser";
 import { macroToString } from "../src/macros/macro-to-string";
 import { macroToString as macroToStringV06 } from "../src/macros-v6/macro-to-string";
@@ -275,5 +276,80 @@ describe("Macro parsing of v0.7 macros", () => {
             { type: "text", value: "$" },
             { type: "text", value: "1(1)" },
         ]);
+    });
+});
+
+describe("Parsing the tail of a reference's path", () => {
+    // The `MacroTail` start rule, which `gobblePropIndices` uses to carry a
+    // path past an element index (#1915). It parses a *prefix* and hands back
+    // what it could not claim, which is what lets it run on a text node that
+    // continues into ordinary prose.
+
+    it("claims a following path part", () => {
+        expect(parseMacroTail(".x")).toMatchObject({
+            index: [],
+            parts: [{ type: "pathPart", name: "x", index: [] }],
+            remainder: "",
+        });
+    });
+
+    it("claims a following index", () => {
+        expect(parseMacroTail("[1]")).toMatchObject({
+            index: [{ type: "index", value: [{ type: "text", value: "1" }] }],
+            parts: [],
+            remainder: "",
+        });
+    });
+
+    it("claims indices and parts together, in the order written", () => {
+        const tail = parseMacroTail("[1].x[2].y");
+        expect(tail.index).toHaveLength(1);
+        expect(tail.parts.map((p) => p.name)).toEqual(["x", "y"]);
+        expect(tail.parts[0].index).toHaveLength(1);
+        expect(tail.remainder).toBe("");
+    });
+
+    it("hands back everything it cannot claim", () => {
+        expect(parseMacroTail(".x is the answer")).toMatchObject({
+            parts: [{ name: "x" }],
+            remainder: " is the answer",
+        });
+    });
+
+    it("claims nothing rather than failing", () => {
+        // The rule has to be total: nothing wraps the parser in a try/catch,
+        // and a throw here would stop the whole document from parsing.
+        for (const source of ["", " .x", "text", "[unclosed", "{", "]", "."]) {
+            const tail = parseMacroTail(source);
+            expect(tail.index).toEqual([]);
+            expect(tail.parts).toEqual([]);
+            expect(tail.remainder).toBe(source);
+        }
+    });
+
+    it("uses the simple-path rules, not the parenthesized ones", () => {
+        // `$a.3-b` is not writable, so `$a[<n/>].3-b` must not be either.
+        expect(parseMacroTail(".3-b")).toMatchObject({
+            parts: [],
+            remainder: ".3-b",
+        });
+    });
+
+    it("claims a brace block, as a bare path does", () => {
+        // v0.7 ignores what is inside, but `$a[1]{z}` swallows the braces and
+        // `$a[<n/>]{z}` should not differ from it.
+        expect(parseMacroTail("{z}")).toMatchObject({
+            attrs: { z: { type: "attribute", name: "z" } },
+            remainder: "",
+        });
+    });
+
+    it("reports positions relative to its own input", () => {
+        // The caller rebases these; the rule itself knows nothing about where
+        // in the document the text sat.
+        expect(parseMacroTail(".x").parts[0].position).toMatchObject({
+            start: { offset: 1 },
+            end: { offset: 2 },
+        });
     });
 });

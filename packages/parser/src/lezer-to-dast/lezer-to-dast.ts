@@ -75,8 +75,12 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
     const offsetMap = createOffsetToPositionMap(source);
     return {
         type: "root",
-        children: gobbleFunctionArguments(
-            gobblePropIndices(lezerNodeToDastNode(node)),
+        children: gobblePropIndices(
+            gobbleFunctionArguments(
+                gobblePropIndices(lezerNodeToDastNode(node), offsetMap),
+            ),
+            offsetMap,
+            { warnOnly: true },
         ),
         position: lezerNodeToPosition(node, offsetMap),
         sources: [source],
@@ -294,8 +298,15 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                 // `gobblePropIndices` see that an argument list follows and
                 // decline `$$f[<n/>](y)` rather than claim brackets the worker
                 // cannot build. Reversing the two would hide both.
-                children = gobbleFunctionArguments(
-                    gobblePropIndices(children),
+                // The third pass reports `$$f(<n/>)[<m/>]`, which the first
+                // cannot see: until the arguments are gobbled, that reference is
+                // followed by `(` rather than `[`.
+                children = gobblePropIndices(
+                    gobbleFunctionArguments(
+                        gobblePropIndices(children, offsetMap),
+                    ),
+                    offsetMap,
+                    { warnOnly: true },
                 ) as DastElementContent[];
 
                 return [

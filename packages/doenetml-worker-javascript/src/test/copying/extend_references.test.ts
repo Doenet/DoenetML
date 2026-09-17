@@ -7066,6 +7066,53 @@ describe("Extend and references tests @group2", async () => {
             );
         });
 
+        it("carries the path on past the index", async () => {
+            // The reference's path used to stop at an element index, leaving a
+            // stray `.x` as text next to the whole point (#1915).
+            const { text, diagnostics } = await textOf(`
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <p name="p1">$pts[<number>2</number>].x</p>
+            `);
+            expect(text).eq("3");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+
+        it("agrees with the named-and-referenced form for a property after an index", async () => {
+            const { text: inline } = await textOf(`
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <p name="p1">$pts[<number>2</number>].x</p>
+            `);
+            const { text: named } = await textOf(`
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <number name="i">2</number>
+    <p name="p1">$pts[$i].x</p>
+            `);
+            expect(inline).eq(named);
+        });
+
+        it("takes a property and a further index after the element index", async () => {
+            // `.xs` and `[1]` are both claimed by the tail parse, on top of the
+            // element index that closed the path before it.
+            const { text, diagnostics } = await textOf(`
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <p name="p1">$pts[<number>2</number>].xs[1]</p>
+            `);
+            expect(text).eq("3");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+
+        it("still indexes the last path part, which never needed a tail", async () => {
+            // Nothing follows the brackets here, so this worked already; it is
+            // the control for the two above.
+            const { text } = await textOf(`
+    <point name="pt">(1,2)</point>
+    <p name="p1">$pt.xs[<number>2</number>]</p>
+            `);
+            expect(text).eq("2");
+        });
+
         it("names the component the author wrote when its attribute is invalid", async () => {
             // An index has to round, so a lone `<number>` between the brackets
             // is retyped to `integer` on the way through. The retype is right
