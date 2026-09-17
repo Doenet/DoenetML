@@ -6953,6 +6953,57 @@ describe("Extend and references tests @group2", async () => {
             expect(text).eq("300");
         });
 
+        it("resolves a reference to a name given to the index element", async () => {
+            // The other direction: a `name` on the element in the brackets is
+            // registered in the element the reference sits in, so the rest of
+            // the document can refer to it. Order does not matter, and it is
+            // reachable from outside the enclosing element too.
+            const list = `<numberList name="myList">100 300 200 50</numberList>`;
+
+            const after = await textOf(`${list}
+    <p name="p1">$myList[<number name="u">2</number>] u=$u</p>
+            `);
+            expect(after.text).eq("300 u=2");
+            expect(after.diagnostics.errors.length).eq(0);
+            expect(after.diagnostics.warnings.length).eq(0);
+
+            // Written before the brackets it comes from.
+            const before = await textOf(`${list}
+    <p name="p1">u=$u $myList[<number name="u">2</number>]</p>
+            `);
+            expect(before.text).eq("u=2 300");
+
+            // And from a different paragraph, either side of it.
+            const later = await textOf(`${list}
+    <p>$myList[<number name="u">2</number>]</p>
+    <p name="p1">u=$u</p>
+            `);
+            expect(later.text).eq("u=2");
+
+            // A property of it resolves too, so it is a component and not just a
+            // name that happens to render.
+            const property = await textOf(`${list}
+    <p>$myList[<number name="u">2</number>]</p>
+    <p name="p1">$u.value</p>
+            `);
+            expect(property.text).eq("2");
+        });
+
+        it("reports a duplicate name on an index element like any other", async () => {
+            // Two elements in brackets sharing a name are as ambiguous as two
+            // ordinary children sharing one, and report identically.
+            const { diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p>$myList[<number name="d">1</number>]</p>
+    <p>$myList[<number name="d">2</number>]</p>
+    <p name="p1">$d</p>
+            `);
+            expect(diagnostics.warnings.length).eq(1);
+            expect(diagnostics.warnings[0].message).contain(
+                "Multiple referents found",
+            );
+        });
+
         it("is not broken by a comment written beside the element", async () => {
             // A comment is invisible to the reader, so it must be invisible to
             // the index too: left in, it makes the index two nodes and the
