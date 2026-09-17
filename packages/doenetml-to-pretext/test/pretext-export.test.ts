@@ -511,6 +511,30 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("spreadsheet header row is emphasized under the generated row and column labels", async () => {
+        // The default A/B/C strip and 1/2/3 column shift what each rendered
+        // row and cell stands for, and a hidden column shifts it again, so the
+        // emphasis has to be looked up by spreadsheet position, not by
+        // position in the rendered table.
+        source = `<spreadsheet minNumRows="3" minNumColumns="3" hiddenColumns="1">
+  <row>
+    <cell>x</cell>
+    <cell>y</cell>
+    <cell>z</cell>
+  </row>
+  <row header>
+    <cell>name</cell>
+    <cell>value</cell>
+    <cell>note</cell>
+  </row>
+</spreadsheet>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular><row header="yes" bottom="minor"><cell right="minor"><em></em></cell><cell right="minor">B</cell><cell right="minor">C</cell></row><row bottom="minor"><cell right="minor"><em>1</em></cell><cell right="minor">y</cell><cell right="minor">z</cell></row><row bottom="minor"><cell right="minor"><em>2</em></cell><cell right="minor"><em>value</em></cell><cell right="minor"><em>note</em></cell></row><row bottom="minor"><cell right="minor"><em>3</em></cell><cell right="minor"></cell><cell right="minor"></cell></row></tabular>"`,
+        );
+    });
+
     // TODO: un-skip when direct <md> conversion behavior is finalized
     it.skip("<md> is rendered as numbered display math", async () => {
         source = `<md><mrow>\\frac{1}{2}</mrow></md>`;

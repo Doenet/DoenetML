@@ -2303,4 +2303,89 @@ describe("Spreadsheet tag tests @group1", async () => {
             ]);
         }
     });
+    it("cell flags follow cells created by a repeat and survive into an extended spreadsheet", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <setup><sequence name="s" from="1" to="2" /></setup>
+  <spreadsheet name="ss" minNumRows="3" minNumColumns="3">
+    <row header><repeat for="$s" valueName="v"><cell fixed>h$v</cell></repeat></row>
+    <row><repeat for="$s" valueName="v"><cell>$v</cell></repeat></row>
+  </spreadsheet>
+  <spreadsheet name="ss2" extend="$ss" />
+  `,
+        });
+
+        const ssIdx = await resolvePathToNodeIdx("ss");
+        const ss2Idx = await resolvePathToNodeIdx("ss2");
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        // cells that a `<repeat>` created are placed and flagged like any other
+        expect(stateVariables[ssIdx].stateValues.cells).eqls([
+            ["h1", "h2", ""],
+            ["1", "2", ""],
+            ["", "", ""],
+        ]);
+        expect(stateVariables[ssIdx].stateValues.cellsFixed).eqls([
+            [true, true, false],
+            [false, false, false],
+            [false, false, false],
+        ]);
+        expect(stateVariables[ssIdx].stateValues.cellsInHeader).eqls([
+            [true, true, false],
+            [false, false, false],
+            [false, false, false],
+        ]);
+
+        // an extended spreadsheet computes the flags from its own copies of
+        // the cells, so the copy is drawn like the original
+        expect(stateVariables[ss2Idx].stateValues.cellsFixed).eqls(
+            stateVariables[ssIdx].stateValues.cellsFixed,
+        );
+        expect(stateVariables[ss2Idx].stateValues.cellsInHeader).eqls(
+            stateVariables[ssIdx].stateValues.cellsInHeader,
+        );
+    });
+
+    it("a fixed spreadsheet refuses an edit at a position no cell fills", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <section name="sec" fixed>
+    <spreadsheet name="inherited" minNumRows="2" minNumColumns="2" />
+  </section>
+  <spreadsheet name="fixedSS" fixed minNumRows="2" minNumColumns="2" />
+  <spreadsheet name="openSS" minNumRows="2" minNumColumns="2" />
+  `,
+        });
+
+        const fixedIdx = await resolvePathToNodeIdx("fixedSS");
+        const openIdx = await resolvePathToNodeIdx("openSS");
+        const inheritedIdx = await resolvePathToNodeIdx("inherited");
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        // `fixed` is inherited from an ancestor, which is why the renderer
+        // reads the spreadsheet's own `fixed` rather than only its cells'
+        expect(stateVariables[fixedIdx].stateValues.fixed).eq(true);
+        expect(stateVariables[inheritedIdx].stateValues.fixed).eq(true);
+        expect(stateVariables[openIdx].stateValues.fixed).eq(false);
+
+        // no `<cell>` backs this position, so `cellsFixed` cannot speak for it
+        expect(stateVariables[fixedIdx].stateValues.cellsFixed).eqls([
+            [false, false],
+            [false, false],
+        ]);
+
+        for (const componentIdx of [fixedIdx, inheritedIdx, openIdx]) {
+            await changeSpreadsheetText({
+                componentIdx,
+                row: 2,
+                column: 2,
+                text: "typed",
+                core,
+            });
+        }
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[fixedIdx].stateValues.cells[1][1]).eq("");
+        expect(stateVariables[inheritedIdx].stateValues.cells[1][1]).eq("");
+        expect(stateVariables[openIdx].stateValues.cells[1][1]).eq("typed");
+    });
 });

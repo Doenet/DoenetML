@@ -1761,4 +1761,55 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
             text: "typed",
         });
     });
+    it("a header row that is also fixed keeps its emphasis and takes the read-only shading", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <text name="a">a</text>
+    <spreadsheet minNumRows="3" minNumColumns="3" name="spreadsheet1">
+      <row header fixed>
+        <cell>label</cell>
+      </row>
+      <row>
+        <cell fixed>locked</cell>
+        <cell>open</cell>
+      </row>
+    </spreadsheet>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#a").should("have.text", "a"); // to wait for page to load
+
+        const cell = (row, column) =>
+            `#spreadsheet1 tbody > :nth-child(${row}) > :nth-child(${column + 1})`;
+
+        // `header` and `fixed` are independent, so a cell can carry both
+        cy.get(cell(1, 1)).should(
+            "have.class",
+            "doenet-spreadsheet-header-cell",
+        );
+        cy.get(cell(1, 1)).should("have.class", "htDimmed");
+
+        // the bold of a header row survives, and belongs to `header` alone:
+        // a cell that is only fixed is not bold
+        cy.get(cell(1, 1)).should("have.css", "font-weight", "700");
+        cy.get(cell(2, 1)).should("not.have.css", "font-weight", "700");
+
+        // the shading does not survive: Handsontable marks a read-only cell
+        // with `!important`, so a fixed header cell is shaded as read-only
+        // rather than as a header
+        cy.get(cell(2, 1))
+            .invoke("css", "background-color")
+            .then((readOnlyBackground) => {
+                cy.get(cell(1, 1)).should(
+                    "have.css",
+                    "background-color",
+                    readOnlyBackground,
+                );
+            });
+    });
 });
