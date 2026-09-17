@@ -1551,6 +1551,34 @@ describe("DAST", async () => {
             ).toBe(false);
         });
 
+        it("reports those same shapes when they are written inside an index", () => {
+            // The contents of a bracket group are parsed by the same passes the
+            // top level gets, so a reference written in there has to report what
+            // it would report anywhere else. Only the two shapes above are at
+            // risk: every other reason is settled by the first pass, which the
+            // brackets always got. The warning comes back to the sibling array
+            // rather than into the index, as `keeps a warning about the
+            // brackets' own contents out of the index` describes.
+            const reasonFor = (source: string) =>
+                (childrenOf(source).find((n: any) => n.type === "error") as any)
+                    ?.args?.reason;
+
+            for (const [inner, reason] of [
+                [`$$f(<n/>)[<m/>]`, "arguments"],
+                [`$$fs[<n/>](3)[<m/>]`, "arguments"],
+                // Controls, settled by the first pass and already reported.
+                [`$$f(1)[<n/>]`, "arguments"],
+                [`$(x)[<n/>]`, "parens"],
+            ] as const) {
+                expect(reasonFor(`$L[${inner}]`)).toBe(reason);
+                expect(
+                    childrenOf(`$L[${inner}]`).filter(
+                        (n: any) => n.type === "error",
+                    ),
+                ).toHaveLength(1);
+            }
+        });
+
         it("reports an unclosed bracket whose element is not the first thing in it", () => {
             // `$a[1 + <n/>` is the unclosed spelling of a mixed-content index
             // that is claimed when it closes, so it warns like the simple one.

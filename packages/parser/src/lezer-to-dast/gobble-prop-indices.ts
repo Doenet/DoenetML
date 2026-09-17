@@ -463,10 +463,15 @@ function attachIndex(
     // normalization, which is why the type admits one.
     const content = group.content;
 
-    // The group may hold references and function references of its own, so it gets the
-    // same two passes the top level gets.
-    const processed = gobbleFunctionArguments(
-        gobblePropIndices(content, offsetMap),
+    // The group may hold references and function references of its own, so it gets
+    // the same three passes the top level gets — including the `warnOnly` one. Its
+    // two shapes are as writable between brackets as anywhere else, and with only
+    // the first two passes `$a[$$f(<n/>)[<m/>]]` said nothing where the same
+    // markup at top level warns.
+    const processed = gobblePropIndices(
+        gobbleFunctionArguments(gobblePropIndices(content, offsetMap)),
+        offsetMap,
+        { warnOnly: true },
     ) as DastElementContent[];
 
     // Those passes can *produce* a warning — a reference inside the brackets whose
