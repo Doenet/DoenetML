@@ -23,9 +23,9 @@ references and elements the way `$myList[$k + 1]` already could. What is written
 between the brackets sees the rest of the document, so a reference in there resolves
 as it would anywhere else — `$myList[<indexOf target="$wanted">$myList</indexOf>]`
 finds `$wanted` — and the element is not rendered where it was written. Naming the
-element and referencing it — `<indexOf name="io" …/>` then `$myList[$io]` — is never
-required, but remains the better form when the same position is wanted more than once,
-or when the path continues past the index.
+element and referencing it — `<indexOf name="io" …/>` then `$myList[$io]` — is still
+the better form when the same position is wanted more than once, and is the way to
+reach a property after the index, as below.
 
 One more shape is left alone for a different reason: an index on a function reference
 that is then called, as in `$$f[<number>1</number>](3)`. An index there picks which

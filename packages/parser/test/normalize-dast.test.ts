@@ -968,6 +968,24 @@ describe("Normalize dast", async () => {
             ).toEqual(`<document>$a[<n />]</document>`);
         });
 
+        it("strips a comment written as a function reference's argument", () => {
+            // A function reference's arguments are nobody's children either, so
+            // the filter has to reach them too. Left in, the comment does not
+            // fail to deserialize — the core's text node carries its tag but
+            // does not check it — so the comment's own words arrive as content
+            // and render.
+            const dast = normalizeDocumentDast(
+                lezerToDast(`<p>$$f(<!-- c --><math>3</math>)</p>`),
+            );
+            expect(toXml(dast)).toEqual(
+                `<document><p>$$f(<math>3</math>)</p></document>`,
+            );
+            // The parse keeps it, so the pretty-printer still round-trips.
+            expect(
+                toXml(lezerToDast(`<p>$$f(<!-- c --><math>3</math>)</p>`)),
+            ).toContain(`<!-- c -->`);
+        });
+
         it("collects an error from a function reference's element argument", () => {
             // A function reference's arguments are no more anybody's children
             // than an index's contents are, so the error there needs collecting

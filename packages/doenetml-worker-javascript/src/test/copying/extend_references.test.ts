@@ -6966,6 +6966,19 @@ describe("Extend and references tests @group2", async () => {
             expect(diagnostics.warnings.length).eq(0);
         });
 
+        it("does not render a comment written as a function argument", async () => {
+            // The comment used to arrive as content and render — `9 c²` — since
+            // the core reads an unrecognised node as text rather than rejecting
+            // it. Normalization removes it, so the call is just the call.
+            const { text, diagnostics } = await textOf(`
+    <function name="f" variables="x">x^2</function>
+    <p name="p1">$$f(<!-- c --><math>3</math>)</p>
+            `);
+            expect(text).eq("9");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+
         it("ignores whitespace written inside the index element", async () => {
             // `<indexOf>` takes a child of any type, so a newline before
             // `$myList` becomes a `<string>` child and hence one of the values

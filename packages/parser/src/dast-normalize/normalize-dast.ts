@@ -85,12 +85,24 @@ const pluginRemoveCommentsInstructionsAndDocStrings: Plugin<
             if (node.type === "element" || node.type === "root") {
                 node.children = node.children.filter(keep);
             }
-            // What is written between a reference's index brackets is nobody's
-            // children, so the filter above never reaches it. The parser leaves a
-            // comment there on purpose — dropping it at parse time would make the
+            // What is written between a reference's index brackets, and what is
+            // written as a function reference's arguments, is nobody's children,
+            // so the filter above never reaches either. The parser leaves a
+            // comment in both on purpose — dropping it there would make the
             // pretty-printer destructive — which makes this the place it goes.
             // Adjacent text is merged again so the whitespace either side of a
             // removed comment trims as the single run of whitespace it reads as.
+            if (node.type === "function" && node.input) {
+                node.input = node.input.map((argument) =>
+                    argument.some((n) => !keep(n))
+                        ? (trimWhitespace(
+                              mergeAdjacentTextInArray(
+                                  argument.filter(keep) as DastNodes[],
+                              ),
+                          ) as typeof argument)
+                        : argument,
+                );
+            }
             if (node.type === "macro" || node.type === "function") {
                 for (const pathPart of node.path) {
                     for (const propIndex of pathPart.index) {
