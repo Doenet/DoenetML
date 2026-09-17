@@ -21,8 +21,9 @@ a written-out path would have claimed, so a space or a stray dot still ends the 
 where it always did.
 
 Editor support inside the brackets has caught up. With the cursor in an element written
-there, attribute and tag completion and hover work again, and a name given to that element
-can be referenced from the rest of the document.
+there, tag and attribute completion and the help panel work again, a reference written
+there resolves, and a name given to that element can be referenced from the rest of the
+document.
 
 An invalid attribute on an element in an index now names the component as written. A lone
 `<number>` between the brackets is converted to a whole number on the way through, and the

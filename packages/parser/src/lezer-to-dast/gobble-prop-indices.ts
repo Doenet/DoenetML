@@ -317,9 +317,6 @@ function whatClosedThePath(
 }
 
 /**
- * Move a bracket group onto the reference's last path part as an index.
- */
-/**
  * Carry the reference's path past the index that was just attached.
  *
  * `$a[<n/>].x` reaches this pass as `$a`, `[`, the element, `]`, `.x` — the
@@ -436,6 +433,16 @@ function graftTail(
 
 /**
  * The document position `relativeOffset` characters into `textNode`'s value.
+ *
+ * `relativeOffset` counts characters of the *decoded* value, and the source may
+ * spend more than one on each — `&amp;` is five characters of source and one of
+ * value — so this is exact only while the characters before it are literal.
+ * They are for every path a tail can claim, since `.x`, `[2]` and the like hold
+ * no character references. A tail that claims *past* one (`$a[<n/>][&amp;]`, an
+ * index whose content is an entity) reports positions four characters short.
+ * `updateNodePositionData`, which rebases the nodes the tail claimed, adds the
+ * same way, so the two agree with each other and the round trip through `toXml`
+ * is unaffected either way.
  */
 function pointAt(
     textNode: DastText,
@@ -450,6 +457,9 @@ function pointAt(
     };
 }
 
+/**
+ * Move a bracket group onto the reference's last path part as an index.
+ */
 function attachIndex(
     reference: DastMacro | DastFunctionMacro,
     group: BracketGroup,

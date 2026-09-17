@@ -92,15 +92,21 @@ Adding an i18n **locale** needs all four, in this order — `codegen` → `build
 npm run test -w @doenet/doenetml-worker-rust     # cargo test --workspace --features testing
 ```
 
-Green is **311 tests**. Reaching for `cargo` directly gives a wrong answer twice over, and neither failure names its cause:
+Green is **311 tests**. Every way of reaching for `cargo` directly gives a wrong answer, and none of them names its cause — the first is the dangerous one, because it looks like a pass:
 
 | invocation | what happens |
 | --- | --- |
-| `cargo test`, or `cargo test -p doenetml-core --features testing` | **16 failures**, all serde field naming |
+| `cargo test` | **runs 0 tests and reports ok** |
+| `cargo test --workspace` | does not compile |
+| `cargo test -p doenetml-core --features testing` | **16 failures**, all serde field naming |
 | `cargo test -p doenetml-core --features web` | does not compile |
 | the npm script above | 311 pass |
 
-The 16 failures are an artifact of scoping, not a regression. `lib-js-wasm-binding` depends on the core as `doenetml-core = { path = "...", features = ["web"] }`, so a `--workspace` build unifies `web` on. Scoped to `-p doenetml-core` it is off, and `FlatElement` carries `#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]` — so serde emits `children_position` where the snapshot tests assert `childrenPosition`. `--features web` on its own does not rescue it either: `testing` is what stands the wasm-bindgen-dependent functions down so the test binaries link.
+A bare `cargo test` tests nothing because the workspace sets `default-members = ["lib-js-wasm-binding"]`, and that crate has no tests of its own. It exits 0. Do not read that as a green suite.
+
+Both non-compiling rows are the same missing flag: `testing` is what stands the wasm-bindgen-dependent functions down so the test binaries link, and nothing else supplies it.
+
+The 16 failures are an artifact of scoping, not a regression. `lib-js-wasm-binding` depends on the core as `doenetml-core = { path = "...", features = ["web"] }`, so a `--workspace` build unifies `web` on. Scoped to `-p doenetml-core` it is off, and `FlatElement` carries `#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]` — so serde emits `children_position` where the snapshot tests assert `childrenPosition`.
 
 They fail identically on a clean `main`, so reproducing them there reads as "pre-existing" and confirms nothing. Check the invocation before the code.
 
@@ -304,4 +310,4 @@ rebuild the docs (step 1) before running the tests — Cypress reads the built
 7. Use `cypress run` (headless), not `cypress open`.
 8. Stop background preview server after tests finish.
 9. For `@doenet/docs-cypress`, build the docs first, then serve `out/` on port 3000, then run Cypress.
-10. For Rust, run `npm run test -w @doenet/doenetml-worker-rust` — a scoped `cargo test` reports 16 failures that are not real, and CI runs no Rust tests at all.
+10. For Rust, run `npm run test -w @doenet/doenetml-worker-rust` — a bare `cargo test` runs nothing and reports ok, a scoped one reports 16 failures that are not real, and CI runs no Rust tests at all.

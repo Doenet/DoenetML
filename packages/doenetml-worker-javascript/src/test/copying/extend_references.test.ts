@@ -7350,10 +7350,12 @@ describe("Extend and references tests @group2", async () => {
             // built for the index, and the second to be instantiated threw
             // `Found a duplicate componentIdx`.
             //
-            // These render blank, which is what `$$f[1](3)` has always done: an
-            // index on a function reference that is then called selects nothing.
-            // That is a separate problem. What matters here is that every
-            // spelling now agrees instead of one of them stopping the document.
+            // These render blank, which is what `$$f[1](3)` has always done and
+            // has nothing to do with calling: `f` is a single function, and an
+            // index on any single component finds nothing. Against a group the
+            // same shapes select, as the element-index test above shows. What
+            // matters here is that every spelling now agrees instead of one of
+            // them stopping the document.
             const setup = `
     <function name="f" variables="x">x^2</function>
     <number name="k">1</number>`;
