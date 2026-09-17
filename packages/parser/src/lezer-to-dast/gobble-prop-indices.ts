@@ -90,6 +90,13 @@ export function gobblePropIndices(nodes: DastRootContent[]): DastRootContent[] {
                 // diagnostic the author needs. Declining leaves the brackets
                 // literal, exactly as they were before an element could index,
                 // and leaves the parse error where it can still be reported.
+                //
+                // Sitting above `whatClosedThePath` is deliberate, not an
+                // oversight: `$(x)[<n/> </badclose>]` reports the stray tag and
+                // *not* the `doenet-w0162` the closed path would otherwise earn.
+                // The brackets are literal either way, and one loud error about
+                // malformed markup beats two about markup that cannot be read
+                // yet. Move this below that call and both arrive.
                 break;
             }
             // What already ended the reference comes first. A path that is

@@ -51,3 +51,8 @@ index that; and for `$x{z}[…]` no braces at all, which v0.7 drops on the floor
 Writing an element as a function reference's argument — `$$f(<math>3</math>)` — no longer
 stops the document. It parsed correctly, but registering the names in it hit a node
 whose parent was the reference rather than an element, and the document failed to load.
+
+A comment written among those arguments no longer renders. `$$f(<!-- c --><math>3</math>)`
+showed `9 c²` — the comment's own words arrived as content and were read as maths — and
+an XML instruction leaked the same way. Both are now removed before the document is
+built, as they already were everywhere else, while still surviving a reformat.

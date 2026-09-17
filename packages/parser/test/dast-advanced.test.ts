@@ -1309,6 +1309,14 @@ describe("DAST", async () => {
             }
             // An empty argument list is still a call.
             expect(indicesOf(`$$f[<n/>]()`)).toHaveLength(0);
+            // A second index declines while the first is kept, and the decline
+            // leaves `[<m/>]` as text between the `]` and the `(` — so nothing
+            // adjacent remains for `gobbleFunctionArguments` and the reference
+            // is never called, which is what keeps the guard's promise.
+            const twoIndices = lezerToDast(`$$f[<n/>][<m/>](y)`)
+                .children[0] as DastFunctionMacro;
+            expect(twoIndices.path[0].index).toHaveLength(1);
+            expect(twoIndices.input).toBe(null);
         });
 
         it("keeps a warning about the brackets' own contents out of the index", () => {

@@ -756,6 +756,14 @@ parser-node-unconvertible = Could not convert node { $node } to Dast node.
 # it still parses, but the braces and whatever is in them are dropped. So the
 # remedy is to delete them, not to write the index somewhere else around them.
 #
+# The other five: `parens` and `parensFunction` are `$(x)[…]` and `$$(f)[…]`,
+# which differ only in which sigil the remedy shows — following the `$(…)` one
+# for a function reference would turn it into an ordinary reference. `arguments`
+# is `$$f(1)[…]`, where the argument list ran past the path. `called` is
+# `$$f[<n/>](y)`, where the index is where the grammar wants it but a computed
+# one on a reference that is then called cannot be built. `unclosed` is the
+# default because it states a fact rather than offering a remedy.
+#
 # The `parens` branch is about `$(x)[…]`. The index does belong inside the
 # parentheses, but an element written in there is not read as an index either —
 # what is between `$(` and `)` is read as text — so the remedy is to name the
