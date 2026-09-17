@@ -92,21 +92,11 @@ export function gobblePropIndices(nodes: DastRootContent[]): DastRootContent[] {
                 // and leaves the parse error where it can still be reported.
                 break;
             }
-            if (node.type === "function" && isCallFollowing(split, group)) {
-                // `$$f[<n/>](y)`. The grammar takes this — an index on a function
-                // reference picks which function to call, and `$$f[1](y)` parses —
-                // but the worker cannot build a *component-valued* index on a
-                // reference that is then called: it emits the index component
-                // twice and throws `Found a duplicate componentIdx`, which blanks
-                // the page. That failure is not ours (`$$f[$k](3)` throws it with
-                // an ordinary reference index too) but claiming these brackets
-                // would newly route an author into it, where before they rendered
-                // as harmless literal text. So leave them literal and say why.
-                ret.push(
-                    indexWarning(node, split[i + 1] as DastText, "called"),
-                );
-                break;
-            }
+            // What already ended the reference comes first. A path that is
+            // closed is closed whatever follows the brackets, so `$$(f)[<n/>](y)`
+            // and `$$f(1)[<n/>](y)` are a parenthesized path and an argument list
+            // respectively — the trailing `(y)` is literal text in both, and
+            // calling them `called` would explain the wrong thing.
             const closedBy = whatClosedThePath(node);
             if (closedBy) {
                 if (closedBy !== "unknown") {
@@ -114,6 +104,21 @@ export function gobblePropIndices(nodes: DastRootContent[]): DastRootContent[] {
                         indexWarning(node, split[i + 1] as DastText, closedBy),
                     );
                 }
+                break;
+            }
+            if (node.type === "function" && isCallFollowing(split, group)) {
+                // `$$f[<n/>](y)`, with the path still open: the index is where
+                // the grammar wants it, and `$$f[1](y)` parses. But the worker
+                // cannot build a *component-valued* index on a reference it then
+                // calls — it emits the index component twice and throws
+                // `Found a duplicate componentIdx`, blanking the page. That
+                // failure is not ours (`$$f[$k](3)` throws it with an ordinary
+                // reference index too), but claiming these brackets would newly
+                // route an author into it, where before they rendered as harmless
+                // literal text. So leave them literal and say why.
+                ret.push(
+                    indexWarning(node, split[i + 1] as DastText, "called"),
+                );
                 break;
             }
 

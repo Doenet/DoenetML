@@ -1298,6 +1298,23 @@ describe("DAST", async () => {
             ]);
         });
 
+        it("names what actually closed the path, whatever follows the brackets", () => {
+            // A closed path stays closed however the source continues, so a
+            // trailing call must not relabel it: `$$(f)[…](y)` is still a
+            // parenthesized path and `$$f(1)[…](y)` is still an argument list.
+            const reasonFor = (source: string) =>
+                (childrenOf(source).find((n: any) => n.type === "error") as any)
+                    ?.args?.reason;
+
+            expect(reasonFor(`$$(f)[<n/>](y)`)).toBe("parensFunction");
+            expect(reasonFor(`$$f(1)[<n/>](y)`)).toBe("arguments");
+            // Only an otherwise-open function path is `called`.
+            expect(reasonFor(`$$f[<n/>](y)`)).toBe("called");
+            // And the same shapes without the trailing call are unchanged.
+            expect(reasonFor(`$$(f)[<n/>]`)).toBe("parensFunction");
+            expect(reasonFor(`$$f(1)[<n/>]`)).toBe("arguments");
+        });
+
         it("reports an unclosed bracket whose element is not the first thing in it", () => {
             // `$a[1 + <n/>` is the unclosed spelling of a mixed-content index
             // that is claimed when it closes, so it warns like the simple one.
