@@ -6966,6 +6966,28 @@ describe("Extend and references tests @group2", async () => {
             expect(diagnostics.warnings.length).eq(0);
         });
 
+        it("ignores whitespace written inside the index element", async () => {
+            // `<indexOf>` takes a child of any type, so a newline before
+            // `$myList` becomes a `<string>` child and hence one of the values
+            // searched. Blank children are removed from index contents for that
+            // reason; written on one line the removal never runs, so this is the
+            // spelling that actually exercises it.
+            const spaced = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<indexOf target="200">
+        $myList
+    </indexOf>]</p>
+            `);
+            const compact = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<indexOf target="200">$myList</indexOf>]</p>
+            `);
+            expect(spaced.text).eq("200");
+            expect(spaced.text).eq(compact.text);
+            expect(spaced.diagnostics.errors.length).eq(0);
+            expect(spaced.diagnostics.warnings.length).eq(0);
+        });
+
         it("survives a declined reference written inside a claimed index", async () => {
             // The inner `$(x)[…]` cannot be indexed, and the warning saying so
             // used to land inside the outer index, where Rust has no variant for
