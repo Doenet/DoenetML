@@ -181,6 +181,17 @@ describe("Pretext export", async () => {
             `);
     });
 
+    it("an expanded input keeps the label written on it", async () => {
+        // The input is replaced by the space, so a label written on the input itself
+        // would go with it. Nothing else is left to ask the question — unlike an
+        // `<answer>`'s label, which the answer stays behind to draw — so it takes the
+        // input's place and the space follows it.
+        source = `<textInput expanded height="0.5in"><label>Your name:</label></textInput>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<p workspace="0.5in">Your name: </p>`,
+        );
+    });
+
     it("a hand-graded answer in a list item keeps the item's text in the paragraph", async () => {
         // A list item holds either inline content or blocks, never a mix, so the
         // paragraph carrying the space takes in the text written alongside it.

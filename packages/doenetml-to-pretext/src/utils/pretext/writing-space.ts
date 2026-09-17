@@ -254,8 +254,14 @@ function paragraphForSpace(
         parents,
         (element) => element.name === "p",
     );
+    // The label written on the input, where nothing else is left to draw it. An input
+    // sugared into an `<answer>` inherits the answer's label, and the answer stays behind
+    // to draw it; a label written on the input itself goes with the input, so it takes the
+    // input's place and the space follows it.
+    const keptLabel = labelLeftBehind(input, parents);
+
     if (enclosing) {
-        removeFromParent(input, parents);
+        replaceWithLabel(input, keptLabel, parents);
         return enclosing;
     }
 
@@ -284,13 +290,13 @@ function paragraphForSpace(
     );
     // Only the input goes: a wrapper it was sugared into stays, since that wrapper is what
     // renders the question's label.
-    removeFromParent(input, parents);
+    const replaced = replaceWithLabel(input, keptLabel, parents);
 
     const paragraph = addElement(flatDast, "p", []);
     if (!alongsideBlocks) {
         paragraph.children = parent.children;
         parent.children = [refTo(paragraph)];
-    } else if (slot === input) {
+    } else if (slot === input && !replaced) {
         // Nothing is left of the slot, so the paragraph simply takes its place.
         parent.children.splice(slotIndex, 0, refTo(paragraph));
     } else {
@@ -441,6 +447,67 @@ function findAncestor(
         current = parents.get(current.data.id);
     }
     return undefined;
+}
+
+/**
+ * The label on `input` that no one else will draw, or `undefined` when there is none.
+ *
+ * An input written inside an `<answer>` inherits the answer's label, and the answer is
+ * still there once the input is gone, so it draws the question and the input must not
+ * repeat it. A label written on the input itself never reaches the answer, so the two
+ * differ — and a stand-alone input has no answer at all. Either way the label would be
+ * lost with the input, so it is kept.
+ */
+function labelLeftBehind(
+    input: FlatDastElement,
+    parents: Map<number, FlatDastElement>,
+): string | undefined {
+    const label = propsOf(input).label;
+    if (typeof label !== "string" || !label.trim()) {
+        return undefined;
+    }
+    const answer = findAncestor(
+        input,
+        parents,
+        (element) => element.name === "answer",
+    );
+    const answerLabel = answer ? propsOf(answer).label : undefined;
+    if (
+        typeof answerLabel === "string" &&
+        answerLabel.trim() === label.trim()
+    ) {
+        return undefined;
+    }
+    return label.trim();
+}
+
+/**
+ * Take `element` out of the document, leaving `label` written where it stood. Returns
+ * whether anything was left behind, since a slot that still holds the label is content the
+ * paragraph has to take in rather than stand beside.
+ */
+function replaceWithLabel(
+    element: FlatDastElement,
+    label: string | undefined,
+    parents: Map<number, FlatDastElement>,
+): boolean {
+    if (label == null) {
+        removeFromParent(element, parents);
+        return false;
+    }
+    const parent = parents.get(element.data.id);
+    if (!parent) {
+        return false;
+    }
+    const index = parent.children.findIndex(
+        (child) => typeof child !== "string" && child.id === element.data.id,
+    );
+    if (index < 0) {
+        return false;
+    }
+    // A trailing space keeps the label off the blank that follows it.
+    parent.children.splice(index, 1, `${label} `);
+    return true;
 }
 
 function removeFromParent(
