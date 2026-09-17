@@ -6966,6 +6966,24 @@ describe("Extend and references tests @group2", async () => {
             expect(diagnostics.warnings.length).eq(0);
         });
 
+        it("survives a declined reference written inside a claimed index", async () => {
+            // The inner `$(x)[…]` cannot be indexed, and the warning saying so
+            // used to land inside the outer index, where Rust has no variant for
+            // it — the whole document failed to deserialize rather than
+            // reporting anything.
+            const { text, diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[$(x)[<number>1</number>]]</p>
+            `);
+            expect(typeof text).eq("string");
+            expect(diagnostics.errors.length).eq(0);
+            expect(
+                diagnostics.warnings.some((w: any) =>
+                    w.message.includes("was not read as an index"),
+                ),
+            ).eq(true);
+        });
+
         it("leaves a called function reference's index alone rather than killing the document", async () => {
             // `$$f[1](y)` parses, but the worker cannot build a component-valued
             // index on a reference it then calls — it emits the index component

@@ -1298,6 +1298,29 @@ describe("DAST", async () => {
             ]);
         });
 
+        it("keeps a warning about the brackets' own contents out of the index", () => {
+            // `$a[$(x)[<n/>]]`: the outer group holds no error when the guard
+            // runs, but processing its contents mints one for the declined inner
+            // reference. An index's value admits no error node — it reaches Rust
+            // as a variant that does not exist and fails the document — so the
+            // warning belongs in the sibling array instead.
+            for (const source of [
+                `$a[$(x)[<n/>]]`,
+                `$a[$x{z}[<n/>]]`,
+                `$a[$$f[<n/>](y)]`,
+            ]) {
+                const index = indicesOf(source);
+                expect(index).toHaveLength(1);
+                expect(
+                    index![0].value.some((n: any) => n.type === "error"),
+                ).toBe(false);
+                // ...and it is still reported, next to the reference.
+                expect(
+                    childrenOf(source).some((n: any) => n.type === "error"),
+                ).toBe(true);
+            }
+        });
+
         it("names what actually closed the path, whatever follows the brackets", () => {
             // A closed path stays closed however the source continues, so a
             // trailing call must not relabel it: `$$(f)[…](y)` is still a

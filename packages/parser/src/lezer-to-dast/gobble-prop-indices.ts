@@ -122,7 +122,9 @@ export function gobblePropIndices(nodes: DastRootContent[]): DastRootContent[] {
                 break;
             }
 
-            attachIndex(node, group);
+            // A warning minted while processing the group's own contents goes
+            // in the sibling array, not into the index it came from.
+            ret.push(...attachIndex(node, group));
             i = group.closeIdx;
         }
     }
@@ -286,7 +288,7 @@ function whatClosedThePath(
 function attachIndex(
     macro: DastMacro | DastFunctionMacro,
     group: BracketGroup,
-): void {
+): DastError[] {
     const lastPart = macro.path[macro.path.length - 1];
 
     // A comment written between the brackets is kept here and removed in
@@ -300,10 +302,23 @@ function attachIndex(
 
     // The group may hold references and function macros of its own, so it gets the
     // same two passes the top level gets.
+    const processed = gobbleFunctionArguments(
+        gobblePropIndices(content),
+    ) as DastElementContent[];
+
+    // Those passes can *produce* a warning — a reference inside the brackets whose
+    // own index cannot be claimed, as in `$a[$(x)[<n/>]]`. The guard above only
+    // sees errors the parser had already left in the group, so a warning minted
+    // here slips past it, and an index's value admits no error node: it reaches
+    // Rust as a variant of `DastTextRefElementContent` that does not exist and
+    // fails the whole document rather than reporting anything. Hand them back to
+    // the caller, which puts them in the sibling array where an error belongs —
+    // the index keeps its content and the author still gets told.
+    const errors = processed.filter(
+        (node): node is DastError => node.type === "error",
+    );
     const value = trimWhitespace(
-        gobbleFunctionArguments(
-            gobblePropIndices(content),
-        ) as DastElementContent[],
+        processed.filter((node) => node.type !== "error"),
     ) as (DastText | DastMacro | DastFunctionMacro | DastElement)[];
 
     const start = lastPart.position?.end;
@@ -330,6 +345,8 @@ function attachIndex(
             macro.position.end = { ...end } as typeof macro.position.end;
         }
     }
+
+    return errors;
 }
 
 /**
