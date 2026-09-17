@@ -62,6 +62,21 @@ function to call, so this asks the same question `$$fs[2](3)` does, with the pos
 worked out rather than written down. `$$fs[$i](3)` was what stopped the document before,
 and it is what made this shape unsafe to accept.
 
+A function reference written as another's argument is now called wherever it sits, not
+only in the last position.
+
+```xml
+<function name="f" variables="x">x^2</function>
+<function name="g" variables="a,b">a+b</function>
+
+<p>$$g($$f(<math>3</math>), 1)</p>
+```
+
+renders `10`. It rendered `3 x² + 1` before: an element written among a call's arguments
+is what makes that call need reassembling after the fact, and only the final argument was
+being reassembled, so the inner call never happened. Written last —
+`$$g(1, $$f(<math>3</math>))` — the same call has always worked.
+
 Two shapes gained a warning they should always have had. Brackets written after a function
 reference's arguments cannot index, and `$$f(3)[<number>1</number>]` has said so for a
 while — but `$$f(<math>3</math>)[<number>1</number>]` and
