@@ -5,10 +5,13 @@ import {
     DastAttribute,
     DastElement,
     DastElementContent,
+    DastNodes,
     DastRoot,
     DastRootContent,
 } from "../types";
 import { visitIncludingPathIndices } from "../pretty-printer/normalize/utils/visit";
+import { mergeAdjacentTextInArray } from "../dast-to-xml/utils";
+import { trimWhitespace } from "../lezer-to-dast/gobble-function-arguments";
 import { isDastElement } from "../types-util";
 import { repeatSugar } from "./component-sugar/repeat";
 import { conditionalContentSugar } from "./component-sugar/conditionalContent";
@@ -73,14 +76,39 @@ const pluginRemoveCommentsInstructionsAndDocStrings: Plugin<
     DastRoot
 > = () => {
     return (tree) => {
+        const keep = (n: { type: string }) =>
+            n.type !== "comment" &&
+            n.type !== "instruction" &&
+            n.type !== "doctype";
+
         visitIncludingPathIndices(tree, (node) => {
             if (node.type === "element" || node.type === "root") {
-                node.children = node.children.filter(
-                    (n) =>
-                        n.type !== "comment" &&
-                        n.type !== "instruction" &&
-                        n.type !== "doctype",
-                );
+                node.children = node.children.filter(keep);
+            }
+            // What is written between a reference's index brackets is nobody's
+            // children, so the filter above never reaches it. The parser leaves a
+            // comment there on purpose — dropping it at parse time would make the
+            // pretty-printer destructive — which makes this the place it goes.
+            // Adjacent text is merged again so the whitespace either side of a
+            // removed comment trims as the single run of whitespace it reads as.
+            if (node.type === "macro" || node.type === "function") {
+                for (const pathPart of node.path) {
+                    for (const propIndex of pathPart.index) {
+                        if (propIndex.value.some((n) => !keep(n))) {
+                            // Trim again afterwards: the parser trimmed this
+                            // group while the comment was still in it, so
+                            // whitespace that was interior then is on the edge
+                            // now, and `$a[ <!-- c --> <n/> ]` would keep a
+                            // leading space the same index without a comment
+                            // does not have.
+                            propIndex.value = trimWhitespace(
+                                mergeAdjacentTextInArray(
+                                    propIndex.value.filter(keep) as DastNodes[],
+                                ),
+                            ) as typeof propIndex.value;
+                        }
+                    }
+                }
             }
         });
     };

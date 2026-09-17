@@ -461,8 +461,22 @@ export type DastMacroPathPart = Omit<_PathPart, "index"> & {
          * only ever sees text, but from a post-pass over the assembled siblings
          * once the elements between the brackets exist as nodes. See
          * `gobblePropIndices` (#1909).
+         *
+         * Cdata, comments and instructions are here because `lezerToDast` really
+         * does return them in an index — they are written between the brackets
+         * like anything else. `normalizeDocumentDast` is what removes them, so
+         * everything downstream of normalization sees only the first four. A
+         * consumer reading raw parser output has to handle all seven.
          */
-        value: (DastText | DastMacro | DastFunctionMacro | DastElement)[];
+        value: (
+            | DastText
+            | DastMacro
+            | DastFunctionMacro
+            | DastElement
+            | DastCdata
+            | DastComment
+            | DastInstruction
+        )[];
         source_doc?: number;
     })[];
     source_doc?: number;

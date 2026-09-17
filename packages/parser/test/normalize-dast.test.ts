@@ -921,6 +921,23 @@ describe("Normalize dast", async () => {
             );
         });
 
+        it("strips a comment written beside the element, and its whitespace", () => {
+            // The parser leaves this one in so the pretty-printer can round-trip
+            // it; removing it is this pass's job. Left in, the index would hold
+            // two nodes instead of one and would not resolve — a comment, which
+            // an author expects to be able to write anywhere, would silently
+            // stop the index working.
+            for (const source of [
+                `<p>$a[<!-- which one --><n/>]</p>`,
+                `<p>$a[ <!-- which one --> <n/> ]</p>`,
+            ]) {
+                const dast = normalizeDocumentDast(lezerToDast(source));
+                expect(toXml(dast)).toEqual(
+                    `<document><p>$a[<n /韓>]</p></document>`.replace("韓", ""),
+                );
+            }
+        });
+
         it("expands an aliased element written in an index", () => {
             const dast = normalizeDocumentDast(
                 lezerToDast(`<p>$a[<section>1</section>]</p>`),
@@ -933,6 +950,20 @@ describe("Normalize dast", async () => {
             const xml = toXml(dast);
             expect(xml).toContain(`<division type="section">`);
             expect(xml).not.toContain(`<section`);
+        });
+
+        it("collects an error from a function reference's element argument", () => {
+            // A function reference's arguments are no more anybody's children
+            // than an index's contents are, so the error there needs collecting
+            // too or the language server never shows it.
+            const errors = extractDastErrors(
+                normalizeDocumentDast(
+                    lezerToDast(
+                        `<p>$$f(<b><number name="1st">1</number></b>)</p>`,
+                    ),
+                ),
+            );
+            expect(errors).toMatchObject([{ code: "doenet-e0025" }]);
         });
 
         it("validates every invalid element in an index, not just the first", () => {

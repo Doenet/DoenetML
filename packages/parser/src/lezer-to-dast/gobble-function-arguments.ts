@@ -155,6 +155,15 @@ export function splitTextNodeAt(
     }
     const { rowMap, columnMap } = createOffsetToPositionMap(value);
 
+    // `rowMap`/`columnMap` are relative to this node's own text. A column only
+    // continues the node's start column while we are still on the row it began
+    // on; once a newline has been crossed the column restarts from 1, and adding
+    // the node's start column again puts it that many characters too far right.
+    const columnAt = (i: number) =>
+        rowMap[i] === 0
+            ? columnMap[i] + position.start.column
+            : columnMap[i] + 1;
+
     const leftValue = value.slice(0, pos);
     const left: DastText = {
         type: "text",
@@ -164,7 +173,7 @@ export function splitTextNodeAt(
             end: {
                 offset: (position.start.offset || 0) + leftValue.length,
                 line: rowMap[pos] + position.start.line,
-                column: columnMap[pos] + position.start.column,
+                column: columnAt(pos),
             },
         },
     };
@@ -176,12 +185,12 @@ export function splitTextNodeAt(
             start: {
                 offset: (position.start.offset || 0) + pos,
                 line: rowMap[pos] + position.start.line,
-                column: columnMap[pos] + position.start.column,
+                column: columnAt(pos),
             },
             end: {
                 offset: (position.start.offset || 0) + pos + 1,
                 line: rowMap[pos + 1] + position.start.line,
-                column: columnMap[pos + 1] + position.start.column,
+                column: columnAt(pos + 1),
             },
         },
     };
@@ -195,7 +204,7 @@ export function splitTextNodeAt(
             start: {
                 offset: (position.start.offset || 0) + pos + 1,
                 line: rowMap[pos + 1] + position.start.line,
-                column: columnMap[pos + 1] + position.start.column,
+                column: columnAt(pos + 1),
             },
         },
     };

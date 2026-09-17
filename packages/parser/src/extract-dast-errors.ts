@@ -20,14 +20,20 @@ export function extractDastErrors(
         // A v0.6 function macro keeps its path under `macro` instead.
         "path" in nodes
     ) {
-        // What is written between a reference's index brackets. Normalization can
-        // now put an error in there, because an element can now be written there
-        // (#1909) — and an error nothing collects is an error nobody sees.
-        return nodes.path.flatMap((pathPart) =>
+        // What is written between a reference's index brackets, and — for a
+        // function reference — what is written as its arguments. Both hold
+        // elements that no `children` array contains, so normalization can put an
+        // error in either, and an error nothing collects is an error nobody sees.
+        const inPath = nodes.path.flatMap((pathPart) =>
             pathPart.index.flatMap((propIndex) =>
                 extractDastErrors(propIndex.value),
             ),
         );
+        const inInput =
+            nodes.type === "function" && nodes.input
+                ? nodes.input.flatMap((argument) => extractDastErrors(argument))
+                : [];
+        return [...inPath, ...inInput];
     }
     return [];
 }

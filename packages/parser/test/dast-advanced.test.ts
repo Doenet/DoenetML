@@ -1270,21 +1270,6 @@ describe("DAST", async () => {
             });
         });
 
-        it("drops a comment written beside the element", () => {
-            // Comments are removed from a `children` array by normalization,
-            // but an index's contents are nobody's children, so they have to go
-            // here. Left in, the index would hold two nodes instead of one and
-            // would not resolve — a comment, which an author expects to be able
-            // to add anywhere, would silently stop the index working.
-            expect(indicesOf(`$a[<!-- which one --><n/>]`)).toMatchObject([
-                { value: [{ type: "element", name: "n" }] },
-            ]);
-            // Whatever whitespace surrounded the comment trims with the rest.
-            expect(indicesOf(`$a[ <!-- which one --> <n/> ]`)).toMatchObject([
-                { value: [{ type: "element", name: "n" }] },
-            ]);
-        });
-
         it("declines an index on a function reference that is then called", () => {
             // `$$f[1](y)` parses, but the worker cannot build a component-valued
             // index on a reference it then calls. Claiming these brackets would
@@ -1326,6 +1311,33 @@ describe("DAST", async () => {
             expect(
                 childrenOf(`$a[1 + 2`).some((n: any) => n.type === "error"),
             ).toBe(false);
+        });
+
+        it("keeps a comment written in the brackets, so formatting is not destructive", () => {
+            // The pretty-printer formats the parser's own output, so dropping the
+            // comment here would delete it from the author's document. It is
+            // removed in normalization instead, which is what the core sees.
+            const source = `$a[<!-- c --><number>2</number>]`;
+            expect(indicesOf(source)).toMatchObject([
+                {
+                    value: [
+                        { type: "comment" },
+                        { type: "element", name: "number" },
+                    ],
+                },
+            ]);
+            expect(toXml(lezerToDast(source))).toEqual(source);
+        });
+
+        it("reports a bracket's position from the line it is actually on", () => {
+            // `splitTextNodeAt` carries the text node's start column into every
+            // piece it cuts. Past a newline the column restarts from 1, so
+            // carrying it puts the bracket that many characters too far right —
+            // and `attachIndex` copies it into the index and the reference.
+            const macro = (
+                lezerToDast(`<p>$a[<n/>\n  ]</p>`).children[0] as any
+            ).children[0];
+            expect(macro.position.end).toMatchObject({ line: 2, column: 4 });
         });
 
         it("grows the reference's position over the moved element", () => {

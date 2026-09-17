@@ -278,22 +278,14 @@ function attachIndex(
 ): void {
     const lastPart = macro.path[macro.path.length - 1];
 
-    // Comments, XML instructions and doctypes are dropped here, which is the only
-    // place they can be. `pluginRemoveCommentsInstructionsAndDocStrings` reaches
-    // them only in a `children` array, and an index's contents are not children of
-    // anything — so a comment left in the group would survive into `index.value`,
-    // a node type that field does not admit, and would turn a working
-    // `$myList[<number>2</number>]` into an unresolvable mixed-content index.
-    // Adjacent text is merged again so that the whitespace either side of a
-    // dropped comment trims as the single run of whitespace it reads as.
-    const content = mergeAdjacentTextInArray(
-        group.content.filter(
-            (node) =>
-                node.type !== "comment" &&
-                node.type !== "instruction" &&
-                node.type !== "doctype",
-        ) as any,
-    ) as DastRootContent[];
+    // A comment written between the brackets is kept here and removed in
+    // normalization instead, by `pluginRemoveCommentsInstructionsAndDocStrings`.
+    // Dropping it at parse time would make the pretty-printer destructive: it
+    // formats the parser's own output, so the author's comment would simply
+    // disappear from their document, which is not what happens to a comment
+    // anywhere else. Leaving it in means `index.value` carries it until
+    // normalization, which is why the type admits one.
+    const content = group.content;
 
     // The group may hold references and function macros of its own, so it gets the
     // same two passes the top level gets.
