@@ -392,6 +392,21 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("textInput renders its label", async () => {
+        // A text input drew its blank and nothing else, so a label written on one was
+        // lost — including the question a stand-alone input asks.
+        source = `<p>x <textInput><label>Your name:</label></textInput></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<p>x Your name: <fillin characters="21"></fillin></p>`,
+        );
+    });
+
+    it("a label written on the answer is not repeated by its text input", async () => {
+        source = `<p><answer type="text"><label>Your name:</label>Ada</answer></p>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported.match(/Your name:/g)).toHaveLength(1);
+    });
+
     it("mathInput renders its label", async () => {
         source = `<answer><mathInput><label>My Label</label></mathInput></answer>`;
         expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
