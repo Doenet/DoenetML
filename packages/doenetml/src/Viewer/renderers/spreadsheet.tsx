@@ -67,6 +67,35 @@ export default React.memo(function SpreadsheetRenderer(
         return cellProperties;
     }
 
+    /**
+     * Give a header cell the header role, after Handsontable has drawn it.
+     *
+     * The class `cellSettings` sets makes a header cell *look* like one, and
+     * that is all it does: Handsontable draws every data cell as a `<td>`, so
+     * without this a screen reader is told a header row is ordinary data. The
+     * `<tabular>` path has it easier — `cell.tsx` renders an `inHeader` cell as
+     * a `<th>` and the role comes with the element.
+     *
+     * `afterRenderer` runs for every cell of every table Handsontable draws,
+     * the pinned copies under `.ht_clone_*` included, so the role reaches a
+     * header row that `fixedRowsTop` has pinned. It must also *remove* the
+     * role: Handsontable reuses its `<td>` elements as the grid scrolls, so a
+     * cell that stops being a header would otherwise keep the role of whatever
+     * it was drawn as before.
+     *
+     * `columnheader` rather than a `rowheader`, because a header row labels the
+     * columns beneath it. It is valid on a `<td>` inside the `<tr>`'s implicit
+     * `row`, and does not disturb the native table semantics that
+     * `ariaTags={false}` below preserves.
+     */
+    function afterRenderer(td: HTMLTableCellElement, row: number, col: number) {
+        if (SVs.cellsInHeader?.[row]?.[col]) {
+            td.setAttribute("role", "columnheader");
+        } else {
+            td.removeAttribute("role");
+        }
+    }
+
     if (SVs.hidden) {
         return null;
     }
@@ -126,6 +155,7 @@ export default React.memo(function SpreadsheetRenderer(
                     indicators: false,
                 }}
                 cells={cellSettings}
+                afterRenderer={afterRenderer}
                 // A `fixed` spreadsheet rejects every edit in the worker, so
                 // the whole grid is read-only — including the positions no
                 // `<cell>` backs, which `cellsFixed` cannot speak for.

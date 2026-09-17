@@ -1583,6 +1583,13 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
         const cell = (row, column) =>
             `#spreadsheet1 tbody > :nth-child(${row}) > :nth-child(${column + 1})`;
 
+        // a header cell is announced as a header, not as ordinary data:
+        // Handsontable draws every data cell as a `<td>`, so the role is what
+        // carries to a screen reader what a `<tabular>` says with a `<th>`
+        cy.get(cell(1, 1)).should("have.attr", "role", "columnheader");
+        cy.get(cell(1, 2)).should("have.attr", "role", "columnheader");
+        cy.get(cell(2, 1)).should("not.have.attr", "role");
+
         // the cells of the header row are emphasized, the rest are not
         cy.get(cell(1, 1)).should(
             "have.class",
@@ -1962,6 +1969,23 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
             "doenet-spreadsheet-header-cell",
         );
 
+        // the header role reaches the copies too, or a header row pinned in
+        // place would stop being announced as a header
+        inClone("ht_clone_inline_start", "head1").should(
+            "have.attr",
+            "role",
+            "columnheader",
+        );
+        inClone("ht_clone_top", "head2").should(
+            "have.attr",
+            "role",
+            "columnheader",
+        );
+        inClone("ht_clone_inline_start", "lockA").should(
+            "not.have.attr",
+            "role",
+        );
+
         // the emphasis is really drawn in the copies, not just the class
         // applied: compared against a cell of the same copy that is in no
         // header row
@@ -1985,5 +2009,44 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
         inClone("ht_clone_inline_start", "lockA").click({ force: true });
         cy.get("#spreadsheet1 .handsontableInput").should("not.exist");
         inClone("ht_clone_inline_start", "lockA").should("have.text", "lockA");
+    });
+
+    it("a row that stops being a header gives up its header role", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <text name="a">a</text>
+    <booleanInput name="bi" />
+    <spreadsheet minNumRows="2" minNumColumns="2" name="spreadsheet1">
+      <row header="$bi">
+        <cell>maybe</cell>
+      </row>
+      <row>
+        <cell>plain</cell>
+      </row>
+    </spreadsheet>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#a").should("have.text", "a"); // to wait for page to load
+
+        const cell = (row, column) =>
+            `#spreadsheet1 tbody > :nth-child(${row}) > :nth-child(${column + 1})`;
+
+        // Handsontable reuses its `<td>` elements as the grid redraws, so a
+        // role left behind would outlive the header row it was set for
+        cy.get(cell(1, 1)).should("not.have.attr", "role");
+
+        cy.get("#bi").click();
+        cy.get(cell(1, 1)).should("have.attr", "role", "columnheader");
+        cy.get(cell(1, 1)).should("have.css", "font-weight", "700");
+
+        cy.get("#bi").click();
+        cy.get(cell(1, 1)).should("not.have.attr", "role");
+        cy.get(cell(1, 1)).should("not.have.css", "font-weight", "700");
     });
 });

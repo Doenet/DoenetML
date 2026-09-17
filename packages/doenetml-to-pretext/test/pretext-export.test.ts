@@ -490,7 +490,7 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<tabular><row bottom="minor"><cell right="minor"><em>name</em></cell><cell right="minor"><em>value</em></cell></row><row bottom="minor"><cell right="minor">a</cell><cell right="minor">1</cell></row></tabular>"`,
+            `"<tabular><row header="yes" bottom="minor"><cell right="minor">name</cell><cell right="minor">value</cell></row><row bottom="minor"><cell right="minor">a</cell><cell right="minor">1</cell></row></tabular>"`,
         );
     });
 
@@ -507,7 +507,7 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<tabular><row bottom=\"minor\"><cell right=\"minor\"><em>name</em></cell><cell right=\"minor\"></cell><cell right=\"minor\"></cell></row><row bottom=\"minor\"><cell right=\"minor\">a</cell><cell right=\"minor\">1</cell><cell right=\"minor\"></cell></row></tabular>"`,
+            `"<tabular><row header="yes" bottom="minor"><cell right="minor">name</cell><cell right="minor"></cell><cell right="minor"></cell></row><row bottom="minor"><cell right="minor">a</cell><cell right="minor">1</cell><cell right="minor"></cell></row></tabular>"`,
         );
     });
 
@@ -531,7 +531,7 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<tabular><row header="yes" bottom="minor"><cell right="minor"><em></em></cell><cell right="minor">B</cell><cell right="minor">C</cell></row><row bottom="minor"><cell right="minor"><em>1</em></cell><cell right="minor">y</cell><cell right="minor">z</cell></row><row bottom="minor"><cell right="minor"><em>2</em></cell><cell right="minor"><em>value</em></cell><cell right="minor"><em>note</em></cell></row><row bottom="minor"><cell right="minor"><em>3</em></cell><cell right="minor"></cell><cell right="minor"></cell></row></tabular>"`,
+            `"<tabular><row header="yes" bottom="minor"><cell right="minor"><em></em></cell><cell right="minor">B</cell><cell right="minor">C</cell></row><row bottom="minor"><cell right="minor"><em>1</em></cell><cell right="minor">y</cell><cell right="minor">z</cell></row><row header="yes" bottom="minor"><cell right="minor"><em>2</em></cell><cell right="minor">value</cell><cell right="minor">note</cell></row><row bottom="minor"><cell right="minor"><em>3</em></cell><cell right="minor"></cell><cell right="minor"></cell></row></tabular>"`,
         );
     });
 

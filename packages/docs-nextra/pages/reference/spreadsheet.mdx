@@ -229,7 +229,8 @@ Add `header` to a `<row>{:dn}` and its cells are drawn in bold. This is emphasis
 row can still be edited like any other, and it keeps the ordinary cell background so that it is
 not read as part of the spreadsheet's own `A`, `B`, `C` and `1`, `2`, `3` labels. Marking up the
 text inside a cell has no effect, since a cell contributes only its text to the spreadsheet —
-`header` is how a row is set apart.
+`header` is how a row is set apart. It is also what a screen reader is told: the cells of a header
+row are announced as headers for the columns below them, so the emphasis is not only visual.
 
 
 

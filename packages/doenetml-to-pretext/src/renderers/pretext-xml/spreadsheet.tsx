@@ -49,14 +49,25 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
                 if (hiddenRows.includes(spreadsheetRowIndex)) {
                     return null; // Skip hidden rows
                 }
-                const header = inHeaderRow ? "yes" : undefined;
-                // The cells of a `<row header="true">` of the spreadsheet
-                // itself, which is a different thing from the A/B/C strip that
-                // claimed `header="yes"` just above. Read per cell rather than
-                // per row so that the emphasis lands on exactly the cells the
-                // grid emphasizes: a header row narrower than the grid leaves
-                // the positions past its last `<cell>` unmarked in both.
-                const rowInHeader = cellsInHeader?.[spreadsheetRowIndex - 1];
+                // A `<row header="true">` of the spreadsheet itself, as
+                // distinct from the generated A/B/C strip above. PreTeXt marks
+                // a header row on the row, and permits more than one in a
+                // `<tabular>` — `header` is an optional attribute of every
+                // `row` in the schema, and PreTeXt's own sample article has a
+                // "Two Row Headers" table — so an authored header row says so
+                // the same way the strip does, rather than settling for the
+                // `<em>` that stands in for a header *column* below.
+                //
+                // Necessarily coarser than the grid: `header` belongs to the
+                // row, so a header row narrower than the grid marks its empty
+                // remainder too, where the grid emphasizes only the cells it
+                // has. Row-level is what the author wrote, so it is the better
+                // of the two things PreTeXt can say here.
+                const inAuthoredHeaderRow = Boolean(
+                    cellsInHeader?.[spreadsheetRowIndex - 1]?.some(Boolean),
+                );
+                const header =
+                    inHeaderRow || inAuthoredHeaderRow ? "yes" : undefined;
                 return (
                     <row key={rowIndex} header={header} bottom="minor">
                         {row.map((cell, colIndex) => {
@@ -68,18 +79,11 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
                             if (hiddenColumns.includes(spreadsheetColIndex)) {
                                 return null; // Skip hidden columns
                             }
-                            const inDoenetHeaderCell = Boolean(
-                                rowInHeader?.[spreadsheetColIndex - 1],
-                            );
                             return (
                                 <cell key={colIndex} right="minor">
                                     {
                                         // Pretext cannot have both a row and column header, so we have to fake it.
-                                        inHeaderColumn || inDoenetHeaderCell ? (
-                                            <em>{cell}</em>
-                                        ) : (
-                                            cell
-                                        )
+                                        inHeaderColumn ? <em>{cell}</em> : cell
                                     }
                                 </cell>
                             );

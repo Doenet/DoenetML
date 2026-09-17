@@ -31,5 +31,12 @@ positions no `<cell>` fills.
 Marking up the text inside a cell — `<em>`, `<alert>` — still has no effect, since a cell
 contributes only its text to the grid. `header` is how a row is set apart.
 
-A header row also carries through to PreTeXt export, emphasized the same way a spreadsheet's
-row labels already were.
+A header row is announced as a header, not only drawn as one: its cells carry the
+`columnheader` role, which is what a `<tabular>` says by rendering a header cell as a `<th>`.
+Handsontable draws every data cell as a `<td>`, so without it a screen reader met a header row
+as ordinary data.
+
+PreTeXt export marks an authored header row with `header="yes"`, alongside the generated
+`A`, `B`, `C` row that already carried it — PreTeXt allows a `<tabular>` more than one header
+row. It is necessarily coarser than the grid, since `header` belongs to the row: a header row
+narrower than the grid marks its empty remainder too.
