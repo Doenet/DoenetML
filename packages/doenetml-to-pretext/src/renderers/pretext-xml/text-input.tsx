@@ -1,8 +1,8 @@
 import React from "react";
 import type { TextInputPropsInText } from "@doenet/doenetml-worker";
 import { BasicComponent } from "../types";
-import { inputLabelContent } from "./utils/input-label";
 import { TEXT_FILLIN_CHARACTERS } from "./fillin-width";
+import { useInputLabel } from "./use-input-label";
 
 type ComponentSize = { size: number; isAbsolute: boolean };
 
@@ -40,10 +40,11 @@ export const TextInput: BasicComponent<TextInputData> = ({ node }) => {
             : TEXT_FILLIN_CHARACTERS;
     // Wide enough, too, for what is already in it.
     const characters = Math.max(value?.length || 0, fromWidth);
+    const displayLabel = useInputLabel(label);
 
     return (
         <React.Fragment>
-            {inputLabelContent(label)}
+            {displayLabel}
             <fillin characters={characters} />
         </React.Fragment>
     );
