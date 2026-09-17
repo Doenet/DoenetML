@@ -239,7 +239,7 @@ describe("Coded DAST errors render to the English the parser wrote", () => {
     });
 
     it("an element in index brackets that cannot be an index", () => {
-        // All six branches of the message's `reason` selector. An element
+        // All five branches of the message's `reason` selector. An element
         // between the brackets is what each has in common; what differs is why
         // the brackets could not be read as an index.
         const errors = [
@@ -259,10 +259,12 @@ describe("Coded DAST errors render to the English the parser wrote", () => {
             ...normalizedErrors(`<p>$$f(1)[<number>1</number>]</p>`),
             // The bracket is never closed.
             ...normalizedErrors(`<p>$x[<number>1</number></p>`),
-            // An index on a function reference that is then called.
-            ...normalizedErrors(`<p>$$f[<number>1</number>](3)</p>`),
+            // Note there is no case for an index on a function reference that
+            // is then called: `$$f[<number>1</number>](3)` is taken as an index,
+            // because it picks which function to call exactly as `$$f[1](3)`
+            // does.
         ];
-        expect(codedErrors(errors).length).toBe(6);
+        expect(codedErrors(errors).length).toBe(5);
         expect(codedErrors(errors).map((e) => (e as any).args.name)).toEqual([
             "$x",
             "$x",
@@ -271,7 +273,6 @@ describe("Coded DAST errors render to the English the parser wrote", () => {
             "$$f",
             "$$f",
             "$x",
-            "$$f",
         ]);
         expectRoundTrip(errors);
     });

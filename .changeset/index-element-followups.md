@@ -43,6 +43,24 @@ along with it. The mistake is now shown, the rest of the document renders, and t
 reference says why it came up empty. A computed index on a function reference that is then
 called, as in `$$f[$k](3)`, stopped the document the same way and no longer does.
 
+An element index on a function reference that is then called now works, where it was
+previously left as literal text with a warning.
+
+```xml
+<group name="fs">
+  <function variables="x">x^2</function>
+  <function variables="x">x^3</function>
+</group>
+<numberList name="powers">2 3</numberList>
+
+<p>$$fs[<indexOf target="3">$powers</indexOf>](3)</p>
+```
+
+renders `27`. An index written before a function reference's arguments picks which
+function to call, so this asks the same question `$$fs[2](3)` does, with the position
+worked out rather than written down. `$$fs[$i](3)` was what stopped the document before,
+and it is what made this shape unsafe to accept.
+
 One shape gained a warning it should always have had: `$$f(<math>3</math>)[<number>1</number>]`
 said nothing at all, where the same brackets after a plainly written argument list have
 been reported for a while. Neither can index, and both now say so.

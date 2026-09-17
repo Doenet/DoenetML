@@ -7019,21 +7019,36 @@ describe("Extend and references tests @group2", async () => {
             ).eq(true);
         });
 
-        it("leaves a called function reference's index alone", async () => {
-            // `$$f[1](y)` parses, but an index on a function reference that is
-            // then called selects nothing: `$$f[1](3)` renders blank. Claiming
-            // these brackets would trade text the author can see, plus a warning
-            // saying what to write instead, for a silent empty result.
-            const { text, diagnostics } = await textOf(`
-    <function name="f" variables="x">x^2</function>
-    <p name="p1">$$f[<number>1</number>](3)</p>
+        it("indexes a function reference that is then called", async () => {
+            // An index before a function reference's arguments picks which
+            // function to call, so `$$fs[<number>2</number>](3)` calls the
+            // second of them — the same question `$$fs[2](3)` asks.
+            const functions = `
+    <group name="fs">
+      <function variables="x">x^2</function>
+      <function variables="x">x^3</function>
+    </group>`;
+            const { text, diagnostics } = await textOf(`${functions}
+    <p name="p1">$$fs[<number>2</number>](3)</p>
             `);
-            expect(text).eq("x²[1](3)");
+            expect(text).eq("27");
             expect(diagnostics.errors.length).eq(0);
-            expect(diagnostics.warnings.length).eq(1);
-            expect(diagnostics.warnings[0].message).contain(
-                "give the result a name and index that",
-            );
+            expect(diagnostics.warnings.length).eq(0);
+
+            // Which is the point of #1909: the position can be worked out rather
+            // than written down.
+            const { text: computed } = await textOf(`${functions}
+    <numberList name="powers">2 3</numberList>
+    <p name="p1">$$fs[<indexOf target="3">$powers</indexOf>](3)</p>
+            `);
+            expect(computed).eq("27");
+
+            // And it agrees with the named-and-referenced form it replaces.
+            const { text: named } = await textOf(`${functions}
+    <number name="i">2</number>
+    <p name="p1">$$fs[$i](3)</p>
+            `);
+            expect(named).eq("27");
         });
 
         it("warns, rather than saying nothing, when the brackets cannot index", async () => {

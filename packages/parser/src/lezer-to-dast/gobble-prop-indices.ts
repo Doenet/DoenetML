@@ -124,11 +124,12 @@ export function gobblePropIndices(
                 // yet. Move this below that call and both arrive.
                 break;
             }
-            // What already ended the reference comes first. A path that is
-            // closed is closed whatever follows the brackets, so `$$(f)[<n/>](y)`
-            // and `$$f(1)[<n/>](y)` are a parenthesized path and an argument list
-            // respectively — the trailing `(y)` is literal text in both, and
-            // calling them `called` would explain the wrong thing.
+            // A path that is closed is closed whatever follows the brackets,
+            // so `$$(f)[<n/>](y)` and `$$f(1)[<n/>](y)` are a parenthesized path
+            // and an argument list respectively, and the trailing `(y)` is
+            // literal text in both. An index on a path that is still *open* is
+            // taken, called or not: `$$fs[<n/>](3)` picks which of the functions
+            // in `fs` to call, exactly as the literal `$$fs[1](3)` does.
             const closedBy = whatClosedThePath(node);
             if (closedBy) {
                 if (closedBy !== "unknown") {
@@ -136,25 +137,6 @@ export function gobblePropIndices(
                         indexWarning(node, split[i + 1] as DastText, closedBy),
                     );
                 }
-                break;
-            }
-            if (node.type === "function" && isCallFollowing(split, group)) {
-                // `$$f[<n/>](y)`, with the path still open: the index is where
-                // the grammar wants it, and `$$f[1](y)` parses. But an index on a
-                // function reference that is then called does not select
-                // anything — `$$f[1](3)` builds an `<evaluate>` with no function
-                // and renders blank. Claiming these brackets would turn markup
-                // that renders as literal text, with a warning saying what to
-                // write instead, into a silent empty result. So leave them
-                // literal and say why.
-                //
-                // This used to throw `Found a duplicate componentIdx` and blank
-                // the whole document, which was a separate fault and is fixed
-                // (#1917). Fixing it made every spelling agree; it did not make
-                // the index work, so this guard stays.
-                ret.push(
-                    indexWarning(node, split[i + 1] as DastText, "called"),
-                );
                 break;
             }
 
@@ -272,34 +254,6 @@ function collectBracketGroup(
 }
 
 /**
- * Whether an argument list opens immediately after this bracket group, which makes
- * the reference a *called* function reference.
- *
- * The grammar puts a function reference's index before its arguments
- * (`FunctionMacro = "$$" path input?`, and `PropIndex` sits inside the path), and
- * `gobbleFunctionArguments` likewise only takes an argument list that is an
- * immediate sibling — so requiring the `(` to sit directly after the `]` matches
- * what both of them would do with it.
- */
-function isCallFollowing(
-    nodes: DastRootContent[],
-    group: BracketGroup,
-): boolean {
-    const next = nodes[group.closeIdx + 1];
-    if (!(next?.type === "text" && next.value.startsWith("("))) {
-        return false;
-    }
-    // An opening paren alone is not a call. `gobbleFunctionArguments` builds one
-    // only when a closing paren follows too, so `$$f[<n/>](` leaves the
-    // reference uncalled and the `(` as text — and an index is perfectly safe
-    // there, because the failure this guard avoids needs a call to happen.
-    // Mirrors `hasClosingParen` in that pass, down to looking only at text.
-    return nodes
-        .slice(group.closeIdx + 1)
-        .some((node) => node.type === "text" && node.value.includes(")"));
-}
-
-/**
  * Why this reference can no longer take an index, or `undefined` if it still can.
  *
  * The grammar hangs an index off a *path part* (`PathPart = name PropIndex*`), so an
@@ -338,6 +292,8 @@ function whatClosedThePath(
         // writing it before them — `$$f[2](1)` — picks which function is called
         // rather than part of what the call returns, so neither is the index the
         // author wrote. See `indexWarning` for what the message offers instead.
+        // (Before the arguments *is* a working place for an index; it just
+        // answers a different question from the one these brackets ask.)
         return "arguments";
     }
     // What is left is a parenthesized path or a brace block, told apart by where the
@@ -569,13 +525,7 @@ function attachIndex(
 function indexWarning(
     reference: DastMacro | DastFunctionMacro,
     openBracket: DastText,
-    reason:
-        | "braces"
-        | "parens"
-        | "parensFunction"
-        | "arguments"
-        | "called"
-        | "unclosed",
+    reason: "braces" | "parens" | "parensFunction" | "arguments" | "unclosed",
 ): DastError {
     // The sigil belongs to `name` because a function reference carries two of them:
     // quoting `$$f` as `$f` would name a component the author did not write.
@@ -594,7 +544,6 @@ function indexWarning(
             "`$$(…)` ends a function reference, so `[…]` written after it is ordinary text. Give the element a name and write the index inside the parentheses, as `$$(f[$idx])`.",
         arguments:
             "A function reference's arguments end it, so `[…]` written after them is ordinary text. An index written before the arguments would pick which function to call rather than part of what it returns; to index the result, give the result a name and index that.",
-        called: "An index before a function reference's arguments picks which function to call, and a computed one there is not supported. To index what the call returns, give the result a name and index that.",
         unclosed: "Its `[` is never closed.",
     }[reason];
 

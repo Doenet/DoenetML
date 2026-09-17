@@ -1406,35 +1406,28 @@ describe("DAST", async () => {
             });
         });
 
-        it("declines an index on a function reference that is then called", () => {
-            // `$$f[1](y)` parses, but the worker cannot build a component-valued
-            // index on a reference it then calls. Claiming these brackets would
-            // route an author into a thrown `Found a duplicate componentIdx`
-            // where before they rendered as literal text, so they stay literal.
-            expect(indicesOf(`$$f[<n/>](y)`)).toHaveLength(0);
-            const children = childrenOf(`$$f[<n/>](y)`);
-            expect(children.slice(0, 4)).toMatchObject([
-                { type: "function" },
-                { type: "error", error_type: "warning" },
-                { type: "text", value: "[" },
-                { type: "element", name: "n" },
-            ]);
-            // The call is left as written. `gobbleFunctionArguments` splits on
-            // its own delimiters, so the tail arrives as several text nodes.
-            expect(
-                children
-                    .slice(4)
-                    .map((n: any) => n.value)
-                    .join(""),
-            ).toBe("](y)");
-            expect((children[0] as any).input).toBe(null);
-            // Uncalled, the same index is taken.
-            expect(indicesOf(`$$f[<n/>]`)).toMatchObject([
+        it("takes an index on a function reference that is then called", () => {
+            // `$$fs[<n/>](3)` picks which of the functions in `fs` to call, the
+            // same question `$$fs[1](3)` asks, so the index is taken and the
+            // call is built on top of it.
+            expect(indicesOf(`$$f[<n/>](y)`)).toMatchObject([
                 { value: [{ type: "element", name: "n" }] },
             ]);
-            // And an opening paren is not a call on its own. Without a closing
-            // one `gobbleFunctionArguments` builds nothing, so the failure this
-            // guard avoids cannot happen and the index is safe to take.
+            const reference = lezerToDast(`$$f[<n/>](y)`)
+                .children[0] as DastFunctionMacro;
+            expect(reference.input).not.toBe(null);
+            expect(reference.input![0]).toMatchObject([
+                { type: "text", value: "y" },
+            ]);
+            // Nothing of the call survives as text beside it.
+            expect(
+                childrenOf(`$$f[<n/>](y)`).some(
+                    (n: any) => n.type === "text" || n.type === "error",
+                ),
+            ).toBe(false);
+
+            // An opening paren with no closing one is not a call, so the
+            // reference keeps its index and the `(` stays text.
             for (const source of [`$$f[<n/>](`, `$$f[<n/>]( y`]) {
                 expect(indicesOf(source)).toMatchObject([
                     { value: [{ type: "element", name: "n" }] },
@@ -1443,16 +1436,18 @@ describe("DAST", async () => {
                     childrenOf(source).some((n: any) => n.type === "error"),
                 ).toBe(false);
             }
-            // An empty argument list is still a call.
-            expect(indicesOf(`$$f[<n/>]()`)).toHaveLength(0);
-            // A second index declines while the first is kept, and the decline
-            // leaves `[<m/>]` as text between the `]` and the `(` — so nothing
-            // adjacent remains for `gobbleFunctionArguments` and the reference
-            // is never called, which is what keeps the guard's promise.
+
+            // An empty argument list is still a call, and still follows an index.
+            const empty = lezerToDast(`$$f[<n/>]()`)
+                .children[0] as DastFunctionMacro;
+            expect(empty.path[0].index).toHaveLength(1);
+            expect(empty.input).not.toBe(null);
+
+            // Two indices in a row, then the call.
             const twoIndices = lezerToDast(`$$f[<n/>][<m/>](y)`)
                 .children[0] as DastFunctionMacro;
-            expect(twoIndices.path[0].index).toHaveLength(1);
-            expect(twoIndices.input).toBe(null);
+            expect(twoIndices.path[0].index).toHaveLength(2);
+            expect(twoIndices.input).not.toBe(null);
         });
 
         it("keeps a warning about the brackets' own contents out of the index", () => {
@@ -1461,11 +1456,7 @@ describe("DAST", async () => {
             // reference. An index's value admits no error node — it reaches Rust
             // as a variant that does not exist and fails the document — so the
             // warning belongs in the sibling array instead.
-            for (const source of [
-                `$a[$(x)[<n/>]]`,
-                `$a[$x{z}[<n/>]]`,
-                `$a[$$f[<n/>](y)]`,
-            ]) {
+            for (const source of [`$a[$(x)[<n/>]]`, `$a[$x{z}[<n/>]]`]) {
                 const index = indicesOf(source);
                 expect(index).toHaveLength(1);
                 expect(
@@ -1488,8 +1479,9 @@ describe("DAST", async () => {
 
             expect(reasonFor(`$$(f)[<n/>](y)`)).toBe("parensFunction");
             expect(reasonFor(`$$f(1)[<n/>](y)`)).toBe("arguments");
-            // Only an otherwise-open function path is `called`.
-            expect(reasonFor(`$$f[<n/>](y)`)).toBe("called");
+            // An otherwise-open function path is not reported at all: the index
+            // is taken, and the call is built on top of it.
+            expect(reasonFor(`$$f[<n/>](y)`)).toBe(undefined);
             // And the same shapes without the trailing call are unchanged.
             expect(reasonFor(`$$(f)[<n/>]`)).toBe("parensFunction");
             expect(reasonFor(`$$f(1)[<n/>]`)).toBe("arguments");

@@ -763,13 +763,15 @@ parser-node-unconvertible = Could not convert node { $node } to Dast node.
 # it still parses, but the braces and whatever is in them are dropped. So the
 # remedy is to delete them, not to write the index somewhere else around them.
 #
-# The other five: `parens` and `parensFunction` are `$(x)[…]` and `$$(f)[…]`,
+# The other four: `parens` and `parensFunction` are `$(x)[…]` and `$$(f)[…]`,
 # which differ only in which sigil the remedy shows — following the `$(…)` one
 # for a function reference would turn it into an ordinary reference. `arguments`
-# is `$$f(1)[…]`, where the argument list ran past the path. `called` is
-# `$$f[<n/>](y)`, where the index is where the grammar wants it but a computed
-# one on a reference that is then called cannot be built. `unclosed` is the
+# is `$$f(1)[…]`, where the argument list ran past the path. `unclosed` is the
 # default because it states a fact rather than offering a remedy.
+#
+# There is deliberately no branch for an index on a function reference that is
+# then called. `$$fs[<n/>](3)` picks which of the functions in `fs` to call and
+# is taken like any other index on an open path.
 #
 # The `parens` branch is about `$(x)[…]`. The index does belong inside the
 # parentheses, but an element written in there is not read as an index either —
@@ -788,7 +790,6 @@ index-element-not-used-as-index =
         [parens] `$(…)` ends a reference, so `[…]` written after it is ordinary text. Give the element a name and write the index inside the parentheses, as `$(x[$idx])`.
         [parensFunction] `$$(…)` ends a function reference, so `[…]` written after it is ordinary text. Give the element a name and write the index inside the parentheses, as `$$(f[$idx])`.
         [arguments] A function reference's arguments end it, so `[…]` written after them is ordinary text. An index written before the arguments would pick which function to call rather than part of what it returns; to index the result, give the result a name and index that.
-        [called] An index before a function reference's arguments picks which function to call, and a computed one there is not supported. To index what the call returns, give the result a name and index that.
        *[unclosed] Its `[` is never closed.
     }
 
