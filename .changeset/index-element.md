@@ -19,11 +19,13 @@ reference expanded in full, the brackets survived as literal text, and the eleme
 rendered its value between them — `100, 300, 200, 50[1]` — with nothing reported.
 
 Any element works, not just `<indexOf>`, and the brackets may hold a mixture of text,
-references and elements the way `$myList[$k + 1]` already could. A name written on an
-element inside an index resolves from the surrounding document, and the element itself
-is not rendered where it was written. Naming the element and referencing it —
-`<indexOf name="io" …/>` then `$myList[$io]` — remains fully supported and is still the
-better form when the same position is wanted more than once.
+references and elements the way `$myList[$k + 1]` already could. What is written
+between the brackets sees the rest of the document, so a reference in there resolves
+as it would anywhere else — `$myList[<indexOf target="$wanted">$myList</indexOf>]`
+finds `$wanted` — and the element is not rendered where it was written. Naming the
+element and referencing it — `<indexOf name="io" …/>` then `$myList[$io]` — is never
+required, but remains the better form when the same position is wanted more than once,
+or when the path continues past the index.
 
 One more shape is left alone for a different reason: an index on a function reference
 that is then called, as in `$$f[<number>1</number>](3)`. An index there picks which
