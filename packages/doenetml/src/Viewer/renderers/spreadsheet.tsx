@@ -17,6 +17,7 @@ interface SpreadsheetSVs {
     [key: string]: any;
     hidden: boolean;
     disabled: boolean;
+    fixed: boolean;
     cells: any[][];
     columnHeaders: string[] | boolean;
     rowHeaders: string[] | boolean;
@@ -49,9 +50,11 @@ export default React.memo(function SpreadsheetRenderer(
      * Per-cell settings, which Handsontable asks for one cell at a time and
      * re-asks for whenever the settings change (`cells` being present clears
      * its cell-meta cache). `row` and `col` are physical indices, which is what
-     * `cellsFixed` and `cellsInHeader` are indexed by: the spreadsheet never
-     * reorders its data, and the hidden-row and hidden-column plugins hide
-     * without trimming, so physical and visual indices stay aligned.
+     * `cellsFixed` and `cellsInHeader` are indexed by: the hidden-row and
+     * hidden-column plugins drop a row or column from the rendered table
+     * without renumbering the ones that remain, so a hidden row does not shift
+     * the flags of the rows below it. `spreadsheet.cy.js` holds a case with
+     * `hiddenRows` and `hiddenColumns` set that fails if that stops being true.
      */
     function cellSettings(row: number, col: number) {
         const cellProperties: { readOnly?: boolean; className?: string } = {};
