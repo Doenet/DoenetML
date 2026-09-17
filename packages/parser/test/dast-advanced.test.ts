@@ -1579,6 +1579,55 @@ describe("DAST", async () => {
             }
         });
 
+        it("reports those same shapes when they are written as a function argument", () => {
+            // `gobbleFunctionArguments` moves an argument out of the sibling
+            // array into `input`, where a pass that walks siblings cannot
+            // follow — so the two shapes only the third pass can see were
+            // silent there, while every other reason was reported normally
+            // because the first pass saw those brackets while they were still
+            // siblings.
+            const reasonsIn = (source: string) => {
+                const reasons: string[] = [];
+                const walk = (node: any) => {
+                    if (Array.isArray(node)) {
+                        return node.forEach(walk);
+                    }
+                    if (node && typeof node === "object") {
+                        if (node.type === "error") {
+                            reasons.push(node.args?.reason);
+                        }
+                        for (const value of Object.values(node)) {
+                            if (value && typeof value === "object") {
+                                walk(value);
+                            }
+                        }
+                    }
+                };
+                walk(lezerToDast(source));
+                return reasons;
+            };
+
+            expect(reasonsIn(`$$g($$f(<n/>)[<m/>])`)).toEqual(["arguments"]);
+            expect(reasonsIn(`$$g($$fs[<n/>](3)[<m/>])`)).toEqual([
+                "arguments",
+            ]);
+            // Nested arguments reach it too, and report once.
+            expect(reasonsIn(`$$h($$g($$f(<n/>)[<m/>]))`)).toEqual([
+                "arguments",
+            ]);
+            // The reasons the first pass settles were never affected, and must
+            // not now be reported twice.
+            expect(reasonsIn(`$$g($(x)[<n/>], $a{z}[<n/>])`)).toEqual([
+                "parens",
+                "braces",
+            ]);
+            // An index that is claimed says nothing, inside an argument list as
+            // anywhere else.
+            for (const source of [`$$g($a[<n/>])`, `$$g(1, 2)`]) {
+                expect(reasonsIn(source)).toEqual([]);
+            }
+        });
+
         it("reports an unclosed bracket whose element is not the first thing in it", () => {
             // `$a[1 + <n/>` is the unclosed spelling of a mixed-content index
             // that is claimed when it closes, so it warns like the simple one.

@@ -64,6 +64,34 @@ export function gobblePropIndices(
     // the first pass warned about is followed by the warning it minted, not by
     // the `[`, so `isOpenBracket` below fails on it and the loop never opens.
     const { warnOnly = false } = options;
+
+    // A function reference's arguments are the other place content leaves the
+    // flat sibling array: `gobbleFunctionArguments` moves them into `input`,
+    // where a pass that walks siblings cannot follow. Without this,
+    // `$$g($$f(<n/>)[<m/>])` reports nothing, for exactly the two shapes this
+    // pass exists to catch — while every other reason is reported there
+    // normally, because the first pass saw those brackets while they were still
+    // siblings.
+    //
+    // Whatever the recursion mints stays inside the argument it came from. That
+    // is where the first pass already leaves a warning about an argument's own
+    // contents, and an argument list admits an error node — unlike an index,
+    // whose narrower `value` is why `attachIndex` has to hoist.
+    if (warnOnly) {
+        for (const node of nodes) {
+            if (node.type === "function" && node.input) {
+                node.input = node.input.map(
+                    (argument) =>
+                        gobblePropIndices(
+                            argument as DastRootContent[],
+                            offsetMap,
+                            options,
+                        ) as typeof argument,
+                );
+            }
+        }
+    }
+
     if (!mayHaveAnElementIndex(nodes)) {
         return nodes;
     }
