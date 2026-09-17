@@ -84,11 +84,18 @@ export function doenetMLStringForReference(
  * author did not write and could not search their document for.
  *
  * Read from the source rather than inferred, because by this point nothing on
- * the component says which spelling produced it. Falls back to `$` whenever the
- * source is not there to read — the same answer as before, for a reference we
- * cannot say more about. A parenthesized path, `$(x)`, also falls back: its
- * path starts inside the parentheses, so the two characters before it are `$(`
- * rather than `$$`.
+ * the component says which spelling produced it.
+ *
+ * A parenthesized path is written `$(x)` or `$$(f)`, and its path starts inside
+ * the parentheses — so the `(` is stepped over before looking for the sigil,
+ * without which `$$(f)` would come back as an ordinary `$`. The parentheses
+ * themselves are not reported: `doenetMLStringForReference` spans the path, so
+ * `$$(fs[$i])` is quoted as `$$fs[$i]`, which names the same reference in the
+ * spelling that does not need them.
+ *
+ * Falls back to `$` whenever the source is not there to read — the same answer
+ * as before, for a reference we cannot say more about. An `extend=` attribute
+ * has no sigil at all and lands there too.
  */
 export function doenetMLSigilForReference(
     originalPath: ReferencePathPart[] | undefined | null,
@@ -103,7 +110,10 @@ export function doenetMLSigilForReference(
     if (source == undefined) {
         return "$";
     }
-    return source.substring(startOffset - 2, startOffset) === "$$" ? "$$" : "$";
+    // `$(x)` and `$$(f)` start their path one character further in.
+    const sigilEnd =
+        source[startOffset - 1] === "(" ? startOffset - 1 : startOffset;
+    return source.substring(sigilEnd - 2, sigilEnd) === "$$" ? "$$" : "$";
 }
 
 /**

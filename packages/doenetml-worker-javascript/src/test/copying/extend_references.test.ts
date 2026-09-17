@@ -7332,15 +7332,33 @@ describe("Extend and references tests @group2", async () => {
                 expect(warning?.position).toBeDefined();
             }
 
-            // An ordinary reference still gets the single sigil it was written
-            // with, which is the control.
-            const { diagnostics: plain } = await run(
-                `${setup}<p name="p1">$nums[$bad]</p>`,
-            );
-            expect(
-                plain.warnings.find((w: any) => w.code === "doenet-w0163")
-                    ?.message,
-            ).contain("`$nums[$bad]`");
+            // A parenthesized path starts inside its parentheses, so the `(`
+            // has to be stepped over to find the sigil behind it. The
+            // parentheses are not quoted back — the path alone names the same
+            // reference in the spelling that does not need them.
+            for (const reference of [`$$(fs[$bad])(3)`, `$$(fs[$bad])`]) {
+                const { diagnostics } = await run(
+                    `${setup}<p name="p1">${reference}</p>`,
+                );
+                expect(
+                    diagnostics.warnings.find(
+                        (w: any) => w.code === "doenet-w0163",
+                    )?.message,
+                ).contain("`$$fs[$bad]`");
+            }
+
+            // Ordinary references still get the single sigil they were written
+            // with, parenthesized or not, which is the control.
+            for (const reference of [`$nums[$bad]`, `$(nums[$bad])`]) {
+                const { diagnostics } = await run(
+                    `${setup}<p name="p1">${reference}</p>`,
+                );
+                expect(
+                    diagnostics.warnings.find(
+                        (w: any) => w.code === "doenet-w0163",
+                    )?.message,
+                ).contain("`$nums[$bad]`");
+            }
         });
 
         it("does not report a working index", async () => {
