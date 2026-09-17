@@ -1526,11 +1526,18 @@ describe("DAST", async () => {
 
             expect(reasonFor(`$$f(<n/>)[<m/>]`)).toBe("arguments");
             expect(reasonFor(`$$f(<n/>)[<m/>](y)`)).toBe("arguments");
+            // An element *index* hides the argument list from the grammar just
+            // as an element argument does, so `$$fs[<n/>](3)[<m/>]` is out of
+            // the first pass's reach too and has to give the same reason its
+            // written-out spelling `$$fs[1](3)[<m/>]` gives.
+            expect(reasonFor(`$$fs[<n/>](3)[<m/>]`)).toBe("arguments");
+            expect(reasonFor(`$$fs[1](3)[<m/>]`)).toBe("arguments");
             // Exactly one warning: the second pass must not repeat what the
             // first already said about a grammar-parsed argument list.
             for (const source of [
                 `$$f(1)[<m/>]`,
                 `$$f(<n/>)[<m/>]`,
+                `$$fs[<n/>](3)[<m/>]`,
                 `$x{z}[<n/>]`,
                 `$(x)[<n/>]`,
             ]) {

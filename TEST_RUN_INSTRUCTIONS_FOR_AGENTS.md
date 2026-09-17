@@ -86,6 +86,23 @@ npm run build -w @doenet/i18n
 
 Adding an i18n **locale** needs all four, in this order — `codegen` → `build -w @doenet/i18n` → `build:schema` → `build -w @doenet/static-assets`. Skipping the second step drops locales from the schema.
 
+## Vitest: Use the Workspace Script, Not a Bare `npx vitest`
+
+`npm run test -w @doenet/<pkg>` runs vitest **with that package's `vite.config.ts`**. A bare `npx vitest --run packages/<pkg>/…` from the root does not load it, and there is no root vitest config to stand in, so the plugins and `test` options the package's suite depends on are simply absent. What you get back is failures in code you did not touch:
+
+| package | what the root run drops | how it reads |
+| --- | --- | --- |
+| `parser` | the `.peggy` loader | every test file fails to import — "content contains invalid JS syntax" |
+| `v06-to-v07` | `vite-plugin-arraybuffer`, which is how the resolver wasm is loaded | 23 tests fail, every one of them a reference that did not resolve |
+| `doenetml-worker-javascript` | `testTimeout: 180000` (vitest's default is 5 000) | the slow suites fail on "Test timed out in 5000ms"; `evaluate.test.ts` alone reports 5 |
+
+The suites that need nothing from their package config — `lsp-tools`, the worker's `copying` and `diagnostics` — do pass from the root, which is what makes this worth writing down: the invocation works often enough to look trustworthy, and then reports a failure that reads like a regression in the branch under review. Pass the files after `--` instead:
+
+```bash
+npm run test -w @doenet/parser -- --run
+npm run test -w @doenet/doenetml-worker-javascript -- --run src/test/tagSpecific/evaluate.test.ts
+```
+
 ## Rust Tests: Use the npm Script, Not `cargo test`
 
 ```bash
@@ -302,7 +319,7 @@ rebuild the docs (step 1) before running the tests — Cypress reads the built
 ## Quick Checklist
 
 1. Use non-interactive commands only.
-2. For Vitest, include `--run`.
+2. For Vitest, include `--run`, and run it as `npm run test -w @doenet/<pkg> -- --run [files]` — a bare `npx vitest` from the root skips the package's `vite.config.ts` and fails suites that are fine.
 3. If you edited another package's `src/`, build that package first — nothing does it for you, and a stale `dist/` passes silently.
 4. For `@doenet/test-cypress`, rebuild first after any code change.
 5. Only after rebuilding, start preview server.

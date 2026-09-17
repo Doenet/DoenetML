@@ -289,6 +289,45 @@ describe("DoenetSourceObject", () => {
         expect(sourceObj.getAddressableNamesAtOffset(0)).toContainEqual(["io"]);
     });
 
+    it("Numbers an index element like any other element", () => {
+        // `getNodeIndexAtOffset` answers "which element am I in", and an
+        // element in index brackets is a child of nothing, so the walk that
+        // numbers elements had to be widened to reach it as well. Without
+        // that, a cursor on its tag reports `null` — an offset inside the
+        // document that belongs to no element at all — and one in its body
+        // reports the root rather than the element it is written in.
+        const source = `<p>$myList[<indexOf name="io">$myList</indexOf>]</p><section><q/></section>`;
+        const sourceObj = new DoenetSourceObject(source);
+
+        const pIndex = sourceObj.getNodeIndexAtOffset(
+            source.indexOf("<p>") + 1,
+        );
+        const indexOfIndex = sourceObj.getNodeIndexAtOffset(
+            source.indexOf("<indexOf") + 1,
+        );
+        expect(indexOfIndex).not.toBeNull();
+        expect(indexOfIndex).not.toEqual(pIndex);
+
+        // A reference written inside it is in the index element, not the root.
+        expect(
+            sourceObj.getNodeIndexAtOffset(
+                source.indexOf("$myList</indexOf>") + 1,
+            ),
+        ).toEqual(indexOfIndex);
+
+        // The brackets are still the enclosing element's own text.
+        expect(sourceObj.getNodeIndexAtOffset(source.indexOf("]</p>"))).toEqual(
+            pIndex,
+        );
+
+        // And it takes its place in the depth-first numbering rather than
+        // being appended somewhere: an element written after the reference is
+        // numbered after it.
+        expect(
+            sourceObj.getNodeIndexAtOffset(source.indexOf("<q/>") + 1)!,
+        ).toBeGreaterThan(indexOfIndex!);
+    });
+
     it("Can get cursor position when element contains macro", () => {
         let source: string;
         let sourceObj: DoenetSourceObject;

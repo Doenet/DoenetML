@@ -49,13 +49,20 @@ export function gobblePropIndices(
 ): DastRootContent[] {
     // `warnOnly` is the second of the two passes this function makes over a
     // sibling array. The first runs before `gobbleFunctionArguments` and does the
-    // real work; this one runs after it, attaches nothing, and exists only to
-    // report `$$f(<n/>)[<m/>]`. Until the arguments have been gobbled that
-    // reference is followed by `(` rather than `[`, so the first pass cannot see
-    // the brackets at all, while `$$f(1)[<m/>]` — whose arguments the grammar
-    // parsed — it warns about normally. Restricting this pass to references whose
-    // input holds an element is what keeps the two from both reporting the same
-    // thing.
+    // real work; this one runs after it, attaches nothing, and reports the
+    // brackets the first pass could not see.
+    //
+    // It could not see them whenever an argument list was still sitting between
+    // the reference and them while it ran — the reference was followed by `(`
+    // rather than `[`. That is `$$f(<n/>)[<m/>]`, whose arguments the grammar
+    // could not parse, and equally `$$fs[<n/>](3)[<m/>]`, whose arguments it
+    // could: the element index before them is what kept the grammar from
+    // reaching the argument list, so both end up gobbled and both leave brackets
+    // behind that only this pass is in a position to report.
+    //
+    // Nothing needs to stop it repeating what the first pass said. A reference
+    // the first pass warned about is followed by the warning it minted, not by
+    // the `[`, so `isOpenBracket` below fails on it and the loop never opens.
     const { warnOnly = false } = options;
     if (!mayHaveAnElementIndex(nodes)) {
         return nodes;
@@ -77,9 +84,6 @@ export function gobblePropIndices(
         const node = split[i];
         ret.push(node);
         if (node.type !== "macro" && node.type !== "function") {
-            continue;
-        }
-        if (warnOnly && !hasElementArguments(node)) {
             continue;
         }
         // A reference may take more than one index in a row: `$a[<n/>][<m/>]`.
@@ -163,23 +167,6 @@ export function gobblePropIndices(
     }
 
     return mergeAdjacentTextInArray(ret as any) as DastRootContent[];
-}
-
-/**
- * Whether this function reference was given its arguments by
- * `gobbleFunctionArguments` rather than by the grammar — which is true exactly
- * when an element was written among them, as in `$$f(<math>3</math>)`.
- *
- * Used only by the `warnOnly` pass, to pick out the references the first pass
- * could not have seen.
- */
-function hasElementArguments(node: DastMacro | DastFunctionMacro): boolean {
-    if (node.type !== "function" || !node.input) {
-        return false;
-    }
-    return node.input.some((argument) =>
-        argument.some((n) => n.type === "element"),
-    );
 }
 
 /**

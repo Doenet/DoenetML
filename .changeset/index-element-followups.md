@@ -62,6 +62,8 @@ function to call, so this asks the same question `$$fs[2](3)` does, with the pos
 worked out rather than written down. `$$fs[$i](3)` was what stopped the document before,
 and it is what made this shape unsafe to accept.
 
-One shape gained a warning it should always have had: `$$f(<math>3</math>)[<number>1</number>]`
-said nothing at all, where the same brackets after a plainly written argument list have
-been reported for a while. Neither can index, and both now say so.
+Two shapes gained a warning they should always have had. Brackets written after a function
+reference's arguments cannot index, and `$$f(3)[<number>1</number>]` has said so for a
+while — but `$$f(<math>3</math>)[<number>1</number>]` and
+`$$fs[<number>2</number>](3)[<number>1</number>]` said nothing at all. All three now give
+the same reason.

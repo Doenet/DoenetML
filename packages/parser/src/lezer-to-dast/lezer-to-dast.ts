@@ -299,9 +299,10 @@ function _lezerToDast(node: SyntaxNode, source: string): DastRoot {
                 // reference, so with `[`, the element and `]` still sitting
                 // there it would see `[` where it needs `(` and leave
                 // `$$f[<n/>](y)` uncalled. Reversing the two loses the call.
-                // The third pass reports `$$f(<n/>)[<m/>]`, which the first
-                // cannot see: until the arguments are gobbled, that reference is
-                // followed by `(` rather than `[`.
+                // The third pass reports the brackets the first cannot see —
+                // `$$f(<n/>)[<m/>]`, and `$$fs[<n/>](3)[<m/>]` too. Until the
+                // arguments are gobbled, either reference is followed by `(`
+                // rather than `[`.
                 children = gobblePropIndices(
                     gobbleFunctionArguments(
                         gobblePropIndices(children, offsetMap),
