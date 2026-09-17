@@ -7096,7 +7096,7 @@ describe("Extend and references tests @group2", async () => {
             );
         });
 
-        it("renders an element written as a function macro's argument", async () => {
+        it("renders an element written as a function reference's argument", async () => {
             // Not an index, but the same parent chain: a function reference's
             // arguments are parented to the reference too. This shape parsed
             // before #1909 and was asserted at the DAST layer, but it had never

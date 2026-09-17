@@ -1080,14 +1080,14 @@ describe("DAST", async () => {
         /** The index contents of `$name`'s last path part, with positions dropped. */
         function indicesOf(source: string) {
             const dast = lezerToDast(source);
-            const macro = dast.children.find(
+            const reference = dast.children.find(
                 (n): n is DastMacro | DastFunctionMacro =>
                     n.type === "macro" || n.type === "function",
             );
-            if (!macro) {
+            if (!reference) {
                 return undefined;
             }
-            const lastPart = macro.path[macro.path.length - 1];
+            const lastPart = reference.path[reference.path.length - 1];
             return filterPositionInfo(
                 structuredClone(lastPart.index) as any,
             ) as any[];
@@ -1140,10 +1140,10 @@ describe("DAST", async () => {
 
         it("attaches the index to the path part it follows", () => {
             const dast = lezerToDast(`$a.x[<n/>].y`);
-            const macro = dast.children[0] as DastMacro;
-            expect(macro.path.map((p) => p.name)).toEqual(["a", "x"]);
-            expect(macro.path[0].index).toHaveLength(0);
-            expect(macro.path[1].index).toHaveLength(1);
+            const reference = dast.children[0] as DastMacro;
+            expect(reference.path.map((p) => p.name)).toEqual(["a", "x"]);
+            expect(reference.path[0].index).toHaveLength(0);
+            expect(reference.path[1].index).toHaveLength(1);
         });
 
         it("is not confused by brackets written inside the element", () => {
@@ -1210,9 +1210,9 @@ describe("DAST", async () => {
                 }
             });
 
-            it("a function macro already closed by its arguments", () => {
+            it("a function reference already closed by its arguments", () => {
                 // `$$f[1](y)` is how the grammar spells an indexed function
-                // macro, so `$$f(1)[…]` has ended before the brackets — the
+                // reference, so `$$f(1)[…]` has ended before the brackets — the
                 // same as `$(x)[…]`, but the remedy is the opposite one, and
                 // the reference has to be quoted back with both its `$`s.
                 const children = childrenOf(`$$f(1)[<n/>]`);
@@ -1395,19 +1395,22 @@ describe("DAST", async () => {
             // piece it cuts. Past a newline the column restarts from 1, so
             // carrying it puts the bracket that many characters too far right —
             // and `attachIndex` copies it into the index and the reference.
-            const macro = (
+            const reference = (
                 lezerToDast(`<p>$a[<n/>\n  ]</p>`).children[0] as any
             ).children[0];
-            expect(macro.position.end).toMatchObject({ line: 2, column: 4 });
+            expect(reference.position.end).toMatchObject({
+                line: 2,
+                column: 4,
+            });
         });
 
         it("grows the reference's position over the moved element", () => {
             // `sourceLocation.ts` in the worker quotes a reference by spanning
             // its path parts' positions, so the path part has to grow too.
             const source = `$a[<n/>]`;
-            const macro = lezerToDast(source).children[0] as DastMacro;
-            expect(macro.position!.end.offset).toBe(source.length);
-            expect(macro.path[0].position!.end.offset).toBe(source.length);
+            const reference = lezerToDast(source).children[0] as DastMacro;
+            expect(reference.position!.end.offset).toBe(source.length);
+            expect(reference.path[0].position!.end.offset).toBe(source.length);
         });
     });
 });

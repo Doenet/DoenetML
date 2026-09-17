@@ -99,8 +99,8 @@ type VisitOptions = {
      */
     includeArrays?: boolean;
     /**
-     * Whether to descend into `macro.path[i].index[j].value`, where an index's
-     * contents live.
+     * Whether to descend into a reference's `path[i].index[j].value`, where an
+     * index's contents live.
      *
      * Off by default, and deliberately so. An index could only ever hold text and
      * references until `gobblePropIndices` began moving elements into one (#1909),
@@ -239,12 +239,12 @@ export function visit<Opts extends VisitOptions>(
             includePathIndices &&
             !Array.isArray(node) &&
             (node.type === "macro" || node.type === "function") &&
-            // A v0.6 function macro keeps its path under `macro` instead, and v0.6
-            // indices never hold elements, so leave that shape alone.
+            // A v0.6 function reference stores its path under `macro` instead, and
+            // v0.6 indices never hold elements, so leave that shape alone.
             "path" in node
         ) {
-            // What is written between a reference's index brackets. A macro node has
-            // no `children`, and a function macro's branch below reaches only its
+            // What is written between a reference's index brackets. A reference has
+            // no `children`, and the function-reference branch below reaches only its
             // `input`, so without this an element moved into an index by
             // `gobblePropIndices` would never be visited at all.
             for (const pathPart of node.path) {

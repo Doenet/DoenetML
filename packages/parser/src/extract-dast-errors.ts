@@ -17,7 +17,7 @@ export function extractDastErrors(
     }
     if (
         (nodes.type === "macro" || nodes.type === "function") &&
-        // A v0.6 function macro keeps its path under `macro` instead.
+        // A v0.6 function reference stores its path under `macro` instead.
         "path" in nodes
     ) {
         // What is written between a reference's index brackets, and — for a

@@ -1032,8 +1032,8 @@ describe("Normalize dast", async () => {
             });
             // The element itself stays in the index — only its name was
             // invalid, and that has been removed — so the index still resolves.
-            const macro = (p as DastElement).children[0] as DastMacro;
-            expect(macro.path[0].index[0].value).toMatchObject([
+            const reference = (p as DastElement).children[0] as DastMacro;
+            expect(reference.path[0].index[0].value).toMatchObject([
                 { type: "element", name: "number", attributes: {} },
             ]);
         });

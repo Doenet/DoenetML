@@ -20,7 +20,7 @@ import {
 /**
  * An index can be written with an element in it — `$myList[<indexOf …/>]` — but the
  * macro parser can never see one, for the same reason it cannot see a function
- * macro's element arguments.
+ * reference's element arguments.
  *
  * Lezer parses the XML structure first, and `reprocessTextForMacros` then runs the
  * macro parser over each *text* node that comes out of it. An element between the
@@ -253,7 +253,7 @@ function isCallFollowing(
  * reason it does not have.
  */
 function whatClosedThePath(
-    macro: DastMacro | DastFunctionMacro,
+    reference: DastMacro | DastFunctionMacro,
 ):
     | "braces"
     | "parens"
@@ -261,17 +261,17 @@ function whatClosedThePath(
     | "arguments"
     | "unknown"
     | undefined {
-    const lastPart = macro.path[macro.path.length - 1] as
+    const lastPart = reference.path[reference.path.length - 1] as
         DastMacroPathPart | undefined;
-    const macroEnd = macro.position?.end?.offset;
+    const referenceEnd = reference.position?.end?.offset;
     const partEnd = lastPart?.position?.end?.offset;
-    if (macroEnd == null || partEnd == null) {
+    if (referenceEnd == null || partEnd == null) {
         return "unknown";
     }
-    if (macroEnd === partEnd) {
+    if (referenceEnd === partEnd) {
         return undefined;
     }
-    if (macro.type === "function" && macro.input != null) {
+    if (reference.type === "function" && reference.input != null) {
         // `$$f(1)`. The argument list is what runs past the path. Writing the
         // index inside the parentheses would make it one more argument, and
         // writing it before them — `$$f[2](1)` — picks which function is called
@@ -282,15 +282,15 @@ function whatClosedThePath(
     // What is left is a parenthesized path or a brace block, told apart by where the
     // path starts: `$(x)` and `$$(f)` write the path inside parens, so it begins one
     // character further in than the bare `$x` that a `{…}` block follows.
-    const macroStart = macro.position?.start?.offset;
-    const firstStart = macro.path[0]?.position?.start?.offset;
-    const sigilLength = macro.type === "function" ? 2 : 1;
+    const referenceStart = reference.position?.start?.offset;
+    const firstStart = reference.path[0]?.position?.start?.offset;
+    const sigilLength = reference.type === "function" ? 2 : 1;
     if (
-        macroStart == null ||
+        referenceStart == null ||
         firstStart == null ||
-        firstStart > macroStart + sigilLength
+        firstStart > referenceStart + sigilLength
     ) {
-        return macro.type === "function" ? "parensFunction" : "parens";
+        return reference.type === "function" ? "parensFunction" : "parens";
     }
     // `$x{…}`. The grammar still parses a brace block, but v0.7 gives it no
     // meaning — `set_ref` in the Rust flattener drops a reference's attributes
@@ -303,10 +303,10 @@ function whatClosedThePath(
  * Move a bracket group onto the reference's last path part as an index.
  */
 function attachIndex(
-    macro: DastMacro | DastFunctionMacro,
+    reference: DastMacro | DastFunctionMacro,
     group: BracketGroup,
 ): DastError[] {
-    const lastPart = macro.path[macro.path.length - 1];
+    const lastPart = reference.path[reference.path.length - 1];
 
     // A comment written between the brackets is kept here and removed in
     // normalization instead, by `pluginRemoveCommentsInstructionsAndDocStrings`.
@@ -317,7 +317,7 @@ function attachIndex(
     // normalization, which is why the type admits one.
     const content = group.content;
 
-    // The group may hold references and function macros of its own, so it gets the
+    // The group may hold references and function references of its own, so it gets the
     // same two passes the top level gets.
     const processed = gobbleFunctionArguments(
         gobblePropIndices(content),
@@ -353,13 +353,15 @@ function attachIndex(
 
     // The reference now runs to the closing bracket. `sourceLocation.ts` in the
     // worker quotes a reference by spanning its path parts' positions, so the path
-    // part has to grow too, not just the macro.
+    // part has to grow too, not just the reference.
     if (end) {
         if (lastPart.position) {
             lastPart.position.end = { ...end } as typeof lastPart.position.end;
         }
-        if (macro.position) {
-            macro.position.end = { ...end } as typeof macro.position.end;
+        if (reference.position) {
+            reference.position.end = {
+                ...end,
+            } as typeof reference.position.end;
         }
     }
 
@@ -372,7 +374,7 @@ function attachIndex(
  * nothing says the index was dropped — the silence #1909 is about.
  */
 function indexWarning(
-    macro: DastMacro | DastFunctionMacro,
+    reference: DastMacro | DastFunctionMacro,
     openBracket: DastText,
     reason:
         | "braces"
@@ -382,11 +384,11 @@ function indexWarning(
         | "called"
         | "unclosed",
 ): DastError {
-    // The sigil belongs to `name` because a function macro carries two of them:
+    // The sigil belongs to `name` because a function reference carries two of them:
     // quoting `$$f` as `$f` would name a component the author did not write.
     const name =
-        (macro.type === "function" ? "$$" : "$") +
-        macro.path.map((part) => part.name).join(".");
+        (reference.type === "function" ? "$$" : "$") +
+        reference.path.map((part) => part.name).join(".");
     // Each remedy has to work for the element the author actually wrote, which is
     // what makes the wording specific: an element written inside `$(…)` is not
     // read there either, so the `parens` remedy has to name it first, and an
@@ -409,9 +411,9 @@ function indexWarning(
         args: { name, reason } as DiagnosticArgs,
         error_type: "warning",
         position:
-            macro.position && openBracket.position
+            reference.position && openBracket.position
                 ? {
-                      start: { ...macro.position.start },
+                      start: { ...reference.position.start },
                       end: { ...openBracket.position.end },
                   }
                 : undefined,
