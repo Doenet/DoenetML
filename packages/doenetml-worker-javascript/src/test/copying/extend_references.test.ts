@@ -7313,6 +7313,36 @@ describe("Extend and references tests @group2", async () => {
             expect(diagnostics.warnings.length).eq(0);
         });
 
+        it("renders what sits beside the reference, not just what precedes it", async () => {
+            // Giving up on the index left the path holding the live component
+            // the index was written from, and that path travels on into
+            // `compositeReplacementRange`, which `childDependencies.ts` sends
+            // through `JSON.stringify`. A component graph is circular, so the
+            // throw came back the moment the paragraph held anything after the
+            // reference -- which is most paragraphs, and is why the plain
+            // one-reference case above is not enough of a test on its own.
+            const doc = (paragraph: string) => `
+    <numberList name="myList">100 300 200 50</numberList>
+    <indexOf name="io" tolerance="1e-6" target="100">$myList</indexOf>
+    <p name="p1">${paragraph}</p>
+    <p name="p2">after</p>
+            `;
+
+            for (const [paragraph, expected] of [
+                ["$myList[$io] tail", " tail"],
+                ["[$myList[$io]]", "[]"],
+                ["head $myList[$io] tail", "head  tail"],
+            ] as const) {
+                const { text, diagnostics } = await run(doc(paragraph));
+                expect(text).eq(expected);
+                expect(diagnostics.warnings.map((w: any) => w.code)).toContain(
+                    "doenet-w0163",
+                );
+                // And the document goes on after it.
+                expect((await run(doc(paragraph), "p2")).text).eq("after");
+            }
+        });
+
         it("builds a called function reference with a component index once, not twice", async () => {
             // `convertEvaluate` hands the synthesized `function` component the
             // `<evaluate>`'s own resolution object, and converting a path

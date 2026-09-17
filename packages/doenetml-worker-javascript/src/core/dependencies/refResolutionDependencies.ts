@@ -8,6 +8,20 @@ import { Dependency } from "./Dependency";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import { doenetMLStringForReference } from "../../utils/sourceLocation";
 
+/**
+ * The same path with every index emptied.
+ *
+ * A path that has been through `resolveComponentsInPathIndices` holds only
+ * strings in its indices; one that has not holds the components the author
+ * wrote between the brackets. The second kind must not be handed on as a
+ * resolution result: it ends up in `compositeReplacementRange`, which
+ * `childDependencies.ts` round-trips through `JSON.stringify`, and a live
+ * component is circular.
+ */
+function dropPathIndices(path: any[]): any[] {
+    return path.map((pathPart) => ({ ...pathPart, index: [] }));
+}
+
 export class RefResolutionIndexDependencies extends Dependency {
     static dependencyType = "refResolutionIndexDependencies";
 
@@ -366,7 +380,21 @@ export class RefResolutionDependency extends Dependency {
             );
 
             this.extendIdx = -1;
-            this.unresolvedPath = composite.refResolution.originalPath;
+            // Without the index. Every other branch that gives up hands back a
+            // path whose indices are the literal strings
+            // `resolveComponentsInPathIndices` produced, and we never got one --
+            // so what is left in there is the live component the index was
+            // written from. That path reaches `compositeReplacementRange`, which
+            // is round-tripped through `JSON.stringify` in
+            // `childDependencies.ts`, and a component graph does not survive
+            // that: the reference blanked the document all over again as soon as
+            // anything followed it in the same parent. Nothing can resolve
+            // through an index we could not work out anyway, and the names and
+            // positions the reporting paths read are all still here.
+            this.originalPath = dropPathIndices(
+                composite.refResolution.originalPath,
+            );
+            this.unresolvedPath = this.originalPath;
             return {
                 success: true,
                 downstreamComponentIndices: [],
