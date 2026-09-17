@@ -140,14 +140,18 @@ export function gobblePropIndices(
             }
             if (node.type === "function" && isCallFollowing(split, group)) {
                 // `$$f[<n/>](y)`, with the path still open: the index is where
-                // the grammar wants it, and `$$f[1](y)` parses. But the worker
-                // cannot build a *component-valued* index on a reference it then
-                // calls — it emits the index component twice and throws
-                // `Found a duplicate componentIdx`, blanking the page. That
-                // failure is not ours (`$$f[$k](3)` throws it with an ordinary
-                // reference index too), but claiming these brackets would newly
-                // route an author into it, where before they rendered as harmless
-                // literal text. So leave them literal and say why.
+                // the grammar wants it, and `$$f[1](y)` parses. But an index on a
+                // function reference that is then called does not select
+                // anything — `$$f[1](3)` builds an `<evaluate>` with no function
+                // and renders blank. Claiming these brackets would turn markup
+                // that renders as literal text, with a warning saying what to
+                // write instead, into a silent empty result. So leave them
+                // literal and say why.
+                //
+                // This used to throw `Found a duplicate componentIdx` and blank
+                // the whole document, which was a separate fault and is fixed
+                // (#1917). Fixing it made every spelling agree; it did not make
+                // the index work, so this guard stays.
                 ret.push(
                     indexWarning(node, split[i + 1] as DastText, "called"),
                 );

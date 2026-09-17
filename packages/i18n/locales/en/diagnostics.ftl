@@ -646,6 +646,13 @@ reference-no-referent = No referent found for reference: `{ $reference }`
 
 reference-multiple-referents = Multiple referents found for reference: `{ $reference }`
 
+# Raised when what was written between a reference's index brackets did not come
+# out as a whole number — usually because that component reported an error of its
+# own, which is the diagnostic the author should act on. This one says why the
+# reference then found nothing, so the two read together rather than the reference
+# failing silently.
+reference-index-not-a-number = The index of `{ $reference }` did not work out to a number, so the reference found nothing.
+
 ## Children that do not match
 
 children-invalid-attribute-format = Invalid format for attribute { $attribute } of `<{ $componentType }>`.

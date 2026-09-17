@@ -7019,11 +7019,11 @@ describe("Extend and references tests @group2", async () => {
             ).eq(true);
         });
 
-        it("leaves a called function reference's index alone rather than killing the document", async () => {
-            // `$$f[1](y)` parses, but the worker cannot build a component-valued
-            // index on a reference it then calls — it emits the index component
-            // twice and throws. Claiming these brackets would turn what used to
-            // render as harmless text into a blank page, so they stay text.
+        it("leaves a called function reference's index alone", async () => {
+            // `$$f[1](y)` parses, but an index on a function reference that is
+            // then called selects nothing: `$$f[1](3)` renders blank. Claiming
+            // these brackets would trade text the author can see, plus a warning
+            // saying what to write instead, for a silent empty result.
             const { text, diagnostics } = await textOf(`
     <function name="f" variables="x">x^2</function>
     <p name="p1">$$f[<number>1</number>](3)</p>
@@ -7174,6 +7174,111 @@ describe("Extend and references tests @group2", async () => {
             expect(text).eq("9");
             expect(diagnostics.errors.length).eq(0);
             expect(diagnostics.warnings.length).eq(0);
+        });
+    });
+
+    describe("a component-valued index that cannot be worked out", () => {
+        // #1917. `$list[$i]` is the form the documentation recommends, and four
+        // `throw`s on that path were reachable from ordinary markup. Since
+        // nothing between them and the worker catches, the whole document went
+        // blank -- taking with it the diagnostic that explained the mistake.
+        //
+        // None of these involves an element in brackets, and all of them
+        // reproduced before elements in brackets existed.
+
+        async function run(doenetML: string, path = "p1") {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return {
+                text: stateVariables[await resolvePathToNodeIdx(path)]
+                    .stateValues.text,
+                diagnostics: getDiagnosticsByType(core),
+            };
+        }
+
+        it("reports the attribute error instead of stopping the document", async () => {
+            // `tolerance` is not an attribute of `<indexOf>`, so the component
+            // becomes an `_error`. That error is correct and is reported; what
+            // used to happen is that the reference then threw and the reader got
+            // a blank page instead of the message.
+            const { diagnostics } = await run(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <indexOf name="io" tolerance="1e-6" target="100">$myList</indexOf>
+    <p name="p1">$myList[$io]</p>
+            `);
+            expect(diagnostics.errors.length).eq(1);
+            expect(diagnostics.errors[0].message).contain(
+                'Invalid attribute "tolerance"',
+            );
+            // And the reference says why it came up empty.
+            expect(diagnostics.warnings.map((w: any) => w.code)).toContain(
+                "doenet-w0163",
+            );
+        });
+
+        it("does the same for a bad attribute on a plain <number> index", async () => {
+            const { diagnostics } = await run(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <number name="q" bogusAttr="1">1</number>
+    <p name="p1">$myList[$q]</p>
+            `);
+            expect(diagnostics.errors.length).eq(1);
+            expect(diagnostics.errors[0].message).contain(
+                'Invalid attribute "bogusAttr"',
+            );
+            expect(diagnostics.warnings.map((w: any) => w.code)).toContain(
+                "doenet-w0163",
+            );
+        });
+
+        it("does not report a working index", async () => {
+            const { text, diagnostics } = await run(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <number name="i">2</number>
+    <p name="p1">$myList[$i]</p>
+            `);
+            expect(text).eq("300");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+
+        it("builds a called function reference with a component index once, not twice", async () => {
+            // `convertEvaluate` hands the synthesized `function` component the
+            // `<evaluate>`'s own resolution object, and converting a path
+            // rewrites it in place -- so both ended up owning the components
+            // built for the index, and the second to be instantiated threw
+            // `Found a duplicate componentIdx`.
+            //
+            // These render blank, which is what `$$f[1](3)` has always done: an
+            // index on a function reference that is then called selects nothing.
+            // That is a separate problem. What matters here is that every
+            // spelling now agrees instead of one of them stopping the document.
+            const setup = `
+    <function name="f" variables="x">x^2</function>
+    <number name="k">1</number>`;
+            for (const reference of [
+                `$$f[$k](3)`,
+                `$$f[$k+0](3)`,
+                `$$f[$k][1](3)`,
+            ]) {
+                const { diagnostics } = await run(
+                    `${setup}<p name="p1">${reference}</p>`,
+                );
+                expect(diagnostics.errors.length).eq(0);
+            }
+        });
+
+        it("still evaluates a function reference with no index", async () => {
+            const { text } = await run(`
+    <function name="f" variables="x">x^2</function>
+    <p name="p1">$$f(3)</p>
+            `);
+            expect(text).eq("9");
         });
     });
 });
