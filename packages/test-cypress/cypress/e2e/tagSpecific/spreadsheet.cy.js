@@ -1551,4 +1551,64 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
         cy.get(cesc("#P46:2")).should("not.exist");
         cy.get(cesc("#P46:3")).should("not.exist");
     });
+
+    it("fixed cells are read-only and header rows are emphasized", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <text name="a">a</text>
+    <spreadsheet minNumRows="3" minNumColumns="3" name="spreadsheet1">
+      <row header>
+        <cell>name</cell>
+        <cell>value</cell>
+      </row>
+      <row>
+        <cell fixed>locked</cell>
+        <cell>open</cell>
+      </row>
+    </spreadsheet>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#a").should("have.text", "a"); // to wait for page to load
+
+        const cell = (row, column) =>
+            `#spreadsheet1 tbody > :nth-child(${row}) > :nth-child(${column + 1})`;
+
+        // the cells of the header row are emphasized, the rest are not
+        cy.get(cell(1, 1)).should(
+            "have.class",
+            "doenet-spreadsheet-header-cell",
+        );
+        cy.get(cell(1, 1)).should("have.css", "font-weight", "700");
+        cy.get(cell(1, 2)).should(
+            "have.class",
+            "doenet-spreadsheet-header-cell",
+        );
+        cy.get(cell(2, 1)).should(
+            "not.have.class",
+            "doenet-spreadsheet-header-cell",
+        );
+
+        // the fixed cell is marked read-only, its neighbor is not
+        cy.get(cell(2, 1)).should("have.class", "htDimmed");
+        cy.get(cell(2, 2)).should("not.have.class", "htDimmed");
+
+        // clicking a fixed cell builds no editor at all, so its text stands
+        cy.get(cell(2, 1)).click({ force: true });
+        cy.get("#spreadsheet1 .handsontableInput").should("not.exist");
+        cy.get(cell(2, 1)).should("have.text", "locked");
+
+        // an unfixed cell still edits
+        enterSpreadsheetText({
+            row: 2,
+            column: 2,
+            text: "changed",
+            clear: true,
+        });
+    });
 });

@@ -8,6 +8,7 @@ type SpreadsheetData = {
         rowHeaders: boolean;
         hiddenRows: number[];
         hiddenColumns: number[];
+        cellsInHeader: boolean[][];
     };
 };
 
@@ -17,6 +18,7 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
     const includeRowHeaders = node.data.props.rowHeaders;
     const hiddenRows = node.data.props.hiddenRows;
     const hiddenColumns = node.data.props.hiddenColumns;
+    const cellsInHeader = node.data.props.cellsInHeader;
     // Augment the cell data to add the headers if needed
     if (includeColumnHeaders) {
         clonedCellData.unshift(
@@ -48,6 +50,13 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
                     return null; // Skip hidden rows
                 }
                 const header = inHeaderRow ? "yes" : undefined;
+                // A `<row header="true">` of the spreadsheet itself, which is
+                // a different thing from the A/B/C strip that claimed
+                // `header="yes"` just above. Faked with `<em>`, the same way
+                // the row-number column below fakes its own header.
+                const inDoenetHeaderRow = Boolean(
+                    cellsInHeader?.[spreadsheetRowIndex - 1]?.some(Boolean),
+                );
                 return (
                     <row key={rowIndex} header={header} bottom="minor">
                         {row.map((cell, colIndex) => {
@@ -63,7 +72,11 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
                                 <cell key={colIndex} right="minor">
                                     {
                                         // Pretext cannot have both a row and column header, so we have to fake it.
-                                        inHeaderColumn ? <em>{cell}</em> : cell
+                                        inHeaderColumn || inDoenetHeaderRow ? (
+                                            <em>{cell}</em>
+                                        ) : (
+                                            cell
+                                        )
                                     }
                                 </cell>
                             );

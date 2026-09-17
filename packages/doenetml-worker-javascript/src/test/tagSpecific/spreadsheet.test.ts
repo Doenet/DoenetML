@@ -2155,4 +2155,112 @@ describe("Spreadsheet tag tests @group1", async () => {
             stateVariables[await resolvePathToNodeIdx("C3")].stateValues.text,
         ).eq("");
     });
+
+    it("fixed cells are marked read-only for the renderer", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <spreadsheet name="ss" minNumRows="3" minNumColumns="3">
+    <row>
+      <cell fixed>locked</cell>
+      <cell>open</cell>
+    </row>
+    <row fixed>
+      <cell>row locked</cell>
+    </row>
+  </spreadsheet>
+  `,
+        });
+
+        const ssIdx = await resolvePathToNodeIdx("ss");
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // `fixed` is stated on one cell and inherited by the cells of a
+        // `fixed` row; every other position is left editable.
+        expect(stateVariables[ssIdx].stateValues.cellsFixed).eqls([
+            [true, false, false],
+            [true, false, false],
+            [false, false, false],
+        ]);
+
+        // the flag describes the same cells that reject an edit
+        await changeSpreadsheetText({
+            componentIdx: ssIdx,
+            row: 1,
+            column: 1,
+            text: "changed",
+            prevText: "locked",
+            core,
+        });
+        await changeSpreadsheetText({
+            componentIdx: ssIdx,
+            row: 1,
+            column: 2,
+            text: "changed",
+            prevText: "open",
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ssIdx].stateValues.cells[0][0]).eq("locked");
+        expect(stateVariables[ssIdx].stateValues.cells[0][1]).eq("changed");
+    });
+
+    it("cells of a header row are marked for the renderer", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <spreadsheet name="ss" minNumRows="3" minNumColumns="3">
+    <row header>
+      <cell>name</cell>
+      <cell>value</cell>
+    </row>
+    <row>
+      <cell>a</cell>
+      <cell>1</cell>
+    </row>
+  </spreadsheet>
+  `,
+        });
+
+        const ssIdx = await resolvePathToNodeIdx("ss");
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        // only the positions an actual `<cell>` of the header row occupies:
+        // the rest of the row is padding, with no cell to emphasize
+        expect(stateVariables[ssIdx].stateValues.cellsInHeader).eqls([
+            [true, true, false],
+            [false, false, false],
+            [false, false, false],
+        ]);
+
+        // a header row is emphasis only, not a restriction
+        expect(stateVariables[ssIdx].stateValues.cellsFixed).eqls([
+            [false, false, false],
+            [false, false, false],
+            [false, false, false],
+        ]);
+    });
+
+    it("cell flags follow the cells when a spreadsheet is built from columns and blocks", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <spreadsheet name="ss" minNumRows="3" minNumColumns="3">
+    <column colNum="2"><cell fixed>c</cell></column>
+    <cellBlock rowNum="3" colNum="3"><row header><cell>b</cell></row></cellBlock>
+  </spreadsheet>
+  `,
+        });
+
+        const ssIdx = await resolvePathToNodeIdx("ss");
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(stateVariables[ssIdx].stateValues.cellsFixed).eqls([
+            [false, true, false],
+            [false, false, false],
+            [false, false, false],
+        ]);
+        expect(stateVariables[ssIdx].stateValues.cellsInHeader).eqls([
+            [false, false, false],
+            [false, false, false],
+            [false, false, true],
+        ]);
+    });
 });

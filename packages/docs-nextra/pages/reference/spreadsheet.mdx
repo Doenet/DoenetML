@@ -198,6 +198,77 @@ Try directly entering a formula into cell B3 that references one or more of the 
 
 
 
+---
+
+### Example: emphasizing a header row
+
+
+```doenet-editor-horiz
+<spreadsheet minNumRows="4" minNumColumns="3">
+  <row header>
+    <cell>Name</cell>
+    <cell>Type</cell>
+    <cell>Exp</cell>
+  </row>
+  <row>
+    <cell>Gandalf</cell>
+    <cell>wizard</cell>
+    <cell>sage</cell>
+  </row>
+  <row>
+    <cell>Legolas</cell>
+    <cell>elf</cell>
+    <cell>advanced</cell>
+  </row>
+</spreadsheet>
+```
+
+
+
+Add `header` to a `<row>{:dn}` and its cells are drawn in bold, against the same shading the
+spreadsheet uses for its `A`, `B`, `C` and `1`, `2`, `3` labels. This is emphasis only: a header
+row can still be edited like any other. Marking up the text inside a cell has no effect, since a
+cell contributes only its text to the spreadsheet — `header` is how a row is set apart.
+
+
+
+---
+
+### Example: cells the user cannot edit
+
+
+```doenet-editor-horiz
+<spreadsheet minNumRows="4" minNumColumns="4">
+  <row header>
+    <cell>Trial</cell>
+    <cell>Time</cell>
+    <cell>Distance</cell>
+    <cell>Speed</cell>
+  </row>
+  <row>
+    <cell fixed>1</cell>
+    <cell>2</cell>
+    <cell>10</cell>
+    <cell fixed>= C2/B2</cell>
+  </row>
+  <row>
+    <cell fixed>2</cell>
+    <cell>4</cell>
+    <cell>18</cell>
+    <cell fixed>= C3/B3</cell>
+  </row>
+</spreadsheet>
+```
+
+
+
+Add `fixed` to a `<cell>{:dn}` and the user cannot change it: the cell is greyed and clicking it
+opens no editor, though it can still be selected and copied. Use it to protect labels and computed
+results while leaving the data cells open. Adding `fixed` to a `<row>{:dn}` fixes every cell of
+that row, and adding it to the `<spreadsheet>{:dn}` itself makes the whole grid read-only.
+
+
+
 ## Attribute Examples
 
 ### Attribute Example: minNumRows, minNumColumns

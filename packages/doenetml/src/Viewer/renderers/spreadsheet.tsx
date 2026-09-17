@@ -6,6 +6,7 @@ import { HotTable } from "@handsontable/react-wrapper";
 import { HyperFormula } from "hyperformula";
 import "handsontable/styles/handsontable.min.css";
 import "handsontable/styles/ht-theme-classic.min.css";
+import "./spreadsheet.css";
 import { sizeToCSS } from "./utils/css";
 import { registerAllModules } from "handsontable/registry";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
@@ -25,6 +26,8 @@ interface SpreadsheetSVs {
     fixedColumnsLeft: number;
     hiddenColumns: number[];
     hiddenRows: number[];
+    cellsFixed: boolean[][];
+    cellsInHeader: boolean[][];
     renderInlineForListItem?: boolean;
 }
 
@@ -41,6 +44,25 @@ export default React.memo(function SpreadsheetRenderer(
     const ref = useRef<HTMLDivElement | null>(null);
 
     useRecordVisibilityChanges(ref, callAction, actions);
+
+    /**
+     * Per-cell settings, which Handsontable asks for one cell at a time and
+     * re-asks for whenever the settings change (`cells` being present clears
+     * its cell-meta cache). `row` and `col` are physical indices, which is what
+     * `cellsFixed` and `cellsInHeader` are indexed by: the spreadsheet never
+     * reorders its data, and the hidden-row and hidden-column plugins hide
+     * without trimming, so physical and visual indices stay aligned.
+     */
+    function cellSettings(row: number, col: number) {
+        const cellProperties: { readOnly?: boolean; className?: string } = {};
+        if (SVs.cellsFixed?.[row]?.[col]) {
+            cellProperties.readOnly = true;
+        }
+        if (SVs.cellsInHeader?.[row]?.[col]) {
+            cellProperties.className = "doenet-spreadsheet-header-cell";
+        }
+        return cellProperties;
+    }
 
     if (SVs.hidden) {
         return null;
@@ -100,7 +122,11 @@ export default React.memo(function SpreadsheetRenderer(
                     rows: SVs.hiddenRows.map((x) => x - 1),
                     indicators: false,
                 }}
-                readOnly={SVs.disabled}
+                cells={cellSettings}
+                // A `fixed` spreadsheet rejects every edit in the worker, so
+                // the whole grid is read-only — including the positions no
+                // `<cell>` backs, which `cellsFixed` cannot speak for.
+                readOnly={SVs.disabled || SVs.fixed}
                 disableVisualSelection={SVs.disabled}
                 // contextMenu={
                 //   {
