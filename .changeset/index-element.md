@@ -41,12 +41,29 @@ hover no longer see the element between them, though while they are still unbala
 which is most of typing — it is an ordinary child and the editor behaves as usual.
 
 Three shapes still cannot take an index, because the reference has already ended before
-the brackets: `$(x)[…]`, where the closing paren ended it, `$x{z}[…]`, where a `{…}`
-block did, and `$$f(1)[…]`, where the argument list did. They still render the element
-between literal brackets, as they always have, but each now warns and says what to
-write instead — for `$(x)[…]` give the element a name and write the index inside the
-parentheses, as `$(x[$idx])`; for `$$f(1)[…]` give the result of the call a name and
-index that; and for `$x{z}[…]` no braces at all, which v0.7 drops on the floor anyway.
+the brackets: `$(x)[…]`, where the closing paren ended it, `$$f(1)[…]`, where the
+argument list did, and `$x{z}[…]`, where a `{…}` block did. They still render the
+element between literal brackets, as they always have, but each now warns and says what
+to write instead — for `$(x)[…]` give the element a name and write the index inside the
+parentheses, as `$(x[$idx])`, and for `$$f(1)[…]` give the result of the call a name and
+index that.
+
+For `$x{z}[…]` the remedy is to delete the braces, because **`{…}` written after a
+reference is not v0.7 notation.** It is left over from v0.6. The parser still accepts
+it, but nothing downstream reads it: whatever is written inside has no effect at all.
+
+```xml
+<number name="x">7.123456789</number>
+
+<p>$x{displayDigits="8"}</p>                     <!-- renders 7.12      -->
+<p><number extend="$x" displayDigits="8" /></p>  <!-- renders 7.1234568 -->
+```
+
+Attributes belong on an element, as the second line shows — which is what the v0.6 to
+v0.7 converter already produces, so upgraded documents are unaffected and this is only
+a trap for v0.7 written by hand. Note that only the index case says anything: a `{…}`
+block on its own is still discarded silently, and the notation is expected to be
+removed in a future version.
 
 Writing an element as a function reference's argument — `$$f(<math>3</math>)` — no longer
 stops the document. It parsed correctly, but registering the names in it hit a node
