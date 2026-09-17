@@ -1856,7 +1856,7 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
             text: "typed",
         });
     });
-    it("a header row that is also fixed keeps its emphasis and takes the read-only shading", () => {
+    it("a header row that is also fixed keeps its emphasis, and gives its shading up to the read-only cell's background", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -1906,5 +1906,93 @@ describe("Spreadsheet Tag Tests", { tags: ["@group5"] }, function () {
                     readOnlyBackground,
                 );
             });
+    });
+
+    it("cell flags reach the copies of the cells that fixedRowsTop and fixedColumnsLeft pin in place", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <text name="a">a</text>
+    <spreadsheet name="spreadsheet1" width="240px" height="120px"
+      fixedRowsTop="1" fixedColumnsLeft="1" minNumRows="12" minNumColumns="12">
+      <row header>
+        <cell>head1</cell>
+        <cell>head2</cell>
+      </row>
+      <row>
+        <cell fixed>lockA</cell>
+        <cell>openB</cell>
+      </row>
+    </spreadsheet>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#a").should("have.text", "a"); // to wait for page to load
+
+        // A pinned row or column is not moved out of the grid: it is drawn a
+        // second time, in a table of its own that floats over the scrolling
+        // one. So every cell in the pinned region has a copy that the rules
+        // and the read-only flag have to reach too, or a header row scrolled
+        // under a pinned row would lose its shading at the moment it is
+        // pinned. The copies live under `.ht_clone_*`; the scrolling grid is
+        // `.ht_master`.
+        const inClone = (clone, text) =>
+            cy.contains(`#spreadsheet1 .${clone} tbody td`, text);
+
+        // the column pinned by `fixedColumnsLeft` holds one cell of the header
+        // row and one fixed cell
+        cy.get("#spreadsheet1 .ht_clone_inline_start").should("exist");
+        inClone("ht_clone_inline_start", "head1").should(
+            "have.class",
+            "doenet-spreadsheet-header-cell",
+        );
+        inClone("ht_clone_inline_start", "head1").should(
+            "have.css",
+            "font-weight",
+            "700",
+        );
+        inClone("ht_clone_inline_start", "lockA").should(
+            "have.class",
+            "htDimmed",
+        );
+
+        // and the row pinned by `fixedRowsTop` holds the rest of the header row
+        inClone("ht_clone_top", "head2").should(
+            "have.class",
+            "doenet-spreadsheet-header-cell",
+        );
+
+        // the shading is there, not just the class: compared against the `1`,
+        // `2`, `3` strip drawn in the same pinned column, and against a cell
+        // of the same copy that is in no header row
+        cy.get("#spreadsheet1 .ht_clone_inline_start tbody th")
+            .first()
+            .invoke("css", "background-color")
+            .then((labelBackground) => {
+                inClone("ht_clone_inline_start", "head1").should(
+                    "have.css",
+                    "background-color",
+                    labelBackground,
+                );
+                inClone("ht_clone_top", "head2").should(
+                    "have.css",
+                    "background-color",
+                    labelBackground,
+                );
+                inClone("ht_clone_inline_start", "lockA").should(
+                    "not.have.css",
+                    "background-color",
+                    labelBackground,
+                );
+            });
+
+        // the pinned copy of a fixed cell opens no editor either
+        inClone("ht_clone_inline_start", "lockA").click({ force: true });
+        cy.get("#spreadsheet1 .handsontableInput").should("not.exist");
+        inClone("ht_clone_inline_start", "lockA").should("have.text", "lockA");
     });
 });

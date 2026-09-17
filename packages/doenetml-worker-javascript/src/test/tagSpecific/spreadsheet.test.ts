@@ -2388,4 +2388,59 @@ describe("Spreadsheet tag tests @group1", async () => {
         expect(stateVariables[inheritedIdx].stateValues.cells[1][1]).eq("");
         expect(stateVariables[openIdx].stateValues.cells[1][1]).eq("typed");
     });
+
+    it("cells that a data frame supplies are neither fixed nor in a header row", async () => {
+        // A `<dataFrame>` fills the grid without creating a `<cell>` for any
+        // position, so there is nothing for either flag to describe and every
+        // position comes back `false` — at the grid's own dimensions, so the
+        // renderer can still index the arrays by row and column. A `<cell>`
+        // written alongside one is placed as usual.
+        const csv = encodeURIComponent("name,value\nalpha,1\nbeta,2\n");
+
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <spreadsheet name="fromData" minNumRows="2" minNumColumns="2">
+    <dataFrame source="data:text/csv,${csv}" />
+  </spreadsheet>
+  <spreadsheet name="mixed" minNumRows="2" minNumColumns="2">
+    <dataFrame source="data:text/csv,${csv}" />
+    <row header><cell>label</cell></row>
+    <cell rowNum="2" colNum="2" fixed>held</cell>
+  </spreadsheet>
+  `,
+        });
+
+        const fromDataIdx = await resolvePathToNodeIdx("fromData");
+        const mixedIdx = await resolvePathToNodeIdx("mixed");
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        // the data frame really did supply the contents
+        expect(stateVariables[fromDataIdx].stateValues.cells).eqls([
+            ["alpha", 1],
+            ["beta", 2],
+        ]);
+        expect(stateVariables[fromDataIdx].stateValues.cellsFixed).eqls([
+            [false, false],
+            [false, false],
+        ]);
+        expect(stateVariables[fromDataIdx].stateValues.cellsInHeader).eqls([
+            [false, false],
+            [false, false],
+        ]);
+
+        // an authored cell overrides the data frame's value at its position,
+        // and its flags land at that same position
+        expect(stateVariables[mixedIdx].stateValues.cells).eqls([
+            ["label", 1],
+            ["beta", "held"],
+        ]);
+        expect(stateVariables[mixedIdx].stateValues.cellsFixed).eqls([
+            [false, false],
+            [false, true],
+        ]);
+        expect(stateVariables[mixedIdx].stateValues.cellsInHeader).eqls([
+            [true, false],
+            [false, false],
+        ]);
+    });
 });
