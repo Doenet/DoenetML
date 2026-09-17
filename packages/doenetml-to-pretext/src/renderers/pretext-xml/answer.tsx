@@ -1,5 +1,6 @@
 import React from "react";
 import { BasicComponentWithPassthroughChildren } from "../types";
+import { AnswerLabelContext } from "./answer-label-context";
 
 type AnswerData = { props: { label?: string } };
 
@@ -11,7 +12,9 @@ export const Answer: BasicComponentWithPassthroughChildren<AnswerData> = ({
     return (
         <React.Fragment>
             {label}
-            {children}
+            <AnswerLabelContext.Provider value={label?.trim() ?? ""}>
+                {children}
+            </AnswerLabelContext.Provider>
         </React.Fragment>
     );
 };

@@ -274,6 +274,11 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     sideBySide: passThroughWithRenamedTag("sidebyside"),
     blockQuote: passThroughWithRenamedTag("blockquote"),
 
+    // Tags PreTeXt spells differently. A footnote is `<fn>` there; left unmapped it
+    // reaches the fallback renderer, which emits a literal `<footnote>` that PreTeXt has
+    // no template for, so the note's text runs on inside the sentence that cited it.
+    footnote: passThroughWithRenamedTag("fn"),
+
     // Tags with no representation in PreTeXt
     br: OmitElementConverter,
     hr: OmitElementConverter,
