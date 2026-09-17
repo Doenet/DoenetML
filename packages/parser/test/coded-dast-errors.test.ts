@@ -239,7 +239,7 @@ describe("Coded DAST errors render to the English the parser wrote", () => {
     });
 
     it("an element in index brackets that cannot be an index", () => {
-        // All five branches of the message's `reason` selector. An element
+        // All six branches of the message's `reason` selector. An element
         // between the brackets is what each has in common; what differs is why
         // the brackets could not be read as an index.
         const errors = [
@@ -249,6 +249,10 @@ describe("Coded DAST errors render to the English the parser wrote", () => {
             ...normalizedErrors(`<p>$x{z}[<number>1</number>]</p>`),
             // So did the closing paren of the `$(…)` form.
             ...normalizedErrors(`<p>$(x)[<number>1</number>]</p>`),
+            // And of the `$$(…)` form, which needs its own example: following
+            // the `$(x[$idx])` advice there would turn a function reference
+            // into an ordinary one.
+            ...normalizedErrors(`<p>$$(f)[<number>1</number>]</p>`),
             // A function reference's argument list closed it. There is nowhere
             // around the arguments to put this index, so this branch says
             // something different again from the `parens` one above.
@@ -258,12 +262,13 @@ describe("Coded DAST errors render to the English the parser wrote", () => {
             // An index on a function reference that is then called.
             ...normalizedErrors(`<p>$$f[<number>1</number>](3)</p>`),
         ];
-        expect(codedErrors(errors).length).toBe(5);
+        expect(codedErrors(errors).length).toBe(6);
         expect(codedErrors(errors).map((e) => (e as any).args.name)).toEqual([
             "$x",
             "$x",
             // The sigil comes from the reference, so a function reference keeps
             // both of its `$`s rather than being quoted back as `$f`.
+            "$$f",
             "$$f",
             "$x",
             "$$f",

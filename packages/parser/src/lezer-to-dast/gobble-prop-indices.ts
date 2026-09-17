@@ -230,7 +230,13 @@ function isCallFollowing(
  */
 function whatClosedThePath(
     macro: DastMacro | DastFunctionMacro,
-): "braces" | "parens" | "arguments" | "unknown" | undefined {
+):
+    | "braces"
+    | "parens"
+    | "parensFunction"
+    | "arguments"
+    | "unknown"
+    | undefined {
     const lastPart = macro.path[macro.path.length - 1] as
         DastMacroPathPart | undefined;
     const macroEnd = macro.position?.end?.offset;
@@ -260,7 +266,7 @@ function whatClosedThePath(
         firstStart == null ||
         firstStart > macroStart + sigilLength
     ) {
-        return "parens";
+        return macro.type === "function" ? "parensFunction" : "parens";
     }
     // `$x{…}`. The grammar still parses a brace block, but v0.7 gives it no
     // meaning — `set_ref` in the Rust flattener drops a reference's attributes
@@ -329,7 +335,13 @@ function attachIndex(
 function indexWarning(
     macro: DastMacro | DastFunctionMacro,
     openBracket: DastText,
-    reason: "braces" | "parens" | "arguments" | "called" | "unclosed",
+    reason:
+        | "braces"
+        | "parens"
+        | "parensFunction"
+        | "arguments"
+        | "called"
+        | "unclosed",
 ): DastError {
     // The sigil belongs to `name` because a function macro carries two of them:
     // quoting `$$f` as `$f` would name a component the author did not write.
@@ -344,6 +356,8 @@ function indexWarning(
     const remedy = {
         braces: "`{…}` is not part of a reference, so `[…]` written after it is ordinary text. Remove the `{…}`.",
         parens: "`$(…)` ends a reference, so `[…]` written after it is ordinary text. Give the element a name and write the index inside the parentheses, as `$(x[$idx])`.",
+        parensFunction:
+            "`$$(…)` ends a function reference, so `[…]` written after it is ordinary text. Give the element a name and write the index inside the parentheses, as `$$(f[$idx])`.",
         arguments:
             "A function reference's arguments end it, so `[…]` written after them is ordinary text. An index written before the arguments would pick which function to call rather than part of what it returns; to index the result, give the result a name and index that.",
         called: "An index before a function reference's arguments picks which function to call, and a computed one there is not supported. To index what the call returns, give the result a name and index that.",

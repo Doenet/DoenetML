@@ -933,7 +933,7 @@ describe("Normalize dast", async () => {
             ]) {
                 const dast = normalizeDocumentDast(lezerToDast(source));
                 expect(toXml(dast)).toEqual(
-                    `<document><p>$a[<n /韓>]</p></document>`.replace("韓", ""),
+                    `<document><p>$a[<n />]</p></document>`,
                 );
             }
         });
@@ -950,6 +950,22 @@ describe("Normalize dast", async () => {
             const xml = toXml(dast);
             expect(xml).toContain(`<division type="section">`);
             expect(xml).not.toContain(`<section`);
+        });
+
+        it("strips a doctype written in an index", () => {
+            // A doctype really can be written between the brackets at root
+            // level, so the raw parse carries one and this pass takes it out.
+            const raw: any = lezerToDast(`$a[<!DOCTYPE html><n/>]`);
+            expect(
+                raw.children[0].path[0].index[0].value.map((n: any) => n.type),
+            ).toEqual(["doctype", "element"]);
+            expect(
+                toXml(
+                    normalizeDocumentDast(
+                        lezerToDast(`$a[<!DOCTYPE html><n/>]`),
+                    ),
+                ),
+            ).toEqual(`<document>$a[<n />]</document>`);
         });
 
         it("collects an error from a function reference's element argument", () => {
