@@ -8,6 +8,7 @@ type SpreadsheetData = {
         rowHeaders: boolean;
         hiddenRows: number[];
         hiddenColumns: number[];
+        cellsInHeader: boolean[][];
     };
 };
 
@@ -17,6 +18,7 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
     const includeRowHeaders = node.data.props.rowHeaders;
     const hiddenRows = node.data.props.hiddenRows;
     const hiddenColumns = node.data.props.hiddenColumns;
+    const cellsInHeader = node.data.props.cellsInHeader;
     // Augment the cell data to add the headers if needed
     if (includeColumnHeaders) {
         clonedCellData.unshift(
@@ -47,7 +49,25 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
                 if (hiddenRows.includes(spreadsheetRowIndex)) {
                     return null; // Skip hidden rows
                 }
-                const header = inHeaderRow ? "yes" : undefined;
+                // A `<row header="true">` of the spreadsheet itself, as
+                // distinct from the generated A/B/C strip above. PreTeXt marks
+                // a header row on the row, and permits more than one in a
+                // `<tabular>` — `header` is an optional attribute of every
+                // `row` in the schema, and PreTeXt's own sample article has a
+                // "Two Row Headers" table — so an authored header row says so
+                // the same way the strip does, rather than settling for the
+                // `<em>` that stands in for a header *column* below.
+                //
+                // Necessarily coarser than the grid: `header` belongs to the
+                // row, so a header row narrower than the grid marks its empty
+                // remainder too, where the grid emphasizes only the cells it
+                // has. Row-level is what the author wrote, so it is the better
+                // of the two things PreTeXt can say here.
+                const inAuthoredHeaderRow = Boolean(
+                    cellsInHeader?.[spreadsheetRowIndex - 1]?.some(Boolean),
+                );
+                const header =
+                    inHeaderRow || inAuthoredHeaderRow ? "yes" : undefined;
                 return (
                     <row key={rowIndex} header={header} bottom="minor">
                         {row.map((cell, colIndex) => {

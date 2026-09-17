@@ -743,6 +743,97 @@ export default class Spreadsheet extends BlockComponent {
             },
         };
 
+        // Per-cell flags that the grid needs but that no cell component can
+        // deliver on its own: `<spreadsheet>` does not render its children, so
+        // a `<cell>`'s `fixed` and `inHeader` would otherwise stop at the
+        // worker and the grid would draw every cell alike. Laid out like
+        // `cells`, one entry per position, `false` wherever no `<cell>` backs
+        // the position (an empty cell, or one supplied by a `<dataFrame>`).
+        stateVariableDefinitions.cellsFixed = {
+            additionalStateVariablesDefined: [
+                {
+                    variableName: "cellsInHeader",
+                    forRenderer: true,
+                },
+            ],
+            forRenderer: true,
+            returnDependencies: () => ({
+                numRows: {
+                    dependencyType: "stateVariable",
+                    variableName: "numRows",
+                },
+                numColumns: {
+                    dependencyType: "stateVariable",
+                    variableName: "numColumns",
+                },
+                cellIdxToRowCol: {
+                    dependencyType: "stateVariable",
+                    variableName: "cellIdxToRowCol",
+                },
+                cellDescendants: {
+                    dependencyType: "descendant",
+                    componentTypes: ["cell"],
+                    variableNames: ["fixed", "inHeader"],
+                    // A `<cell>` accepts any content, including another
+                    // spreadsheet. Those cells belong to that spreadsheet's
+                    // map, not to this one.
+                    recurseToMatchedChildren: false,
+                },
+            }),
+            definition({ dependencyValues }) {
+                const { numRows, numColumns, cellIdxToRowCol } =
+                    dependencyValues;
+
+                const cellsFixed = [];
+                const cellsInHeader = [];
+                // Built by loop rather than `new Array(numRows)`: `minNumRows`
+                // and `minNumColumns` are `number`s, not integers, and
+                // `new Array(2.5)` throws. (A non-integer dimension draws
+                // nothing either way — `cells` comes back empty — but it must
+                // not take the document down with it.)
+                for (let rowInd = 0; rowInd < numRows; rowInd++) {
+                    const fixedRow = [];
+                    const inHeaderRow = [];
+                    for (let colInd = 0; colInd < numColumns; colInd++) {
+                        fixedRow.push(false);
+                        inHeaderRow.push(false);
+                    }
+                    cellsFixed.push(fixedRow);
+                    cellsInHeader.push(inHeaderRow);
+                }
+
+                for (const cell of dependencyValues.cellDescendants) {
+                    const rowCol = cellIdxToRowCol[cell.componentIdx];
+                    // `null` marks a cell that a later cell displaced from its
+                    // position; `undefined`, one this map never placed.
+                    if (!rowCol) {
+                        continue;
+                    }
+                    const [rowInd, colInd] = rowCol;
+                    // `rowNum` and `colNum` are free-form text, so a cell can
+                    // ask for a position that is not a grid position at all:
+                    // `rowNum="0"` maps to -1 and `rowNum="1.5"` to 0.5, and
+                    // neither names a row that was built above.
+                    if (
+                        !Number.isInteger(rowInd) ||
+                        !Number.isInteger(colInd) ||
+                        rowInd < 0 ||
+                        colInd < 0 ||
+                        rowInd >= numRows ||
+                        colInd >= numColumns
+                    ) {
+                        continue;
+                    }
+                    cellsFixed[rowInd][colInd] =
+                        cell.stateValues.fixed === true;
+                    cellsInHeader[rowInd][colInd] =
+                        cell.stateValues.inHeader === true;
+                }
+
+                return { setValue: { cellsFixed, cellsInHeader } };
+            },
+        };
+
         stateVariableDefinitions.evaluatedCells = {
             isArray: true,
             public: true,
