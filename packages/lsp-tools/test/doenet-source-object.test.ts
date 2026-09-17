@@ -328,6 +328,42 @@ describe("DoenetSourceObject", () => {
         ).toBeGreaterThan(indexOfIndex!);
     });
 
+    it("Treats everything a reference owns the same way", () => {
+        // An element between index brackets and an element written as a
+        // function reference's argument are the same shape: content a reference
+        // owns rather than content an element contains. Both are nobody's
+        // child, so the hand-rolled walkers that recurse on `children` reach
+        // neither without being told to. Measured against the ordinary-child
+        // spelling, which is what they should agree with.
+        const placements = [
+            `<p><indexOf name="io" target="2">$nums</indexOf></p>`,
+            `<p>$nums[<indexOf name="io" target="2">$nums</indexOf>]</p>`,
+            `<p>$$fs(<indexOf name="io" target="2">$nums</indexOf>)</p>`,
+            // And nested: an index element inside an argument.
+            `<p>$$g($nums[<indexOf name="io" target="2">$nums</indexOf>])</p>`,
+        ];
+
+        for (const source of placements) {
+            const sourceObj = new DoenetSourceObject(source);
+            const offset = source.indexOf("<indexOf") + 1;
+            const node = sourceObj.elementAtOffset(offset);
+
+            expect(node, source).toMatchObject({
+                type: "element",
+                name: "indexOf",
+            });
+            // The parent is the element the reference sits in, not the
+            // reference, matching what the core's `ParentIterator` walks to.
+            expect(
+                sourceObj.getParents(node!).map((p: any) => p.name ?? p.type),
+                source,
+            ).toEqual(["p", "root"]);
+            // And it has an index of its own — `null` here would be an offset
+            // inside the document belonging to no element at all.
+            expect(sourceObj.getNodeIndexAtOffset(offset), source).toBe(2);
+        }
+    });
+
     it("Can get cursor position when element contains macro", () => {
         let source: string;
         let sourceObj: DoenetSourceObject;

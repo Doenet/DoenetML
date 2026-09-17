@@ -44,6 +44,33 @@ export function initDast(this: DoenetSourceObject) {
     return lezerToDast(this._lezer(), this.source);
 }
 
+/**
+ * What a reference owns rather than contains: the contents of its index
+ * brackets, and a function reference's arguments.
+ *
+ * Neither is anybody's `children`, so a walk that recurses on `children` alone
+ * misses both. `visit` descends into them, which is why the walkers built on it
+ * need nothing extra; the hand-rolled ones here call this instead of growing
+ * two nearly identical loops each.
+ */
+function referenceOwnedContent(node: DastNodes): DastNodes[] {
+    if (node.type !== "macro" && node.type !== "function") {
+        return [];
+    }
+    const owned: DastNodes[] = [];
+    for (const pathPart of node.path) {
+        for (const propIndex of pathPart.index) {
+            owned.push(...(propIndex.value as DastNodes[]));
+        }
+    }
+    if (node.type === "function" && node.input) {
+        for (const argument of node.input) {
+            owned.push(...(argument as DastNodes[]));
+        }
+    }
+    return owned;
+}
+
 export function initParentMap(this: DoenetSourceObject) {
     const parentMap = new Map<DastNodes, DastElement | DastRoot>();
     for (const node of this.dast.children) {
@@ -60,20 +87,17 @@ export function initParentMap(this: DoenetSourceObject) {
         if (node.type !== "macro" && node.type !== "function") {
             return;
         }
-        // What is written between a reference's index brackets is nobody's
-        // child, so the loop above never reaches it (#1909). Its parent is the
-        // element the reference sits in, not the reference: that is what
-        // `visit` reports in `info.parents` and what the core's own
-        // `ParentIterator` walks to, so the editor and the resolver agree about
-        // where a name written in an index is in scope.
+        // What a reference owns is nobody's child, so the loop above never
+        // reaches it (#1909) — that is what is written between its index
+        // brackets, and what is written as a function reference's arguments.
+        // The parent of either is the element the reference sits in, not the
+        // reference: that is what `visit` reports in `info.parents` and what
+        // the core's own `ParentIterator` walks to, so the editor and the
+        // resolver agree about where a name written there is in scope.
         const enclosing =
             (info.parents[0] as DastElement | undefined) ?? this.dast;
-        for (const pathPart of node.path) {
-            for (const propIndex of pathPart.index) {
-                for (const child of propIndex.value) {
-                    parentMap.set(child as DastNodes, enclosing);
-                }
-            }
+        for (const owned of referenceOwnedContent(node)) {
+            parentMap.set(owned, enclosing);
         }
     });
     return parentMap;
@@ -164,17 +188,14 @@ export function initOffsetToNodeIndexMap(this: DoenetSourceObject) {
         }
 
         if (node.type === "macro" || node.type === "function") {
-            // An element written between a reference's index brackets is not a
-            // child of anything (#1909), so the loop above never reaches it and
-            // it would otherwise have no index at all. It is numbered where it
-            // is written, immediately after its reference, and it stays inside
+            // An element a reference owns — written between its index brackets
+            // (#1909) or as one of a function reference's arguments — is not a
+            // child of anything, so the loop above never reaches it and it
+            // would otherwise have no index at all. It is numbered where it is
+            // written, immediately after its reference, and it stays inside
             // whichever element the reference sits in.
-            for (const pathPart of node.path) {
-                for (const propIndex of pathPart.index) {
-                    for (const child of propIndex.value) {
-                        assignIndices(child as DastNodes, containingElement);
-                    }
-                }
+            for (const owned of referenceOwnedContent(node)) {
+                assignIndices(owned, containingElement);
             }
         }
     };
