@@ -207,30 +207,32 @@ Try directly entering a formula into cell B3 that references one or more of the 
 <spreadsheet minNumRows="4" minNumColumns="3">
   <row header>
     <cell>Name</cell>
-    <cell>Type</cell>
-    <cell>Exp</cell>
+    <cell>Species</cell>
+    <cell>Home</cell>
   </row>
   <row>
     <cell>Gandalf</cell>
     <cell>wizard</cell>
-    <cell>sage</cell>
+    <cell>Valinor</cell>
   </row>
   <row>
     <cell>Legolas</cell>
     <cell>elf</cell>
-    <cell>advanced</cell>
+    <cell>Mirkwood</cell>
+  </row>
+  <row>
+    <cell>Frodo</cell>
+    <cell>hobbit</cell>
+    <cell>the Shire</cell>
   </row>
 </spreadsheet>
 ```
 
 
 
-Add `header` to a `<row>{:dn}` and its cells are drawn in bold. This is emphasis only: a header
-row can still be edited like any other, and it keeps the ordinary cell background so that it is
-not read as part of the spreadsheet's own `A`, `B`, `C` and `1`, `2`, `3` labels. Marking up the
-text inside a cell has no effect, since a cell contributes only its text to the spreadsheet —
-`header` is how a row is set apart. It is also what a screen reader is told: the cells of a header
-row are announced as headers for the columns below them, so the emphasis is not only visual.
+Add `header` to a `<row>{:dn}` and its cells are drawn in bold. A header row can still be edited
+like any other. The emphasis is not only visual: the cells of a header row are announced to a
+screen reader as headers for the columns beneath them.
 
 
 
