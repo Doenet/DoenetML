@@ -410,6 +410,14 @@ function convertEvaluate({
         doenetAttributes: {},
         state: {},
         extending: evaluateComponent.extending,
+        // This component is synthesized rather than written, but it is the one
+        // that carries the reference — so anything that reports a problem with
+        // the reference reports it from here. Without a position such a
+        // diagnostic has no location to show the author, and two of them
+        // covering different references look identical and are deduplicated
+        // into one. The `<evaluate>`'s own span is where the author wrote it.
+        position: evaluateComponent.position,
+        sourceDoc: evaluateComponent.sourceDoc,
     };
 
     let res = convertRefsToCopies({

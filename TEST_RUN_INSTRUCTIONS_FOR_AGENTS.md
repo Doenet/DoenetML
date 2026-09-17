@@ -103,13 +103,13 @@ npm run test -w @doenet/parser -- --run
 npm run test -w @doenet/doenetml-worker-javascript -- --run src/test/tagSpecific/evaluate.test.ts
 ```
 
-## Rust Tests: Use the npm Script, Not `cargo test`
+## Rust Tests: Use the npm Script, or Cargo's Full Invocation
 
 ```bash
 npm run test -w @doenet/doenetml-worker-rust     # cargo test --workspace --features testing
 ```
 
-Green is **311 tests**. Every way of reaching for `cargo` directly gives a wrong answer, and none of them names its cause — the first is the dangerous one, because it looks like a pass:
+Green is **311 tests**. `cargo` gives the same 311 when handed the same arguments — `cargo test --workspace --features testing`, run from `packages/doenetml-worker-rust`, is exactly what the script runs. What fails is any *shorter* invocation, and none of them names its cause. The first is the dangerous one, because it looks like a pass:
 
 | invocation | what happens |
 | --- | --- |
@@ -117,7 +117,7 @@ Green is **311 tests**. Every way of reaching for `cargo` directly gives a wrong
 | `cargo test --workspace` | does not compile |
 | `cargo test -p doenetml-core --features testing` | **16 failures**, all serde field naming |
 | `cargo test -p doenetml-core --features web` | does not compile |
-| the npm script above | 311 pass |
+| `cargo test --workspace --features testing` | 311 pass — what the npm script runs |
 
 A bare `cargo test` tests nothing because the workspace sets `default-members = ["lib-js-wasm-binding"]`, and that crate has no tests of its own. It exits 0. Do not read that as a green suite.
 
@@ -327,4 +327,4 @@ rebuild the docs (step 1) before running the tests — Cypress reads the built
 7. Use `cypress run` (headless), not `cypress open`.
 8. Stop background preview server after tests finish.
 9. For `@doenet/docs-cypress`, build the docs first, then serve `out/` on port 3000, then run Cypress.
-10. For Rust, run `npm run test -w @doenet/doenetml-worker-rust` — a bare `cargo test` runs nothing and reports ok, a scoped one reports 16 failures that are not real, and CI runs no Rust tests at all.
+10. For Rust, run `npm run test -w @doenet/doenetml-worker-rust`, or `cargo test --workspace --features testing`, which is the same command — a bare `cargo test` runs nothing and reports ok, a scoped one reports 16 failures that are not real, and CI runs no Rust tests at all.

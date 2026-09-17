@@ -7302,6 +7302,47 @@ describe("Extend and references tests @group2", async () => {
             );
         });
 
+        it("names a function reference with both its sigils, and locates it", async () => {
+            // The message is built from the path read back out of the source,
+            // which does not include the sigil, so every call site puts one
+            // back. A hardcoded `$` named `$$fs[$bad]` as `$fs[$bad]` — markup
+            // the author never wrote and cannot search their document for.
+            //
+            // The called spelling had no position at all: it reports from the
+            // `<function>` that `convertEvaluate` synthesizes, which carried
+            // none, so the reader got no location and two such warnings about
+            // different references deduplicated into one.
+            const setup = `
+    <numberList name="nums">1 2</numberList>
+    <indexOf name="bad" tolerance="1" target="1">$nums</indexOf>
+    <group name="fs">
+      <function variables="x">x^2</function>
+      <function variables="x">x^3</function>
+    </group>`;
+
+            for (const reference of [`$$fs[$bad](3)`, `$$fs[$bad]`]) {
+                const { diagnostics } = await run(
+                    `${setup}<p name="p1">${reference}</p>`,
+                );
+                const warning = diagnostics.warnings.find(
+                    (w: any) => w.code === "doenet-w0163",
+                );
+                expect(warning?.message).contain("`$$fs[$bad]`");
+                expect(warning?.message).not.contain("`$fs[$bad]`");
+                expect(warning?.position).toBeDefined();
+            }
+
+            // An ordinary reference still gets the single sigil it was written
+            // with, which is the control.
+            const { diagnostics: plain } = await run(
+                `${setup}<p name="p1">$nums[$bad]</p>`,
+            );
+            expect(
+                plain.warnings.find((w: any) => w.code === "doenet-w0163")
+                    ?.message,
+            ).contain("`$nums[$bad]`");
+        });
+
         it("does not report a working index", async () => {
             const { text, diagnostics } = await run(`
     <numberList name="myList">100 300 200 50</numberList>

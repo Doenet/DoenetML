@@ -76,6 +76,37 @@ export function doenetMLStringForReference(
 }
 
 /**
+ * The sigil an author wrote in front of a reference, `$` or `$$`.
+ *
+ * {@link doenetMLStringForReference} returns the path without it, and a caller
+ * composing a message has to put one back. Hardcoding `$` misquotes every
+ * function reference: `$$fs[$i]` comes back as `$fs[$i]`, naming something the
+ * author did not write and could not search their document for.
+ *
+ * Read from the source rather than inferred, because by this point nothing on
+ * the component says which spelling produced it. Falls back to `$` whenever the
+ * source is not there to read — the same answer as before, for a reference we
+ * cannot say more about. A parenthesized path, `$(x)`, also falls back: its
+ * path starts inside the parentheses, so the two characters before it are `$(`
+ * rather than `$$`.
+ */
+export function doenetMLSigilForReference(
+    originalPath: ReferencePathPart[] | undefined | null,
+    allDoenetMLs: readonly string[] | undefined,
+): string {
+    const startOffset = originalPath?.[0]?.position?.start.offset;
+    if (startOffset == undefined) {
+        return "$";
+    }
+    const sourceDoc = originalPath![0].sourceDoc ?? 0;
+    const source = allDoenetMLs?.[sourceDoc];
+    if (source == undefined) {
+        return "$";
+    }
+    return source.substring(startOffset - 2, startOffset) === "$$" ? "$$" : "$";
+}
+
+/**
  * Matches the run of XML tag-name characters immediately after `<`.
  * Per XML 1.0 a name may contain a wider set of characters, but DoenetML
  * tag names only ever use these — keeping the class tight avoids accidentally

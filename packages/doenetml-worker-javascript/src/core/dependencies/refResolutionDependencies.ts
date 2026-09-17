@@ -6,7 +6,10 @@
 
 import { Dependency } from "./Dependency";
 import { codedDiagnostic } from "../../utils/diagnostics";
-import { doenetMLStringForReference } from "../../utils/sourceLocation";
+import {
+    doenetMLSigilForReference,
+    doenetMLStringForReference,
+} from "../../utils/sourceLocation";
 
 /**
  * The same path with every index emptied.
@@ -369,7 +372,10 @@ export class RefResolutionDependency extends Dependency {
                     type: "warning",
                     code: "doenet-w0163",
                     args: {
-                        reference: `$${doenetMLStringForReference(
+                        reference: `${doenetMLSigilForReference(
+                            composite.refResolution.originalPath,
+                            this.dependencyHandler.core.allDoenetMLs,
+                        )}${doenetMLStringForReference(
                             composite.refResolution.originalPath,
                             this.dependencyHandler.core.allDoenetMLs,
                         )}`,
@@ -465,6 +471,17 @@ export class RefResolutionDependency extends Dependency {
                 this.dependencyHandler.core.allDoenetMLs,
             );
 
+        /**
+         * The `$` or `$$` the author wrote. Hardcoding `$` named a function
+         * reference as something they did not write: `$$fs[$i]` came back as
+         * `$fs[$i]`.
+         */
+        const getSigilForReference = () =>
+            doenetMLSigilForReference(
+                composite.refResolution.originalPath,
+                this.dependencyHandler.core.allDoenetMLs,
+            );
+
         // We skip parent search only if we start with no path,
         // which will happen from references to items created in a repeat
         const skip_parent_search = resolveComponentResult.path[0].name === "";
@@ -536,7 +553,9 @@ export class RefResolutionDependency extends Dependency {
                     ...(firstResolutionError === "NonUniqueReferent"
                         ? { code: "doenet-w0105" as const }
                         : { code: "doenet-w0104" as const }),
-                    args: { reference: `$${referenceText}` },
+                    args: {
+                        reference: `${getSigilForReference()}${referenceText}`,
+                    },
                     position: composite.position,
                     sourceDoc: composite.sourceDoc,
                 }),
@@ -634,7 +653,9 @@ export class RefResolutionDependency extends Dependency {
                 codedDiagnostic({
                     type: "warning",
                     code: "doenet-w0104",
-                    args: { reference: `$${referenceText}` },
+                    args: {
+                        reference: `${getSigilForReference()}${referenceText}`,
+                    },
                     position: composite.position,
                     sourceDoc: composite.sourceDoc,
                 }),
