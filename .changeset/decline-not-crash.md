@@ -10,10 +10,10 @@
 A half-typed function call no longer stops the document building.
 
 ```xml
-$$g($$f(<n/>)
+$$g($$f(<math>3</math>)
 ```
 
-That is what `$$g($$f(<n/>), 2)` looks like partway through being typed, and the editor
+That is what `$$g($$f(<math>3</math>), 2)` looks like partway through being typed, and the editor
 parses on every keystroke — so what the reader saw was not a message about the missing
 parenthesis but a blank page. The only `)` in it belongs to the inner call, and the outer
 reference was committing to being a call on the strength of it. It now declines and
@@ -38,7 +38,7 @@ as `$x.5` and `$x hi`.
 A bad index no longer quietly stops a function reference being called.
 
 ```xml
-<p>$$F[$(x)[<n/>]](3)</p>
+<p>$$F[$(x)[<math>3</math>]](3)</p>
 ```
 
 The inner brackets cannot be read as an index, which was reported. What was not reported
