@@ -10,12 +10,17 @@ import {
     DastRootContent,
     DastText,
 } from "../types";
-import { mergeAdjacentTextInArray } from "../dast-to-xml/utils";
+import {
+    findNodesWithPositionInfo,
+    mergeAdjacentTextInArray,
+} from "../dast-to-xml/utils";
 import {
     gobbleFunctionArguments,
     splitTextAtSpecialChars,
     trimWhitespace,
 } from "./gobble-function-arguments";
+import { parseMacroTail } from "../macros";
+import { OffsetToPositionMap } from "./lezer-to-dast-utils";
 
 /**
  * An index can be written with an element in it — `$myList[<indexOf …/>]` — but the
@@ -34,7 +39,56 @@ import {
  *
  * **Note**: this function may mutate the input.
  */
-export function gobblePropIndices(nodes: DastRootContent[]): DastRootContent[] {
+export function gobblePropIndices(
+    nodes: DastRootContent[],
+    offsetMap: OffsetToPositionMap,
+    options: { warnOnly?: boolean } = {},
+): DastRootContent[] {
+    // `warnOnly` is the second of the two passes this function makes over a
+    // sibling array. The first runs before `gobbleFunctionArguments` and does the
+    // real work; this one runs after it, attaches nothing, and reports the
+    // brackets the first pass could not see.
+    //
+    // It could not see them whenever an argument list was still sitting between
+    // the reference and them while it ran — the reference was followed by `(`
+    // rather than `[`. That is `$$f(<n/>)[<m/>]`, whose arguments the grammar
+    // could not parse, and equally `$$fs[<n/>](3)[<m/>]`, whose arguments it
+    // could: the element index before them is what kept the grammar from
+    // reaching the argument list, so both end up gobbled and both leave brackets
+    // behind that only this pass is in a position to report.
+    //
+    // Nothing needs to stop it repeating what the first pass said. A reference
+    // the first pass warned about is followed by the warning it minted, not by
+    // the `[`, so `isOpenBracket` below fails on it and the loop never opens.
+    const { warnOnly = false } = options;
+
+    // A function reference's arguments are the other place content leaves the
+    // flat sibling array: `gobbleFunctionArguments` moves them into `input`,
+    // where a pass that walks siblings cannot follow. Without this,
+    // `$$g($$f(<n/>)[<m/>])` reports nothing, for exactly the two shapes this
+    // pass exists to catch — while every other reason is reported there
+    // normally, because the first pass saw those brackets while they were still
+    // siblings.
+    //
+    // Whatever the recursion mints stays inside the argument it came from. That
+    // is where the first pass already leaves a warning about an argument's own
+    // contents, and an argument list admits an error node — unlike an index,
+    // whose narrower `value` is why `attachIndex` has to hoist.
+    if (warnOnly) {
+        for (const node of nodes) {
+            if (node.type === "function" && node.input) {
+                node.input = node.input.map(
+                    (argument) =>
+                        gobblePropIndices(
+                            argument as DastRootContent[],
+                            offsetMap,
+                            options,
+                        ) as typeof argument,
+                );
+            }
+        }
+    }
+
     if (!mayHaveAnElementIndex(nodes)) {
         return nodes;
     }
@@ -99,11 +153,12 @@ export function gobblePropIndices(nodes: DastRootContent[]): DastRootContent[] {
                 // yet. Move this below that call and both arrive.
                 break;
             }
-            // What already ended the reference comes first. A path that is
-            // closed is closed whatever follows the brackets, so `$$(f)[<n/>](y)`
-            // and `$$f(1)[<n/>](y)` are a parenthesized path and an argument list
-            // respectively — the trailing `(y)` is literal text in both, and
-            // calling them `called` would explain the wrong thing.
+            // A path that is closed is closed whatever follows the brackets,
+            // so `$$(f)[<n/>](y)` and `$$f(1)[<n/>](y)` are a parenthesized path
+            // and an argument list respectively, and the trailing `(y)` is
+            // literal text in both. An index on a path that is still *open* is
+            // taken, called or not: `$$fs[<n/>](3)` picks which of the functions
+            // in `fs` to call, exactly as the literal `$$fs[1](3)` does.
             const closedBy = whatClosedThePath(node);
             if (closedBy) {
                 if (closedBy !== "unknown") {
@@ -113,26 +168,26 @@ export function gobblePropIndices(nodes: DastRootContent[]): DastRootContent[] {
                 }
                 break;
             }
-            if (node.type === "function" && isCallFollowing(split, group)) {
-                // `$$f[<n/>](y)`, with the path still open: the index is where
-                // the grammar wants it, and `$$f[1](y)` parses. But the worker
-                // cannot build a *component-valued* index on a reference it then
-                // calls — it emits the index component twice and throws
-                // `Found a duplicate componentIdx`, blanking the page. That
-                // failure is not ours (`$$f[$k](3)` throws it with an ordinary
-                // reference index too), but claiming these brackets would newly
-                // route an author into it, where before they rendered as harmless
-                // literal text. So leave them literal and say why.
-                ret.push(
-                    indexWarning(node, split[i + 1] as DastText, "called"),
-                );
+
+            if (warnOnly) {
+                // This pass reports; the first one attaches. Reaching here means
+                // the brackets *would* be claimed, which the first pass already
+                // did — there is nothing left to say.
                 break;
             }
 
             // A warning minted while processing the group's own contents goes
             // in the sibling array, not into the index it came from.
-            ret.push(...attachIndex(node, group));
+            ret.push(...attachIndex(node, group, offsetMap));
             i = group.closeIdx;
+
+            // The path may carry on past the brackets — `$a[<n/>].x`, `$a[<n/>][1]`
+            // — and everything after the `]` was emitted as plain text before this
+            // pass ran, so it has to be parsed here. `graftTail` rewrites the run
+            // of text nodes it consumed, leaving `split[i + 1]` as whatever is left;
+            // the loop then re-checks it, which is what lets an element index and a
+            // text tail alternate in `$a[<n/>].x[2].y[<m/>]`.
+            graftTail(split, i + 1, node, offsetMap);
         }
     }
 
@@ -211,34 +266,6 @@ function collectBracketGroup(
 }
 
 /**
- * Whether an argument list opens immediately after this bracket group, which makes
- * the reference a *called* function reference.
- *
- * The grammar puts a function reference's index before its arguments
- * (`FunctionMacro = "$$" path input?`, and `PropIndex` sits inside the path), and
- * `gobbleFunctionArguments` likewise only takes an argument list that is an
- * immediate sibling — so requiring the `(` to sit directly after the `]` matches
- * what both of them would do with it.
- */
-function isCallFollowing(
-    nodes: DastRootContent[],
-    group: BracketGroup,
-): boolean {
-    const next = nodes[group.closeIdx + 1];
-    if (!(next?.type === "text" && next.value.startsWith("("))) {
-        return false;
-    }
-    // An opening paren alone is not a call. `gobbleFunctionArguments` builds one
-    // only when a closing paren follows too, so `$$f[<n/>](` leaves the
-    // reference uncalled and the `(` as text — and an index is perfectly safe
-    // there, because the failure this guard avoids needs a call to happen.
-    // Mirrors `hasClosingParen` in that pass, down to looking only at text.
-    return nodes
-        .slice(group.closeIdx + 1)
-        .some((node) => node.type === "text" && node.value.includes(")"));
-}
-
-/**
  * Why this reference can no longer take an index, or `undefined` if it still can.
  *
  * The grammar hangs an index off a *path part* (`PathPart = name PropIndex*`), so an
@@ -277,6 +304,8 @@ function whatClosedThePath(
         // writing it before them — `$$f[2](1)` — picks which function is called
         // rather than part of what the call returns, so neither is the index the
         // author wrote. See `indexWarning` for what the message offers instead.
+        // (Before the arguments *is* a working place for an index; it just
+        // answers a different question from the one these brackets ask.)
         return "arguments";
     }
     // What is left is a parenthesized path or a brace block, told apart by where the
@@ -284,11 +313,11 @@ function whatClosedThePath(
     // character further in than the bare `$x` that a `{…}` block follows.
     const referenceStart = reference.position?.start?.offset;
     const firstStart = reference.path[0]?.position?.start?.offset;
-    const sigilLength = reference.type === "function" ? 2 : 1;
+    const dollarCount = reference.type === "function" ? 2 : 1;
     if (
         referenceStart == null ||
         firstStart == null ||
-        firstStart > referenceStart + sigilLength
+        firstStart > referenceStart + dollarCount
     ) {
         return reference.type === "function" ? "parensFunction" : "parens";
     }
@@ -300,11 +329,193 @@ function whatClosedThePath(
 }
 
 /**
+ * Carry the reference's path past the index that was just attached.
+ *
+ * `$a[<n/>].x` reaches this pass as `$a`, `[`, the element, `]`, `.x` — the
+ * macro parser never saw `.x` next to a path, because the element split the text
+ * before it ran. So the text after the `]` is parsed here with the grammar's
+ * `MacroTail` entry point, which claims as much as a path could have and reports
+ * the rest.
+ *
+ * Only *text* siblings are joined, and only consecutive ones. They are contiguous
+ * in the source — the sole split so far was on brackets — and stopping at the
+ * first non-text node is what leaves `$a[<n/>][<m/>]` to the caller's loop: the
+ * tail sees only `[`, claims nothing, and the element index is taken as usual.
+ *
+ * Returns whether anything was claimed. **Mutates `nodes`**, replacing the text it
+ * consumed with what is left over, re-split on brackets so the caller's
+ * `isOpenBracket` test still works.
+ */
+function graftTail(
+    nodes: DastRootContent[],
+    startIdx: number,
+    reference: DastMacro | DastFunctionMacro,
+    offsetMap: OffsetToPositionMap,
+): boolean {
+    let endIdx = startIdx;
+    while (nodes[endIdx]?.type === "text") {
+        endIdx++;
+    }
+    if (endIdx === startIdx) {
+        return false;
+    }
+    const run = nodes.slice(startIdx, endIdx) as DastText[];
+    const first = run[0];
+    const last = run[run.length - 1];
+    if (!first.position || !last.position) {
+        return false;
+    }
+    const joined = run.map((n) => n.value).join("");
+
+    const tail = parseMacroTail(joined);
+
+    // A function reference cannot carry a `{…}` block: `FunctionMacro` has no
+    // `PropAttrs`, so `$$f[1]{z}` leaves the braces as text. Stopping at
+    // `attrsOffset` makes `$$f[<n/>]{z}` do the same, while still keeping any
+    // path parts written before them.
+    const takesAttributes = reference.type === "macro";
+    const attrs = takesAttributes ? tail.attrs : null;
+    const consumed = takesAttributes
+        ? joined.length - tail.remainder.length
+        : tail.attrsOffset;
+    if (consumed === 0) {
+        return false;
+    }
+
+    // Everything `MacroTail` built is positioned relative to `joined`; map it
+    // back onto the document a run node at a time, so a character reference
+    // earlier in the run does not push everything after it out of place.
+    const claimed: unknown[] = [
+        ...tail.index,
+        ...tail.parts,
+        ...(attrs ? Object.values(attrs) : []),
+    ];
+    for (const node of findNodesWithPositionInfo(claimed as any)) {
+        if (!node.position) {
+            continue;
+        }
+        node.position.start = pointAtDecoded(
+            run,
+            node.position.start.offset ?? 0,
+            offsetMap,
+        ) as typeof node.position.start;
+        node.position.end = pointAtDecoded(
+            run,
+            node.position.end.offset ?? 0,
+            offsetMap,
+        ) as typeof node.position.end;
+    }
+
+    const lastPart = reference.path[reference.path.length - 1];
+    lastPart.index.push(...(tail.index as (typeof lastPart.index)[number][]));
+    if (tail.index.length > 0 && lastPart.position) {
+        // The path part grew: `$a[<n/>][1]` is one part carrying two indices.
+        const grownTo = lastPart.index[lastPart.index.length - 1].position?.end;
+        if (grownTo) {
+            lastPart.position.end = {
+                ...grownTo,
+            } as typeof lastPart.position.end;
+        }
+    }
+    reference.path.push(...(tail.parts as unknown as DastMacroPathPart[]));
+    if (attrs && reference.type === "macro") {
+        reference.attributes = {
+            ...reference.attributes,
+            ...(attrs as unknown as typeof reference.attributes),
+        };
+    }
+
+    // The reference now runs to the end of what was claimed — past a `{…}` block
+    // too, which is not part of the path but is part of the reference. That is
+    // what lets `whatClosedThePath` go on telling `$a[<n/>]{z}[<m/>]` from
+    // `$a[<n/>][<m/>]`.
+    if (reference.position) {
+        reference.position.end = pointAtDecoded(
+            run,
+            consumed,
+            offsetMap,
+        ) as typeof reference.position.end;
+    }
+
+    const leftover = joined.slice(consumed);
+    const replacement: DastText[] = leftover
+        ? splitTextAtSpecialChars(
+              {
+                  type: "text",
+                  value: leftover,
+                  position: {
+                      start: pointAtDecoded(run, consumed, offsetMap),
+                      end: { ...last.position.end },
+                  },
+              } as DastText,
+              /[\[\]]/,
+          )
+        : [];
+    nodes.splice(startIdx, endIdx - startIdx, ...replacement);
+    return true;
+}
+
+/**
+ * The document position at `decodedOffset` characters into the joined value of
+ * `run`.
+ *
+ * The tail is parsed from the run's *decoded* text, so its offsets count one
+ * character per `&#50;` where the source spends five. Adding such an offset to
+ * the run's start would put everything after a character reference four or more
+ * characters early — wrong ranges, for the editor and for anything that slices
+ * the source to quote a diagnostic.
+ *
+ * Mapping a node at a time is what avoids it. Every node in the run carries its
+ * own source span, and at this point in the pass a character reference is still
+ * a node of its own — `mergeAdjacentTextInArray` does not run until the pass
+ * returns — so an offset always lands on a node boundary and comes back exact.
+ * That holds for the shapes that motivated this (`$a[<n/>][&#50;]`, an index
+ * written as an entity), for a tail claimed past one, and for entities inside a
+ * `{…}` block.
+ *
+ * The arithmetic in the middle branch is the fallback for an offset strictly
+ * inside a node, which is exact unless that node holds a character reference
+ * before the offset. No document has been found that produces one, for the
+ * reason above; it is a defined answer rather than a claim that the case
+ * cannot arise.
+ */
+function pointAtDecoded(
+    run: DastText[],
+    decodedOffset: number,
+    offsetMap: OffsetToPositionMap,
+) {
+    const point = (offset: number) => ({
+        offset,
+        line: offsetMap.rowMap[offset] + 1,
+        column: offsetMap.columnMap[offset] + 1,
+    });
+
+    let decoded = 0;
+    for (const node of run) {
+        const start = node.position?.start.offset ?? 0;
+        const end = node.position?.end.offset ?? start;
+        if (decodedOffset === decoded) {
+            return point(start);
+        }
+        if (decodedOffset < decoded + node.value.length) {
+            return point(start + (decodedOffset - decoded));
+        }
+        if (decodedOffset === decoded + node.value.length) {
+            return point(end);
+        }
+        decoded += node.value.length;
+    }
+    const last = run[run.length - 1];
+    return point(last.position?.end.offset ?? 0);
+}
+
+/**
  * Move a bracket group onto the reference's last path part as an index.
  */
 function attachIndex(
     reference: DastMacro | DastFunctionMacro,
     group: BracketGroup,
+    offsetMap: OffsetToPositionMap,
 ): DastError[] {
     const lastPart = reference.path[reference.path.length - 1];
 
@@ -317,10 +528,15 @@ function attachIndex(
     // normalization, which is why the type admits one.
     const content = group.content;
 
-    // The group may hold references and function references of its own, so it gets the
-    // same two passes the top level gets.
-    const processed = gobbleFunctionArguments(
-        gobblePropIndices(content),
+    // The group may hold references and function references of its own, so it gets
+    // the same three passes the top level gets — including the `warnOnly` one. Its
+    // two shapes are as writable between brackets as anywhere else, and with only
+    // the first two passes `$a[$$f(<n/>)[<m/>]]` said nothing where the same
+    // markup at top level warns.
+    const processed = gobblePropIndices(
+        gobbleFunctionArguments(gobblePropIndices(content, offsetMap)),
+        offsetMap,
+        { warnOnly: true },
     ) as DastElementContent[];
 
     // Those passes can *produce* a warning — a reference inside the brackets whose
@@ -376,15 +592,9 @@ function attachIndex(
 function indexWarning(
     reference: DastMacro | DastFunctionMacro,
     openBracket: DastText,
-    reason:
-        | "braces"
-        | "parens"
-        | "parensFunction"
-        | "arguments"
-        | "called"
-        | "unclosed",
+    reason: "braces" | "parens" | "parensFunction" | "arguments" | "unclosed",
 ): DastError {
-    // The sigil belongs to `name` because a function reference carries two of them:
+    // The `$` belongs to `name` because a function reference carries two of them:
     // quoting `$$f` as `$f` would name a component the author did not write.
     const name =
         (reference.type === "function" ? "$$" : "$") +
@@ -401,7 +611,6 @@ function indexWarning(
             "`$$(…)` ends a function reference, so `[…]` written after it is ordinary text. Give the element a name and write the index inside the parentheses, as `$$(f[$idx])`.",
         arguments:
             "A function reference's arguments end it, so `[…]` written after them is ordinary text. An index written before the arguments would pick which function to call rather than part of what it returns; to index the result, give the result a name and index that.",
-        called: "An index before a function reference's arguments picks which function to call, and a computed one there is not supported. To index what the call returns, give the result a name and index that.",
         unclosed: "Its `[` is never closed.",
     }[reason];
 

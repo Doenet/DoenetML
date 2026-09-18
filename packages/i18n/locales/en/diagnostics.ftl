@@ -646,6 +646,13 @@ reference-no-referent = No referent found for reference: `{ $reference }`
 
 reference-multiple-referents = Multiple referents found for reference: `{ $reference }`
 
+# Raised when what was written between a reference's index brackets did not come
+# out as a whole number — usually because that component reported an error of its
+# own, which is the diagnostic the author should act on. This one says why the
+# reference then found nothing, so the two read together rather than the reference
+# failing silently.
+reference-index-not-a-number = The index of `{ $reference }` did not work out to a number, so the reference found nothing.
+
 ## Children that do not match
 
 children-invalid-attribute-format = Invalid format for attribute { $attribute } of `<{ $componentType }>`.
@@ -747,7 +754,7 @@ parser-node-unconvertible = Could not convert node { $node } to Dast node.
 
 # Raised when an element sits in brackets immediately after a reference but the
 # brackets cannot be read as an index. $name is the reference as the author wrote
-# it, including its leading sigil — one `$` for a reference and two for a
+# it, including its leading `$` — one for a reference and two for a
 # function reference. $reason says why the brackets could not be read, as a key
 # rather than a phrase, so the whole sentence is translatable rather than
 # assembled from halves.
@@ -756,13 +763,15 @@ parser-node-unconvertible = Could not convert node { $node } to Dast node.
 # it still parses, but the braces and whatever is in them are dropped. So the
 # remedy is to delete them, not to write the index somewhere else around them.
 #
-# The other five: `parens` and `parensFunction` are `$(x)[…]` and `$$(f)[…]`,
-# which differ only in which sigil the remedy shows — following the `$(…)` one
+# The other four: `parens` and `parensFunction` are `$(x)[…]` and `$$(f)[…]`,
+# which differ only in how many dollars the remedy shows — following the `$(…)` one
 # for a function reference would turn it into an ordinary reference. `arguments`
-# is `$$f(1)[…]`, where the argument list ran past the path. `called` is
-# `$$f[<n/>](y)`, where the index is where the grammar wants it but a computed
-# one on a reference that is then called cannot be built. `unclosed` is the
+# is `$$f(1)[…]`, where the argument list ran past the path. `unclosed` is the
 # default because it states a fact rather than offering a remedy.
+#
+# There is deliberately no branch for an index on a function reference that is
+# then called. `$$fs[<n/>](3)` picks which of the functions in `fs` to call and
+# is taken like any other index on an open path.
 #
 # The `parens` branch is about `$(x)[…]`. The index does belong inside the
 # parentheses, but an element written in there is not read as an index either —
@@ -781,7 +790,6 @@ index-element-not-used-as-index =
         [parens] `$(…)` ends a reference, so `[…]` written after it is ordinary text. Give the element a name and write the index inside the parentheses, as `$(x[$idx])`.
         [parensFunction] `$$(…)` ends a function reference, so `[…]` written after it is ordinary text. Give the element a name and write the index inside the parentheses, as `$$(f[$idx])`.
         [arguments] A function reference's arguments end it, so `[…]` written after them is ordinary text. An index written before the arguments would pick which function to call rather than part of what it returns; to index the result, give the result a name and index that.
-        [called] An index before a function reference's arguments picks which function to call, and a computed one there is not supported. To index what the call returns, give the result a name and index that.
        *[unclosed] Its `[` is never closed.
     }
 

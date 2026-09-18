@@ -6953,6 +6953,57 @@ describe("Extend and references tests @group2", async () => {
             expect(text).eq("300");
         });
 
+        it("resolves a reference to a name given to the index element", async () => {
+            // The other direction: a `name` on the element in the brackets is
+            // registered in the element the reference sits in, so the rest of
+            // the document can refer to it. Order does not matter, and it is
+            // reachable from outside the enclosing element too.
+            const list = `<numberList name="myList">100 300 200 50</numberList>`;
+
+            const after = await textOf(`${list}
+    <p name="p1">$myList[<number name="u">2</number>] u=$u</p>
+            `);
+            expect(after.text).eq("300 u=2");
+            expect(after.diagnostics.errors.length).eq(0);
+            expect(after.diagnostics.warnings.length).eq(0);
+
+            // Written before the brackets it comes from.
+            const before = await textOf(`${list}
+    <p name="p1">u=$u $myList[<number name="u">2</number>]</p>
+            `);
+            expect(before.text).eq("u=2 300");
+
+            // And from a different paragraph, either side of it.
+            const later = await textOf(`${list}
+    <p>$myList[<number name="u">2</number>]</p>
+    <p name="p1">u=$u</p>
+            `);
+            expect(later.text).eq("u=2");
+
+            // A property of it resolves too, so it is a component and not just a
+            // name that happens to render.
+            const property = await textOf(`${list}
+    <p>$myList[<number name="u">2</number>]</p>
+    <p name="p1">$u.value</p>
+            `);
+            expect(property.text).eq("2");
+        });
+
+        it("reports a duplicate name on an index element like any other", async () => {
+            // Two elements in brackets sharing a name are as ambiguous as two
+            // ordinary children sharing one, and report identically.
+            const { diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p>$myList[<number name="d">1</number>]</p>
+    <p>$myList[<number name="d">2</number>]</p>
+    <p name="p1">$d</p>
+            `);
+            expect(diagnostics.warnings.length).eq(1);
+            expect(diagnostics.warnings[0].message).contain(
+                "Multiple referents found",
+            );
+        });
+
         it("is not broken by a comment written beside the element", async () => {
             // A comment is invisible to the reader, so it must be invisible to
             // the index too: left in, it makes the index two nodes and the
@@ -7019,21 +7070,36 @@ describe("Extend and references tests @group2", async () => {
             ).eq(true);
         });
 
-        it("leaves a called function reference's index alone rather than killing the document", async () => {
-            // `$$f[1](y)` parses, but the worker cannot build a component-valued
-            // index on a reference it then calls — it emits the index component
-            // twice and throws. Claiming these brackets would turn what used to
-            // render as harmless text into a blank page, so they stay text.
-            const { text, diagnostics } = await textOf(`
-    <function name="f" variables="x">x^2</function>
-    <p name="p1">$$f[<number>1</number>](3)</p>
+        it("indexes a function reference that is then called", async () => {
+            // An index before a function reference's arguments picks which
+            // function to call, so `$$fs[<number>2</number>](3)` calls the
+            // second of them — the same question `$$fs[2](3)` asks.
+            const functions = `
+    <group name="fs">
+      <function variables="x">x^2</function>
+      <function variables="x">x^3</function>
+    </group>`;
+            const { text, diagnostics } = await textOf(`${functions}
+    <p name="p1">$$fs[<number>2</number>](3)</p>
             `);
-            expect(text).eq("x²[1](3)");
+            expect(text).eq("27");
             expect(diagnostics.errors.length).eq(0);
-            expect(diagnostics.warnings.length).eq(1);
-            expect(diagnostics.warnings[0].message).contain(
-                "give the result a name and index that",
-            );
+            expect(diagnostics.warnings.length).eq(0);
+
+            // Which is the point of #1909: the position can be worked out rather
+            // than written down.
+            const { text: computed } = await textOf(`${functions}
+    <numberList name="powers">2 3</numberList>
+    <p name="p1">$$fs[<indexOf target="3">$powers</indexOf>](3)</p>
+            `);
+            expect(computed).eq("27");
+
+            // And it agrees with the named-and-referenced form it replaces.
+            const { text: named } = await textOf(`${functions}
+    <number name="i">2</number>
+    <p name="p1">$$fs[$i](3)</p>
+            `);
+            expect(named).eq("27");
         });
 
         it("warns, rather than saying nothing, when the brackets cannot index", async () => {
@@ -7066,6 +7132,71 @@ describe("Extend and references tests @group2", async () => {
             );
         });
 
+        it("carries the path on past the index", async () => {
+            // The reference's path used to stop at an element index, leaving a
+            // stray `.x` as text next to the whole point (#1915).
+            const { text, diagnostics } = await textOf(`
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <p name="p1">$pts[<number>2</number>].x</p>
+            `);
+            expect(text).eq("3");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+
+        it("agrees with the named-and-referenced form for a property after an index", async () => {
+            const { text: inline } = await textOf(`
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <p name="p1">$pts[<number>2</number>].x</p>
+            `);
+            const { text: named } = await textOf(`
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <number name="i">2</number>
+    <p name="p1">$pts[$i].x</p>
+            `);
+            expect(inline).eq(named);
+        });
+
+        it("takes a property and a further index after the element index", async () => {
+            // `.xs` and `[1]` are both claimed by the tail parse, on top of the
+            // element index that closed the path before it.
+            const { text, diagnostics } = await textOf(`
+    <pointList name="pts">(1,2) (3,4)</pointList>
+    <p name="p1">$pts[<number>2</number>].xs[1]</p>
+            `);
+            expect(text).eq("3");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+
+        it("still indexes the last path part, which never needed a tail", async () => {
+            // Nothing follows the brackets here, so this worked already; it is
+            // the control for the two above.
+            const { text } = await textOf(`
+    <point name="pt">(1,2)</point>
+    <p name="p1">$pt.xs[<number>2</number>]</p>
+            `);
+            expect(text).eq("2");
+        });
+
+        it("names the component the author wrote when its attribute is invalid", async () => {
+            // An index has to round, so a lone `<number>` between the brackets
+            // is retyped to `integer` on the way through. The retype is right
+            // for the value and wrong for the message: the author wrote
+            // `<number>` and there is no `<integer>` anywhere in the document
+            // (#1919). That branch was unreachable from authored markup until
+            // an element could be written in an index at all.
+            const { diagnostics } = await textOf(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <p name="p1">$myList[<number bogusAttr="1">2</number>]</p>
+            `);
+            expect(diagnostics.errors.length).eq(1);
+            expect(diagnostics.errors[0].message).contain(
+                'Invalid attribute "bogusAttr" for a component of type `<number>`',
+            );
+            expect(diagnostics.errors[0].message).not.contain("integer");
+        });
+
         it("reports an invalid component name written in the index", async () => {
             // The other half of the same problem: here the element cannot stay
             // either, so the index is left empty and reads like any other index
@@ -7096,6 +7227,28 @@ describe("Extend and references tests @group2", async () => {
             );
         });
 
+        it("calls a nested function reference in any argument, not only the last", async () => {
+            // An element argument is what makes a nested call need the parser's
+            // post-pass rather than the grammar, and only the last argument was
+            // passed back through it. So the inner call simply did not happen
+            // anywhere else: this rendered `3 x² + 1`.
+            const functions = `
+    <function name="f" variables="x">x^2</function>
+    <function name="g" variables="a b">a+b</function>`;
+
+            for (const reference of [
+                `$$g($$f(<math>3</math>), 1)`,
+                `$$g(1, $$f(<math>3</math>))`,
+            ]) {
+                const { text, diagnostics } = await textOf(
+                    `${functions}<p name="p1">${reference}</p>`,
+                );
+                expect(text, reference).eq("10");
+                expect(diagnostics.errors.length, reference).eq(0);
+                expect(diagnostics.warnings.length, reference).eq(0);
+            }
+        });
+
         it("renders an element written as a function reference's argument", async () => {
             // Not an index, but the same parent chain: a function reference's
             // arguments are parented to the reference too. This shape parsed
@@ -7109,6 +7262,202 @@ describe("Extend and references tests @group2", async () => {
             expect(text).eq("9");
             expect(diagnostics.errors.length).eq(0);
             expect(diagnostics.warnings.length).eq(0);
+        });
+    });
+
+    describe("a component-valued index that cannot be worked out", () => {
+        // #1917. `$list[$i]` is the form the documentation recommends, and four
+        // `throw`s on that path were reachable from ordinary markup. Since
+        // nothing between them and the worker catches, the whole document went
+        // blank -- taking with it the diagnostic that explained the mistake.
+        //
+        // None of these involves an element in brackets, and all of them
+        // reproduced before elements in brackets existed.
+
+        async function run(doenetML: string, path = "p1") {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return {
+                text: stateVariables[await resolvePathToNodeIdx(path)]
+                    .stateValues.text,
+                diagnostics: getDiagnosticsByType(core),
+            };
+        }
+
+        it("reports the attribute error instead of stopping the document", async () => {
+            // `tolerance` is not an attribute of `<indexOf>`, so the component
+            // becomes an `_error`. That error is correct and is reported; what
+            // used to happen is that the reference then threw and the reader got
+            // a blank page instead of the message.
+            const { diagnostics } = await run(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <indexOf name="io" tolerance="1e-6" target="100">$myList</indexOf>
+    <p name="p1">$myList[$io]</p>
+            `);
+            expect(diagnostics.errors.length).eq(1);
+            expect(diagnostics.errors[0].message).contain(
+                'Invalid attribute "tolerance"',
+            );
+            // And the reference says why it came up empty.
+            expect(diagnostics.warnings.map((w: any) => w.code)).toContain(
+                "doenet-w0163",
+            );
+        });
+
+        it("does the same for a bad attribute on a plain <number> index", async () => {
+            const { diagnostics } = await run(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <number name="q" bogusAttr="1">1</number>
+    <p name="p1">$myList[$q]</p>
+            `);
+            expect(diagnostics.errors.length).eq(1);
+            expect(diagnostics.errors[0].message).contain(
+                'Invalid attribute "bogusAttr"',
+            );
+            expect(diagnostics.warnings.map((w: any) => w.code)).toContain(
+                "doenet-w0163",
+            );
+        });
+
+        it("names a function reference with both its dollars, and locates it", async () => {
+            // The message is built from the path read back out of the source,
+            // which does not include the `$`, so every call site puts one
+            // back. A hardcoded `$` named `$$fs[$bad]` as `$fs[$bad]` — markup
+            // the author never wrote and cannot search their document for.
+            //
+            // The called spelling had no position at all: it reports from the
+            // `<function>` that `convertEvaluate` synthesizes, which carried
+            // none, so the reader got no location and two such warnings about
+            // different references deduplicated into one.
+            const setup = `
+    <numberList name="nums">1 2</numberList>
+    <indexOf name="bad" tolerance="1" target="1">$nums</indexOf>
+    <group name="fs">
+      <function variables="x">x^2</function>
+      <function variables="x">x^3</function>
+    </group>`;
+
+            for (const reference of [`$$fs[$bad](3)`, `$$fs[$bad]`]) {
+                const { diagnostics } = await run(
+                    `${setup}<p name="p1">${reference}</p>`,
+                );
+                const warning = diagnostics.warnings.find(
+                    (w: any) => w.code === "doenet-w0163",
+                );
+                expect(warning?.message).contain("`$$fs[$bad]`");
+                expect(warning?.message).not.contain("`$fs[$bad]`");
+                expect(warning?.position).toBeDefined();
+            }
+
+            // A parenthesized path starts inside its parentheses, so the `(`
+            // has to be stepped over to find the dollars behind it. The
+            // parentheses are not quoted back — the path alone names the same
+            // reference in the spelling that does not need them.
+            for (const reference of [`$$(fs[$bad])(3)`, `$$(fs[$bad])`]) {
+                const { diagnostics } = await run(
+                    `${setup}<p name="p1">${reference}</p>`,
+                );
+                expect(
+                    diagnostics.warnings.find(
+                        (w: any) => w.code === "doenet-w0163",
+                    )?.message,
+                ).contain("`$$fs[$bad]`");
+            }
+
+            // Ordinary references still get the single `$` they were written
+            // with, parenthesized or not, which is the control.
+            for (const reference of [`$nums[$bad]`, `$(nums[$bad])`]) {
+                const { diagnostics } = await run(
+                    `${setup}<p name="p1">${reference}</p>`,
+                );
+                expect(
+                    diagnostics.warnings.find(
+                        (w: any) => w.code === "doenet-w0163",
+                    )?.message,
+                ).contain("`$nums[$bad]`");
+            }
+        });
+
+        it("does not report a working index", async () => {
+            const { text, diagnostics } = await run(`
+    <numberList name="myList">100 300 200 50</numberList>
+    <number name="i">2</number>
+    <p name="p1">$myList[$i]</p>
+            `);
+            expect(text).eq("300");
+            expect(diagnostics.errors.length).eq(0);
+            expect(diagnostics.warnings.length).eq(0);
+        });
+
+        it("renders what sits beside the reference, not just what precedes it", async () => {
+            // Giving up on the index left the path holding the live component
+            // the index was written from, and that path travels on into
+            // `compositeReplacementRange`, which `childDependencies.ts` sends
+            // through `JSON.stringify`. A component graph is circular, so the
+            // throw came back the moment the paragraph held anything after the
+            // reference -- which is most paragraphs, and is why the plain
+            // one-reference case above is not enough of a test on its own.
+            const doc = (paragraph: string) => `
+    <numberList name="myList">100 300 200 50</numberList>
+    <indexOf name="io" tolerance="1e-6" target="100">$myList</indexOf>
+    <p name="p1">${paragraph}</p>
+    <p name="p2">after</p>
+            `;
+
+            for (const [paragraph, expected] of [
+                ["$myList[$io] tail", " tail"],
+                ["[$myList[$io]]", "[]"],
+                ["head $myList[$io] tail", "head  tail"],
+            ] as const) {
+                const { text, diagnostics } = await run(doc(paragraph));
+                expect(text).eq(expected);
+                expect(diagnostics.warnings.map((w: any) => w.code)).toContain(
+                    "doenet-w0163",
+                );
+                // And the document goes on after it.
+                expect((await run(doc(paragraph), "p2")).text).eq("after");
+            }
+        });
+
+        it("builds a called function reference with a component index once, not twice", async () => {
+            // `convertEvaluate` hands the synthesized `function` component the
+            // `<evaluate>`'s own resolution object, and converting a path
+            // rewrites it in place -- so both ended up owning the components
+            // built for the index, and the second to be instantiated threw
+            // `Found a duplicate componentIdx`.
+            //
+            // These render blank, which is what `$$f[1](3)` has always done and
+            // has nothing to do with calling: `f` is a single function, and an
+            // index on any single component finds nothing. Against a group the
+            // same shapes select, as the element-index test above shows. What
+            // matters here is that every spelling now agrees instead of one of
+            // them stopping the document.
+            const setup = `
+    <function name="f" variables="x">x^2</function>
+    <number name="k">1</number>`;
+            for (const reference of [
+                `$$f[$k](3)`,
+                `$$f[$k+0](3)`,
+                `$$f[$k][1](3)`,
+            ]) {
+                const { diagnostics } = await run(
+                    `${setup}<p name="p1">${reference}</p>`,
+                );
+                expect(diagnostics.errors.length).eq(0);
+            }
+        });
+
+        it("still evaluates a function reference with no index", async () => {
+            const { text } = await run(`
+    <function name="f" variables="x">x^2</function>
+    <p name="p1">$$f(3)</p>
+            `);
+            expect(text).eq("9");
         });
     });
 });

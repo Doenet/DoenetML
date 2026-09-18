@@ -66,6 +66,18 @@ export function pegjsLoader(options = {}) {
                 format: "bare",
                 ...options,
             };
+            // The v0.7 macro grammar has a second entry point, `MacroTail`,
+            // which `gobblePropIndices` uses to carry a reference's path past an
+            // element index. Naming any start rules replaces the default, so
+            // `top` has to stay listed. The match is on the directory because
+            // the v0.6 grammar is also called `macros.peggy` and has no such
+            // rule — and it accepts either separator, because `path.relative`
+            // gives back backslashes on Windows, where a slash-only pattern
+            // would silently leave the grammar with only its default entry
+            // point and fail every tail parse.
+            if (filename.match(/macros[\\/]macros\.(pegjs|peggy)$/)) {
+                defaultOptions.allowedStartRules = ["top", "MacroTail"];
+            }
             if (filename.match(/latex\.(pegjs|peggy)$/)) {
                 defaultOptions.allowedStartRules = ["document", "math"];
             }

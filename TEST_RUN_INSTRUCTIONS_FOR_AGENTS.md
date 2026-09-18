@@ -86,6 +86,49 @@ npm run build -w @doenet/i18n
 
 Adding an i18n **locale** needs all four, in this order — `codegen` → `build -w @doenet/i18n` → `build:schema` → `build -w @doenet/static-assets`. Skipping the second step drops locales from the schema.
 
+## Vitest: Use the Workspace Script, Not a Bare `npx vitest`
+
+`npm run test -w @doenet/<pkg>` runs vitest **with that package's `vite.config.ts`**. A bare `npx vitest --run packages/<pkg>/…` from the root does not load it, and there is no root vitest config to stand in, so the plugins and `test` options the package's suite depends on are simply absent. What you get back is failures in code you did not touch:
+
+| package | what the root run drops | how it reads |
+| --- | --- | --- |
+| `parser` | the `.peggy` loader | every test file fails to import — "content contains invalid JS syntax" |
+| `v06-to-v07` | `vite-plugin-arraybuffer`, which is how the resolver wasm is loaded | 23 tests fail, every one of them a reference that did not resolve |
+| `doenetml-worker-javascript` | `testTimeout: 180000` (vitest's default is 5 000) | the slow suites fail on "Test timed out in 5000ms"; `evaluate.test.ts` alone reports 5 |
+
+The suites that need nothing from their package config — `lsp-tools`, the worker's `copying` and `diagnostics` — do pass from the root, which is what makes this worth writing down: the invocation works often enough to look trustworthy, and then reports a failure that reads like a regression in the branch under review. Pass the files after `--` instead:
+
+```bash
+npm run test -w @doenet/parser -- --run
+npm run test -w @doenet/doenetml-worker-javascript -- --run src/test/tagSpecific/evaluate.test.ts
+```
+
+## Rust Tests: Use the npm Script, or Cargo's Full Invocation
+
+```bash
+npm run test -w @doenet/doenetml-worker-rust     # cargo test --workspace --features testing
+```
+
+Green is **311 tests**. `cargo` gives the same 311 when handed the same arguments — `cargo test --workspace --features testing`, run from `packages/doenetml-worker-rust`, is exactly what the script runs. What fails is any *shorter* invocation, and none of them names its cause. The first is the dangerous one, because it looks like a pass:
+
+| invocation | what happens |
+| --- | --- |
+| `cargo test` | **runs 0 tests and reports ok** |
+| `cargo test --workspace` | does not compile |
+| `cargo test -p doenetml-core --features testing` | **16 failures**, all serde field naming |
+| `cargo test -p doenetml-core --features web` | does not compile |
+| `cargo test --workspace --features testing` | 311 pass — what the npm script runs |
+
+A bare `cargo test` tests nothing because the workspace sets `default-members = ["lib-js-wasm-binding"]`, and that crate has no tests of its own. It exits 0. Do not read that as a green suite.
+
+Both non-compiling rows are the same missing flag: `testing` is what stands the wasm-bindgen-dependent functions down so the test binaries link, and nothing else supplies it.
+
+The 16 failures are an artifact of scoping, not a regression. `lib-js-wasm-binding` depends on the core as `doenetml-core = { path = "...", features = ["web"] }`, so a `--workspace` build unifies `web` on. Scoped to `-p doenetml-core` it is off, and `FlatElement` carries `#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]` — so serde emits `children_position` where the snapshot tests assert `childrenPosition`.
+
+They fail identically on a clean `main`, so reproducing them there reads as "pre-existing" and confirms nothing. Check the invocation before the code.
+
+**A green CI says nothing about these.** `.github/workflows/ci.yml` runs `cargo fmt --check` and `cargo clippy` for Rust and no test step at all, so the Rust suite only ever runs where someone runs it. Run it yourself after touching anything under `packages/doenetml-worker-rust`.
+
 ## Critical test-cypress Warning
 
 If you changed code that affects Cypress behavior or rendering, you must rebuild `@doenet/test-cypress` before any Cypress run.
@@ -276,7 +319,7 @@ rebuild the docs (step 1) before running the tests — Cypress reads the built
 ## Quick Checklist
 
 1. Use non-interactive commands only.
-2. For Vitest, include `--run`.
+2. For Vitest, include `--run`, and run it as `npm run test -w @doenet/<pkg> -- --run [files]` — a bare `npx vitest` from the root skips the package's `vite.config.ts` and fails suites that are fine.
 3. If you edited another package's `src/`, build that package first — nothing does it for you, and a stale `dist/` passes silently.
 4. For `@doenet/test-cypress`, rebuild first after any code change.
 5. Only after rebuilding, start preview server.
@@ -284,3 +327,4 @@ rebuild the docs (step 1) before running the tests — Cypress reads the built
 7. Use `cypress run` (headless), not `cypress open`.
 8. Stop background preview server after tests finish.
 9. For `@doenet/docs-cypress`, build the docs first, then serve `out/` on port 3000, then run Cypress.
+10. For Rust, run `npm run test -w @doenet/doenetml-worker-rust`, or `cargo test --workspace --features testing`, which is the same command — a bare `cargo test` runs nothing and reports ok, a scoped one reports 16 failures that are not real, and CI runs no Rust tests at all.

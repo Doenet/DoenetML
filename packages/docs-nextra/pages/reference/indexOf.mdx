@@ -107,9 +107,11 @@ want `<indexOf>{:dn}` rather than a test for membership.
 <setup>
   <textList name="symbols">H He Li Be</textList>
   <numberList name="masses">1.008 4.003 6.94 9.012</numberList>
+  <pointList name="sites">(0,0) (1,0) (0,1) (1,1)</pointList>
 </setup>
 
 <p>The atomic mass of Li is $masses[<indexOf type="text" target="Li">$symbols</indexOf>].</p>
+<p>Its site is at x = $sites[<indexOf type="text" target="Li">$symbols</indexOf>].x.</p>
 ```
 
 
@@ -118,6 +120,9 @@ The `<indexOf>{:dn}` can be written between the index brackets instead of being 
 and referenced. Both find the same position, so which to use is a matter of how the
 sentence reads: naming it keeps a long index out of the prose, and is what to do when
 the same position is wanted more than once.
+
+A property can follow the brackets, as the second paragraph shows, and so can a further
+index.
 
 
 

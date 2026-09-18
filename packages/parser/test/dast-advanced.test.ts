@@ -7,6 +7,7 @@ import {
     DastFunctionMacro,
     DastMacro,
     DastRootContent,
+    DastText,
 } from "../src/types";
 import { MacroParser } from "../src/macros/parser";
 import { gobbleFunctionArguments } from "../src/lezer-to-dast/gobble-function-arguments";
@@ -1141,9 +1142,188 @@ describe("DAST", async () => {
         it("attaches the index to the path part it follows", () => {
             const dast = lezerToDast(`$a.x[<n/>].y`);
             const reference = dast.children[0] as DastMacro;
-            expect(reference.path.map((p) => p.name)).toEqual(["a", "x"]);
+            expect(reference.path.map((p) => p.name)).toEqual(["a", "x", "y"]);
             expect(reference.path[0].index).toHaveLength(0);
             expect(reference.path[1].index).toHaveLength(1);
+            expect(reference.path[2].index).toHaveLength(0);
+        });
+
+        describe("carries the path on past the index", () => {
+            // #1915. Everything after the `]` was emitted as plain text before
+            // this pass ran, so the post-pass re-parses it with the grammar's
+            // `MacroTail` entry point.
+
+            /** The path of the first reference, as `name` plus its index count. */
+            function pathOf(source: string) {
+                const reference = lezerToDast(source).children.find(
+                    (n): n is DastMacro | DastFunctionMacro =>
+                        n.type === "macro" || n.type === "function",
+                )!;
+                return reference.path.map((p) => [p.name, p.index.length]);
+            }
+
+            /** What is left in the sibling array after the reference. */
+            function tailTextOf(source: string) {
+                return childrenOf(source)
+                    .slice(1)
+                    .map((n: any) => n.value ?? `<${n.name}>`)
+                    .join("");
+            }
+
+            it("takes a property written after the index", () => {
+                expect(pathOf(`$pts[<n/>].x`)).toEqual([
+                    ["pts", 1],
+                    ["x", 0],
+                ]);
+                expect(tailTextOf(`$pts[<n/>].x`)).toBe("");
+            });
+
+            it("takes a literal index written after the index", () => {
+                expect(pathOf(`$a[<n/>][1]`)).toEqual([["a", 2]]);
+                expect(indicesOf(`$a[<n/>][1]`)).toMatchObject([
+                    { value: [{ type: "element", name: "n" }] },
+                    { value: [{ type: "text", value: "1" }] },
+                ]);
+            });
+
+            it("alternates with further element indices", () => {
+                expect(pathOf(`$a[<n/>].x[2].y[<m/>]`)).toEqual([
+                    ["a", 1],
+                    ["x", 1],
+                    ["y", 1],
+                ]);
+            });
+
+            it("leaves an element index to the gobbling loop, not the tail", () => {
+                // `$a[<n/>][<m/>]` has nothing the tail can claim — it stops at
+                // the element — so the behaviour predating #1915 is unchanged.
+                expect(pathOf(`$a[<n/>][<m/>]`)).toEqual([["a", 2]]);
+            });
+
+            it("stops where the text stops being a path", () => {
+                expect(tailTextOf(`$a[<n/>].x is the answer`)).toBe(
+                    " is the answer",
+                );
+                expect(pathOf(`$a[<n/>].x is the answer`)).toEqual([
+                    ["a", 1],
+                    ["x", 0],
+                ]);
+            });
+
+            it("claims nothing a bare path would not have claimed", () => {
+                for (const source of [
+                    // A space ends a reference, as it does for `$a .x`.
+                    `$a[<n/>] .x`,
+                    // `SimplePathPart` wants the name against the dot.
+                    `$a[<n/>]. x`,
+                    // Nothing here is path syntax at all.
+                    `$a[<n/>]text`,
+                ]) {
+                    expect(pathOf(source)).toEqual([["a", 1]]);
+                }
+            });
+
+            it("leaves an unbalanced bracket alone after claiming what it can", () => {
+                expect(pathOf(`$a[<n/>].x[unbalanced`)).toEqual([
+                    ["a", 1],
+                    ["x", 0],
+                ]);
+                expect(tailTextOf(`$a[<n/>].x[unbalanced`)).toBe("[unbalanced");
+            });
+
+            it("is not attempted when no index was claimed", () => {
+                // `$(x)` has already closed the path, so the brackets stay
+                // literal and there is nothing for a tail to continue.
+                expect(pathOf(`$(x)[<n/>].y`)).toEqual([["x", 0]]);
+            });
+
+            it("takes a brace block on a reference but not on a function reference", () => {
+                // `$a[1]{z}` swallows the braces and `$$f[1]{z}` does not,
+                // because `FunctionMacro` has no `PropAttrs`. The tail has to
+                // keep that difference.
+                const macro = lezerToDast(`$a[<n/>]{z}`)
+                    .children[0] as DastMacro;
+                expect(Object.keys(macro.attributes)).toEqual(["z"]);
+                expect(tailTextOf(`$a[<n/>]{z}`)).toBe("");
+
+                expect(tailTextOf(`$$f[<n/>]{z}`)).toBe("{z}");
+            });
+
+            it("reports the position of what it claimed", () => {
+                // The language server reads these, and a tail parsed on a later
+                // line that reports line 1 is the failure that would show up
+                // there. The offsets come from the document-wide map, not from
+                // the fragment the tail was parsed out of.
+                const source = `<p>\n  ignore me\n  $pts[<n/>].x\n</p>`;
+                const p = lezerToDast(source).children[0] as DastElement;
+                const reference = p.children.find(
+                    (n): n is DastMacro => n.type === "macro",
+                )!;
+                const property = reference.path[1];
+                expect(property.name).toBe("x");
+                expect(property.position?.start).toMatchObject({
+                    line: 3,
+                    column: 14,
+                    offset: source.indexOf(".x") + 1,
+                });
+                // The reference itself now runs to the end of the property.
+                expect(reference.position?.end.offset).toBe(
+                    source.indexOf(".x") + 2,
+                );
+            });
+
+            it("reports source offsets, not decoded ones, around a character reference", () => {
+                // The tail is parsed from decoded text, where `&#50;` is one
+                // character and the source spends five. Adding that offset to
+                // the run's start would put everything after an entity four
+                // characters early — wrong ranges for the editor and for any
+                // diagnostic that slices the source.
+                const endOf = (source: string) => {
+                    const reference = lezerToDast(source).children.find(
+                        (n): n is DastMacro => n.type === "macro",
+                    )!;
+                    return {
+                        reference: reference.position?.end.offset,
+                        lastIndex: reference.path.flatMap((p) => p.index).at(-1)
+                            ?.position?.end.offset,
+                    };
+                };
+
+                // An index written as an entity, claimed by the tail.
+                expect(endOf(`$a[<n/>][&#50;]`)).toEqual({
+                    reference: 15,
+                    lastIndex: 15,
+                });
+                // And with a path part after it, so the mapping is exercised
+                // past the entity rather than only up to it.
+                expect(endOf(`$a[<n/>][&#50;].x`)).toEqual({
+                    reference: 17,
+                    lastIndex: 15,
+                });
+                // An entity inside a claimed path part.
+                expect(endOf(`$a[<n/>].x&#50;y rest`)).toMatchObject({
+                    reference: 16,
+                });
+                // And inside a brace block, which the reference also spans.
+                expect(endOf(`$a[<n/>]{z="&#50;"}`)).toMatchObject({
+                    reference: 19,
+                });
+                // The literal spelling is unchanged, which is the control.
+                expect(endOf(`$a[<n/>][2]`)).toEqual({
+                    reference: 11,
+                    lastIndex: 11,
+                });
+            });
+
+            it("round-trips back to the source it was written as", () => {
+                for (const source of [
+                    `$pts[<n />].x`,
+                    `$a[<n />][1]`,
+                    `$a[<n />].x[2].y[<m />]`,
+                ]) {
+                    expect(toXml(lezerToDast(source))).toEqual(source);
+                }
+            });
         });
 
         it("is not confused by brackets written inside the element", () => {
@@ -1190,6 +1370,31 @@ describe("DAST", async () => {
                 expect(childrenOf(`see [1] here`)).toMatchObject([
                     { type: "text", value: "see [1] here" },
                 ]);
+            });
+
+            it("the span of prose holding a character reference", () => {
+                // Declining the brackets has to give the text back as it was,
+                // span included. Two passes split this array on brackets and
+                // merge it again, and the second of them works on text the
+                // first already merged — text whose value is shorter than the
+                // source it came from, since `&amp;` is five characters of one.
+                // The split used to end such a node where its *characters* ran
+                // out, four short, in the middle of the entity.
+                for (const source of [
+                    `<p>$a[ and X &amp; Y]</p>`,
+                    `<p>$a[ oops. Rates &amp; fees [here]</p>`,
+                ]) {
+                    const paragraph = lezerToDast(source)
+                        .children[0] as DastElement;
+                    const text = paragraph.children[1] as DastText;
+                    expect(text.type).toEqual("text");
+                    expect(
+                        source.slice(
+                            text.position!.start.offset,
+                            text.position!.end.offset,
+                        ),
+                    ).toEqual(source.slice(5, source.indexOf("</p>")));
+                }
             });
 
             it("a reference already closed by braces or parens", () => {
@@ -1270,35 +1475,28 @@ describe("DAST", async () => {
             });
         });
 
-        it("declines an index on a function reference that is then called", () => {
-            // `$$f[1](y)` parses, but the worker cannot build a component-valued
-            // index on a reference it then calls. Claiming these brackets would
-            // route an author into a thrown `Found a duplicate componentIdx`
-            // where before they rendered as literal text, so they stay literal.
-            expect(indicesOf(`$$f[<n/>](y)`)).toHaveLength(0);
-            const children = childrenOf(`$$f[<n/>](y)`);
-            expect(children.slice(0, 4)).toMatchObject([
-                { type: "function" },
-                { type: "error", error_type: "warning" },
-                { type: "text", value: "[" },
-                { type: "element", name: "n" },
-            ]);
-            // The call is left as written. `gobbleFunctionArguments` splits on
-            // its own delimiters, so the tail arrives as several text nodes.
-            expect(
-                children
-                    .slice(4)
-                    .map((n: any) => n.value)
-                    .join(""),
-            ).toBe("](y)");
-            expect((children[0] as any).input).toBe(null);
-            // Uncalled, the same index is taken.
-            expect(indicesOf(`$$f[<n/>]`)).toMatchObject([
+        it("takes an index on a function reference that is then called", () => {
+            // `$$fs[<n/>](3)` picks which of the functions in `fs` to call, the
+            // same question `$$fs[1](3)` asks, so the index is taken and the
+            // call is built on top of it.
+            expect(indicesOf(`$$f[<n/>](y)`)).toMatchObject([
                 { value: [{ type: "element", name: "n" }] },
             ]);
-            // And an opening paren is not a call on its own. Without a closing
-            // one `gobbleFunctionArguments` builds nothing, so the failure this
-            // guard avoids cannot happen and the index is safe to take.
+            const reference = lezerToDast(`$$f[<n/>](y)`)
+                .children[0] as DastFunctionMacro;
+            expect(reference.input).not.toBe(null);
+            expect(reference.input![0]).toMatchObject([
+                { type: "text", value: "y" },
+            ]);
+            // Nothing of the call survives as text beside it.
+            expect(
+                childrenOf(`$$f[<n/>](y)`).some(
+                    (n: any) => n.type === "text" || n.type === "error",
+                ),
+            ).toBe(false);
+
+            // An opening paren with no closing one is not a call, so the
+            // reference keeps its index and the `(` stays text.
             for (const source of [`$$f[<n/>](`, `$$f[<n/>]( y`]) {
                 expect(indicesOf(source)).toMatchObject([
                     { value: [{ type: "element", name: "n" }] },
@@ -1307,16 +1505,18 @@ describe("DAST", async () => {
                     childrenOf(source).some((n: any) => n.type === "error"),
                 ).toBe(false);
             }
-            // An empty argument list is still a call.
-            expect(indicesOf(`$$f[<n/>]()`)).toHaveLength(0);
-            // A second index declines while the first is kept, and the decline
-            // leaves `[<m/>]` as text between the `]` and the `(` — so nothing
-            // adjacent remains for `gobbleFunctionArguments` and the reference
-            // is never called, which is what keeps the guard's promise.
+
+            // An empty argument list is still a call, and still follows an index.
+            const empty = lezerToDast(`$$f[<n/>]()`)
+                .children[0] as DastFunctionMacro;
+            expect(empty.path[0].index).toHaveLength(1);
+            expect(empty.input).not.toBe(null);
+
+            // Two indices in a row, then the call.
             const twoIndices = lezerToDast(`$$f[<n/>][<m/>](y)`)
                 .children[0] as DastFunctionMacro;
-            expect(twoIndices.path[0].index).toHaveLength(1);
-            expect(twoIndices.input).toBe(null);
+            expect(twoIndices.path[0].index).toHaveLength(2);
+            expect(twoIndices.input).not.toBe(null);
         });
 
         it("keeps a warning about the brackets' own contents out of the index", () => {
@@ -1325,11 +1525,7 @@ describe("DAST", async () => {
             // reference. An index's value admits no error node — it reaches Rust
             // as a variant that does not exist and fails the document — so the
             // warning belongs in the sibling array instead.
-            for (const source of [
-                `$a[$(x)[<n/>]]`,
-                `$a[$x{z}[<n/>]]`,
-                `$a[$$f[<n/>](y)]`,
-            ]) {
+            for (const source of [`$a[$(x)[<n/>]]`, `$a[$x{z}[<n/>]]`]) {
                 const index = indicesOf(source);
                 expect(index).toHaveLength(1);
                 expect(
@@ -1352,11 +1548,179 @@ describe("DAST", async () => {
 
             expect(reasonFor(`$$(f)[<n/>](y)`)).toBe("parensFunction");
             expect(reasonFor(`$$f(1)[<n/>](y)`)).toBe("arguments");
-            // Only an otherwise-open function path is `called`.
-            expect(reasonFor(`$$f[<n/>](y)`)).toBe("called");
+            // An otherwise-open function path is not reported at all: the index
+            // is taken, and the call is built on top of it.
+            expect(reasonFor(`$$f[<n/>](y)`)).toBe(undefined);
             // And the same shapes without the trailing call are unchanged.
             expect(reasonFor(`$$(f)[<n/>]`)).toBe("parensFunction");
             expect(reasonFor(`$$f(1)[<n/>]`)).toBe("arguments");
+        });
+
+        it("reports an index after arguments that hold an element", () => {
+            // `$$f(<n/>)[<m/>]` said nothing at all. Indices are gobbled before
+            // function arguments, so at that point the reference is followed by
+            // `(` rather than `[` and the first pass cannot see the brackets;
+            // `$$f(1)[<m/>]`, whose arguments the grammar itself parsed, warned
+            // normally. A second pass after the arguments are gobbled closes the
+            // gap, and both now give the same reason (#1915).
+            const reasonFor = (source: string) =>
+                (childrenOf(source).find((n: any) => n.type === "error") as any)
+                    ?.args?.reason;
+
+            expect(reasonFor(`$$f(<n/>)[<m/>]`)).toBe("arguments");
+            expect(reasonFor(`$$f(<n/>)[<m/>](y)`)).toBe("arguments");
+            // An element *index* hides the argument list from the grammar just
+            // as an element argument does, so `$$fs[<n/>](3)[<m/>]` is out of
+            // the first pass's reach too and has to give the same reason its
+            // written-out spelling `$$fs[1](3)[<m/>]` gives.
+            expect(reasonFor(`$$fs[<n/>](3)[<m/>]`)).toBe("arguments");
+            expect(reasonFor(`$$fs[1](3)[<m/>]`)).toBe("arguments");
+            // Exactly one warning: the second pass must not repeat what the
+            // first already said about a grammar-parsed argument list.
+            for (const source of [
+                `$$f(1)[<m/>]`,
+                `$$f(<n/>)[<m/>]`,
+                `$$fs[<n/>](3)[<m/>]`,
+                `$x{z}[<n/>]`,
+                `$(x)[<n/>]`,
+            ]) {
+                expect(
+                    childrenOf(source).filter((n: any) => n.type === "error"),
+                ).toHaveLength(1);
+            }
+            // And an element argument with no brackets after it stays quiet.
+            expect(
+                childrenOf(`$$f(<n/>)`).some((n: any) => n.type === "error"),
+            ).toBe(false);
+        });
+
+        it("reports those same shapes when they are written inside an index", () => {
+            // The contents of a bracket group are parsed by the same passes the
+            // top level gets, so a reference written in there has to report what
+            // it would report anywhere else. Only the two shapes above are at
+            // risk: every other reason is settled by the first pass, which the
+            // brackets always got. The warning comes back to the sibling array
+            // rather than into the index, as `keeps a warning about the
+            // brackets' own contents out of the index` describes.
+            const reasonFor = (source: string) =>
+                (childrenOf(source).find((n: any) => n.type === "error") as any)
+                    ?.args?.reason;
+
+            for (const [inner, reason] of [
+                [`$$f(<n/>)[<m/>]`, "arguments"],
+                [`$$fs[<n/>](3)[<m/>]`, "arguments"],
+                // Controls, settled by the first pass and already reported.
+                [`$$f(1)[<n/>]`, "arguments"],
+                [`$(x)[<n/>]`, "parens"],
+            ] as const) {
+                expect(reasonFor(`$L[${inner}]`)).toBe(reason);
+                expect(
+                    childrenOf(`$L[${inner}]`).filter(
+                        (n: any) => n.type === "error",
+                    ),
+                ).toHaveLength(1);
+            }
+        });
+
+        it("builds a nested call in any argument, not only the last", () => {
+            // Only the final argument was passed back through
+            // `gobbleFunctionArguments`; at a comma the argument was stored as
+            // it stood. So a nested call whose own arguments hold an element —
+            // the one shape that needs this pass rather than the grammar —
+            // stayed uncalled anywhere but last.
+            const innerOf = (source: string) => {
+                const outer = lezerToDast(source)
+                    .children[0] as DastFunctionMacro;
+                const inner = outer
+                    .input!.flat()
+                    .find((n: any) => n.type === "function") as
+                    DastFunctionMacro | undefined;
+                return inner?.input == null ? "uncalled" : "called";
+            };
+
+            expect(innerOf(`$$g($$f(<n/>), 1)`)).toBe("called");
+            expect(innerOf(`$$g(1, $$f(<n/>))`)).toBe("called");
+            expect(innerOf(`$$g($$f(<n/>), 1, 2)`)).toBe("called");
+
+            // Which is what lets the brackets after such a call be reported
+            // wherever it is written, rather than only in the last argument.
+            // The warning stays inside the argument that earned it, so this
+            // counts the whole tree rather than the top-level siblings.
+            const warningsIn = (source: string) => {
+                let found = 0;
+                const walk = (node: any) => {
+                    if (Array.isArray(node)) {
+                        return node.forEach(walk);
+                    }
+                    if (node && typeof node === "object") {
+                        if (node.type === "error") {
+                            found++;
+                        }
+                        for (const value of Object.values(node)) {
+                            if (value && typeof value === "object") {
+                                walk(value);
+                            }
+                        }
+                    }
+                };
+                walk(lezerToDast(source));
+                return found;
+            };
+            for (const source of [
+                `$$g($$f(<n/>)[<m/>], 1)`,
+                `$$g(1, $$f(<n/>)[<m/>])`,
+            ]) {
+                expect(warningsIn(source), source).toBe(1);
+            }
+        });
+
+        it("reports those same shapes when they are written as a function argument", () => {
+            // `gobbleFunctionArguments` moves an argument out of the sibling
+            // array into `input`, where a pass that walks siblings cannot
+            // follow — so the two shapes only the third pass can see were
+            // silent there, while every other reason was reported normally
+            // because the first pass saw those brackets while they were still
+            // siblings.
+            const reasonsIn = (source: string) => {
+                const reasons: string[] = [];
+                const walk = (node: any) => {
+                    if (Array.isArray(node)) {
+                        return node.forEach(walk);
+                    }
+                    if (node && typeof node === "object") {
+                        if (node.type === "error") {
+                            reasons.push(node.args?.reason);
+                        }
+                        for (const value of Object.values(node)) {
+                            if (value && typeof value === "object") {
+                                walk(value);
+                            }
+                        }
+                    }
+                };
+                walk(lezerToDast(source));
+                return reasons;
+            };
+
+            expect(reasonsIn(`$$g($$f(<n/>)[<m/>])`)).toEqual(["arguments"]);
+            expect(reasonsIn(`$$g($$fs[<n/>](3)[<m/>])`)).toEqual([
+                "arguments",
+            ]);
+            // Nested arguments reach it too, and report once.
+            expect(reasonsIn(`$$h($$g($$f(<n/>)[<m/>]))`)).toEqual([
+                "arguments",
+            ]);
+            // The reasons the first pass settles were never affected, and must
+            // not now be reported twice.
+            expect(reasonsIn(`$$g($(x)[<n/>], $a{z}[<n/>])`)).toEqual([
+                "parens",
+                "braces",
+            ]);
+            // An index that is claimed says nothing, inside an argument list as
+            // anywhere else.
+            for (const source of [`$$g($a[<n/>])`, `$$g(1, 2)`]) {
+                expect(reasonsIn(source)).toEqual([]);
+            }
         });
 
         it("reports an unclosed bracket whose element is not the first thing in it", () => {

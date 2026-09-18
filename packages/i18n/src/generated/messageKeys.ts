@@ -460,6 +460,7 @@ export type MessageKey =
     | "composite-circular-dependency"
     | "reference-no-referent"
     | "reference-multiple-referents"
+    | "reference-index-not-a-number"
     | "children-invalid-attribute-format"
     | "children-invalid"
     | "attribute-value-invalid-using-default"
@@ -1089,6 +1090,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "composite-circular-dependency",
     "reference-no-referent",
     "reference-multiple-referents",
+    "reference-index-not-a-number",
     "children-invalid-attribute-format",
     "children-invalid",
     "attribute-value-invalid-using-default",

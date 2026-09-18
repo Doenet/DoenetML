@@ -6,7 +6,24 @@
 
 import { Dependency } from "./Dependency";
 import { codedDiagnostic } from "../../utils/diagnostics";
-import { doenetMLStringForReference } from "../../utils/sourceLocation";
+import {
+    doenetMLDollarsForReference,
+    doenetMLStringForReference,
+} from "../../utils/sourceLocation";
+
+/**
+ * The same path with every index emptied.
+ *
+ * A path that has been through `resolveComponentsInPathIndices` holds only
+ * strings in its indices; one that has not holds the components the author
+ * wrote between the brackets. The second kind must not be handed on as a
+ * resolution result: it ends up in `compositeReplacementRange`, which
+ * `childDependencies.ts` round-trips through `JSON.stringify`, and a live
+ * component is circular.
+ */
+function dropPathIndices(path: any[]): any[] {
+    return path.map((pathPart) => ({ ...pathPart, index: [] }));
+}
 
 export class RefResolutionIndexDependencies extends Dependency {
     static dependencyType = "refResolutionIndexDependencies";
@@ -71,7 +88,15 @@ export class RefResolutionIndexDependencies extends Dependency {
     // If successfully found all integer components return
     // - success: true,
     // - componentList: a list of the component indices of the "integer" components found in the unresolved path
-    // Throw an error if an index of unresolved path does not contain either a string or a single integer component
+    //
+    // An index that did not come out as a single integer component is simply left
+    // out of `componentList`. It used to throw, which blanked the document
+    // (#1917): the index of a component that had already been turned into an
+    // `_error` is not an integer, so an ordinary authoring slip -- a mistyped
+    // attribute on an `<indexOf>` -- took down the page and the diagnostic about
+    // that slip with it. `resolveComponentsInPathIndices` sees the same component
+    // and is the single place that decides the reference is dead, so there is
+    // nothing to report from here.
     async gatherComponentsInPath(originalPath: any) {
         const componentList = [];
         let foundUnexpanded = false;
@@ -104,9 +129,7 @@ export class RefResolutionIndexDependencies extends Dependency {
                             );
 
                             if (indexComponent.replacements.length !== 1) {
-                                throw Error(
-                                    "Something went wrong as path index is not an integer",
-                                );
+                                continue;
                             }
                             indexComponent = indexComponent.replacements[0];
                         }
@@ -116,9 +139,7 @@ export class RefResolutionIndexDependencies extends Dependency {
                         !foundUnexpanded &&
                         indexComponent.componentType !== "integer"
                     ) {
-                        throw Error(
-                            "Something went wrong as path index is not an integer",
-                        );
+                        continue;
                     }
 
                     componentList.push(indexComponent.componentIdx);
@@ -339,6 +360,54 @@ export class RefResolutionDependency extends Dependency {
                 force,
             );
 
+        if (resolveComponentResult.indexIsNotANumber) {
+            // The reference cannot be resolved, but it is an authoring mistake
+            // rather than a broken invariant, so it reports and renders as
+            // nothing -- the same as a reference whose referent is missing. The
+            // component sitting in the index has almost always reported an error
+            // of its own already, and that is the one the author needs; this says
+            // why the reference then came up empty (#1917).
+            this.dependencyHandler.core.addDiagnostic(
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0163",
+                    args: {
+                        reference: `${doenetMLDollarsForReference(
+                            composite.refResolution.originalPath,
+                            this.dependencyHandler.core.allDoenetMLs,
+                        )}${doenetMLStringForReference(
+                            composite.refResolution.originalPath,
+                            this.dependencyHandler.core.allDoenetMLs,
+                        )}`,
+                    },
+                    position: composite.position,
+                    sourceDoc: composite.sourceDoc,
+                }),
+            );
+
+            this.extendIdx = -1;
+            // Without the index. Every other branch that gives up hands back a
+            // path whose indices are the literal strings
+            // `resolveComponentsInPathIndices` produced, and we never got one --
+            // so what is left in there is the live component the index was
+            // written from. That path reaches `compositeReplacementRange`, which
+            // is round-tripped through `JSON.stringify` in
+            // `childDependencies.ts`, and a component graph does not survive
+            // that: the reference blanked the document all over again as soon as
+            // anything followed it in the same parent. Nothing can resolve
+            // through an index we could not work out anyway, and the names and
+            // positions the reporting paths read are all still here.
+            this.originalPath = dropPathIndices(
+                composite.refResolution.originalPath,
+            );
+            this.unresolvedPath = this.originalPath;
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+
         if (!resolveComponentResult.success) {
             return {
                 success: false,
@@ -398,6 +467,17 @@ export class RefResolutionDependency extends Dependency {
          */
         const getDoenetMLStringForReference = () =>
             doenetMLStringForReference(
+                composite.refResolution.originalPath,
+                this.dependencyHandler.core.allDoenetMLs,
+            );
+
+        /**
+         * The `$` or `$$` the author wrote. Hardcoding `$` named a function
+         * reference as something they did not write: `$$fs[$i]` came back as
+         * `$fs[$i]`.
+         */
+        const getDollarsForReference = () =>
+            doenetMLDollarsForReference(
                 composite.refResolution.originalPath,
                 this.dependencyHandler.core.allDoenetMLs,
             );
@@ -473,7 +553,9 @@ export class RefResolutionDependency extends Dependency {
                     ...(firstResolutionError === "NonUniqueReferent"
                         ? { code: "doenet-w0105" as const }
                         : { code: "doenet-w0104" as const }),
-                    args: { reference: `$${referenceText}` },
+                    args: {
+                        reference: `${getDollarsForReference()}${referenceText}`,
+                    },
                     position: composite.position,
                     sourceDoc: composite.sourceDoc,
                 }),
@@ -571,7 +653,9 @@ export class RefResolutionDependency extends Dependency {
                 codedDiagnostic({
                     type: "warning",
                     code: "doenet-w0104",
-                    args: { reference: `$${referenceText}` },
+                    args: {
+                        reference: `${getDollarsForReference()}${referenceText}`,
+                    },
                     position: composite.position,
                     sourceDoc: composite.sourceDoc,
                 }),
@@ -643,6 +727,12 @@ export class RefResolutionDependency extends Dependency {
      * Resolve its `value` state variable, which should be an integer,
      * and use its string value instead of the component.
      *
+     * A component that is not an integer -- or a composite that did not produce
+     * exactly one replacement -- means the index cannot be worked out at all.
+     * That returns `indexIsNotANumber`, and the caller reports it and leaves the
+     * reference resolving to nothing. It used to throw, and since nothing between
+     * here and the worker catches, the whole document went blank (#1917).
+     *
      * Note: we use strings rather than numbers for the literal indices
      * so that the unresolved path follows the `FlatPathPart` assumed by the resolver.
      */
@@ -686,17 +776,13 @@ export class RefResolutionDependency extends Dependency {
                         );
 
                         if (indexComponent.replacements.length !== 1) {
-                            throw Error(
-                                "Something went wrong as path index is not an integer",
-                            );
+                            return { success: true, indexIsNotANumber: true };
                         }
                         indexComponent = indexComponent.replacements[0];
                     }
 
                     if (indexComponent.componentType !== "integer") {
-                        throw Error(
-                            "Something went wrong as path index is not an integer",
-                        );
+                        return { success: true, indexIsNotANumber: true };
                     }
 
                     // save index as a literal string
