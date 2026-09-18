@@ -2,6 +2,7 @@ import { describe, expect, it } from "vitest";
 import { lezerToDast } from "../src/lezer-to-dast";
 import { lezerToDastV6 } from "../src/lezer-to-dast/lezer-to-dast-v6";
 import { toXml } from "../src/dast-to-xml/dast-util-to-xml";
+import { filterPositionInfo } from "../src/dast-to-xml/utils";
 import util from "util";
 import { DastRoot } from "../src/types";
 
@@ -153,8 +154,14 @@ describe("a reference keeps its parens whenever dropping them would change the d
             [`$$(f)(y)`, `$$f(y)`],
         ]) {
             expect(toXml(lezerToDast(src))).toEqual(printed);
-            // ...and what comes back means what went in.
-            expect(toXml(lezerToDast(printed))).toEqual(printed);
+            // ...and what comes back means what went in. Re-printing the
+            // printed form is not enough to say so: a `$x.5` that had become a
+            // property access would print back as `$x.5` too. The trees are
+            // what has to agree.
+            expect(
+                filterPositionInfo(lezerToDast(printed).children),
+                `${src} -> ${printed}`,
+            ).toEqual(filterPositionInfo(lezerToDast(src).children));
         }
     });
 });
