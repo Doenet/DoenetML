@@ -313,11 +313,11 @@ function whatClosedThePath(
     // character further in than the bare `$x` that a `{…}` block follows.
     const referenceStart = reference.position?.start?.offset;
     const firstStart = reference.path[0]?.position?.start?.offset;
-    const sigilLength = reference.type === "function" ? 2 : 1;
+    const dollarCount = reference.type === "function" ? 2 : 1;
     if (
         referenceStart == null ||
         firstStart == null ||
-        firstStart > referenceStart + sigilLength
+        firstStart > referenceStart + dollarCount
     ) {
         return reference.type === "function" ? "parensFunction" : "parens";
     }
@@ -594,7 +594,7 @@ function indexWarning(
     openBracket: DastText,
     reason: "braces" | "parens" | "parensFunction" | "arguments" | "unclosed",
 ): DastError {
-    // The sigil belongs to `name` because a function reference carries two of them:
+    // The `$` belongs to `name` because a function reference carries two of them:
     // quoting `$$f` as `$f` would name a component the author did not write.
     const name =
         (reference.type === "function" ? "$$" : "$") +

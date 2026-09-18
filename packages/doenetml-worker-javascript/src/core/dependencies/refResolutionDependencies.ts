@@ -7,7 +7,7 @@
 import { Dependency } from "./Dependency";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import {
-    doenetMLSigilForReference,
+    doenetMLDollarsForReference,
     doenetMLStringForReference,
 } from "../../utils/sourceLocation";
 
@@ -372,7 +372,7 @@ export class RefResolutionDependency extends Dependency {
                     type: "warning",
                     code: "doenet-w0163",
                     args: {
-                        reference: `${doenetMLSigilForReference(
+                        reference: `${doenetMLDollarsForReference(
                             composite.refResolution.originalPath,
                             this.dependencyHandler.core.allDoenetMLs,
                         )}${doenetMLStringForReference(
@@ -476,8 +476,8 @@ export class RefResolutionDependency extends Dependency {
          * reference as something they did not write: `$$fs[$i]` came back as
          * `$fs[$i]`.
          */
-        const getSigilForReference = () =>
-            doenetMLSigilForReference(
+        const getDollarsForReference = () =>
+            doenetMLDollarsForReference(
                 composite.refResolution.originalPath,
                 this.dependencyHandler.core.allDoenetMLs,
             );
@@ -554,7 +554,7 @@ export class RefResolutionDependency extends Dependency {
                         ? { code: "doenet-w0105" as const }
                         : { code: "doenet-w0104" as const }),
                     args: {
-                        reference: `${getSigilForReference()}${referenceText}`,
+                        reference: `${getDollarsForReference()}${referenceText}`,
                     },
                     position: composite.position,
                     sourceDoc: composite.sourceDoc,
@@ -654,7 +654,7 @@ export class RefResolutionDependency extends Dependency {
                     type: "warning",
                     code: "doenet-w0104",
                     args: {
-                        reference: `${getSigilForReference()}${referenceText}`,
+                        reference: `${getDollarsForReference()}${referenceText}`,
                     },
                     position: composite.position,
                     sourceDoc: composite.sourceDoc,

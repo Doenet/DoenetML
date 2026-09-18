@@ -268,7 +268,7 @@ describe("Coded DAST errors render to the English the parser wrote", () => {
         expect(codedErrors(errors).map((e) => (e as any).args.name)).toEqual([
             "$x",
             "$x",
-            // The sigil comes from the reference, so a function reference keeps
+            // The `$` comes from the reference, so a function reference keeps
             // both of its `$`s rather than being quoted back as `$f`.
             "$$f",
             "$$f",

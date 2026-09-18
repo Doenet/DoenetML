@@ -754,7 +754,7 @@ parser-node-unconvertible = Could not convert node { $node } to Dast node.
 
 # Raised when an element sits in brackets immediately after a reference but the
 # brackets cannot be read as an index. $name is the reference as the author wrote
-# it, including its leading sigil — one `$` for a reference and two for a
+# it, including its leading `$` — one for a reference and two for a
 # function reference. $reason says why the brackets could not be read, as a key
 # rather than a phrase, so the whole sentence is translatable rather than
 # assembled from halves.
@@ -764,7 +764,7 @@ parser-node-unconvertible = Could not convert node { $node } to Dast node.
 # remedy is to delete them, not to write the index somewhere else around them.
 #
 # The other four: `parens` and `parensFunction` are `$(x)[…]` and `$$(f)[…]`,
-# which differ only in which sigil the remedy shows — following the `$(…)` one
+# which differ only in how many dollars the remedy shows — following the `$(…)` one
 # for a function reference would turn it into an ordinary reference. `arguments`
 # is `$$f(1)[…]`, where the argument list ran past the path. `unclosed` is the
 # default because it states a fact rather than offering a remedy.

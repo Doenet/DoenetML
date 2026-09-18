@@ -76,7 +76,7 @@ export function doenetMLStringForReference(
 }
 
 /**
- * The sigil an author wrote in front of a reference, `$` or `$$`.
+ * The `$` or `$$` an author wrote in front of a reference.
  *
  * {@link doenetMLStringForReference} returns the path without it, and a caller
  * composing a message has to put one back. Hardcoding `$` misquotes every
@@ -87,17 +87,17 @@ export function doenetMLStringForReference(
  * the component says which spelling produced it.
  *
  * A parenthesized path is written `$(x)` or `$$(f)`, and its path starts inside
- * the parentheses — so the `(` is stepped over before looking for the sigil,
- * without which `$$(f)` would come back as an ordinary `$`. The parentheses
+ * the parentheses — so the `(` is stepped over before looking back for the
+ * dollars, without which `$$(f)` would come back as an ordinary `$`. The parentheses
  * themselves are not reported: `doenetMLStringForReference` spans the path, so
  * `$$(fs[$i])` is quoted as `$$fs[$i]`, which names the same reference in the
  * spelling that does not need them.
  *
  * Falls back to `$` whenever the source is not there to read — the same answer
  * as before, for a reference we cannot say more about. An `extend=` attribute
- * has no sigil at all and lands there too.
+ * has no `$` at all and lands there too.
  */
-export function doenetMLSigilForReference(
+export function doenetMLDollarsForReference(
     originalPath: ReferencePathPart[] | undefined | null,
     allDoenetMLs: readonly string[] | undefined,
 ): string {
@@ -111,9 +111,9 @@ export function doenetMLSigilForReference(
         return "$";
     }
     // `$(x)` and `$$(f)` start their path one character further in.
-    const sigilEnd =
+    const dollarsEnd =
         source[startOffset - 1] === "(" ? startOffset - 1 : startOffset;
-    return source.substring(sigilEnd - 2, sigilEnd) === "$$" ? "$$" : "$";
+    return source.substring(dollarsEnd - 2, dollarsEnd) === "$$" ? "$$" : "$";
 }
 
 /**

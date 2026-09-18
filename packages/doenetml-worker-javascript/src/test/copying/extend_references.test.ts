@@ -7324,9 +7324,9 @@ describe("Extend and references tests @group2", async () => {
             );
         });
 
-        it("names a function reference with both its sigils, and locates it", async () => {
+        it("names a function reference with both its dollars, and locates it", async () => {
             // The message is built from the path read back out of the source,
-            // which does not include the sigil, so every call site puts one
+            // which does not include the `$`, so every call site puts one
             // back. A hardcoded `$` named `$$fs[$bad]` as `$fs[$bad]` — markup
             // the author never wrote and cannot search their document for.
             //
@@ -7355,7 +7355,7 @@ describe("Extend and references tests @group2", async () => {
             }
 
             // A parenthesized path starts inside its parentheses, so the `(`
-            // has to be stepped over to find the sigil behind it. The
+            // has to be stepped over to find the dollars behind it. The
             // parentheses are not quoted back — the path alone names the same
             // reference in the spelling that does not need them.
             for (const reference of [`$$(fs[$bad])(3)`, `$$(fs[$bad])`]) {
@@ -7369,7 +7369,7 @@ describe("Extend and references tests @group2", async () => {
                 ).contain("`$$fs[$bad]`");
             }
 
-            // Ordinary references still get the single sigil they were written
+            // Ordinary references still get the single `$` they were written
             // with, parenthesized or not, which is the control.
             for (const reference of [`$nums[$bad]`, `$(nums[$bad])`]) {
                 const { diagnostics } = await run(
