@@ -1059,6 +1059,40 @@ describe("Warning Tests @group4", async () => {
         ).eq(true);
     });
 
+    it("reports a warning about markup in index brackets once, however deeply nested", async () => {
+        // A reference resolution carries the same index nodes on both its
+        // `originalPath` and its `unresolvedPath`, and the load-time pipeline
+        // expands both, so anything reported about markup between index
+        // brackets used to arrive once per path — twice one level in, four
+        // times two levels in.
+        const documents = [
+            `<p>$(x)[<number>1</number>]</p>`,
+            `<numberList name="myList">100 300 200 50</numberList>
+             <p>$myList[<p>$(x)[<number>1</number>]</p>]</p>`,
+            `<numberList name="myList">100 300 200 50</numberList>
+             <p>$myList[<p>$myList[<p>$(x)[<number>1</number>]</p>]</p>]</p>`,
+        ];
+        for (const doenetML of documents) {
+            const { core } = await createTestCore({ doenetML });
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(
+                diagnosticsByType.warnings.filter(
+                    (warning) => warning.code === "doenet-w0162",
+                ).length,
+                doenetML,
+            ).eq(1);
+            // Whatever else each document earns, no two of them are the same
+            // message in the same place.
+            const keys = diagnosticsByType.warnings.map((warning) =>
+                JSON.stringify([
+                    warning.message,
+                    warning.position?.start?.offset,
+                ]),
+            );
+            expect(new Set(keys).size, doenetML).eq(keys.length);
+        }
+    });
+
     it("non-numeric requested variant index produces an info", async () => {
         const { core } = await createTestCore({
             doenetML: `<text>hi</text>`,

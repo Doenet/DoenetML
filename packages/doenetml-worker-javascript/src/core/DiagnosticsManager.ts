@@ -21,16 +21,29 @@ export class DiagnosticsManager {
     }: {
         preliminaryDiagnostics: DiagnosticRecord[];
     }) {
-        // Preliminary diagnostics seed the queue at construction. We skip the
-        // dedup pass here — it would be O(n²) and these come from a single
-        // upstream pass that has already produced unique entries. Errors are
-        // ignored here; we'll gather those from the dast when processing it.
+        // Preliminary diagnostics seed the queue at construction. They are not
+        // unique: a reference resolution carries the same index nodes on both
+        // its `originalPath` and its `unresolvedPath`, and the load-time
+        // pipeline expands both — so anything reported about markup written
+        // between index brackets arrived once per path, doubling for each level
+        // of nesting. Both expansions are needed; only the reporting should
+        // happen once. Deduping through a `Set` of keys is a single pass, so the
+        // O(n²) that once argued against doing it here does not apply.
+        //
+        // Errors are ignored here; we'll gather those from the dast when
+        // processing it.
+        const seen = new Set<string>();
         this.diagnostics = preliminaryDiagnostics.filter(
             (diagnostic): diagnostic is NonErrorDiagnosticRecord => {
                 if (diagnostic.type === "error") {
                     return false;
                 }
                 this.assertDiagnosticIsValid(diagnostic);
+                const key = diagnosticDedupKey(diagnostic);
+                if (seen.has(key)) {
+                    return false;
+                }
+                seen.add(key);
                 return true;
             },
         );
@@ -94,41 +107,12 @@ export class DiagnosticsManager {
      * `result.sendDiagnostics` loop).
      */
     addDiagnostic(diagnostic: DiagnosticRecord): boolean {
-        const sameLocation = (pointA: any, pointB: any) =>
-            (pointA?.offset ?? undefined) === (pointB?.offset ?? undefined) &&
-            (pointA?.line ?? undefined) === (pointB?.line ?? undefined) &&
-            (pointA?.column ?? undefined) === (pointB?.column ?? undefined);
-
-        const haveSamePosition = (warningPosition: any, newPosition: any) => {
-            if (warningPosition === undefined || newPosition === undefined) {
-                return warningPosition === newPosition;
-            }
-
-            return (
-                sameLocation(warningPosition.start, newPosition.start) &&
-                sameLocation(warningPosition.end, newPosition.end)
-            );
-        };
-
         this.assertDiagnosticIsValid(diagnostic);
 
-        const alreadyHaveDiagnostic = this.diagnostics.some((existing) => {
-            if (existing.type !== diagnostic.type) {
-                return false;
-            }
-            if (
-                diagnostic.type === "accessibility" &&
-                existing.type === "accessibility" &&
-                existing.level !== diagnostic.level
-            ) {
-                return false;
-            }
-            return (
-                existing.message === diagnostic.message &&
-                existing.sourceDoc === diagnostic.sourceDoc &&
-                haveSamePosition(existing.position, diagnostic.position)
-            );
-        });
+        const key = diagnosticDedupKey(diagnostic);
+        const alreadyHaveDiagnostic = this.diagnostics.some(
+            (existing) => diagnosticDedupKey(existing) === key,
+        );
 
         if (alreadyHaveDiagnostic) {
             return false;
@@ -139,4 +123,34 @@ export class DiagnosticsManager {
         this.hasPendingDiagnostics = true;
         return true;
     }
+}
+
+/**
+ * What makes two diagnostics the same one: their type, their message and where
+ * they point. An accessibility diagnostic's level counts too, since the same
+ * message can be raised at either.
+ *
+ * A position is compared field by field rather than by identity, and a missing
+ * point reads the same as one whose fields are all absent — the records come
+ * from several places and do not agree on whether an unknown offset is `null`,
+ * `undefined` or simply not there.
+ *
+ * Shared by the constructor's seed and by `addDiagnostic`, so the two channels
+ * cannot drift into disagreeing about what a duplicate is.
+ */
+function diagnosticDedupKey(diagnostic: DiagnosticRecord): string {
+    const point = (p: any) =>
+        [p?.offset ?? "", p?.line ?? "", p?.column ?? ""].join(":");
+    const position =
+        diagnostic.position === undefined
+            ? ""
+            : `${point(diagnostic.position.start)}-${point(diagnostic.position.end)}`;
+    const level = diagnostic.type === "accessibility" ? diagnostic.level : "";
+    return JSON.stringify([
+        diagnostic.type,
+        level,
+        diagnostic.message,
+        diagnostic.sourceDoc ?? "",
+        position,
+    ]);
 }
