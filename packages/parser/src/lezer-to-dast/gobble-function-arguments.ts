@@ -43,13 +43,24 @@ export function gobbleFunctionArguments(
         }
         // If we made it here, there is a function node and we're looking for its
         // opening/closing paren.
-        if (node.type === "error") {
+        if (node.type === "error" && node.error_type === "warning") {
             // `gobblePropIndices` mints a warning about an index's own contents
             // into the sibling array — an index's `value` admits no error node —
             // and that puts it between the reference and its argument list. Left
             // to stand, it made the argument list stop being one: the author was
             // told the index was bad and the `(3)` of `$$F[$(x)[<n/>]](3)` simply
             // appeared as text, with nothing said about the call. Step over it.
+            //
+            // Only a *warning*, which is an annotation beside content the pass
+            // decided to leave as it found it. A plain `error` node is markup
+            // that did not parse, and stepping over one would let a stray `</q>`
+            // in `$$f</q>(3)` silently turn an uncalled reference into a call —
+            // a structural change to the tree the worker builds from, made as a
+            // side effect of a fix about warnings. At this point in the pipeline
+            // `error_type: "warning"` is exactly this pass's own `doenet-w0162`:
+            // every error `createErrorNode` makes from the grammar leaves
+            // `error_type` unset, and the other warning-minting passes all run
+            // later, in `dast-normalize`.
             //
             // This does not resurrect a call that a *declined* index killed
             // legitimately. In `$$(f)[<n/>](y)` the brackets stay in the sibling

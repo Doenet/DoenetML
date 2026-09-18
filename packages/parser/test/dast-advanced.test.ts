@@ -1569,6 +1569,28 @@ describe("DAST", async () => {
             expect(closed.map((n: any) => n.type)).toContain("text");
         });
 
+        it("steps over the index warning but not a parse error", () => {
+            // The step-over above is for the warning this pass mints beside
+            // content it left alone, not for markup that failed to parse. A
+            // stray closing tag is a real break in the document, and a break
+            // between `$$f` and a `(` still ends the reference — otherwise
+            // fixing a warning would quietly turn an uncalled reference into a
+            // call in documents that have nothing to do with indices.
+            const children = childrenOf(`<p>$$f</q>(3)x</p>`)[0].children;
+            expect(children[0]).toMatchObject({
+                type: "function",
+                input: null,
+            });
+            expect(children[1]).toMatchObject({ type: "error" });
+            expect(children[1].error_type).toBeUndefined();
+            expect(
+                children
+                    .slice(2)
+                    .map((n: any) => n.value)
+                    .join(""),
+            ).toBe("(3)x");
+        });
+
         it("names what actually closed the path, whatever follows the brackets", () => {
             // A closed path stays closed however the source continues, so a
             // trailing call must not relabel it: `$$(f)[…](y)` is still a
@@ -1864,11 +1886,13 @@ describe("DAST", async () => {
 
         it("splits a long run of special characters without overflowing the stack", async () => {
             // `splitTextAtSpecialChars` used to recurse once per special
-            // character, so a long enough run of them overflowed the stack
-            // and took the document with it. The threshold was the host's
-            // stack rather than anything about the language — around 12 000
-            // brackets, or 6 000 `(x)` groups, on the machine this was
-            // written on — so these go past it without sitting on it.
+            // character, so a long enough run of them overflowed the stack and
+            // took the document with it. Where the threshold falls is the
+            // host's stack rather than anything about the language, and it
+            // moves: the old recursion run here overflowed at 4 000 brackets
+            // cold and survived the same 4 000 once V8 had optimized the frame.
+            // So these sizes are chosen to be past any of it rather than to
+            // name a number.
             expect(() =>
                 lezerToDast(`$a[<n/>]` + "[".repeat(16000)),
             ).not.toThrow();
