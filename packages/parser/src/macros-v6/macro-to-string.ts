@@ -107,6 +107,9 @@ function arrayToString(nodes: readonly Node[]): string {
         const child = nodes[i];
         if (
             (child.type === "macro" || child.type === "function") &&
+            // No node passed: `pathHoldsAnElement` has nothing to find here.
+            // The v0.6 pipeline has no `gobblePropIndices`, so a v0.6 path cannot
+            // hold an element in the first place.
             referenceWouldAbsorb(parts[i], following)
         ) {
             parts[i] = macroToString(child, true);

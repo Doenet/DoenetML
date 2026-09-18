@@ -159,6 +159,47 @@ describe("a reference keeps its parens whenever dropping them would change the d
         }
     });
 
+    it("leaves a path bare when escaping makes the parens unreadable", () => {
+        // In XML mode a `<` inside an index is escaped, and lezer gives the
+        // entity its own node — so the text inside `$( … )` stops being one
+        // string for the macro parser and the parenthesized form is not a
+        // reference at all. Both spellings lose the index here, an entity
+        // between brackets never being gobbled into one; only the parenthesized
+        // spelling would also lose the reference.
+        for (const [src, printed] of [
+            [`$(a[x < y])[2]`, `$a[x &lt; y][2]`],
+            [`$(a[x < y]).z`, `$a[x &lt; y].z`],
+            [`$(a[x <= y])[2]`, `$a[x &lt;= y][2]`],
+        ]) {
+            expect(toXml(lezerToDast(src)), src).toEqual(printed);
+            // The reference itself survives, which is the point of declining.
+            expect(JSON.stringify(lezerToDast(printed)), src).toContain(
+                `"type":"macro"`,
+            );
+        }
+    });
+
+    it("keeps them around a raw `<` that only DoenetML syntax can print", () => {
+        // `doenetSyntax` un-escapes `&lt;` before whitespace or `=`, so the same
+        // text index comes out holding a raw `<` and no element anywhere. That
+        // form *is* readable inside parens, so it must keep them — a rule that
+        // looked for `<` in the printed string dropped them here and silently
+        // turned `[2]` into a second index. This is the mode the language
+        // server formats in by default.
+        for (const src of [
+            `$(a[x < y])[2]`,
+            `$(a[x < y]).z`,
+            `$$(f[x < y])[2]`,
+        ]) {
+            const printed = toXml(lezerToDast(src), { doenetSyntax: true });
+            expect(printed, src).toEqual(src);
+            expect(
+                filterPositionInfo(lezerToDast(printed)).children,
+                src,
+            ).toEqual(filterPositionInfo(lezerToDast(src)).children);
+        }
+    });
+
     it("drops them when what follows could not be part of the path", () => {
         // A path part's name has to start with a letter or an underscore, and a
         // reference is closed by its own parens, its brace block or its argument

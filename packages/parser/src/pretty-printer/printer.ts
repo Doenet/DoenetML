@@ -251,7 +251,7 @@ export const print: Printer<DastNodes>["print"] = function print(
                 }
             }
             const printed = toXml(node, options);
-            return referenceWouldAbsorb(printed, following)
+            return referenceWouldAbsorb(printed, following, node)
                 ? nodesToXml(node, options, true)
                 : printed;
         }

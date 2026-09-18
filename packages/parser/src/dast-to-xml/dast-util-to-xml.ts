@@ -74,7 +74,7 @@ export function nodesToXml(
                 const child = children[i];
                 if (
                     (child.type === "macro" || child.type === "function") &&
-                    referenceWouldAbsorb(parts[i], following)
+                    referenceWouldAbsorb(parts[i], following, child)
                 ) {
                     parts[i] = nodesToXml(child, options, true);
                 }
@@ -339,6 +339,7 @@ function macroNeedsParens(macro: DastMacro | DastFunctionMacro): boolean {
 export function referenceWouldAbsorb(
     printed: string,
     following: string,
+    reference?: ReferenceLikeNode,
 ): boolean {
     if (isNameChar(following[0]) && isNameChar(printed.slice(-1))) {
         return true;
@@ -347,20 +348,31 @@ export function referenceWouldAbsorb(
     if (pathIsClosed) {
         return false;
     }
-    // A path holding an element has no parenthesized spelling to fall back on.
-    // `$(…)` is read by the string macro parser, which never sees an element —
-    // that is the whole reason `gobblePropIndices` exists — so `$(a[<n />])`
-    // is not a reference at all, and printing one loses what it was: the four
-    // nodes `$(a[`, `<n />`, `])` come back with no reference among them.
-    // Declining here leaves `$a[<n />]` bare, which is what it was written as
-    // and what it parses back to.
+    // Two things a reference can hold that `$( … )` cannot express. Wrapping one
+    // does not protect it, it destroys it — the parenthesized form is not a
+    // reference at all, so what comes back is loose text with no reference among
+    // it, and nothing is reported. Declining leaves the bare form, which is what
+    // was written and what parses back to the same tree, or in the second case
+    // at least still a reference.
     //
-    // A raw `<` in the printed form means exactly that case. Anything else an
-    // index can hold is escaped on the way out — a text index of `<` prints as
-    // `&lt;` — and the two other places an element can appear, a function
-    // reference's arguments and a brace block's value, have closed the path
-    // above before we get here.
-    if (printed.includes("<")) {
+    // An **element in an index**. `$(…)` is read by the string macro parser,
+    // which never sees an element — that is the whole reason
+    // `gobblePropIndices` exists — so `$(a[<n />])` is four nodes and no
+    // reference. Asked of the reference rather than of its printed form,
+    // because the printed form depends on the print options: the same index can
+    // come out as `<n />` or, for a text index, as `&lt;` or `<` depending on
+    // `doenetSyntax`, and a rule reading characters gets one of those wrong.
+    if (reference && pathHoldsAnElement(reference)) {
+        return false;
+    }
+    // An **`&` anywhere in the printed form**, raw or as an entity. Lezer gives
+    // an entity reference its own node, so the text inside `$( … )` is no longer
+    // one string for the macro parser to read, and a bare `&` fares no better:
+    // `$(a[x &amp; y])`, `$(a[x &lt; y])`, `$(a[&#50;])` and `$(a[x & y])` all
+    // come back with no reference. The bare spelling loses the index — an entity
+    // between brackets is not gobbled into one either way — but it keeps the
+    // reference, which is what `main` did and the lesser of the two losses.
+    if (printed.includes("&")) {
         return false;
     }
     if (following.startsWith("[")) {
@@ -374,6 +386,42 @@ export function referenceWouldAbsorb(
         return false;
     }
     return parseMacroTail(following).remainder !== following;
+}
+
+/**
+ * The shape `pathHoldsAnElement` walks. Written structurally rather than as
+ * `DastMacro | DastFunctionMacro` so that the v0.6 printer can pass its own node
+ * without a cast: a v0.6 path cannot hold an element, so the answer there is
+ * always `false`, but the walk should not have to know that.
+ */
+type ReferenceLikeNode = {
+    path?: readonly { index?: readonly { value?: readonly any[] }[] }[];
+};
+
+/**
+ * Whether any index anywhere in this reference's path holds an element.
+ *
+ * Recursive, because an index's value can hold another reference whose own index
+ * holds the element — `$a[$b[<n />]]` prints the element inside the outer
+ * reference's index just the same.
+ */
+function pathHoldsAnElement(reference: ReferenceLikeNode): boolean {
+    for (const pathPart of reference.path ?? []) {
+        for (const index of pathPart.index ?? []) {
+            for (const node of index.value ?? []) {
+                if (node?.type === "element") {
+                    return true;
+                }
+                if (
+                    (node?.type === "macro" || node?.type === "function") &&
+                    pathHoldsAnElement(node)
+                ) {
+                    return true;
+                }
+            }
+        }
+    }
+    return false;
 }
 
 /**
