@@ -225,8 +225,31 @@ export const print: Printer<DastNodes>["print"] = function print(
             // another reference all start with a character a path cannot take —
             // and the printer never breaks a line between a reference and the
             // text touching it, so the raw value is what will follow it.
-            const next = path.next;
-            const following = next?.type === "text" ? next.value : "";
+            //
+            // A sibling that prints nothing is stepped over rather than taken as
+            // the end of the run, exactly as `toXml` steps over one. `error` is
+            // the case that matters: `gobblePropIndices` mints a warning node
+            // between a reference and the brackets it declined, and this printer
+            // prints an error as nothing at all — so `$(x)[<n/>]` came back as
+            // `$x[<n/>]`, which is the rewrite this guard exists to prevent.
+            const siblings = path.siblings;
+            const index = path.index;
+            let following = "";
+            if (siblings && index !== null) {
+                for (let i = index + 1; i < siblings.length; i++) {
+                    const sibling = siblings[i];
+                    if (
+                        sibling.type === "error" ||
+                        (sibling.type === "text" && sibling.value === "")
+                    ) {
+                        continue;
+                    }
+                    if (sibling.type === "text") {
+                        following = sibling.value;
+                    }
+                    break;
+                }
+            }
             const printed = toXml(node, options);
             return referenceWouldAbsorb(printed, following)
                 ? nodesToXml(node, options, true)

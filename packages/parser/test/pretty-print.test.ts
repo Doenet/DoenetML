@@ -229,6 +229,14 @@ describe("Prettier", async () => {
             "<p>$(x){z}</p>",
             "<p>$$(f)[1]</p>",
             "<p>$(a-b)</p>",
+            // An element between the brackets puts a warning node between the
+            // reference and the `[`, and the formatter prints a warning as
+            // nothing at all — so looking only at the immediately next sibling
+            // saw nothing following and dropped the parens. `$x[<n />]` is a
+            // reference *with* an element index; `$$f[<n />](y)` is that index
+            // being called. Both are documents the author did not write.
+            "<p>$(x)[<n />]</p>",
+            "<p>$$(f)[<n />](y)</p>",
         ];
         // ...and these have nothing following that a path could take, so they
         // must not gain parentheses either.

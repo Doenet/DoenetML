@@ -23,8 +23,8 @@ type Node = Macro | FunctionMacro | Text | PropAccess;
 export function macroToString(
     node: Node | Node[],
     /**
-     * Set when the text that will follow would otherwise be absorbed into the macro. See
-     * `followingTextWouldBeAbsorbed` in `dast-util-to-xml.ts`.
+     * Set when what follows would otherwise be read as part of the macro. See
+     * `referenceWouldAbsorb` in `dast-util-to-xml.ts`.
      */
     forceParens = false,
 ): string {
