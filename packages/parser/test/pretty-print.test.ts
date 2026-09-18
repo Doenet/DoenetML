@@ -249,25 +249,50 @@ describe("Prettier", async () => {
             ["<p>$(x).5</p>", "<p>$x.5</p>"],
             ["<p>$(x)</p>", "<p>$x</p>"],
         ];
-        for (const source of unchanged) {
-            for (const printWidth of [40, 80]) {
+        // Both modes. The printer feeds mode-dependent output into the paren
+        // rule — the same index prints as `<n />`, as `&lt;` or as a raw `<`
+        // depending on `doenetSyntax` — and the language server formats with
+        // `doenetSyntax: true`. Two defects here survived four review cycles
+        // precisely because nothing in this file exercised that mode.
+        for (const doenetSyntax of [false, true]) {
+            for (const source of unchanged) {
+                for (const printWidth of [40, 80]) {
+                    expect(
+                        await prettyPrint(source, {
+                            doenetSyntax,
+                            printWidth,
+                        }),
+                        `${source} @${printWidth} doenetSyntax=${doenetSyntax}`,
+                    ).toEqual(source);
+                }
+            }
+            for (const [source, expected] of dropped) {
                 expect(
                     await prettyPrint(source, {
-                        doenetSyntax: false,
-                        printWidth,
+                        doenetSyntax,
+                        printWidth: 80,
                     }),
-                    `${source} @${printWidth}`,
-                ).toEqual(source);
+                    `${source} doenetSyntax=${doenetSyntax}`,
+                ).toEqual(expected);
             }
         }
-        for (const [source, expected] of dropped) {
-            expect(
-                await prettyPrint(source, {
-                    doenetSyntax: false,
-                    printWidth: 80,
-                }),
-            ).toEqual(expected);
-        }
+
+        // And the one whose answer differs by mode. In DoenetML syntax a `<`
+        // in a text index prints raw, so the parentheses are readable and are
+        // kept; in XML mode it escapes to `&lt;`, which `$( … )` cannot read
+        // back, so they are dropped and the reference survives bare.
+        expect(
+            await prettyPrint(`<p>$(a[x < y])[2]</p>`, {
+                doenetSyntax: true,
+                printWidth: 80,
+            }),
+        ).toEqual(`<p>$(a[x < y])[2]</p>`);
+        expect(
+            await prettyPrint(`<p>$(a[x < y])[2]</p>`, {
+                doenetSyntax: false,
+                printWidth: 80,
+            }),
+        ).toEqual(`<p>$a[x &lt; y][2]</p>`);
     });
 
     it("Don't create new macro names when &dollar; entity appears in text", async () => {

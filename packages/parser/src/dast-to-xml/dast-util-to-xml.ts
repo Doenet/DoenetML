@@ -400,6 +400,19 @@ export function referenceWouldAbsorb(
     if (reference?.version === "0.6" && /^\.[a-zA-Z0-9_-]/.test(following)) {
         return true;
     }
+    // `parseMacroTail` reads a path, and a v0.7 path can carry a brace block —
+    // but a *function* reference cannot. `FunctionMacro` is `"$$" SimplePath
+    // FunctionInput?` with no `PropAttrs`, so `$$f{z}` and `$$(f){z}` have the
+    // same tree and the parentheses would be noise. v0.6 is the other way
+    // round: there the wrapped macro does take attributes, so `$$f{z}` carries
+    // `{z}` as one and `$$(f){z}` does not, and the parentheses are load-bearing.
+    if (
+        reference?.type === "function" &&
+        reference.version !== "0.6" &&
+        following.startsWith("{")
+    ) {
+        return false;
+    }
     return parseMacroTail(following).remainder !== following;
 }
 
@@ -410,6 +423,7 @@ export function referenceWouldAbsorb(
  * always `false`, but the walk should not have to know that.
  */
 type ReferenceLikeNode = {
+    type?: string;
     version?: string;
     path?: readonly { index?: readonly { value?: readonly any[] }[] }[];
     input?: readonly (readonly any[])[] | null;

@@ -191,6 +191,25 @@ describe("a reference keeps its parens whenever dropping them would change the d
         expect(toXml(lezerToDast(`$a[$$f(1)][`))).toEqual(`$(a[$$f(1)])[`);
     });
 
+    it("does not wrap a v0.7 function reference before a brace block", () => {
+        // `FunctionMacro` is `"$$" SimplePath FunctionInput?` — no `PropAttrs`
+        // — so a v0.7 function reference cannot take a brace block and
+        // `$$f{z}` and `$$(f){z}` have the same tree. Parenthesizing it would
+        // be noise. A plain macro is a different matter, and keeps them.
+        expect(toXml(lezerToDast(`$$f{z}`))).toEqual(`$$f{z}`);
+        expect(toXml(lezerToDast(`$$(f){z}`))).toEqual(`$$f{z}`);
+        expect(toXml(lezerToDast(`$(x){z}`))).toEqual(`$(x){z}`);
+        // An index and a property access *can* follow a function path, so
+        // those still take parentheses when the path was closed.
+        expect(toXml(lezerToDast(`$$(f)[1]`))).toEqual(`$$(f)[1]`);
+
+        // v0.6 is the other way round: there the wrapped macro carries the
+        // attributes, so the two spellings mean different things and the
+        // parentheses have to stay.
+        expect(toXml(lezerToDastV6(`$$(f){z}`) as any)).toEqual(`$$(f){z}`);
+        expect(toXml(lezerToDastV6(`$$f{z}`) as any)).toEqual(`$$f{z}`);
+    });
+
     it("uses v0.6 name rules when printing a v0.6 tree", () => {
         // `parseMacroTail` speaks v0.7, whose `SimpleIdent` takes neither a
         // leading digit nor a hyphen. v0.6's `ScopedIdent` takes both, so
