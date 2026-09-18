@@ -1539,6 +1539,36 @@ describe("DAST", async () => {
             }
         });
 
+        it("still builds the call when the index earned a warning", () => {
+            // The warning about the index's own contents is hoisted into the
+            // sibling array, where it lands between the reference and its
+            // argument list. `gobbleFunctionArguments` wants that list as an
+            // immediate sibling, so the call used to be dropped as well: the
+            // author heard about the inner brackets and nothing at all about
+            // `(3)` having become text.
+            const source = `$$F[$(x)[<n/>]](3)`;
+            const reference = childrenOf(source)[0] as any;
+            expect(reference.type).toBe("function");
+            expect(reference.input).toMatchObject([
+                [{ type: "text", value: "3" }],
+            ]);
+            // ...and the warning is still reported.
+            expect(
+                childrenOf(source).some((n: any) => n.code === "doenet-w0162"),
+            ).toBe(true);
+            // Nothing of the call is left over as text beside it.
+            expect(childrenOf(source).some((n: any) => n.type === "text")).toBe(
+                false,
+            );
+
+            // A reference whose path a warning says is *closed* keeps its call
+            // declined, because the declined brackets are still sitting between
+            // the warning and the `(` as literal text.
+            const closed = childrenOf(`$$(f)[<n/>](y)`);
+            expect((closed[0] as any).input).toBe(null);
+            expect(closed.map((n: any) => n.type)).toContain("text");
+        });
+
         it("names what actually closed the path, whatever follows the brackets", () => {
             // A closed path stays closed however the source continues, so a
             // trailing call must not relabel it: `$$(f)[…](y)` is still a

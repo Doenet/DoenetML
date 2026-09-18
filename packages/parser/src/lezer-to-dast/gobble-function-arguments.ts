@@ -43,6 +43,21 @@ export function gobbleFunctionArguments(
         }
         // If we made it here, there is a function node and we're looking for its
         // opening/closing paren.
+        if (node.type === "error") {
+            // `gobblePropIndices` mints a warning about an index's own contents
+            // into the sibling array — an index's `value` admits no error node —
+            // and that puts it between the reference and its argument list. Left
+            // to stand, it made the argument list stop being one: the author was
+            // told the index was bad and the `(3)` of `$$F[$(x)[<n/>]](3)` simply
+            // appeared as text, with nothing said about the call. Step over it.
+            //
+            // This does not resurrect a call that a *declined* index killed
+            // legitimately. In `$$(f)[<n/>](y)` the brackets stay in the sibling
+            // array as literal text, so what follows the warning is `[`, not `(`,
+            // and the guard below declines exactly as it did before.
+            ret.push(node);
+            continue;
+        }
         if (
             !(node.type === "text" && node.value === "(") ||
             findMatchingCloseParen(nodes, i) < 0
