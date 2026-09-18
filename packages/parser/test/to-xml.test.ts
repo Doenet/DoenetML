@@ -137,6 +137,28 @@ describe("a reference keeps its parens whenever dropping them would change the d
         expect(toXml(lezerToDastV6(`$(x)[1]`) as any)).toEqual(`$(x)[1]`);
     });
 
+    it("leaves a path holding an element bare, having nowhere to put parens", () => {
+        // `$(…)` is read by the string macro parser, which never sees an
+        // element — that is why `gobblePropIndices` exists — so a path with an
+        // element in an index has no parenthesized spelling at all. Wrapping
+        // one does not protect it, it destroys it: `$(a[<n />])[` comes back as
+        // four nodes with no reference among them. Bare is both what was
+        // written and what parses back.
+        for (const src of [
+            `$a[<n />][`,
+            `$a[<n />][2`,
+            `$$f[<n />][`,
+            `$a[<n />].y[<m />][`,
+        ]) {
+            expect(toXml(lezerToDast(src))).toEqual(src);
+            expect(
+                filterPositionInfo(lezerToDast(toXml(lezerToDast(src))))
+                    .children,
+                src,
+            ).toEqual(filterPositionInfo(lezerToDast(src)).children);
+        }
+    });
+
     it("drops them when what follows could not be part of the path", () => {
         // A path part's name has to start with a letter or an underscore, and a
         // reference is closed by its own parens, its brace block or its argument

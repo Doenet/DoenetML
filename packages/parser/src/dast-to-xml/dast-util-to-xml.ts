@@ -347,6 +347,22 @@ export function referenceWouldAbsorb(
     if (pathIsClosed) {
         return false;
     }
+    // A path holding an element has no parenthesized spelling to fall back on.
+    // `$(…)` is read by the string macro parser, which never sees an element —
+    // that is the whole reason `gobblePropIndices` exists — so `$(a[<n />])`
+    // is not a reference at all, and printing one loses what it was: the four
+    // nodes `$(a[`, `<n />`, `])` come back with no reference among them.
+    // Declining here leaves `$a[<n />]` bare, which is what it was written as
+    // and what it parses back to.
+    //
+    // A raw `<` in the printed form means exactly that case. Anything else an
+    // index can hold is escaped on the way out — a text index of `<` prints as
+    // `&lt;` — and the two other places an element can appear, a function
+    // reference's arguments and a brace block's value, have closed the path
+    // above before we get here.
+    if (printed.includes("<")) {
+        return false;
+    }
     if (following.startsWith("[")) {
         return true;
     }

@@ -222,6 +222,10 @@ describe("Prettier", async () => {
         // `$x[1]`. Each of these is already canonically formatted, so formatting
         // has to give it back unchanged.
         const unchanged = [
+            // A path holding an element has no parenthesized spelling, so these
+            // must come back bare — wrapping one loses the reference entirely.
+            "<p>$a[<n />][</p>",
+            "<p>$a[<n />][2</p>",
             "<p>$(x)hi</p>",
             "<p>$(x)_0</p>",
             "<p>$(x)[1]</p>",
