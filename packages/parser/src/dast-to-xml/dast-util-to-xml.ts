@@ -15,6 +15,7 @@ import {
 } from "../types";
 import { escape, mergeAdjacentTextInArray, name } from "./utils";
 import { macroToString as macroToStringV6 } from "../macros-v6/macro-to-string";
+import { parseMacroTail } from "../macros";
 
 /**
  * Serialize a xast tree to XML.
@@ -62,24 +63,23 @@ export function nodesToXml(
         if (!node.some((n) => n.type === "pathPart")) {
             const children = mergeAdjacentTextInArray(node as DastNodes[]);
             const parts = children.map((child) => nodesToXml(child, options));
-            // A macro name runs on through name characters, so `$x` printed directly
-            // before the text `_0` would re-parse as a macro named `x_0`. Walk the
-            // rendered siblings from the right, and reprint any macro that would run
-            // into the one after it in its `$(...)` form. Comparing the rendered strings
-            // (rather than the nodes) means escaping, siblings that print nothing, and
-            // macros that already end in `]`, `}` or `)` all take care of themselves.
-            let nextChar = "";
+            // A reference written `$(x)` can only be printed bare when nothing that
+            // follows it would be read as part of it. Walk the rendered siblings from
+            // the right, and reprint any reference that would absorb the one after it
+            // in its `$(...)` form. Comparing the rendered strings (rather than the
+            // nodes) means escaping and siblings that print nothing take care of
+            // themselves.
+            let following = "";
             for (let i = parts.length - 1; i >= 0; i--) {
                 const child = children[i];
                 if (
                     (child.type === "macro" || child.type === "function") &&
-                    isNameChar(nextChar) &&
-                    isNameChar(parts[i].slice(-1))
+                    referenceWouldAbsorb(parts[i], following, child)
                 ) {
                     parts[i] = nodesToXml(child, options, true);
                 }
                 if (parts[i]) {
-                    nextChar = parts[i][0];
+                    following = parts[i];
                 }
             }
             return parts.join("");
@@ -309,13 +309,166 @@ function macroNeedsParens(macro: DastMacro | DastFunctionMacro): boolean {
 }
 
 /**
- * Whether `char` can appear in the middle of a macro name, so that a macro printed
- * immediately before it would swallow it.
+ * Whether a reference that printed as `printed` would absorb the start of `following`,
+ * so that printing it bare says something the author did not write.
  *
- * Only name characters count. A following `.` or `[` is absorbed too — `$(x).y` prints as
- * `$x.y`, which reparses as one macro rather than a macro followed by text — but that is
- * long-standing behaviour that the surrounding code and its callers already assume, and
- * changing it is a separate question from the one this guard answers.
+ * A name runs on through `[a-zA-Z0-9_]`, so `$x` printed directly before the text
+ * `_0` re-parses as one reference named `x_0`. Beyond that, a reference whose path is
+ * still open takes an index, a property access or a brace block written against it:
+ * `$(x)[1]` is a reference followed by the literal text `[1]`, while a bare `$x[1]` is
+ * a reference *with an index*, resolving to something else entirely.
+ *
+ * Which of those the grammar would actually claim is a question only the grammar can
+ * answer, so `parseMacroTail` — the entry point `gobblePropIndices` uses to pick a
+ * reference's path up again — answers it. That keeps the rule from wrapping text a
+ * path could not have taken: `$x.5` stays bare, because a path part's name cannot
+ * start with a digit, and so does `$x{fixed=` from a brace block whose value was
+ * written without quotes, which is not a brace block at all.
+ *
+ * A leading `[` is the one case `parseMacroTail` cannot see, because an index holding
+ * an element is split across siblings and all it is given is the `[`.
+ *
+ * "Still open" is readable straight off the printed form, and it lines up with the
+ * three reasons `whatClosedThePath` gives in `gobble-prop-indices.ts`: a printed
+ * reference ending in `)` was parenthesized or carried an argument list, and one
+ * ending in `}` carried a brace block. Both are closed, which is why `$x{z}[5]` and
+ * `$$f(1)[2]` need no parentheses to keep their trailing text literal. One ending in
+ * `]` is *not* closed — an index hangs off a path part, so `$a[1][2]` and `$a[1].y`
+ * re-parse as a single reference.
+ */
+export function referenceWouldAbsorb(
+    printed: string,
+    following: string,
+    reference?: ReferenceLikeNode,
+): boolean {
+    // Two things a reference can hold that `$( … )` cannot express, and they
+    // come first because every branch below can only answer "wrap it" —
+    // wrapping one of these does not protect it, it destroys it. The
+    // parenthesized form is then not a reference at all, so what comes back is
+    // loose text with no reference among it, and nothing is reported. That
+    // includes the name-continuation rule underneath: `$(a[x < y].z)hi` needs
+    // parentheses to keep `hi` out of the name *and* cannot have them, and
+    // printing them lost the reference outright.
+    //
+    // **An element in an index.** `$(…)` is read by the string macro parser,
+    // which never sees an element — that is the whole reason
+    // `gobblePropIndices` exists — so `$(a[<n />])` is four nodes and no
+    // reference. Asked of the reference rather than of its printed form,
+    // because the printed form depends on the print options: the same index
+    // comes out as `<n />`, or as `&lt;`, or as a raw `<`, depending on
+    // `doenetSyntax`, and a rule reading characters gets one of those wrong.
+    //
+    // **An `&` anywhere in the printed form**, raw or as an entity. Lezer gives
+    // an entity its own node, so the text inside `$( … )` stops being one
+    // string for the macro parser, and a bare `&` fares no better:
+    // `$(a[x &amp; y])`, `$(a[x &lt; y])`, `$(a[&#50;])` and `$(a[x & y])` all
+    // come back with no reference. The bare spelling loses the index — an
+    // entity between brackets is not gobbled into one either way — but it keeps
+    // the reference, which is what `main` did and the lesser of the two losses.
+    if (reference && holdsAnElement(reference)) {
+        return false;
+    }
+    if (printed.includes("&")) {
+        return false;
+    }
+    // Past here the reference can be parenthesized, so the question is only
+    // whether it needs to be.
+    if (isNameChar(following[0]) && isNameChar(printed.slice(-1))) {
+        return true;
+    }
+    const pathIsClosed = printed.endsWith(")") || printed.endsWith("}");
+    if (pathIsClosed) {
+        return false;
+    }
+    if (following.startsWith("[")) {
+        return true;
+    }
+    // A path continues with `.`, `[` or `{` and with nothing else, so anything
+    // else is settled without asking the grammar. Worth the line: `following`
+    // is however much prose comes after the reference, and `MacroTail` captures
+    // all of it as its remainder.
+    if (!following.startsWith(".") && !following.startsWith("{")) {
+        return false;
+    }
+    // The two grammars disagree about names, and `parseMacroTail` only speaks
+    // v0.7. v0.6's `ScopedIdent` is `[a-zA-Z0-9_-]+`, taking a leading digit and
+    // a hyphen where v0.7's `SimpleIdent` takes neither — so `$(x).3-b` is a
+    // closed reference and the literal text `.3-b` in a v0.6 document, while a
+    // bare `$x.3-b` re-parses as a prop access. Asking only the v0.7 grammar
+    // drops the parentheses and changes the tree, and says nothing about it,
+    // because v0.7 would not have claimed `.3-b` either.
+    if (reference?.version === "0.6" && /^\.[a-zA-Z0-9_-]/.test(following)) {
+        return true;
+    }
+    // `parseMacroTail` reads a path, and a v0.7 path can carry a brace block —
+    // but a *function* reference cannot. `FunctionMacro` is `"$$" SimplePath
+    // FunctionInput?` with no `PropAttrs`, so `$$f{z}` and `$$(f){z}` have the
+    // same tree and the parentheses would be noise. v0.6 is the other way
+    // round: there the wrapped macro does take attributes, so `$$f{z}` carries
+    // `{z}` as one and `$$(f){z}` does not, and the parentheses are load-bearing.
+    if (
+        reference?.type === "function" &&
+        reference.version !== "0.6" &&
+        following.startsWith("{")
+    ) {
+        return false;
+    }
+    return parseMacroTail(following).remainder !== following;
+}
+
+/**
+ * The shape `holdsAnElement` walks. Written structurally rather than as
+ * `DastMacro | DastFunctionMacro` so that the v0.6 printer can pass its own node
+ * without a cast: a v0.6 path cannot hold an element, so the answer there is
+ * always `false`, but the walk should not have to know that.
+ */
+type ReferenceLikeNode = {
+    type?: string;
+    version?: string;
+    path?: readonly { index?: readonly { value?: readonly any[] }[] }[];
+    input?: readonly (readonly any[])[] | null;
+};
+
+/**
+ * Whether an element is printed anywhere inside this reference.
+ *
+ * Both places one can hide have to be walked, and both recursively:
+ *
+ * - **An index**, directly or through a nested reference's own index —
+ *   `$a[$b[<n />]]` prints the element inside the outer reference's index.
+ * - **A nested function reference's arguments** — `$a[$$f(<n />)]` keeps the
+ *   element in `input` rather than in any index, and prints it inside the outer
+ *   reference just the same. Missing this was worth a destroyed reference:
+ *   `$a[$$f(<n />)][` came back as `$(a[$$f(<n />)])[`, which is not a
+ *   reference at all.
+ *
+ * The reference's *own* `input` does not need walking: a printed argument list
+ * closes the path, so `pathIsClosed` has already returned above.
+ */
+function holdsAnElement(reference: ReferenceLikeNode): boolean {
+    function inNodes(nodes: readonly any[]): boolean {
+        return nodes.some(
+            (node) =>
+                node?.type === "element" ||
+                ((node?.type === "macro" || node?.type === "function") &&
+                    (holdsAnElement(node) ||
+                        (node.input ?? []).some((argument: readonly any[]) =>
+                            inNodes(argument),
+                        ))),
+        );
+    }
+    for (const pathPart of reference.path ?? []) {
+        for (const index of pathPart.index ?? []) {
+            if (inNodes(index.value ?? [])) {
+                return true;
+            }
+        }
+    }
+    return false;
+}
+
+/**
+ * Whether `char` can appear in the middle of a reference's name.
  */
 function isNameChar(char: string): boolean {
     return /^[a-zA-Z0-9_]$/.test(char);

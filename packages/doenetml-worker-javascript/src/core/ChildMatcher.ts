@@ -168,6 +168,39 @@ export async function deriveChildResultsFromDefiningChildren({
                         componentType: attributeForComponentType,
                     },
                 };
+            } else if (
+                childGroupResults.unmatchedChildren.every(
+                    (child: any) =>
+                        typeof child !== "string" &&
+                        // A child with no `componentType` at all is not an
+                        // internal component but a malformed one, which the
+                        // author did write and does need to hear about.
+                        typeof child.componentType === "string" &&
+                        child.componentType.startsWith("_"),
+                )
+            ) {
+                // Nothing to say: an author never writes a `_copy` or an
+                // `_error`, so naming one as an invalid child sends them
+                // looking for markup that is not theirs. Clear any record a
+                // previous derive of this same parent left, so that "nothing to
+                // say" means the map says nothing — every other branch of this
+                // function either writes the entry or deletes it, and a branch
+                // that did neither would let a stale message through.
+                //
+                // This arises when a composite child has not been given its
+                // chance to expand. Every component is first derived with
+                // `expandComposites: false`, and a composite is deliberately
+                // not matched against `_base` so that it must expand first, so
+                // the record below is made for every tree and then retracted by
+                // the re-derive that `expandCompositesOfDescendants` triggers.
+                // That pass reaches a component's attributes and children, but
+                // an index's contents hang off `refResolution.originalPath`,
+                // which is neither — so for those the record was never
+                // retracted and arrived at the end of the load beside the
+                // genuine diagnostic. Where a composite *does* expand, what
+                // gets reported is its expansion (`<graph>`, `<p>`) rather than
+                // the `_copy`, which is why suppressing this loses nothing.
+                delete core.unmatchedChildren[parent.componentIdx];
             } else {
                 core.unmatchedChildren[parent.componentIdx] = {
                     code: "doenet-w0107",

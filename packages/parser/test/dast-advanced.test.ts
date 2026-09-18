@@ -12,6 +12,7 @@ import {
 import { MacroParser } from "../src/macros/parser";
 import { gobbleFunctionArguments } from "../src/lezer-to-dast/gobble-function-arguments";
 import { toXml } from "../src/dast-to-xml/dast-util-to-xml";
+import { lezerToDastV6 } from "../src/lezer-to-dast/lezer-to-dast-v6";
 
 const origLog = console.log;
 console.log = (...args) => {
@@ -1538,6 +1539,58 @@ describe("DAST", async () => {
             }
         });
 
+        it("still builds the call when the index earned a warning", () => {
+            // The warning about the index's own contents is hoisted into the
+            // sibling array, where it lands between the reference and its
+            // argument list. `gobbleFunctionArguments` wants that list as an
+            // immediate sibling, so the call used to be dropped as well: the
+            // author heard about the inner brackets and nothing at all about
+            // `(3)` having become text.
+            const source = `$$F[$(x)[<n/>]](3)`;
+            const reference = childrenOf(source)[0] as any;
+            expect(reference.type).toBe("function");
+            expect(reference.input).toMatchObject([
+                [{ type: "text", value: "3" }],
+            ]);
+            // ...and the warning is still reported.
+            expect(
+                childrenOf(source).some((n: any) => n.code === "doenet-w0162"),
+            ).toBe(true);
+            // Nothing of the call is left over as text beside it.
+            expect(childrenOf(source).some((n: any) => n.type === "text")).toBe(
+                false,
+            );
+
+            // A reference whose path a warning says is *closed* keeps its call
+            // declined, because the declined brackets are still sitting between
+            // the warning and the `(` as literal text.
+            const closed = childrenOf(`$$(f)[<n/>](y)`);
+            expect((closed[0] as any).input).toBe(null);
+            expect(closed.map((n: any) => n.type)).toContain("text");
+        });
+
+        it("steps over the index warning but not a parse error", () => {
+            // The step-over above is for the warning this pass mints beside
+            // content it left alone, not for markup that failed to parse. A
+            // stray closing tag is a real break in the document, and a break
+            // between `$$f` and a `(` still ends the reference — otherwise
+            // fixing a warning would quietly turn an uncalled reference into a
+            // call in documents that have nothing to do with indices.
+            const children = childrenOf(`<p>$$f</q>(3)x</p>`)[0].children;
+            expect(children[0]).toMatchObject({
+                type: "function",
+                input: null,
+            });
+            expect(children[1]).toMatchObject({ type: "error" });
+            expect(children[1].error_type).toBeUndefined();
+            expect(
+                children
+                    .slice(2)
+                    .map((n: any) => n.value)
+                    .join(""),
+            ).toBe("(3)x");
+        });
+
         it("names what actually closed the path, whatever follows the brackets", () => {
             // A closed path stays closed however the source continues, so a
             // trailing call must not relabel it: `$$(f)[…](y)` is still a
@@ -1776,5 +1829,80 @@ describe("DAST", async () => {
             expect(reference.position!.end.offset).toBe(source.length);
             expect(reference.path[0].position!.end.offset).toBe(source.length);
         });
+    });
+
+    describe("parsing malformed input declines rather than failing", () => {
+        // A document is parsed on every keystroke, so the parser sees every
+        // half-typed prefix of what an author is writing. Nothing it is given
+        // should throw: a throw is not a diagnostic, it is the whole document
+        // failing to build.
+
+        it("declines a call whose closing paren an inner call already took", () => {
+            // `$$g($$f(<n/>)` is what `$$g($$f(<n/>), 2)` looks like partway
+            // through being typed. The only `)` in it belongs to the inner call,
+            // so the outer reference has an opening paren and nothing to match
+            // it — which used to run off the end of the sibling array and throw.
+            const children = lezerToDast(`$$g($$f(<n/>)`).children as any[];
+            expect(children[0]).toMatchObject({
+                type: "function",
+                input: null,
+            });
+
+            // The element in the inner argument is what makes it reach this
+            // path at all, and the complete document is unaffected.
+            const complete = lezerToDast(`$$g($$f(<n/>), 2)`)
+                .children[0] as DastFunctionMacro;
+            expect(complete.input).not.toBe(null);
+            expect(complete.input!).toHaveLength(2);
+            expect((complete.input![0][0] as any).type).toBe("function");
+        });
+
+        it("throws on no prefix of a reference-heavy document", () => {
+            // The guard for the class rather than for the one shape above. Each
+            // source is walked a character at a time, which is the sequence of
+            // documents an author types on the way to writing it.
+            const sources = [
+                `$$g($$f(<n/>), 2)`,
+                `$$f((a,b),<n/>)`,
+                `$a[<n/>].x[2].y`,
+                `$a[<b>x[1]</b>]`,
+                `$a[&amp;<n/>]`,
+                `$x{z}[<n/>]`,
+                `$$(f)[<n/>](y)`,
+                `<p>$a[<p>$b[<n/>]</p>]</p>`,
+                `<math>$$f(<n/>)</math>`,
+            ];
+            for (const source of sources) {
+                for (let i = 1; i <= source.length; i++) {
+                    const prefix = source.slice(0, i);
+                    expect(() => lezerToDast(prefix), prefix).not.toThrow();
+                    // The v0.6 grammar has its own copy of this pass, and it is
+                    // the one the 0.6-to-0.7 converter runs — on documents
+                    // written before any of this existed.
+                    expect(() => lezerToDastV6(prefix), prefix).not.toThrow();
+                }
+            }
+        });
+
+        it("splits a long run of special characters without overflowing the stack", async () => {
+            // `splitTextAtSpecialChars` used to recurse once per special
+            // character, so a long enough run of them overflowed the stack and
+            // took the document with it. Where the threshold falls is the
+            // host's stack rather than anything about the language, and it
+            // moves: the old recursion run here overflowed at 4 000 brackets
+            // cold and survived the same 4 000 once V8 had optimized the frame.
+            // So these sizes are chosen to be past any of it rather than to
+            // name a number.
+            expect(() =>
+                lezerToDast(`$a[<n/>]` + "[".repeat(16000)),
+            ).not.toThrow();
+            expect(() =>
+                lezerToDast(`$$f(<m/>)` + "(x)".repeat(8000)),
+            ).not.toThrow();
+            // The v0.6 pass has its own copy of the same recursion.
+            expect(() =>
+                lezerToDastV6(`$$f(<m/>)` + "(x)".repeat(8000)),
+            ).not.toThrow();
+        }, 30000);
     });
 });

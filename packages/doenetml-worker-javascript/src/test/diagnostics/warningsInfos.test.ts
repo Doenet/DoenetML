@@ -1059,6 +1059,84 @@ describe("Warning Tests @group4", async () => {
         ).eq(true);
     });
 
+    it("reports a warning about markup in index brackets once, however deeply nested", async () => {
+        // A reference resolution carries the same index nodes on both its
+        // `originalPath` and its `unresolvedPath`, and the load-time pipeline
+        // expands both, so anything reported about markup between index
+        // brackets used to arrive once per path — twice one level in, four
+        // times two levels in.
+        const documents = [
+            `<p>$(x)[<number>1</number>]</p>`,
+            `<numberList name="myList">100 300 200 50</numberList>
+             <p>$myList[<p>$(x)[<number>1</number>]</p>]</p>`,
+            `<numberList name="myList">100 300 200 50</numberList>
+             <p>$myList[<p>$myList[<p>$(x)[<number>1</number>]</p>]</p>]</p>`,
+        ];
+        for (const doenetML of documents) {
+            const { core } = await createTestCore({ doenetML });
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(
+                diagnosticsByType.warnings.filter(
+                    (warning) => warning.code === "doenet-w0162",
+                ).length,
+                doenetML,
+            ).eq(1);
+            // Whatever else each document earns, no two of them are the same
+            // message in the same place.
+            const keys = diagnosticsByType.warnings.map((warning) =>
+                JSON.stringify([
+                    warning.message,
+                    warning.position?.start?.offset,
+                ]),
+            );
+            expect(new Set(keys).size, doenetML).eq(keys.length);
+        }
+    });
+
+    it("says nothing about invalid children an author did not write", async () => {
+        // An element in index brackets that normalization turns into an
+        // `_error` used to draw a second warning beside the genuine one:
+        // "Invalid children for `<_error>`: Found invalid children: `<_copy>`".
+        // Neither component is anything the author wrote.
+        const documents = [
+            `<numberList name="myList">100 300 200 50</numberList>
+             <p>$myList[<indexOf type="text" tolerance="1e-6" target="100">$myList</indexOf>]</p>`,
+            `<numberList name="myList">100 300 200 50</numberList>
+             <p>$myList[<number bogusAttr="1">$k</number>]</p>`,
+            // Reported against `<setup>` rather than `<_error>`, from the alias
+            // components `<repeat>` synthesizes, but the same cause.
+            `<numberList name="myList">100 300 200 50</numberList>
+             <p>$myList[<indexOf target="2"><repeat for="1 2" valueName="v"><number>$v</number></repeat></indexOf>]</p>`,
+        ];
+        for (const doenetML of documents) {
+            const { core } = await createTestCore({ doenetML });
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(
+                diagnosticsByType.warnings.filter(
+                    (warning) => warning.code === "doenet-w0107",
+                ),
+                doenetML,
+            ).eqls([]);
+        }
+
+        // The first document's genuine error is still reported, and the same
+        // markup written in ordinary content behaves the same way — which is
+        // what made the extra message specific to an index in the first place.
+        for (const doenetML of [
+            `<numberList name="myList">100 300 200 50</numberList>
+             <p>$myList[<indexOf type="text" tolerance="1e-6" target="100">$myList</indexOf>]</p>`,
+            `<numberList name="myList">100 300 200 50</numberList>
+             <p><indexOf type="text" tolerance="1e-6" target="100">$myList</indexOf></p>`,
+        ]) {
+            const { core } = await createTestCore({ doenetML });
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors.length, doenetML).eq(1);
+            expect(diagnosticsByType.errors[0].message).contain(
+                `Invalid attribute "tolerance"`,
+            );
+        }
+    });
+
     it("non-numeric requested variant index produces an info", async () => {
         const { core } = await createTestCore({
             doenetML: `<text>hi</text>`,
