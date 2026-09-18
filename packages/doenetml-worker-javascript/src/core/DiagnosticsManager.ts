@@ -23,7 +23,7 @@ export class DiagnosticsManager {
      * about 0.2 s for a thousand diagnostics and 1.5 s for three thousand,
      * against 5 ms and 25 ms for the field-by-field comparison this replaced.
      */
-    private diagnosticKeys: Set<string>;
+    _diagnosticKeys: Set<string>;
 
     constructor({
         preliminaryDiagnostics,
@@ -41,7 +41,7 @@ export class DiagnosticsManager {
         //
         // Errors are ignored here; we'll gather those from the dast when
         // processing it.
-        this.diagnosticKeys = new Set<string>();
+        this._diagnosticKeys = new Set<string>();
         this.diagnostics = preliminaryDiagnostics.filter(
             (diagnostic): diagnostic is NonErrorDiagnosticRecord => {
                 if (diagnostic.type === "error") {
@@ -49,10 +49,10 @@ export class DiagnosticsManager {
                 }
                 this.assertDiagnosticIsValid(diagnostic);
                 const key = diagnosticDedupKey(diagnostic);
-                if (this.diagnosticKeys.has(key)) {
+                if (this._diagnosticKeys.has(key)) {
                     return false;
                 }
-                this.diagnosticKeys.add(key);
+                this._diagnosticKeys.add(key);
                 return true;
             },
         );
@@ -82,7 +82,7 @@ export class DiagnosticsManager {
             // A diagnostic dropped by the cap is no longer in the queue, so it
             // must be able to be reported again — which is what the scan over
             // the capped array used to do on its own.
-            this.diagnosticKeys = new Set(kept.map(diagnosticDedupKey));
+            this._diagnosticKeys = new Set(kept.map(diagnosticDedupKey));
         }
         this.diagnostics = kept;
 
@@ -126,11 +126,11 @@ export class DiagnosticsManager {
         this.assertDiagnosticIsValid(diagnostic);
 
         const key = diagnosticDedupKey(diagnostic);
-        if (this.diagnosticKeys.has(key)) {
+        if (this._diagnosticKeys.has(key)) {
             return false;
         }
 
-        this.diagnosticKeys.add(key);
+        this._diagnosticKeys.add(key);
         this.diagnostics.push(diagnostic);
 
         this.hasPendingDiagnostics = true;
@@ -152,8 +152,9 @@ export class DiagnosticsManager {
  * cannot drift into disagreeing about what a duplicate is.
  */
 function diagnosticDedupKey(diagnostic: DiagnosticRecord): string {
-    const point = (p: any) =>
-        [p?.offset ?? "", p?.line ?? "", p?.column ?? ""].join(":");
+    function point(p: any): string {
+        return [p?.offset ?? "", p?.line ?? "", p?.column ?? ""].join(":");
+    }
     const position =
         diagnostic.position === undefined
             ? ""

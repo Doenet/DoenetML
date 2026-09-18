@@ -159,6 +159,37 @@ describe("a reference keeps its parens whenever dropping them would change the d
         }
     });
 
+    it("finds an element in a nested call's arguments, not only in an index", () => {
+        // `$a[$$f(<n />)]` keeps the element in the nested function's `input`
+        // rather than in any index, and prints it inside the outer reference
+        // just the same — so the outer reference has no parenthesized spelling
+        // either. Walking only indices lost it: `$(a[$$f(<n />)])[` is not a
+        // reference at all.
+        for (const src of [
+            `$a[$$f(<n />)][`,
+            `$a[$$f($$g(<n />))][`,
+            `$a[$b[<n />]][`,
+        ]) {
+            expect(toXml(lezerToDast(src)), src).toEqual(src);
+        }
+        // ...and a nested call with no element still takes its parentheses.
+        expect(toXml(lezerToDast(`$a[$$f(1)][`))).toEqual(`$(a[$$f(1)])[`);
+    });
+
+    it("uses v0.6 name rules when printing a v0.6 tree", () => {
+        // `parseMacroTail` speaks v0.7, whose `SimpleIdent` takes neither a
+        // leading digit nor a hyphen. v0.6's `ScopedIdent` takes both, so
+        // `$(x).3-b` is a closed reference and the text `.3-b` there, while a
+        // bare `$x.3-b` re-parses as a prop access — and asking only the v0.7
+        // grammar dropped the parentheses and changed the tree in silence.
+        for (const src of [`$(x).3-b`, `$(x).5`, `$(x).b-c`, `$(x).y`]) {
+            expect(toXml(lezerToDastV6(src) as any), src).toEqual(src);
+        }
+        // The same v0.7 document keeps v0.7 rules: `.5` cannot start a path
+        // part there, so it needs no parentheses.
+        expect(toXml(lezerToDast(`$(x).5`))).toEqual(`$x.5`);
+    });
+
     it("leaves a path bare when escaping makes the parens unreadable", () => {
         // In XML mode a `<` inside an index is escaped, and lezer gives the
         // entity its own node — so the text inside `$( … )` stops being one

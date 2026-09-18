@@ -362,7 +362,7 @@ export function referenceWouldAbsorb(
     // because the printed form depends on the print options: the same index can
     // come out as `<n />` or, for a text index, as `&lt;` or `<` depending on
     // `doenetSyntax`, and a rule reading characters gets one of those wrong.
-    if (reference && pathHoldsAnElement(reference)) {
+    if (reference && holdsAnElement(reference)) {
         return false;
     }
     // An **`&` anywhere in the printed form**, raw or as an entity. Lezer gives
@@ -385,39 +385,63 @@ export function referenceWouldAbsorb(
     if (!following.startsWith(".") && !following.startsWith("{")) {
         return false;
     }
+    // The two grammars disagree about names, and `parseMacroTail` only speaks
+    // v0.7. v0.6's `ScopedIdent` is `[a-zA-Z0-9_-]+`, taking a leading digit and
+    // a hyphen where v0.7's `SimpleIdent` takes neither — so `$(x).3-b` is a
+    // closed reference and the literal text `.3-b` in a v0.6 document, while a
+    // bare `$x.3-b` re-parses as a prop access. Asking only the v0.7 grammar
+    // drops the parentheses and changes the tree, and says nothing about it,
+    // because v0.7 would not have claimed `.3-b` either.
+    if (reference?.version === "0.6" && /^\.[a-zA-Z0-9_-]/.test(following)) {
+        return true;
+    }
     return parseMacroTail(following).remainder !== following;
 }
 
 /**
- * The shape `pathHoldsAnElement` walks. Written structurally rather than as
+ * The shape `holdsAnElement` walks. Written structurally rather than as
  * `DastMacro | DastFunctionMacro` so that the v0.6 printer can pass its own node
  * without a cast: a v0.6 path cannot hold an element, so the answer there is
  * always `false`, but the walk should not have to know that.
  */
 type ReferenceLikeNode = {
+    version?: string;
     path?: readonly { index?: readonly { value?: readonly any[] }[] }[];
+    input?: readonly (readonly any[])[] | null;
 };
 
 /**
- * Whether any index anywhere in this reference's path holds an element.
+ * Whether an element is printed anywhere inside this reference.
  *
- * Recursive, because an index's value can hold another reference whose own index
- * holds the element — `$a[$b[<n />]]` prints the element inside the outer
- * reference's index just the same.
+ * Both places one can hide have to be walked, and both recursively:
+ *
+ * - **An index**, directly or through a nested reference's own index —
+ *   `$a[$b[<n />]]` prints the element inside the outer reference's index.
+ * - **A nested function reference's arguments** — `$a[$$f(<n />)]` keeps the
+ *   element in `input` rather than in any index, and prints it inside the outer
+ *   reference just the same. Missing this was worth a destroyed reference:
+ *   `$a[$$f(<n />)][` came back as `$(a[$$f(<n />)])[`, which is not a
+ *   reference at all.
+ *
+ * The reference's *own* `input` does not need walking: a printed argument list
+ * closes the path, so `pathIsClosed` has already returned above.
  */
-function pathHoldsAnElement(reference: ReferenceLikeNode): boolean {
+function holdsAnElement(reference: ReferenceLikeNode): boolean {
+    function inNodes(nodes: readonly any[]): boolean {
+        return nodes.some(
+            (node) =>
+                node?.type === "element" ||
+                ((node?.type === "macro" || node?.type === "function") &&
+                    (holdsAnElement(node) ||
+                        (node.input ?? []).some((argument: readonly any[]) =>
+                            inNodes(argument),
+                        ))),
+        );
+    }
     for (const pathPart of reference.path ?? []) {
         for (const index of pathPart.index ?? []) {
-            for (const node of index.value ?? []) {
-                if (node?.type === "element") {
-                    return true;
-                }
-                if (
-                    (node?.type === "macro" || node?.type === "function") &&
-                    pathHoldsAnElement(node)
-                ) {
-                    return true;
-                }
+            if (inNodes(index.value ?? [])) {
+                return true;
             }
         }
     }
