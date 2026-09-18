@@ -116,14 +116,25 @@ export function gobbleFunctionArgumentsV6(
  * Split the text node at the chars `(`, `)`, and `,`.
  */
 export function splitTextAtSpecialChars(node: DastText): DastText[] {
-    const pos = node.value.search(/[\(\),]/);
-    if (pos < 0) {
+    if (node.value.search(/[\(\),]/) < 0) {
         return [node];
     }
-    const [left, middle, right] = splitTextNodeAt(node, pos);
-    const ret = [left, middle, ...splitTextAtSpecialChars(right)];
+    // A loop rather than a recursion, for the reason given on the v0.7 copy of
+    // this function: one frame per special character overflowed the stack.
+    const pieces: DastText[] = [];
+    let remaining = node;
+    while (true) {
+        const pos = remaining.value.search(/[\(\),]/);
+        if (pos < 0) {
+            pieces.push(remaining);
+            break;
+        }
+        const [left, middle, right] = splitTextNodeAt(remaining, pos);
+        pieces.push(left, middle);
+        remaining = right;
+    }
 
-    return ret.filter((node) => node.value !== "");
+    return pieces.filter((piece) => piece.value !== "");
 }
 
 const DEFAULT_POSITION = {

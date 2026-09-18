@@ -146,14 +146,28 @@ export function splitTextAtSpecialChars(
     node: DastText,
     specialChars: RegExp = /[\(\),]/,
 ): DastText[] {
-    const pos = node.value.search(specialChars);
-    if (pos < 0) {
+    if (node.value.search(specialChars) < 0) {
         return [node];
     }
-    const [left, middle, right] = splitTextNodeAt(node, pos);
-    const ret = [left, middle, ...splitTextAtSpecialChars(right, specialChars)];
+    // A loop, not the recursion this was: one frame per special character
+    // overflowed the stack on a long enough run of them, and the throw took
+    // the whole document with it. The arithmetic stays in `splitTextNodeAt`,
+    // which works from each remaining piece's own start, so walking the
+    // remainder is the same computation the recursion did.
+    const pieces: DastText[] = [];
+    let remaining = node;
+    while (true) {
+        const pos = remaining.value.search(specialChars);
+        if (pos < 0) {
+            pieces.push(remaining);
+            break;
+        }
+        const [left, middle, right] = splitTextNodeAt(remaining, pos);
+        pieces.push(left, middle);
+        remaining = right;
+    }
 
-    const kept = ret.filter((node) => node.value !== "");
+    const kept = pieces.filter((piece) => piece.value !== "");
     const last = kept[kept.length - 1];
     if (last?.position && node.position) {
         last.position.end = { ...node.position.end };

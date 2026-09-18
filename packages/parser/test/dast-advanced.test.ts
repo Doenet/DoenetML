@@ -12,6 +12,7 @@ import {
 import { MacroParser } from "../src/macros/parser";
 import { gobbleFunctionArguments } from "../src/lezer-to-dast/gobble-function-arguments";
 import { toXml } from "../src/dast-to-xml/dast-util-to-xml";
+import { lezerToDastV6 } from "../src/lezer-to-dast/lezer-to-dast-v6";
 
 const origLog = console.log;
 console.log = (...args) => {
@@ -1776,5 +1777,31 @@ describe("DAST", async () => {
             expect(reference.position!.end.offset).toBe(source.length);
             expect(reference.path[0].position!.end.offset).toBe(source.length);
         });
+    });
+
+    describe("parsing malformed input declines rather than failing", () => {
+        // A document is parsed on every keystroke, so the parser sees every
+        // half-typed prefix of what an author is writing. Nothing it is given
+        // should throw: a throw is not a diagnostic, it is the whole document
+        // failing to build.
+
+        it("splits a long run of special characters without overflowing the stack", async () => {
+            // `splitTextAtSpecialChars` used to recurse once per special
+            // character, so a long enough run of them overflowed the stack
+            // and took the document with it. The threshold was the host's
+            // stack rather than anything about the language — around 12 000
+            // brackets, or 6 000 `(x)` groups, on the machine this was
+            // written on — so these go past it without sitting on it.
+            expect(() =>
+                lezerToDast(`$a[<n/>]` + "[".repeat(16000)),
+            ).not.toThrow();
+            expect(() =>
+                lezerToDast(`$$f(<m/>)` + "(x)".repeat(8000)),
+            ).not.toThrow();
+            // The v0.6 pass has its own copy of the same recursion.
+            expect(() =>
+                lezerToDastV6(`$$f(<m/>)` + "(x)".repeat(8000)),
+            ).not.toThrow();
+        }, 30000);
     });
 });
