@@ -347,10 +347,17 @@ export function referenceWouldAbsorb(
     if (pathIsClosed) {
         return false;
     }
-    return (
-        following.startsWith("[") ||
-        parseMacroTail(following).remainder !== following
-    );
+    if (following.startsWith("[")) {
+        return true;
+    }
+    // A path continues with `.`, `[` or `{` and with nothing else, so anything
+    // else is settled without asking the grammar. Worth the line: `following`
+    // is however much prose comes after the reference, and `MacroTail` captures
+    // all of it as its remainder.
+    if (!following.startsWith(".") && !following.startsWith("{")) {
+        return false;
+    }
+    return parseMacroTail(following).remainder !== following;
 }
 
 /**
