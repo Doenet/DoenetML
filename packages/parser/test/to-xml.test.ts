@@ -159,6 +159,21 @@ describe("a reference keeps its parens whenever dropping them would change the d
         }
     });
 
+    it("does not wrap a reference it cannot wrap, even to stop a name running on", () => {
+        // `$(a[x < y].z)hi` needs parentheses to keep `hi` out of the name and
+        // cannot have them: printed in XML mode the index escapes to `&lt;`,
+        // which `$( … )` cannot read back. Wrapping it anyway destroyed the
+        // reference outright, so the two "no parenthesized spelling" tests run
+        // before the name-continuation rule rather than after it.
+        const src = `<p>$(a[x < y].z)hi</p>`;
+        const xml = toXml(lezerToDast(src));
+        expect(xml).not.toContain("$(");
+        expect(JSON.stringify(lezerToDast(xml))).toContain(`"type":"macro"`);
+        // In DoenetML syntax the same index prints its `<` raw, so the
+        // parentheses are readable and are kept — this one round-trips.
+        expect(toXml(lezerToDast(src), { doenetSyntax: true })).toEqual(src);
+    });
+
     it("finds an element in a nested call's arguments, not only in an index", () => {
         // `$a[$$f(<n />)]` keeps the element in the nested function's `input`
         // rather than in any index, and prints it inside the outer reference

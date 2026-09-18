@@ -341,38 +341,43 @@ export function referenceWouldAbsorb(
     following: string,
     reference?: ReferenceLikeNode,
 ): boolean {
+    // Two things a reference can hold that `$( … )` cannot express, and they
+    // come first because every branch below can only answer "wrap it" —
+    // wrapping one of these does not protect it, it destroys it. The
+    // parenthesized form is then not a reference at all, so what comes back is
+    // loose text with no reference among it, and nothing is reported. That
+    // includes the name-continuation rule underneath: `$(a[x < y].z)hi` needs
+    // parentheses to keep `hi` out of the name *and* cannot have them, and
+    // printing them lost the reference outright.
+    //
+    // **An element in an index.** `$(…)` is read by the string macro parser,
+    // which never sees an element — that is the whole reason
+    // `gobblePropIndices` exists — so `$(a[<n />])` is four nodes and no
+    // reference. Asked of the reference rather than of its printed form,
+    // because the printed form depends on the print options: the same index
+    // comes out as `<n />`, or as `&lt;`, or as a raw `<`, depending on
+    // `doenetSyntax`, and a rule reading characters gets one of those wrong.
+    //
+    // **An `&` anywhere in the printed form**, raw or as an entity. Lezer gives
+    // an entity its own node, so the text inside `$( … )` stops being one
+    // string for the macro parser, and a bare `&` fares no better:
+    // `$(a[x &amp; y])`, `$(a[x &lt; y])`, `$(a[&#50;])` and `$(a[x & y])` all
+    // come back with no reference. The bare spelling loses the index — an
+    // entity between brackets is not gobbled into one either way — but it keeps
+    // the reference, which is what `main` did and the lesser of the two losses.
+    if (reference && holdsAnElement(reference)) {
+        return false;
+    }
+    if (printed.includes("&")) {
+        return false;
+    }
+    // Past here the reference can be parenthesized, so the question is only
+    // whether it needs to be.
     if (isNameChar(following[0]) && isNameChar(printed.slice(-1))) {
         return true;
     }
     const pathIsClosed = printed.endsWith(")") || printed.endsWith("}");
     if (pathIsClosed) {
-        return false;
-    }
-    // Two things a reference can hold that `$( … )` cannot express. Wrapping one
-    // does not protect it, it destroys it — the parenthesized form is not a
-    // reference at all, so what comes back is loose text with no reference among
-    // it, and nothing is reported. Declining leaves the bare form, which is what
-    // was written and what parses back to the same tree, or in the second case
-    // at least still a reference.
-    //
-    // An **element in an index**. `$(…)` is read by the string macro parser,
-    // which never sees an element — that is the whole reason
-    // `gobblePropIndices` exists — so `$(a[<n />])` is four nodes and no
-    // reference. Asked of the reference rather than of its printed form,
-    // because the printed form depends on the print options: the same index can
-    // come out as `<n />` or, for a text index, as `&lt;` or `<` depending on
-    // `doenetSyntax`, and a rule reading characters gets one of those wrong.
-    if (reference && holdsAnElement(reference)) {
-        return false;
-    }
-    // An **`&` anywhere in the printed form**, raw or as an entity. Lezer gives
-    // an entity reference its own node, so the text inside `$( … )` is no longer
-    // one string for the macro parser to read, and a bare `&` fares no better:
-    // `$(a[x &amp; y])`, `$(a[x &lt; y])`, `$(a[&#50;])` and `$(a[x & y])` all
-    // come back with no reference. The bare spelling loses the index — an entity
-    // between brackets is not gobbled into one either way — but it keeps the
-    // reference, which is what `main` did and the lesser of the two losses.
-    if (printed.includes("&")) {
         return false;
     }
     if (following.startsWith("[")) {
