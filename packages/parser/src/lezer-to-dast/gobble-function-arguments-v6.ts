@@ -46,9 +46,10 @@ export function gobbleFunctionArgumentsV6(
         // opening/closing paren.
         if (
             !(node.type === "text" && node.value === "(") ||
-            !hasClosingParen(nodes.slice(i))
+            findMatchingCloseParen(nodes, i) < 0
         ) {
-            // No opening paren, so this function node cannot have arguments
+            // No opening paren, or none that closes again at this depth, so this
+            // function node cannot have arguments.
             functionNode = null;
             ret.push(node);
             continue;
@@ -62,8 +63,10 @@ export function gobbleFunctionArgumentsV6(
         while (functionNode) {
             const nextNode = nodes[i];
             if (!nextNode) {
+                // Unreachable once `findMatchingCloseParen` has vouched for the
+                // closing paren; kept as an invariant. See the v0.7 copy.
                 throw new Error(
-                    "Failed to find next node when search for function arguments",
+                    "Ran out of nodes looking for a function reference's closing paren",
                 );
             }
             if (nextNode.type !== "text") {
@@ -204,10 +207,30 @@ export function splitTextNodeAt(
     return [left, middle, right];
 }
 
-function hasClosingParen(nodes: DastNodesV6[]): boolean {
-    return nodes.some(
-        (node) => node.type === "text" && node.value.includes(")"),
-    );
+/**
+ * The index of the `)` that closes the `(` at `openIdx`, or `-1` if the text runs out
+ * first. See the v0.7 copy of this function for why depth has to be counted: a
+ * paren an inner call has already claimed used to be enough to commit the outer
+ * reference to a call it could not complete, and a 0.6 document reaching that shape
+ * threw out of the converter.
+ */
+function findMatchingCloseParen(nodes: DastNodesV6[], openIdx: number): number {
+    let depth = 1;
+    for (let i = openIdx + 1; i < nodes.length; i++) {
+        const node = nodes[i];
+        if (node.type !== "text") {
+            continue;
+        }
+        if (node.value === "(") {
+            depth++;
+        } else if (node.value === ")") {
+            depth--;
+            if (depth === 0) {
+                return i;
+            }
+        }
+    }
+    return -1;
 }
 
 /**

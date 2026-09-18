@@ -45,9 +45,10 @@ export function gobbleFunctionArguments(
         // opening/closing paren.
         if (
             !(node.type === "text" && node.value === "(") ||
-            !hasClosingParen(nodes.slice(i))
+            findMatchingCloseParen(nodes, i) < 0
         ) {
-            // No opening paren, so this function node cannot have arguments
+            // No opening paren, or none that closes again at this depth, so this
+            // function node cannot have arguments.
             functionNode = null;
             ret.push(node);
             continue;
@@ -61,8 +62,13 @@ export function gobbleFunctionArguments(
         while (functionNode) {
             const nextNode = nodes[i];
             if (!nextNode) {
+                // Unreachable: the guard above only lets us in when
+                // `findMatchingCloseParen` has already found the `)` that closes
+                // this depth, and the loop below stops there. Kept as an
+                // invariant rather than deleted, since running off the end is
+                // what used to take the whole document down.
                 throw new Error(
-                    "Failed to find next node when search for function arguments",
+                    "Ran out of nodes looking for a function reference's closing paren",
                 );
             }
             if (nextNode.type !== "text") {
@@ -251,10 +257,39 @@ export function splitTextNodeAt(
     return [left, middle, right];
 }
 
-function hasClosingParen(nodes: DastNodes[]): boolean {
-    return nodes.some(
-        (node) => node.type === "text" && node.value.includes(")"),
-    );
+/**
+ * The index of the `)` that closes the `(` at `openIdx`, or `-1` if the text runs
+ * out first.
+ *
+ * Depth matters. A plain search for a `)` anywhere in the remaining siblings answers
+ * "yes" on the strength of one an inner call has already claimed, so `$$g($$f(<n/>)`
+ * — a document an author passes through while typing `$$g($$f(<n/>), 2)` — committed
+ * the outer reference to being a call and then ran off the end of the array looking
+ * for a paren that was never there. Counting depth the way the gobbling loop below
+ * counts it means the two agree on which `)` belongs to whom.
+ *
+ * Only sibling text nodes count, and by the time we get here each holds a single
+ * special character. Parens written inside an element are that element's own
+ * children, and parens belonging to an already-gobbled call live in its `input`;
+ * neither reaches this array.
+ */
+function findMatchingCloseParen(nodes: DastNodes[], openIdx: number): number {
+    let depth = 1;
+    for (let i = openIdx + 1; i < nodes.length; i++) {
+        const node = nodes[i];
+        if (node.type !== "text") {
+            continue;
+        }
+        if (node.value === "(") {
+            depth++;
+        } else if (node.value === ")") {
+            depth--;
+            if (depth === 0) {
+                return i;
+            }
+        }
+    }
+    return -1;
 }
 
 /**

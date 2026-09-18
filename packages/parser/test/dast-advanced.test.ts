@@ -1785,6 +1785,53 @@ describe("DAST", async () => {
         // should throw: a throw is not a diagnostic, it is the whole document
         // failing to build.
 
+        it("declines a call whose closing paren an inner call already took", () => {
+            // `$$g($$f(<n/>)` is what `$$g($$f(<n/>), 2)` looks like partway
+            // through being typed. The only `)` in it belongs to the inner call,
+            // so the outer reference has an opening paren and nothing to match
+            // it — which used to run off the end of the sibling array and throw.
+            const children = lezerToDast(`$$g($$f(<n/>)`).children as any[];
+            expect(children[0]).toMatchObject({
+                type: "function",
+                input: null,
+            });
+
+            // The element in the inner argument is what makes it reach this
+            // path at all, and the complete document is unaffected.
+            const complete = lezerToDast(`$$g($$f(<n/>), 2)`)
+                .children[0] as DastFunctionMacro;
+            expect(complete.input).not.toBe(null);
+            expect(complete.input!).toHaveLength(2);
+            expect((complete.input![0][0] as any).type).toBe("function");
+        });
+
+        it("throws on no prefix of a reference-heavy document", () => {
+            // The guard for the class rather than for the one shape above. Each
+            // source is walked a character at a time, which is the sequence of
+            // documents an author types on the way to writing it.
+            const sources = [
+                `$$g($$f(<n/>), 2)`,
+                `$$f((a,b),<n/>)`,
+                `$a[<n/>].x[2].y`,
+                `$a[<b>x[1]</b>]`,
+                `$a[&amp;<n/>]`,
+                `$x{z}[<n/>]`,
+                `$$(f)[<n/>](y)`,
+                `<p>$a[<p>$b[<n/>]</p>]</p>`,
+                `<math>$$f(<n/>)</math>`,
+            ];
+            for (const source of sources) {
+                for (let i = 1; i <= source.length; i++) {
+                    const prefix = source.slice(0, i);
+                    expect(() => lezerToDast(prefix), prefix).not.toThrow();
+                    // The v0.6 grammar has its own copy of this pass, and it is
+                    // the one the 0.6-to-0.7 converter runs — on documents
+                    // written before any of this existed.
+                    expect(() => lezerToDastV6(prefix), prefix).not.toThrow();
+                }
+            }
+        });
+
         it("splits a long run of special characters without overflowing the stack", async () => {
             // `splitTextAtSpecialChars` used to recurse once per special
             // character, so a long enough run of them overflowed the stack
