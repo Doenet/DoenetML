@@ -113,16 +113,48 @@ describe("parser", () => {
     });
 });
 
-describe("a following `.` or `[` is still absorbed", () => {
-    // Recorded so that a change to `isNameChar` is visible rather than silent. This is
-    // NOT round-tripping: the input parses as a macro followed by the literal text `.y`,
-    // while the printed form parses as one macro with a two-part path — so printing
-    // changes what it means. Long-standing, and out of scope for the run-on fix above,
-    // which covers only a following name character.
-    it("does not parenthesize before a prop access or an index", () => {
-        expect(toXml(lezerToDast(`$(x).y`))).toEqual(`$x.y`);
-        expect(toXml(lezerToDast(`$(x)[1]`))).toEqual(`$x[1]`);
-        expect(toXml(lezerToDastV6(`$(x).y`) as any)).toEqual(`$x.y`);
-        expect(toXml(lezerToDastV6(`$(x)[1]`) as any)).toEqual(`$x[1]`);
+describe("a reference keeps its parens whenever dropping them would change the document", () => {
+    // `$(…)` closes a reference's path. `$(x)[1]` is a reference followed by the
+    // literal text `[1]`; `$x[1]` is a reference *with an index*, which resolves to
+    // something else entirely. Printing used to turn the first into the second.
+    it("keeps them before an index, a property or a brace block", () => {
+        for (const src of [
+            `$(x)[1]`,
+            `$(x).y`,
+            `$(x){z}`,
+            `$(x)[<n />]`,
+            `$a[$(x)[<n />]]`,
+            `$$(f)[1]`,
+            // An index does not close a path — `$a[1][2]` is one reference — so a
+            // reference that already ends in `]` needs them too.
+            `$(a[1])[2]`,
+            `$(a[1]).y`,
+        ]) {
+            expect(toXml(lezerToDast(src))).toEqual(src);
+        }
+        expect(toXml(lezerToDastV6(`$(x).y`) as any)).toEqual(`$(x).y`);
+        expect(toXml(lezerToDastV6(`$(x)[1]`) as any)).toEqual(`$(x)[1]`);
+    });
+
+    it("drops them when what follows could not be part of the path", () => {
+        // A path part's name has to start with a letter or an underscore, and a
+        // reference is closed by its own parens, its brace block or its argument
+        // list — so none of these needs wrapping to stay two things.
+        for (const [src, printed] of [
+            [`$(x).5`, `$x.5`],
+            // A brace block whose value was written without quotes is not a brace
+            // block — `$x{fixed=$b}` parses as a reference and three siblings — so
+            // there is nothing for parentheses to protect. `parseMacroTail` is what
+            // tells the two apart; a hand-rolled test on the leading `{` could not.
+            [`$(x){fixed=$b}`, `$x{fixed=$b}`],
+            [`$(x) [1]`, `$x [1]`],
+            [`$(x)`, `$x`],
+            [`$(a.b[1].c)`, `$a.b[1].c`],
+            [`$$(f)(y)`, `$$f(y)`],
+        ]) {
+            expect(toXml(lezerToDast(src))).toEqual(printed);
+            // ...and what comes back means what went in.
+            expect(toXml(lezerToDast(printed))).toEqual(printed);
+        }
     });
 });

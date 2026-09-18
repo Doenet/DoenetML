@@ -1,4 +1,8 @@
-import { quote, toXml } from "../dast-to-xml/dast-util-to-xml";
+import {
+    quote,
+    referenceWouldAbsorb,
+    toXml,
+} from "../dast-to-xml/dast-util-to-xml";
 import {
     Attr,
     FullPath,
@@ -91,31 +95,27 @@ function macroPathPartToString(pathPart: ScopedPathPart): string {
 }
 
 /**
- * Render a run of siblings, giving a macro its `$(...)` form when the one after it would
- * otherwise run on into its name. The same rule as in `dast-util-to-xml.ts`; comparing the
- * rendered strings means escaping and siblings that print nothing take care of themselves.
+ * Render a run of siblings, giving a macro its `$(...)` form when what follows it would
+ * otherwise be read as part of it. `referenceWouldAbsorb` is the shared rule; comparing
+ * the rendered strings means escaping and siblings that print nothing take care of
+ * themselves.
  */
 function arrayToString(nodes: readonly Node[]): string {
     const parts = nodes.map((n) => macroToString(n));
-    let nextChar = "";
+    let following = "";
     for (let i = parts.length - 1; i >= 0; i--) {
         const child = nodes[i];
         if (
             (child.type === "macro" || child.type === "function") &&
-            isNameChar(nextChar) &&
-            isNameChar(parts[i].slice(-1))
+            referenceWouldAbsorb(parts[i], following)
         ) {
             parts[i] = macroToString(child, true);
         }
         if (parts[i]) {
-            nextChar = parts[i][0];
+            following = parts[i];
         }
     }
     return parts.join("");
-}
-
-function isNameChar(char: string): boolean {
-    return /^[a-zA-Z0-9_]$/.test(char);
 }
 
 function attrToString(attr: Attr): string {

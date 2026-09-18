@@ -214,6 +214,50 @@ describe("Prettier", async () => {
         expect(unknown).toEqual([]);
     });
 
+    it("Keeps a reference's parens, so formatting cannot change what a document means", async () => {
+        // The formatter prints each child on its own, so it never reached the
+        // rule `toXml` applies along a run of siblings. It dropped the parens
+        // from every one of these: `$(x)hi` came back as `$xhi`, a reference to
+        // a component the author never named, and `$(x)[1]` as an indexed
+        // `$x[1]`. Each of these is already canonically formatted, so formatting
+        // has to give it back unchanged.
+        const unchanged = [
+            "<p>$(x)hi</p>",
+            "<p>$(x)_0</p>",
+            "<p>$(x)[1]</p>",
+            "<p>$(x).y</p>",
+            "<p>$(x){z}</p>",
+            "<p>$$(f)[1]</p>",
+            "<p>$(a-b)</p>",
+        ];
+        // ...and these have nothing following that a path could take, so they
+        // must not gain parentheses either.
+        const dropped = [
+            ["<p>$(x) hi</p>", "<p>$x hi</p>"],
+            ["<p>$(x).5</p>", "<p>$x.5</p>"],
+            ["<p>$(x)</p>", "<p>$x</p>"],
+        ];
+        for (const source of unchanged) {
+            for (const printWidth of [40, 80]) {
+                expect(
+                    await prettyPrint(source, {
+                        doenetSyntax: false,
+                        printWidth,
+                    }),
+                    `${source} @${printWidth}`,
+                ).toEqual(source);
+            }
+        }
+        for (const [source, expected] of dropped) {
+            expect(
+                await prettyPrint(source, {
+                    doenetSyntax: false,
+                    printWidth: 80,
+                }),
+            ).toEqual(expected);
+        }
+    });
+
     it("Don't create new macro names when &dollar; entity appears in text", async () => {
         const cases = [
             {

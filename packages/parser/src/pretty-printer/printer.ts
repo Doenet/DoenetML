@@ -1,6 +1,11 @@
 import { Doc, ParserOptions, Printer } from "prettier";
 import { builders } from "prettier/doc";
-import { nodesToXml, quote, toXml } from "../dast-to-xml/dast-util-to-xml";
+import {
+    nodesToXml,
+    quote,
+    referenceWouldAbsorb,
+    toXml,
+} from "../dast-to-xml/dast-util-to-xml";
 import { escape, name } from "../dast-to-xml/utils";
 import { DastElement, DastNodes, PrintOptions } from "../types";
 import {
@@ -208,8 +213,25 @@ export const print: Printer<DastNodes>["print"] = function print(
             ).flat();
         }
         case "macro":
-        case "function":
-            return toXml(node, options);
+        case "function": {
+            // `toXml` decides whether a reference keeps its `$(...)` form by
+            // looking along the run of siblings it is printing, and here each
+            // child is printed on its own, so that decision has to be made from
+            // the path instead. Without it, formatting a document rewrites what
+            // it means: `$(x)hi` came back as `$xhi`, one reference with a name
+            // the author never wrote, and `$(x)[1]` as an indexed `$x[1]`.
+            //
+            // Only a text sibling can absorb anything — an element, a comment or
+            // another reference all start with a character a path cannot take —
+            // and the printer never breaks a line between a reference and the
+            // text touching it, so the raw value is what will follow it.
+            const next = path.next;
+            const following = next?.type === "text" ? next.value : "";
+            const printed = toXml(node, options);
+            return referenceWouldAbsorb(printed, following)
+                ? nodesToXml(node, options, true)
+                : printed;
+        }
 
         default: {
             const unhandledType: never = node;

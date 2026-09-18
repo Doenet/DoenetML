@@ -62,14 +62,26 @@ describe("v06 to v07 update", () => {
     });
 
     it("macro path slashes get turned into dots", async () => {
+        // The `.d` inside the index stays text, and the reference before it keeps its
+        // parentheses so that it does. v0.6 wrote a prop access *inside* the
+        // parentheses — `$(b/c.d)` parses with `accessedProp: d` — while `$(b/c).d`
+        // parses as a macro followed by the literal text `.d`, with no prop access
+        // anywhere. This used to convert to `$b.c.d`, a prop access the author never
+        // wrote, because printing dropped the parentheses and let the text run back
+        // into the path.
         source = `$(foo/bar[3][4][$(b/c).d].baz)`;
-        correctSource = `$foo.bar[3][4][$b.c.d].baz`;
+        correctSource = `$foo.bar[3][4][$(b.c).d].baz`;
         expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // Written the way v0.6 meant it, the prop access survives as one.
+        expect(await updateSyntax(`$(foo/bar[3][4][$(b/c.d)].baz)`)).toEqual(
+            `$foo.bar[3][4][$b.c.d].baz`,
+        );
     });
 
     it("macro path slashes get turned into dots in attributes", async () => {
         source = `<p foo="$(foo/bar[3][4][$(b/c).d].baz)" />`;
-        correctSource = `<p foo="$foo.bar[3][4][$b.c.d].baz" />`;
+        correctSource = `<p foo="$foo.bar[3][4][$(b.c).d].baz" />`;
         expect(
             await updateSyntax(source, {
                 doNotUpgradeAttributeSyntax: true,
@@ -80,7 +92,7 @@ describe("v06 to v07 update", () => {
 
     it("copy source slashes get turned into dots", async () => {
         source = `<copy source="foo/bar[3][4][$(b/c).d].baz"/>`;
-        correctSource = `<copy source="foo.bar[3][4][$b.c.d].baz" />`;
+        correctSource = `<copy source="foo.bar[3][4][$(b.c).d].baz" />`;
         expect(
             await updateSyntax(source, {
                 doNotUpgradeCopyTags: true,

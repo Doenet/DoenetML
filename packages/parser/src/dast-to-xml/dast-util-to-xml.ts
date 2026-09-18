@@ -15,6 +15,7 @@ import {
 } from "../types";
 import { escape, mergeAdjacentTextInArray, name } from "./utils";
 import { macroToString as macroToStringV6 } from "../macros-v6/macro-to-string";
+import { parseMacroTail } from "../macros";
 
 /**
  * Serialize a xast tree to XML.
@@ -62,24 +63,23 @@ export function nodesToXml(
         if (!node.some((n) => n.type === "pathPart")) {
             const children = mergeAdjacentTextInArray(node as DastNodes[]);
             const parts = children.map((child) => nodesToXml(child, options));
-            // A macro name runs on through name characters, so `$x` printed directly
-            // before the text `_0` would re-parse as a macro named `x_0`. Walk the
-            // rendered siblings from the right, and reprint any macro that would run
-            // into the one after it in its `$(...)` form. Comparing the rendered strings
-            // (rather than the nodes) means escaping, siblings that print nothing, and
-            // macros that already end in `]`, `}` or `)` all take care of themselves.
-            let nextChar = "";
+            // A reference written `$(x)` can only be printed bare when nothing that
+            // follows it would be read as part of it. Walk the rendered siblings from
+            // the right, and reprint any reference that would absorb the one after it
+            // in its `$(...)` form. Comparing the rendered strings (rather than the
+            // nodes) means escaping and siblings that print nothing take care of
+            // themselves.
+            let following = "";
             for (let i = parts.length - 1; i >= 0; i--) {
                 const child = children[i];
                 if (
                     (child.type === "macro" || child.type === "function") &&
-                    isNameChar(nextChar) &&
-                    isNameChar(parts[i].slice(-1))
+                    referenceWouldAbsorb(parts[i], following)
                 ) {
                     parts[i] = nodesToXml(child, options, true);
                 }
                 if (parts[i]) {
-                    nextChar = parts[i][0];
+                    following = parts[i];
                 }
             }
             return parts.join("");
@@ -309,13 +309,52 @@ function macroNeedsParens(macro: DastMacro | DastFunctionMacro): boolean {
 }
 
 /**
- * Whether `char` can appear in the middle of a macro name, so that a macro printed
- * immediately before it would swallow it.
+ * Whether a reference that printed as `printed` would absorb the start of `following`,
+ * so that printing it bare says something the author did not write.
  *
- * Only name characters count. A following `.` or `[` is absorbed too — `$(x).y` prints as
- * `$x.y`, which reparses as one macro rather than a macro followed by text — but that is
- * long-standing behaviour that the surrounding code and its callers already assume, and
- * changing it is a separate question from the one this guard answers.
+ * A name runs on through `[a-zA-Z0-9_]`, so `$x` printed directly before the text
+ * `_0` re-parses as one reference named `x_0`. Beyond that, a reference whose path is
+ * still open takes an index, a property access or a brace block written against it:
+ * `$(x)[1]` is a reference followed by the literal text `[1]`, while a bare `$x[1]` is
+ * a reference *with an index*, resolving to something else entirely.
+ *
+ * Which of those the grammar would actually claim is a question only the grammar can
+ * answer, so `parseMacroTail` — the entry point `gobblePropIndices` uses to pick a
+ * reference's path up again — answers it. That keeps the rule from wrapping text a
+ * path could not have taken: `$x.5` stays bare, because a path part's name cannot
+ * start with a digit, and so does `$x{fixed=` from a brace block whose value was
+ * written without quotes, which is not a brace block at all.
+ *
+ * A leading `[` is the one case `parseMacroTail` cannot see, because an index holding
+ * an element is split across siblings and all it is given is the `[`.
+ *
+ * "Still open" is readable straight off the printed form, and it lines up with the
+ * three reasons `whatClosedThePath` gives in `gobble-prop-indices.ts`: a printed
+ * reference ending in `)` was parenthesized or carried an argument list, and one
+ * ending in `}` carried a brace block. Both are closed, which is why `$x{z}[5]` and
+ * `$$f(1)[2]` need no parentheses to keep their trailing text literal. One ending in
+ * `]` is *not* closed — an index hangs off a path part, so `$a[1][2]` and `$a[1].y`
+ * re-parse as a single reference.
+ */
+export function referenceWouldAbsorb(
+    printed: string,
+    following: string,
+): boolean {
+    if (isNameChar(following[0]) && isNameChar(printed.slice(-1))) {
+        return true;
+    }
+    const pathIsClosed = printed.endsWith(")") || printed.endsWith("}");
+    if (pathIsClosed) {
+        return false;
+    }
+    return (
+        following.startsWith("[") ||
+        parseMacroTail(following).remainder !== following
+    );
+}
+
+/**
+ * Whether `char` can appear in the middle of a reference's name.
  */
 function isNameChar(char: string): boolean {
     return /^[a-zA-Z0-9_]$/.test(char);
