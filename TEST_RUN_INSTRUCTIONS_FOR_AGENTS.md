@@ -103,31 +103,37 @@ npm run test -w @doenet/parser -- --run
 npm run test -w @doenet/doenetml-worker-javascript -- --run src/test/tagSpecific/evaluate.test.ts
 ```
 
-## Rust Tests: Use the npm Script, or Cargo's Full Invocation
+## Rust Tests: Use the npm Script
 
 ```bash
-npm run test -w @doenet/doenetml-worker-rust     # cargo test --workspace --features testing
+npm run test -w @doenet/doenetml-worker-rust
 ```
 
-Green is **311 tests**. `cargo` gives the same 311 when handed the same arguments — `cargo test --workspace --features testing`, run from `packages/doenetml-worker-rust`, is exactly what the script runs. What fails is any *shorter* invocation, and none of them names its cause. The first is the dangerous one, because it looks like a pass:
+The script does two things: `test:rust:before`, a vite build of `lib-doenetml-core/tests/parse-dast.ts` against `parser/dist`, and then `cargo test --workspace --features testing` from `packages/doenetml-worker-rust`.
+
+Running that `cargo` line yourself runs the same suite, but only once the first half has happened at least once. Its output, `lib-doenetml-core/tests/dist/`, is gitignored, and the integration tests pull the file in at compile time (`include_str!("../dist/parse-dast.js")` in `tests/test_utils/mod.rs`), so on a clean checkout `cargo` alone stops at ``couldn't read `lib-doenetml-core/tests/dist/parse-dast.js` `` having run nothing. Reach for the script first; reach for `cargo` only to re-run a suite the script has already set up.
+
+What else fails is any *shorter* invocation, and none of them names its cause. The first is the dangerous one, because it looks like a pass:
 
 | invocation | what happens |
 | --- | --- |
 | `cargo test` | **runs 0 tests and reports ok** |
 | `cargo test --workspace` | does not compile |
-| `cargo test -p doenetml-core --features testing` | **16 failures**, all serde field naming |
+| `cargo test -p doenetml-core --features testing` | **compiles and runs, then fails throughout** on serde field naming |
 | `cargo test -p doenetml-core --features web` | does not compile |
-| `cargo test --workspace --features testing` | 311 pass — what the npm script runs |
+| `cargo test --workspace --features testing` | all green — the cargo half of the npm script, once the harness is built |
 
 A bare `cargo test` tests nothing because the workspace sets `default-members = ["lib-js-wasm-binding"]`, and that crate has no tests of its own. It exits 0. Do not read that as a green suite.
 
-Both non-compiling rows are the same missing flag: `testing` is what stands the wasm-bindgen-dependent functions down so the test binaries link, and nothing else supplies it.
+Both non-compiling rows are the same missing flag, and they fail identically: `no method named get_prop_for_render_untracked`. That method lives in `core.rs`'s `testing_features` module, gated `#[cfg(any(feature = "testing", test, not(feature = "web")))]` — so with `web` on and `testing` off it is not there for the integration tests to call. The flag also substitutes plain-Rust math for the wasm-bindgen imports in `math_via_wasm.rs`, which is what keeps the tests meaningful once they do compile. Nothing else supplies either.
 
-The 16 failures are an artifact of scoping, not a regression. `lib-js-wasm-binding` depends on the core as `doenetml-core = { path = "...", features = ["web"] }`, so a `--workspace` build unifies `web` on. Scoped to `-p doenetml-core` it is off, and `FlatElement` carries `#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]` — so serde emits `children_position` where the snapshot tests assert `childrenPosition`.
+Those failures are an artifact of scoping, not a regression. `lib-js-wasm-binding` depends on the core as `doenetml-core = { path = "...", features = ["web"] }`, so a `--workspace` build unifies `web` on. Scoped to `-p doenetml-core` it is off, and thirteen types across `flat_dast`, `ref_resolve` and `components` (eleven structs and two enums, not just `FlatElement`) carry `#[cfg_attr(feature = "web", serde(rename_all = "camelCase"))]` — so serde emits snake_case where the snapshots assert camelCase. Every one of them is that mismatch — `node_idx`, `original_path`, `unresolved_path`, `nodes_in_resolved_path`, `error_type`, `children_position` — so a diff full of snake_case field names is the signature to recognize.
 
 They fail identically on a clean `main`, so reproducing them there reads as "pre-existing" and confirms nothing. Check the invocation before the code.
 
-**A green CI says nothing about these.** `.github/workflows/ci.yml` runs `cargo fmt --check` and `cargo clippy` for Rust and no test step at all, so the Rust suite only ever runs where someone runs it. Run it yourself after touching anything under `packages/doenetml-worker-rust`.
+**CI does run this suite, but not where you would look for it.** It runs inside **`Test Main`**, which invokes `npm run test:all-no-worker-js`, whose hard-coded workspace list includes `packages/doenetml-worker-rust`. So that script and a root `npm run test` each compile the crate and run the whole Rust suite, on top of the Vitest suites they run for the JS packages. The one job named for Rust does not: `Lint Rust Code` is `cargo fmt --check` and `cargo clippy`. There is no Rust test job, so a regression surfaces as a `Test Main` failure rather than as anything naming Rust.
+
+`Test Main` has `needs: build`, so it cannot start until the whole `Build` job has finished, and its result arrives many minutes into a run. Run the suite yourself after touching anything under `packages/doenetml-worker-rust` rather than waiting for CI to report it.
 
 ## Critical test-cypress Warning
 
@@ -327,4 +333,4 @@ rebuild the docs (step 1) before running the tests — Cypress reads the built
 7. Use `cypress run` (headless), not `cypress open`.
 8. Stop background preview server after tests finish.
 9. For `@doenet/docs-cypress`, build the docs first, then serve `out/` on port 3000, then run Cypress.
-10. For Rust, run `npm run test -w @doenet/doenetml-worker-rust`, or `cargo test --workspace --features testing`, which is the same command — a bare `cargo test` runs nothing and reports ok, a scoped one reports 16 failures that are not real, and CI runs no Rust tests at all.
+10. For Rust, run `npm run test -w @doenet/doenetml-worker-rust`. It builds the node parse harness and then runs `cargo test --workspace --features testing`; `cargo` on its own skips that build and fails to compile on a clean checkout. A bare `cargo test` runs nothing and reports ok, and a scoped one fails throughout on serde field naming rather than on anything real. CI runs the suite inside `Test Main`, through `test:all-no-worker-js`, which runs every workspace's `test` script including this one; there is no job named for Rust tests, and `Test Main` does not start until the `Build` job has finished.
