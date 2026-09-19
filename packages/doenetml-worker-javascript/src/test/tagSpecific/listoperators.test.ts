@@ -641,6 +641,19 @@ describe("List operator tag tests @group4", async () => {
             expect(warnings.filter(notSorted)).eqls([]);
         });
 
+        it("a value that is not a number does not hide the disorder around it", async () => {
+            // `1` and `9` are still compared with each other across the `x`
+            // between them. Comparing only neighbors would find no inversion
+            // — every comparison involving `x` is `NaN`, and `NaN > 0` is
+            // false — and answer 2, a position in no arrangement of this list.
+            const { text, warnings } = await resultsFor(`
+    <numberList name="nl">9 x 1</numberList>
+    <p name="p"><searchSorted target="4">$nl</searchSorted></p>
+    `);
+            expect(text).eq("0");
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+
         it("sorting the values first restores the position", async () => {
             // The remedy the warning names, and the shape of the reference
             // page's example.
@@ -665,6 +678,13 @@ describe("List operator tag tests @group4", async () => {
                 name: "pSorted",
                 text: "3",
             });
+
+            // The page says the first one warns; the second must not add a
+            // second warning of its own.
+            const warnings = getDiagnosticsByType(core).warnings.map(
+                (w) => w.message,
+            );
+            expect(warnings.filter(notSorted).length).eq(1);
         });
 
         it("indexOf is unaffected by an unsorted list", async () => {

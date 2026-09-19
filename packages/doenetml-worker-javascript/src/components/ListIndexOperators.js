@@ -130,6 +130,23 @@ export class IndexOf extends ListIndexBaseListOperator {
     }
 }
 
+/**
+ * Whether a value takes part in the ordering at all.
+ *
+ * Compared numerically, a value that is not a real number compares `NaN` with
+ * everything, so it is neither above nor below any other value: a `<number>`
+ * whose content does not parse, and a `<math>` such as `i` that evaluates to
+ * something other than a number. Compared as text every value takes part,
+ * since every value has a text form.
+ */
+function participatesInOrder(value, numeric) {
+    return (
+        !numeric ||
+        (typeof value.numericalValue === "number" &&
+            !Number.isNaN(value.numericalValue))
+    );
+}
+
 export class SearchSorted extends ListIndexBaseListOperator {
     static componentType = "searchSorted";
 
@@ -152,22 +169,32 @@ export class SearchSorted extends ListIndexBaseListOperator {
      * noticing. An unordered list gets 0, the same "no position" every other
      * unanswerable question here gets.
      *
-     * Only a strict inversion counts, so equal neighbors are in order (a run
-     * of equal values is what `side` is about) and a `NaN` neighbor is left
-     * alone. `NaN` compares neither above nor below anything, so a list
-     * holding one can be neither confirmed sorted nor shown unsorted; a
-     * `<number>` whose content does not parse would otherwise turn every
-     * `<searchSorted>` around it into a warning, and the counting search
-     * already ignores such an entry rather than misplacing it.
+     * Only a strict inversion counts, so equal neighbors are in order: a run
+     * of equal values is what `side` is about.
+     *
+     * A value that takes no part in the ordering is passed over, and the
+     * values on either side of it are still compared with each other — so
+     * `9 x 1` is as unsorted as `9 1` is. Passing it over rather than
+     * reporting it is deliberate: a `<number>` whose content does not parse
+     * would otherwise turn every `<searchSorted>` around it into a warning,
+     * including while it is being typed, and the counting search already
+     * ignores such an entry rather than misplacing it. What it must not do is
+     * hide the inversion around it, which comparing only neighbors would: the
+     * comparison across it is `NaN`, and `NaN > 0` is false.
      */
     static validateValues({ values, numeric }) {
-        for (let ind = 1; ind < values.length; ind++) {
+        let previous = null;
+        for (const value of values) {
+            if (!participatesInOrder(value, numeric)) {
+                continue;
+            }
             if (
-                compareExtractedValues(values[ind - 1], values[ind], numeric) >
-                0
+                previous !== null &&
+                compareExtractedValues(previous, value, numeric) > 0
             ) {
                 return "unsortedValues";
             }
+            previous = value;
         }
     }
 
