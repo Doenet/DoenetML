@@ -22,19 +22,17 @@ use crate::test_utils::*;
 /// Run `source` through `FlatRoot::from_dast` and `Expander::expand`, returning
 /// the panic message if it panics.
 ///
-/// The default hook is silenced for the duration: a caught panic is this
-/// function's return value, not a failure, and its backtrace on stderr would
-/// otherwise read as one.
+/// The panic hook is deliberately left alone. Silencing it would print less on
+/// a failing run, but `panic::set_hook` is process-global while `cargo test`
+/// runs tests on several threads, so swapping it here would reach into every
+/// test running alongside. Nothing below panics today, so nothing is printed.
 fn panic_message_for(source: &str) -> Option<String> {
     let dast_root = dast_root_no_position(source);
 
-    let previous_hook = panic::take_hook();
-    panic::set_hook(Box::new(|_| {}));
     let result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
         let mut flat_root = FlatRoot::from_dast(&dast_root);
         Expander::expand(&mut flat_root);
     }));
-    panic::set_hook(previous_hook);
 
     result.err().map(|payload| {
         payload
@@ -49,20 +47,19 @@ fn panic_message_for(source: &str) -> Option<String> {
 /// only that nothing was looked at. Without this, a `catch_unwind` that stopped
 /// working -- or a build with `panic = "abort"`, where it cannot work -- would
 /// turn the corpus into a test that passes by doing nothing.
+///
+/// The panic it provokes prints to stderr on a passing run. That is the cost of
+/// not swapping the process-global hook out from under the tests running
+/// alongside; see `panic_message_for`.
 #[test]
 fn the_probe_detects_a_panic() {
-    let seen = panic::catch_unwind(panic::AssertUnwindSafe(|| {
-        let previous_hook = panic::take_hook();
-        panic::set_hook(Box::new(|_| {}));
-        let result = panic::catch_unwind(|| panic!("deliberate probe panic"));
-        panic::set_hook(previous_hook);
-        result
-            .err()
-            .and_then(|p| p.downcast_ref::<&str>().map(|s| s.to_string()))
-    }))
-    .expect("outer catch_unwind");
+    let result = panic::catch_unwind(|| panic!("deliberate probe panic"));
 
-    assert_eq!(seen.as_deref(), Some("deliberate probe panic"));
+    let message = result
+        .err()
+        .and_then(|payload| payload.downcast_ref::<&str>().map(|s| s.to_string()));
+
+    assert_eq!(message.as_deref(), Some("deliberate probe panic"));
 }
 
 /// Documents aimed at each explicit `panic!` remaining under `dast/`:

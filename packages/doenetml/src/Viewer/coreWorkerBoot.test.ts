@@ -2,6 +2,7 @@ import { describe, it, expect } from "vitest";
 import {
     handshakeWatchdogMsFor,
     isHandshakeTimeout,
+    isDocumentBuildFailure,
     timeoutLooksLikeContention,
     retryDelayMs,
     withTimeout,
@@ -314,5 +315,59 @@ describe("retryDelayMs (#1711)", () => {
                 );
             }
         }
+    });
+});
+
+describe("isDocumentBuildFailure (#1920)", () => {
+    // The worker marks a failure that came from building the document by
+    // setting the error's `name`, because that is what survives Comlink: a
+    // thrown `Error` crosses as `message`, `name` and `stack`, rebuilt with
+    // `Object.assign`, so an extra own property would be dropped on the way.
+
+    it("recognizes the name the worker sets", () => {
+        const err = new Error("Operator tuple not implemented");
+        err.name = "DoenetDocumentBuildError";
+        expect(isDocumentBuildFailure(err)).toBe(true);
+    });
+
+    it("survives the round trip Comlink puts an error through", () => {
+        const original = new Error(
+            "Circular dependency involving these components",
+        );
+        original.name = "DoenetDocumentBuildError";
+
+        // What Comlink's default throw handler does: serialize the three
+        // fields, then rebuild with `Object.assign` on a fresh `Error`.
+        const serialized = {
+            message: original.message,
+            name: original.name,
+            stack: original.stack,
+        };
+        const rebuilt = Object.assign(
+            new Error(serialized.message),
+            serialized,
+        );
+
+        expect(isDocumentBuildFailure(rebuilt)).toBe(true);
+        expect(rebuilt.message).eq(
+            "Circular dependency involving these components",
+        );
+    });
+
+    it("does not claim an ordinary failure", () => {
+        // A worker that died, a script that 404s, a watchdog expiry: all of
+        // these are worth another attempt, and must keep getting one.
+        expect(isDocumentBuildFailure(new Error("worker died"))).toBe(false);
+        expect(isDocumentBuildFailure(undefined)).toBe(false);
+        expect(isDocumentBuildFailure(null)).toBe(false);
+        expect(isDocumentBuildFailure("DoenetDocumentBuildError")).toBe(false);
+        expect(isDocumentBuildFailure({ name: "TypeError" })).toBe(false);
+    });
+
+    it("is distinct from a handshake timeout", () => {
+        const err = new Error("could not be built");
+        err.name = "DoenetDocumentBuildError";
+        expect(isDocumentBuildFailure(err)).toBe(true);
+        expect(isHandshakeTimeout(err)).toBe(false);
     });
 });

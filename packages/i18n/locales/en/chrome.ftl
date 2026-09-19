@@ -229,6 +229,12 @@ core-start-failed-retry = This document could not be started.
 # rather than concluding the service is broken.
 core-start-failed-busy-retry = This document could not be started. Several documents were starting at once, which can take longer on a slower device.
 
+# Shown when the document itself could not be built, rather than the core
+# failing to start for a transient reason. No retry is offered and no reload
+# is advised, because the failure is deterministic: the same source through
+# the same code fails the same way. The cause follows this sentence.
+core-start-failed-document = This document could not be built. There is a problem in the document itself, so reloading will not help.
+
 # Label of the button that starts a failed document over without reloading
 # the page. Offered once per document; a retry that fails too falls back to
 # `core-start-failed` / `core-start-failed-busy`, which advise the reload.

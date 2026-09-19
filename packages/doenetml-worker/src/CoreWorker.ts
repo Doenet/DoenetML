@@ -117,6 +117,46 @@ const RELEASED_INITIALIZATION_DATA_MESSAGE =
     "previous initialization completed. Call setSource again before " +
     "re-initializing.";
 
+/**
+ * The `name` given to an error that came from building this document, as
+ * opposed to the worker being unwell.
+ *
+ * The distinction decides whether a retry can possibly help. A worker that died
+ * mid-handshake is worth another attempt; a document that cannot be built fails
+ * the same way every time, so retrying spends the reader's one retry -- and the
+ * handshake's attempts before it -- on something that cannot succeed, then
+ * advises a reload that cannot either (#1920).
+ *
+ * Carried in `name` rather than in a property because that is what survives the
+ * worker boundary: Comlink serializes a thrown `Error` as its `message`, `name`
+ * and `stack`, and rebuilds it with `Object.assign`, so an extra own property is
+ * dropped. (The main-thread-only flag in `coreWorkerBoot`'s `isHandshakeTimeout`
+ * does not have this problem, which is why it can use a property.)
+ */
+export const DOCUMENT_BUILD_ERROR_NAME = "DoenetDocumentBuildError";
+
+/**
+ * Re-throw `err` marked as a document-caused failure, preserving its message --
+ * which is the one thing on the failure screen an author can act on.
+ *
+ * `panicMessage`, when the Rust core recorded one, replaces it. A panic in wasm
+ * is a trap, and a trap reaches JavaScript as `RuntimeError: unreachable`: true,
+ * and useless to everyone. The panic hook has the real message, with its file
+ * and line, at the moment it fires.
+ */
+function throwAsDocumentBuildError(
+    err: unknown,
+    panicMessage?: string | undefined,
+): never {
+    const error =
+        err instanceof Error ? err : new Error(String(err ?? "unknown error"));
+    error.name = DOCUMENT_BUILD_ERROR_NAME;
+    if (panicMessage) {
+        error.message = panicMessage;
+    }
+    throw error;
+}
+
 export class CoreWorker {
     doenetCore?: PublicDoenetMLCore;
     javascriptCore?: PublicDoenetMLCoreJavascript;
@@ -451,7 +491,17 @@ export class CoreWorker {
             return initializedResult;
         } catch (err) {
             console.error(err);
-            throw err;
+            // Everything from here down is this document being built: the Rust
+            // core flattening its DAST, the resolver, the JavaScript core's
+            // construction. A failure is deterministic, so the boot ladder is
+            // told not to retry it and to show what broke (#1920).
+            //
+            // The read also clears the slot, so a later failure in this worker
+            // cannot report a panic that belonged to an earlier one.
+            throwAsDocumentBuildError(
+                err,
+                this.doenetCore?.take_last_panic_message() ?? undefined,
+            );
         } finally {
             resolve();
         }
@@ -506,7 +556,11 @@ export class CoreWorker {
             )) as any;
         } catch (err) {
             console.error(err);
-            throw err;
+            // `createCoreGenerateDast` reports an ordinary core failure by
+            // returning `{ success: false, errMsg }`, which the caller already
+            // shows. A *rejection* here got as far as evaluating the document
+            // and is likewise deterministic.
+            throwAsDocumentBuildError(err);
         } finally {
             resolve();
         }

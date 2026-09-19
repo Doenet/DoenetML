@@ -86,6 +86,17 @@ impl PublicDoenetMLCore {
         }
     }
 
+    /// The message of the most recent panic in this core, if there has been
+    /// one, cleared by the read.
+    ///
+    /// A panic reaches JavaScript as `RuntimeError: unreachable`, which tells
+    /// the reader nothing. The boundary calls this after a failure so the
+    /// screen can name what actually broke rather than advising a reload that
+    /// cannot help (#1920).
+    pub fn take_last_panic_message(&self) -> Option<String> {
+        utils::take_last_panic_message()
+    }
+
     // `source` is unused; the parameter is kept so the JS-side calling
     // convention does not change.
     pub fn set_source(&mut self, dast: DastRoot, _source: &str) -> Result<(), String> {
