@@ -654,6 +654,28 @@ describe("List operator tag tests @group4", async () => {
             expect(warnings.filter(notSorted).length).eq(1);
         });
 
+        it("the position steps over a value that is not a number", async () => {
+            // 10 belongs after the 9, which is the last of four entries, so
+            // the only position that describes this list is 5. Counting the
+            // entries below the target answers 3, because the two `x`s ahead
+            // of them are not counted — and position 3 is where the 1 is.
+            const { text, warnings } = await resultsFor(`
+    <numberList name="nl">x x 1 9</numberList>
+    <p name="p"><searchSorted target="10">$nl</searchSorted></p>
+    `);
+            expect(text).eq("5");
+            expect(warnings.filter(notSorted)).eqls([]);
+
+            // And a target that belongs between the 1 and the 9 goes after
+            // the 1, at 4, not at 2 where the second `x` is.
+            const between = await resultsFor(`
+    <numberList name="nl">x x 1 9</numberList>
+    <p name="p"><searchSorted target="4">$nl</searchSorted></p>
+    `);
+            expect(between.text).eq("4");
+            expect(between.warnings.filter(notSorted)).eqls([]);
+        });
+
         it("sorting the values first restores the position", async () => {
             // The remedy the warning names, and the shape of the reference
             // page's example.

@@ -162,12 +162,12 @@ export class SearchSorted extends ListIndexBaseListOperator {
      * `<searchSorted>` answers a question about a sorted list, so a list that
      * is not sorted is one it declines rather than answers.
      *
-     * The distinction matters because the search is a count — the number of
-     * entries below the target — and a count is perfectly happy with an
-     * unordered list. It returns a number that looks like a position and is
-     * not one, and a document can come to depend on it without anyone
-     * noticing. An unordered list gets 0, the same "no position" every other
-     * unanswerable question here gets.
+     * The distinction matters because the search is a scan for the last entry
+     * below the target, and a scan is perfectly happy with an unordered list.
+     * It returns a number that looks like a position and is not one, and a
+     * document can come to depend on it without anyone noticing. An unordered
+     * list gets 0, the same "no position" every other unanswerable question
+     * here gets.
      *
      * Only a strict inversion counts, so equal neighbors are in order: a run
      * of equal values is what `side` is about.
@@ -177,10 +177,11 @@ export class SearchSorted extends ListIndexBaseListOperator {
      * `9 x 1` is as unsorted as `9 1` is. Passing it over rather than
      * reporting it is deliberate: a `<number>` whose content does not parse
      * would otherwise turn every `<searchSorted>` around it into a warning,
-     * including while it is being typed, and the counting search already
-     * ignores such an entry rather than misplacing it. What it must not do is
-     * hide the inversion around it, which comparing only neighbors would: the
-     * comparison across it is `NaN`, and `NaN > 0` is false.
+     * including while it is being typed, and the search steps over such an
+     * entry rather than placing the target relative to it. What passing it
+     * over must not do is hide the inversion around it, which comparing only
+     * neighbors would: the comparison across it is `NaN`, and `NaN > 0` is
+     * false.
      */
     static validateValues({ values, numeric }) {
         let previous = null;
@@ -231,18 +232,31 @@ export class SearchSorted extends ListIndexBaseListOperator {
         return Object.assign(super.returnStateVariableDefinitions(), {
             locate: returnLocateDefinition(
                 ({ values, target, numeric, dependencyValues }) => {
-                    // The number of entries that sort before the target, plus
-                    // one, is the 1-based position the target would occupy.
+                    // One past the position of the last entry that sorts
+                    // before the target is the 1-based position the target
+                    // would occupy.
+                    //
+                    // Where every entry takes part in the ordering that is the
+                    // same as counting the entries below the target, since on
+                    // a sorted list they are exactly the ones before that
+                    // position. It differs for an entry that takes no part —
+                    // a `<number>` whose content does not parse — which has to
+                    // be stepped over rather than dropped: counting would come
+                    // out one short for each such entry lying below the
+                    // target, and put the target ahead of values it sorts
+                    // after. In `x 1 9`, 10 belongs at 4, not at 3, where 9
+                    // still is.
+                    //
                     // The list is known to be sorted by the time this runs, so
-                    // bisecting would give the same answer; counting is kept
+                    // bisecting would give the same answer; the scan is kept
                     // because it is not the cost. A four-thousand-entry scan is
                     // about a millisecond, while building the `<math>`
                     // replacement for a single target costs a tenth of that —
                     // so the per-target bookkeeping, which bisecting does not
                     // touch, dominates until lists reach the thousands with
                     // comparably many targets.
-                    let count = 0;
-                    for (let value of values) {
+                    let index = 1;
+                    for (let [ind, value] of values.entries()) {
                         let comparison = compareExtractedValues(
                             value,
                             target,
@@ -253,11 +267,11 @@ export class SearchSorted extends ListIndexBaseListOperator {
                             (dependencyValues.side === "right" &&
                                 comparison === 0)
                         ) {
-                            count++;
+                            index = ind + 2;
                         }
                     }
 
-                    return { index: count + 1 };
+                    return { index };
                 },
                 {
                     side: {
