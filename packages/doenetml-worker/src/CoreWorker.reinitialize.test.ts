@@ -10,7 +10,7 @@ import {
 import fs from "node:fs";
 import path from "node:path";
 import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
-import { CoreWorker } from "./CoreWorker";
+import { CoreWorker, DOCUMENT_BUILD_ERROR_NAME } from "./CoreWorker";
 
 vi.hoisted(() => {
     // `CoreWorker.ts` exposes a default instance over Comlink as it loads,
@@ -162,4 +162,99 @@ describe.skipIf(!wasmAvailable)("CoreWorker re-initialization (#1533)", () => {
             expect(result.allPossibleVariants.length).toBeGreaterThan(0);
         },
     );
+});
+
+// What the worker puts on an error so the viewer's boot ladder can tell a
+// broken document from a sick worker (#1920).
+//
+// The two halves are joined by a string across a package boundary:
+// `DOCUMENT_BUILD_ERROR_NAME` here and a literal of the same value in
+// `coreWorkerBoot.ts`, which is deliberately not an import so the viewer's
+// eagerly-loaded boot path does not pull in the worker bundle. Nothing made
+// them agree: changing this one alone left all 57 tests here and all 26 there
+// green while silently restoring the retry-a-doomed-document behavior. The
+// literal below is the tie -- `coreWorkerBoot.test.ts` asserts the same one
+// from the viewer's side, so changing either fails one of the two.
+describe.skipIf(!wasmAvailable)("document-build failures (#1920)", () => {
+    beforeAll(() => {
+        const wasmBase64 = fs.readFileSync(wasmPath).toString("base64");
+        vi.stubGlobal(
+            "__doenetWorkerWasmUrl",
+            `data:application/wasm;base64,${wasmBase64}`,
+        );
+    });
+
+    beforeEach(() => {
+        vi.spyOn(console, "error").mockImplementation(() => {});
+    });
+
+    afterEach(() => {
+        vi.restoreAllMocks();
+    });
+
+    it("pins the marker the viewer matches on", () => {
+        expect(DOCUMENT_BUILD_ERROR_NAME).toBe("DoenetDocumentBuildError");
+    });
+
+    it("marks a failure to build the document, and reports what actually fired", async () => {
+        // A document that traps the Rust expander: an index into a composite
+        // written before the composite, so `$g[1]` resolves to a child that
+        // has not been expanded yet (#1942, pinned on the Rust side by
+        // `an_index_into_a_composite_of_refs_traps`). It fails the same way on
+        // `main`; what is new is what the worker does with the failure.
+        //
+        // If #1942 is fixed this document will simply render and this test
+        // will fail -- swap in whatever still traps, or delete it along with
+        // the Rust test that pins the same shape.
+        const worker = new CoreWorker();
+        worker.setCoreType("javascript");
+
+        const err = await initialize(
+            worker,
+            `$g[1]<group name="g">$x</group><p name="x">hello</p>`,
+        ).then(
+            () => {
+                throw new Error("expected this document to fail to build");
+            },
+            (e) => e,
+        );
+
+        expect(err.name).toBe("DoenetDocumentBuildError");
+
+        // A trap reaches JavaScript as `RuntimeError: unreachable`, which
+        // tells the reader nothing. The recorded panic message replaces it.
+        // This is why the read is a free function rather than a method on the
+        // core: the trapping entry point takes `&mut self`, and the borrow its
+        // glue took is never dropped, so a `&self` method called next throws
+        // "recursive use of an object" instead of answering. As a method the
+        // message below was `unreachable`.
+        expect(err.message).toContain("Expected an element");
+        expect(err.message).not.toBe("unreachable");
+    });
+
+    it("leaves a precondition failure unmarked, so it can still be retried", async () => {
+        // Sharing the `try` with the build does not make these part of it. A
+        // worker asked to initialize before it has a source, or twice from one
+        // `setSource` (#1533, seen when two boot sequences interleaved on one
+        // worker), is in a state a fresh worker would not be in -- so the boot
+        // ladder must keep its retry rather than blame the document.
+        const fresh = new CoreWorker();
+        fresh.setCoreType("javascript");
+        const noSource = await fresh.initializeJavascriptCore(INIT_ARGS).then(
+            () => undefined,
+            (e) => e,
+        );
+        expect(noSource.message).toMatch(/before setting source and flags/);
+        expect(noSource.name).not.toBe("DoenetDocumentBuildError");
+
+        const worker = new CoreWorker();
+        worker.setCoreType("javascript");
+        await initialize(worker, "<p>A</p>");
+        const released = await worker.initializeJavascriptCore(INIT_ARGS).then(
+            () => undefined,
+            (e) => e,
+        );
+        expect(released.message).toMatch(RELEASED);
+        expect(released.name).not.toBe("DoenetDocumentBuildError");
+    });
 });

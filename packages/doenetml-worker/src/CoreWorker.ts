@@ -4,6 +4,7 @@ import init, {
     ActionResponse,
     ActionsEnum,
     PublicDoenetMLCore,
+    take_last_panic_message,
     DastRoot as DastRootInCore,
 } from "@doenet/doenetml-worker-rust";
 // TODO: for some reason `export type * from "@doenet/doenetml-worker-rust";` doesn't work. The generated .d.ts file
@@ -407,6 +408,10 @@ export class CoreWorker {
 
         await isProcessingPromise;
 
+        // The preconditions below share this `try` without being part of the
+        // document build, so the `catch` has to tell them apart; see there.
+        let buildingDocument = false;
+
         try {
             // Checked inside the `try`, so that a failed precondition
             // releases the queue in the `finally` like every other failure
@@ -426,6 +431,8 @@ export class CoreWorker {
             if (this._initializationDataReleased) {
                 throw Error(RELEASED_INITIALIZATION_DATA_MESSAGE);
             }
+
+            buildingDocument = true;
 
             let normalizedRoot = this.doenetCore.return_normalized_dast_root();
 
@@ -491,23 +498,40 @@ export class CoreWorker {
             return initializedResult;
         } catch (err) {
             console.error(err);
-            // Everything from here down is this document being built: the Rust
-            // core flattening its DAST, the resolver, the JavaScript core's
-            // construction. A failure is deterministic, so the boot ladder is
-            // told not to retry it and to show what broke (#1920).
+            // The two preconditions are about this worker's own call sequence,
+            // not about the document: no source set yet, or a second
+            // initialization from a DAST the first one released (#1533, which
+            // happened when two boot sequences interleaved on one worker).
+            // Both are conditions a fresh worker would not be in, so they are
+            // rethrown unmarked and stay retryable. Marking them would tell
+            // the reader their document is broken and refuse the retry that
+            // would have fixed it -- the opposite of #1920's point.
+            if (!buildingDocument) {
+                throw err;
+            }
+
+            // Past the preconditions, everything is this document being
+            // built: the Rust core flattening its DAST, the resolver, the
+            // JavaScript core's construction. A failure is deterministic, so
+            // the boot ladder is told not to retry it and to show what broke
+            // (#1920).
             //
             // The read also clears the slot, so a later failure in this worker
             // cannot report a panic that belonged to an earlier one.
             //
-            // Guarded because it is only there to improve a message, and the
-            // failure it improves is the one case where the wasm instance has
-            // just trapped. Unguarded, a throw from the read would be thrown
-            // in place of `err`, unmarked -- and an unmarked failure is
-            // retried, which is the behavior this whole path exists to stop.
+            // Read off the module rather than off `this.doenetCore`: the
+            // failure this improves is the one where the wasm instance has
+            // just trapped, and a method call on the core would throw
+            // "recursive use of an object" instead of returning the message
+            // (see `take_last_panic_message` in `lib-js-wasm-binding`).
+            //
+            // Still guarded, because it is only there to improve a message.
+            // Unguarded, a throw from the read would be thrown in place of
+            // `err`, unmarked -- and an unmarked failure is retried, which is
+            // the behavior this whole path exists to stop.
             let panicMessage: string | undefined;
             try {
-                panicMessage =
-                    this.doenetCore?.take_last_panic_message() ?? undefined;
+                panicMessage = take_last_panic_message() ?? undefined;
             } catch (readErr) {
                 console.error(readErr);
             }
