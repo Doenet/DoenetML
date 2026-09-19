@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     updateBooleanInputValue,
     updateMathInputValue,
@@ -1962,5 +1963,58 @@ describe("Substitute tag tests @group4", async () => {
                     .stateValues.latex,
             ),
         ).eq("0.0739x+847.2942+5.0000y");
+    });
+
+    describe("a type the component does not accept", () => {
+        // #1870. `<substitute>`'s own `type` has `validValues: ["math","text"]`,
+        // so `validateAttributeValue` replaced `banana` with `math` and said so.
+        // But `match` and `replacement` are `_componentWithSelectableType`,
+        // whose sugar read the *raw* attribute and fell back to `number`. The
+        // `math` branch then called `subscripts_to_strings()` on a number: two
+        // contradictory diagnostics and a blank page, for one misspelled value.
+
+        async function run(doenetML: string) {
+            const { core } = await createTestCore({ doenetML });
+            await core.returnAllStateVariables(false, true);
+            return getDiagnosticsByType(core);
+        }
+
+        it("renders, and says once what the type was treated as", async () => {
+            for (const doenetML of [
+                `<substitute name="s" type="banana" match="x" replacement="y">x+1</substitute>`,
+                `<substitute name="s" type="BANANA" match="x" replacement="y">x+1</substitute>`,
+                `<substitute name="s" type="banana" match="x" replacement="y"><math>x+1</math></substitute>`,
+                `<substitute name="s" type="banana" match="x" replacement="y"><text>x+1</text></substitute>`,
+            ]) {
+                const diagnostics = await run(doenetML);
+                const codes = [
+                    ...diagnostics.errors,
+                    ...diagnostics.warnings,
+                    ...diagnostics.infos,
+                ].map((d: any) => d.code);
+
+                // The parent's own validation, and nothing else. `doenet-w0016`
+                // was the second, contradicting message.
+                expect(codes, doenetML).eqls(["doenet-i0048"]);
+            }
+        });
+
+        it("leaves a type the component does accept alone", async () => {
+            for (const doenetML of [
+                `<substitute name="s" type="math" match="x" replacement="y">x+1</substitute>`,
+                `<substitute name="s" type="text" match="x" replacement="y">x+1</substitute>`,
+                `<substitute name="s" match="x" replacement="y">x+1</substitute>`,
+            ]) {
+                const diagnostics = await run(doenetML);
+                expect(
+                    [
+                        ...diagnostics.errors,
+                        ...diagnostics.warnings,
+                        ...diagnostics.infos,
+                    ].length,
+                    doenetML,
+                ).eq(0);
+            }
+        });
     });
 });

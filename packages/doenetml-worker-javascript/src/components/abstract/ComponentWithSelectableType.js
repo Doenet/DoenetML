@@ -6,6 +6,57 @@ import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "../c
 import { textToAst } from "../../utils/math";
 import { codedDiagnostic } from "../../utils/diagnostics";
 
+/**
+ * The `type` a child inherits from its parent, as the parent will actually use
+ * it.
+ *
+ * `parentAttributes.type` is the raw authored string: sugar runs before any
+ * state variable exists, so the validated value is not available here. When the
+ * parent declares `validValues` for its own `type` — `<substitute>` accepts
+ * only `math` and `text` — a value outside that set is one the parent will
+ * itself replace with its default, and inheriting the raw string instead makes
+ * the two disagree.
+ *
+ * That disagreement is what #1870 was: `<substitute type="banana" match="x"
+ * replacement="y">` had `stateValues.type` of `math`, reported as `doenet-i0048`,
+ * while `match` and `replacement` were built as `<number>` — the fallback here,
+ * reported as `doenet-w0016`. The `math` branch then called
+ * `subscripts_to_strings()` on a number and the document did not render. Two
+ * contradictory diagnostics and a blank page, for one misspelled attribute.
+ *
+ * Returning the parent's default rather than adding a third guard: the author
+ * is told once, by the parent's own validation, what the value was treated as.
+ */
+function inheritedType({
+    parentAttributes,
+    parentComponentType,
+    componentInfoObjects,
+}) {
+    const rawType = parentAttributes.type?.value;
+    if (!rawType || !parentComponentType) {
+        return rawType;
+    }
+
+    const parentClass =
+        componentInfoObjects?.allComponentClasses?.[parentComponentType];
+    const parentTypeAttr = parentClass?.createAttributesObject?.()?.type;
+    const validValues = parentTypeAttr?.validValues;
+    if (!validValues) {
+        return rawType;
+    }
+
+    const allowed = validValues.map((v) => v.value ?? v);
+    const normalized = parentTypeAttr.toLowerCase
+        ? String(rawType).trim().toLowerCase()
+        : String(rawType).trim();
+    if (allowed.includes(normalized)) {
+        return normalized;
+    }
+
+    // What `validateAttributeValue` will fall back to for the parent.
+    return parentTypeAttr.defaultValue ?? parentTypeAttr.defaultPrimitiveValue;
+}
+
 export class ComponentWithSelectableType extends BaseComponent {
     static componentType = "_componentWithSelectableType";
     static rendererType = undefined;
@@ -29,13 +80,19 @@ export class ComponentWithSelectableType extends BaseComponent {
             matchedChildren,
             componentAttributes,
             parentAttributes,
+            parentComponentType,
+            componentInfoObjects,
             nComponents,
             stateIdInfo,
         }) {
             let diagnostics = [];
             let type = componentAttributes.type?.value;
             if (!type) {
-                type = parentAttributes.type?.value;
+                type = inheritedType({
+                    parentAttributes,
+                    parentComponentType,
+                    componentInfoObjects,
+                });
             }
             if (!type) {
                 type = "number";

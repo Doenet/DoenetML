@@ -27,6 +27,7 @@ export function applySugar({
     serializedComponents,
     parentParametersFromSugar = {},
     parentAttributes = {},
+    parentComponentType,
     componentInfoObjects,
     isAttributeComponent = false,
     nComponents,
@@ -35,6 +36,15 @@ export function applySugar({
     serializedComponents: (string | SerializedComponent)[];
     parentParametersFromSugar?: Record<string, any>;
     parentAttributes?: Record<string, any>;
+    /**
+     * The component type `parentAttributes` came from, so a sugar function
+     * reading an inherited attribute can check it against what that component
+     * actually accepts. `ComponentWithSelectableType` needs this: it reads
+     * `parentAttributes.type`, which is the raw authored string -- sugar runs
+     * before any state variable exists, so the validated value is not there to
+     * read (#1870).
+     */
+    parentComponentType?: string;
     componentInfoObjects: ComponentInfoObjects;
     isAttributeComponent?: boolean;
     nComponents: number;
@@ -113,6 +123,7 @@ export function applySugar({
                         matchedChildren,
                         parentParametersFromSugar,
                         parentAttributes,
+                        parentComponentType,
                         componentAttributes,
                         componentInfoObjects,
                         isAttributeComponent,
@@ -290,6 +301,7 @@ export function applySugar({
                 serializedComponents: newComponent.children,
                 parentParametersFromSugar: newParentParametersFromSugar,
                 parentAttributes: componentAttributes,
+                parentComponentType: componentType,
                 componentInfoObjects,
                 nComponents,
                 stateIdInfo,
@@ -305,6 +317,7 @@ export function applySugar({
                     const res = applySugar({
                         serializedComponents: [attribute.component],
                         parentAttributes: componentAttributes,
+                        parentComponentType: componentType,
                         componentInfoObjects,
                         isAttributeComponent: true,
                         nComponents,
