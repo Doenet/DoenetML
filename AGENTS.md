@@ -104,19 +104,26 @@ Read [TEST_RUN_INSTRUCTIONS_FOR_AGENTS.md](TEST_RUN_INSTRUCTIONS_FOR_AGENTS.md) 
 
 - **Vitest** for unit tests, component logic, and utility functions (files: `*.test.ts`, `*.test.tsx`)
 - **Cypress** for e2e tests, user interactions, and full rendering (files: `cypress/e2e/*.cy.js`)
+- **Cargo** for the Rust core in `packages/doenetml-worker-rust` — reference resolution, the flattener, the resolver and the name maps (files: `lib-doenetml-core/src/**/*.test.rs`, `lib-doenetml-core/tests/`)
 - Tests are grouped; run by group number to parallelize CI
 
 ### Common Test Commands
 
 ```bash
-# Run all tests (Vitest only, very slow)
+# Every workspace's `test` script (very slow): Vitest across the JS packages,
+# plus `doenetml-worker-rust`, whose `test` compiles and runs the Rust suite.
 npm run test
 
-# Run Vitest only (all packages except `doenetml-worker-javascript`)
+# The same set minus `doenetml-worker-javascript`, Rust suite included.
+# This is what CI's `Test Main` job runs.
 npm run test:all-no-worker-js
 
 # Run targeted Vitest (e.g., prefigure package)
 npm run test -w @doenet/prefigure -- --run test/index-api.test.ts
+
+# Run the Rust core suite on its own (builds the node parse harness, then cargo).
+# See TEST_RUN_INSTRUCTIONS_FOR_AGENTS.md — a bare `cargo test` runs nothing.
+npm run test -w @doenet/doenetml-worker-rust
 
 # Run Cypress e2e tests in groups (recommended)
 npm run test:e2e-group1
