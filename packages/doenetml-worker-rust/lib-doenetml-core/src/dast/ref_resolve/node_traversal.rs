@@ -67,6 +67,19 @@ impl Resolver {
         while let Some((origin, origin_source)) = queue.pop_front() {
             counter += 1;
             if counter > max_count {
+                // Internal invariant, despite the wording. This walks the
+                // *resolver's* name graph, whose edges are name lookups from a
+                // node to the node it names; a reference cycle an author writes
+                // -- `<math name="a" extend="$b" /><math name="b" extend="$a" />`
+                // -- is a cycle in the dependency graph, which is built much
+                // later and reports itself there. Visiting more nodes than
+                // exist would mean the name graph had grown an edge that is not
+                // a name lookup, which is a bug in how it was built.
+                //
+                // Audited for #1921: self-references, two- and three-node
+                // cycles, a `<group>`/`<p>`/`<section>`/`<repeat>`/`<module>`
+                // naming itself, and cycles through a prop all resolve without
+                // reaching this. See `dast/panic_reachability.test.rs`.
                 panic!("Cycles detected in references")
             }
 

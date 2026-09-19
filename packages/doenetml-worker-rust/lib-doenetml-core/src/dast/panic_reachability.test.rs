@@ -1,0 +1,133 @@
+//! Whether an author's markup can reach a `panic!` on the document-build path.
+//!
+//! A panic in wasm is a trap, so it takes the whole document down rather than
+//! producing a diagnostic, and the instance is poisoned afterwards -- there is
+//! no rendering the rest of the document and no reporting the error next to the
+//! markup that caused it. A condition an author can cause therefore has to be a
+//! `Result` that becomes a diagnostic; only a broken internal invariant may
+//! panic (#1921).
+//!
+//! `ParentIterator` panicked on `<function name="f" variables="x">x^2</function>
+//! <p>$$f(<math>3</math>)</p>` until #1912, for years, because nothing had ever
+//! run that shape end to end -- the only test asserted the DAST. This file is
+//! the standing answer to "are there more of those?": it runs documents through
+//! the same pipeline the web build runs and asserts that none of them traps.
+
+use std::panic;
+
+use super::*;
+use crate::dast::flat_dast::FlatRoot;
+use crate::test_utils::*;
+
+/// Run `source` through `FlatRoot::from_dast` and `Expander::expand`, returning
+/// the panic message if it panics.
+///
+/// The default hook is silenced for the duration: a caught panic is this
+/// function's return value, not a failure, and its backtrace on stderr would
+/// otherwise read as one.
+fn panic_message_for(source: &str) -> Option<String> {
+    let dast_root = dast_root_no_position(source);
+
+    let previous_hook = panic::take_hook();
+    panic::set_hook(Box::new(|_| {}));
+    let result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
+        let mut flat_root = FlatRoot::from_dast(&dast_root);
+        Expander::expand(&mut flat_root);
+    }));
+    panic::set_hook(previous_hook);
+
+    result.err().map(|payload| {
+        payload
+            .downcast_ref::<&str>()
+            .map(|s| s.to_string())
+            .or_else(|| payload.downcast_ref::<String>().cloned())
+            .unwrap_or_else(|| "<non-string panic payload>".to_string())
+    })
+}
+
+/// The harness has to be able to see a panic, or "nothing panicked" below means
+/// only that nothing was looked at. Without this, a `catch_unwind` that stopped
+/// working -- or a build with `panic = "abort"`, where it cannot work -- would
+/// turn the corpus into a test that passes by doing nothing.
+#[test]
+fn the_probe_detects_a_panic() {
+    let seen = panic::catch_unwind(panic::AssertUnwindSafe(|| {
+        let previous_hook = panic::take_hook();
+        panic::set_hook(Box::new(|_| {}));
+        let result = panic::catch_unwind(|| panic!("deliberate probe panic"));
+        panic::set_hook(previous_hook);
+        result
+            .err()
+            .and_then(|p| p.downcast_ref::<&str>().map(|s| s.to_string()))
+    }))
+    .expect("outer catch_unwind");
+
+    assert_eq!(seen.as_deref(), Some("deliberate probe panic"));
+}
+
+/// Documents aimed at each explicit `panic!` remaining under `dast/`:
+///
+/// - `ref_resolve/node_traversal.rs` "Cycles detected in references"
+/// - `ref_expand.rs` (x2) "Expected an element"
+/// - `flat_dast/untagged_flat_dast_merge.rs` (x3) `set_*` on the wrong node kind
+///
+/// Every one is a shape the parser accepts, which is what makes running
+/// documents the right way to probe them rather than reasoning per site.
+#[test]
+fn no_document_reaches_a_panic() {
+    let sources = vec![
+        // Reference cycles, for `node_traversal`'s cycle guard.
+        r#"<math name="a" extend="$b" /><math name="b" extend="$a" />"#,
+        r#"<math name="a" extend="$a" />"#,
+        r#"<math name="a" extend="$b" /><math name="b" extend="$c" /><math name="c" extend="$a" />"#,
+        r#"<group name="g">$g</group>"#,
+        r#"<group name="g"><p>$g</p></group>"#,
+        r#"<p name="p">$p</p>"#,
+        r#"<section name="s">$s</section>"#,
+        r#"<repeat name="r" for="1 2" valueName="v">$r</repeat>"#,
+        r#"<module name="m"><p>$m</p></module>"#,
+        r#"<a name="x">$y</a><a name="y">$x</a>"#,
+        r#"<point name="p" /><point name="q" extend="$p.x" /><point name="p2" extend="$q" />"#,
+        // A referent that is not an element, for `ref_expand`'s two sites.
+        r#"$p"#,
+        r#"<p name="p">x</p>$p.nonexistent"#,
+        r#"<p name="p" bogus="1">x</p>$p"#,
+        r#"<point name="p" />$p.x.y.z"#,
+        r#"<point name="p" />$p[1][2][3]"#,
+        r#"<point name="p" />$p[<point/>]"#,
+        r#"<point name="p" />$p{link="false"}"#,
+        // Function references, which build an `<ol>` of `<li>` per input.
+        r#"<function name="f" variables="x y">x+y</function>$$f(1,2)"#,
+        r#"<function name="f" variables="x y">x+y</function>$$f(<math>1</math>,<math>2</math>)"#,
+        r#"<function name="f" variables="x">x</function>$$f()"#,
+        r#"<function name="f" variables="x">x</function>$$f($$f(1))"#,
+        r#"<function name="f" variables="x">x</function>$$f(<p>a</p>,<p>b</p>,<p>c</p>)"#,
+        r#"<function name="f" variables="x">x</function>$$f[1](2,3)"#,
+        r#"<function name="f" variables="x">x</function>$$f[<math>1</math>](2,3)"#,
+        // A function reference with no function, and non-function referents,
+        // for the `set_*`-on-the-wrong-node-kind sites.
+        r#"$$f(1,2)"#,
+        r#"<p>$$f(1,2)</p>"#,
+        r#"<math name="m">1</math>$$m(2)"#,
+        r#"<text name="t">a</text>$$t(1,2)"#,
+        // The shape that panicked in `ParentIterator` until #1912: an element
+        // written as a function reference's argument.
+        r#"<function name="f" variables="x">x^2</function><p>$$f(<math>3</math>)</p>"#,
+        // Half-typed markup, which is where the parser's own throws lived.
+        r#"<p>$a[<n/>][</p>"#,
+        r#"<p>$$g($$f(<n/>)</p>"#,
+    ];
+
+    let reached: Vec<String> = sources
+        .iter()
+        .filter_map(|source| {
+            panic_message_for(source).map(|message| format!("{source}\n    -> {message}"))
+        })
+        .collect();
+
+    assert!(
+        reached.is_empty(),
+        "documents reached a panic on the build path:\n  {}",
+        reached.join("\n  ")
+    );
+}

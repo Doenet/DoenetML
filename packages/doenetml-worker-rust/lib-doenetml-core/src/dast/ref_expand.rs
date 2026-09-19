@@ -50,6 +50,17 @@ impl Expander {
                     match resolver.resolve(&ref_.path, ref_.idx, false) {
                         Ok(ref_resolution) => {
                             // Get the tag name of the referent
+                            // Internal invariant: the resolver only ever
+                            // registers names for element nodes
+                            // (`build_resolver` walks elements), so a resolution
+                            // that succeeded names one. A reference to anything
+                            // else fails to resolve and takes the `Err` arm
+                            // below, where it becomes a `FlatError` diagnostic.
+                            // Audited for #1921 against documents aimed at this
+                            // site -- a referent turned into an error node, a
+                            // prop that does not exist, an over-long path, an
+                            // element in index brackets -- none reached it. See
+                            // `dast/panic_reachability.test.rs`.
                             let name = match &flat_root.nodes[ref_resolution.node_idx] {
                                 FlatNode::Element(e) => e.name.clone(),
                                 _ => panic!("Expected an element"),
@@ -124,6 +135,13 @@ impl Expander {
                                     );
                                     // The `<li>` tags are the exclusive children of the `<ol>` tag.
                                     // We created the same number of `<li>` tags as there are `inputs`.
+                                    // Internal invariant: `merge_content` was
+                                    // just handed a `DastElementContent::Element`
+                                    // three lines up, so the node it returned is
+                                    // that element. Audited for #1921; function
+                                    // references with several inputs, element
+                                    // inputs, nested calls and an index before
+                                    // the call all leave it holding.
                                     let li_node_indices =
                                         match &flat_root.nodes[lookup_idx(&ol).unwrap()] {
                                             FlatNode::Element(e) => e,
@@ -361,3 +379,7 @@ fn lookup_idx(untagged: &UntaggedContent) -> Result<Index, anyhow::Error> {
 #[cfg(test)]
 #[path = "ref_expand.test.rs"]
 mod test;
+
+#[cfg(test)]
+#[path = "panic_reachability.test.rs"]
+mod panic_reachability_test;
