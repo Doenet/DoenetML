@@ -29,6 +29,16 @@ let failRegistrationFor: string | null = null;
  */
 let failWithholdAdjustment = false;
 
+/**
+ * When true, `addReplacementsToResolver` throws for a composite that shadows
+ * another one.
+ *
+ * Only a shadow reaches `CompositeReplacementUpdater.createShadowedReplacements`,
+ * so failing exactly those leaves the composite being updated to succeed and
+ * puts the failure where that method registers the shadow's copies.
+ */
+let failShadowRegistration = false;
+
 vi.mock("../../core/ResolverAdapter", async (importOriginal) => {
     const actual =
         await importOriginal<typeof import("../../core/ResolverAdapter")>();
@@ -39,6 +49,9 @@ vi.mock("../../core/ResolverAdapter", async (importOriginal) => {
                 failRegistrationFor !== null &&
                 args.component.componentType === failRegistrationFor
             ) {
+                throw Error(INJECTED);
+            }
+            if (failShadowRegistration && args.component.shadows != null) {
                 throw Error(INJECTED);
             }
             return actual.addReplacementsToResolver(args);
@@ -249,6 +262,82 @@ describe("a composite reports its own failure rather than losing it @group4", ()
                 error.message.includes(INJECTED),
             ).length,
         ).eq(1);
+    });
+
+    // Extending a composite makes a second composite that shadows it, and a
+    // change to the first one's replacements is copied to the second by
+    // `createShadowedReplacements` -- the third place a composite registers
+    // replacements, and the only one the tests above do not reach.
+    const shadowDoenetML = `
+<mathInput name="n" prefill="0" />
+<p name="after">after</p>
+<p name="a"><conditionalContent name="cc">
+  <case condition="$n <= 1"><text>cat</text></case>
+  <else><text>mouse</text></else>
+</conditionalContent></p>
+<p name="b"><conditionalContent extend="$cc" name="cc2" /></p>`;
+
+    it("reports a failure registering a shadow's replacements", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: shadowDoenetML,
+        });
+
+        failShadowRegistration = true;
+        try {
+            await updateMathInputValue({
+                latex: "5",
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+        } finally {
+            failShadowRegistration = false;
+        }
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("after")].stateValues
+                .text,
+        ).eq("after");
+
+        // The composite that was updated is unaffected: only its shadow failed.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.text,
+        ).eq("mouse");
+
+        // The shadow shows the error in place of the text it would have copied.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.text,
+        ).eq("");
+
+        expect(
+            getDiagnosticsByType(core).errors.filter((error) =>
+                error.message.includes(INJECTED),
+            ).length,
+        ).eq(1);
+    });
+
+    it("control: the same shadowed update with nothing injected", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: shadowDoenetML,
+        });
+
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.text,
+        ).eq("mouse");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("b")].stateValues.text,
+        ).eq("mouse");
+
+        expect(getDiagnosticsByType(core).errors.length).eq(0);
     });
 
     it("control: the same withholding with nothing injected", async () => {
