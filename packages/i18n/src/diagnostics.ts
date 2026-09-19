@@ -90,6 +90,8 @@ export const DIAGNOSTIC_CODES = {
     "doenet-i0050": "tally-values-outside-categories",
     "doenet-i0051": "attribute-value-invalid-ignoring",
     "doenet-i0052": "chart-histogram-values-outside-bins",
+    "doenet-i0053": "parsons-indices-count-mismatch",
+    "doenet-i0054": "parsons-indices-repeated",
 
     "doenet-w0001": "line-points-undetermined-dimensions",
     "doenet-w0002": "line-points-too-few-dimensions",
@@ -252,6 +254,8 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0161": "chart-histogram-bar-width-ignored",
     "doenet-w0162": "index-element-not-used-as-index",
     "doenet-w0163": "reference-index-not-a-number",
+    "doenet-w0164": "parsons-no-blocks",
+    "doenet-w0165": "parsons-all-distractors",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

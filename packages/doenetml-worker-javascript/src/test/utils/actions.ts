@@ -734,6 +734,26 @@ export async function updateSelectedIndices({
     });
 }
 
+export async function moveParsonsBlock({
+    componentIdx,
+    blockIndex,
+    toArea,
+    toPosition,
+    core,
+}: {
+    componentIdx: number;
+    blockIndex: number;
+    toArea: "solution" | "unused";
+    toPosition?: number;
+    core: PublicDoenetMLCore;
+}) {
+    await core.requestAction({
+        componentIdx,
+        actionName: "moveBlock",
+        args: { blockIndex, toArea, toPosition },
+    });
+}
+
 export async function focusChanged({
     componentIdx,
     focused,

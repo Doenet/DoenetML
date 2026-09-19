@@ -89,6 +89,10 @@ pretzel-indices-repeated = Ignoring indices specified for pretzel as some indice
 
 pretzel-circuit-first-index = Ignoring indices specified for pretzel in circuit mode as the first index must be 1.
 
+parsons-indices-count-mismatch = Ignoring indices specified for parsons as number of indices doesn't match number of block children.
+
+parsons-indices-repeated = Ignoring indices specified for parsons as some indices are repeated.
+
 ## `<shuffle>` and `<sort>`
 
 # $component is `shuffle` or `sort`. These two components accept the same
@@ -476,6 +480,10 @@ slider-markers-type-mismatch = Markers type doesn't match slider type.
 pretzel-problem-needs-statement-and-answer = Invalid pretzel: each `<problem>` must contain one `<statement>` and one `<answer>`.
 
 pretzel-circuit-first-problem-distractor = Invalid pretzel: in mode="circuit", the first `<problem>` cannot be a distractor.
+
+parsons-no-blocks = A `<parsons>` has no `<block>` children, so there is nothing for the reader to arrange.
+
+parsons-all-distractors = Every `<block>` in the `<parsons>` is a distractor, so the only correct solution is to leave them all unused.
 
 ## Attribute values
 

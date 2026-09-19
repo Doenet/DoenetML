@@ -241,6 +241,18 @@ and <tagc>section</tagc> to close one.</p>`,
 </spreadsheet>`,
                 settle: "#ss",
             },
+            {
+                name: "parsons",
+                doenetML: `
+<parsons name="p">
+  <label>Order the steps</label>
+  <statement><p>Start here</p></statement>
+  <block><p>first</p></block>
+  <block><p>second</p></block>
+  <block isDistractor><p>wrong</p></block>
+</parsons>`,
+                settle: "#p",
+            },
         ];
 
         for (const testCase of cases) {

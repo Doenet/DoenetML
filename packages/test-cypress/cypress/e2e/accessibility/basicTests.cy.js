@@ -1175,6 +1175,32 @@ describe("Basic accessibility tests", { tags: ["@group5"] }, function () {
         });
     });
 
+    it("parsons", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <parsons name="p">
+        <label>Order the steps</label>
+        <statement><p>Start here</p></statement>
+        <block><p>first</p></block>
+        <block><p>second</p></block>
+        <block isDistractor><p>wrong</p></block>
+    </parsons>
+
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#p").should("be.visible");
+
+        cy.checkAccessibility([".doenet-viewer"], {
+            onlyWarnImpacts: ["moderate", "minor"],
+        });
+    });
+
     it("feedback, solution, hint", () => {
         cy.window().then(async (win) => {
             win.postMessage(

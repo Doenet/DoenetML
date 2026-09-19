@@ -1,0 +1,146 @@
+.doenet-viewer {
+    .parsons-root {
+        margin-bottom: 4px;
+    }
+
+    .parsons-label {
+        font-weight: bold;
+        margin-bottom: 6px;
+    }
+
+    .parsons-areas {
+        display: grid;
+        grid-template-columns: 100%;
+        gap: 12px;
+        margin-bottom: 8px;
+    }
+
+    @container (width >= 600px) {
+        .parsons-areas {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    .parsons-area {
+        border: 1px solid var(--canvasText);
+        border-radius: var(--mainBorderRadius);
+        padding: 8px;
+        background-color: var(--canvas);
+        min-width: 0;
+    }
+
+    .parsons-area-drop-target {
+        outline: 2px dashed var(--mainBlue);
+        outline-offset: -2px;
+    }
+
+    .parsons-area-label {
+        font-weight: bold;
+        margin-bottom: 6px;
+    }
+
+    .parsons-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-height: 2.5em;
+    }
+
+    .parsons-block {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid var(--canvasText);
+        border-radius: var(--mainBorderRadius);
+        padding: 4px 6px;
+        background-color: var(--canvas);
+        color: var(--canvasText);
+    }
+
+    .parsons-block-interactive {
+        cursor: grab;
+        touch-action: none;
+    }
+
+    .parsons-block:focus-visible {
+        outline: 2px solid var(--mainBlue);
+        outline-offset: 2px;
+    }
+
+    .parsons-block-dragging {
+        cursor: grabbing;
+        z-index: 10;
+        box-shadow: 0 2px 8px rgba(0, 0, 0, 0.35);
+    }
+
+    .parsons-statement {
+        border-style: dashed;
+        cursor: default;
+    }
+
+    .parsons-block-content {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    .parsons-block-content p {
+        margin: 0;
+    }
+
+    .parsons-block-controls {
+        display: flex;
+        gap: 2px;
+        flex: 0 0 auto;
+    }
+
+    .parsons-control {
+        width: 1.8em;
+        height: 1.8em;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 1px solid var(--canvasText);
+        border-radius: var(--mainBorderRadius);
+        background-color: var(--canvas);
+        color: var(--canvasText);
+        cursor: pointer;
+    }
+
+    .parsons-control:hover:not(:disabled) {
+        background-color: var(--lightBlue);
+    }
+
+    .parsons-control:focus-visible {
+        outline: 2px solid var(--mainBlue);
+        outline-offset: 1px;
+    }
+
+    .parsons-control:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    .parsons-drop-indicator {
+        height: 6px;
+        border-radius: 3px;
+        background-color: var(--mainBlue);
+    }
+
+    .parsons-correct .parsons-solution {
+        border: 2px solid var(--mainGreen);
+    }
+
+    .parsons-incorrect .parsons-solution {
+        border: 2px solid var(--mainRed);
+    }
+
+    .parsons-partialcorrect .parsons-solution {
+        border: 2px solid var(--mainOrange);
+    }
+}
