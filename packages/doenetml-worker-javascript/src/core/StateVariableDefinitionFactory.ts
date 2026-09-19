@@ -647,11 +647,11 @@ async function createReferenceShadowStateVariableDefinitions({
                         (targetVariableIsArray && targetVariable.length === 0)
                     ) {
                         // allow for case where we depend on array entry that does not yet exist
-                        return {
-                            useEssentialOrDefaultValue: {
-                                [primaryStateVariableForDefinition]: true,
-                            },
-                        };
+                        return missingTargetResult({
+                            core,
+                            stateDef,
+                            primaryStateVariableForDefinition,
+                        });
                     }
                     let valueFromTarget = stateDef.set(targetVariable);
                     if (setDefault && usedDefault.targetVariable) {
@@ -681,11 +681,11 @@ async function createReferenceShadowStateVariableDefinitions({
                         (targetVariableIsArray && targetVariable.length === 0)
                     ) {
                         // allow for case where we depend on array entry that does not yet exist
-                        return {
-                            useEssentialOrDefaultValue: {
-                                [primaryStateVariableForDefinition]: true,
-                            },
-                        };
+                        return missingTargetResult({
+                            core,
+                            stateDef,
+                            primaryStateVariableForDefinition,
+                        });
                     }
                     if (setDefault && usedDefault.targetVariable) {
                         return {
@@ -1332,6 +1332,127 @@ function _resolvePrimaryStateVariableForDefinition({
         }
     }
     return { name, stateDef };
+}
+
+/**
+ * What a reference's primary state variable becomes when the target prop it
+ * shadows is not there — an array entry that does not exist, or does not
+ * exist *yet*.
+ *
+ * This is ordinary authoring, not a broken invariant. `$myList[$ci.selectedIndex]`
+ * on a `<choiceInput>` with nothing selected yet is the common case, and a list
+ * still being filled is another; both must render as nothing and resolve later
+ * if the entry appears.
+ *
+ * Most primaries carry `hasEssential`, and for those the essential-or-default
+ * request is right: it yields exactly what the component written empty would
+ * hold, which is the behavior to match (`<number extend="$P.x3" />` is `NaN`,
+ * the same as a bare `<number />`).
+ *
+ * Some primaries have neither an essential value nor a default, and for those
+ * the request cannot be honored: `StateVariableEvaluator` throws on
+ * `hasEssential` being unset, and supplying `hasEssential` alone only moves the
+ * throw to "Neither value nor default value specified" — the fallback has
+ * nothing to fall back to either way. The throw happens during initial
+ * dependency resolution, so it escapes document construction and blanks the
+ * page (#1938). `<integer>` is one such component, and index brackets always
+ * create an `<integer>`, so indexing is the usual way to reach it.
+ *
+ * For those, set the value directly instead, to the empty value
+ * `_emptyPrimaryValue` works out — which is asked of the class rather than
+ * guessed here.
+ */
+function missingTargetResult({
+    core,
+    stateDef,
+    primaryStateVariableForDefinition,
+}: {
+    core: Core;
+    stateDef: any;
+    primaryStateVariableForDefinition: string;
+}) {
+    if (stateDef.hasEssential) {
+        return {
+            useEssentialOrDefaultValue: {
+                [primaryStateVariableForDefinition]: true,
+            },
+        };
+    }
+
+    return {
+        setValue: {
+            [primaryStateVariableForDefinition]: _emptyPrimaryValue({
+                core,
+                stateDef,
+            }),
+        },
+    };
+}
+
+/**
+ * The value a primary state variable should hold when what it shadows is not
+ * there, for the classes that declare neither an essential value nor a default.
+ *
+ * The target is what a bare component of the same type holds, since that is
+ * what the classes *with* an essential already fall back to. Both routes below
+ * ask a class rather than hard-coding a value per type, because the set of
+ * types this can reach is wide — over sixty classes have a primary state
+ * variable without `hasEssential`.
+ *
+ * Returning a value of the wrong shape is not a safe failure: it is inherited
+ * by every state variable computed from the primary, and those are written
+ * expecting the class's own empty. `intComma`'s `numWords` calls `.trim()` on
+ * it, so handing that one `null` trades the crash in #1938 for a different
+ * crash a step later.
+ */
+function _emptyPrimaryValue({ core, stateDef }: { core: Core; stateDef: any }) {
+    // A class that defines `set` uses it to coerce incoming values, the absent
+    // one included -- `integer`'s maps `null` to `NaN`, which is exactly what a
+    // bare `<integer />` holds. Guarded because a `set` may be written only for
+    // values that are really there.
+    if (stateDef.set) {
+        try {
+            return stateDef.set(null);
+        } catch (e) {
+            // Fall through and ask the type instead.
+        }
+    }
+
+    // Otherwise ask the component type this variable says it produces what its
+    // own primary defaults to, walking up the class chain until some class
+    // declares one.
+    //
+    // The walk is the point, not a fallback. A class in this state is almost
+    // always one that renamed its parent's primary out of the way and put a
+    // computed variable in its place: `integer` renames `number`'s `value` to
+    // `valuePreRound`, `intComma` renames `text`'s to `originalValue`. The
+    // essential value and the default go with the renamed variable, so the
+    // class no longer has them under the primary's name -- but its parent's
+    // notion of empty is still the right one, and is what a bare component of
+    // the subclass ends up holding. `intComma` also declares its
+    // `createComponentOfType` as itself, so without the walk the lookup
+    // resolves straight back to the class that has no default.
+    const createComponentOfType =
+        stateDef.shadowingInstructions?.createComponentOfType;
+    let shadowedClass = createComponentOfType
+        ? core.componentInfoObjects.allComponentClasses[createComponentOfType]
+        : undefined;
+
+    while (shadowedClass?.returnNormalizedStateVariableDefinitions) {
+        const { normalized } = getClassStateVariableDefinitions(
+            core,
+            shadowedClass,
+        );
+        const primary =
+            shadowedClass.primaryStateVariableForDefinition ?? "value";
+        const defaultValue = normalized[primary]?.defaultValue;
+        if (defaultValue !== undefined) {
+            return defaultValue;
+        }
+        shadowedClass = Object.getPrototypeOf(shadowedClass);
+    }
+
+    return null;
 }
 
 /**

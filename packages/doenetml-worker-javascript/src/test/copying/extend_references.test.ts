@@ -7460,4 +7460,138 @@ describe("Extend and references tests @group2", async () => {
             expect(text).eq("9");
         });
     });
+
+    describe("a reference to an array entry that is not there", () => {
+        // #1938. A reference redefines the new component's primary state
+        // variable as a shadow of the target prop, and that shadow has a branch
+        // for an entry that does not exist -- it asks for the essential or
+        // default value. Most primaries have one. Some are computed variables
+        // that replaced the parent class's primary and left the essential
+        // behind under a new name, and for those the request threw, during
+        // initial dependency resolution, so the whole document went blank.
+        //
+        // `<integer>` is one of them, and index brackets always create an
+        // `<integer>`, which makes indexing the usual way in. But it is not an
+        // indexing bug: the plain `extend` spelling throws identically with no
+        // index anywhere.
+
+        async function run(doenetML: string, path = "q") {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return {
+                text: stateVariables[await resolvePathToNodeIdx(path)]
+                    .stateValues.text,
+                diagnostics: getDiagnosticsByType(core),
+            };
+        }
+
+        it("renders a reference to an entry a shorter array does not have", async () => {
+            // A 2D point has no `x3`.
+            const { text } = await run(`
+    <point name="P">(1,2)</point>
+    <integer name="q" extend="$P.x3" />
+            `);
+            expect(text).eq("NaN");
+        });
+
+        it("gives the same value the component written empty holds", async () => {
+            // The behavior to match is the one the components that already
+            // worked have: `<number extend="$P.x3" />` is `NaN`, exactly as a
+            // bare `<number />` is. These three replaced their parent's
+            // primary, so each needs its own class asked rather than a value
+            // assumed -- and they disagree, which is the point.
+            for (const [componentType, empty] of [
+                ["integer", "NaN"],
+                ["intComma", ""],
+                ["md", "\uff3f"],
+            ] as [string, string][]) {
+                const { text } = await run(`
+    <point name="P">(1,2)</point>
+    <${componentType} name="q" extend="$P.x3" />
+                `);
+                expect(text, componentType).eq(empty);
+
+                const bare = await run(`<${componentType} name="q" />`);
+                expect(bare.text, `bare <${componentType}>`).eq(empty);
+            }
+        });
+
+        it("renders an index into an array that is empty for now", async () => {
+            // Nothing is selected at load, so `selectedIndex` does not exist
+            // yet. This is the shape an author meets: not a mistake at all,
+            // just a page before anyone has clicked.
+            const { text, diagnostics } = await run(
+                `
+    <choiceInput name="ci"><choice>a</choice><choice>b</choice></choiceInput>
+    <numberList name="nl">10 20 30</numberList>
+    <p name="p1">$nl[$ci.selectedIndex]</p>
+            `,
+                "p1",
+            );
+            expect(text).eq("");
+            expect(diagnostics.errors.length).eq(0);
+        });
+
+        it("renders every spelling of an index that resolves to nothing", async () => {
+            for (const reference of [
+                `$nl[$ci.selectedIndex]`,
+                `$nl[$ci.selectedIndices[1]]`,
+                `$nl[$ml[10]]`,
+                `$nl[$P.x3]`,
+            ]) {
+                const { text } = await run(
+                    `
+    <choiceInput name="ci"><choice>a</choice></choiceInput>
+    <numberList name="nl">10 20 30</numberList>
+    <mathList name="ml">1 2</mathList>
+    <point name="P">(1,2)</point>
+    <p name="p1">${reference}</p>
+                `,
+                    "p1",
+                );
+                expect(text, reference).eq("");
+            }
+        });
+
+        it("matches what the element-index spelling already did", async () => {
+            // The element index never took the shadow path, so it rendered
+            // empty throughout. It is the oracle for what these should be.
+            const { text } = await run(
+                `
+    <numberList name="nl">10 20 30</numberList>
+    <p name="p1">$nl[<number>10</number>]</p>
+            `,
+                "p1",
+            );
+            expect(text).eq("");
+        });
+
+        it("still resolves an entry that is there", async () => {
+            for (const [doenetML, path, expected] of [
+                [
+                    `<integer name="i">7</integer><integer name="q" extend="$i" />`,
+                    "q",
+                    "7",
+                ],
+                [
+                    `<numberList name="nl">10 20 30</numberList><p name="p1">$nl[2]</p>`,
+                    "p1",
+                    "20",
+                ],
+                [
+                    `<point name="P">(1,2)</point><number name="q" extend="$P.x2" />`,
+                    "q",
+                    "2",
+                ],
+            ] as [string, string, string][]) {
+                const { text } = await run(doenetML, path);
+                expect(text, doenetML).eq(expected);
+            }
+        });
+    });
 });
