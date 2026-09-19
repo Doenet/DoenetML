@@ -137,15 +137,6 @@ const RELEASED_INITIALIZATION_DATA_MESSAGE =
 export const DOCUMENT_BUILD_ERROR_NAME = "DoenetDocumentBuildError";
 
 /**
- * Re-throw `err` marked as a document-caused failure, preserving its message --
- * which is the one thing on the failure screen an author can act on.
- *
- * `panicMessage`, when the Rust core recorded one, replaces it. A panic in wasm
- * is a trap, and a trap reaches JavaScript as `RuntimeError: unreachable`: true,
- * and useless to everyone. The panic hook has the real message, with its file
- * and line, at the moment it fires.
- */
-/**
  * Read and clear the panic message the Rust hook recorded, if any.
  *
  * Guarded, because it is only here to improve a message. Unguarded, a throw
@@ -179,6 +170,15 @@ function discardStalePanicMessage(): void {
     readPanicMessage();
 }
 
+/**
+ * Re-throw `err` marked as a document-caused failure, preserving its message --
+ * which is the one thing on the failure screen an author can act on.
+ *
+ * `panicMessage`, when the Rust core recorded one, replaces it. A panic in wasm
+ * is a trap, and a trap reaches JavaScript as `RuntimeError: unreachable`: true,
+ * and useless to everyone. The panic hook has the real message, with its file
+ * and line, at the moment it fires.
+ */
 function throwAsDocumentBuildError(
     err: unknown,
     panicMessage?: string | undefined,
@@ -559,7 +559,6 @@ export class CoreWorker {
             // just trapped, and a method call on the core would throw
             // "recursive use of an object" instead of returning the message
             // (see `take_last_panic_message` in `lib-js-wasm-binding`).
-            //
             throwAsDocumentBuildError(err, readPanicMessage());
         } finally {
             resolve();
