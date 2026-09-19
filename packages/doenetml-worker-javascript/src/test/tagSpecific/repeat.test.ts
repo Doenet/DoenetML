@@ -2328,4 +2328,103 @@ describe("Repeat tag tests @group1", async () => {
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("11, 99, 99, 44");
     });
+    // A `<repeat>` over a repeat whose body holds a `<setup>` blanked the whole
+    // document with "Cannot read properties of undefined (reading
+    // 'source:sequence')" (#1950). The iteration's replacements are then not
+    // the single replacement that took the reference's component index -- the
+    // `<setup>` contributes one of its own, and the whitespace between the
+    // elements survives as a string replacement -- and `addReplacementsToResolver`
+    // read `.attributes` off whatever happened to be first.
+    //
+    // What these pin is that the document builds and the rest of it renders.
+    // The inner repeat still yields nothing, which is the other half of #1950
+    // and a question about what a reference to a multi-replacement iteration
+    // should mean; that half is deliberately not asserted here either way.
+    describe("a repeat over a repeat whose body is not a single element", () => {
+        const wrappers = [
+            ["bare", "$v", ""],
+            ["in a paragraph", "<p>$v</p>", ""],
+            ["in a numberList", "<numberList>$v</numberList>", ""],
+            ["in a mathList", "<mathList>$v</mathList>", ""],
+        ] as const;
+
+        for (const [description, body] of wrappers) {
+            it(`builds with a setup in the body, ${description}`, async () => {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <repeatForSequence from="1" to="3" indexName="i" name="Ps">
+      <setup><number name="n">$i</number></setup>
+      <point name="P">($n,0)</point>
+    </repeatForSequence>
+    <repeat for="$Ps" valueName="v">${body}</repeat>
+    <p name="after">after</p>
+    <count name="c">$Ps</count>
+    `,
+                });
+
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("after")]
+                        .stateValues.text,
+                ).eq("after");
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                        .value.tree,
+                ).eq(3);
+            });
+        }
+
+        // This shape did not blank -- an iteration of two elements and no
+        // `<setup>` leaves no string first -- so it is here as the neighbour
+        // of the four above rather than as a regression test.
+        it("builds with two elements in the body and no setup", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <repeatForSequence from="1" to="3" valueName="v" name="Ps">
+      <number name="n">$v</number>
+      <point name="P">($v,0)</point>
+    </repeatForSequence>
+    <numberList name="values"><repeat for="$Ps" valueName="w">$w.x</repeat></numberList>
+    <p name="after">after</p>
+    `,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+
+            expect(
+                stateVariables[await resolvePathToNodeIdx("after")].stateValues
+                    .text,
+            ).eq("after");
+        });
+
+        // The control, and the shape that always worked: one element in the
+        // body, so the iteration has the single replacement the reference
+        // expects. This is what says the tests above are about the extra
+        // replacements and not about repeating over a repeat at all.
+        it("control: one element in the body", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <repeatForSequence from="1" to="3" valueName="v" name="Ps"><point name="P">($v,0)</point></repeatForSequence>
+    <numberList name="values"><repeat for="$Ps" valueName="w">$w.x</repeat></numberList>
+    `,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+
+            expect(
+                stateVariables[await resolvePathToNodeIdx("values")].stateValues
+                    .numbers,
+            ).eqls([1, 2, 3]);
+        });
+    });
 });

@@ -324,21 +324,27 @@ export class CompositeReplacementUpdater {
 
                 const newNComponents = change.nComponents;
 
-                await addReplacementsToResolver({
-                    core: this.core,
-                    serializedReplacements,
-                    component,
-                    updateOldReplacementsStart,
-                    updateOldReplacementsEnd,
-                    blankStringReplacements,
-                });
-
-                // expand `this.core._components` to length `newNComponents` so that the component indices will not be reused
+                // expand `this.core._components` to length `newNComponents` so that the component indices will not be reused.
+                // Unconditional, and before the guard below: the indices are
+                // already handed out, and a failure is no reason to let a later
+                // change hand out the same ones again.
                 if (newNComponents > this.core._components.length) {
                     this.core._components[newNComponents - 1] = undefined;
                 }
 
+                // Registering the new replacements with the resolver is inside
+                // the guard along with creating them: a failure in either half
+                // is the composite's to report, not the document's to die of.
                 try {
+                    await addReplacementsToResolver({
+                        core: this.core,
+                        serializedReplacements,
+                        component,
+                        updateOldReplacementsStart,
+                        updateOldReplacementsEnd,
+                        blankStringReplacements,
+                    });
+
                     const createResult = await createIsolatedComponents({
                         core: this.core,
                         serializedComponents: serializedReplacements,
@@ -594,6 +600,37 @@ export class CompositeReplacementUpdater {
         return results;
     }
 
+    /**
+     * Report `message` against `composite` and stop the composite being
+     * updated again.
+     *
+     * This is the half of `setErrorReplacements` that does not touch the
+     * composite's replacements, for the caller that has nowhere to put an
+     * `_error` component: a composite that fails partway through *changing*
+     * its replacements already has some, and the machinery that would splice
+     * new ones in is the machinery that just failed. Reporting and standing
+     * still leaves the reader the page and the message.
+     */
+    markCompositeInError({
+        composite,
+        message,
+        source,
+    }: {
+        composite: ComponentInstance;
+        message: string;
+        source?: unknown;
+    }) {
+        this.core.addDiagnostic({
+            type: "error",
+            message,
+            ...diagnosticCodeFrom(source),
+            position: composite.position,
+            sourceDoc: composite.sourceDoc,
+        });
+
+        composite.isInErrorState = true;
+    }
+
     async setErrorReplacements({
         composite,
         message,
@@ -611,13 +648,8 @@ export class CompositeReplacementUpdater {
     }) {
         // display error for replacements and set composite to error state
 
-        this.core.addDiagnostic({
-            type: "error",
-            message,
-            ...diagnosticCodeFrom(source),
-            position: composite.position,
-            sourceDoc: composite.sourceDoc,
-        });
+        this.markCompositeInError({ composite, message, source });
+
         let errorReplacements = [
             {
                 type: "serialized",
@@ -635,8 +667,6 @@ export class CompositeReplacementUpdater {
         ];
 
         this.core._components[this.core._components.length] = undefined;
-
-        composite.isInErrorState = true;
 
         let createResult = await createIsolatedComponents({
             core: this.core,
@@ -943,64 +973,80 @@ export class CompositeReplacementUpdater {
                     composite: shadowingComponent,
                 });
 
-                await addReplacementsToResolver({
-                    core: this.core,
-                    serializedReplacements: newSerializedReplacements,
-                    component: shadowingComponent,
-                    updateOldReplacementsStart,
-                    updateOldReplacementsEnd,
-                    blankStringReplacements,
-                });
-
-                // expand `this.core._components` to length `newNComponents` so that the component indices will not be reused
+                // Everything that prepares the shadow's replacements --
+                // registering their names, reserving their indices, and the
+                // copy post-processing -- is the shadowing composite's to
+                // report if it fails, the same as creating them below. The
+                // failure is held until the parameter stack is pushed so that
+                // both take the same path.
+                // expand `this.core._components` to length `newNComponents` so that the component indices will not be reused.
+                // Unconditional, and before the guard below, for the same
+                // reason as the non-shadow path above.
                 if (newNComponents > this.core._components.length) {
                     this.core._components[newNComponents - 1] = undefined;
                 }
 
-                newSerializedReplacements = postProcessCopy({
-                    serializedComponents: newSerializedReplacements,
-                    componentIdx: shadowingComponent.shadows.compositeIdx,
-                });
+                let registrationFailure: any = null;
+                try {
+                    await addReplacementsToResolver({
+                        core: this.core,
+                        serializedReplacements: newSerializedReplacements,
+                        component: shadowingComponent,
+                        updateOldReplacementsStart,
+                        updateOldReplacementsEnd,
+                        blankStringReplacements,
+                    });
 
-                // TODO: is isResponse the only attribute to convert?
-                if (shadowingComponent.attributes.isResponse) {
-                    let compositeAttributesObj = preprocessAttributesObject(
-                        shadowingComponent.constructor.createAttributesObject(),
-                    );
+                    newSerializedReplacements = postProcessCopy({
+                        serializedComponents: newSerializedReplacements,
+                        componentIdx: shadowingComponent.shadows.compositeIdx,
+                    });
 
-                    for (let repl of newSerializedReplacements) {
-                        if (typeof repl !== "object") {
-                            continue;
-                        }
-
-                        // add attributes
-                        if (!repl.attributes) {
-                            repl.attributes = {};
-                        }
-                        let nComponents = this.core._components.length;
-                        const res = convertUnresolvedAttributesForComponentType(
-                            {
-                                attributes: {
-                                    isResponse:
-                                        shadowingComponent.attributes
-                                            .isResponse,
-                                },
-                                componentType: repl.componentType,
-                                componentInfoObjects:
-                                    this.core.componentInfoObjects,
-                                compositeAttributesObj,
-                                nComponents,
-                            },
+                    // TODO: is isResponse the only attribute to convert?
+                    if (shadowingComponent.attributes.isResponse) {
+                        let compositeAttributesObj = preprocessAttributesObject(
+                            shadowingComponent.constructor.createAttributesObject(),
                         );
 
-                        const attributesFromComposite = res.attributes;
-                        nComponents = res.nComponents;
-                        if (nComponents > this.core._components.length) {
-                            this.core._components[nComponents - 1] = undefined;
-                        }
+                        for (let repl of newSerializedReplacements) {
+                            if (typeof repl !== "object") {
+                                continue;
+                            }
 
-                        Object.assign(repl.attributes, attributesFromComposite);
+                            // add attributes
+                            if (!repl.attributes) {
+                                repl.attributes = {};
+                            }
+                            let nComponents = this.core._components.length;
+                            const res =
+                                convertUnresolvedAttributesForComponentType({
+                                    attributes: {
+                                        isResponse:
+                                            shadowingComponent.attributes
+                                                .isResponse,
+                                    },
+                                    componentType: repl.componentType,
+                                    componentInfoObjects:
+                                        this.core.componentInfoObjects,
+                                    compositeAttributesObj,
+                                    nComponents,
+                                });
+
+                            const attributesFromComposite = res.attributes;
+                            nComponents = res.nComponents;
+                            if (nComponents > this.core._components.length) {
+                                this.core._components[nComponents - 1] =
+                                    undefined;
+                            }
+
+                            Object.assign(
+                                repl.attributes,
+                                attributesFromComposite,
+                            );
+                        }
                     }
+                } catch (e: any) {
+                    registrationFailure = e;
                 }
 
                 // console.log(
@@ -1017,22 +1063,31 @@ export class CompositeReplacementUpdater {
                     false,
                 );
 
-                try {
-                    let createResult = await createIsolatedComponents({
-                        core: this.core,
-                        serializedComponents: newSerializedReplacements,
-                        ancestors: shadowingComponent.ancestors,
-                        componentsReplacementOf: shadowingComponent,
-                    });
-                    newComponents = createResult.components;
-                } catch (e: any) {
-                    console.error(e);
-                    // throw e;
+                if (registrationFailure) {
+                    console.error(registrationFailure);
                     newComponents = await this.setErrorReplacements({
                         composite: shadowingComponent,
-                        message: e.message,
-                        source: e,
+                        message: registrationFailure.message,
+                        source: registrationFailure,
                     });
+                } else {
+                    try {
+                        let createResult = await createIsolatedComponents({
+                            core: this.core,
+                            serializedComponents: newSerializedReplacements,
+                            ancestors: shadowingComponent.ancestors,
+                            componentsReplacementOf: shadowingComponent,
+                        });
+                        newComponents = createResult.components;
+                    } catch (e: any) {
+                        console.error(e);
+                        // throw e;
+                        newComponents = await this.setErrorReplacements({
+                            composite: shadowingComponent,
+                            message: e.message,
+                            source: e,
+                        });
+                    }
                 }
 
                 this.core.parameterStack.pop();
@@ -1230,6 +1285,17 @@ export class CompositeReplacementUpdater {
         );
 
         for (const shadowingComponent of iterateExpandableShadows(component)) {
+            if (!shadowingComponent.isExpanded) {
+                // A shadow that has not been expanded has no `replacements`
+                // array to adjust, and `expandShadowingComposite` copies
+                // `replacementsToWithhold` off the composite it shadows when it
+                // does expand. This is the guard
+                // `deleteReplacementsFromShadowsThenComposite` and
+                // `createShadowedReplacements` already apply to their own
+                // shadow walks.
+                continue;
+            }
+
             await this.adjustReplacementsToWithhold({
                 component: shadowingComponent,
                 change,

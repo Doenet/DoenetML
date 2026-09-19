@@ -158,11 +158,31 @@ export class EssentialValueWriter {
                                 cIdx,
                             );
                         } else {
-                            let result =
-                                await this.core.updateCompositeReplacements({
-                                    component: composite,
-                                    componentChanges,
+                            // A composite whose replacement bookkeeping throws
+                            // reports itself and stops being updated. Without
+                            // the guard the throw escapes document
+                            // construction, and one composite's broken
+                            // invariant reaches the reader as a blank page
+                            // rather than as a message about the element that
+                            // failed (#1952).
+                            let result;
+                            try {
+                                result =
+                                    await this.core.updateCompositeReplacements(
+                                        {
+                                            component: composite,
+                                            componentChanges,
+                                        },
+                                    );
+                            } catch (e: any) {
+                                console.error(e);
+                                this.core.markCompositeInError({
+                                    composite,
+                                    message: e.message,
+                                    source: e,
                                 });
+                                continue;
+                            }
 
                             if (
                                 Object.keys(result.addedComponents).length > 0

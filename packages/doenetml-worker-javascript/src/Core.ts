@@ -941,6 +941,10 @@ export default class Core {
         );
     }
 
+    markCompositeInError(args: any): void {
+        this.compositeReplacementUpdater.markCompositeInError(args);
+    }
+
     async setErrorReplacements(args: any): Promise<any> {
         return this.compositeReplacementUpdater.setErrorReplacements(args);
     }
