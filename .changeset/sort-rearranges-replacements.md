@@ -13,8 +13,8 @@ type — threw away everything it had produced and built it again on each change
 and everything reading the sorted list had to find its components afresh. It now
 moves the results it already has into their new order, which it can do whenever
 the same things are being sorted. A document that sorts forty dragged values
-spends about a quarter less time per drag; the deeper cost of rearranging a
-parent's children is untouched, so the saving is larger where more reads the
-sorted list.
+spends at least a third less time per drag, and more is saved as more of the
+document reads the sorted list; the deeper cost of rearranging a parent's
+children is untouched either way.
 
 Sorting a changed set of values — one added, one removed — rebuilds as before.

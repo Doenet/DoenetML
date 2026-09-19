@@ -344,8 +344,11 @@ export default class Sort extends CompositeComponent {
         // — a value changed, or one moved past another — and the replacements
         // we would build are copies of the same components we already copied,
         // just in new positions. Rearranging them keeps every replacement
-        // alive, so whatever reads `$sorted[2]` or holds a dependency on one
-        // of them is not torn down and rebuilt on each change.
+        // alive, so a dependency that resolved to one of them survives the
+        // change and the core has nothing to delete or create. (A reference
+        // that copies the output, such as `$sorted[2]`, still gets a
+        // replacement of its own built afresh — it just resolves to a
+        // component that is still there.)
         const arrangement = arrangementFromCopiedComponents(
             workspace.componentsCopied,
             componentsToCopy,
