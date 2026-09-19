@@ -72,7 +72,20 @@ export function returnListTypeAttribute({ readsTarget = false } = {}) {
  * only info, since a list driven by an input can legitimately be empty for a
  * while.
  *
- * An empty *list* of targets is a third case, and gets no message at all: it
+ * Values that are not in sorted order is the third, and is what
+ * `<searchSorted>` refuses: its answer means nothing unless the list is
+ * ordered, so rather than return a plausible number it declines, the way an
+ * absent `target` does. A warning rather than an error because a list can be
+ * unsorted only in passing — a `<cumulativeSum>` over numbers a student is
+ * midway through typing goes in and out of order — and because the append-only
+ * queue keeps the message once it has appeared.
+ *
+ * That last point is why the message may name no offending position or value:
+ * the queue deduplicates by message, so anything varying with a transient value
+ * accumulates one entry per rearrangement. Every message here is static apart
+ * from the component's own tag.
+ *
+ * An empty *list* of targets is a fourth case, and gets no message at all: it
  * produces no indices rather than a 0, so there is no misleading result to
  * explain, and a list driven by an input is empty on the way to being filled.
  */
@@ -91,6 +104,14 @@ export function diagnosticsForNoIndex(reason, componentType) {
                 codedDiagnostic({
                     type: "info",
                     code: "doenet-i0049",
+                    args: { component: componentType },
+                }),
+            ];
+        case "unsortedValues":
+            return [
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0164",
                     args: { component: componentType },
                 }),
             ];
@@ -185,10 +206,37 @@ export function returnComparableTargetsStateVariableDefinition() {
  * operator gave before `target` became a list. An empty list of targets asks
  * nothing and gets nothing: no indices, and no message. Otherwise there is one
  * result per target, whether or not each target turns out to be in the list.
+ *
+ * `validateValues` is the optional precondition an operator places on the list
+ * itself — `<searchSorted>` requires it to be sorted, `<indexOf>` requires
+ * nothing. It is given `{ values, numeric }` and returns a reason to decline,
+ * or nothing to proceed. It is asked about the *comparison* rather than about
+ * the list, because the comparison is what the answer depends on and it is
+ * chosen per target: a numeric list searched for the text target `b` is
+ * compared as text, and it is text order that then has to hold. There are only
+ * ever two comparisons, so a run of a thousand targets scans the list at most
+ * twice however the targets are typed.
  */
-export function locateEachTarget({ values, targets, numeric, locate }) {
+export function locateEachTarget({
+    values,
+    targets,
+    numeric,
+    locate,
+    validateValues,
+}) {
     if (targets === null) {
         return [{ index: 0, reason: "noTarget" }];
+    }
+
+    const reasonByComparison = new Map();
+    function reasonToDecline(comparisonIsNumeric) {
+        if (!reasonByComparison.has(comparisonIsNumeric)) {
+            reasonByComparison.set(
+                comparisonIsNumeric,
+                validateValues({ values, numeric: comparisonIsNumeric }),
+            );
+        }
+        return reasonByComparison.get(comparisonIsNumeric);
     }
 
     return targets.map((target) => {
@@ -201,10 +249,20 @@ export function locateEachTarget({ values, targets, numeric, locate }) {
         if (values.length === 0) {
             return { index: 0, reason: "noValues" };
         }
+
+        const comparisonIsNumeric = numeric && target.isNumeric;
+
+        if (validateValues) {
+            const reason = reasonToDecline(comparisonIsNumeric);
+            if (reason) {
+                return { index: 0, reason };
+            }
+        }
+
         return locate({
             values,
             target,
-            numeric: numeric && target.isNumeric,
+            numeric: comparisonIsNumeric,
         });
     });
 }

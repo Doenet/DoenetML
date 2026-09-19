@@ -141,6 +141,36 @@ export class SearchSorted extends ListIndexBaseListOperator {
     static targetDescription =
         "The value, or list of values, to locate within the sorted list.";
 
+    /**
+     * `<searchSorted>` answers a question about a sorted list, so a list that
+     * is not sorted is one it declines rather than answers.
+     *
+     * The distinction matters because the search is a count — the number of
+     * entries below the target — and a count is perfectly happy with an
+     * unordered list. It returns a number that looks like a position and is
+     * not one, and a document can come to depend on it without anyone
+     * noticing. An unordered list gets 0, the same "no position" every other
+     * unanswerable question here gets.
+     *
+     * Only a strict inversion counts, so equal neighbors are in order (a run
+     * of equal values is what `side` is about) and a `NaN` neighbor is left
+     * alone. `NaN` compares neither above nor below anything, so a list
+     * holding one can be neither confirmed sorted nor shown unsorted; a
+     * `<number>` whose content does not parse would otherwise turn every
+     * `<searchSorted>` around it into a warning, and the counting search
+     * already ignores such an entry rather than misplacing it.
+     */
+    static validateValues({ values, numeric }) {
+        for (let ind = 1; ind < values.length; ind++) {
+            if (
+                compareExtractedValues(values[ind - 1], values[ind], numeric) >
+                0
+            ) {
+                return "unsortedValues";
+            }
+        }
+    }
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
@@ -176,8 +206,14 @@ export class SearchSorted extends ListIndexBaseListOperator {
                 ({ values, target, numeric, dependencyValues }) => {
                     // The number of entries that sort before the target, plus
                     // one, is the 1-based position the target would occupy.
-                    // Counting rather than bisecting keeps the result well
-                    // defined even when the input is not actually sorted.
+                    // The list is known to be sorted by the time this runs, so
+                    // bisecting would give the same answer; counting is kept
+                    // because it is not the cost. A four-thousand-entry scan is
+                    // about a millisecond, while building the `<math>`
+                    // replacement for a single target costs a tenth of that —
+                    // so the per-target bookkeeping, which bisecting does not
+                    // touch, dominates until lists reach the thousands with
+                    // comparably many targets.
                     let count = 0;
                     for (let value of values) {
                         let comparison = compareExtractedValues(

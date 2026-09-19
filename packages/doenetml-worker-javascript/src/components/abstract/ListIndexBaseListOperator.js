@@ -56,7 +56,8 @@ import {
  * consistent with `$list[0]` being empty.
  *
  * Subclasses supply `locate`, which receives `{ values, target, numeric }` for
- * one target and returns `{ index, reason? }`.
+ * one target and returns `{ index, reason? }`, and may supply
+ * `validateValues` to state a precondition on the list as a whole.
  */
 export default class ListIndexBaseListOperator extends CompositeComponent {
     static componentType = "_listIndexListOperator";
@@ -77,6 +78,15 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
     // which is the wording below, while `<searchSorted>` places a target that
     // need not be in the list at all and overrides it.
     static targetDescription = "The value, or list of values, to look for.";
+
+    // A precondition on the list the operator is given, checked once per
+    // comparison before any target is searched. Given `{ values, numeric }`,
+    // it returns a reason to decline — one of the reasons
+    // `diagnosticsForNoIndex` knows — or nothing to proceed. `<indexOf>`
+    // searches any list at all, so the default asks nothing; `<searchSorted>`
+    // overrides it, because a position within an unordered list is not a
+    // position at all.
+    static validateValues = null;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -137,8 +147,10 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         // `this` is the class here, so a subclass names itself in its own
-        // diagnostics; inside a `definition` it would not be.
+        // diagnostics, and supplies its own precondition; inside a
+        // `definition` it would not be.
         const componentType = this.componentType;
+        const validateValues = this.validateValues;
 
         Object.assign(
             stateVariableDefinitions,
@@ -184,6 +196,7 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
                     targets: dependencyValues.comparableTargets,
                     numeric: dependencyValues.allAreNumeric,
                     locate: dependencyValues.locate,
+                    validateValues,
                 });
 
                 return {

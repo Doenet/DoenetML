@@ -1082,6 +1082,15 @@ index-operator-missing-target =
 # whose only children were references that produced nothing.
 index-operator-no-values =
     `{ $component }` has no values to look through, so it gives 0, which is not the index of any item.
+
+# Raised by `<searchSorted>` when its values are not in ascending order, which is
+# the one thing it asks of them. Deliberately names no offending value or
+# position: a list can pass through many arrangements while it is being built or
+# edited, and a message that changed with the arrangement would leave one entry
+# behind for each. `<sort>` is a DoenetML tag name and stays in English.
+index-operator-values-not-sorted =
+    `{ $component }` reports where a target belongs among values that are already in ascending order, and these are not in that order, so it gives 0, which is not the index of any item. Ordering them first, such as with `<sort>`, gives a position for every target.
+
 ## `<sampleMultivariateRandomNumber>`
 ##
 ## Translators: `type`, `numInCategories` and `numDraws` are DoenetML attribute
