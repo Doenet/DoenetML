@@ -581,6 +581,17 @@ export class CompositeReplacementUpdater {
                 }
 
                 await this.processChildChangesAndRecurseToShadows(component);
+            } else if (change.changeType === "rearrangeReplacements") {
+                // the components we need already exist: put them in their new
+                // order rather than deleting and recreating them
+
+                await this.rearrangeReplacements({
+                    component,
+                    change,
+                    componentChanges,
+                });
+
+                await this.processChildChangesAndRecurseToShadows(component);
             }
         }
 
@@ -1092,6 +1103,176 @@ export class CompositeReplacementUpdater {
         this.core.updateInfo.compositesBeingExpanded.splice(targetInd, 1);
 
         return newComponentsForShadows;
+    }
+
+    /**
+     * Put a composite's existing replacements into a new order.
+     *
+     * `change.arrangement` lists, for each position the composite will now
+     * have, which of its current active replacements belongs there. A
+     * composite whose output is a reordering of what it already produced —
+     * `<sort>` after its input changes order — can say so with this rather
+     * than serializing fresh components and having the core delete the old
+     * ones: the replacements survive, so a dependency that resolved to one of
+     * them still points at the same component, and the core has nothing to
+     * delete or create.
+     *
+     * That is not the same as nothing downstream being rebuilt. A composite
+     * that copies the output — `<p>$sorted</p>`, or `$sorted[2]` — still
+     * builds replacements of its own, and those are rebuilt as the order
+     * changes, though fewer of them than before.
+     *
+     * The arrangement is required to be a permutation of *all* the active
+     * replacements. Dropping or adding entries is a separate matter — it
+     * interacts with the withheld set, which is a count from the end of the
+     * array and therefore cannot express an arbitrary subset (see #1947) —
+     * and a composite that needs it recreates its replacements as before.
+     *
+     * Withheld replacements sit past the active ones and are left where they
+     * are: a caller rearranging what is visible has said nothing about them.
+     *
+     * Shadows hold their own replacement arrays, built one-for-one from this
+     * composite's, so each of them is rearranged the same way, in the manner
+     * of `adjustReplacementsToWithhold`.
+     */
+    async rearrangeReplacements({
+        component,
+        change,
+        componentChanges,
+    }: {
+        component: ComponentInstance;
+        change: ComponentChange;
+        componentChanges: ComponentChange[];
+    }) {
+        const arrangement: number[] = change.arrangement;
+
+        const replacements = component.replacements!;
+        const numActive =
+            replacements.length - (component.replacementsToWithhold ?? 0);
+
+        if (arrangement.length !== numActive) {
+            throw Error(
+                `Invalid replacement change: an arrangement of ${arrangement.length} does not match the ${numActive} active replacements of component ${component.componentIdx}.`,
+            );
+        }
+
+        const seen = new Set<number>();
+        for (const ind of arrangement) {
+            if (
+                !Number.isInteger(ind) ||
+                ind < 0 ||
+                ind >= numActive ||
+                seen.has(ind)
+            ) {
+                throw Error(
+                    `Invalid replacement change: arrangement for component ${component.componentIdx} is not a permutation of its active replacements.`,
+                );
+            }
+            seen.add(ind);
+        }
+
+        const active = replacements.slice(0, numActive);
+
+        component.replacements = [
+            ...arrangement.map((ind) => active[ind]),
+            ...replacements.slice(numActive),
+        ];
+
+        componentChanges.push({
+            changeType: "rearrangedReplacements",
+            composite: component,
+            topLevel: true,
+            arrangement,
+        });
+
+        await this.refreshIndexResolutionsForReplacements(component);
+
+        await this.core.dependencies.addBlockersFromChangedReplacements(
+            component,
+        );
+
+        for (const shadowingComponent of iterateExpandableShadows(component)) {
+            await this.rearrangeReplacements({
+                component: shadowingComponent,
+                change,
+                componentChanges,
+            });
+        }
+    }
+
+    /**
+     * Tell the resolver which components an index into `component` now lands
+     * on, after its active replacements have changed position.
+     *
+     * This is the part of `adjustReplacementsToWithhold` that reports the
+     * ordered active replacements, with none of its withholding arithmetic:
+     * the set of active replacements is read off the component as it stands.
+     *
+     * One divergence from that sibling is deliberate. There, the resolver is
+     * updated only when the index resolves through *another* composite; here
+     * it is updated either way, and only the extra blocker is conditional.
+     * A `<sort>` is its own index parent in every case observed, so adding
+     * the same skip leaves `$sorted[2]` resolved to whichever component held
+     * position 2 before the reorder — a stale resolution, not a stale value:
+     * the component it names still reports its own current value.
+     */
+    async refreshIndexResolutionsForReplacements(component: ComponentInstance) {
+        if (!this.core.replaceIndexResolutionsInResolver) {
+            return;
+        }
+
+        const replacements = component.replacements!;
+        const numActive =
+            replacements.length - (component.replacementsToWithhold ?? 0);
+
+        const blankStringReplacements = replacements.map(
+            (repl: any) => typeof repl === "string" && repl.trim() === "",
+        );
+
+        const { indexResolution } =
+            await determineParentAndIndexResolutionForResolver({
+                core: this.core,
+                component,
+                updateOldReplacementsStart: 0,
+                updateOldReplacementsEnd: numActive,
+                blankStringReplacements,
+            });
+
+        const indexParent =
+            indexResolution.ReplaceAll?.parent ??
+            indexResolution.ReplaceRange?.parent ??
+            null;
+
+        if (indexParent === null) {
+            // nothing indexes into this composite
+            return;
+        }
+
+        const newContentForIndex = replacements
+            .slice(0, numActive)
+            .map((repl: any) =>
+                typeof repl === "string" ? repl : repl.componentIdx,
+            );
+
+        this.core.replaceIndexResolutionsInResolver(
+            { content: newContentForIndex },
+            indexResolution,
+        );
+
+        this.core.rootNames = this.core.calculateRootNames?.().names;
+
+        // A reference resolved through another composite has to be
+        // reconsidered as well; one resolved through this composite is
+        // covered by the blockers its own caller adds.
+        if (indexParent !== component.componentIdx) {
+            const indexParentComposite = this.core._components[indexParent];
+
+            if (indexParentComposite) {
+                await this.core.dependencies.addBlockersFromChangedReplacements(
+                    indexParentComposite,
+                );
+            }
+        }
     }
 
     async adjustReplacementsToWithhold({
