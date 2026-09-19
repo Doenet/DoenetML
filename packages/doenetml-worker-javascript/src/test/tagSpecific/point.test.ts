@@ -7146,6 +7146,11 @@ describe("Point tag tests @group4", async () => {
 </graph>
 `);
 
+        // The drag is pinned to a literal as well as compared with the reload:
+        // `set` also runs on the ordinary drag path, so a hook that mangled the
+        // position on both paths alike would satisfy the comparison on its own.
+        expect(movedTo[0]).closeTo(1.7, 1e-12);
+        expect(movedTo[1]).closeTo(0.4, 1e-12);
         expect(reloadedTo[0]).closeTo(movedTo[0], 1e-12);
         expect(reloadedTo[1]).closeTo(movedTo[1], 1e-12);
     });
