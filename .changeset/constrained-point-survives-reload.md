@@ -13,7 +13,8 @@ A `<point>` with no coordinates of its own, holding a `<constrainTo>` or an
 reader saw the problem go blank, and because the position was already saved, it
 went blank on every later visit too — there was nothing they could do on the
 page to recover, while a reader who had not dragged the point was unaffected.
-`<endpoint>`, which is a kind of point, behaved the same way.
+`<endpoint>` and `<equilibriumPoint>`, which are kinds of point, behaved the
+same way.
 
 Saved positions now come back as the kind of value the rest of the document
 expects, so the point returns to where it was dragged.

@@ -7180,4 +7180,22 @@ describe("Point tag tests @group4", async () => {
         expect(reloaded[0]).closeTo(1.7, 1e-12);
         expect(reloaded[1]).closeTo(2.32175, 1e-12);
     });
+
+    it("a dragged equilibriumPoint constrained to a function survives a reload", async () => {
+        // The other component that extends `<point>` and so reaches the same
+        // essential location variable. It is checked separately from
+        // `<endpoint>` because an author writes it on its own, not as part of
+        // another component.
+        const { movedTo, reloadedTo } = await dragThenReload(`
+<graph>
+  <function name="f">-0.25*x^3+1.5*x+1</function>
+  <equilibriumPoint name="P"><constrainTo>$f</constrainTo></equilibriumPoint>
+</graph>
+`);
+
+        expect(movedTo[0]).closeTo(1.7, 1e-12);
+        expect(movedTo[1]).closeTo(2.32175, 1e-12);
+        expect(reloadedTo[0]).closeTo(movedTo[0], 1e-12);
+        expect(reloadedTo[1]).closeTo(movedTo[1], 1e-12);
+    });
 });
