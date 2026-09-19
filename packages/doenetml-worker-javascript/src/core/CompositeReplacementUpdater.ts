@@ -1176,7 +1176,7 @@ export class CompositeReplacementUpdater {
      * That is not the same as nothing downstream being rebuilt. A composite
      * that copies the output — `<p>$sorted</p>`, or `$sorted[2]` — still
      * builds replacements of its own, and those are rebuilt as the order
-     * changes, as they were before.
+     * changes, though fewer of them than before.
      *
      * The arrangement is required to be a permutation of *all* the active
      * replacements. Dropping or adding entries is a separate matter — it
@@ -1268,8 +1268,9 @@ export class CompositeReplacementUpdater {
      * updated only when the index resolves through *another* composite; here
      * it is updated either way, and only the extra blocker is conditional.
      * A `<sort>` is its own index parent in every case observed, so adding
-     * the same skip leaves `$sorted[2]` reporting the value it had before the
-     * reorder.
+     * the same skip leaves `$sorted[2]` resolved to whichever component held
+     * position 2 before the reorder — a stale resolution, not a stale value:
+     * the component it names still reports its own current value.
      */
     async refreshIndexResolutionsForReplacements(component: ComponentInstance) {
         if (!this.core.replaceIndexResolutionsInResolver) {
