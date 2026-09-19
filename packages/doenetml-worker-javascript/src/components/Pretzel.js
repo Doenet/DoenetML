@@ -1,4 +1,8 @@
 import BlockScoredComponent from "./abstract/BlockScoredComponent";
+import {
+    returnSubmittedResponsesStateVariableDefinitions,
+    submitScoredComponentResponses,
+} from "../utils/answer";
 
 /**
  * Parse a text response as a finite integer.
@@ -360,121 +364,13 @@ export default class Pretzel extends BlockScoredComponent {
             },
         };
 
-        stateVariableDefinitions.numSubmittedResponses = {
-            description: "The number of responses submitted.",
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "number",
-            },
-            hasEssential: true,
-            defaultValue: 0,
-            returnDependencies: () => ({}),
-            definition: () => ({
-                useEssentialOrDefaultValue: {
-                    numSubmittedResponses: true,
-                },
+        Object.assign(
+            stateVariableDefinitions,
+            returnSubmittedResponsesStateVariableDefinitions({
+                responseComponentType: "text",
+                missingValue: "\uFF3F",
             }),
-            inverseDefinition({ desiredStateVariableValues }) {
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setEssentialValue: "numSubmittedResponses",
-                            value: desiredStateVariableValues.numSubmittedResponses,
-                        },
-                    ],
-                };
-            },
-        };
-
-        stateVariableDefinitions.submittedResponses = {
-            description: "The most recently submitted responses.",
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "text",
-            },
-            isArray: true,
-            allowExtraArrayKeysInInverse: true,
-            entryPrefixes: ["submittedResponse"],
-            defaultValueByArrayKey: () => "\uFF3F",
-            hasEssential: true,
-            inverseShadowToSetEntireArray: true,
-            doNotCombineInverseArrayInstructions: true,
-            returnArraySizeDependencies: () => ({
-                numSubmittedResponses: {
-                    dependencyType: "stateVariable",
-                    variableName: "numSubmittedResponses",
-                },
-            }),
-            returnArraySize({ dependencyValues }) {
-                return [dependencyValues.numSubmittedResponses];
-            },
-            returnArrayDependenciesByKey() {
-                let globalDependencies = {
-                    numSubmittedResponses: {
-                        dependencyType: "stateVariable",
-                        variableName: "numSubmittedResponses",
-                    },
-                };
-                return { globalDependencies };
-            },
-            arrayDefinitionByKey({ globalDependencyValues }) {
-                let componentType = [];
-
-                if (globalDependencyValues.submittedResponsesComponentType) {
-                    componentType.push(
-                        ...globalDependencyValues.submittedResponsesComponentType.slice(
-                            0,
-                            globalDependencyValues.numSubmittedResponses,
-                        ),
-                    );
-                }
-
-                let essentialSubmittedResponses = {};
-
-                for (
-                    let ind = 0;
-                    ind < globalDependencyValues.numSubmittedResponses;
-                    ind++
-                ) {
-                    // this function doesn't change the values once they set for the first time
-                    // (The values will just be changed using the inverse function)
-                    essentialSubmittedResponses[ind] = true;
-                }
-
-                return {
-                    useEssentialOrDefaultValue: {
-                        submittedResponses: essentialSubmittedResponses,
-                    },
-                };
-            },
-            inverseArrayDefinitionByKey: function ({
-                desiredStateVariableValues,
-                initialChange,
-            }) {
-                if (!initialChange) {
-                    return { success: false };
-                }
-
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setDependency: "numSubmittedResponses",
-                            desiredValue:
-                                desiredStateVariableValues.submittedResponses
-                                    .length,
-                        },
-                        {
-                            setEssentialValue: "submittedResponses",
-                            value: [
-                                ...desiredStateVariableValues.submittedResponses,
-                            ],
-                        },
-                    ],
-                };
-            },
-        };
+        );
 
         stateVariableDefinitions.showCheckWork = {
             forRenderer: true,
@@ -512,122 +408,19 @@ export default class Pretzel extends BlockScoredComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        const numAttemptsLeft = await this.stateValues.numAttemptsLeft;
-        if (numAttemptsLeft < 1) {
-            return;
-        }
-
-        const disabled = await this.stateValues.disabled;
-        if (disabled) {
-            return;
-        }
-
-        const creditAchieved = (await this.stateValues.handGraded)
-            ? 0
-            : await this.stateValues.creditAchievedIfSubmit;
-
-        // request to update credit
-        let instructions = [
-            {
-                updateType: "updateValue",
-                componentIdx: this.componentIdx,
-                stateVariable: "creditAchieved",
-                value: creditAchieved,
-            },
-            {
-                updateType: "updateValue",
-                componentIdx: this.componentIdx,
-                stateVariable: "responseHasBeenSubmitted",
-                value: true,
-            },
-        ];
-
-        // add submitted responses to instruction for answer
-        let currentResponses = await this.stateValues.currentResponses;
-
-        instructions.push({
-            updateType: "updateValue",
-            componentIdx: this.componentIdx,
-            stateVariable: "submittedResponses",
-            value: currentResponses,
-        });
-
-        instructions.push({
-            updateType: "updateValue",
-            componentIdx: this.componentIdx,
-            stateVariable: "justSubmitted",
-            value: true,
-        });
-
-        instructions.push({
-            updateType: "updateValue",
-            componentIdx: this.componentIdx,
-            stateVariable: "creditAchievedDependenciesAtSubmit",
-            value: await this.stateValues.creditAchievedDependencies,
-        });
-
-        instructions.push({
-            updateType: "updateValue",
-            componentIdx: this.componentIdx,
-            stateVariable: "numSubmissions",
-            value: (await this.stateValues.numSubmissions) + 1,
-        });
-
-        if (creditAchieved < 1) {
-            instructions.push({
-                updateType: "updateValue",
-                componentIdx: this.componentIdx,
-                stateVariable: "numIncorrectSubmissions",
-                value: (await this.stateValues.numIncorrectSubmissions) + 1,
-            });
-        }
-
-        const responseText = [];
-        for (const response of currentResponses) {
-            if (response.toString) {
-                try {
-                    responseText.push(response.toString());
-                } catch (e) {
-                    responseText.push("\uff3f");
+        return await submitScoredComponentResponses({
+            component: this,
+            responseComponentType: "text",
+            describeResponse(response) {
+                if (response.toString) {
+                    try {
+                        return response.toString();
+                    } catch (e) {
+                        return "\uff3f";
+                    }
                 }
-            } else {
-                responseText.push(response);
-            }
-        }
-
-        instructions.push({
-            updateType: "recordItemSubmission",
-            componentNumber: await this.stateValues.inComponentNumber,
-            submittedComponent: this.componentIdx,
-            response: currentResponses,
-            responseText,
-            creditAchieved,
-        });
-
-        await this.coreFunctions.performUpdate({
-            updateInstructions: instructions,
-            actionId,
-            sourceInformation,
-            skipRendererUpdate: true,
-            event: {
-                verb: "submitted",
-                object: {
-                    componentIdx: this.componentIdx,
-                    componentType: this.componentType,
-                    answerNumber: this.answerNumber,
-                    rootName: this.rootName,
-                },
-                result: {
-                    response: currentResponses,
-                    responseText,
-                    componentTypes: Array(currentResponses.length).fill("text"),
-                    creditAchieved,
-                },
+                return response;
             },
-        });
-
-        return await this.coreFunctions.triggerChainedActions({
-            componentIdx: this.componentIdx,
             actionId,
             sourceInformation,
             skipRendererUpdate,

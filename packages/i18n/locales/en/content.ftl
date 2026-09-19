@@ -270,6 +270,17 @@ answer-submit-label = Check Work
 answer-submit-label-no-correctness = Submit Response
 
 
+## Parsons
+##
+## The headings of the two areas of a `<parsons>` problem: where the reader
+## builds the solution, and where the blocks not yet used (or never to be used)
+## wait. Both are author-overridable attributes, so only the default is
+## translated.
+
+parsons-solution-label = Solution
+parsons-unused-label = Unused blocks
+
+
 ## Sectional blocks
 ##
 ## The word a sectional block calls itself, which the reader sees in its

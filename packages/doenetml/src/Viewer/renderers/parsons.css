@@ -1,0 +1,161 @@
+.doenet-viewer {
+    .parsons-root {
+        margin-bottom: 4px;
+    }
+
+    .parsons-label,
+    .parsons-area-label {
+        font-weight: bold;
+        margin-bottom: 6px;
+    }
+
+    .parsons-areas {
+        display: grid;
+        grid-template-columns: 100%;
+        gap: 12px;
+        margin-bottom: 8px;
+    }
+
+    @container (width >= 600px) {
+        .parsons-areas {
+            grid-template-columns: 1fr 1fr;
+        }
+    }
+
+    .parsons-area {
+        border: 1px solid var(--canvasText);
+        border-radius: var(--mainBorderRadius);
+        padding: 8px;
+        background-color: var(--canvas);
+        min-width: 0;
+    }
+
+    .parsons-area-drop-target {
+        outline: 2px dashed var(--mainBlue);
+        outline-offset: -2px;
+    }
+
+    .parsons-list {
+        list-style: none;
+        margin: 0;
+        padding: 0;
+        display: flex;
+        flex-direction: column;
+        gap: 6px;
+        min-height: 2.5em;
+    }
+
+    .parsons-block {
+        position: relative;
+        display: flex;
+        align-items: center;
+        gap: 6px;
+        border: 1px solid var(--canvasText);
+        border-radius: var(--mainBorderRadius);
+        padding: 4px 6px;
+        background-color: var(--canvas);
+        color: var(--canvasText);
+    }
+
+    .parsons-statement {
+        border-style: dashed;
+        margin-bottom: 6px;
+    }
+
+    .parsons-block-interactive {
+        cursor: grab;
+        user-select: none;
+        -webkit-user-select: none;
+    }
+
+    .parsons-block:focus-visible {
+        outline: 2px solid var(--mainBlue);
+        outline-offset: 2px;
+    }
+
+    .parsons-block-dragging {
+        cursor: grabbing;
+        z-index: 10;
+        outline: 2px solid var(--mainBlue);
+    }
+
+    /* The one place a touch may start a drag; elsewhere a touch scrolls. */
+    .parsons-block-handle {
+        flex: 0 0 auto;
+        display: inline-flex;
+        padding: 0 2px;
+        touch-action: none;
+        opacity: 0.6;
+    }
+
+    .parsons-block-content {
+        flex: 1 1 auto;
+        min-width: 0;
+        overflow-wrap: anywhere;
+    }
+
+    /* A `<p>` renders as `div.para`, whose paragraph margins have no place
+       inside a block. */
+    .parsons-block-content .para {
+        margin-block: 0;
+    }
+
+    .parsons-block-controls {
+        display: flex;
+        gap: 2px;
+        flex: 0 0 auto;
+    }
+
+    .parsons-control {
+        width: 1.8em;
+        height: 1.8em;
+        display: inline-flex;
+        align-items: center;
+        justify-content: center;
+        padding: 0;
+        border: 1px solid var(--canvasText);
+        border-radius: var(--mainBorderRadius);
+        background-color: var(--canvas);
+        color: var(--canvasText);
+        cursor: pointer;
+    }
+
+    .parsons-control:hover:not(:disabled) {
+        background-color: var(--lightBlue);
+    }
+
+    .parsons-control:focus-visible {
+        outline: 2px solid var(--mainBlue);
+        outline-offset: 1px;
+    }
+
+    .parsons-control:disabled {
+        cursor: not-allowed;
+        opacity: 0.5;
+    }
+
+    .parsons-drop-indicator {
+        height: 6px;
+        border-radius: 3px;
+        background-color: var(--mainBlue);
+    }
+
+    /* The verdict recolors the solution area's border and thickens it with
+       a shadow, so nothing shifts when it appears or clears. */
+    .parsons-correct .parsons-solution {
+        border-color: var(--mainGreen);
+        box-shadow: 0 0 0 1px var(--mainGreen);
+    }
+
+    .parsons-incorrect .parsons-solution {
+        border-color: var(--mainRed);
+        box-shadow: 0 0 0 1px var(--mainRed);
+    }
+
+    /* Not reachable in this version, where grading is all-or-nothing; kept
+       for a future matchPartial. */
+    .parsons-partialcorrect .parsons-solution {
+        border-color: var(--mainOrange);
+        box-shadow: 0 0 0 1px var(--mainOrange);
+    }
+}

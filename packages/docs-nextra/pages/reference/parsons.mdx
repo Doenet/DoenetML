@@ -1,0 +1,161 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<parsons>{:dn}`
+
+<ComponentDisplay name='parsons'/>
+
+`<parsons>{:dn}` poses a *Parsons problem*: the steps of a solution are given out of order, mixed with steps that do not belong, and the reader arranges the right ones in the right order.
+
+Each candidate step is a `<block>{:dn}`. The order in which the non-distractor blocks are written is the correct order; a `<block isDistractor>{:dn}` is a wrong step that must be left unused. An optional `<statement>{:dn}` is shown as the fixed first row of the solution, for the expression or situation the steps start from.
+
+The blocks start in the *unused* area, shuffled for each variant of the document, and the reader moves them into the *solution* area and orders them there: by dragging, with the buttons on each block, or from the keyboard. With a block focused, Enter or Space moves it between the areas, Alt with the up or down arrow moves it within the solution, the up and down arrows alone move focus to the neighbouring block, and Escape abandons a drag. Every move is announced to a screen reader.
+
+Full credit is earned only when the solution area contains exactly the non-distractor blocks, in the order they were written; any other arrangement earns none. The `matchPartial` attribute is accepted but has no effect yet.
+
+A `<parsons>{:dn}` must be named for a screen reader with a `<label>{:dn}` (shown above the two areas) or a `<shortDescription>{:dn}` (read but not shown); a hidden or empty label does not count. One with neither is reported as an accessibility violation.
+
+<AttrPropDisplay name='parsons'/>
+
+
+## Examples
+
+### Example: Order of operations
+
+
+```doenet-editor-horiz
+<setup>
+  <selectFromSequence name="a" from="-10" to="-1"/>
+  <selectFromSequence name="b" from="1" to="6"/>
+  <selectFromSequence name="c" from="7" to="12"/>
+  <selectFromSequence name="d" from="-10" to="-1"/>
+
+  <m name="question">[$a-($b-$c)] \div ($d)</m>
+  <m name="s1">[$a-(<math simplify>$b-$c</math>)] \div ($d)</m>
+  <m name="s2">[$a+<math simplify>-($b-$c)</math>] \div ($d)</m>
+  <m name="s3">[<math simplify>$a-($b-$c)</math>] \div ($d)</m>
+  <m name="s4"><math simplify>[$a-($b-$c)]/($d)</math></m>
+  <m name="wrongs2">[<math simplify>-$a</math>+<math simplify>-($b-$c)</math>] \div ($d)</m>
+  <m name="wrongs3">[<math simplify>-$a-($b-$c)</math>] \div ($d)</m>
+  <m name="wrongs4"><math simplify>[-$a-($b-$c)]/($d)</math></m>
+</setup>
+
+<p>Correct (and sometimes incorrect) steps to simplifying the expression are shown below, out of order. Move the correct steps into the solution, in order, below the starting expression. Incorrect steps, if any, should stay unused.</p>
+
+<parsons name="studentAns" solutionLabel="Correct steps" unusedLabel="Unused steps">
+  <label>Simplify the expression</label>
+  <statement><m>\displaystyle $question</m></statement>
+  <block><m>\displaystyle $s1</m></block>
+  <block><m>\displaystyle $s2</m></block>
+  <block><m>\displaystyle $s3</m></block>
+  <block><m>\displaystyle $s4</m></block>
+  <block isDistractor><m>\displaystyle $wrongs2</m></block>
+  <block isDistractor><m>\displaystyle $wrongs3</m></block>
+  <block isDistractor><m>\displaystyle $wrongs4</m></block>
+</parsons>
+```
+
+The four correct steps are written in order; the three distractors follow the same chain with a sign error and must be left unused. The `<setup>{:dn}` randomizes the numbers, and the unused pile is shuffled separately for each variant.
+
+
+## Attribute Examples
+
+### Attribute Example: `<block isDistractor>{:dn}`
+
+
+```doenet-editor-horiz
+<parsons name="p">
+  <label>Simplify <m>3(x+2)</m></label>
+  <block><m>3x + 6</m></block>
+  <block isDistractor><m>3x + 2</m></block>
+</parsons>
+<p>Correct order: $p.correctOrder</p>
+```
+
+A distractor is a plausible wrong step. It is shuffled in with the others, and full credit requires it to stay in the unused area. `correctOrder` lists the indices of the non-distractor blocks in the order they were written.
+
+
+---
+
+### Attribute Example: `shuffleOrder`
+
+
+```doenet-editor-horiz
+<parsons name="p" shuffleOrder="false">
+  <label>Steps, in the order written</label>
+  <block><p>First</p></block>
+  <block><p>Second</p></block>
+  <block><p>Third</p></block>
+</parsons>
+<p>Block order: $p.blockOrder</p>
+```
+
+With `shuffleOrder="false"`, the unused blocks are shown in the order they were written, which gives away the answer; use it when the exercise is about selecting the right steps rather than ordering them. By default the pile is shuffled per variant, and `blockOrder` reports the order used.
+
+
+---
+
+### Attribute Example: `solutionLabel` and `unusedLabel`
+
+
+```doenet-editor-horiz
+<parsons name="p" solutionLabel="Proof" unusedLabel="Not needed">
+  <label>Arrange the lines of the proof</label>
+  <block><p>Suppose <m>n</m> is even.</p></block>
+  <block><p>Then <m>n = 2k</m> for some integer <m>k</m>.</p></block>
+  <block><p>So <m>n^2 = 4k^2</m>, which is even.</p></block>
+  <block isDistractor><p>Then <m>n = 2k + 1</m> for some integer <m>k</m>.</p></block>
+</parsons>
+```
+
+The two headings default to "Solution" and "Unused blocks" in the document's language. An author who writes them gets those words in every locale.
+
+
+---
+
+### Attribute Example: `<shortDescription>{:dn}` instead of a `<label>{:dn}`
+
+
+```doenet-editor-horiz
+<p>Arrange the steps of the computation.</p>
+<parsons name="p">
+  <shortDescription>Steps of the computation</shortDescription>
+  <statement><m>2 + 3 \cdot 4</m></statement>
+  <block><m>2 + 12</m></block>
+  <block><m>14</m></block>
+  <block isDistractor><m>5 \cdot 4</m></block>
+</parsons>
+```
+
+When the prompt is already ordinary text beside the component, a `<shortDescription>{:dn}` names the component for a screen reader without repeating the prompt on screen.
+
+
+## Property Examples
+
+### Property Example: `currentResponses` and `submittedResponses`
+
+
+```doenet-editor-horiz
+<parsons name="p">
+  <label>Order the steps</label>
+  <block><p>one</p></block>
+  <block><p>two</p></block>
+  <block><p>three</p></block>
+</parsons>
+<p>Currently in the solution: $p.currentResponses</p>
+<p>Last submitted: $p.submittedResponses</p>
+<p>Credit: $p.creditAchieved</p>
+```
+
+`currentResponses` lists the blocks in the solution area from top to bottom, by the index at which each was written; `submittedResponses` is the same list as of the last check.
+
+
+## The `<block>{:dn}` component
+
+<ComponentDisplay name='block'/>
+
+A `<block>{:dn}` holds one candidate step and may contain any content, such as a `<p>{:dn}` or an `<m>{:dn}`. It is meaningful only inside a `<parsons>{:dn}`.
+
+<AttrPropDisplay name='block'/>

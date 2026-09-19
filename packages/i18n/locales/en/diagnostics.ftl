@@ -81,13 +81,17 @@ pretzel-indices-count-mismatch = Ignoring indices specified for problem as numbe
 
 shuffle-indices-count-mismatch = Ignoring indices specified for shuffle as number of indices doesn't match number of components.
 
-# $component is `choiceInput`, `pretzel` or `shuffle` — a DoenetML component
-# name, so it stays in English.
+# $component is `choiceInput`, `pretzel`, `shuffle` or `parsons` — a DoenetML
+# component name, so it stays in English.
 indices-ignored-out-of-range = Ignoring indices specified for { $component } as some indices out of range.
 
 pretzel-indices-repeated = Ignoring indices specified for pretzel as some indices are repeated.
 
 pretzel-circuit-first-index = Ignoring indices specified for pretzel in circuit mode as the first index must be 1.
+
+parsons-indices-count-mismatch = Ignoring indices specified for parsons as number of indices doesn't match number of block children.
+
+parsons-indices-repeated = Ignoring indices specified for parsons as some indices are repeated.
 
 ## `<shuffle>` and `<sort>`
 
@@ -463,7 +467,7 @@ answer-attributes-need-symbolic-equality =
 
 answer-invalid-type = Invalid type for answer: { $type }
 
-## `<module>`, `<conditionalContent>`, `<slider>`, `<pretzel>`
+## `<module>`, `<conditionalContent>`, `<slider>`, `<pretzel>`, `<parsons>`
 
 module-attribute-child-needs-name = Since the component `<{ $component }>` does not have a name, it cannot be used for a module attribute
 
@@ -476,6 +480,10 @@ slider-markers-type-mismatch = Markers type doesn't match slider type.
 pretzel-problem-needs-statement-and-answer = Invalid pretzel: each `<problem>` must contain one `<statement>` and one `<answer>`.
 
 pretzel-circuit-first-problem-distractor = Invalid pretzel: in mode="circuit", the first `<problem>` cannot be a distractor.
+
+parsons-no-blocks = A `<parsons>` has no `<block>` children, so there is nothing for the reader to arrange.
+
+parsons-all-distractors = Every `<block>` in the `<parsons>` is a distractor, so the only correct solution is to leave them all unused.
 
 ## Attribute values
 

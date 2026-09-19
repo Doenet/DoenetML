@@ -52,6 +52,17 @@ export type MessageKey =
     | "orbital-remove-arrow"
     | "orbital-row-label"
     | "pretzel-answer"
+    | "parsons-default-name"
+    | "parsons-move-to-solution"
+    | "parsons-move-to-unused"
+    | "parsons-move-up"
+    | "parsons-move-down"
+    | "parsons-solution-block-controls"
+    | "parsons-unused-block-controls"
+    | "parsons-block-instructions"
+    | "parsons-moved-to-solution"
+    | "parsons-moved-within-solution"
+    | "parsons-moved-to-unused"
     | "summary-statistics-caption"
     | "math-input-preview-region"
     | "math-input-preview"
@@ -133,6 +144,8 @@ export type MessageKey =
     | "boolean-false"
     | "answer-submit-label"
     | "answer-submit-label-no-correctness"
+    | "parsons-solution-label"
+    | "parsons-unused-label"
     | "section-name.activity"
     | "section-name.aside"
     | "section-name.cascade"
@@ -324,6 +337,8 @@ export type MessageKey =
     | "indices-ignored-out-of-range"
     | "pretzel-indices-repeated"
     | "pretzel-circuit-first-index"
+    | "parsons-indices-count-mismatch"
+    | "parsons-indices-repeated"
     | "string-children-need-type"
     | "invalid-type-defaulting-to-math"
     | "invalid-type-ignored"
@@ -419,6 +434,8 @@ export type MessageKey =
     | "slider-markers-type-mismatch"
     | "pretzel-problem-needs-statement-and-answer"
     | "pretzel-circuit-first-problem-distractor"
+    | "parsons-no-blocks"
+    | "parsons-all-distractors"
     | "attribute-invalid-values"
     | "attribute-must-be-references"
     | "math-input-invalid-function-names"
@@ -683,6 +700,17 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "orbital-remove-arrow",
     "orbital-row-label",
     "pretzel-answer",
+    "parsons-default-name",
+    "parsons-move-to-solution",
+    "parsons-move-to-unused",
+    "parsons-move-up",
+    "parsons-move-down",
+    "parsons-solution-block-controls",
+    "parsons-unused-block-controls",
+    "parsons-block-instructions",
+    "parsons-moved-to-solution",
+    "parsons-moved-within-solution",
+    "parsons-moved-to-unused",
     "summary-statistics-caption",
     "math-input-preview-region",
     "math-input-preview",
@@ -764,6 +792,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "boolean-false",
     "answer-submit-label",
     "answer-submit-label-no-correctness",
+    "parsons-solution-label",
+    "parsons-unused-label",
     "section-name.activity",
     "section-name.aside",
     "section-name.cascade",
@@ -955,6 +985,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "indices-ignored-out-of-range",
     "pretzel-indices-repeated",
     "pretzel-circuit-first-index",
+    "parsons-indices-count-mismatch",
+    "parsons-indices-repeated",
     "string-children-need-type",
     "invalid-type-defaulting-to-math",
     "invalid-type-ignored",
@@ -1050,6 +1082,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "slider-markers-type-mismatch",
     "pretzel-problem-needs-statement-and-answer",
     "pretzel-circuit-first-problem-distractor",
+    "parsons-no-blocks",
+    "parsons-all-distractors",
     "attribute-invalid-values",
     "attribute-must-be-references",
     "math-input-invalid-function-names",

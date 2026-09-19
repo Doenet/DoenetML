@@ -242,6 +242,7 @@
         "blockQuote",
         "stickyGroup",
         "pretzel",
+        "parsons",
         "cascade",
         "pointList",
         "intervalList",
@@ -4048,6 +4049,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -5045,6 +5049,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -6040,6 +6047,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -7970,6 +7980,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -39462,6 +39475,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -40793,6 +40809,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -42008,6 +42027,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -42892,6 +42914,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -43774,6 +43799,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -44661,6 +44689,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -57817,6 +57848,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -59029,6 +59063,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -60245,6 +60282,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -61457,6 +61497,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -62680,6 +62723,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -63892,6 +63938,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -65115,6 +65164,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -66334,6 +66386,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -67557,6 +67612,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -68778,6 +68836,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -69990,6 +70051,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -71206,6 +71270,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -72418,6 +72485,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -73634,6 +73704,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -74848,6 +74921,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -76060,6 +76136,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -77282,6 +77361,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -78488,6 +78570,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -79692,6 +79777,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -81396,6 +81484,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -88605,6 +88696,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 }
             ],
@@ -89742,6 +89836,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -90655,6 +90752,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -91654,6 +91754,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -92586,6 +92689,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -93434,6 +93540,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -94314,6 +94423,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -96469,6 +96581,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 }
             ],
@@ -97226,6 +97341,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -98117,6 +98235,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -104265,6 +104386,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -122326,6 +122450,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -128684,6 +128811,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -130899,6 +131029,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 }
             ],
@@ -132660,6 +132793,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 }
             ],
@@ -133444,6 +133580,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -134335,6 +134474,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -134408,6 +134550,9 @@
                 },
                 {
                     "ref": "description"
+                },
+                {
+                    "ref": "block"
                 },
                 {
                     "ref": "shortDescription"
@@ -135276,6 +135421,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -135349,6 +135497,9 @@
                 },
                 {
                     "ref": "description"
+                },
+                {
+                    "ref": "block"
                 },
                 {
                     "ref": "shortDescription"
@@ -138706,6 +138857,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -138776,6 +138930,9 @@
                 },
                 {
                     "ref": "description"
+                },
+                {
+                    "ref": "block"
                 },
                 {
                     "ref": "shortDescription"
@@ -140785,6 +140942,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -140858,6 +141018,9 @@
                 },
                 {
                     "ref": "description"
+                },
+                {
+                    "ref": "block"
                 },
                 {
                     "ref": "shortDescription"
@@ -143850,6 +144013,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -146193,6 +146359,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -148383,6 +148552,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -149224,6 +149396,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -150081,6 +150256,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -151478,6 +151656,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -152920,6 +153101,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -152993,6 +153177,9 @@
                 },
                 {
                     "ref": "description"
+                },
+                {
+                    "ref": "block"
                 },
                 {
                     "ref": "shortDescription"
@@ -153803,6 +153990,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -154640,6 +154830,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -154704,6 +154897,9 @@
                 },
                 {
                     "ref": "description"
+                },
+                {
+                    "ref": "block"
                 },
                 {
                     "ref": "shortDescription"
@@ -156038,6 +156234,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -157781,6 +157980,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -157854,6 +158056,9 @@
                 },
                 {
                     "ref": "description"
+                },
+                {
+                    "ref": "block"
                 },
                 {
                     "ref": "shortDescription"
@@ -158722,6 +158927,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -159578,6 +159786,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -159651,6 +159862,9 @@
                 },
                 {
                     "ref": "description"
+                },
+                {
+                    "ref": "block"
                 },
                 {
                     "ref": "shortDescription"
@@ -162202,6 +162416,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -165565,6 +165782,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -171355,6 +171575,9 @@
                     "ref": "pretzel"
                 },
                 {
+                    "ref": "parsons"
+                },
+                {
                     "ref": "cascade"
                 },
                 {
@@ -172203,6 +172426,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"
@@ -173146,6 +173372,1347 @@
                             "numDimensions": 1
                         }
                     ]
+                }
+            ]
+        },
+        "parsons": {
+            "type": "element",
+            "name": "parsons",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "weight": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "handGraded": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "matchPartial": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "maxNumAttempts": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "showCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "colorCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disableAfterCorrect": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "submitLabel": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "submitLabelNoCorrectness": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displayDigitsForResponses": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "displayDigitsForCreditAchieved": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "labelIsName": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "shuffleOrder": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "solutionLabel": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "unusedLabel": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                }
+            },
+            "children": [
+                {
+                    "ref": "xLabel"
+                },
+                {
+                    "ref": "yLabel"
+                },
+                {
+                    "ref": "collect"
+                },
+                {
+                    "ref": "repeat"
+                },
+                {
+                    "ref": "repeatForSequence"
+                },
+                {
+                    "ref": "conditionalContent"
+                },
+                {
+                    "ref": "select"
+                },
+                {
+                    "ref": "group"
+                },
+                {
+                    "ref": "module"
+                },
+                {
+                    "ref": "setup"
+                },
+                {
+                    "ref": "sort"
+                },
+                {
+                    "ref": "shuffle"
+                },
+                {
+                    "ref": "label"
+                },
+                {
+                    "ref": "shortDescription"
+                },
+                {
+                    "ref": "description"
+                },
+                {
+                    "ref": "statement"
+                },
+                {
+                    "ref": "block"
+                }
+            ],
+            "textChildrenAllowed": false,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "weight",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Relative weight of this answer when aggregating credit across multiple answers.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "handGraded",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this answer is graded by hand rather than automatically.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "matchPartial",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to award partial credit when the response is partially correct.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "maxNumAttempts",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Maximum number of times the response can be submitted.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "disableAfterCorrect",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to disable the answer after a fully correct response has been submitted.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "displayDigitsForResponses",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of significant digits to display when rendering numeric responses.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "displayDigitsForCreditAchieved",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of significant digits to display for the credit achieved value.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "labelIsName",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to use this component's name as its rendered label.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "shuffleOrder",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the unused blocks are displayed in an order randomized per variant.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "submitLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the submit button when correctness is shown."
+                },
+                {
+                    "name": "submitLabelNoCorrectness",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Label for the submit button when correctness is not shown."
+                },
+                {
+                    "name": "showCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether correctness is shown for the submitted response, after combining the attribute with hand-grading, any enclosing section's setting, and the activity-wide flag."
+                },
+                {
+                    "name": "colorCorrectness",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the response is color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
+                },
+                {
+                    "name": "creditAchieved",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The fraction of credit achieved on the most recent submission (between 0 and 1)."
+                },
+                {
+                    "name": "responseHasBeenSubmitted",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether a response has ever been submitted for this answer."
+                },
+                {
+                    "name": "justSubmitted",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the most recent submission for this answer has not yet been changed."
+                },
+                {
+                    "name": "numSubmissions",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Total number of times a response has been submitted."
+                },
+                {
+                    "name": "numAttemptsLeft",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Remaining number of submission attempts before the maximum is reached."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this answer is disabled and is no longer accepting submissions."
+                },
+                {
+                    "name": "label",
+                    "type": "label",
+                    "isArray": false,
+                    "description": "The label rendered with this component."
+                },
+                {
+                    "name": "solutionLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Heading of the area where the reader builds the solution."
+                },
+                {
+                    "name": "unusedLabel",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Heading of the area holding the blocks not used in the solution."
+                },
+                {
+                    "name": "numSubmittedResponses",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The number of blocks in the most recently submitted solution."
+                },
+                {
+                    "name": "submittedResponses",
+                    "type": "integer",
+                    "isArray": true,
+                    "description": "The indices of the blocks in the most recently submitted solution, counting from 1, from top to bottom.",
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "integer",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
+                    "name": "shortDescription",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "A short accessibility description of this component; it is read by screen readers but not rendered visually."
+                },
+                {
+                    "name": "numBlocks",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of `<block>` children."
+                },
+                {
+                    "name": "numDistractors",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The number of `<block>` children marked as distractors."
+                },
+                {
+                    "name": "correctOrder",
+                    "type": "numberList",
+                    "isArray": false,
+                    "description": "The indices of the non-distractor blocks in the order they were written, counting from 1, which is the arrangement that earns credit."
+                },
+                {
+                    "name": "blockOrder",
+                    "type": "numberList",
+                    "isArray": false,
+                    "description": "The indices of the blocks, counting from 1, in the order the unused blocks are displayed for this variant."
+                },
+                {
+                    "name": "currentResponses",
+                    "type": "integer",
+                    "isArray": true,
+                    "description": "The indices of the blocks currently in the solution area, counting from 1, from top to bottom.",
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "integer",
+                            "numDimensions": 1
+                        }
+                    ]
+                }
+            ]
+        },
+        "block": {
+            "type": "element",
+            "name": "block",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isDistractor": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                }
+            },
+            "children": [
+                {
+                    "ref": "title"
+                },
+                {
+                    "ref": "rightHandSide"
+                },
+                {
+                    "ref": "xLabel"
+                },
+                {
+                    "ref": "yLabel"
+                },
+                {
+                    "ref": "statement"
+                },
+                {
+                    "ref": "introduction"
+                },
+                {
+                    "ref": "conclusion"
+                },
+                {
+                    "ref": "br"
+                },
+                {
+                    "ref": "hr"
+                },
+                {
+                    "ref": "m"
+                },
+                {
+                    "ref": "me"
+                },
+                {
+                    "ref": "men"
+                },
+                {
+                    "ref": "md"
+                },
+                {
+                    "ref": "mdn"
+                },
+                {
+                    "ref": "mrow"
+                },
+                {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
+                    "ref": "sum"
+                },
+                {
+                    "ref": "product"
+                },
+                {
+                    "ref": "clampNumber"
+                },
+                {
+                    "ref": "wrapNumberPeriodic"
+                },
+                {
+                    "ref": "round"
+                },
+                {
+                    "ref": "setSmallToZero"
+                },
+                {
+                    "ref": "convertSetToList"
+                },
+                {
+                    "ref": "ceil"
+                },
+                {
+                    "ref": "floor"
+                },
+                {
+                    "ref": "abs"
+                },
+                {
+                    "ref": "sign"
+                },
+                {
+                    "ref": "mean"
+                },
+                {
+                    "ref": "median"
+                },
+                {
+                    "ref": "variance"
+                },
+                {
+                    "ref": "standardDeviation"
+                },
+                {
+                    "ref": "count"
+                },
+                {
+                    "ref": "min"
+                },
+                {
+                    "ref": "max"
+                },
+                {
+                    "ref": "mod"
+                },
+                {
+                    "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
+                },
+                {
+                    "ref": "extractMath"
+                },
+                {
+                    "ref": "cumulativeSum"
+                },
+                {
+                    "ref": "cumulativeProduct"
+                },
+                {
+                    "ref": "cumulativeMin"
+                },
+                {
+                    "ref": "cumulativeMax"
+                },
+                {
+                    "ref": "differences"
+                },
+                {
+                    "ref": "argMin"
+                },
+                {
+                    "ref": "argMax"
+                },
+                {
+                    "ref": "indexOf"
+                },
+                {
+                    "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "chart"
+                },
+                {
+                    "ref": "clampFunction"
+                },
+                {
+                    "ref": "wrapFunctionPeriodic"
+                },
+                {
+                    "ref": "derivative"
+                },
+                {
+                    "ref": "extractMathOperator"
+                },
+                {
+                    "ref": "em"
+                },
+                {
+                    "ref": "alert"
+                },
+                {
+                    "ref": "q"
+                },
+                {
+                    "ref": "sq"
+                },
+                {
+                    "ref": "term"
+                },
+                {
+                    "ref": "c"
+                },
+                {
+                    "ref": "tag"
+                },
+                {
+                    "ref": "tage"
+                },
+                {
+                    "ref": "tagc"
+                },
+                {
+                    "ref": "attr"
+                },
+                {
+                    "ref": "ndash"
+                },
+                {
+                    "ref": "mdash"
+                },
+                {
+                    "ref": "nbsp"
+                },
+                {
+                    "ref": "ellipsis"
+                },
+                {
+                    "ref": "lq"
+                },
+                {
+                    "ref": "rq"
+                },
+                {
+                    "ref": "lsq"
+                },
+                {
+                    "ref": "rsq"
+                },
+                {
+                    "ref": "section"
+                },
+                {
+                    "ref": "subsection"
+                },
+                {
+                    "ref": "subsubsection"
+                },
+                {
+                    "ref": "paragraphs"
+                },
+                {
+                    "ref": "aside"
+                },
+                {
+                    "ref": "objectives"
+                },
+                {
+                    "ref": "problem"
+                },
+                {
+                    "ref": "exercise"
+                },
+                {
+                    "ref": "question"
+                },
+                {
+                    "ref": "activity"
+                },
+                {
+                    "ref": "example"
+                },
+                {
+                    "ref": "definition"
+                },
+                {
+                    "ref": "note"
+                },
+                {
+                    "ref": "theorem"
+                },
+                {
+                    "ref": "part"
+                },
+                {
+                    "ref": "task"
+                },
+                {
+                    "ref": "proof"
+                },
+                {
+                    "ref": "problems"
+                },
+                {
+                    "ref": "exercises"
+                },
+                {
+                    "ref": "ol"
+                },
+                {
+                    "ref": "ul"
+                },
+                {
+                    "ref": "odeSystem"
+                },
+                {
+                    "ref": "cobwebPolyline"
+                },
+                {
+                    "ref": "equilibriumPoint"
+                },
+                {
+                    "ref": "equilibriumLine"
+                },
+                {
+                    "ref": "equilibriumCurve"
+                },
+                {
+                    "ref": "atom"
+                },
+                {
+                    "ref": "ion"
+                },
+                {
+                    "ref": "ionicCompound"
+                },
+                {
+                    "ref": "electronConfiguration"
+                },
+                {
+                    "ref": "orbitalDiagram"
+                },
+                {
+                    "ref": "orbitalDiagramInput"
+                },
+                {
+                    "ref": "sideBySide"
+                },
+                {
+                    "ref": "sbsGroup"
+                },
+                {
+                    "ref": "stack"
+                },
+                {
+                    "ref": "div"
+                },
+                {
+                    "ref": "span"
+                },
+                {
+                    "ref": "pre"
+                },
+                {
+                    "ref": "displayDoenetML"
+                },
+                {
+                    "ref": "paginator"
+                },
+                {
+                    "ref": "paginatorControls"
+                },
+                {
+                    "ref": "matrixInput"
+                },
+                {
+                    "ref": "fractionInput"
+                },
+                {
+                    "ref": "solution"
+                },
+                {
+                    "ref": "givenAnswer"
+                },
+                {
+                    "ref": "document"
+                },
+                {
+                    "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "p"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
+                    "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
+                },
+                {
+                    "ref": "collect"
+                },
+                {
+                    "ref": "ref"
+                },
+                {
+                    "ref": "point"
+                },
+                {
+                    "ref": "coords"
+                },
+                {
+                    "ref": "line"
+                },
+                {
+                    "ref": "lineSegment"
+                },
+                {
+                    "ref": "ray"
+                },
+                {
+                    "ref": "polyline"
+                },
+                {
+                    "ref": "polygon"
+                },
+                {
+                    "ref": "triangle"
+                },
+                {
+                    "ref": "rectangle"
+                },
+                {
+                    "ref": "regularPolygon"
+                },
+                {
+                    "ref": "circle"
+                },
+                {
+                    "ref": "parabola"
+                },
+                {
+                    "ref": "curve"
+                },
+                {
+                    "ref": "bezierControls"
+                },
+                {
+                    "ref": "vector"
+                },
+                {
+                    "ref": "angle"
+                },
+                {
+                    "ref": "answer"
+                },
+                {
+                    "ref": "award"
+                },
+                {
+                    "ref": "mathInput"
+                },
+                {
+                    "ref": "textInput"
+                },
+                {
+                    "ref": "booleanInput"
+                },
+                {
+                    "ref": "choiceInput"
+                },
+                {
+                    "ref": "choice"
+                },
+                {
+                    "ref": "number"
+                },
+                {
+                    "ref": "integer"
+                },
+                {
+                    "ref": "graph"
+                },
+                {
+                    "ref": "annotations"
+                },
+                {
+                    "ref": "annotation"
+                },
+                {
+                    "ref": "function"
+                },
+                {
+                    "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "interval"
+                },
+                {
+                    "ref": "sequence"
+                },
+                {
+                    "ref": "slider"
+                },
+                {
+                    "ref": "spreadsheet"
+                },
+                {
+                    "ref": "cell"
+                },
+                {
+                    "ref": "row"
+                },
+                {
+                    "ref": "column"
+                },
+                {
+                    "ref": "cellBlock"
+                },
+                {
+                    "ref": "tabular"
+                },
+                {
+                    "ref": "table"
+                },
+                {
+                    "ref": "figure"
+                },
+                {
+                    "ref": "repeat"
+                },
+                {
+                    "ref": "repeatForSequence"
+                },
+                {
+                    "ref": "pegboard"
+                },
+                {
+                    "ref": "intersection"
+                },
+                {
+                    "ref": "conditionalContent"
+                },
+                {
+                    "ref": "asList"
+                },
+                {
+                    "ref": "variantControl"
+                },
+                {
+                    "ref": "selectFromSequence"
+                },
+                {
+                    "ref": "select"
+                },
+                {
+                    "ref": "group"
+                },
+                {
+                    "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "evaluate"
+                },
+                {
+                    "ref": "selectRandomNumbers"
+                },
+                {
+                    "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
+                    "ref": "selectPrimeNumbers"
+                },
+                {
+                    "ref": "samplePrimeNumbers"
+                },
+                {
+                    "ref": "substitute"
+                },
+                {
+                    "ref": "periodicSet"
+                },
+                {
+                    "ref": "image"
+                },
+                {
+                    "ref": "video"
+                },
+                {
+                    "ref": "hint"
+                },
+                {
+                    "ref": "intComma"
+                },
+                {
+                    "ref": "pluralize"
+                },
+                {
+                    "ref": "feedback"
+                },
+                {
+                    "ref": "lorem"
+                },
+                {
+                    "ref": "updateValue"
+                },
+                {
+                    "ref": "callAction"
+                },
+                {
+                    "ref": "triggerSet"
+                },
+                {
+                    "ref": "functionIterates"
+                },
+                {
+                    "ref": "module"
+                },
+                {
+                    "ref": "moduleAttributes"
+                },
+                {
+                    "ref": "setup"
+                },
+                {
+                    "ref": "footnote"
+                },
+                {
+                    "ref": "caption"
+                },
+                {
+                    "ref": "endpoint"
+                },
+                {
+                    "ref": "sort"
+                },
+                {
+                    "ref": "sortIndices"
+                },
+                {
+                    "ref": "shuffle"
+                },
+                {
+                    "ref": "solveEquations"
+                },
+                {
+                    "ref": "subsetOfRealsInput"
+                },
+                {
+                    "ref": "subsetOfReals"
+                },
+                {
+                    "ref": "split"
+                },
+                {
+                    "ref": "bestFitLine"
+                },
+                {
+                    "ref": "regionBetweenCurveXAxis"
+                },
+                {
+                    "ref": "regionBetweenCurves"
+                },
+                {
+                    "ref": "slopeField"
+                },
+                {
+                    "ref": "vectorField"
+                },
+                {
+                    "ref": "regionHalfPlane"
+                },
+                {
+                    "ref": "codeEditor"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "summaryStatistics"
+                },
+                {
+                    "ref": "legend"
+                },
+                {
+                    "ref": "label"
+                },
+                {
+                    "ref": "matchesPattern"
+                },
+                {
+                    "ref": "matrix"
+                },
+                {
+                    "ref": "eigenDecomposition"
+                },
+                {
+                    "ref": "latex"
+                },
+                {
+                    "ref": "blockQuote"
+                },
+                {
+                    "ref": "stickyGroup"
+                },
+                {
+                    "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
+                },
+                {
+                    "ref": "cascade"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
+                }
+            ],
+            "textChildrenAllowed": true,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isDistractor",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this block is a distractor: a step that does not belong in the solution and must be left unused.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "text",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The block's content as a text string."
                 }
             ]
         },
@@ -174146,6 +175713,9 @@
                 },
                 {
                     "ref": "pretzel"
+                },
+                {
+                    "ref": "parsons"
                 },
                 {
                     "ref": "cascade"

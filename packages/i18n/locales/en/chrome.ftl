@@ -131,6 +131,41 @@ orbital-row-label = Label for row { $row }
 # Labels the answer column of a pretzel exercise's grid.
 pretzel-answer = Answer
 
+## Parsons
+##
+## The controls of a `<parsons>` problem, where the reader arranges blocks
+## into a solution. The two area headings are content, in the document's
+## language, and live in `content.ftl`; everything here is chrome the
+## reader operates.
+
+# Accessible name of the whole problem when the author gave it neither a
+# label nor a short description.
+parsons-default-name = Arrange the blocks
+
+# Accessible names of the icon buttons on each block.
+parsons-move-to-solution = Move to solution
+parsons-move-to-unused = Remove from solution
+parsons-move-up = Move up
+parsons-move-down = Move down
+
+# Accessible names of the group of buttons on one block. $position counts
+# the block's place in its area from 1.
+parsons-solution-block-controls = Controls for solution step { $position }
+parsons-unused-block-controls = Controls for unused block { $position }
+
+# Read to a screen reader as the description of every block, so a keyboard
+# user learns the shortcuts a focused block answers to.
+parsons-block-instructions = Press Enter or Space to move this block between the solution and the unused blocks. Hold Alt and press the up or down arrow to move it within the solution.
+
+# Announced to a screen reader after a move into or within the solution.
+# $position is the block's new place in the solution, counting from 1, and
+# $count the number of blocks in the solution after the move.
+parsons-moved-to-solution = Moved to the solution, position { $position } of { $count }.
+parsons-moved-within-solution = Moved to position { $position } of { $count }.
+
+# Announced after a block is removed from the solution; takes no arguments.
+parsons-moved-to-unused = Moved to the unused blocks.
+
 # Caption above the table a `<summaryStatistics>` renders. It used to name the
 # data column being summarized; the statistics now come from values written in
 # the document, so there is no column to name and the message takes no

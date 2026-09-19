@@ -179,6 +179,7 @@ export default {
     paginatorControls: { title: "paginatorControls" },
     parabola: { title: "parabola" },
     paragraphs: { title: "paragraphs" },
+    parsons: { title: "parsons" },
     part: { title: "part" },
     pegboard: { title: "pegboard" },
     periodicSet: { title: "periodicSet" },
