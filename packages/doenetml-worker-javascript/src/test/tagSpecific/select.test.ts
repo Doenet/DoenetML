@@ -2887,4 +2887,88 @@ describe("Select tag tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("p5")].stateValues.text,
         ).eq(vars5.map((v, i) => `${l[i]}5=${v}`).join(", "));
     });
+
+    describe("a child that contributes no variants", () => {
+        // #1875. `determineNumberOfUniqueVariants` builds `numVariantsByChild`
+        // from the variant-bearing children; `getUniqueVariant` indexed it with
+        // every child. A `<setup>`, `<sort>` or `<collect>` bears no variants,
+        // so the arrays differed in length, the index ran off the end, and
+        // `combinations[undefined].map` threw -- the whole document, not just
+        // the select.
+
+        it("builds a select with a non-variant child beside an option", async () => {
+            for (const extraChild of [
+                `<setup><number name="n">5</number></setup>`,
+                `<sort>3 1 2</sort>`,
+                `<collect from="$src" componentType="math" />`,
+            ]) {
+                for (const doenetML of [
+                    `<select name="s">${extraChild}<option><math>1</math></option></select><p name="src"><math>9</math></p>`,
+                    `<select name="s"><option><math>1</math></option>${extraChild}</select><p name="src"><math>9</math></p>`,
+                    `<select name="s" numToSelect="1">${extraChild}<option><math>1</math></option><option><math>2</math></option></select><p name="src"><math>9</math></p>`,
+                ]) {
+                    const { core } = await createTestCore({ doenetML });
+                    const stateVariables = await core.returnAllStateVariables(
+                        false,
+                        true,
+                    );
+                    expect(
+                        Object.keys(stateVariables).length,
+                        doenetML,
+                    ).toBeGreaterThan(0);
+                }
+            }
+        });
+
+        it("selects the same option it always did when every child bears variants", async () => {
+            // The guard on the fix: `numVariantsByChild` and the list now
+            // indexed alongside it must agree for a plain `<select>` of
+            // `<option>`s, since those indices decide which option a seeded
+            // activity shows. `<option>` creates variants, so it is gathered as
+            // itself and the two lists coincide.
+            const doenetML = `
+    <select name="s" numToSelect="2">
+        <option><text>a</text></option>
+        <option><text>b</text></option>
+        <option><text>c</text></option>
+        <option><text>d</text></option>
+    </select>`;
+
+            const selections: string[] = [];
+            for (let variantIndex = 1; variantIndex <= 12; variantIndex++) {
+                const { core } = await createTestCore({
+                    doenetML,
+                    requestedVariantIndex: variantIndex,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                selections.push(
+                    Object.values(stateVariables)
+                        .filter((c: any) => c.componentType === "text")
+                        .map((c: any) => c.stateValues.text)
+                        .join(""),
+                );
+            }
+
+            // Recorded by running this document against `main`, before the
+            // change -- not derived from the new code. The point is that these
+            // are the selections the fix must leave alone.
+            expect(selections).eqls([
+                "ac",
+                "cb",
+                "ab",
+                "cd",
+                "bc",
+                "ad",
+                "dc",
+                "db",
+                "ba",
+                "da",
+                "bd",
+                "ca",
+            ]);
+        });
+    });
 });

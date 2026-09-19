@@ -894,8 +894,23 @@ export default class Select extends CompositeComponent {
         let numVariantsByChild = uniqueVariantData.numVariantsByChild;
         let numToSelect = uniqueVariantData.numToSelect;
         let withReplacement = uniqueVariantData.withReplacement;
-        let numChildren = serializedComponent.children.length;
-        let childrenToSelect = serializedComponent.children;
+        // Index the same list `numVariantsByChild` was built from.
+        // `determineNumberOfUniqueVariants` builds it by walking
+        // `gatherVariantComponents`, which skips a child bearing no variants --
+        // a `<setup>`, `<sort>` or `<collect>` beside the options. Counting
+        // `children` instead then ran the index off the end of
+        // `numVariantsByChild`, `numberOfPossibilities` became `NaN`, every
+        // comparison against it was false, and the loop left
+        // `combinationIndexSelected` undefined for `combinations[undefined].map`
+        // to throw -- taking the document with it (#1875).
+        //
+        // For a `<select>` of `<option>`s the two lists are the same, element
+        // for element, because `<option>` creates variants and so is gathered
+        // as itself: that is the case every working document is in.
+        let childrenToSelect =
+            serializedComponent.variants.descendantVariantComponents ??
+            serializedComponent.children;
+        let numChildren = numVariantsByChild.length;
 
         if (numVariantsByChild.length === 0) {
             return { success: true, desiredVariant: { indices: [] } };
