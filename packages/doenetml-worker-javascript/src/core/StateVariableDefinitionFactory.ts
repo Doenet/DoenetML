@@ -1390,14 +1390,14 @@ function missingTargetResult({
 }
 
 /**
- * The value a primary state variable should hold when what it shadows is not
- * there, for the classes that declare neither an essential value nor a default.
+ * An empty value for a primary state variable that declares neither an
+ * essential value nor a default, and so cannot be asked for one.
  *
- * The target is what a bare component of the same type holds, since that is
- * what the classes *with* an essential already fall back to. Both routes below
- * ask a class rather than hard-coding a value per type, because the set of
- * types this can reach is wide — over sixty classes have a primary state
- * variable without `hasEssential`.
+ * What it aims at is the value a bare component of the same type holds, since
+ * that is what the primaries that *do* declare an essential value fall back to.
+ * Both routes below ask a class for it rather than hard-coding a value per
+ * type, because the set of types that can reach here is wide — over sixty
+ * classes have a primary state variable without `hasEssential`.
  *
  * Returning a value of the wrong shape is not a safe failure: it is inherited
  * by every state variable computed from the primary, and those are written
@@ -1436,11 +1436,6 @@ function _emptyPrimaryValue({ core, stateDef }: { core: Core; stateDef: any }) {
     // the kind this variable holds -- which makes its declared default a
     // principled answer to "what is an empty one of these", rather than a value
     // chosen here.
-    //
-    // (It is the *shadowing* class, not a class this one shadows or inherits
-    // from. Shadowing relates a created component to the state variable it
-    // tracks; it says nothing about class hierarchies. The hierarchy only
-    // enters through the walk below, which is that class's own.)
     const createComponentOfType =
         stateDef.shadowingInstructions?.createComponentOfType;
     let shadowingClass = createComponentOfType
