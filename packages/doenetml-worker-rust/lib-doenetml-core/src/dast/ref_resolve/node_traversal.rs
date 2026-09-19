@@ -67,15 +67,27 @@ impl Resolver {
         while let Some((origin, origin_source)) = queue.pop_front() {
             counter += 1;
             if counter > max_count {
-                // Internal invariant, despite the wording. This walks the
-                // *resolver's* graph, whose edges are name lookups and index
-                // resolutions from a node to the node it names or indexes; a
-                // reference cycle an author writes
-                // -- `<math name="a" extend="$b" /><math name="b" extend="$a" />`
-                // -- is a cycle in the dependency graph, which is built much
-                // later and reports itself there. Visiting more nodes than
-                // exist would mean the name graph had grown an edge that is not
-                // a name lookup, which is a bug in how it was built.
+                // Internal invariant, and not the one the name suggests. The
+                // resolver's graph does contain cycles an author wrote --
+                // `<group name="a"><group name="b">$a</group></group>` is one
+                // -- so what keeps the counter down is not the shape of the
+                // graph but `visited`, which is set at push time and checked
+                // on both the name and the index edge. Every node is therefore
+                // enqueued at most once, and with `Root` seeded that is at
+                // most `node_resolver_data.len()` pops in total, which is
+                // exactly `max_count`. Exceeding it would mean a push that
+                // skipped the flag, i.e. a bug here rather than in the
+                // document.
+                //
+                // Measured, both ways: with the `visited` short-circuit
+                // removed the nested-group document above panics here, and
+                // with it in place it does not. So the guard is load-bearing
+                // and the panic is unreachable behind it.
+                //
+                // An author's `<math name="a" extend="$b" /><math name="b"
+                // extend="$a" />` is a cycle in the *dependency* graph too,
+                // which is built much later and reports itself there rather
+                // than here.
                 //
                 // Audited for #1921: self-references, two- and three-node
                 // cycles, a `<group>`/`<p>`/`<section>`/`<repeat>`/`<module>`

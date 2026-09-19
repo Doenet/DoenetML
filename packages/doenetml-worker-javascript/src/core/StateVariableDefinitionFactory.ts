@@ -1410,6 +1410,14 @@ function _emptyPrimaryValue({ core, stateDef }: { core: Core; stateDef: any }) {
     // one included -- `integer`'s maps `null` to `NaN`, which is exactly what a
     // bare `<integer />` holds. Guarded because a `set` may be written only for
     // values that are really there.
+    //
+    // No class needs the guard today -- of the seventeen whose primary defines
+    // `set`, only `integer` reaches here at all (the rest carry `hasEssential`
+    // and never get this far), and none of the seventeen throws on `null`,
+    // `undefined` or `[]`. It is not dead weight all the same: measured with
+    // `integer`'s `set` made to throw, the guard turns a blank page back into a
+    // rendered `NaN` from the walk below. A throw here escapes document
+    // construction, which is the #1938 failure this function exists to end.
     if (stateDef.set) {
         try {
             return stateDef.set(null);

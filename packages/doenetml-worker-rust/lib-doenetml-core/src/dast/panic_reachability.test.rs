@@ -162,8 +162,17 @@ fn no_document_reaches_a_panic() {
 /// side. `expand_refs` walks nodes in ascending index order, so an `$g[1]`
 /// written *before* the group resolves to a child that is still a
 /// `FlatNode::Ref`, and traps. Writing the group first expands the child before
-/// the index reaches it, which is why the shape is order-dependent and why the
-/// corpus above misses it.
+/// the index reaches it, which is why the corpus above misses it and why the
+/// control below renders.
+///
+/// Ordering is not the whole of it, though, and a fix built only on ordering
+/// would not cover the rest. The condition is that the child the index lands on
+/// has not been expanded when the index reaches it, and an index that resolves
+/// to itself or into a mutual reference satisfies that at any position: both
+/// `<group name="g">$g[1]$g[2]</group>` and `<group name="a">$b[1]</group>
+/// <group name="b">$a[1]</group>` are written group-first and still trap. They
+/// trap in the expander, so they never reach the JavaScript core's
+/// circular-dependency report and are not the #387 family.
 ///
 /// This is pinned rather than fixed. It traps identically on `main`, and
 /// turning it into a `FlatError` means choosing a message and a diagnostic code
@@ -177,6 +186,11 @@ fn an_index_into_a_composite_of_refs_traps() {
         r#"$g[1]<group name="g">$nothere</group>"#,
         r#"$g[1]<group name="g">$$f(1)</group>"#,
         r#"$g[1].y<group name="g">$x</group><p name="x">hello</p>"#,
+        // Group first, and still trapping: the index resolves to a child that
+        // is the index itself, or to one in the other group that has not been
+        // expanded yet.
+        r#"<group name="g">$g[1]$g[2]</group>"#,
+        r#"<group name="a">$b[1]</group><group name="b">$a[1]</group>"#,
     ];
 
     for source in &sources {
