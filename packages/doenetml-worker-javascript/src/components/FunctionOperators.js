@@ -609,48 +609,58 @@ export class Derivative extends FunctionBaseOperator {
                 return {
                     setValue: {
                         formulaOperator: function (formula) {
-                            let formulaIsVectorValued =
-                                Array.isArray(formula.tree) &&
-                                vectorOperators.includes(formula.tree[0]);
-
-                            let value = formula.subscripts_to_strings();
-
-                            if (formulaIsVectorValued) {
-                                let nComponents = formula.tree.length - 1;
-                                let derivComps = [];
-                                for (let comp = 0; comp < nComponents; comp++) {
-                                    let valComp = value.get_component(comp);
-                                    for (let variable of dependencyValues.derivVariables) {
-                                        valComp = valComp
-                                            .normalize_applied_functions()
-                                            .derivative(
-                                                variable.subscripts_to_strings()
-                                                    .tree,
-                                            );
-                                    }
-                                    derivComps.push(valComp.tree);
-                                }
-
-                                value = me.fromAst([
-                                    value.tree[0],
-                                    ...derivComps,
-                                ]);
-                            } else {
-                                for (let variable of dependencyValues.derivVariables) {
-                                    value = value
-                                        .normalize_applied_functions()
-                                        .derivative(
-                                            variable.subscripts_to_strings()
-                                                .tree,
-                                        );
-                                }
+                            // `derivative` throws on a formula it cannot
+                            // differentiate symbolically -- a tuple raises
+                            // "Operator tuple not implemented for conversion to
+                            // mathjs". Reachable from `<derivative>` of a
+                            // `<function>` whose sugar folded a math child and
+                            // a multi-valued child into one formula, so the
+                            // derivative is nothing rather than the whole
+                            // document being nothing (#1876).
+                            try {
+                                return derivativeOfFormula(
+                                    formula,
+                                    dependencyValues.derivVariables,
+                                );
+                            } catch (e) {
+                                return me.fromAst("＿");
                             }
-                            return value.strings_to_subscripts();
                         },
                     },
                 };
             },
         };
+
+        function derivativeOfFormula(formula, derivVariables) {
+            let formulaIsVectorValued =
+                Array.isArray(formula.tree) &&
+                vectorOperators.includes(formula.tree[0]);
+
+            let value = formula.subscripts_to_strings();
+
+            if (formulaIsVectorValued) {
+                let nComponents = formula.tree.length - 1;
+                let derivComps = [];
+                for (let comp = 0; comp < nComponents; comp++) {
+                    let valComp = value.get_component(comp);
+                    for (let variable of derivVariables) {
+                        valComp = valComp
+                            .normalize_applied_functions()
+                            .derivative(variable.subscripts_to_strings().tree);
+                    }
+                    derivComps.push(valComp.tree);
+                }
+
+                value = me.fromAst([value.tree[0], ...derivComps]);
+            } else {
+                for (let variable of derivVariables) {
+                    value = value
+                        .normalize_applied_functions()
+                        .derivative(variable.subscripts_to_strings().tree);
+                }
+            }
+            return value.strings_to_subscripts();
+        }
 
         stateVariableDefinitions.numericalFunctionOperator = {
             returnDependencies: () => ({

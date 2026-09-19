@@ -7430,4 +7430,99 @@ describe("Function tag tests @group4", async () => {
         expect(f2Latex).contain("0.000000000007");
         expect(f2Latex).contain("2000000000000000000000");
     });
+
+    describe("a formula with no symbolic derivative", () => {
+        // #1876. `<function>`'s sugar wraps every non-label child into one
+        // `<math>`, so a math child beside a child that expands to several
+        // values gives a formula math-expressions cannot differentiate. The
+        // extrema code took the derivative outside the `try` that was already
+        // there for exactly this, so "Operator tuple not implemented for
+        // conversion to mathjs" escaped and the document did not render at all.
+
+        async function build(doenetML: string) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return { stateVariables, resolvePathToNodeIdx };
+        }
+
+        it("builds a function whose formula cannot be differentiated", async () => {
+            // Every spelling that routes several values through a single
+            // child. Writing the same values out one at a time never did this.
+            for (const secondChild of [
+                `<numberList>3 1 2</numberList>`,
+                `<mathList>3 1 2</mathList>`,
+                `<sequence to="3" />`,
+                `<sort>3 1 2</sort>`,
+                `<shuffle>1 2 3</shuffle>`,
+                `<repeat for="1 2" valueName="v">$v</repeat>`,
+                `<conditionalContent><sort>3 1 2</sort></conditionalContent>`,
+                `<group><numberList>3 1 2</numberList></group>`,
+            ]) {
+                const { stateVariables } = await build(
+                    `<function name="f"><math>1</math>${secondChild}</function>`,
+                );
+                expect(
+                    Object.keys(stateVariables).length,
+                    secondChild,
+                ).toBeGreaterThan(0);
+            }
+        });
+
+        it("reports no extrema rather than no document", async () => {
+            const { stateVariables, resolvePathToNodeIdx } = await build(`
+    <function name="f"><math>1</math><numberList>3 1 2</numberList></function>
+    <p name="p1">$f.minima</p>
+            `);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p1")].stateValues
+                    .text,
+            ).eq("");
+        });
+
+        it("gives an empty derivative rather than no document", async () => {
+            // Only reachable once the extrema crash above is gone: before that
+            // the document never got far enough to take a derivative.
+            const { stateVariables, resolvePathToNodeIdx } = await build(`
+    <function name="f"><math>1</math><numberList>3 1 2</numberList></function>
+    <derivative name="d">$f</derivative>
+    <p name="p1">$d</p>
+            `);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p1")].stateValues
+                    .text,
+            ).eq("\uff3f");
+        });
+
+        it("still differentiates the formulas it can", async () => {
+            // The guard must not swallow a derivative that works, including
+            // the vector-valued branch, which takes a different path.
+            for (const [doenetML, expected] of [
+                [
+                    `<function name="f">x^2</function><p name="p1">$f.minimum1</p>`,
+                    "( 0, 0 )",
+                ],
+                [
+                    `<function name="f" through="(0,0) (1,1) (2,0)" /><p name="p1">$f.numMaxima</p>`,
+                    "1",
+                ],
+                [
+                    `<function name="f" variables="t">(t,t^2)</function><derivative name="d">$f</derivative><p name="p1">$d</p>`,
+                    "( 1, 2 t )",
+                ],
+            ] as [string, string][]) {
+                const { stateVariables, resolvePathToNodeIdx } =
+                    await build(doenetML);
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("p1")].stateValues
+                        .text,
+                    doenetML,
+                ).eq(expected);
+            }
+        });
+    });
 });
