@@ -975,11 +975,6 @@ export class CompositeReplacementUpdater {
                     composite: shadowingComponent,
                 });
 
-                // Everything that prepares the shadow's replacements --
-                // registering their names and the copy post-processing -- is
-                // the shadowing composite's to report if it fails, the same as
-                // creating them below. The failure is held until the parameter
-                // stack is pushed so that both take the same path.
                 // expand `this.core._components` to length `newNComponents` so that the component indices will not be reused.
                 // Ahead of the guard below, for the same reason as the
                 // non-shadow path above.
@@ -987,6 +982,11 @@ export class CompositeReplacementUpdater {
                     this.core._components[newNComponents - 1] = undefined;
                 }
 
+                // Everything that prepares the shadow's replacements --
+                // registering their names and the copy post-processing -- is
+                // the shadowing composite's to report if it fails, the same as
+                // creating them below. The failure is held until the parameter
+                // stack is pushed so that both take the same path.
                 let registrationFailure: any = null;
                 try {
                     await addReplacementsToResolver({
