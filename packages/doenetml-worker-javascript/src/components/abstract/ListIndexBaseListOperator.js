@@ -81,12 +81,11 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
 
     // A precondition on the list the operator is given, checked once per
     // comparison, before the first target that uses that comparison is
-    // searched. Given `{ values, numeric }`,
-    // it returns a reason to decline — one of the reasons
-    // `diagnosticsForNoIndex` knows — or nothing to proceed. `<indexOf>`
-    // searches any list at all, so the default asks nothing; `<searchSorted>`
-    // overrides it, because a position within an unordered list is not a
-    // position at all.
+    // searched. Given `{ values, numeric }`, it returns a reason to decline —
+    // one of the reasons `diagnosticsForNoIndex` knows — or nothing to
+    // proceed. `<indexOf>` searches any list at all, so the default asks
+    // nothing; `<searchSorted>` overrides it, because a position within an
+    // unordered list is not a position at all.
     static validateValues = null;
 
     static createAttributesObject() {
