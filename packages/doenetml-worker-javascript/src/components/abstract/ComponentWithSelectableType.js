@@ -50,16 +50,46 @@ function inheritedType({
         return rawType;
     }
 
-    const allowed = validValues.map((v) => v.value ?? v);
-    const normalized = parentTypeAttr.toLowerCase
+    // `createAttributesObject()` is read raw here, but every other consumer
+    // reads it through `preprocessAttributesObject`, which under `toLowerCase`
+    // lower-cases `validValues[].value` and `defaultValue` before
+    // `validateAttributeValue` ever sees them. So both sides are lower-cased
+    // here too. Comparing a lower-cased authored value against an
+    // authored-case `validValues` would never match a valid value spelled with
+    // a capital -- `<answer type="videoWatched">` is the shape -- and would
+    // hand back the parent's default for a value the parent accepted.
+    //
+    // No parent that creates a `_componentWithSelectableType` today declares a
+    // mixed-case `type` value (the four classes that do -- `answer`,
+    // `extractMath`, `sampleRandomNumbers`, `selectRandomNumbers` -- create no
+    // such child), so this is fidelity to the rule rather than a live bug.
+    const lowerCase = parentTypeAttr.toLowerCase === true;
+    const allowed = validValues.map((v) => {
+        const value = v.value ?? v;
+        return lowerCase ? String(value).toLowerCase() : value;
+    });
+    const normalized = lowerCase
         ? String(rawType).trim().toLowerCase()
         : String(rawType).trim();
     if (allowed.includes(normalized)) {
         return normalized;
     }
 
-    // What `validateAttributeValue` will fall back to for the parent.
-    return parentTypeAttr.defaultValue ?? parentTypeAttr.defaultPrimitiveValue;
+    // What `validateAttributeValue` will fall back to for the parent, spelled
+    // the way it spells it: `defaultValue` wins whenever it is not `undefined`
+    // -- a `null` default means the attribute is *dropped*, not replaced, and
+    // must not fall through -- and `defaultPrimitiveValue` stands in only for
+    // an attribute that creates a primitive. `preprocessAttributesObject`
+    // lower-cases `defaultValue` under `toLowerCase` and leaves
+    // `defaultPrimitiveValue` alone, so match that too.
+    const { defaultValue, defaultPrimitiveValue, createPrimitiveOfType } =
+        parentTypeAttr;
+    if (defaultValue !== undefined) {
+        return lowerCase && typeof defaultValue === "string"
+            ? defaultValue.toLowerCase()
+            : defaultValue;
+    }
+    return createPrimitiveOfType ? defaultPrimitiveValue : undefined;
 }
 
 export class ComponentWithSelectableType extends BaseComponent {
