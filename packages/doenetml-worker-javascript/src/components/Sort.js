@@ -7,6 +7,55 @@ import {
     returnListValueStateVariableDefinitions,
 } from "../utils/listValues";
 
+/**
+ * The permutation taking `previous` to `current`, or `null` if `current` is
+ * not a reordering of `previous`.
+ *
+ * Entry `k` of the result is the position in `previous` of the component that
+ * belongs at position `k` now, which is the form
+ * `changeType: "rearrangeReplacements"` takes: the replacement built from that
+ * component is at that same position in the composite's replacements.
+ *
+ * A component may legitimately appear twice — `<sort>$a $a</sort>` copies it
+ * once per occurrence — so positions are matched off in order rather than by
+ * lookup, which pairs the first occurrence with the first, the second with the
+ * second, and keeps the result a permutation.
+ */
+function arrangementFromCopiedComponents(previous, current) {
+    if (previous === undefined || previous.length !== current.length) {
+        return null;
+    }
+
+    const positionsByComponent = new Map();
+    for (const [ind, componentIdx] of previous.entries()) {
+        let positions = positionsByComponent.get(componentIdx);
+        if (positions === undefined) {
+            positions = [];
+            positionsByComponent.set(componentIdx, positions);
+        }
+        positions.push(ind);
+    }
+
+    const arrangement = [];
+    const nextOccurrence = new Map();
+
+    for (const componentIdx of current) {
+        const positions = positionsByComponent.get(componentIdx);
+        const occurrence = nextOccurrence.get(componentIdx) ?? 0;
+
+        if (positions === undefined || occurrence >= positions.length) {
+            // A component that was not copied before, or copied fewer times:
+            // the children changed rather than merely moved.
+            return null;
+        }
+
+        arrangement.push(positions[occurrence]);
+        nextOccurrence.set(componentIdx, occurrence + 1);
+    }
+
+    return arrangement;
+}
+
 export default class Sort extends CompositeComponent {
     static componentType = "sort";
 
@@ -291,7 +340,30 @@ export default class Sort extends CompositeComponent {
             return { replacementChanges: [], diagnostics, nComponents };
         }
 
-        // for now, just recreated
+        // Sorting the same children into a different order is the common case
+        // — a value changed, or one moved past another — and the replacements
+        // we would build are copies of the same components we already copied,
+        // just in new positions. Rearranging them keeps every replacement
+        // alive, so whatever reads `$sorted[2]` or holds a dependency on one
+        // of them is not torn down and rebuilt on each change.
+        const arrangement = arrangementFromCopiedComponents(
+            workspace.componentsCopied,
+            componentsToCopy,
+        );
+
+        if (arrangement) {
+            workspace.componentsCopied = componentsToCopy;
+
+            return {
+                replacementChanges: [
+                    { changeType: "rearrangeReplacements", arrangement },
+                ],
+                diagnostics,
+                nComponents,
+            };
+        }
+
+        // The children themselves changed, so there is nothing to reuse.
         let replacementResults = await this.createSerializedReplacements({
             component,
             components,

@@ -616,6 +616,18 @@ export function calculateReplacementTypesFromChanges(
             if (change.replacementsToWithhold !== undefined) {
                 replacementsToWithhold = change.replacementsToWithhold;
             }
+        } else if (change.changeType === "rearrangeReplacements") {
+            // The same replacements in a new order. The types travel with the
+            // components, so they are permuted rather than recalculated —
+            // which matters when a composite orders children of mixed type.
+            const numActive =
+                replacementTypes.length - (replacementsToWithhold ?? 0);
+            const activeTypes = replacementTypes.slice(0, numActive);
+
+            replacementTypes = [
+                ...change.arrangement.map((ind) => activeTypes[ind]),
+                ...replacementTypes.slice(numActive),
+            ];
         }
     }
 
