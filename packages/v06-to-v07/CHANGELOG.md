@@ -1,5 +1,90 @@
 # @doenet/v06-to-v07
 
+## 0.7.27
+
+### Patch Changes
+
+- e49a50d: A half-typed function call no longer stops the document building.
+
+    ```xml
+    $$g($$f(<math>3</math>)
+    ```
+
+    That is what `$$g($$f(<math>3</math>), 2)` looks like partway through being typed, and the editor
+    parses on every keystroke — so what the reader saw was not a message about the missing
+    parenthesis but a blank page. The only `)` in it belongs to the inner call, and the outer
+    reference was committing to being a call on the strength of it. It now declines and
+    leaves its text alone, as every other unfinished shape here does. A very long run of
+    brackets or parentheses in one span of prose used to fail to parse for an unrelated
+    reason, and no longer does either.
+
+    Formatting a document no longer changes what it means.
+
+    ```xml
+    <p>$(x)hi</p>
+    <p>$(x)[1]</p>
+    ```
+
+    Both came back rewritten: the first as `$xhi`, a reference to a component nobody named,
+    and the second as `$x[1]`, a reference _with an index_ where the author had written a
+    reference followed by the text `[1]`. `$(…)` ends a reference's path, so the parentheses
+    are now kept wherever dropping them would let what follows be read as part of the
+    reference — and still dropped where it could not be, so `$(x).5` and `$(x) hi` come back
+    as `$x.5` and `$x hi`.
+
+    A bad index no longer quietly stops a function reference being called.
+
+    ```xml
+    <p>$$F[$(x)[<math>3</math>]](3)</p>
+    ```
+
+    The inner brackets cannot be read as an index, which was reported. What was not reported
+    is that the `(3)` had stopped being a call and was rendering as text. The call is built
+    now, and the index still says what is wrong with it.
+
+    A diagnostic about markup written between index brackets is reported once, however deeply
+    nested — it used to double with each level — and no longer names components that are not
+    yours. An element in brackets that turns out to be in error drew a second warning about
+    invalid `<_copy>` children beside the real message; that warning is gone, and the real
+    one stayed.
+
+    Converting a v0.6 document now keeps `$(b/c).d` as a reference followed by the text `.d`.
+    v0.6 read it that way — a prop access went inside the parentheses, as `$(b/c.d)` — and the
+    conversion was turning it into a property access the author never wrote.
+
+- 2813fcc: Keep the parentheses on a reference when a letter, digit or underscore follows it and
+  would otherwise be read as part of the name. Printing DoenetML no longer turns `$(x)_0`
+  into `$x_0`, which meant something different.
+- 2813fcc: Convert `assignNames` on the composites that were previously left behind — `<select>`,
+  `<selectFromSequence>`, `<conditionalContent>`, `<sort>`, `<lorem>` and the sampling
+  components — by turning each assigned name into the index that v0.7 uses to reach the same
+  replacement. References inside attribute values, macro indices and function-macro
+  arguments are rewritten too, an index the author already wrote is kept, and a hyphenated
+  name survives as `$(a-b)`. Two composites assigning one name no longer end up with the
+  same `name`, and a name assigned in two different v0.6 namespaces now sends each reference
+  to the one it was reaching into.
+
+    Also upgrade the deprecated attributes that had no handling (`sourcesAreResponses`,
+    `sourcesAreFunctionSymbols`, `tname`, `updateValue`'s `prop`, `nVariants`, a graph's
+    `xlabel`/`ylabel`, and others), turn a parameterized `<copy uri="doenet:...">` into a
+    `<module copy="doenet:...">`, and replace a list's `maths`/`math2` props with indices. The
+    v0.6-only tags (`<copy>`, `<map>`, `<template>`, `<sources>` and the rest) are now
+    recognized however they were capitalized.
+
+    Fixes several ways conversion could quietly lose or corrupt content: a module's `<setup>`
+    kept only its `<customAttribute>` children, an `<image description="...">` lost the
+    alternative text screen readers need, an external copy's assigned name was dropped,
+    `<image source="a/b.png">` had its slashes turned into dots, `<copy source="../f">` became
+    `source="...f"`, a nested function macro was left in v0.6 syntax, a `<copy>` left in place
+    lost the `prop` that said what it copied, and a `<copy>` of something the document could
+    not build was renamed to `<_error>`, which is not an element anyone can write. A reference
+    written with dot notation is left alone, since v0.6 reached props that way and nothing
+    else.
+
+    A document whose `<copy>` tags cannot be resolved now converts instead of failing
+    outright, and problems that need an author's attention are reported with a rule name so
+    they can be grouped.
+
 ## 0.7.26
 
 ## 0.7.25
