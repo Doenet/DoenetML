@@ -340,9 +340,15 @@ export class Proof extends UnnumberedSectioningComponent {
     }
 }
 
-export class Problems extends SectioningComponent {
+export class Problems extends SectioningComponentNumberWithSiblings {
     static componentType = "problems";
     static rendererType = "section";
+
+    // `<problems>` groups divisions and is one itself, so it is numbered among
+    // its sibling divisions rather than in the sequence that runs through the
+    // document's figures and tables. Unlike those siblings it is named by a
+    // word the author may replace.
+    static allowRenameTo = true;
 
     static componentDocs = {
         summary:

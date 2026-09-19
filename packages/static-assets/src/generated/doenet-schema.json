@@ -59039,6 +59039,7 @@
             ],
             "childBuckets": "11110111011000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
+                "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
                 "_block",
                 "_base"
@@ -59350,6 +59351,16 @@
                     "description": "Color used to indicate this section has not been started (dark mode). If omitted, the dark-mode color is derived from `notStartedColor` when that attribute is explicitly set; otherwise falls back to a dark gray that meets WCAG AA contrast for white text.",
                     "defaultValue": "#3a3a3a",
                     "type": "text"
+                },
+                {
+                    "name": "includeParentNumber",
+                    "description": "Whether to prefix this section's number with the parent section's number.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 }
             ],
             "properties": [
@@ -59453,6 +59464,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the section can be collapsed and expanded.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "includeParentNumber",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to prefix this section's number with the parent section's number.",
                     "fromAttribute": true
                 },
                 {
@@ -59831,6 +59849,7 @@
             ],
             "childBuckets": "11110111011000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
+                "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
                 "_block",
                 "_base"
@@ -60142,6 +60161,16 @@
                     "description": "Color used to indicate this section has not been started (dark mode). If omitted, the dark-mode color is derived from `notStartedColor` when that attribute is explicitly set; otherwise falls back to a dark gray that meets WCAG AA contrast for white text.",
                     "defaultValue": "#3a3a3a",
                     "type": "text"
+                },
+                {
+                    "name": "includeParentNumber",
+                    "description": "Whether to prefix this section's number with the parent section's number.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 }
             ],
             "properties": [
@@ -60245,6 +60274,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the section can be collapsed and expanded.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "includeParentNumber",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to prefix this section's number with the parent section's number.",
                     "fromAttribute": true
                 },
                 {

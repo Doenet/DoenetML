@@ -2507,4 +2507,58 @@ describe("Section heading color accessibility diagnostics @group3", async () => 
         );
         expect(diagnostics).to.have.length(0);
     });
+    it("<problems> and <exercises> are numbered among the divisions, not with figures and tables", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <section name="intro"><title>Intro</title></section>
+    <problems name="set"><problem name="first"><p>a</p></problem><problem name="second"><p>b</p></problem></problems>
+    <exercises name="more"><title>More</title></exercises>
+    <section name="outro"><title>Outro</title></section>
+    <figure name="fig"><caption>c</caption></figure>
+    <table name="tab"><title>t</title><tabular><row><cell>1</cell></row></tabular></table>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const numberOf = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .sectionNumber;
+
+        // One sequence for the divisions, whatever their type.
+        expect(await numberOf("intro")).eq("1");
+        expect(await numberOf("set")).eq("2");
+        expect(await numberOf("more")).eq("3");
+        expect(await numberOf("outro")).eq("4");
+
+        // The problems inside the container count among themselves.
+        expect(await numberOf("first")).eq("1");
+        expect(await numberOf("second")).eq("2");
+
+        // A separate sequence for the figures and tables, which no division
+        // draws from.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("fig")].stateValues
+                .figureName,
+        ).eq("Figure 1");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("tab")].stateValues
+                .tableName,
+        ).eq("Table 2");
+    });
+
+    it("<problems> keeps `renameTo`, which the divisions it groups do not have", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <section name="intro"><title>Intro</title></section>
+    <problems name="renamed" renameTo="Lección"><p>a</p></problems>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const renamed =
+            stateVariables[await resolvePathToNodeIdx("renamed")].stateValues;
+
+        expect(renamed.sectionName).eq("Lección");
+        expect(renamed.title).eq("Lección 2");
+    });
 });
