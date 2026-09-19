@@ -14,10 +14,10 @@ taking the page with it.
   inner repeat was wrapped in. The inner repeat still produces nothing from
   each iteration, which is a separate question about what a reference to such
   an iteration means.
-- Wherever a component that produces other components fails while the document
-  is being built, an error now appears in its place and the rest of the
+- Wherever a component that produces other components fails to record the names
+  of what it produced, an error now appears in its place and the rest of the
   document renders, as it already did for some such failures.
 - The same failure while the document is being used — while a component is
-  changing what it produces — is now reported too. It previously went to the
-  browser console only, so the change silently did not happen and nothing on
-  the page said why.
+  changing or hiding what it produces — is now reported too. It previously went
+  to the browser console only, so the change silently did not happen and nothing
+  on the page said why.
