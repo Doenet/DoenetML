@@ -17,9 +17,10 @@
 //!
 //! The audit found one. `ref_expand.rs`'s "Expected an element" is reachable
 //! from ordinary markup, and `an_index_into_a_composite_of_refs_traps` pins the
-//! shapes that reach it. It fails the same way on `main`; it is recorded here
-//! rather than fixed, because making it a diagnostic is a change with a message
-//! and a code of its own.
+//! shapes that reach it. It fails the same way on `main` and is tracked in
+//! #1942, which is where the choice between reporting it and resolving it
+//! whatever the order belongs -- so #1921's own instruction, to convert the
+//! reachable ones, is not carried out here and #1921 stays open.
 
 use std::panic;
 

@@ -65,10 +65,14 @@ impl Expander {
                             // `dast/panic_reachability.test.rs`
                             // (`an_index_into_a_composite_of_refs_traps`).
                             //
-                            // Left as a panic here: it traps the same way on
-                            // `main`, and making it a `FlatError` like the
-                            // `Err` arm below means choosing a message and a
-                            // diagnostic code, which is a change of its own.
+                            // Left as a panic here, and tracked in #1942. It
+                            // traps the same way on `main`, and the choice
+                            // between reporting it (the `FlatError` the `Err`
+                            // arm below already builds) and resolving it
+                            // whatever the order is a decision of its own: the
+                            // first renders the page but leaves the reference
+                            // yielding nothing, which is not what the author
+                            // wrote.
                             let name = match &flat_root.nodes[ref_resolution.node_idx] {
                                 FlatNode::Element(e) => e.name.clone(),
                                 _ => panic!("Expected an element"),
