@@ -2982,6 +2982,18 @@ export function DocViewer({
                         // document it was handed that is not, so this is not
                         // evidence of a wedge.
                         await teardownCurrentCoreWorker({ graceful: true });
+                        // The teardown awaits, and a rebuild can change
+                        // `coreId` and attach its successor's worker while it
+                        // does. Everything after it commits to shared state --
+                        // `coreCreated`, the failure pane, a
+                        // `coreStartFailedCallback` that frees a host's boot
+                        // slot -- so a ladder that lost the document in the
+                        // meantime must hand off instead, exactly as every
+                        // other exit from this function does.
+                        if (bootAbandoned()) {
+                            await standDown();
+                            return;
+                        }
                         coreCreated.current = false;
                         failCoreStart({
                             documentCause:
@@ -3164,6 +3176,13 @@ export function DocViewer({
                 // branch above: the worker is healthy, the document it was
                 // handed is not.
                 await teardownCurrentCoreWorker({ graceful: true });
+                // Same ownership re-check as the handshake branch: the teardown
+                // awaits, and a rebuild can take the document over while it
+                // does.
+                if (bootAbandoned()) {
+                    await standDown();
+                    return;
+                }
                 coreCreated.current = false;
                 failCoreStart({
                     documentCause: err instanceof Error ? err.message : "",
