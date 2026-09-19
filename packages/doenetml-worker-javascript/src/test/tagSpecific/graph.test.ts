@@ -2024,54 +2024,53 @@ describe("Graph tag tests @group2", async () => {
     <graph name="g" displayXAxis="$b1" displayYAxis="$b2"/>
     <booleanInput name="b1" />
     <booleanInput name="b2" prefill="true" />
-
-
     `,
         });
-
-        // not sure what to test as don't know how to check renderer...
+        // displayXAxis/displayYAxis accept "full"/"none"/"positiveOnly"/"negativeOnly"
+        // as literal string values in DoenetML (see the "displayXAxis and displayYAxis
+        // accept positiveOnly and negativeOnly" test below). When bound to a
+        // booleanInput (e.g. displayXAxis="$b1"), the boolean is mapped through the
+        // attribute's valueForTrue/valueForFalse ("full"/"none"), so the axis tracks
+        // the boolean's value dynamically.
+        //
+        // b1 has no prefill (false -> "none"); b2 has prefill="true" (true -> "full").
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .displayXAxis,
-        ).eq(false);
+        ).eq("none");
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .displayYAxis,
-        ).eq(true);
-
+        ).eq("full");
         await updateBooleanInputValue({
             boolean: true,
             componentIdx: await resolvePathToNodeIdx("b1"),
             core,
         });
-
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .displayXAxis,
-        ).eq(true);
+        ).eq("full");
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .displayYAxis,
-        ).eq(true);
-
+        ).eq("full");
         await updateBooleanInputValue({
             boolean: false,
             componentIdx: await resolvePathToNodeIdx("b2"),
             core,
         });
-
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .displayXAxis,
-        ).eq(true);
+        ).eq("full");
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .displayYAxis,
-        ).eq(false);
-
+        ).eq("none");
         await updateBooleanInputValue({
             boolean: false,
             componentIdx: await resolvePathToNodeIdx("b1"),
@@ -2081,27 +2080,25 @@ describe("Graph tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .displayXAxis,
-        ).eq(false);
+        ).eq("none");
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .displayYAxis,
-        ).eq(false);
-
+        ).eq("none");
         await updateBooleanInputValue({
             boolean: true,
             componentIdx: await resolvePathToNodeIdx("b2"),
             core,
         });
-
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .displayXAxis,
-        ).eq(false);
+        ).eq("none");
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].stateValues
                 .displayYAxis,
-        ).eq(true);
+        ).eq("full");
     });
 
     it("display navigation bar", async () => {
@@ -2427,5 +2424,98 @@ describe("Graph tag tests @group2", async () => {
         await runConsecutiveRegularPolygonCenterMoves({
             includeCenterParagraph: false,
         });
+    });
+
+    it("displayXAxis and displayYAxis accept positiveOnly and negativeOnly", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g1" displayXAxis="positiveOnly" displayYAxis="negativeOnly">
+      <point xs="2 3"/>
+    </graph>
+    <graph name="g2" displayXAxis="full" displayYAxis="none">
+      <point xs="2 3"/>
+    </graph>
+    <graph name="g3" displayXAxis="true" displayYAxis="false">
+      <point xs="2 3"/>
+    </graph>
+    `,
+        });
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        let g1Idx = await resolvePathToNodeIdx("g1");
+        expect(stateVariables[g1Idx].stateValues.displayXAxis).eq(
+            "positiveonly",
+        );
+        expect(stateVariables[g1Idx].stateValues.displayYAxis).eq(
+            "negativeonly",
+        );
+
+        let g2Idx = await resolvePathToNodeIdx("g2");
+        expect(stateVariables[g2Idx].stateValues.displayXAxis).eq("full");
+        expect(stateVariables[g2Idx].stateValues.displayYAxis).eq("none");
+
+        // backward compatibility: old true/false values should still map correctly
+        let g3Idx = await resolvePathToNodeIdx("g3");
+        expect(stateVariables[g3Idx].stateValues.displayXAxis).eq("full");
+        expect(stateVariables[g3Idx].stateValues.displayYAxis).eq("none");
+    });
+
+    it("dynamically changes displayXAxis and displayYAxis through choiceInput", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <choiceInput name="disp">
+      <choice>full</choice>
+      <choice>none</choice>
+      <choice>positiveOnly</choice>
+      <choice>negativeOnly</choice>
+    </choiceInput>
+    <graph name="g" displayXAxis="$disp" displayYAxis="$disp" />
+    `,
+        });
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        let gIdx = await resolvePathToNodeIdx("g");
+        let dispIdx = await resolvePathToNodeIdx("disp");
+
+        // Initial choice is full
+        expect(stateVariables[gIdx].stateValues.displayXAxis).eq("full");
+        expect(stateVariables[gIdx].stateValues.displayYAxis).eq("full");
+
+        // Switch to none (choice index 1, 1-based: [2])
+        await updateSelectedIndices({
+            selectedIndices: [2],
+            componentIdx: dispIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[gIdx].stateValues.displayXAxis).eq("none");
+        expect(stateVariables[gIdx].stateValues.displayYAxis).eq("none");
+
+        // Switch to positiveOnly (choice index 2, 1-based: [3])
+        await updateSelectedIndices({
+            selectedIndices: [3],
+            componentIdx: dispIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[gIdx].stateValues.displayXAxis).eq(
+            "positiveonly",
+        );
+        expect(stateVariables[gIdx].stateValues.displayYAxis).eq(
+            "positiveonly",
+        );
+
+        // Switch to negativeOnly (choice index 3, 1-based: [4])
+        await updateSelectedIndices({
+            selectedIndices: [4],
+            componentIdx: dispIdx,
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[gIdx].stateValues.displayXAxis).eq(
+            "negativeonly",
+        );
+        expect(stateVariables[gIdx].stateValues.displayYAxis).eq(
+            "negativeonly",
+        );
     });
 });
