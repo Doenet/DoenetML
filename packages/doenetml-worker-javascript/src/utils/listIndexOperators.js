@@ -68,11 +68,11 @@ export function returnListTypeAttribute({ readsTarget = false } = {}) {
  * are reported.
  *
  * Omitting `target` is one such: nothing about that document can ever produce
- * an answer, so it is a warning. Having no values at all is the other, and is
+ * an answer, so it is a warning. Having no values at all is another, and is
  * only info, since a list driven by an input can legitimately be empty for a
  * while.
  *
- * Values that are not in sorted order is the third, and is what
+ * Values that are not in sorted order are the third, and are what
  * `<searchSorted>` refuses: its answer means nothing unless the list is
  * ordered, so rather than return a plausible number it declines, the way an
  * absent `target` does. A warning rather than an error because a list can be
