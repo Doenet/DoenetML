@@ -140,11 +140,14 @@ impl FlatRoot {
 
     /// Set the children of an element node.
     ///
-    /// Internal invariant, not an authoring error: `idx` comes from a node this
-    /// merge just created as an element, so a non-element here means a caller
-    /// passed the wrong index -- a bug in the core rather than in the document.
-    /// Audited for #1921 against a corpus of documents aimed at exactly this
-    /// (see `dast/panic_reachability.test.rs`); none reached it.
+    /// Internal invariant, not an authoring error: `idx` is one this merge just
+    /// wrote an element at, or -- for the one caller outside this module,
+    /// `ref_expand.rs`'s `set_children(li_idx, …)` -- one of the `<li>` nodes
+    /// `merge_content` created a few lines earlier. Either way a non-element
+    /// here means a caller passed the wrong index, a bug in the core rather
+    /// than in the document. Audited for #1921 against a corpus of documents
+    /// aimed at exactly this (see `dast/panic_reachability.test.rs`); none
+    /// reached it.
     pub fn set_children(&mut self, idx: usize, children: Vec<UntaggedContent>) {
         match &mut self.nodes[idx] {
             FlatNode::Element(elm) => {
@@ -169,8 +172,9 @@ impl FlatRoot {
 
     /// Set the input of a function ref node.
     ///
-    /// Internal invariant: only the `DastFunctionMacro` arm reaches this, and
-    /// it has just written a `FlatNode::FunctionRef` at `idx`. A document
+    /// Internal invariant: only the `DastElementContent::FunctionRef` arm
+    /// reaches this, and it has just called `set_function_ref` to write a
+    /// `FlatNode::FunctionRef` at `idx`. A document
     /// cannot produce a function ref whose node is something else -- `$$f(…)`
     /// where `f` names a `<math>` or nothing at all still makes a function ref
     /// node here, and is resolved (or not) later. Audited for #1921.

@@ -68,8 +68,9 @@ impl Resolver {
             counter += 1;
             if counter > max_count {
                 // Internal invariant, despite the wording. This walks the
-                // *resolver's* name graph, whose edges are name lookups from a
-                // node to the node it names; a reference cycle an author writes
+                // *resolver's* graph, whose edges are name lookups and index
+                // resolutions from a node to the node it names or indexes; a
+                // reference cycle an author writes
                 // -- `<math name="a" extend="$b" /><math name="b" extend="$a" />`
                 // -- is a cycle in the dependency graph, which is built much
                 // later and reports itself there. Visiting more nodes than
@@ -79,7 +80,11 @@ impl Resolver {
                 // Audited for #1921: self-references, two- and three-node
                 // cycles, a `<group>`/`<p>`/`<section>`/`<repeat>`/`<module>`
                 // naming itself, and cycles through a prop all resolve without
-                // reaching this. See `dast/panic_reachability.test.rs`.
+                // reaching this. See `dast/panic_reachability.test.rs`, whose
+                // harness calls `calculate_root_names` for this site's sake --
+                // it is the only caller of `breadth_first_traversal`, so a
+                // corpus that stopped at `Expander::expand` would say nothing
+                // about this panic while appearing to.
                 panic!("Cycles detected in references")
             }
 

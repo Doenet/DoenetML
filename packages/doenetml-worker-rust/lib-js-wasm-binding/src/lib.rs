@@ -86,8 +86,9 @@ impl PublicDoenetMLCore {
         }
     }
 
-    /// The message of the most recent panic in this core, if there has been
-    /// one, cleared by the read.
+    /// The message of the most recent panic on this thread, if there has been
+    /// one, cleared by the read. The store is thread-local rather than per
+    /// core -- there is one core per worker, so the two coincide in practice.
     ///
     /// A panic reaches JavaScript as `RuntimeError: unreachable`, which tells
     /// the reader nothing. The boundary calls this after a failure so the

@@ -11,7 +11,15 @@
 //! <p>$$f(<math>3</math>)</p>` until #1912, for years, because nothing had ever
 //! run that shape end to end -- the only test asserted the DAST. This file is
 //! the standing answer to "are there more of those?": it runs documents through
-//! the same pipeline the web build runs and asserts that none of them traps.
+//! `FlatRoot::from_dast`, `Expander::expand` and `calculate_root_names` -- the
+//! three the viewer runs before any component exists -- and asserts what each
+//! one does with them.
+//!
+//! The audit found one. `ref_expand.rs`'s "Expected an element" is reachable
+//! from ordinary markup, and `an_index_into_a_composite_of_refs_traps` pins the
+//! shapes that reach it. It fails the same way on `main`; it is recorded here
+//! rather than fixed, because making it a diagnostic is a change with a message
+//! and a code of its own.
 
 use std::panic;
 
@@ -19,19 +27,28 @@ use super::*;
 use crate::dast::flat_dast::FlatRoot;
 use crate::test_utils::*;
 
-/// Run `source` through `FlatRoot::from_dast` and `Expander::expand`, returning
-/// the panic message if it panics.
+/// Run `source` through `FlatRoot::from_dast`, `Expander::expand` and
+/// `calculate_root_names`, returning the panic message if it panics.
+///
+/// `calculate_root_names` is here because it is the only caller of
+/// `breadth_first_traversal`, which holds the "Cycles detected in references"
+/// panic. Without it the corpus would say nothing at all about that site, while
+/// reading as though it did. The viewer calls it for every document
+/// (`ResolverAdapter.ts`), so running it is what the corpus already claimed to
+/// be doing.
 ///
 /// The panic hook is deliberately left alone. Silencing it would print less on
 /// a failing run, but `panic::set_hook` is process-global while `cargo test`
 /// runs tests on several threads, so swapping it here would reach into every
-/// test running alongside. Nothing below panics today, so nothing is printed.
+/// test running alongside. libtest captures each test's output and discards it
+/// on a pass, so a caught panic costs nothing on a green run either way.
 fn panic_message_for(source: &str) -> Option<String> {
     let dast_root = dast_root_no_position(source);
 
     let result = panic::catch_unwind(panic::AssertUnwindSafe(|| {
         let mut flat_root = FlatRoot::from_dast(&dast_root);
-        Expander::expand(&mut flat_root);
+        let resolver = Expander::expand(&mut flat_root);
+        resolver.calculate_root_names();
     }));
 
     result.err().map(|payload| {
@@ -48,9 +65,10 @@ fn panic_message_for(source: &str) -> Option<String> {
 /// working -- or a build with `panic = "abort"`, where it cannot work -- would
 /// turn the corpus into a test that passes by doing nothing.
 ///
-/// The panic it provokes prints to stderr on a passing run. That is the cost of
-/// not swapping the process-global hook out from under the tests running
-/// alongside; see `panic_message_for`.
+/// The panic it provokes goes to the hook, which prints -- but libtest captures
+/// a test's output and discards it when the test passes, so a green run is
+/// silent and only a failing one shows it. Measured: this test prints the
+/// message once under `--nocapture` and not at all without it.
 #[test]
 fn the_probe_detects_a_panic() {
     let result = panic::catch_unwind(|| panic!("deliberate probe panic"));
@@ -67,6 +85,10 @@ fn the_probe_detects_a_panic() {
 /// - `ref_resolve/node_traversal.rs` "Cycles detected in references"
 /// - `ref_expand.rs` (x2) "Expected an element"
 /// - `flat_dast/untagged_flat_dast_merge.rs` (x3) `set_*` on the wrong node kind
+///
+/// One shape does reach the first of the two `ref_expand.rs` sites; it is
+/// pinned separately in `an_index_into_a_composite_of_refs_traps` rather than
+/// left here to fail.
 ///
 /// Every one is a shape the parser accepts, which is what makes running
 /// documents the right way to probe them rather than reasoning per site.
@@ -126,5 +148,50 @@ fn no_document_reaches_a_panic() {
         reached.is_empty(),
         "documents reached a panic on the build path:\n  {}",
         reached.join("\n  ")
+    );
+}
+
+/// The one the audit found: `ref_expand.rs`'s first "Expected an element" is
+/// reachable from ordinary markup, so it is not the internal invariant the
+/// other five are.
+///
+/// `resolve` follows index resolutions as well as names, and an index
+/// resolution is recorded for whatever a composite's child happens to be
+/// (`ref_resolve/index_resolutions.rs`) -- no element check, unlike the name
+/// side. `expand_refs` walks nodes in ascending index order, so an `$g[1]`
+/// written *before* the group resolves to a child that is still a
+/// `FlatNode::Ref`, and traps. Writing the group first expands the child before
+/// the index reaches it, which is why the shape is order-dependent and why the
+/// corpus above misses it.
+///
+/// This is pinned rather than fixed. It traps identically on `main`, and
+/// turning it into a `FlatError` means choosing a message and a diagnostic code
+/// for it, which is a change of its own. The assertion is the wrong way round
+/// on purpose: the day the site becomes a diagnostic, this test fails and says
+/// what to delete.
+#[test]
+fn an_index_into_a_composite_of_refs_traps() {
+    let sources = vec![
+        r#"$g[1]<group name="g">$x</group><p name="x">hello</p>"#,
+        r#"$g[1]<group name="g">$nothere</group>"#,
+        r#"$g[1]<group name="g">$$f(1)</group>"#,
+        r#"$g[1].y<group name="g">$x</group><p name="x">hello</p>"#,
+    ];
+
+    for source in &sources {
+        assert_eq!(
+            panic_message_for(source).as_deref(),
+            Some("Expected an element"),
+            "expected this shape to still trap: {source}"
+        );
+    }
+
+    // The control: the same document with the group written before the index
+    // expands the child first, and does not trap. Without it, the assertions
+    // above would also pass if every document panicked for some unrelated
+    // reason.
+    assert_eq!(
+        panic_message_for(r#"<p name="x">hello</p><group name="g">$x</group>$g[1]"#),
+        None
     );
 }

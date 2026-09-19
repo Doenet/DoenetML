@@ -11,6 +11,7 @@ import {
     updateMathInputImmediateValue,
     updateMathInputValue,
     updateMathInputValueToImmediateValue,
+    updateSelectedIndices,
     updateTextInputValue,
     updateValue,
 } from "../utils/actions";
@@ -7521,20 +7522,39 @@ describe("Extend and references tests @group2", async () => {
             }
         });
 
-        it("renders an index into an array that is empty for now", async () => {
+        it("renders an index into an array that is empty for now, and fills it in later", async () => {
             // Nothing is selected at load, so `selectedIndex` does not exist
             // yet. This is the shape an author meets: not a mistake at all,
             // just a page before anyone has clicked.
-            const { text, diagnostics } = await run(
-                `
+            const doenetML = `
     <choiceInput name="ci"><choice>a</choice><choice>b</choice></choiceInput>
     <numberList name="nl">10 20 30</numberList>
     <p name="p1">$nl[$ci.selectedIndex]</p>
-            `,
-                "p1",
-            );
+            `;
+            const { text, diagnostics } = await run(doenetML, "p1");
             expect(text).eq("");
             expect(diagnostics.errors.length).eq(0);
+
+            // "For now" is the load-bearing half. Setting the value directly
+            // must not pin it there: the entry appears when the reader picks a
+            // choice, and the reference has to follow it.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            await core.returnAllStateVariables(false, true);
+            await updateSelectedIndices({
+                componentIdx: await resolvePathToNodeIdx("ci"),
+                selectedIndices: [2],
+                core,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p1")].stateValues
+                    .text,
+            ).eq("20");
         });
 
         it("renders every spelling of an index that resolves to nothing", async () => {

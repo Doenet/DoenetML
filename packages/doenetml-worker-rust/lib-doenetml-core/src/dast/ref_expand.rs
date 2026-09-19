@@ -50,17 +50,25 @@ impl Expander {
                     match resolver.resolve(&ref_.path, ref_.idx, false) {
                         Ok(ref_resolution) => {
                             // Get the tag name of the referent
-                            // Internal invariant: the resolver only ever
-                            // registers names for element nodes
-                            // (`build_resolver` walks elements), so a resolution
-                            // that succeeded names one. A reference to anything
-                            // else fails to resolve and takes the `Err` arm
-                            // below, where it becomes a `FlatError` diagnostic.
-                            // Audited for #1921 against documents aimed at this
-                            // site -- a referent turned into an error node, a
-                            // prop that does not exist, an over-long path, an
-                            // element in index brackets -- none reached it. See
-                            // `dast/panic_reachability.test.rs`.
+                            // Author-reachable, and the one thing #1921's audit
+                            // found. The resolver registers *names* only for
+                            // elements (`build_resolver` walks elements), which
+                            // is what the invariant used to rest on -- but
+                            // `resolve` also follows *index* resolutions, and
+                            // those are recorded for whatever a composite's
+                            // child is (`ref_resolve/index_resolutions.rs`),
+                            // with no element check. `expand_refs` walks in
+                            // ascending index order, so `$g[1]<group
+                            // name="g">$x</group>` resolves to a child that is
+                            // still a `FlatNode::Ref` and traps here, taking
+                            // the whole document down. The shapes are pinned in
+                            // `dast/panic_reachability.test.rs`
+                            // (`an_index_into_a_composite_of_refs_traps`).
+                            //
+                            // Left as a panic here: it traps the same way on
+                            // `main`, and making it a `FlatError` like the
+                            // `Err` arm below means choosing a message and a
+                            // diagnostic code, which is a change of its own.
                             let name = match &flat_root.nodes[ref_resolution.node_idx] {
                                 FlatNode::Element(e) => e.name.clone(),
                                 _ => panic!("Expected an element"),
