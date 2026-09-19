@@ -48,17 +48,28 @@ export async function addReplacementsToResolver({
             blankStringReplacements,
         });
 
-    // If `createComponentIdx` was specified, the one replacement is already in the resolver,
-    // so we just add its children and attribute components/references.
-    // Otherwise add all replacements.
+    // If `createComponentIdx` was specified, the composite is expected to produce
+    // a single replacement, which took that component index and so is already in
+    // the resolver: it is the parent of the fragment, and we add its children and
+    // attribute components/references.
+    //
+    // A composite can produce a different number of replacements than that, in
+    // which case none of them took the index -- `adjustForCreateComponentIdxName`
+    // and `addAttributesToSingleReplacement` both only act on a lone replacement.
+    // The node at `createComponentIdx` is then a parent with no component of its
+    // own, and the replacements are its children, as in the case below.
+    const fragmentParent = replacementActingAsFragmentParent(
+        serializedReplacements,
+        component,
+    );
     const fragmentChildren: any[] = [];
     let parentSourceSequence: any = null;
-    if (component.attributes.createComponentIdx != null) {
-        if (serializedReplacements[0]?.children) {
-            fragmentChildren.push(...serializedReplacements[0].children);
+    if (fragmentParent) {
+        if (fragmentParent.children) {
+            fragmentChildren.push(...fragmentParent.children);
         }
-        for (const attrName in serializedReplacements[0]?.attributes) {
-            const attribute = serializedReplacements[0].attributes[attrName];
+        for (const attrName in fragmentParent.attributes) {
+            const attribute = fragmentParent.attributes[attrName];
             if (attribute.type === "component") {
                 fragmentChildren.push(attribute.component);
             } else if (attribute.type === "references") {
@@ -68,8 +79,7 @@ export async function addReplacementsToResolver({
 
         // if the replacement that is the fragment parent has a source sequence,
         // then add that as the `parentSourceSequence` of the flat fragment
-        let sourceSequence =
-            serializedReplacements[0]?.attributes["source:sequence"];
+        let sourceSequence = fragmentParent.attributes["source:sequence"];
         const createComponentIdxPrimitive =
             component.attributes.createComponentIdx?.primitive;
         if (sourceSequence && createComponentIdxPrimitive?.type === "number") {
@@ -128,6 +138,42 @@ export async function addReplacementsToResolver({
             }
         }
     }
+}
+
+/**
+ * Return the replacement that the resolver already holds as the composite's
+ * `createComponentIdx` node, or `null` if there is none.
+ *
+ * A composite with `createComponentIdx` set is expected to produce exactly one
+ * replacement, which is given that index (by `adjustForCreateComponentIdxName`,
+ * `addAttributesToSingleReplacement`, or `verifyReplacementsMatchSpecifiedType`,
+ * each of which acts only on a lone replacement). When the composite produces a
+ * different number of replacements -- none, or several, as a reference to a
+ * repeat iteration whose body has more than one child does -- no replacement
+ * carries the index and there is no fragment parent among them.
+ */
+function replacementActingAsFragmentParent(
+    serializedReplacements: any[],
+    component: any,
+): any | null {
+    const createComponentIdx =
+        component.attributes.createComponentIdx?.primitive?.value;
+
+    if (createComponentIdx == null || serializedReplacements.length !== 1) {
+        return null;
+    }
+
+    const replacement = serializedReplacements[0];
+
+    if (
+        typeof replacement !== "object" ||
+        replacement === null ||
+        getEffectiveComponentIdx(replacement) !== createComponentIdx
+    ) {
+        return null;
+    }
+
+    return replacement;
 }
 
 export async function determineParentAndIndexResolutionForResolver({

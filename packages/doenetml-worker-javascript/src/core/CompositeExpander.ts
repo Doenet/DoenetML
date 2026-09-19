@@ -403,18 +403,11 @@ export async function expandCompositeComponent({
     if (result.replacements) {
         let serializedReplacements = result.replacements;
 
-        await addReplacementsToResolver({
-            core,
-            serializedReplacements,
-            component,
-        });
-
-        reserveComponentIndices(core, newNComponents);
-
         await createAndSetReplacements({
             core,
             component,
             serializedReplacements,
+            newNComponents,
         });
     } else {
         throw Error(
@@ -686,18 +679,11 @@ async function expandShadowingComposite({
 
     component.replacementsWorkspace.replacementsCreated = stateIdInfo.num;
 
-    await addReplacementsToResolver({
-        core,
-        serializedReplacements,
-        component,
-    });
-
-    reserveComponentIndices(core, newNComponents);
-
     await createAndSetReplacements({
         core,
         component,
         serializedReplacements,
+        newNComponents,
     });
 
     if (shadowedComposite.replacementsToWithhold > 0) {
@@ -786,39 +772,85 @@ export function adjustForCreateComponentIdxName({
     }
 }
 
+/**
+ * Register `serializedReplacements` with the resolver and create them as
+ * `component`'s replacements.
+ *
+ * Both halves report the same way. A composite that cannot produce its
+ * replacements shows an error in its own place and the rest of the document
+ * builds around it; before, only the second half did that and a failure
+ * registering the names escaped expansion and blanked the page (#1950).
+ */
 export async function createAndSetReplacements({
     core,
     component,
     serializedReplacements,
+    newNComponents,
 }: {
     core: Core;
     component: any;
     serializedReplacements: any[];
+    newNComponents: number;
 }) {
+    // Reserve the indices ahead of the guard below, rather than after
+    // registering with the resolver as the callers used to:
+    // `createSerializedReplacements` has already handed them out, and now that
+    // a failure registering them is caught rather than fatal, a later expansion
+    // would otherwise hand out the same ones again.
+    reserveComponentIndices(core, newNComponents);
+
+    // Registering with the resolver stays outside the parameter stack, where it
+    // was when it was the caller's step, so that `setErrorReplacements` builds
+    // its `_error` component with the composite's shared parameters pushed
+    // however the failure arose.
+    let registrationFailure: any = null;
+    try {
+        await addReplacementsToResolver({
+            core,
+            serializedReplacements,
+            component,
+        });
+    } catch (e: any) {
+        registrationFailure = e;
+    }
+
     core.parameterStack.push(component.sharedParameters, false);
 
-    try {
-        let replacementResult = await createIsolatedComponents({
-            core,
-            serializedComponents: serializedReplacements,
-            ancestors: component.ancestors,
-            shadow: true,
-            componentsReplacementOf: component,
-        });
-        component.replacements = replacementResult.components;
-    } catch (e: any) {
-        console.error(e);
-        component.replacements = await core.setErrorReplacements({
-            composite: component,
-            message: e.message,
-            source: e,
-        });
+    if (registrationFailure) {
+        await setReplacementsToError(core, component, registrationFailure);
+    } else {
+        try {
+            let replacementResult = await createIsolatedComponents({
+                core,
+                serializedComponents: serializedReplacements,
+                ancestors: component.ancestors,
+                shadow: true,
+                componentsReplacementOf: component,
+            });
+            component.replacements = replacementResult.components;
+        } catch (e: any) {
+            await setReplacementsToError(core, component, e);
+        }
     }
     core.parameterStack.pop();
 
     await core.dependencies.addBlockersFromChangedReplacements(component);
 
     component.isExpanded = true;
+}
+
+/**
+ * Put `component` into its error state: its replacements become the one
+ * `_error` component that carries `e`'s message, and the message is added to
+ * the document's diagnostics beside the composite.
+ */
+async function setReplacementsToError(core: Core, component: any, e: any) {
+    console.error(e);
+    component.replacements = await core.setErrorReplacements({
+        composite: component,
+        message: e.message,
+        source: e,
+    });
 }
 
 export async function replaceCompositeChildren({
