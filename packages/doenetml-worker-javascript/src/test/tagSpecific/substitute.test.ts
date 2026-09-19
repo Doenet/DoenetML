@@ -2016,5 +2016,67 @@ describe("Substitute tag tests @group4", async () => {
                 ).eq(0);
             }
         });
+
+        it("reads an accepted type written in any spelling the same way", async () => {
+            // `validateAttributeValue` lower-cases and trims before it checks
+            // `validValues`, so `TEXT` and ` text ` are the accepted `text`.
+            // Every place that reads the raw attribute instead has to do the
+            // same, or the two disagree again: the content child was built as
+            // a `<math>` while `stateValues.type` said `text`, and the text
+            // branch called `.replace` on a math expression.
+            for (const [type, expected] of [
+                ["text", "yz"],
+                ["TEXT", "yz"],
+                [" text ", "yz"],
+                ["math", "y + z"],
+                ["MATH", "y + z"],
+                [" math ", "y + z"],
+            ] as [string, string][]) {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <substitute name="s" type="${type}" match="x" replacement="y">${
+        expected === "yz" ? "xz" : "x+z"
+    }</substitute>
+    <p name="p">$s</p>`,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                        .text,
+                    type,
+                ).eq(expected);
+            }
+        });
+
+        it("treats an empty type as the default, everywhere", async () => {
+            // `type=""` is a value the parent validates and replaces, not an
+            // absent attribute. Short-circuiting it gave the parent `math` and
+            // `match`/`replacement` `number`, and the page did not render.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <substitute name="s" type="" match="x" replacement="y">x+z</substitute>
+    <p name="p">$s</p>`,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq("y + z");
+
+            const diagnostics = getDiagnosticsByType(core);
+            expect(
+                [
+                    ...diagnostics.errors,
+                    ...diagnostics.warnings,
+                    ...diagnostics.infos,
+                ].map((d: any) => d.code),
+            ).eqls(["doenet-i0048"]);
+        });
     });
 });

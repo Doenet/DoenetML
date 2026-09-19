@@ -498,10 +498,20 @@ export class CoreWorker {
             //
             // The read also clears the slot, so a later failure in this worker
             // cannot report a panic that belonged to an earlier one.
-            throwAsDocumentBuildError(
-                err,
-                this.doenetCore?.take_last_panic_message() ?? undefined,
-            );
+            //
+            // Guarded because it is only there to improve a message, and the
+            // failure it improves is the one case where the wasm instance has
+            // just trapped. Unguarded, a throw from the read would be thrown
+            // in place of `err`, unmarked -- and an unmarked failure is
+            // retried, which is the behavior this whole path exists to stop.
+            let panicMessage: string | undefined;
+            try {
+                panicMessage =
+                    this.doenetCore?.take_last_panic_message() ?? undefined;
+            } catch (readErr) {
+                console.error(readErr);
+            }
+            throwAsDocumentBuildError(err, panicMessage);
         } finally {
             resolve();
         }

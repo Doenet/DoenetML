@@ -23,15 +23,6 @@ pub fn set_panic_hook() {
     // than something an author can reach (#1921), which is exactly why this
     // matters: if one of them ever does fire, the alternative is a blank page
     // and the word "unreachable".
-    HOOK_INSTALLED.call_once(|| {
-        let previous_hook = panic::take_hook();
-        panic::set_hook(Box::new(move |info| {
-            LAST_PANIC_MESSAGE.with(|slot| {
-                *slot.borrow_mut() = Some(info.to_string());
-            });
-            previous_hook(info);
-        }));
-    });
 
     // When the `console_error_panic_hook` feature is enabled, we can call the
     // `set_panic_hook` function at least once during initialization, and then
@@ -41,6 +32,23 @@ pub fn set_panic_hook() {
     // https://github.com/rustwasm/console_error_panic_hook#readme
     #[cfg(feature = "console_error_panic_hook")]
     console_error_panic_hook::set_once();
+
+    // The recording hook goes on *after* that, and the order is the whole of
+    // it: `set_once` is itself a `panic::set_hook`, which replaces the
+    // installed hook rather than adding to it. Recording first and printing
+    // second leaves only the printing hook, and `take_last_panic_message` then
+    // returns `None` for every panic -- in exactly the default-feature build
+    // that ships. This way round, the recording hook wraps the printing one
+    // and both run.
+    HOOK_INSTALLED.call_once(|| {
+        let previous_hook = panic::take_hook();
+        panic::set_hook(Box::new(move |info| {
+            LAST_PANIC_MESSAGE.with(|slot| {
+                *slot.borrow_mut() = Some(info.to_string());
+            });
+            previous_hook(info);
+        }));
+    });
 }
 
 /// The message of the most recent panic on this thread, if there has been one,

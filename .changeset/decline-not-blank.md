@@ -18,8 +18,10 @@ A mistake in one element no longer blanks the whole document.
   is one such formula.
 - A `<select>` builds when a `<setup>`, `<sort>` or `<collect>` sits beside its
   options. Which option a seeded activity shows is unchanged.
-- A misspelled `type` on `<substitute>` is reported once, saying what the value
-  was treated as, instead of twice with two different answers and a blank page.
+- `<substitute>` reads its `type` the same way everywhere. `type="TEXT"` and
+  `type=" text "` are the `text` they look like, and a value the element cannot
+  use — misspelled, or empty — is reported once, saying what it was treated as,
+  instead of twice with two different answers and a blank page.
 
 When a document genuinely cannot be built, the failure now says what broke
 instead of offering a retry and a reload that cannot help.

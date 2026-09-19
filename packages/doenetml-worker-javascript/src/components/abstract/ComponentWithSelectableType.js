@@ -33,7 +33,12 @@ function inheritedType({
     componentInfoObjects,
 }) {
     const rawType = parentAttributes.type?.value;
-    if (!rawType || !parentComponentType) {
+    // Only an absent attribute short-circuits. `type=""` is a value the parent
+    // *will* put through `validateAttributeValue` and replace with its default,
+    // so treating it as "nothing was written" is the same disagreement again:
+    // `<substitute type="" match="x" replacement="y">` gave the parent `math`
+    // and the children `number`.
+    if (rawType == null || !parentComponentType) {
         return rawType;
     }
 
