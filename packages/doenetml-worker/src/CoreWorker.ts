@@ -604,7 +604,7 @@ export class CoreWorker {
 
         try {
             discardStalePanicMessage();
-            return (await this.javascriptCore?.createCoreGenerateDast(
+            const result = (await this.javascriptCore?.createCoreGenerateDast(
                 args,
                 updateRenderersCallback,
                 reportScoreAndStateCallback,
@@ -614,6 +614,29 @@ export class CoreWorker {
                 sendEvent,
                 requestSolutionView,
             )) as any;
+
+            // A trap does not arrive here as a rejection. The JavaScript core
+            // catches its own throws and reports them by returning
+            // `{ success: false, errMsg }`, and a Rust trap during evaluation
+            // -- the core calls back into the resolver throughout -- is a throw
+            // like any other, so it comes back as `errMsg: "unreachable"`.
+            // Left alone it would reach the reader as that bare word, skipping
+            // both the recorded panic message and the teardown a poisoned wasm
+            // instance needs.
+            //
+            // A message in the slot is the evidence: it was cleared above, so
+            // anything in it now was recorded during this build.
+            if (result?.success === false) {
+                const panicMessage = readPanicMessage();
+                if (panicMessage !== undefined) {
+                    throwAsDocumentBuildError(
+                        new Error(result.errMsg ?? ""),
+                        panicMessage,
+                    );
+                }
+            }
+
+            return result;
         } catch (err) {
             console.error(err);
             // `createCoreGenerateDast` reports an ordinary core failure by
