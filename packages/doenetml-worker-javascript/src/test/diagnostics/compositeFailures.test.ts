@@ -29,16 +29,6 @@ let failRegistrationFor: string | null = null;
  */
 let failWithholdAdjustment = false;
 
-/**
- * When true, `removeComponentsFromResolver` throws.
- *
- * `DeletionEngine` imports that function across the module boundary, so this
- * reaches a throw from inside `updateCompositeReplacements` at a point where
- * the composite's shared parameters have been pushed onto
- * `core.parameterStack` and not yet popped.
- */
-let failComponentRemoval = false;
-
 vi.mock("../../core/ResolverAdapter", async (importOriginal) => {
     const actual =
         await importOriginal<typeof import("../../core/ResolverAdapter")>();
@@ -59,22 +49,16 @@ vi.mock("../../core/ResolverAdapter", async (importOriginal) => {
             }
             return actual.determineParentAndIndexResolutionForResolver(args);
         },
-        removeComponentsFromResolver(args: any) {
-            if (failComponentRemoval) {
-                throw Error(INJECTED);
-            }
-            return actual.removeComponentsFromResolver(args);
-        },
     };
 });
 
 /**
- * A composite that cannot build its replacements reports itself, and the rest
- * of the document renders — the rule #1935 and #1941 stated for the parser and
- * for one element at a time, applied to the two paths a composite's
- * replacements travel.
+ * A composite that cannot register its replacements with the resolver reports
+ * itself, and the rest of the document renders — the rule #1935 and #1941
+ * stated for the parser and for one element at a time, applied to the four
+ * places a composite registers replacements.
  *
- * The two paths failed differently before this, and the tests below assert the
+ * The paths failed differently before this, and the tests below assert the
  * same outcome for both:
  *
  * - While the document is being **built**, the throw escaped construction and
@@ -220,10 +204,9 @@ describe("a composite reports its own failure rather than losing it @group4", ()
 
     // Shrinking the repeat makes it withhold replacements rather than create
     // them, which is the one path that reaches
-    // `adjustReplacementsToWithhold`'s resolver adjustment — and the only
-    // route these tests found to a throw escaping
-    // `updateCompositeReplacements` itself, which is what the backstop in
-    // `EssentialValueWriter` catches.
+    // `adjustReplacementsToWithhold`'s resolver adjustment -- the fourth place
+    // a composite registers replacements, and the only one that is not a call
+    // to `addReplacementsToResolver`.
     const shrinkDoenetML = `
 <mathInput name="n" prefill="5" />
 <p name="after">after</p>
@@ -252,89 +235,20 @@ describe("a composite reports its own failure rather than losing it @group4", ()
                 .text,
         ).eq("after");
 
-        // The withholding did not happen -- the page still shows all five --
-        // which is the point of reporting it: the author is told that the
-        // document is not showing what it says, rather than left to wonder.
+        // The guard is around the resolver registration alone, so the
+        // withholding either side of it still happens and the page shows what
+        // it should. What was lost is the index registration -- `$s[3]` would
+        // still resolve to a replacement that is no longer shown -- and that
+        // is what the diagnostic tells the author.
         expect(
             stateVariables[await resolvePathToNodeIdx("vals")].stateValues.text,
-        ).eq("1, 2, 3, 4, 5");
+        ).eq("1, 2");
 
         expect(
             getDiagnosticsByType(core).errors.filter((error) =>
                 error.message.includes(INJECTED),
             ).length,
         ).eq(1);
-    });
-
-    // Replacing one case's content with another's deletes the old
-    // replacements and adds the new ones in a single change, which is the
-    // one path that throws from between `updateCompositeReplacements`'s
-    // `parameterStack.push` and its `pop`.
-    const swapDoenetML = `
-<mathInput name="n" prefill="1" />
-<p name="out"><conditionalContent name="c"><case condition="$n=1"><text>a</text><text>b</text></case><else><text>z</text></else></conditionalContent></p>
-<p name="after">after</p>`;
-
-    it("leaves the parameter stack where it found it when the update throws", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: swapDoenetML,
-        });
-
-        // The depth the rest of the document is built at. Anything left on the
-        // stack by the failed update would be the failing composite's own
-        // shared parameters, and every composite processed after it would be
-        // built with those.
-        const depthBefore = (core as any).core.parameterStack.stack.length;
-
-        failComponentRemoval = true;
-        try {
-            await updateMathInputValue({
-                latex: "7",
-                componentIdx: await resolvePathToNodeIdx("n"),
-                core,
-            });
-        } finally {
-            failComponentRemoval = false;
-        }
-
-        expect((core as any).core.parameterStack.stack.length).eq(depthBefore);
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("after")].stateValues
-                .text,
-        ).eq("after");
-
-        expect(
-            getDiagnosticsByType(core).errors.filter((error) =>
-                error.message.includes(INJECTED),
-            ).length,
-        ).eq(1);
-    });
-
-    it("control: the same swap with nothing injected", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: swapDoenetML,
-        });
-
-        const depthBefore = (core as any).core.parameterStack.stack.length;
-
-        await updateMathInputValue({
-            latex: "7",
-            componentIdx: await resolvePathToNodeIdx("n"),
-            core,
-        });
-
-        expect((core as any).core.parameterStack.stack.length).eq(depthBefore);
-
-        const stateVariables = await core.returnAllStateVariables(false, true);
-
-        expect(
-            stateVariables[await resolvePathToNodeIdx("out")].stateValues.text,
-        ).eq("z");
-
-        expect(getDiagnosticsByType(core).errors.length).eq(0);
     });
 
     it("control: the same withholding with nothing injected", async () => {

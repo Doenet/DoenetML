@@ -1222,61 +1222,88 @@ export class CompositeReplacementUpdater {
         }
 
         if (adjustResolver) {
-            const blankStringReplacements = component.replacements!.map(
-                (repl: any) => typeof repl === "string" && repl.trim() === "",
-            );
+            // Telling the resolver which replacements are withheld is the
+            // fourth place a composite registers replacements, and it is
+            // guarded like the other three: a failure here is the composite's
+            // to report rather than the document's to die of.
+            //
+            // `addBlockersFromChangedReplacements` is deliberately *outside*
+            // the guard. It reaches `checkForCircularResolveBlocker`, whose
+            // throw is how a circular reference is reported today (#387) and
+            // is what several documents rely on to fail to build at all.
+            // Catching that here would turn a reported cycle into a document
+            // that carries on resolving one.
+            let indexParentComposite: any = null;
 
-            const { indexResolution } =
-                await determineParentAndIndexResolutionForResolver({
-                    core: this.core,
-                    component,
-                    updateOldReplacementsStart: 0,
-                    updateOldReplacementsEnd:
-                        component.replacements!.length -
-                        (component.replacementsToWithhold ?? 0),
-                    blankStringReplacements,
-                });
+            try {
+                const blankStringReplacements = component.replacements!.map(
+                    (repl: any) =>
+                        typeof repl === "string" && repl.trim() === "",
+                );
 
-            let indexParent =
-                indexResolution.ReplaceAll?.parent ??
-                indexResolution.ReplaceRange?.parent ??
-                null;
+                const { indexResolution } =
+                    await determineParentAndIndexResolutionForResolver({
+                        core: this.core,
+                        component,
+                        updateOldReplacementsStart: 0,
+                        updateOldReplacementsEnd:
+                            component.replacements!.length -
+                            (component.replacementsToWithhold ?? 0),
+                        blankStringReplacements,
+                    });
 
-            if (
-                indexParent !== null &&
-                indexParent !== component.componentIdx
-            ) {
-                const indexParentComposite = this.core._components[indexParent];
+                let indexParent =
+                    indexResolution.ReplaceAll?.parent ??
+                    indexResolution.ReplaceRange?.parent ??
+                    null;
 
-                if (indexParentComposite) {
-                    if (this.core.replaceIndexResolutionsInResolver) {
-                        const newContentForIndex = component
-                            .replacements!.slice(
-                                0,
-                                component.replacements!.length -
-                                    change.replacementsToWithhold,
-                            )
-                            .map((repl: any) => {
-                                if (typeof repl === "string") {
-                                    return repl;
-                                } else {
-                                    return repl.componentIdx;
-                                }
-                            });
+                if (
+                    indexParent !== null &&
+                    indexParent !== component.componentIdx
+                ) {
+                    const candidate = this.core._components[indexParent];
 
-                        this.core.replaceIndexResolutionsInResolver(
-                            { content: newContentForIndex },
-                            indexResolution,
-                        );
+                    if (candidate) {
+                        if (this.core.replaceIndexResolutionsInResolver) {
+                            const newContentForIndex = component
+                                .replacements!.slice(
+                                    0,
+                                    component.replacements!.length -
+                                        change.replacementsToWithhold,
+                                )
+                                .map((repl: any) => {
+                                    if (typeof repl === "string") {
+                                        return repl;
+                                    } else {
+                                        return repl.componentIdx;
+                                    }
+                                });
 
-                        this.core.rootNames =
-                            this.core.calculateRootNames?.().names;
+                            this.core.replaceIndexResolutionsInResolver(
+                                { content: newContentForIndex },
+                                indexResolution,
+                            );
 
-                        await this.core.dependencies.addBlockersFromChangedReplacements(
-                            indexParentComposite,
-                        );
+                            this.core.rootNames =
+                                this.core.calculateRootNames?.().names;
+
+                            indexParentComposite = candidate;
+                        }
                     }
                 }
+            } catch (e: any) {
+                console.error(e);
+                this.markCompositeInError({
+                    composite: component,
+                    message: e.message,
+                    source: e,
+                });
+            }
+
+            if (indexParentComposite) {
+                await this.core.dependencies.addBlockersFromChangedReplacements(
+                    indexParentComposite,
+                );
             }
         }
 
