@@ -9,11 +9,10 @@
 A component that builds other components reports its own failure rather than
 taking the page with it.
 
-- A `<repeat>` over a repeat whose body holds a `<setup>`, or more than one
-  element, now builds the document. It blanked the page before, whatever the
-  inner repeat was wrapped in. The inner repeat still produces nothing from
-  each iteration, which is a separate question about what a reference to such
-  an iteration means.
+- A `<repeat>` over a repeat whose body holds a `<setup>` now builds the
+  document. It blanked the page before, whatever the inner repeat was wrapped
+  in. The inner repeat still produces nothing from each iteration, which is a
+  separate question about what a reference to such an iteration means.
 - Wherever a component that produces other components fails to record the names
   of what it produced, an error now appears in its place and the rest of the
   document renders, as it already did for some such failures.

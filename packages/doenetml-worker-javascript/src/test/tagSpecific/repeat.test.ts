@@ -2342,10 +2342,10 @@ describe("Repeat tag tests @group1", async () => {
     // should mean; that half is deliberately not asserted here either way.
     describe("a repeat over a repeat whose body is not a single element", () => {
         const wrappers = [
-            ["bare", "$v", ""],
-            ["in a paragraph", "<p>$v</p>", ""],
-            ["in a numberList", "<numberList>$v</numberList>", ""],
-            ["in a mathList", "<mathList>$v</mathList>", ""],
+            ["bare", "$v"],
+            ["in a paragraph", "<p>$v</p>"],
+            ["in a numberList", "<numberList>$v</numberList>"],
+            ["in a mathList", "<mathList>$v</mathList>"],
         ] as const;
 
         for (const [description, body] of wrappers) {
