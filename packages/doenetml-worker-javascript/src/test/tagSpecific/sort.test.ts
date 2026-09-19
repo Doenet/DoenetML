@@ -1198,6 +1198,126 @@ describe("Sort tag tests @group4", async () => {
             await expectProp("2, 9, 100");
         });
 
+        it("a list that empties and refills", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="n" prefill="0" />
+    <sequence name="seq" from="1" to="$n" />
+    <sort name="s">$seq</sort>
+    <p name="pList">$s</p>
+  `,
+            });
+
+            // Nothing to sort: the composite has no replacements to keep.
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: [],
+            });
+
+            for (const [latex, sorted_result] of [
+                ["3", ["1", "2", "3"]],
+                ["0", []],
+                ["1", ["1"]],
+            ] as [string, string[]][]) {
+                await updateMathInputValue({
+                    latex,
+                    componentIdx: await resolvePathToNodeIdx("n"),
+                    core,
+                });
+
+                await test_sort({ core, resolvePathToNodeIdx, sorted_result });
+            }
+        });
+
+        it("values that do not parse as numbers are rearranged like any other", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="m" prefill="3" />
+    <numberList name="nl">x y</numberList>
+    <sort name="s">5 $m 1 $nl</sort>
+    <p name="pList">$s</p>
+  `,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["1", "3", "5", "NaN", "NaN"],
+            });
+
+            const before = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+
+            await updateMathInputValue({
+                latex: "9",
+                componentIdx: await resolvePathToNodeIdx("m"),
+                core,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["1", "5", "9", "NaN", "NaN"],
+            });
+
+            const after = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+
+            expect([...after].sort()).eqls([...before].sort());
+            expect(after).not.eqls(before);
+        });
+
+        it("replacements of different types carry their types into the new order", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="m" prefill="3" />
+    <setup><number name="five">5</number><math name="one">1</math></setup>
+    <sort name="s">$five $m $one</sort>
+    <p name="pList">$s</p>
+  `,
+            });
+
+            async function replacementTypes() {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                return stateVariables[
+                    await resolvePathToNodeIdx("pList")
+                ].activeChildren.map(
+                    (child) => stateVariables[child.componentIdx].componentType,
+                );
+            }
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["1", "3", "5"],
+            });
+            expect(await replacementTypes()).eqls(["math", "math", "number"]);
+
+            // 3 becomes 9, so the number moves out of last place
+            await updateMathInputValue({
+                latex: "9",
+                componentIdx: await resolvePathToNodeIdx("m"),
+                core,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["1", "5", "9"],
+            });
+            expect(await replacementTypes()).eqls(["math", "number", "math"]);
+        });
+
         it("sorted points stay live after they reorder", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `

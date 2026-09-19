@@ -617,9 +617,14 @@ export function calculateReplacementTypesFromChanges(
                 replacementsToWithhold = change.replacementsToWithhold;
             }
         } else if (change.changeType === "rearrangeReplacements") {
-            // The same replacements in a new order. The types travel with the
-            // components, so they are permuted rather than recalculated —
-            // which matters when a composite orders children of mixed type.
+            // The same replacements in a new order, so the types travel
+            // with the components and are permuted rather than recalculated.
+            //
+            // Nothing reaches this branch today: `<sort>` is the only source
+            // of the change, and it does not run its changes through
+            // `verifyReplacementsMatchSpecifiedType`. It is here so that this
+            // function covers every change type a composite can emit rather
+            // than silently leaving the types in the old order.
             const numActive =
                 replacementTypes.length - (replacementsToWithhold ?? 0);
             const activeTypes = replacementTypes.slice(0, numActive);
