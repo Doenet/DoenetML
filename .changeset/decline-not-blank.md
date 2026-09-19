@@ -2,7 +2,6 @@
 "@doenet/doenetml": patch
 "@doenet/standalone": patch
 "@doenet/doenetml-iframe": patch
-"@doenet/v06-to-v07": patch
 "@doenet/vscode-extension": patch
 "doenet-vscode-extension": patch
 ---

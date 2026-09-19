@@ -1426,38 +1426,49 @@ function _emptyPrimaryValue({ core, stateDef }: { core: Core; stateDef: any }) {
         }
     }
 
-    // Otherwise ask the component type this variable says it produces what its
-    // own primary defaults to, walking up the class chain until some class
-    // declares one.
+    // Otherwise ask the component type that would be built to *hold* a value of
+    // this state variable's kind.
     //
-    // The walk is the point, not a fallback. A class in this state is almost
-    // always one that renamed its parent's primary out of the way and put a
-    // computed variable in its place: `integer` renames `number`'s `value` to
-    // `valuePreRound`, `intComma` renames `text`'s to `originalValue`. The
-    // essential value and the default go with the renamed variable, so the
-    // class no longer has them under the primary's name -- but its parent's
-    // notion of empty is still the right one, and is what a bare component of
-    // the subclass ends up holding. `intComma` also declares its
-    // `createComponentOfType` as itself, so without the walk the lookup
-    // resolves straight back to the class that has no default.
+    // `shadowingInstructions.createComponentOfType` is what a reference to this
+    // variable instantiates: `$myComponent.myStateVariable` creates a component
+    // of that type whose own primary state variable shadows this one to get its
+    // value. So that type's primary is, by construction, a holder for values of
+    // the kind this variable holds -- which makes its declared default a
+    // principled answer to "what is an empty one of these", rather than a value
+    // chosen here.
+    //
+    // (It is the *shadowing* class, not a class this one shadows or inherits
+    // from. Shadowing relates a created component to the state variable it
+    // tracks; it says nothing about class hierarchies. The hierarchy only
+    // enters through the walk below, which is that class's own.)
     const createComponentOfType =
         stateDef.shadowingInstructions?.createComponentOfType;
-    let shadowedClass = createComponentOfType
+    let shadowingClass = createComponentOfType
         ? core.componentInfoObjects.allComponentClasses[createComponentOfType]
         : undefined;
 
-    while (shadowedClass?.returnNormalizedStateVariableDefinitions) {
+    // Walking that class's prototype chain when it declares no default of its
+    // own, because a class in this state is almost always one that renamed its
+    // parent's primary out of the way and put a computed variable in its place:
+    // `integer` renames `number`'s `value` to `valuePreRound`, `intComma`
+    // renames `text`'s to `originalValue`. The essential value and the default
+    // went with the renamed variable, so the default lives one level up -- and
+    // it is still the right kind, which is what a bare component of the
+    // subclass ends up holding. `intComma` also names *itself* as its
+    // `createComponentOfType`, so without the walk the lookup arrives straight
+    // back at the class that has no default.
+    while (shadowingClass?.returnNormalizedStateVariableDefinitions) {
         const { normalized } = getClassStateVariableDefinitions(
             core,
-            shadowedClass,
+            shadowingClass,
         );
         const primary =
-            shadowedClass.primaryStateVariableForDefinition ?? "value";
+            shadowingClass.primaryStateVariableForDefinition ?? "value";
         const defaultValue = normalized[primary]?.defaultValue;
         if (defaultValue !== undefined) {
             return defaultValue;
         }
-        shadowedClass = Object.getPrototypeOf(shadowedClass);
+        shadowingClass = Object.getPrototypeOf(shadowingClass);
     }
 
     return null;
