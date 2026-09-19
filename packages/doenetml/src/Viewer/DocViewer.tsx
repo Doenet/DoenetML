@@ -3157,6 +3157,14 @@ export function DocViewer({
             // it rather than stalling.
             console.warn("DocViewer: generateJavascriptDast failed", err);
             if (isDocumentBuildFailure(err)) {
+                // Terminal: no retry is offered, so nothing will come back for
+                // this worker. Without the teardown it -- and the wasm core and
+                // the callbacks it holds -- stay alive until a rebuild or an
+                // unmount that may never come. Gracefully, as in the handshake
+                // branch above: the worker is healthy, the document it was
+                // handed is not.
+                await teardownCurrentCoreWorker({ graceful: true });
+                coreCreated.current = false;
                 failCoreStart({
                     documentCause: err instanceof Error ? err.message : "",
                 });

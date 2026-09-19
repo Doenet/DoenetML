@@ -145,6 +145,40 @@ export const DOCUMENT_BUILD_ERROR_NAME = "DoenetDocumentBuildError";
  * and useless to everyone. The panic hook has the real message, with its file
  * and line, at the moment it fires.
  */
+/**
+ * Read and clear the panic message the Rust hook recorded, if any.
+ *
+ * Guarded, because it is only here to improve a message. Unguarded, a throw
+ * from the read would be thrown in place of the real error, *unmarked* -- and
+ * an unmarked failure is retried, which is the behavior this whole path exists
+ * to stop. It is not hypothetical: the trapping entry points hold a
+ * `WasmRefCell` borrow that the trap never drops, so an accessor taking `&self`
+ * throws "recursive use of an object" instead of answering. (That is why
+ * `take_last_panic_message` is a free function rather than a method.)
+ */
+function readPanicMessage(): string | undefined {
+    try {
+        return take_last_panic_message() ?? undefined;
+    } catch (readErr) {
+        console.error(readErr);
+        return undefined;
+    }
+}
+
+/**
+ * Drop any panic message left over from earlier work on this worker.
+ *
+ * The slot is one per worker thread, and a `CoreWorker` can host several
+ * independent cores (`createCore`/`destroyCore`). A panic on a path that never
+ * reads the slot -- an action, a later `returnDast` -- would otherwise sit
+ * there and be reported as the cause of the *next* document's build failure.
+ * Clearing before each build makes anything read afterwards belong to that
+ * build.
+ */
+function discardStalePanicMessage(): void {
+    readPanicMessage();
+}
+
 function throwAsDocumentBuildError(
     err: unknown,
     panicMessage?: string | undefined,
@@ -433,6 +467,7 @@ export class CoreWorker {
             }
 
             buildingDocument = true;
+            discardStalePanicMessage();
 
             let normalizedRoot = this.doenetCore.return_normalized_dast_root();
 
@@ -525,17 +560,7 @@ export class CoreWorker {
             // "recursive use of an object" instead of returning the message
             // (see `take_last_panic_message` in `lib-js-wasm-binding`).
             //
-            // Still guarded, because it is only there to improve a message.
-            // Unguarded, a throw from the read would be thrown in place of
-            // `err`, unmarked -- and an unmarked failure is retried, which is
-            // the behavior this whole path exists to stop.
-            let panicMessage: string | undefined;
-            try {
-                panicMessage = take_last_panic_message() ?? undefined;
-            } catch (readErr) {
-                console.error(readErr);
-            }
-            throwAsDocumentBuildError(err, panicMessage);
+            throwAsDocumentBuildError(err, readPanicMessage());
         } finally {
             resolve();
         }
@@ -578,6 +603,7 @@ export class CoreWorker {
         }
 
         try {
+            discardStalePanicMessage();
             return (await this.javascriptCore?.createCoreGenerateDast(
                 args,
                 updateRenderersCallback,
@@ -594,7 +620,13 @@ export class CoreWorker {
             // returning `{ success: false, errMsg }`, which the caller already
             // shows. A *rejection* here got as far as evaluating the document
             // and is likewise deterministic.
-            throwAsDocumentBuildError(err);
+            //
+            // The panic message is read here too, not only on the
+            // initialization path: `createCoreGenerateDast` builds `Core`
+            // before its own `try`, and that constructor calls back into the
+            // Rust core (`calculateRootNames`). A trap there would otherwise
+            // reach the reader as the bare word `unreachable`.
+            throwAsDocumentBuildError(err, readPanicMessage());
         } finally {
             resolve();
         }
