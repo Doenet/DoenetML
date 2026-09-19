@@ -203,6 +203,47 @@ export const CORE_START_FAILED_BUSY_RETRY_MESSAGE =
     "This document could not be started. Several documents were starting " +
     "at once, which can take longer on a slower device.";
 
+/**
+ * The `name` the worker gives an error that came from building the document.
+ * Kept in step with `DOCUMENT_BUILD_ERROR_NAME` in `@doenet/doenetml-worker`;
+ * duplicated as a literal rather than imported so this module, which the
+ * viewer's boot path loads eagerly, does not pull in the worker bundle.
+ */
+const DOCUMENT_BUILD_ERROR_NAME = "DoenetDocumentBuildError";
+
+/**
+ * Did this failure come from building the document, rather than from the worker
+ * being unwell?
+ *
+ * It decides whether to retry at all. A worker that died mid-handshake deserves
+ * another attempt with a fresh one; a document that cannot be built fails
+ * identically every time, so the attempts -- and the reader's "Try again" after
+ * them -- are spent on something that cannot succeed. Worse, the reader is then
+ * told to reload, which does the same thing more slowly (#1920).
+ */
+export function isDocumentBuildFailure(err: unknown): boolean {
+    return (
+        typeof err === "object" &&
+        err !== null &&
+        (err as { name?: unknown }).name === DOCUMENT_BUILD_ERROR_NAME
+    );
+}
+
+/**
+ * English fallback for `core-start-failed-document` -- shown when the document
+ * itself could not be built. It offers no retry and advises no reload, because
+ * neither can work: the same source through the same code fails the same way.
+ *
+ * What it does instead is say so, and leave room for the cause, which
+ * `DocViewer` appends. Until now that cause reached `console.error` and nowhere
+ * else, and an author writing DoenetML does not open the console -- so the one
+ * piece of information that would let them fix it was the one piece that never
+ * arrived.
+ */
+export const CORE_START_FAILED_DOCUMENT_MESSAGE =
+    "This document could not be built. There is a problem in the document itself, " +
+    "so reloading will not help.";
+
 /** English fallback for `core-start-retry` — the retry button's label. */
 export const CORE_START_RETRY_MESSAGE = "Try again";
 

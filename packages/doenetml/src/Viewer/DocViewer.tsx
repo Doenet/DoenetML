@@ -56,12 +56,14 @@ import {
     DEFAULT_CORE_BOOT_MAX_ATTEMPTS,
     handshakeWatchdogMsFor,
     isHandshakeTimeout,
+    isDocumentBuildFailure,
     timeoutLooksLikeContention,
     retryDelayMs,
     CORE_START_FAILED_MESSAGE,
     CORE_START_FAILED_BUSY_MESSAGE,
     CORE_START_FAILED_RETRY_MESSAGE,
     CORE_START_FAILED_BUSY_RETRY_MESSAGE,
+    CORE_START_FAILED_DOCUMENT_MESSAGE,
     CORE_START_RETRY_MESSAGE,
     SAVED_STATE_UNAVAILABLE_MESSAGE,
 } from "./coreWorkerBoot";
@@ -2543,8 +2545,29 @@ export function DocViewer({
     // Shared by every core-start failure path.
     function failCoreStart({
         contended = false,
-    }: { contended?: boolean } = {}) {
+        documentCause,
+    }: { contended?: boolean; documentCause?: string } = {}) {
         coreCreationInProgress.current = false;
+
+        // A document that could not be built is not a transient failure, so it
+        // gets neither the retry nor the reload advice -- both re-run the same
+        // source through the same code. It gets the cause instead, which until
+        // now only ever reached `console.error` (#1920).
+        if (documentCause !== undefined) {
+            const message = translate(
+                "core-start-failed-document",
+                undefined,
+                CORE_START_FAILED_DOCUMENT_MESSAGE,
+            );
+            showFailureMessage(
+                documentCause ? `${message} ${documentCause}` : message,
+                { offerRetry: false },
+            );
+            setHasInitialError(true);
+            reportCoreStartFailed();
+            return;
+        }
+
         // The first failure offers the reader a button, beside a message with
         // no reload advice in it; a failure that has already been retried is
         // terminal and gets the message that advises the reload — which is
@@ -2949,6 +2972,35 @@ export function DocViewer({
                         await standDown();
                         return;
                     }
+                    // A document that cannot be built fails the same way on
+                    // every attempt, so retrying with a fresh worker spends
+                    // attempts on something that cannot succeed and ends by
+                    // blaming the page for the document's problem. Report the
+                    // cause and stop (#1920).
+                    if (isDocumentBuildFailure(err)) {
+                        // Gracefully: the worker is healthy, it is the
+                        // document it was handed that is not, so this is not
+                        // evidence of a wedge.
+                        await teardownCurrentCoreWorker({ graceful: true });
+                        // The teardown awaits, and a rebuild can change
+                        // `coreId` and attach its successor's worker while it
+                        // does. Everything after it commits to shared state --
+                        // `coreCreated`, the failure pane, a
+                        // `coreStartFailedCallback` that frees a host's boot
+                        // slot -- so a ladder that lost the document in the
+                        // meantime must hand off instead, exactly as every
+                        // other exit from this function does.
+                        if (bootAbandoned()) {
+                            await standDown();
+                            return;
+                        }
+                        coreCreated.current = false;
+                        failCoreStart({
+                            documentCause:
+                                err instanceof Error ? err.message : "",
+                        });
+                        return;
+                    }
                     // Only a watchdog expiry can be blamed on the page; see
                     // `isHandshakeTimeout` for why an outright rejection must
                     // not be.
@@ -3116,6 +3168,27 @@ export function DocViewer({
             // unexpected failure (e.g. the worker died mid-evaluation). Surface
             // it rather than stalling.
             console.warn("DocViewer: generateJavascriptDast failed", err);
+            if (isDocumentBuildFailure(err)) {
+                // Terminal: no retry is offered, so nothing will come back for
+                // this worker. Without the teardown it -- and the wasm core and
+                // the callbacks it holds -- stay alive until a rebuild or an
+                // unmount that may never come. Gracefully, as in the handshake
+                // branch above: the worker is healthy, the document it was
+                // handed is not.
+                await teardownCurrentCoreWorker({ graceful: true });
+                // Same ownership re-check as the handshake branch: the teardown
+                // awaits, and a rebuild can take the document over while it
+                // does.
+                if (bootAbandoned()) {
+                    await standDown();
+                    return;
+                }
+                coreCreated.current = false;
+                failCoreStart({
+                    documentCause: err instanceof Error ? err.message : "",
+                });
+                return;
+            }
             failCoreStart();
             return;
         }
