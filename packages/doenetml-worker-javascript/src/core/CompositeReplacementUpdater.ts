@@ -325,9 +325,11 @@ export class CompositeReplacementUpdater {
                 const newNComponents = change.nComponents;
 
                 // expand `this.core._components` to length `newNComponents` so that the component indices will not be reused.
-                // Unconditional, and before the guard below: the indices are
-                // already handed out, and a failure is no reason to let a later
-                // change hand out the same ones again.
+                // Moved ahead of the guard below, rather than after registering
+                // with the resolver as it used to be: the indices are already
+                // handed out, and now that a failure registering them is caught
+                // rather than fatal, a later change would otherwise hand out the
+                // same ones again.
                 if (newNComponents > this.core._components.length) {
                     this.core._components[newNComponents - 1] = undefined;
                 }
@@ -974,14 +976,13 @@ export class CompositeReplacementUpdater {
                 });
 
                 // Everything that prepares the shadow's replacements --
-                // registering their names, reserving their indices, and the
-                // copy post-processing -- is the shadowing composite's to
-                // report if it fails, the same as creating them below. The
-                // failure is held until the parameter stack is pushed so that
-                // both take the same path.
+                // registering their names and the copy post-processing -- is
+                // the shadowing composite's to report if it fails, the same as
+                // creating them below. The failure is held until the parameter
+                // stack is pushed so that both take the same path.
                 // expand `this.core._components` to length `newNComponents` so that the component indices will not be reused.
-                // Unconditional, and before the guard below, for the same
-                // reason as the non-shadow path above.
+                // Ahead of the guard below, for the same reason as the
+                // non-shadow path above.
                 if (newNComponents > this.core._components.length) {
                     this.core._components[newNComponents - 1] = undefined;
                 }

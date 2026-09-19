@@ -29,6 +29,16 @@ let failRegistrationFor: string | null = null;
  */
 let failWithholdAdjustment = false;
 
+/**
+ * When true, `removeComponentsFromResolver` throws.
+ *
+ * `DeletionEngine` imports that function across the module boundary, so this
+ * reaches a throw from inside `updateCompositeReplacements` at a point where
+ * the composite's shared parameters have been pushed onto
+ * `core.parameterStack` and not yet popped.
+ */
+let failComponentRemoval = false;
+
 vi.mock("../../core/ResolverAdapter", async (importOriginal) => {
     const actual =
         await importOriginal<typeof import("../../core/ResolverAdapter")>();
@@ -48,6 +58,12 @@ vi.mock("../../core/ResolverAdapter", async (importOriginal) => {
                 throw Error(INJECTED);
             }
             return actual.determineParentAndIndexResolutionForResolver(args);
+        },
+        removeComponentsFromResolver(args: any) {
+            if (failComponentRemoval) {
+                throw Error(INJECTED);
+            }
+            return actual.removeComponentsFromResolver(args);
         },
     };
 });
@@ -248,6 +264,77 @@ describe("a composite reports its own failure rather than losing it @group4", ()
                 error.message.includes(INJECTED),
             ).length,
         ).eq(1);
+    });
+
+    // Replacing one case's content with another's deletes the old
+    // replacements and adds the new ones in a single change, which is the
+    // one path that throws from between `updateCompositeReplacements`'s
+    // `parameterStack.push` and its `pop`.
+    const swapDoenetML = `
+<mathInput name="n" prefill="1" />
+<p name="out"><conditionalContent name="c"><case condition="$n=1"><text>a</text><text>b</text></case><else><text>z</text></else></conditionalContent></p>
+<p name="after">after</p>`;
+
+    it("leaves the parameter stack where it found it when the update throws", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: swapDoenetML,
+        });
+
+        // The depth the rest of the document is built at. Anything left on the
+        // stack by the failed update would be the failing composite's own
+        // shared parameters, and every composite processed after it would be
+        // built with those.
+        const depthBefore = (core as any).core.parameterStack.stack.length;
+
+        failComponentRemoval = true;
+        try {
+            await updateMathInputValue({
+                latex: "7",
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+        } finally {
+            failComponentRemoval = false;
+        }
+
+        expect((core as any).core.parameterStack.stack.length).eq(depthBefore);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("after")].stateValues
+                .text,
+        ).eq("after");
+
+        expect(
+            getDiagnosticsByType(core).errors.filter((error) =>
+                error.message.includes(INJECTED),
+            ).length,
+        ).eq(1);
+    });
+
+    it("control: the same swap with nothing injected", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: swapDoenetML,
+        });
+
+        const depthBefore = (core as any).core.parameterStack.stack.length;
+
+        await updateMathInputValue({
+            latex: "7",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+
+        expect((core as any).core.parameterStack.stack.length).eq(depthBefore);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("out")].stateValues.text,
+        ).eq("z");
+
+        expect(getDiagnosticsByType(core).errors.length).eq(0);
     });
 
     it("control: the same withholding with nothing injected", async () => {

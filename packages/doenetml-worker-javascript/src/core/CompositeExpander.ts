@@ -792,9 +792,11 @@ export async function createAndSetReplacements({
     serializedReplacements: any[];
     newNComponents: number;
 }) {
-    // Reserve the indices first, and unconditionally: `createSerializedReplacements`
-    // has already handed them out, and a failure below is no reason to let a
-    // later expansion hand out the same ones again.
+    // Reserve the indices ahead of the guard below, rather than after
+    // registering with the resolver as the callers used to:
+    // `createSerializedReplacements` has already handed them out, and now that
+    // a failure registering them is caught rather than fatal, a later expansion
+    // would otherwise hand out the same ones again.
     reserveComponentIndices(core, newNComponents);
 
     // Registering with the resolver stays outside the parameter stack, where it

@@ -165,6 +165,17 @@ export class EssentialValueWriter {
                             // invariant reaches the reader as a blank page
                             // rather than as a message about the element that
                             // failed (#1952).
+                            // `updateCompositeReplacements` pushes the
+                            // composite's shared parameters and pops them
+                            // again; a throw from between the two leaves the
+                            // frame behind, and every composite processed
+                            // after this one would then be built with the
+                            // failing composite's parameters. Unwinding to the
+                            // depth we came in at is the one piece of the
+                            // failed update we can undo, and the rest of the
+                            // document depends on it.
+                            const parameterStackDepth =
+                                this.core.parameterStack.stack.length;
                             let result;
                             try {
                                 result =
@@ -176,6 +187,12 @@ export class EssentialValueWriter {
                                     );
                             } catch (e: any) {
                                 console.error(e);
+                                while (
+                                    this.core.parameterStack.stack.length >
+                                    parameterStackDepth
+                                ) {
+                                    this.core.parameterStack.pop();
+                                }
                                 this.core.markCompositeInError({
                                     composite,
                                     message: e.message,
