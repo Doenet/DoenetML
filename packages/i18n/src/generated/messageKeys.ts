@@ -57,7 +57,9 @@ export type MessageKey =
     | "parsons-move-to-unused"
     | "parsons-move-up"
     | "parsons-move-down"
-    | "parsons-block-controls"
+    | "parsons-solution-block-controls"
+    | "parsons-unused-block-controls"
+    | "parsons-block-instructions"
     | "parsons-moved-to-solution"
     | "parsons-moved-within-solution"
     | "parsons-moved-to-unused"
@@ -702,7 +704,9 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "parsons-move-to-unused",
     "parsons-move-up",
     "parsons-move-down",
-    "parsons-block-controls",
+    "parsons-solution-block-controls",
+    "parsons-unused-block-controls",
+    "parsons-block-instructions",
     "parsons-moved-to-solution",
     "parsons-moved-within-solution",
     "parsons-moved-to-unused",

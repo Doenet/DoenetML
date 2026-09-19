@@ -28,6 +28,11 @@ export default class Block extends BlockComponent {
     static rendererType = "containerBlock";
     static renderChildren = true;
 
+    // A block is meaningful only inside a `<parsons>`, which lists it as a
+    // child by name; without this the schema would offer it wherever any
+    // block-level content is allowed.
+    static inSchemaOnlyInheritAs = [];
+
     static canDisplayChildErrors = true;
 
     static includeBlankStringChildren = true;
@@ -40,6 +45,7 @@ export default class Block extends BlockComponent {
             createStateVariable: "isDistractor",
             defaultValue: false,
             public: true,
+            highlighted: true,
             description:
                 "Whether this block is a distractor: a step that does not belong in the solution and must be left unused.",
         };

@@ -62,12 +62,7 @@ describe("Parsons Tag Tests", { tags: ["@group3"] }, function () {
      */
     function waitForParsonsLoaded() {
         cy.get(parsonsSelector).should("exist");
-        cy.waitUntil(() =>
-            cy.window().then(async (win) => {
-                const stateVariables = await win.returnAllStateVariables1();
-                return stateVariables[await win.resolvePath1("p")];
-            }),
-        );
+        cy.waitUntil(() => getParsonsState());
     }
 
     /**
@@ -83,14 +78,25 @@ describe("Parsons Tag Tests", { tags: ["@group3"] }, function () {
             );
     }
 
-    function assertSolutionOrder(expected) {
-        cy.get(`${solutionSelector} li[data-block-index]`).should(
-            "have.length",
-            expected.length,
-        );
-        blockOrderIn(solutionSelector).then((order) => {
+    /**
+     * Assert the block order in an area, retrying until the worker's reply
+     * has rendered (a reorder changes no length, only the order).
+     */
+    function assertAreaOrder(areaSelector, expected) {
+        cy.get(areaSelector).should(($area) => {
+            const order = [
+                ...$area[0].querySelectorAll("li[data-block-index]"),
+            ].map((li) => Number(li.dataset.blockIndex));
             expect(order).eqls(expected);
         });
+    }
+
+    function assertSolutionOrder(expected) {
+        assertAreaOrder(solutionSelector, expected);
+    }
+
+    function assertUnusedOrder(expected) {
+        assertAreaOrder(unusedSelector, expected);
     }
 
     function blockButton(areaSelector, blockIndex, testId) {
@@ -176,9 +182,7 @@ describe("Parsons Tag Tests", { tags: ["@group3"] }, function () {
         getParsonsState().then((parsons) => {
             const blockOrder = parsons.stateValues.blockOrder;
             expect([...blockOrder].sort()).eqls([1, 2, 3, 4]);
-            blockOrderIn(unusedSelector).then((order) => {
-                expect(order).eqls(blockOrder);
-            });
+            assertUnusedOrder(blockOrder);
         });
 
         // the group is named by its label
@@ -214,6 +218,9 @@ describe("Parsons Tag Tests", { tags: ["@group3"] }, function () {
         // focus lands on the block just moved
         cy.focused().should("have.attr", "data-block-index", "3");
 
+        // out of order earns nothing
+        submitAndAssert({ credit: 0, buttonText: "Incorrect" });
+
         // fix the order
         blockButton(solutionSelector, 1, "parsons-move-up").click();
         assertSolutionOrder([1, 2, 3]);
@@ -230,9 +237,7 @@ describe("Parsons Tag Tests", { tags: ["@group3"] }, function () {
             "be.disabled",
         );
 
-        cy.get(buttonSelector).click();
-        cy.get(creditSelector).should("have.text", "1");
-        cy.get(buttonSelector).should("contain.text", "Correct");
+        submitAndAssert({ credit: 1, buttonText: "Correct" });
 
         getParsonsState().then((parsons) => {
             expect(parsons.stateValues.currentResponses).eqls([1, 2, 3]);
@@ -276,9 +281,65 @@ describe("Parsons Tag Tests", { tags: ["@group3"] }, function () {
             .focus()
             .type("{enter}");
         assertSolutionOrder([1]);
-        blockOrderIn(unusedSelector).then((order) => {
-            expect(order).eqls([2, 3, 4]);
+        assertUnusedOrder([2, 3, 4]);
+    });
+
+    it("arrow keys move focus and Escape abandons a drag", () => {
+        postDoenetML(createParsonsDoenetML(`shuffleOrder="false"`), 1);
+        waitForParsonsLoaded();
+
+        // the arrows alone walk the list and stop at its ends
+        cy.get(`${unusedSelector} [data-block-index="2"]`)
+            .focus()
+            .type("{downArrow}");
+        cy.focused().should("have.attr", "data-block-index", "3");
+        cy.focused().type("{upArrow}{upArrow}");
+        cy.focused().should("have.attr", "data-block-index", "1");
+        cy.focused().type("{upArrow}");
+        cy.focused().should("have.attr", "data-block-index", "1");
+
+        // a drag in progress shows the drop indicator; Escape abandons it
+        cy.get(`${unusedSelector} [data-block-index="1"]`).then(($li) => {
+            const from = $li[0].getBoundingClientRect();
+            cy.get(solutionSelector).then(($area) => {
+                const to = $area[0].getBoundingClientRect();
+                const pointer = {
+                    pointerId: 1,
+                    pointerType: "mouse",
+                    isPrimary: true,
+                    button: 0,
+                };
+                cy.wrap($li)
+                    .trigger("pointerdown", {
+                        ...pointer,
+                        clientX: from.left + from.width / 2,
+                        clientY: from.top + from.height / 2,
+                    })
+                    .trigger("pointermove", {
+                        ...pointer,
+                        clientX: to.left + to.width / 2,
+                        clientY: to.bottom - 8,
+                    });
+            });
         });
+        cy.get(
+            `${parsonsSelector} [data-test="parsons-drop-indicator"]`,
+        ).should("exist");
+        cy.get("body").type("{esc}");
+        cy.get(
+            `${parsonsSelector} [data-test="parsons-drop-indicator"]`,
+        ).should("not.exist");
+        cy.get(`${unusedSelector} [data-block-index="1"]`).trigger(
+            "pointerup",
+            {
+                pointerId: 1,
+                pointerType: "mouse",
+                isPrimary: true,
+                button: 0,
+            },
+        );
+        assertSolutionOrder([]);
+        assertUnusedOrder([1, 2, 3, 4]);
     });
 
     it("pointer drag moves blocks between the areas", () => {
@@ -294,31 +355,50 @@ describe("Parsons Tag Tests", { tags: ["@group3"] }, function () {
             expect(parsons.stateValues.currentResponses).eqls([2, 1]);
         });
 
+        // reorder within the solution: drag the bottom block above the top one
+        cy.get(`${solutionSelector} [data-block-index="1"]`).then(($li) => {
+            const from = $li[0].getBoundingClientRect();
+            cy.get(`${solutionSelector} [data-block-index="2"]`).then(
+                ($top) => {
+                    const to = $top[0].getBoundingClientRect();
+                    const pointer = {
+                        pointerId: 1,
+                        pointerType: "mouse",
+                        isPrimary: true,
+                        button: 0,
+                    };
+                    cy.wrap($li)
+                        .trigger("pointerdown", {
+                            ...pointer,
+                            clientX: from.left + from.width / 2,
+                            clientY: from.top + from.height / 2,
+                        })
+                        .trigger("pointermove", {
+                            ...pointer,
+                            clientX: from.left + from.width / 2,
+                            clientY: from.top + from.height / 2 - 6,
+                        })
+                        .trigger("pointermove", {
+                            ...pointer,
+                            clientX: to.left + to.width / 2,
+                            clientY: to.top + 2,
+                        });
+                    cy.get(
+                        `${parsonsSelector} [data-test="parsons-drop-indicator"]`,
+                    ).should("exist");
+                    cy.wrap($li).trigger("pointerup", {
+                        ...pointer,
+                        clientX: to.left + to.width / 2,
+                        clientY: to.top + 2,
+                    });
+                },
+            );
+        });
+        assertSolutionOrder([1, 2]);
+
         dragBlockToArea(2, unusedSelector);
         assertSolutionOrder([1]);
-        blockOrderIn(unusedSelector).then((order) => {
-            expect(order).eqls([2, 3, 4]);
-        });
-    });
-
-    it("an incorrect arrangement earns nothing until fixed", () => {
-        postDoenetML(createParsonsDoenetML(), 1);
-        waitForParsonsLoaded();
-
-        for (const blockIndex of [1, 2, 4]) {
-            blockButton(
-                unusedSelector,
-                blockIndex,
-                "parsons-move-to-solution",
-            ).click();
-        }
-        assertSolutionOrder([1, 2, 4]);
-        submitAndAssert({ credit: 0, buttonText: "Incorrect" });
-
-        blockButton(solutionSelector, 4, "parsons-move-to-unused").click();
-        blockButton(unusedSelector, 3, "parsons-move-to-solution").click();
-        assertSolutionOrder([1, 2, 3]);
-        submitAndAssert({ credit: 1, buttonText: "Correct" });
+        assertUnusedOrder([2, 3, 4]);
     });
 
     it("different variants shuffle differently", () => {
@@ -367,8 +447,8 @@ describe("Parsons Tag Tests", { tags: ["@group3"] }, function () {
         waitForParsonsLoaded();
 
         assertSolutionOrder([1, 2]);
-        blockOrderIn(unusedSelector).then((order) => {
-            expect(order).eqls(originalOrder.filter((i) => i !== 1 && i !== 2));
+        cy.then(() => {
+            assertUnusedOrder(originalOrder.filter((i) => i !== 1 && i !== 2));
         });
         cy.get(buttonSelector).should("contain.text", "Incorrect");
 

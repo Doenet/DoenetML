@@ -989,3 +989,262 @@ export function numberAnswers(components, componentInfoObjects, numSoFar = 0) {
 
     return { count };
 }
+
+/**
+ * The two state variables through which a scored block component — a
+ * `<pretzel>`, a `<parsons>` — remembers what was last submitted:
+ * `numSubmittedResponses`, and `submittedResponses` sized by it. Both are
+ * essential and are set only by `submitScoredComponentResponses`.
+ *
+ * `responseComponentType` is the type a reference such as
+ * `$p.submittedResponse1` creates, and `missingValue` fills an entry that
+ * has never been submitted.
+ */
+export function returnSubmittedResponsesStateVariableDefinitions({
+    responseComponentType,
+    missingValue,
+    descriptions = {
+        numSubmittedResponses: "The number of responses submitted.",
+        submittedResponses: "The most recently submitted responses.",
+    },
+}) {
+    const stateVariableDefinitions = {};
+
+    stateVariableDefinitions.numSubmittedResponses = {
+        description: descriptions.numSubmittedResponses,
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: "number",
+        },
+        hasEssential: true,
+        defaultValue: 0,
+        returnDependencies: () => ({}),
+        definition: () => ({
+            useEssentialOrDefaultValue: {
+                numSubmittedResponses: true,
+            },
+        }),
+        inverseDefinition({ desiredStateVariableValues }) {
+            return {
+                success: true,
+                instructions: [
+                    {
+                        setEssentialValue: "numSubmittedResponses",
+                        value: desiredStateVariableValues.numSubmittedResponses,
+                    },
+                ],
+            };
+        },
+    };
+
+    stateVariableDefinitions.submittedResponses = {
+        description: descriptions.submittedResponses,
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: responseComponentType,
+        },
+        isArray: true,
+        allowExtraArrayKeysInInverse: true,
+        entryPrefixes: ["submittedResponse"],
+        defaultValueByArrayKey: () => missingValue,
+        hasEssential: true,
+        inverseShadowToSetEntireArray: true,
+        doNotCombineInverseArrayInstructions: true,
+        returnArraySizeDependencies: () => ({
+            numSubmittedResponses: {
+                dependencyType: "stateVariable",
+                variableName: "numSubmittedResponses",
+            },
+        }),
+        returnArraySize({ dependencyValues }) {
+            return [dependencyValues.numSubmittedResponses];
+        },
+        returnArrayDependenciesByKey() {
+            const globalDependencies = {
+                numSubmittedResponses: {
+                    dependencyType: "stateVariable",
+                    variableName: "numSubmittedResponses",
+                },
+            };
+            return { globalDependencies };
+        },
+        arrayDefinitionByKey({ globalDependencyValues }) {
+            const essentialSubmittedResponses = {};
+
+            for (
+                let ind = 0;
+                ind < globalDependencyValues.numSubmittedResponses;
+                ind++
+            ) {
+                // this function doesn't change the values once they set for the first time
+                // (The values will just be changed using the inverse function)
+                essentialSubmittedResponses[ind] = true;
+            }
+
+            return {
+                useEssentialOrDefaultValue: {
+                    submittedResponses: essentialSubmittedResponses,
+                },
+            };
+        },
+        inverseArrayDefinitionByKey: function ({
+            desiredStateVariableValues,
+            initialChange,
+        }) {
+            if (!initialChange) {
+                return { success: false };
+            }
+
+            return {
+                success: true,
+                instructions: [
+                    {
+                        setDependency: "numSubmittedResponses",
+                        desiredValue:
+                            desiredStateVariableValues.submittedResponses
+                                .length,
+                    },
+                    {
+                        setEssentialValue: "submittedResponses",
+                        value: [
+                            ...desiredStateVariableValues.submittedResponses,
+                        ],
+                    },
+                ],
+            };
+        },
+    };
+
+    return stateVariableDefinitions;
+}
+
+/**
+ * Submit the current responses of a scored block component: record the
+ * credit, the responses and the submission counters, log the submission,
+ * and trigger any chained actions. The component supplies
+ * `currentResponses`, `creditAchievedIfSubmit` and the standard answer
+ * state variables; `describeResponse` turns one response into the text a
+ * grader sees.
+ */
+export async function submitScoredComponentResponses({
+    component,
+    responseComponentType,
+    describeResponse = (response) => String(response),
+    actionId,
+    sourceInformation = {},
+    skipRendererUpdate = false,
+}) {
+    const numAttemptsLeft = await component.stateValues.numAttemptsLeft;
+    if (numAttemptsLeft < 1) {
+        return;
+    }
+
+    const disabled = await component.stateValues.disabled;
+    if (disabled) {
+        return;
+    }
+
+    const componentIdx = component.componentIdx;
+
+    const creditAchieved = (await component.stateValues.handGraded)
+        ? 0
+        : await component.stateValues.creditAchievedIfSubmit;
+
+    // request to update credit
+    const instructions = [
+        {
+            updateType: "updateValue",
+            componentIdx,
+            stateVariable: "creditAchieved",
+            value: creditAchieved,
+        },
+        {
+            updateType: "updateValue",
+            componentIdx,
+            stateVariable: "responseHasBeenSubmitted",
+            value: true,
+        },
+    ];
+
+    // add submitted responses to instruction for answer
+    const currentResponses = await component.stateValues.currentResponses;
+
+    instructions.push({
+        updateType: "updateValue",
+        componentIdx,
+        stateVariable: "submittedResponses",
+        value: currentResponses,
+    });
+
+    instructions.push({
+        updateType: "updateValue",
+        componentIdx,
+        stateVariable: "justSubmitted",
+        value: true,
+    });
+
+    instructions.push({
+        updateType: "updateValue",
+        componentIdx,
+        stateVariable: "creditAchievedDependenciesAtSubmit",
+        value: await component.stateValues.creditAchievedDependencies,
+    });
+
+    instructions.push({
+        updateType: "updateValue",
+        componentIdx,
+        stateVariable: "numSubmissions",
+        value: (await component.stateValues.numSubmissions) + 1,
+    });
+
+    if (creditAchieved < 1) {
+        instructions.push({
+            updateType: "updateValue",
+            componentIdx,
+            stateVariable: "numIncorrectSubmissions",
+            value: (await component.stateValues.numIncorrectSubmissions) + 1,
+        });
+    }
+
+    const responseText = currentResponses.map(describeResponse);
+
+    instructions.push({
+        updateType: "recordItemSubmission",
+        componentNumber: await component.stateValues.inComponentNumber,
+        submittedComponent: componentIdx,
+        response: currentResponses,
+        responseText,
+        creditAchieved,
+    });
+
+    await component.coreFunctions.performUpdate({
+        updateInstructions: instructions,
+        actionId,
+        sourceInformation,
+        skipRendererUpdate: true,
+        event: {
+            verb: "submitted",
+            object: {
+                componentIdx,
+                componentType: component.componentType,
+                answerNumber: component.answerNumber,
+                rootName: component.rootName,
+            },
+            result: {
+                response: currentResponses,
+                responseText,
+                componentTypes: Array(currentResponses.length).fill(
+                    responseComponentType,
+                ),
+                creditAchieved,
+            },
+        },
+    });
+
+    return await component.coreFunctions.triggerChainedActions({
+        componentIdx,
+        actionId,
+        sourceInformation,
+        skipRendererUpdate,
+    });
+}

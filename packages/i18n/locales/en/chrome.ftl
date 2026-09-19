@@ -148,15 +148,22 @@ parsons-move-to-unused = Remove from solution
 parsons-move-up = Move up
 parsons-move-down = Move down
 
-# Accessible name of the group of buttons on one block. $position counts the
-# block's place in its area from 1.
-parsons-block-controls = Controls for block { $position }
+# Accessible names of the group of buttons on one block. $position counts
+# the block's place in its area from 1.
+parsons-solution-block-controls = Controls for solution step { $position }
+parsons-unused-block-controls = Controls for unused block { $position }
 
-# Announced to a screen reader after a move. $position is the block's new
-# place in the solution, counting from 1, and $count the number of blocks in
-# the solution after the move.
+# Read to a screen reader as the description of every block, so a keyboard
+# user learns the shortcuts a focused block answers to.
+parsons-block-instructions = Press Enter or Space to move this block between the solution and the unused blocks. Hold Alt and press the up or down arrow to move it within the solution.
+
+# Announced to a screen reader after a move into or within the solution.
+# $position is the block's new place in the solution, counting from 1, and
+# $count the number of blocks in the solution after the move.
 parsons-moved-to-solution = Moved to the solution, position { $position } of { $count }.
 parsons-moved-within-solution = Moved to position { $position } of { $count }.
+
+# Announced after a block is removed from the solution; takes no arguments.
 parsons-moved-to-unused = Moved to the unused blocks.
 
 # Caption above the table a `<summaryStatistics>` renders. It used to name the

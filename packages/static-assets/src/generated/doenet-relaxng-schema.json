@@ -243,7 +243,6 @@
         "stickyGroup",
         "pretzel",
         "parsons",
-        "block",
         "cascade",
         "pointList",
         "intervalList",
@@ -4053,9 +4052,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -5056,9 +5052,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -6057,9 +6050,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -7993,9 +7983,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -39491,9 +39478,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -40828,9 +40812,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -42049,9 +42030,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -42939,9 +42917,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -43827,9 +43802,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -44720,9 +44692,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -57882,9 +57851,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -59100,9 +59066,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -60322,9 +60285,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -61540,9 +61500,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -62769,9 +62726,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -63987,9 +63941,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -65216,9 +65167,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -66441,9 +66389,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -67670,9 +67615,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -68897,9 +68839,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -70115,9 +70054,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -71337,9 +71273,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -72555,9 +72488,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -73777,9 +73707,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -74997,9 +74924,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -76215,9 +76139,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -77443,9 +77364,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -78655,9 +78573,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -79865,9 +79780,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -81575,9 +81487,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -88790,9 +88699,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 }
             ],
@@ -89933,9 +89839,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -90852,9 +90755,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -91857,9 +91757,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -92795,9 +92692,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -93649,9 +93543,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -94535,9 +94426,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -96696,9 +96584,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 }
             ],
@@ -97459,9 +97344,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -98356,9 +98238,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -104510,9 +104389,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -122577,9 +122453,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -128941,9 +128814,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -131162,9 +131032,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 }
             ],
@@ -132929,9 +132796,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 }
             ],
@@ -133719,9 +133583,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -134616,9 +134477,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -134692,6 +134550,9 @@
                 },
                 {
                     "ref": "description"
+                },
+                {
+                    "ref": "block"
                 },
                 {
                     "ref": "shortDescription"
@@ -135563,9 +135424,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -135639,6 +135497,9 @@
                 },
                 {
                     "ref": "description"
+                },
+                {
+                    "ref": "block"
                 },
                 {
                     "ref": "shortDescription"
@@ -138999,9 +138860,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -139072,6 +138930,9 @@
                 },
                 {
                     "ref": "description"
+                },
+                {
+                    "ref": "block"
                 },
                 {
                     "ref": "shortDescription"
@@ -141084,9 +140945,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -141160,6 +141018,9 @@
                 },
                 {
                     "ref": "description"
+                },
+                {
+                    "ref": "block"
                 },
                 {
                     "ref": "shortDescription"
@@ -144155,9 +144016,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -146504,9 +146362,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -148700,9 +148555,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -149547,9 +149399,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -150410,9 +150259,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -151813,9 +151659,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -153261,9 +153104,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -153337,6 +153177,9 @@
                 },
                 {
                     "ref": "description"
+                },
+                {
+                    "ref": "block"
                 },
                 {
                     "ref": "shortDescription"
@@ -154150,9 +153993,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -154993,9 +154833,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -155060,6 +154897,9 @@
                 },
                 {
                     "ref": "description"
+                },
+                {
+                    "ref": "block"
                 },
                 {
                     "ref": "shortDescription"
@@ -156397,9 +156237,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -158146,9 +157983,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -158222,6 +158056,9 @@
                 },
                 {
                     "ref": "description"
+                },
+                {
+                    "ref": "block"
                 },
                 {
                     "ref": "shortDescription"
@@ -159093,9 +158930,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -159955,9 +159789,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -160031,6 +159862,9 @@
                 },
                 {
                     "ref": "description"
+                },
+                {
+                    "ref": "block"
                 },
                 {
                     "ref": "shortDescription"
@@ -162585,9 +162419,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -165954,9 +165785,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -171750,9 +171578,6 @@
                     "ref": "parsons"
                 },
                 {
-                    "ref": "block"
-                },
-                {
                     "ref": "cascade"
                 },
                 {
@@ -172604,9 +172429,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -173956,6 +173778,26 @@
                     "description": "Heading of the area holding the blocks not used in the solution."
                 },
                 {
+                    "name": "numSubmittedResponses",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The number of blocks in the most recently submitted solution."
+                },
+                {
+                    "name": "submittedResponses",
+                    "type": "integer",
+                    "isArray": true,
+                    "description": "The indices of the blocks in the most recently submitted solution, counting from 1, from top to bottom.",
+                    "numDimensions": 1,
+                    "indexedArrayDescription": [
+                        {
+                            "isArray": true,
+                            "type": "integer",
+                            "numDimensions": 1
+                        }
+                    ]
+                },
+                {
                     "name": "shortDescription",
                     "type": "text",
                     "isArray": false,
@@ -173990,26 +173832,6 @@
                     "type": "integer",
                     "isArray": true,
                     "description": "The indices of the blocks currently in the solution area, counting from 1, from top to bottom.",
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "integer",
-                            "numDimensions": 1
-                        }
-                    ]
-                },
-                {
-                    "name": "numSubmittedResponses",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "The number of blocks in the most recently submitted solution."
-                },
-                {
-                    "name": "submittedResponses",
-                    "type": "integer",
-                    "isArray": true,
-                    "description": "The indices of the blocks in the most recently submitted solution, counting from 1, from top to bottom.",
                     "numDimensions": 1,
                     "indexedArrayDescription": [
                         {
@@ -174812,9 +174634,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"
@@ -175897,9 +175716,6 @@
                 },
                 {
                     "ref": "parsons"
-                },
-                {
-                    "ref": "block"
                 },
                 {
                     "ref": "cascade"

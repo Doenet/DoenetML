@@ -1,5 +1,5 @@
 import BlockScoredComponent from "./abstract/BlockScoredComponent";
-import { enumerateCombinations, enumeratePermutations } from "@doenet/utils";
+import { enumerateCombinations } from "@doenet/utils";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import { codedDiagnostic } from "../utils/diagnostics";
 import {
@@ -7,6 +7,10 @@ import {
     returnLabelStateVariableDefinitions,
 } from "../utils/label";
 import { returnLocalizedDefaultStateVariableDefinition } from "../utils/contentLocale";
+import {
+    returnSubmittedResponsesStateVariableDefinitions,
+    submitScoredComponentResponses,
+} from "../utils/answer";
 
 /**
  * Compute the credit for an arrangement of blocks.
@@ -22,6 +26,37 @@ export function calculateParsonsCredit({ solutionIndices, correctOrder }) {
         return 0;
     }
     return solutionIndices.every((v, i) => v === correctOrder[i]) ? 1 : 0;
+}
+
+/**
+ * Whether a parsons shuffles its blocks: the `shuffleOrder` primitive, which
+ * unlike `<choiceInput>`'s defaults to true when absent.
+ */
+function shufflesOrder(serializedComponent) {
+    const primitive = serializedComponent.attributes?.shuffleOrder?.primitive;
+    return primitive === undefined ? true : Boolean(primitive.value);
+}
+
+/**
+ * The `index`-th permutation of `values`, counting from 1, computed directly
+ * from the index rather than by enumerating every permutation before it:
+ * there are n! of them, and a parsons shuffles by default.
+ */
+function permutationAtIndex(values, index) {
+    const remaining = [...values];
+    const factorials = [1];
+    for (let i = 1; i <= remaining.length; i++) {
+        factorials[i] = factorials[i - 1] * i;
+    }
+
+    const permutation = [];
+    let k = index - 1;
+    for (let n = remaining.length; n > 0; n--) {
+        const pick = Math.floor(k / factorials[n - 1]);
+        k -= pick * factorials[n - 1];
+        permutation.push(remaining.splice(pick, 1)[0]);
+    }
+    return permutation;
 }
 
 export default class Parsons extends BlockScoredComponent {
@@ -55,6 +90,7 @@ export default class Parsons extends BlockScoredComponent {
             createStateVariable: "shuffleOrder",
             defaultValue: true,
             public: true,
+            highlighted: true,
             description:
                 "Whether the unused blocks are displayed in an order randomized per variant.",
         };
@@ -67,6 +103,7 @@ export default class Parsons extends BlockScoredComponent {
             createComponentOfType: "text",
             createStateVariable: "solutionLabelPreLocalize",
             defaultValue: "Solution",
+            highlighted: true,
             description:
                 "Heading of the area where the reader builds the solution.",
         };
@@ -74,6 +111,7 @@ export default class Parsons extends BlockScoredComponent {
             createComponentOfType: "text",
             createStateVariable: "unusedLabelPreLocalize",
             defaultValue: "Unused blocks",
+            highlighted: true,
             description:
                 "Heading of the area holding the blocks not used in the solution.",
         };
@@ -129,6 +167,20 @@ export default class Parsons extends BlockScoredComponent {
             }),
         });
 
+        Object.assign(
+            stateVariableDefinitions,
+            returnSubmittedResponsesStateVariableDefinitions({
+                responseComponentType: "integer",
+                missingValue: null,
+                descriptions: {
+                    numSubmittedResponses:
+                        "The number of blocks in the most recently submitted solution.",
+                    submittedResponses:
+                        "The indices of the blocks in the most recently submitted solution, counting from 1, from top to bottom.",
+                },
+            }),
+        );
+
         stateVariableDefinitions.shortDescription = {
             description:
                 "A short accessibility description of this component; it is read by screen readers but not rendered visually.",
@@ -182,105 +234,55 @@ export default class Parsons extends BlockScoredComponent {
             },
         };
 
-        stateVariableDefinitions.descriptionChildInd = {
-            forRenderer: true,
-            returnDependencies: () => ({
-                allChildren: {
-                    dependencyType: "child",
-                    includeAllChildren: true,
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        descriptionChildInd:
-                            dependencyValues.allChildren.findLastIndex(
-                                (child) =>
-                                    child.componentType === "description",
-                            ),
-                    },
-                };
-            },
-        };
-
-        stateVariableDefinitions.statementChildInd = {
-            forRenderer: true,
-            returnDependencies: () => ({
-                allChildren: {
-                    dependencyType: "child",
-                    includeAllChildren: true,
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        statementChildInd:
-                            dependencyValues.allChildren.findLastIndex(
-                                (child) => child.componentType === "statement",
-                            ),
-                    },
-                };
-            },
-        };
-
-        stateVariableDefinitions.blockChildIndices = {
-            forRenderer: true,
-            returnDependencies: () => ({
-                allChildren: {
-                    dependencyType: "child",
-                    includeAllChildren: true,
-                },
-            }),
-            definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        blockChildIndices: dependencyValues.allChildren
-                            .map((child, ind) =>
-                                child.componentType === "block" ? ind : -1,
-                            )
-                            .filter((ind) => ind !== -1),
-                    },
-                };
-            },
-        };
-
+        // One pass over the children gives the renderer where to find the
+        // statement, the blocks and the description among `children`, and
+        // the core which children to render at all (not the labels).
         stateVariableDefinitions.childIndicesToRender = {
+            additionalStateVariablesDefined: [
+                { variableName: "statementChildInd", forRenderer: true },
+                { variableName: "blockChildIndices", forRenderer: true },
+                { variableName: "descriptionChildInd", forRenderer: true },
+            ],
             returnDependencies: () => ({
-                statementChildInd: {
-                    dependencyType: "stateVariable",
-                    variableName: "statementChildInd",
-                },
-                blockChildIndices: {
-                    dependencyType: "stateVariable",
-                    variableName: "blockChildIndices",
-                },
-                descriptionChildInd: {
-                    dependencyType: "stateVariable",
-                    variableName: "descriptionChildInd",
+                allChildren: {
+                    dependencyType: "child",
+                    includeAllChildren: true,
                 },
             }),
             definition({ dependencyValues }) {
-                const childIndicesToRender = [];
-
-                if (dependencyValues.statementChildInd !== -1) {
-                    childIndicesToRender.push(
-                        dependencyValues.statementChildInd,
-                    );
-                }
-                childIndicesToRender.push(
-                    ...dependencyValues.blockChildIndices,
+                const types = dependencyValues.allChildren.map(
+                    (child) => child.componentType,
                 );
-                if (dependencyValues.descriptionChildInd !== -1) {
-                    childIndicesToRender.push(
-                        dependencyValues.descriptionChildInd,
-                    );
+                const statementChildInd = types.lastIndexOf("statement");
+                const descriptionChildInd = types.lastIndexOf("description");
+                const blockChildIndices = types.flatMap((type, ind) =>
+                    type === "block" ? [ind] : [],
+                );
+
+                const childIndicesToRender = [...blockChildIndices];
+                if (statementChildInd !== -1) {
+                    childIndicesToRender.unshift(statementChildInd);
+                }
+                if (descriptionChildInd !== -1) {
+                    childIndicesToRender.push(descriptionChildInd);
                 }
 
-                return { setValue: { childIndicesToRender } };
+                return {
+                    setValue: {
+                        childIndicesToRender,
+                        statementChildInd,
+                        blockChildIndices,
+                        descriptionChildInd,
+                    },
+                };
             },
             markStale: () => ({ updateRenderedChildren: true }),
         };
 
+        // `numBlocks` and `numDistractors` are `forRenderer` although the
+        // renderer never reads them: a renderer-facing variable is evaluated
+        // as soon as the document loads, which is what makes their warnings
+        // reach the author at once rather than on the first submission.
         stateVariableDefinitions.numBlocks = {
             description: "The number of `<block>` children.",
             public: true,
@@ -297,9 +299,6 @@ export default class Parsons extends BlockScoredComponent {
             definition({ dependencyValues }) {
                 const numBlocks = dependencyValues.blockChildren.length;
 
-                // Reported here rather than from `correctOrder`, because a
-                // renderer-facing variable is evaluated as soon as the
-                // document loads, so the author sees the warning at once.
                 const diagnostics = [];
                 if (numBlocks === 0) {
                     diagnostics.push(
@@ -355,6 +354,32 @@ export default class Parsons extends BlockScoredComponent {
             },
         };
 
+        // A hidden block takes no part: it is not shown, cannot be moved, and
+        // is not expected in the solution.
+        stateVariableDefinitions.activeBlockIndices = {
+            additionalStateVariablesDefined: ["blockTexts"],
+            returnDependencies: () => ({
+                blockChildren: {
+                    dependencyType: "child",
+                    childGroups: ["blocks"],
+                    variableNames: ["hidden", "text"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                const blocks = dependencyValues.blockChildren;
+                return {
+                    setValue: {
+                        activeBlockIndices: blocks.flatMap((block, ind) =>
+                            block.stateValues.hidden ? [] : [ind + 1],
+                        ),
+                        blockTexts: blocks.map(
+                            (block) => block.stateValues.text,
+                        ),
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.correctOrder = {
             description:
                 "The indices of the non-distractor blocks in the order they were written, counting from 1, which is the arrangement that earns credit.",
@@ -366,18 +391,21 @@ export default class Parsons extends BlockScoredComponent {
                 blockChildren: {
                     dependencyType: "child",
                     childGroups: ["blocks"],
-                    variableNames: ["isDistractor"],
+                    variableNames: ["isDistractor", "hidden"],
                 },
             }),
             definition({ dependencyValues }) {
-                const correctOrder = [];
-                dependencyValues.blockChildren.forEach((block, ind) => {
-                    if (!block.stateValues.isDistractor) {
-                        correctOrder.push(ind + 1);
-                    }
-                });
-
-                return { setValue: { correctOrder } };
+                return {
+                    setValue: {
+                        correctOrder: dependencyValues.blockChildren.flatMap(
+                            (block, ind) =>
+                                block.stateValues.isDistractor ||
+                                block.stateValues.hidden
+                                    ? []
+                                    : [ind + 1],
+                        ),
+                    },
+                };
             },
         };
 
@@ -385,7 +413,6 @@ export default class Parsons extends BlockScoredComponent {
             description:
                 "The indices of the blocks, counting from 1, in the order the unused blocks are displayed for this variant.",
             public: true,
-            forRenderer: true,
             shadowVariable: true,
             shadowingInstructions: {
                 createComponentOfType: "numberList",
@@ -557,16 +584,17 @@ export default class Parsons extends BlockScoredComponent {
             },
         };
 
-        // The reader's arrangement: the authored indices of the blocks in the
-        // solution area, top to bottom. Every other block is unused. This is
-        // the one piece of state the reader changes, so it is essential.
-        stateVariableDefinitions.solutionIndices = {
-            forRenderer: true,
+        // The reader's arrangement, as written: the authored indices of the
+        // blocks in the solution area, top to bottom. This is the one piece of
+        // state the reader changes, so it is essential; `solutionIndices`
+        // below is the same list with any block that no longer takes part
+        // (hidden, or gone) left out.
+        stateVariableDefinitions.arrangement = {
             hasEssential: true,
             returnDependencies: () => ({}),
             definition: () => ({
                 useEssentialOrDefaultValue: {
-                    solutionIndices: {
+                    arrangement: {
                         get defaultValue() {
                             return [];
                         },
@@ -578,12 +606,36 @@ export default class Parsons extends BlockScoredComponent {
                     success: true,
                     instructions: [
                         {
-                            setEssentialValue: "solutionIndices",
-                            value: [
-                                ...desiredStateVariableValues.solutionIndices,
-                            ],
+                            setEssentialValue: "arrangement",
+                            value: [...desiredStateVariableValues.arrangement],
                         },
                     ],
+                };
+            },
+        };
+
+        stateVariableDefinitions.solutionIndices = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                arrangement: {
+                    dependencyType: "stateVariable",
+                    variableName: "arrangement",
+                },
+                activeBlockIndices: {
+                    dependencyType: "stateVariable",
+                    variableName: "activeBlockIndices",
+                },
+            }),
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        solutionIndices: dependencyValues.arrangement.filter(
+                            (ind) =>
+                                dependencyValues.activeBlockIndices.includes(
+                                    ind,
+                                ),
+                        ),
+                    },
                 };
             },
         };
@@ -594,6 +646,10 @@ export default class Parsons extends BlockScoredComponent {
                 blockOrder: {
                     dependencyType: "stateVariable",
                     variableName: "blockOrder",
+                },
+                activeBlockIndices: {
+                    dependencyType: "stateVariable",
+                    variableName: "activeBlockIndices",
                 },
                 solutionIndices: {
                     dependencyType: "stateVariable",
@@ -607,6 +663,9 @@ export default class Parsons extends BlockScoredComponent {
                     setValue: {
                         unusedIndices: dependencyValues.blockOrder.filter(
                             (ind) =>
+                                dependencyValues.activeBlockIndices.includes(
+                                    ind,
+                                ) &&
                                 !dependencyValues.solutionIndices.includes(ind),
                         ),
                     },
@@ -664,123 +723,21 @@ export default class Parsons extends BlockScoredComponent {
                     dependencyType: "stateVariable",
                     variableName: "correctOrder",
                 },
+                numBlocks: {
+                    dependencyType: "stateVariable",
+                    variableName: "numBlocks",
+                },
             }),
             definition({ dependencyValues }) {
-                return {
-                    setValue: {
-                        creditAchievedIfSubmit: calculateParsonsCredit({
-                            solutionIndices: dependencyValues.solutionIndices,
-                            correctOrder: dependencyValues.correctOrder,
-                        }),
-                    },
-                };
-            },
-        };
-
-        stateVariableDefinitions.numSubmittedResponses = {
-            description:
-                "The number of blocks in the most recently submitted solution.",
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "number",
-            },
-            hasEssential: true,
-            defaultValue: 0,
-            returnDependencies: () => ({}),
-            definition: () => ({
-                useEssentialOrDefaultValue: {
-                    numSubmittedResponses: true,
-                },
-            }),
-            inverseDefinition({ desiredStateVariableValues }) {
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setEssentialValue: "numSubmittedResponses",
-                            value: desiredStateVariableValues.numSubmittedResponses,
-                        },
-                    ],
-                };
-            },
-        };
-
-        stateVariableDefinitions.submittedResponses = {
-            description:
-                "The indices of the blocks in the most recently submitted solution, counting from 1, from top to bottom.",
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "integer",
-            },
-            isArray: true,
-            allowExtraArrayKeysInInverse: true,
-            entryPrefixes: ["submittedResponse"],
-            defaultValueByArrayKey: () => null,
-            hasEssential: true,
-            inverseShadowToSetEntireArray: true,
-            doNotCombineInverseArrayInstructions: true,
-            returnArraySizeDependencies: () => ({
-                numSubmittedResponses: {
-                    dependencyType: "stateVariable",
-                    variableName: "numSubmittedResponses",
-                },
-            }),
-            returnArraySize({ dependencyValues }) {
-                return [dependencyValues.numSubmittedResponses];
-            },
-            returnArrayDependenciesByKey() {
-                const globalDependencies = {
-                    numSubmittedResponses: {
-                        dependencyType: "stateVariable",
-                        variableName: "numSubmittedResponses",
-                    },
-                };
-                return { globalDependencies };
-            },
-            arrayDefinitionByKey({ globalDependencyValues }) {
-                const essentialSubmittedResponses = {};
-
-                for (
-                    let ind = 0;
-                    ind < globalDependencyValues.numSubmittedResponses;
-                    ind++
-                ) {
-                    // this function doesn't change the values once they set for the first time
-                    // (The values will just be changed using the inverse function)
-                    essentialSubmittedResponses[ind] = true;
-                }
-
-                return {
-                    useEssentialOrDefaultValue: {
-                        submittedResponses: essentialSubmittedResponses,
-                    },
-                };
-            },
-            inverseArrayDefinitionByKey: function ({
-                desiredStateVariableValues,
-                initialChange,
-            }) {
-                if (!initialChange) {
-                    return { success: false };
-                }
-
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setDependency: "numSubmittedResponses",
-                            desiredValue:
-                                desiredStateVariableValues.submittedResponses
-                                    .length,
-                        },
-                        {
-                            setEssentialValue: "submittedResponses",
-                            value: [
-                                ...desiredStateVariableValues.submittedResponses,
-                            ],
-                        },
-                    ],
-                };
+                // With no blocks there is no problem to get right.
+                const creditAchievedIfSubmit =
+                    dependencyValues.numBlocks === 0
+                        ? 0
+                        : calculateParsonsCredit({
+                              solutionIndices: dependencyValues.solutionIndices,
+                              correctOrder: dependencyValues.correctOrder,
+                          });
+                return { setValue: { creditAchievedIfSubmit } };
             },
         };
 
@@ -791,11 +748,21 @@ export default class Parsons extends BlockScoredComponent {
                     dependencyType: "stateVariable",
                     variableName: "suppressCheckWork",
                 },
+                // A section with `sectionWideCheckWork` submits its answers
+                // from one button and asks them to hide their own.
+                ancestorSuppressingAnswerSubmitButtons: {
+                    dependencyType: "ancestor",
+                    variableNames: ["suppressAnswerSubmitButtons"],
+                },
             }),
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        showCheckWork: !dependencyValues.suppressCheckWork,
+                        showCheckWork:
+                            !dependencyValues.suppressCheckWork &&
+                            !dependencyValues
+                                .ancestorSuppressingAnswerSubmitButtons
+                                ?.stateValues.suppressAnswerSubmitButtons,
                     },
                 };
             },
@@ -817,8 +784,9 @@ export default class Parsons extends BlockScoredComponent {
 
     /**
      * Move one block: into the solution area at `toPosition` (counting from
-     * 1; appended when omitted or out of range), or back to the unused
-     * blocks. One action serves the buttons, the keyboard and pointer drops.
+     * 1; appended when omitted, clamped when out of range), or back to the
+     * unused blocks. One action serves the buttons, the keyboard and pointer
+     * drops. A request that would change nothing is ignored.
      */
     async moveBlock({
         blockIndex,
@@ -834,16 +802,15 @@ export default class Parsons extends BlockScoredComponent {
         ) {
             return;
         }
-
-        const numBlocks = await this.stateValues.numBlocks;
-        if (
-            !Number.isInteger(blockIndex) ||
-            blockIndex < 1 ||
-            blockIndex > numBlocks
-        ) {
+        if (toArea !== "solution" && toArea !== "unused") {
             return;
         }
-        if (toArea !== "solution" && toArea !== "unused") {
+        if (toPosition != null && !Number.isInteger(toPosition)) {
+            return;
+        }
+
+        const activeBlockIndices = await this.stateValues.activeBlockIndices;
+        if (!activeBlockIndices.includes(blockIndex)) {
             return;
         }
 
@@ -854,10 +821,14 @@ export default class Parsons extends BlockScoredComponent {
 
         let position = null;
         if (toArea === "solution") {
-            let pos = Number.isInteger(toPosition)
-                ? toPosition - 1
-                : nextSolutionIndices.length;
-            pos = Math.max(0, Math.min(pos, nextSolutionIndices.length));
+            const requested =
+                toPosition == null
+                    ? nextSolutionIndices.length
+                    : toPosition - 1;
+            const pos = Math.max(
+                0,
+                Math.min(requested, nextSolutionIndices.length),
+            );
             nextSolutionIndices.splice(pos, 0, blockIndex);
             position = pos + 1;
         }
@@ -874,7 +845,7 @@ export default class Parsons extends BlockScoredComponent {
                 {
                     updateType: "updateValue",
                     componentIdx: this.componentIdx,
-                    stateVariable: "solutionIndices",
+                    stateVariable: "arrangement",
                     value: nextSolutionIndices,
                 },
             ],
@@ -882,7 +853,7 @@ export default class Parsons extends BlockScoredComponent {
             sourceInformation,
             skipRendererUpdate: true,
             event: {
-                verb: "moved",
+                verb: "interacted",
                 object: {
                     componentIdx: this.componentIdx,
                     componentType: this.componentType,
@@ -909,115 +880,15 @@ export default class Parsons extends BlockScoredComponent {
         sourceInformation = {},
         skipRendererUpdate = false,
     }) {
-        const numAttemptsLeft = await this.stateValues.numAttemptsLeft;
-        if (numAttemptsLeft < 1) {
-            return;
-        }
+        // A grader reading the submission sees the blocks' text, not the
+        // indices the shuffled pile happened to give them.
+        const blockTexts = await this.stateValues.blockTexts;
 
-        const disabled = await this.stateValues.disabled;
-        if (disabled) {
-            return;
-        }
-
-        const creditAchieved = (await this.stateValues.handGraded)
-            ? 0
-            : await this.stateValues.creditAchievedIfSubmit;
-
-        // request to update credit
-        const instructions = [
-            {
-                updateType: "updateValue",
-                componentIdx: this.componentIdx,
-                stateVariable: "creditAchieved",
-                value: creditAchieved,
-            },
-            {
-                updateType: "updateValue",
-                componentIdx: this.componentIdx,
-                stateVariable: "responseHasBeenSubmitted",
-                value: true,
-            },
-        ];
-
-        // add submitted responses to instruction for answer
-        const currentResponses = await this.stateValues.currentResponses;
-
-        instructions.push({
-            updateType: "updateValue",
-            componentIdx: this.componentIdx,
-            stateVariable: "submittedResponses",
-            value: currentResponses,
-        });
-
-        instructions.push({
-            updateType: "updateValue",
-            componentIdx: this.componentIdx,
-            stateVariable: "justSubmitted",
-            value: true,
-        });
-
-        instructions.push({
-            updateType: "updateValue",
-            componentIdx: this.componentIdx,
-            stateVariable: "creditAchievedDependenciesAtSubmit",
-            value: await this.stateValues.creditAchievedDependencies,
-        });
-
-        instructions.push({
-            updateType: "updateValue",
-            componentIdx: this.componentIdx,
-            stateVariable: "numSubmissions",
-            value: (await this.stateValues.numSubmissions) + 1,
-        });
-
-        if (creditAchieved < 1) {
-            instructions.push({
-                updateType: "updateValue",
-                componentIdx: this.componentIdx,
-                stateVariable: "numIncorrectSubmissions",
-                value: (await this.stateValues.numIncorrectSubmissions) + 1,
-            });
-        }
-
-        const responseText = currentResponses.map((response) =>
-            String(response),
-        );
-
-        instructions.push({
-            updateType: "recordItemSubmission",
-            componentNumber: await this.stateValues.inComponentNumber,
-            submittedComponent: this.componentIdx,
-            response: currentResponses,
-            responseText,
-            creditAchieved,
-        });
-
-        await this.coreFunctions.performUpdate({
-            updateInstructions: instructions,
-            actionId,
-            sourceInformation,
-            skipRendererUpdate: true,
-            event: {
-                verb: "submitted",
-                object: {
-                    componentIdx: this.componentIdx,
-                    componentType: this.componentType,
-                    answerNumber: this.answerNumber,
-                    rootName: this.rootName,
-                },
-                result: {
-                    response: currentResponses,
-                    responseText,
-                    componentTypes: Array(currentResponses.length).fill(
-                        "integer",
-                    ),
-                    creditAchieved,
-                },
-            },
-        });
-
-        return await this.coreFunctions.triggerChainedActions({
-            componentIdx: this.componentIdx,
+        return await submitScoredComponentResponses({
+            component: this,
+            responseComponentType: "integer",
+            describeResponse: (blockIndex) =>
+                blockTexts[blockIndex - 1] || String(blockIndex),
             actionId,
             sourceInformation,
             skipRendererUpdate,
@@ -1036,22 +907,17 @@ export default class Parsons extends BlockScoredComponent {
         });
     }
 
-    /**
-     * Whether this parsons shuffles its blocks: the `shuffleOrder` primitive,
-     * which unlike `<choiceInput>`'s defaults to true when absent.
-     */
-    static _shufflesFromSerialized(serializedComponent) {
-        const primitive =
-            serializedComponent.attributes?.shuffleOrder?.primitive;
-        return primitive === undefined ? true : Boolean(primitive.value);
-    }
-
     static determineNumberOfUniqueVariants({
         serializedComponent,
         componentInfoObjects,
         infoDiagnostics,
     }) {
-        if (!this._shufflesFromSerialized(serializedComponent)) {
+        const cachedNumVariants = serializedComponent.variants?.numVariants;
+        if (cachedNumVariants !== undefined) {
+            return { success: true, numVariants: cachedNumVariants };
+        }
+
+        if (!shufflesOrder(serializedComponent)) {
             return super.determineNumberOfUniqueVariants({
                 serializedComponent,
                 componentInfoObjects,
@@ -1061,39 +927,43 @@ export default class Parsons extends BlockScoredComponent {
 
         let numBlocks = 0;
 
-        for (const child of serializedComponent.children) {
+        for (const child of serializedComponent.children ?? []) {
+            if (typeof child === "string") {
+                continue;
+            }
             if (child.componentType === "block") {
                 numBlocks++;
-            } else if (
-                componentInfoObjects.isInheritedComponentType({
-                    inheritedComponentType: child.componentType,
-                    baseComponentType: "_composite",
-                }) &&
-                child.attributes.createComponentOfType?.primitive.value ===
-                    "block"
-            ) {
-                if (child.attributes.numComponents?.primitive !== undefined) {
-                    const newBlocks = Number(
-                        child.attributes.numComponents?.primitive.value,
-                    );
-                    if (Number.isInteger(newBlocks) && newBlocks >= 0) {
-                        numBlocks += newBlocks;
-                    } else {
-                        return { success: false };
-                    }
-                } else {
-                    numBlocks++;
-                }
-            } else if (
-                ![
-                    "label",
-                    "shortDescription",
-                    "description",
-                    "statement",
-                ].includes(child.componentType) &&
-                typeof child !== "string"
+                continue;
+            }
+
+            // A label, statement or description cannot produce a block. A
+            // composite can, unless it says it makes something else or is a
+            // `<setup>`, which makes nothing (the variant components inside
+            // it are counted by the base class).
+            const isComposite = componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: child.componentType,
+                baseComponentType: "_composite",
+            });
+            if (!isComposite || child.componentType === "setup") {
+                continue;
+            }
+            if (
+                child.attributes?.createComponentOfType?.primitive.value !==
+                "block"
             ) {
                 return { success: false };
+            }
+            if (child.attributes.numComponents?.primitive !== undefined) {
+                const newBlocks = Number(
+                    child.attributes.numComponents.primitive.value,
+                );
+                if (Number.isInteger(newBlocks) && newBlocks >= 0) {
+                    numBlocks += newBlocks;
+                } else {
+                    return { success: false };
+                }
+            } else {
+                numBlocks++;
             }
         }
 
@@ -1145,7 +1015,7 @@ export default class Parsons extends BlockScoredComponent {
             return { success: false };
         }
 
-        if (!this._shufflesFromSerialized(serializedComponent)) {
+        if (!shufflesOrder(serializedComponent)) {
             return super.getUniqueVariant({
                 serializedComponent,
                 variantIndex,
@@ -1176,13 +1046,10 @@ export default class Parsons extends BlockScoredComponent {
 
         const indicesForEachDescendant = indicesForEachOption;
 
-        // choose a permutation based on permutations index
-        const indicesToPermute = [...Array(numBlocks).keys()].map((x) => x + 1);
-
-        const permutedIndices = enumeratePermutations({
-            values: indicesToPermute,
-            maxNumber: permutationsIndex,
-        })[permutationsIndex - 1];
+        const permutedIndices = permutationAtIndex(
+            [...Array(numBlocks).keys()].map((x) => x + 1),
+            permutationsIndex,
+        );
 
         // for each descendant, get unique variant corresponding
         // to the selected variant number and include that as a subvariant

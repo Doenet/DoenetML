@@ -10,6 +10,7 @@ import { IconProp } from "@fortawesome/fontawesome-svg-core";
 import {
     faArrowDown,
     faArrowUp,
+    faGripVertical,
     faMinus,
     faPlus,
 } from "@fortawesome/free-solid-svg-icons";
@@ -43,8 +44,6 @@ interface ParsonsSVs {
     statementChildInd: number;
     blockChildIndices: number[];
     descriptionChildInd: number;
-    numBlocks: number;
-    blockOrder: number[];
     solutionIndices: number[];
     unusedIndices: number[];
     solutionLabel: string;
@@ -63,6 +62,7 @@ type DropTarget = {
 
 type DragState = {
     blockIndex: number;
+    /** The translation that keeps the block under the pointer. */
     dx: number;
     dy: number;
     target: DropTarget | null;
@@ -73,8 +73,21 @@ type PointerTracking = {
     pointerId: number;
     startX: number;
     startY: number;
+    /** Where the block's box sat in the layout when the pointer went down. */
+    originLeft: number;
+    originTop: number;
+    /** The translation currently rendered, to undo when measuring. */
+    appliedDx: number;
+    appliedDy: number;
     dragging: boolean;
 };
+
+/**
+ * Elements inside a block that own their own pointer interaction, so a press
+ * on them is theirs and never starts a drag.
+ */
+const INTERACTIVE_SELECTOR =
+    "a, button, input, textarea, select, [contenteditable='true'], .jxgbox, .mq-editable-field, .parsons-block-controls";
 
 /**
  * A Parsons problem: the reader moves blocks from the unused area into the
@@ -124,8 +137,10 @@ export default React.memo(function Parsons(props: UseDoenetRendererProps) {
         justSubmitted: SVs.justSubmitted,
     });
 
-    // What a screen reader hears after a move.
-    const [announcement, setAnnouncement] = useState("");
+    // What a screen reader hears after a move. The nonce gives the live
+    // region a fresh node each time, so a message repeated verbatim (two
+    // removals in a row) is still announced.
+    const [announcement, setAnnouncement] = useState({ text: "", nonce: 0 });
 
     // The block to focus once the arrangement it was moved in has rendered.
     const focusBlockRef = useRef<number | null>(null);
@@ -133,31 +148,80 @@ export default React.memo(function Parsons(props: UseDoenetRendererProps) {
     const pointerRef = useRef<PointerTracking | null>(null);
     const [drag, setDrag] = useState<DragState | null>(null);
 
-    // `fixed` and `disabled` are read from refs inside pointer handlers so a
-    // change while a pointer is down is honored.
     const interactive = !SVs.disabled && !SVs.fixed;
-    const interactiveRef = useRef(interactive);
-    interactiveRef.current = interactive;
+    const solutionIndices = SVs.solutionIndices;
+    const unusedIndices = SVs.unusedIndices;
+    const solutionKey = solutionIndices.join(",");
+    const unusedKey = unusedIndices.join(",");
 
-    const solutionKey = SVs.solutionIndices.join(",");
     useEffect(() => {
-        if (focusBlockRef.current === null) {
+        const blockIndex = focusBlockRef.current;
+        focusBlockRef.current = null;
+        if (blockIndex === null) {
             return;
         }
-        const el = ref.current?.querySelector<HTMLElement>(
-            `[data-block-index="${focusBlockRef.current}"]`,
-        );
-        focusBlockRef.current = null;
-        el?.focus();
+        // Reclaim only the focus the move itself displaced (its button or
+        // list item was unmounted), never a place the reader has since gone.
+        const active = document.activeElement;
+        if (
+            active &&
+            active !== document.body &&
+            !ref.current?.contains(active)
+        ) {
+            return;
+        }
+        ref.current
+            ?.querySelector<HTMLElement>(`[data-block-index="${blockIndex}"]`)
+            ?.focus();
     }, [solutionKey]);
+
+    // A drag cannot outlive what it started in: end it when the blocks stop
+    // being interactive or the dragged block is no longer shown.
+    useEffect(() => {
+        if (
+            drag &&
+            (!interactive ||
+                !(
+                    solutionIndices.includes(drag.blockIndex) ||
+                    unusedIndices.includes(drag.blockIndex)
+                ))
+        ) {
+            cancelDrag();
+        }
+    }, [drag, interactive, solutionKey, unusedKey]);
+
+    // Escape abandons a drag wherever focus is.
+    useEffect(() => {
+        if (!drag) {
+            return;
+        }
+        function onKeyDown(e: KeyboardEvent) {
+            if (e.key === "Escape") {
+                cancelDrag();
+            }
+        }
+        window.addEventListener("keydown", onKeyDown);
+        return () => window.removeEventListener("keydown", onKeyDown);
+    }, [drag]);
 
     if (SVs.hidden) {
         return null;
     }
 
-    const solutionIndices = SVs.solutionIndices;
-    const unusedIndices = SVs.unusedIndices;
+    function announce(text: string) {
+        setAnnouncement((previous) => ({ text, nonce: previous.nonce + 1 }));
+    }
 
+    function cancelDrag() {
+        pointerRef.current = null;
+        setDrag(null);
+    }
+
+    /**
+     * Ask the worker to move a block, unless the request would change
+     * nothing (a move past the end of the solution, a drop where the block
+     * already sits), in which case nothing is announced either.
+     */
     function move({
         blockIndex,
         toArea,
@@ -167,72 +231,73 @@ export default React.memo(function Parsons(props: UseDoenetRendererProps) {
         toArea: Area;
         toPosition?: number;
     }) {
-        if (!interactiveRef.current) {
+        if (!interactive) {
             return;
         }
 
-        const inSolution = solutionIndices.includes(blockIndex);
-        const count = inSolution
-            ? solutionIndices.length
-            : solutionIndices.length + 1;
+        const others = solutionIndices.filter((ind) => ind !== blockIndex);
+        const wasInSolution = others.length < solutionIndices.length;
 
         if (toArea === "unused") {
-            if (!inSolution) {
+            if (!wasInSolution) {
                 return;
             }
-            setAnnouncement(
+            focusBlockRef.current = blockIndex;
+            callAction({
+                action: actions.moveBlock,
+                args: { blockIndex, toArea },
+            });
+            announce(
                 t(
                     "parsons-moved-to-unused",
                     undefined,
                     "Moved to the unused blocks.",
                 ),
             );
-        } else {
-            let position =
-                toPosition === undefined
-                    ? count
-                    : Math.max(1, Math.min(toPosition, count));
-            if (inSolution) {
-                setAnnouncement(
-                    t(
-                        "parsons-moved-within-solution",
-                        { position, count },
-                        `Moved to position ${position} of ${count}.`,
-                    ),
-                );
-            } else {
-                setAnnouncement(
-                    t(
-                        "parsons-moved-to-solution",
-                        { position, count },
-                        `Moved to the solution, position ${position} of ${count}.`,
-                    ),
-                );
-            }
+            return;
+        }
+
+        const count = others.length + 1;
+        const position =
+            toPosition === undefined
+                ? count
+                : Math.max(1, Math.min(toPosition, count));
+        if (wasInSolution && solutionIndices[position - 1] === blockIndex) {
+            return;
         }
 
         focusBlockRef.current = blockIndex;
         callAction({
             action: actions.moveBlock,
-            args: { blockIndex, toArea, toPosition },
+            args: { blockIndex, toArea, toPosition: position },
         });
+        announce(
+            wasInSolution
+                ? t(
+                      "parsons-moved-within-solution",
+                      { position, count },
+                      `Moved to position ${position} of ${count}.`,
+                  )
+                : t(
+                      "parsons-moved-to-solution",
+                      { position, count },
+                      `Moved to the solution, position ${position} of ${count}.`,
+                  ),
+        );
     }
 
     function moveFocus(current: HTMLElement, direction: 1 | -1): boolean {
-        const list = current.parentElement;
-        if (!list) {
+        const items = Array.from(
+            current.parentElement?.querySelectorAll<HTMLElement>(
+                "li[data-block-index]",
+            ) ?? [],
+        );
+        const next = items[items.indexOf(current) + direction];
+        if (!next) {
             return false;
         }
-        const items = Array.from(
-            list.querySelectorAll<HTMLElement>("li[data-block-index]"),
-        );
-        const ind = items.indexOf(current);
-        const next = items[ind + direction];
-        if (next) {
-            next.focus();
-            return true;
-        }
-        return false;
+        next.focus();
+        return true;
     }
 
     function onBlockKeyDown(
@@ -245,36 +310,29 @@ export default React.memo(function Parsons(props: UseDoenetRendererProps) {
             // A key pressed on a button inside the block is the button's.
             return;
         }
-        if (e.key === "Escape" && drag) {
-            pointerRef.current = null;
-            setDrag(null);
-            e.preventDefault();
-            return;
-        }
-        if (!interactive) {
-            return;
-        }
 
-        if (e.key === "Enter" || e.key === " ") {
-            e.preventDefault();
-            move({
-                blockIndex,
-                toArea: area === "solution" ? "unused" : "solution",
-            });
-        } else if (
-            e.altKey &&
-            (e.key === "ArrowUp" || e.key === "ArrowDown") &&
-            area === "solution"
-        ) {
-            e.preventDefault();
-            move({
-                blockIndex,
-                toArea: "solution",
-                toPosition: position + (e.key === "ArrowUp" ? -1 : 1),
-            });
-        } else if (e.key === "ArrowUp" || e.key === "ArrowDown") {
-            if (moveFocus(e.currentTarget, e.key === "ArrowUp" ? -1 : 1)) {
+        if (e.key === "ArrowUp" || e.key === "ArrowDown") {
+            const direction = e.key === "ArrowUp" ? -1 : 1;
+            if (e.altKey) {
+                if (area === "solution") {
+                    e.preventDefault();
+                    move({
+                        blockIndex,
+                        toArea: "solution",
+                        toPosition: position + direction,
+                    });
+                }
+            } else if (moveFocus(e.currentTarget, direction)) {
                 e.preventDefault();
+            }
+        } else if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            // A held key repeats; a block should not ping-pong between areas.
+            if (!e.repeat) {
+                move({
+                    blockIndex,
+                    toArea: area === "solution" ? "unused" : "solution",
+                });
             }
         }
     }
@@ -322,29 +380,27 @@ export default React.memo(function Parsons(props: UseDoenetRendererProps) {
         e: React.PointerEvent<HTMLLIElement>,
         blockIndex: number,
     ) {
-        if (!interactiveRef.current) {
+        if (!interactive || !e.isPrimary || pointerRef.current) {
             return;
         }
         if (e.pointerType === "mouse" && e.button !== 0) {
             return;
         }
-        if ((e.target as HTMLElement).closest(".parsons-block-controls")) {
-            // The buttons handle their own clicks.
+        if ((e.target as HTMLElement).closest(INTERACTIVE_SELECTOR)) {
             return;
         }
+        const { left, top } = e.currentTarget.getBoundingClientRect();
         pointerRef.current = {
             blockIndex,
             pointerId: e.pointerId,
             startX: e.clientX,
             startY: e.clientY,
+            originLeft: left,
+            originTop: top,
+            appliedDx: 0,
+            appliedDy: 0,
             dragging: false,
         };
-        try {
-            e.currentTarget.setPointerCapture(e.pointerId);
-        } catch {
-            // Pointer capture may fail in test environments (synthetic
-            // events) or if the pointer has already been released.
-        }
     }
 
     function onPointerMove(
@@ -352,21 +408,45 @@ export default React.memo(function Parsons(props: UseDoenetRendererProps) {
         blockIndex: number,
     ) {
         const tracking = pointerRef.current;
-        if (!tracking || tracking.blockIndex !== blockIndex) {
+        if (
+            !tracking ||
+            tracking.blockIndex !== blockIndex ||
+            e.pointerId !== tracking.pointerId
+        ) {
             return;
         }
-        const dx = e.clientX - tracking.startX;
-        const dy = e.clientY - tracking.startY;
+        const movedX = e.clientX - tracking.startX;
+        const movedY = e.clientY - tracking.startY;
         if (!tracking.dragging) {
             if (
-                Math.abs(dx) <= POINTER_DRAG_THRESHOLD &&
-                Math.abs(dy) <= POINTER_DRAG_THRESHOLD
+                Math.abs(movedX) <= POINTER_DRAG_THRESHOLD &&
+                Math.abs(movedY) <= POINTER_DRAG_THRESHOLD
             ) {
                 return;
             }
             tracking.dragging = true;
+            // Capture only once this is a drag, so a plain click still
+            // reaches whatever inside the block was clicked.
+            try {
+                e.currentTarget.setPointerCapture(e.pointerId);
+            } catch {
+                // Pointer capture may fail in test environments (synthetic
+                // events) or if the pointer has already been released.
+            }
         }
         e.preventDefault();
+
+        // The block stays in the flow, so the lists around it keep their
+        // size; when the drop indicator shifts its layout box, the shift is
+        // taken out of the translation and the block stays under the pointer.
+        const box = e.currentTarget.getBoundingClientRect();
+        const layoutLeft = box.left - tracking.appliedDx;
+        const layoutTop = box.top - tracking.appliedDy;
+        const dx = movedX - (layoutLeft - tracking.originLeft);
+        const dy = movedY - (layoutTop - tracking.originTop);
+        tracking.appliedDx = dx;
+        tracking.appliedDy = dy;
+
         setDrag({
             blockIndex,
             dx,
@@ -375,9 +455,13 @@ export default React.memo(function Parsons(props: UseDoenetRendererProps) {
         });
     }
 
-    function endPointer(e: React.PointerEvent<HTMLLIElement>) {
+    function onPointerUp(e: React.PointerEvent<HTMLLIElement>) {
         const tracking = pointerRef.current;
-        if (!tracking) {
+        if (!tracking || e.pointerId !== tracking.pointerId) {
+            return;
+        }
+        pointerRef.current = null;
+        if (!tracking.dragging) {
             return;
         }
         try {
@@ -385,17 +469,8 @@ export default React.memo(function Parsons(props: UseDoenetRendererProps) {
         } catch {
             // Already released.
         }
-        pointerRef.current = null;
-        return tracking;
-    }
-
-    function onPointerUp(e: React.PointerEvent<HTMLLIElement>) {
-        const tracking = endPointer(e);
-        if (!tracking?.dragging) {
-            return;
-        }
-        const target = dropTargetAt(e.clientX, e.clientY, tracking.blockIndex);
         setDrag(null);
+        const target = dropTargetAt(e.clientX, e.clientY, tracking.blockIndex);
         if (target) {
             move({
                 blockIndex: tracking.blockIndex,
@@ -406,17 +481,23 @@ export default React.memo(function Parsons(props: UseDoenetRendererProps) {
     }
 
     function onPointerCancel(e: React.PointerEvent<HTMLLIElement>) {
-        endPointer(e);
-        setDrag(null);
+        if (
+            pointerRef.current &&
+            e.pointerId === pointerRef.current.pointerId
+        ) {
+            cancelDrag();
+        }
     }
 
     function controlButton({
+        key,
         label,
         icon,
         testId,
         onClick,
-        disabled,
+        disabled = false,
     }: {
+        key: string;
         label: string;
         icon: IconProp;
         testId: string;
@@ -425,6 +506,7 @@ export default React.memo(function Parsons(props: UseDoenetRendererProps) {
     }) {
         return (
             <button
+                key={key}
                 type="button"
                 className="parsons-control"
                 aria-label={label}
@@ -438,9 +520,12 @@ export default React.memo(function Parsons(props: UseDoenetRendererProps) {
         );
     }
 
-    function renderBlock(blockIndex: number, area: Area, position: number) {
-        const count =
-            area === "solution" ? solutionIndices.length : unusedIndices.length;
+    function renderBlock(
+        blockIndex: number,
+        area: Area,
+        position: number,
+        order?: number,
+    ) {
         const dragging = drag?.blockIndex === blockIndex;
         const classNames = ["parsons-block"];
         if (interactive) {
@@ -452,18 +537,23 @@ export default React.memo(function Parsons(props: UseDoenetRendererProps) {
 
         const controls =
             area === "unused"
-                ? controlButton({
-                      label: t(
-                          "parsons-move-to-solution",
-                          undefined,
-                          "Move to solution",
-                      ),
-                      icon: faPlus as IconProp,
-                      testId: "parsons-move-to-solution",
-                      onClick: () => move({ blockIndex, toArea: "solution" }),
-                  })
+                ? [
+                      controlButton({
+                          key: "to-solution",
+                          label: t(
+                              "parsons-move-to-solution",
+                              undefined,
+                              "Move to solution",
+                          ),
+                          icon: faPlus as IconProp,
+                          testId: "parsons-move-to-solution",
+                          onClick: () =>
+                              move({ blockIndex, toArea: "solution" }),
+                      }),
+                  ]
                 : [
                       controlButton({
+                          key: "up",
                           label: t("parsons-move-up", undefined, "Move up"),
                           icon: faArrowUp as IconProp,
                           testId: "parsons-move-up",
@@ -476,10 +566,11 @@ export default React.memo(function Parsons(props: UseDoenetRendererProps) {
                               }),
                       }),
                       controlButton({
+                          key: "down",
                           label: t("parsons-move-down", undefined, "Move down"),
                           icon: faArrowDown as IconProp,
                           testId: "parsons-move-down",
-                          disabled: position === count,
+                          disabled: position === solutionIndices.length,
                           onClick: () =>
                               move({
                                   blockIndex,
@@ -488,6 +579,7 @@ export default React.memo(function Parsons(props: UseDoenetRendererProps) {
                               }),
                       }),
                       controlButton({
+                          key: "to-unused",
                           label: t(
                               "parsons-move-to-unused",
                               undefined,
@@ -499,78 +591,79 @@ export default React.memo(function Parsons(props: UseDoenetRendererProps) {
                       }),
                   ];
 
+        const style: React.CSSProperties = { order };
+        if (dragging && drag) {
+            style.transform = `translate(${drag.dx}px, ${drag.dy}px)`;
+        }
+
         return (
             <li
                 key={blockIndex}
                 className={classNames.join(" ")}
                 data-test="parsons-block"
                 data-block-index={blockIndex}
-                tabIndex={interactive ? 0 : undefined}
-                style={
-                    dragging
-                        ? {
-                              transform: `translate(${drag!.dx}px, ${drag!.dy}px)`,
-                          }
-                        : undefined
-                }
+                tabIndex={0}
+                aria-describedby={`${id}-instructions`}
+                style={style}
                 onKeyDown={(e) => onBlockKeyDown(e, blockIndex, area, position)}
                 onPointerDown={(e) => onPointerDown(e, blockIndex)}
                 onPointerMove={(e) => onPointerMove(e, blockIndex)}
                 onPointerUp={onPointerUp}
                 onPointerCancel={onPointerCancel}
+                onLostPointerCapture={onPointerCancel}
+                onDragStart={(e) => e.preventDefault()}
             >
+                {interactive && (
+                    <span className="parsons-block-handle" aria-hidden={true}>
+                        <FontAwesomeIcon icon={faGripVertical as IconProp} />
+                    </span>
+                )}
                 <div className="parsons-block-content">
                     {children[SVs.blockChildIndices[blockIndex - 1]]}
                 </div>
                 <div
                     className="parsons-block-controls"
                     role="group"
-                    aria-label={t(
-                        "parsons-block-controls",
-                        { position },
-                        `Controls for block ${position}`,
-                    )}
+                    aria-label={
+                        area === "solution"
+                            ? t(
+                                  "parsons-solution-block-controls",
+                                  { position },
+                                  `Controls for solution step ${position}`,
+                              )
+                            : t(
+                                  "parsons-unused-block-controls",
+                                  { position },
+                                  `Controls for unused block ${position}`,
+                              )
+                    }
                 >
-                    {Array.isArray(controls)
-                        ? controls.map((control, i) => (
-                              <React.Fragment key={i}>{control}</React.Fragment>
-                          ))
-                        : controls}
+                    {controls}
                 </div>
             </li>
         );
     }
 
-    // The solution list, with the drop indicator inserted while dragging.
-    const solutionItems: ReactNode[] = [];
-    const dropPosition =
-        drag?.target?.area === "solution" ? drag.target.position : null;
-    const solutionWithoutDragged = solutionIndices.filter(
-        (ind) => ind !== drag?.blockIndex,
+    // The solution's blocks keep their DOM order throughout a drag: moving a
+    // captured element in the DOM releases its pointer capture and ends the
+    // drag. So the drop indicator is always the last child, and flexbox
+    // `order` puts it visually before the block that would follow the drop
+    // (counting among the blocks other than the dragged one).
+    const solutionItems: ReactNode[] = solutionIndices.map((blockIndex, i) =>
+        renderBlock(blockIndex, "solution", i + 1, 2 * (i + 1)),
     );
-    solutionIndices.forEach((blockIndex, i) => {
-        const positionAmongOthers =
-            solutionWithoutDragged.indexOf(blockIndex) + 1;
-        if (dropPosition !== null && positionAmongOthers === dropPosition) {
-            solutionItems.push(
-                <li
-                    key="drop-indicator"
-                    className="parsons-drop-indicator"
-                    aria-hidden={true}
-                    data-test="parsons-drop-indicator"
-                />,
-            );
-        }
-        solutionItems.push(renderBlock(blockIndex, "solution", i + 1));
-    });
-    if (
-        dropPosition !== null &&
-        dropPosition === solutionWithoutDragged.length + 1
-    ) {
+    if (drag?.target?.area === "solution") {
+        const others = solutionIndices.filter((ind) => ind !== drag.blockIndex);
+        const following = others[(drag.target.position ?? 1) - 1];
+        const followingIndex =
+            following === undefined
+                ? solutionIndices.length
+                : solutionIndices.indexOf(following);
         solutionItems.push(
             <li
                 key="drop-indicator"
                 className="parsons-drop-indicator"
+                style={{ order: 2 * followingIndex + 1 }}
                 aria-hidden={true}
                 data-test="parsons-drop-indicator"
             />,
@@ -580,16 +673,26 @@ export default React.memo(function Parsons(props: UseDoenetRendererProps) {
     const statement =
         SVs.statementChildInd !== -1 ? children[SVs.statementChildInd] : null;
 
-    const hasLabel = Boolean(SVs.label);
+    const hasLabel =
+        typeof SVs.label === "string"
+            ? SVs.label.trim() !== ""
+            : Boolean(SVs.label);
     const labelId = `${id}-label`;
-    let label: ReactNode = SVs.label;
-    if (SVs.labelHasLatex) {
-        label = <DynamicMath latex={SVs.label} />;
-    }
+    const label: ReactNode = SVs.labelHasLatex ? (
+        <DynamicMath latex={SVs.label} />
+    ) : (
+        SVs.label
+    );
 
-    const shortDescription = addValidationStateToShortDescription(
+    // With no label, the short description (or a default) names the group
+    // and the verdict is appended to it; with a label, the description holds
+    // the verdict.
+    const baseName =
+        SVs.shortDescription ||
+        t("parsons-default-name", undefined, "Arrange the blocks");
+    const describedName = addValidationStateToShortDescription(
         validationState,
-        SVs.shortDescription || undefined,
+        hasLabel ? SVs.shortDescription || undefined : baseName,
         tContent,
     );
 
@@ -620,7 +723,7 @@ export default React.memo(function Parsons(props: UseDoenetRendererProps) {
         );
     }
 
-    let checkWorkComponent = createCheckWorkComponent(
+    const checkWorkComponent = createCheckWorkComponent(
         SVs,
         id,
         validationState,
@@ -631,13 +734,6 @@ export default React.memo(function Parsons(props: UseDoenetRendererProps) {
         isPending,
         tContent,
     );
-    if (checkWorkComponent && description) {
-        checkWorkComponent = (
-            <span aria-details={descriptionId} data-test="Details Associated">
-                {checkWorkComponent}
-            </span>
-        );
-    }
 
     const areaClassNames = ["parsons-areas"];
     if (SVs.colorCorrectness && validationState !== "unvalidated") {
@@ -655,13 +751,8 @@ export default React.memo(function Parsons(props: UseDoenetRendererProps) {
             data-test="parsons-root"
             role="group"
             aria-labelledby={hasLabel ? labelId : undefined}
-            aria-label={
-                !hasLabel
-                    ? shortDescription ||
-                      t("parsons-default-name", undefined, "Arrange the blocks")
-                    : undefined
-            }
-            aria-description={hasLabel ? shortDescription : undefined}
+            aria-label={hasLabel ? undefined : describedName}
+            aria-description={hasLabel ? describedName : undefined}
             aria-details={descriptionId}
         >
             {hasLabel && (
@@ -669,6 +760,13 @@ export default React.memo(function Parsons(props: UseDoenetRendererProps) {
                     {label}
                 </div>
             )}
+            <div id={`${id}-instructions`} className="visually-hidden">
+                {t(
+                    "parsons-block-instructions",
+                    undefined,
+                    "Press Enter or Space to move this block between the solution and the unused blocks. Hold Alt and press the up or down arrow to move it within the solution.",
+                )}
+            </div>
             <div className={areaClassNames.join(" ")}>
                 <div
                     ref={solutionAreaRef}
@@ -683,21 +781,21 @@ export default React.memo(function Parsons(props: UseDoenetRendererProps) {
                     <div id={solutionLabelId} className="parsons-area-label">
                         {SVs.solutionLabel}
                     </div>
+                    {statement && (
+                        <div
+                            className="parsons-block parsons-statement"
+                            data-test="parsons-statement"
+                        >
+                            <div className="parsons-block-content">
+                                {statement}
+                            </div>
+                        </div>
+                    )}
                     <ul
                         ref={solutionListRef}
                         className="parsons-list"
                         aria-labelledby={solutionLabelId}
                     >
-                        {statement && (
-                            <li
-                                className="parsons-block parsons-statement"
-                                data-test="parsons-statement"
-                            >
-                                <div className="parsons-block-content">
-                                    {statement}
-                                </div>
-                            </li>
-                        )}
                         {solutionItems}
                     </ul>
                 </div>
@@ -730,7 +828,7 @@ export default React.memo(function Parsons(props: UseDoenetRendererProps) {
                 aria-atomic={true}
                 data-test="parsons-live"
             >
-                {announcement}
+                <span key={announcement.nonce}>{announcement.text}</span>
             </div>
             {description}
             {checkWorkComponent}

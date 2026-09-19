@@ -81,8 +81,8 @@ pretzel-indices-count-mismatch = Ignoring indices specified for problem as numbe
 
 shuffle-indices-count-mismatch = Ignoring indices specified for shuffle as number of indices doesn't match number of components.
 
-# $component is `choiceInput`, `pretzel` or `shuffle` — a DoenetML component
-# name, so it stays in English.
+# $component is `choiceInput`, `pretzel`, `shuffle` or `parsons` — a DoenetML
+# component name, so it stays in English.
 indices-ignored-out-of-range = Ignoring indices specified for { $component } as some indices out of range.
 
 pretzel-indices-repeated = Ignoring indices specified for pretzel as some indices are repeated.
@@ -467,7 +467,7 @@ answer-attributes-need-symbolic-equality =
 
 answer-invalid-type = Invalid type for answer: { $type }
 
-## `<module>`, `<conditionalContent>`, `<slider>`, `<pretzel>`
+## `<module>`, `<conditionalContent>`, `<slider>`, `<pretzel>`, `<parsons>`
 
 module-attribute-child-needs-name = Since the component `<{ $component }>` does not have a name, it cannot be used for a module attribute
 
