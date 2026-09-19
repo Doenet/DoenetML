@@ -14,7 +14,7 @@ which each `target` would have to be inserted for the list to stay sorted. Unlik
 does it belong?", not "is it there?".
 
 The list has to be in ascending order, and `<searchSorted>{:dn}` checks that it is. Given
-values that are not in order it reports 0 for every target — the same "no position" it
+values that are not in order it reports 0 instead of a position — the same "no position" it
 gives when `target` is missing — and warns, rather than returning a number that looks like
 a position but is not one. Equal neighbors are in order; that run is what `side` is about.
 

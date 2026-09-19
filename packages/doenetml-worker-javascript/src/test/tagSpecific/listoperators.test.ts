@@ -654,6 +654,28 @@ describe("List operator tag tests @group4", async () => {
             expect(warnings.filter(notSorted).length).eq(1);
         });
 
+        it("a math that is not a real number takes no part in the ordering either", async () => {
+            // A list of `<math>` values is compared numerically, and `i` is a
+            // `<math>` like the others — but it evaluates to something that is
+            // not a number, so it compares with nothing, exactly as a number
+            // that does not parse does. The 9 and the 1 on either side of it
+            // are still compared with each other.
+            const { text, warnings } = await resultsFor(`
+    <mathList name="ml">9 i 1</mathList>
+    <p name="p"><searchSorted target="4">$ml</searchSorted></p>
+    `);
+            expect(text).eq("0");
+            expect(warnings.filter(notSorted).length).eq(1);
+
+            // And in order it is passed over rather than reported, as `x` is.
+            const inOrder = await resultsFor(`
+    <mathList name="ml">1 i 9</mathList>
+    <p name="p"><searchSorted target="4">$ml</searchSorted></p>
+    `);
+            expect(inOrder.text).eq("2");
+            expect(inOrder.warnings.filter(notSorted)).eqls([]);
+        });
+
         it("the position steps over a value that is not a number", async () => {
             // 10 belongs after the 9, which is the last of four entries, so
             // the only position that describes this list is 5. Counting the
