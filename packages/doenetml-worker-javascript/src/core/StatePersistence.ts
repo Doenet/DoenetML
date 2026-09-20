@@ -172,9 +172,12 @@ export class StatePersistence {
      * The component has to shadow another wholesale — a plain copy, or a
      * composite's replacement of what it copies — and *every* variable in its
      * entry has to be one the essential-value writer keeps in sync with the
-     * component it shadows (`_isMirroredFromShadowedComponent`). A write to
-     * such a variable is redirected to the target (`shadowInverseDefinition`)
-     * and mirrored from there back down over `shadowedBy`, so every variable
+     * component it shadows (`_isMirroredFromShadowedComponent`). A reader's
+     * write into the shadow reaches the target first, because the variable
+     * they act on is one of the shadowed ones and its inverse is redirected
+     * there (`shadowInverseDefinition`); the essential values the target's
+     * own inverse then sets are mirrored back down over `shadowedBy`, and
+     * those are the variables this predicate selects. So every variable
      * under the shadow's id is recorded under the target's id too, with the
      * same value. The shadow's entry is often a subset of the target's rather
      * than a copy of it — a copied `<mathInput>` records seven variables under

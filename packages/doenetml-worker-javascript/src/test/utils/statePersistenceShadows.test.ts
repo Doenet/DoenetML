@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "./test-core";
 import {
+    movePoint,
     moveText,
     submitAnswer,
     updateMathInputValue,
@@ -181,6 +182,70 @@ describe("a shadow's state is its source's, and is not persisted twice @group4",
         }
     });
 
+    it("drops a dragged copy's duplicate of a point's position", async () => {
+        // A point defined outside a graph and shown inside it: the copy in the
+        // graph is the shadow, and dragging it records `unconstrainedXs` under
+        // both ids. This is the shape the change was first measured on, and
+        // the only one here whose entry is a partial array write -- a
+        // `mergeObject` base that a later drag merges into -- so it is the one
+        // that says dropping the duplicate does not break the merge. Hence the
+        // second drag below, whose base comes from the restored payload rather
+        // than from a live write.
+        //
+        // A point written as `<point x="1" y="2" />` behaves differently and is
+        // deliberately not this test: the drag then lands on the attribute
+        // components, neither of which is a shadow, and there is no duplicate
+        // to drop.
+        const doc = `<point name="P" /><graph><point extend="$P" name="P2" /></graph>`;
+
+        async function xsOf(built: any, name: string) {
+            const stateVariables = await built.core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[
+                await built.resolvePathToNodeIdx(name)
+            ].stateValues.xs.map((x: any) => x.evaluate_to_constant());
+        }
+
+        const first = await createTestCore({ doenetML: doc });
+        await movePoint({
+            componentIdx: await first.resolvePathToNodeIdx("P2"),
+            x: 1.5,
+            y: 2.40625,
+            core: first.core,
+        });
+        await first.core.saveImmediately();
+        const saved = first.scoreState.state as string;
+
+        expect(savedKeys(saved)).eqls(["/~P"]);
+        expect(await xsOf(first, "P")).eqls([1.5, 2.40625]);
+        expect(await xsOf(first, "P2")).eqls([1.5, 2.40625]);
+
+        const second = await createTestCore({
+            doenetML: doc,
+            initialState: saved,
+        });
+        expect(await xsOf(second, "P")).eqls([1.5, 2.40625]);
+        expect(await xsOf(second, "P2")).eqls([1.5, 2.40625]);
+
+        await movePoint({
+            componentIdx: await second.resolvePathToNodeIdx("P2"),
+            x: -3,
+            y: 4,
+            core: second.core,
+        });
+        await second.core.saveImmediately();
+        const savedAgain = second.scoreState.state as string;
+        expect(savedKeys(savedAgain)).eqls(["/~P"]);
+
+        const third = await createTestCore({
+            doenetML: doc,
+            initialState: savedAgain,
+        });
+        expect(await xsOf(third, "P2")).eqls([-3, 4]);
+    });
+
     it("keeps an unlinked copy's own state", async () => {
         // `<point copy="$A" />` is not a shadow -- it carries
         // `unlinkedCopySource` and no `shadows`, and nothing propagates in
@@ -190,7 +255,6 @@ describe("a shadow's state is its source's, and is not persisted twice @group4",
         // worth a test.
         const doc = `<graph><point name="A" x="1" y="2" /><point copy="$A" name="A2" /></graph>`;
         const trip = await roundTrip(doc, async (core, resolve) => {
-            const { movePoint } = await import("./actions");
             await movePoint({
                 componentIdx: await resolve("A2"),
                 x: 3,
