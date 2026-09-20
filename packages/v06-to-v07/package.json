@@ -26,6 +26,7 @@
         "watch": "vite build --watch",
         "build": "wireit",
         "publish": "npm run build && node ../../.github/scripts/npm-publish-with-retry.mjs dist --tag 0.7-stable",
+        "publish:dev": "npm run build && node ../../.github/scripts/npm-publish-with-retry.mjs dist --tag 0.7-dev",
         "test": "vitest"
     },
     "wireit": {

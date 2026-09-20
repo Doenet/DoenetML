@@ -99,10 +99,20 @@ jobs:
                   # a 0.7 build. Falling through to the exact pin in
                   # `prefigureConfig.ts` is the point.
 
+            # `npm run publish:dev`, not `npm run publish -- --tag 0.7-dev`.
+            # The latter looks equivalent and is not: npm does not forward
+            # `--tag` into the workspace script's argv, it sets `npm_config_tag`
+            # -- and `getExplicitPublishTag` in `npm-publish-with-retry.mjs`
+            # reads the env only as a starting value, then lets an explicit
+            # `--tag` in argv override it. Since this branch pins
+            # `--tag 0.7-stable` in every package's `publish` script, the pin
+            # would win and a `-dev.N` prerelease would go out under the stable
+            # line tag. A separate script keeps each channel's tag in argv,
+            # where it is the thing that decides.
             - name: Publish dev release
               id: publish-npm
               if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
-              run: npm run publish -- --tag 0.7-dev
+              run: npm run publish:dev
               env:
                   WIREIT_CACHE: "local"
 
