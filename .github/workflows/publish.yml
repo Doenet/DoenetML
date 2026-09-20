@@ -20,11 +20,18 @@ name: Publish
 #     latest`) land in argv after the pin, and the last `--tag` wins, exactly
 #     as `npm publish` itself resolves it. The guarantee is about the scripts:
 #     no `npm run publish` / `publish:dev` that names no tag can reach one.
-#     `npm publish` typed straight into a built `dist/` is outside them --
-#     that generated manifest is the only one here that is not `private` --
-#     and it takes npm's default. npm blocks that route itself once `main` is
-#     ahead: it refuses to imply `latest` when a published version is already
-#     higher than the one being sent.
+#     `npm publish` typed straight into a built `dist/` is outside them: the
+#     source manifest of every package this repo sends to npm is `private`,
+#     which npm refuses, while `transform-package-json.ts` writes each
+#     generated one `private: false`. A bare invocation there names no tag.
+#     Nothing here does that, and for the four line packages npm refuses it
+#     on its own once `main` is ahead -- it will not imply `latest` when a
+#     published version is already higher than the one being sent. The
+#     generated manifest that backstop does not cover is
+#     `packages/prefigure/dist`: prefigure is versioned on its own and this
+#     line never raises it, so nothing is ever ahead of it. Closing the
+#     script route is what prefigure's refusing `publish` script here is for;
+#     the `dist/` one stays open and is worth knowing about.
 on:
     release:
         types: [published]
