@@ -996,9 +996,11 @@ describe("Sort tag tests @group4", async () => {
         // `createNewComponentIndices` clears `stateId` and the key falls back
         // to `componentIdx`, a position in the build.
         //
-        // Across builds of the same document, that is: a reorder recreates
-        // every replacement with fresh ids, so this says nothing about work
-        // done on a replacement a later reorder recreates (see `Sort.js`).
+        // Across builds of the same document, that is. Within one build, a
+        // rebuild — a changed set of values, or a reorder that moves too much
+        // to be worth rearranging — recreates every replacement with fresh
+        // ids, so this says nothing about work done on a replacement such a
+        // rebuild recreates (see `Sort.js`).
         const doenetML = `
     <sort name="s">5 3 1</sort>
     <p name="pList">$s</p>

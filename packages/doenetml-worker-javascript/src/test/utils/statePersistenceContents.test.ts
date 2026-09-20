@@ -338,11 +338,13 @@ describe("the reader's work is not only what they typed @group4", () => {
 describe("an update that deletes a component it wrote to is still saved whole @group4", () => {
     // Merging an update's changes read each written component's `stateId` off
     // the component. A composite that recreates its replacements deletes them
-    // during the very update that wrote to them -- `<sort>` does it on every
-    // reorder -- so by the time the merge ran the component was gone and the
-    // read threw. `performAction` catches, so nothing surfaced: the throw
-    // simply took the rest of `performUpdate` with it, including the writes
-    // not yet merged and the save the call would have scheduled.
+    // during the very update that wrote to them -- `<sort>` does it whenever
+    // it rebuilds rather than moving the replacements it has, which is what
+    // the document below does -- so by the time the merge ran the component
+    // was gone and the read threw. `performAction` catches, so nothing
+    // surfaced: the throw simply took the rest of `performUpdate` with it,
+    // including the writes not yet merged and the save the call would have
+    // scheduled.
     //
     // Typing into a position of a `<sort>` is the reader-visible form. The
     // typing reorders the list, the reorder corrects the input to whatever now
