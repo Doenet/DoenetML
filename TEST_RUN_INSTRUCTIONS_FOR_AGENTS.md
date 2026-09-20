@@ -62,7 +62,7 @@ run rather than ending it.
 
 Every `@doenet/*` package's `exports` point at its `dist/`, and no vitest config aliases them back to `src/`. A test that imports another package **by its `@doenet/` name** gets the **last build** of it. (A *relative* path bypasses `exports` and resolves to whatever it points at. `packages/static-assets/scripts/get-schema.ts` and `packages/doenetml-worker-javascript/src/test/utils/test-core.ts` reach a sibling's `src/` that way and so see an edit without a rebuild, while `doenetml-worker-rust/lib-doenetml-core/tests/parse-dast.ts` reaches `parser/dist` and still needs one.)
 
-Nothing rebuilds it for you: almost no `test` script does, so neither `npm run test -w <pkg>` nor `npx vitest` builds anything. The exceptions are `doenetml-prototype`, `doenetml-to-pretext`, `doenetml-worker-rust` and `doenetml-worker-javascript`, whose `test` runs a Wireit build first.
+Nothing rebuilds it for you: almost no `test` script does, so neither `npm run test -w <pkg>` nor `npx vitest` builds anything. The exceptions are `doenetml-prototype`, `doenetml-to-pretext`, `doenetml-worker-rust`, `doenetml-worker-javascript` and `math`, whose `test` runs a Wireit build first.
 
 **Rule: after editing `packages/<A>/src/`, run `npm run build -w @doenet/<A>` before running tests in any package other than `<A>`.**
 
@@ -76,7 +76,7 @@ Why this matters more than it sounds: the failure is usually **silent**. A remov
 
 Stale WASM does not throw. The core boots, runs, and answers — with the behavior of the older build. In Doenet/DoenetML#1976 that looked exactly like a live data-corruption bug: two state-persistence tests failed reproducibly on `main` and passed in CI on the same commit, because CI builds `packages/doenetml-worker` before its test job and a local run had no equivalent step.
 
-`npm run test -w @doenet/doenetml-worker-javascript` now rebuilds the WASM first (`test:before`). A bare `npx vitest` from inside the package does not, so if you reach for one, build it yourself:
+`npm run test -w @doenet/doenetml-worker-javascript -- --run <files>` now rebuilds the WASM first (`test:before`). A bare `npx vitest` from inside the package does not, so if you reach for one, build it yourself:
 
 ```bash
 npm run build:rust -w @doenet/doenetml-worker-rust
