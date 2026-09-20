@@ -56,24 +56,22 @@ export {
 } from "./wasm-loader";
 
 /*
- * The two re-exports below are restated against types from `./types` rather
- * than handed straight back out, and that is the whole point of them.
+ * The two re-exports below are restated against types from `./types`, so that
+ * `./types` is the one place in this package where the upstream names are
+ * bound and a narrowing or substitution is made once.
  *
- * Re-exporting the imported bindings directly puts upstream's own declarations
- * into the emitted `.d.ts` by reference. Since `index.d.ts` → `engine.d.ts` →
- * `engine-rust.d.ts`, every consumer of `@doenet/math` then type-checks that
- * file, and the 18 packages here running `dts({ rollupTypes: true })` run
- * API Extractor over it. One upstream commit adding a construct API Extractor
- * cannot analyse (an object binding pattern, as it happens) took out
- * `@doenet/utils`, and with it `build:all` and every Cypress run. Naming the
- * types locally keeps that blast radius closed whatever upstream's
- * declarations contain.
- *
- * `./vendor-shims.d.ts` was meant to be the single named contract with the
- * submodule, but it only governs what we *import*: node resolution finds the
- * real package and wins, and nothing constrained what we *emit*. Naming local
- * types here is what actually keeps the submodule's source out of consumers'
- * type programs.
+ * It no longer keeps upstream's declarations out of a consumer's type program,
+ * and it used to: `./types` re-exports them from the package now that the
+ * vendored copy is gone, and `dopri` above is emitted as
+ * `typeof import('math-expressions').dopri`. Since `index.d.ts` →
+ * `engine.d.ts` → `engine-rust.d.ts`, every consumer of `@doenet/math` loads
+ * upstream's `types/math-expressions.d.ts` — `tsc --listFiles -p
+ * packages/doenetml` lists it — and the 18 packages here running
+ * `dts({ rollupTypes: true })` run API Extractor over it. That is a real
+ * exposure: one upstream commit adding a construct API Extractor cannot
+ * analyse (an object binding pattern, as it happens) took out `@doenet/utils`,
+ * and with it `build:all` and every Cypress run. It is the price of typing
+ * against the package's own declarations, which `./types` argues for.
  */
 export const isTree = compatIsTree as unknown as (
     value: unknown,

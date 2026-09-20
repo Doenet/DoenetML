@@ -77,7 +77,6 @@ if (!name || !version) {
     console.error(`package.json in ${cwd} is missing a name or version.`);
     process.exit(1);
 }
-
 const spec = `${name}@${version}`;
 const explicitPublishTag = getExplicitPublishTag();
 
