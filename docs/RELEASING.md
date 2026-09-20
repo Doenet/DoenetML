@@ -33,9 +33,11 @@ is not maintained.
 | event | runs | publishes |
 |---|---|---|
 | push to `main`, CI green | `publish.yml` → `dev-release` | `X.Y.Z-dev.<run>` under `dev` |
-| GitHub Release published | `publish.yml` → `production-release` | `X.Y.Z` under `latest` |
-| GitHub Release published | `publish-doenetml-to-pretext-python.yml` | the PyPI wheel |
-| `packages/prefigure/package.json` version changes on `main` | `publish-prefigure.yml` | `@doenet/prefigure` |
+| push to `main`, CI green | `publish.yml` → `dev-vscode-extension` | a Marketplace and Open VSX **pre-release**, versioned `X.Y.<run + 10000>` |
+| GitHub Release on `main` | `publish.yml` → `production-release` | `X.Y.Z` under `latest`, plus the stable extension on both registries |
+| GitHub Release on `0.7` | `publish.yml` → `production-release` | `0.7.Z` under `0.7-stable`; no extension |
+| GitHub Release on either | `publish-doenetml-to-pretext-python.yml` | the PyPI wheel |
+| `packages/prefigure/package.json` version changes on `main` | `publish-prefigure.yml` | `@doenet/prefigure` under `latest` |
 | manual dispatch on `0.7` | `publish.yml` → `dev-release` | `0.7.Z-dev.<run>` under `0.7-dev` |
 
 **Which branch's workflow file runs is not obvious, and it differs by event.**
@@ -134,9 +136,11 @@ When `main` accumulates breaking changes and you decide to ship them:
    tag, if `main` has moved on only in ways that do not ship (release plumbing,
    CI). Cutting from `main` lets the branch inherit those fixes instead of needing
    cherry-picks. Name it for the line (`0.8`), with **no slash**: `ci.yml`'s
-   `pull_request: branches: ["*"]` glob does not match `/`, so a branch named
-   `release/0.8` would get no CI at all — and `verify-ci.mjs` then blocks every
-   release from it.
+   `pull_request: branches: ["*"]` glob does not match `/`, so **no pull request
+   into a branch named `release/0.8` would run CI** and every backport would land
+   unreviewed by it. Pushes to the branch would still be covered, since the
+   `push:` list names it literally — which is exactly what makes the gap easy to
+   miss.
 3. **Protect the branch** like `main`.
 4. **Apply the branch-local changes** (below) in a PR into the new branch.
 5. **Land the `minor` on `main`.** Usually this rides along with the first breaking
@@ -159,10 +163,15 @@ landing.** The window closes for good once `main` is on the new line's numbers.
 These live only on the maintenance branch. They are never merged back, and a
 cherry-picked backport touches none of them, so the lines do not contend.
 
-- **Each published package's `publish` script pins `--tag <line>-stable`**, and a
-  parallel `publish:dev` pins `<line>-dev`. This is the primary guard: a bare
+- **Each of the four npm line packages pins `--tag <line>-stable`** in its
+  `publish` script, and a parallel `publish:dev` pins `<line>-dev`; the root
+  `publish:dev` fans out to all four. This is the primary guard: a bare
   `npm publish` applies `latest`, so without it a backport could move `latest`
   from a laptop as easily as from CI.
+- **`packages/prefigure`'s `publish` script is replaced by a refusal** that
+  prints why and exits 1, rather than being pinned. The line never raises
+  prefigure, so there is no maintenance-line version to tag — the script route
+  is closed instead of redirected.
 - `.changeset/config.json` → `"baseBranch": "<line>"`.
 - `ci.yml` → `push: branches: ["<line>"]`, plus the patch-only changeset guard.
 - `changesets-version-pr.yml` → pushes on that branch; its concurrency group must
@@ -172,24 +181,38 @@ cherry-picked backport touches none of them, so the lines do not contend.
   The dev build also drops the `VITE_PREFIGURE_MODULE_URL: …@latest` override,
   which would otherwise pull a current-line prefigure into an old-line bundle.
 - `publish-doenetml-to-pretext-python.yml` → the branch's name in its guard.
-- `publish-prefigure.yml` → **deleted**. Its publish job's condition begins
-  `github.event_name == 'workflow_dispatch' ||`, which bypasses its `origin/main`
-  version check, and its `npm_tag` input defaults to `latest`.
+- `publish-prefigure.yml` → **deleted**. Nothing on the line releases prefigure,
+  and a dispatch of it here starts from the wrong footing: the job's condition
+  begins `github.event_name == 'workflow_dispatch' ||`, which skips the
+  `check-version-changed` job (and with it the comparison against `main`'s
+  prefigure version) entirely, and its `npm_tag` input defaults to `latest`. Its
+  "Verify target still matches main" step would still stop the run — on the
+  dispatch path that step requires `HEAD` to be reachable from `origin/main`,
+  which a maintenance-branch commit is not — so deleting the file removes a
+  confusing button rather than the only thing standing in the way.
 - `gh-pages-docs.yml` → manual only. The docs site is a single unversioned build
   from `main`.
+- The branch also carries its own copies of `AGENTS.md`, this repo's changesets
+  skill and `packages/vscode-extension/README.md`, each amended to say what is
+  different here. Read those on the branch rather than `main`'s.
 - The VS Code manifests stay in the changesets `fixed` group even though nothing
   publishes them, because `validate-tag-versions.mjs` requires all six to match
   the tag.
 
 ## Things that surprise people
 
-- **`npm run publish -- --tag X` does not put `--tag X` in the script's argv.** It
-  sets `npm_config_tag`. `getExplicitPublishTag` in `npm-publish-with-retry.mjs`
-  reads that only as a starting value and lets an explicit argv `--tag` override
-  it — so a script that pins a tag wins over the flag you thought you passed. Give
-  each channel its own script instead. Relatedly, npm omits `npm_config_tag`
-  entirely when the value equals its own default, so `--tag latest` is
-  indistinguishable from passing nothing.
+- **`npm run publish -- --tag X` from the repo root does not put `--tag X` in the
+  package script's argv.** `npm run` appends the arguments to the script's command
+  line, and the root `publish` script *is* an `npm run` — so the inner npm consumes
+  `--tag X` as configuration instead of passing it on, and it arrives as
+  `npm_config_tag`. (Run directly in a package, where the script is not itself an
+  npm command, the same flag does land in argv and `npm_config_tag` is unset.)
+  `getExplicitPublishTag` in `npm-publish-with-retry.mjs` reads the environment
+  only as a starting value and lets an explicit argv `--tag` override it — so a
+  script that pins a tag wins over the flag you thought you passed through the
+  root. Give each channel its own script instead. Relatedly, npm omits
+  `npm_config_tag` entirely when the value equals its own default, so `--tag latest`
+  is indistinguishable from passing nothing.
 - **The VS Code Marketplace and Open VSX carry two independent streams**, stable
   and pre-release, each ascending on its own. The *stable* stream is why an old
   line cannot publish the extension after a newer line has: the version would be

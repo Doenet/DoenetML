@@ -165,7 +165,7 @@ The goal is simply to record that an agent helped author the change; substitute 
 
 This checkout may use a personal fork as `origin` and the canonical `Doenet/DoenetML` as `upstream`.
 
-- **Always base PRs on `upstream/main`**, not `origin/main`.
+- **Always base PRs on `upstream/main`**, not `origin/main`. The one exception is a backport to a maintenance line, which is based on and targets that branch instead — see [Releasing](#releasing).
 - Push your branch to your fork (`origin`), then create the PR targeting `Doenet/DoenetML:main`.
 - **Preferred method: GitHub CLI (`gh`).** The `mcp_gitkraken_pull_request_create` tool requires authentication that may not be available.
 - Command format: `gh pr create --repo Doenet/DoenetML --base main --head <fork-owner>:<branch>`. Replace `<fork-owner>` with your GitHub username (e.g., `dqnykamp:my-branch`).
