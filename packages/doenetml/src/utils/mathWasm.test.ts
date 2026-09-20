@@ -109,14 +109,12 @@ describe("initMathEngine", () => {
         });
 
         // Both names, because the message's job is to tell whoever installed
-        // the wrong thing which two exports were looked for; the range is
-        // matched loosely so bumping it to a released `3.0.0` is not a test
-        // failure.
+        // the wrong thing which two exports were looked for — and a pointer to
+        // `peerDependencies` rather than a version, so that bumping the range
+        // cannot leave this message behind saying something else.
         await expect(initMathEngine()).rejects.toThrow(/initMathWasm/);
         await expect(initMathEngine()).rejects.toThrow(/setWasmModule/);
-        await expect(initMathEngine()).rejects.toThrow(
-            /math-expressions@\^3\./,
-        );
+        await expect(initMathEngine()).rejects.toThrow(/peerDependencies/);
         expect(glueInit).not.toHaveBeenCalled();
     });
 

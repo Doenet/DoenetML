@@ -74,11 +74,18 @@ function initFromPublishedPackage(
         fallbackReady = (async () => {
             const { setWasmModule } = mathExpressions;
             if (!setWasmModule) {
+                // Names no version. The range a consumer needs is already
+                // stated authoritatively in this package's published
+                // `peerDependencies` — written there from
+                // `MATH_EXPRESSIONS_PUBLISHED_RANGE` in `vite.config.ts` — and
+                // restating it here would be a second copy that goes stale
+                // silently, since nothing reaches this message on a version
+                // that works.
                 throw new Error(
                     "@doenet/doenetml: the `math-expressions` package supplying this " +
                         "peer dependency exports neither `initMathWasm` nor " +
                         "`setWasmModule`, so the math engine cannot be started. " +
-                        "Install math-expressions@^3.0.0-alpha.1 or later.",
+                        "Install the version named in @doenet/doenetml's peerDependencies.",
                 );
             }
             // No argument: the glue falls back to
