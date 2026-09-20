@@ -165,7 +165,7 @@ The goal is simply to record that an agent helped author the change; substitute 
 
 This checkout may use a personal fork as `origin` and the canonical `Doenet/DoenetML` as `upstream`.
 
-- **Always base PRs on `upstream/main`**, not `origin/main`.
+- **Always base PRs on `upstream/main`**, not `origin/main`. The one exception is a backport to a maintenance line, which is based on and targets that branch instead — see [Releasing](#releasing).
 - Push your branch to your fork (`origin`), then create the PR targeting `Doenet/DoenetML:main`.
 - **Preferred method: GitHub CLI (`gh`).** The `mcp_gitkraken_pull_request_create` tool requires authentication that may not be available.
 - Command format: `gh pr create --repo Doenet/DoenetML --base main --head <fork-owner>:<branch>`. Replace `<fork-owner>` with your GitHub username (e.g., `dqnykamp:my-branch`).
@@ -188,6 +188,12 @@ When an agent posts a PR comment, opens an issue, or comments on an issue, end t
 Match the footer to the agent that authored the content (and update the link/label accordingly for any other agent system).
 
 This includes review-comment replies posted via `gh api ... /replies`, full reviews (their summary body and any inline comments) posted via `gh api ... /reviews`, top-level PR comments, and any `gh issue create` / `gh issue comment` invocations. PR and issue *descriptions* created via `gh pr create` / `gh issue create` already get the footer through their templated body — this rule is the catch for the smaller surfaces where it's easy to forget.
+
+## Releasing
+
+DoenetML ships from two lines: `main` (current) and a maintenance branch (`0.7`) taking patch-only backports. **[`docs/RELEASING.md`](docs/RELEASING.md)** is the runbook — the dist-tag scheme and why maintenance tags carry a suffix, how a stable release is cut, the backport flow, how to open the next line, and the handful of npm and GitHub Actions behaviours that make this area surprising.
+
+Two things worth knowing before touching anything here: a backport PR is based on the maintenance branch rather than `main`, and `latest` on npm always belongs to whatever line `main` is on — so a change that reaches users on the maintenance line got there by being cherry-picked to it after landing here.
 
 ## Changesets
 
