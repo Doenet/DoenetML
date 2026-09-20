@@ -6,7 +6,7 @@
 "doenet-vscode-extension": patch
 ---
 
-`<searchSorted>` can sort its own list.
+`<searchSorted>` can search a list that is not sorted.
 
 `<searchSorted>` answers where a value belongs in a list that is already in
 ascending order, and declines a list that is not. An author whose list is
@@ -24,7 +24,9 @@ Writing `sort` on the operator says the same thing in one step:
 ```
 
 The answers are the same either way, and `side` still chooses which end of a
-run of equal values is reported. Without the attribute nothing changes.
+run of equal values is reported. The values themselves stay in the order they
+were written: `sort` says where the target belongs, not what the list looks
+like. Without the attribute nothing changes.
 
 In a document where the values move — points a reader drags, numbers they
 type — the shorter form is also much quicker, because the separate `<sort>`

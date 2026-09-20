@@ -59,7 +59,7 @@ past the last index.
 <p>Sorted first: $sorted</p>
 <p>Position in the sorted list: <searchSorted target="80">$sorted</searchSorted></p>
 
-<p>Sorting as it searches: <searchSorted sort target="80">$scores</searchSorted></p>
+<p>The same position in one step: <searchSorted sort target="80">$scores</searchSorted></p>
 ```
 
 
@@ -68,11 +68,11 @@ The first `<searchSorted>{:dn}` gets 0 and a warning: 87 comes before 75, so no 
 position describes where 80 belongs. Sorting the values first — with
 [`<sort>{:dn}`](sort) here, though a list that is already built in order, such as a
 [`<cumulativeSum>{:dn}`](cumulativeSum) of positive numbers, needs nothing — gives a
-position again. The last line reaches the same position in one step: `sort` hands the
-ordering to the operator, which reports where 80 belongs among these values in ascending
-order without rearranging them. `side` goes on meaning what it means.
+position again. The last line gets there directly: `sort` hands the ordering to the
+operator, which reports where 80 belongs among these values in ascending order without
+rearranging them. `side` goes on meaning what it means.
 
-Prefer `sort` when the sorted list is wanted only for the search. Keep a separate
+Prefer `sort` when the ordering is wanted only for the search. Keep a separate
 [`<sort>{:dn}`](sort) when the sorted values are themselves worth showing or reusing, as
 `$sorted` is above.
 
