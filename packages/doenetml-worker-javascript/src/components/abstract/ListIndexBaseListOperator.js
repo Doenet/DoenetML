@@ -1,7 +1,6 @@
 import CompositeComponent from "./CompositeComponent";
 import me from "math-expressions";
 import {
-    compareExtractedValues,
     returnBreakStringsIntoTypeSugarInstruction,
     returnListValueStateVariableDefinitions,
 } from "../../utils/listValues";
@@ -191,6 +190,11 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "locate",
                 },
+                // Declared only by a subclass that offers a `sort` attribute
+                // (`supportsSort`), since the rest have no such state variable.
+                // All it does here is waive the subclass's precondition: what
+                // the attribute promises about the answer is the subclass's to
+                // keep, in `locate`.
                 ...(supportsSort
                     ? {
                           sortFirst: {
@@ -201,18 +205,8 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
                     : {}),
             }),
             definition({ dependencyValues }) {
-                let values = dependencyValues.listValues;
-                if (dependencyValues.sortFirst) {
-                    values = [...values].sort((a, b) =>
-                        compareExtractedValues(
-                            a,
-                            b,
-                            dependencyValues.allAreNumeric,
-                        ),
-                    );
-                }
                 const results = locateEachTarget({
-                    values,
+                    values: dependencyValues.listValues,
                     targets: dependencyValues.comparableTargets,
                     numeric: dependencyValues.allAreNumeric,
                     locate: dependencyValues.locate,

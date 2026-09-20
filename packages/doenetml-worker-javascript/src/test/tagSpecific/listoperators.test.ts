@@ -599,6 +599,49 @@ describe("List operator tag tests @group4", async () => {
             expect(warnings.filter(notSorted)).eqls([]);
         });
 
+        it("`sort` leaves out a value with no place in the order", async () => {
+            // Without `sort`, a value that takes no part is stepped over and
+            // keeps its slot, so 10 belongs at 5 — after the 9, the last of
+            // four entries. With `sort` the operator is the one doing the
+            // ordering, and a value with no place in it has no slot to keep,
+            // so the two `x`s are left out and 10 belongs at 3.
+            const stepped = await resultsFor(`
+    <numberList name="nl">x x 1 9</numberList>
+    <p name="p"><searchSorted target="10">$nl</searchSorted></p>
+    `);
+            const leftOut = await resultsFor(`
+    <numberList name="nl">x x 1 9</numberList>
+    <p name="p"><searchSorted sort target="10">$nl</searchSorted></p>
+    `);
+            expect(stepped.text).eq("5");
+            expect(leftOut.text).eq("3");
+            expect(leftOut.warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("`sort` does not reorder anything the document can see", async () => {
+            // The guarantee is about the answer, not about the list: the
+            // values render in the order they were written.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="v">30 10 20</numberList>
+    <p name="shown">$v</p>
+    <p name="p"><searchSorted sort target="25">$v</searchSorted></p>
+    `,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("shown")].stateValues
+                    .text,
+            ).eq("30, 10, 20");
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq("3");
+        });
+
         it("without `sort`, nothing changes", async () => {
             // The attribute defaults off, so the precondition still applies to
             // every document that does not ask for it.

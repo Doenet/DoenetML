@@ -30,3 +30,8 @@ In a document where the values move — points a reader drags, numbers they
 type — the shorter form is also much quicker, because the separate `<sort>`
 produced a component for every value and everything reading it had to follow
 them.
+
+One difference worth knowing: a value that is not a number at all takes no
+part in the ordering. Without `sort` it keeps its place in the list and the
+answer counts around it; with `sort` it is left out, since a value with no
+place in the order has no place to keep.

@@ -35321,7 +35321,7 @@
                 },
                 {
                     "name": "sort",
-                    "description": "Sort the list before searching it.",
+                    "description": "Report where each target belongs among the values in ascending order, whatever order they are written in.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -35377,7 +35377,7 @@
                     "name": "sortFirst",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Sort the list before searching it."
+                    "description": "Report where each target belongs among the values in ascending order, whatever order they are written in."
                 },
                 {
                     "name": "side",

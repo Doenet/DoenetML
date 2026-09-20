@@ -18,8 +18,9 @@ values that are not in order it reports 0 instead of a position — the same "no
 gives when `target` is missing — and warns, rather than returning a number that looks like
 a position but is not one. Equal neighbors are in order; that run is what `side` is about.
 
-Write `sort` on the operator and it puts the values in order itself, so a list that is not
-already sorted can be searched directly.
+Write `sort` on the operator and it reports where each target belongs among the values in
+ascending order, whatever order they are written in — so a list that is not sorted can be
+searched directly. The values themselves are left as they are.
 
 <AttrPropDisplay name='searchSorted'/>
 
@@ -68,7 +69,8 @@ position describes where 80 belongs. Sorting the values first — with
 [`<sort>{:dn}`](sort) here, though a list that is already built in order, such as a
 [`<cumulativeSum>{:dn}`](cumulativeSum) of positive numbers, needs nothing — gives a
 position again. The last line reaches the same position in one step: `sort` hands the
-ordering to the operator, and `side` goes on meaning what it means.
+ordering to the operator, which reports where 80 belongs among these values in ascending
+order without rearranging them. `side` goes on meaning what it means.
 
 Prefer `sort` when the sorted list is wanted only for the search. Keep a separate
 [`<sort>{:dn}`](sort) when the sorted values are themselves worth showing or reusing, as
