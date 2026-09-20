@@ -5,11 +5,13 @@
  * A release can reach this check while CI for the same commit is still running:
  * the PyPI workflow's build job has no environment gate and starts the moment a
  * release is published, and `production-release` gets there as soon as its
- * `production` approval lands. Querying only completed runs made those three
- * states — still running, never ran, ran and failed — indistinguishable, and
- * all three failed the job immediately. Only the last of them deserves that;
- * the first just needs waiting out, and the second is usually a run that has
- * not been registered yet, since the tag push and the release event race.
+ * `production` approval lands. Querying only completed runs hid a run that was
+ * still going, so it took the same "no run found" branch as a commit CI had
+ * never run for at all, and all three states — still running, never ran, ran
+ * and failed — ended the job immediately. Only the last of them deserves that;
+ * the first just needs waiting out, and the second deserves a short look before
+ * we give up on it, since the tag push and the release event race and a run may
+ * not be registered yet.
  *
  * So: pass as soon as some completed run for the commit succeeded, wait while
  * any run is still pending, and fail once every run is in and none succeeded.
@@ -30,7 +32,9 @@
  *                                 no runs at all yet, and how long to tolerate
  *                                 back-to-back failed API reads
  *                                 (default 300000, 5 minutes)
- *   VERIFY_CI_POLL_INTERVAL_MS  - delay between polls (default 30000)
+ *   VERIFY_CI_POLL_INTERVAL_MS  - delay between polls (default 30000, and at
+ *                                 least 1000; a smaller value is ignored with
+ *                                 a warning rather than allowed to spin)
  *
  * The waiting budget is wall-clock from the moment this script starts, so a
  * slow API read spends it rather than extending it. The grace for unreadable
