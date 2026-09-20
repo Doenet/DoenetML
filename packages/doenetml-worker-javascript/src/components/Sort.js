@@ -250,12 +250,14 @@ export default class Sort extends CompositeComponent {
         // (Doenet/DoenetML#1944). An id minted off the composite's own
         // document-derived id moves with nothing but the document.
         //
-        // What it does not survive is a reorder: `calculateReplacementChanges`
-        // recreates every replacement, and each recreation takes the next
-        // numbers from this counter, so work done on a replacement that a
-        // later reorder recreates is dropped by the rebuild rather than landing
-        // on a different one. Every counter-based composite behaves that way;
-        // it is not what this is fixing.
+        // What it does not survive is a rebuild: sorting a changed set of
+        // values recreates every replacement, and each recreation takes the
+        // next numbers from this counter, so work done on a replacement that a
+        // later rebuild recreates is dropped rather than landing on a different
+        // one. Every counter-based composite behaves that way; it is not what
+        // this is fixing. A reorder of the same values is not a rebuild —
+        // `calculateReplacementChanges` rearranges the replacements it already
+        // has, and their ids travel with them.
         const stateIdInfo = {
             prefix: `${component.stateId}|`,
             num: workspace.replacementsCreated,
