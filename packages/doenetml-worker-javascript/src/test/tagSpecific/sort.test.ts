@@ -1294,7 +1294,7 @@ describe("Sort tag tests @group4", async () => {
             await test_sort({
                 core,
                 resolvePathToNodeIdx,
-                sorted_result: ["( 2, 0 )", "( 5, 0 )", "( 9, 0 )"],
+                sorted_result: ["(2, 0)", "(5, 0)", "(9, 0)"],
             });
             await expectProp("2, 5, 9");
 
@@ -1308,7 +1308,7 @@ describe("Sort tag tests @group4", async () => {
             await test_sort({
                 core,
                 resolvePathToNodeIdx,
-                sorted_result: ["( 2, 0 )", "( 9, 0 )", "( 100, 0 )"],
+                sorted_result: ["(2, 0)", "(9, 0)", "(100, 0)"],
             });
             await expectProp("2, 9, 100");
         });
@@ -1449,7 +1449,7 @@ describe("Sort tag tests @group4", async () => {
             await test_sort({
                 core,
                 resolvePathToNodeIdx,
-                sorted_result: ["( 1, 0 )", "( 2, 0 )", "( 3, 0 )"],
+                sorted_result: ["(1, 0)", "(2, 0)", "(3, 0)"],
             });
 
             const before = await replacementIndices(
@@ -1469,7 +1469,7 @@ describe("Sort tag tests @group4", async () => {
             await test_sort({
                 core,
                 resolvePathToNodeIdx,
-                sorted_result: ["( 2, 0 )", "( 3, 0 )", "( 10, 0 )"],
+                sorted_result: ["(2, 0)", "(3, 0)", "(10, 0)"],
             });
 
             const after = await replacementIndices(
@@ -1492,7 +1492,7 @@ describe("Sort tag tests @group4", async () => {
             await test_sort({
                 core,
                 resolvePathToNodeIdx,
-                sorted_result: ["( 3, 0 )", "( 10, 0 )", "( 20, 0 )"],
+                sorted_result: ["(3, 0)", "(10, 0)", "(20, 0)"],
             });
         });
     });

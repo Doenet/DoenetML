@@ -1248,6 +1248,14 @@ export class CompositeReplacementUpdater {
         );
 
         for (const shadowingComponent of iterateExpandableShadows(component)) {
+            if (!shadowingComponent.isExpanded) {
+                // A shadow that has not been expanded has no `replacements`
+                // array to rearrange, and `expandShadowingComposite` builds
+                // them off this composite's — in their new order — when it
+                // does expand. Same guard as `adjustReplacementsToWithhold`.
+                continue;
+            }
+
             await this.rearrangeReplacements({
                 component: shadowingComponent,
                 change,
@@ -1281,53 +1289,67 @@ export class CompositeReplacementUpdater {
         const numActive =
             replacements.length - (component.replacementsToWithhold ?? 0);
 
-        const blankStringReplacements = replacements.map(
-            (repl: any) => typeof repl === "string" && repl.trim() === "",
-        );
+        // Telling the resolver where an index now lands is guarded the way
+        // every other place a composite registers replacements is: a failure
+        // here is the composite's to report rather than the document's to die
+        // of. `addBlockersFromChangedReplacements` stays outside the guard,
+        // as it does in `adjustReplacementsToWithhold`, because the throw it
+        // can reach is how a circular reference is reported today.
+        let indexParentComposite: any = null;
 
-        const { indexResolution } =
-            await determineParentAndIndexResolutionForResolver({
-                core: this.core,
-                component,
-                updateOldReplacementsStart: 0,
-                updateOldReplacementsEnd: numActive,
-                blankStringReplacements,
-            });
-
-        const indexParent =
-            indexResolution.ReplaceAll?.parent ??
-            indexResolution.ReplaceRange?.parent ??
-            null;
-
-        if (indexParent === null) {
-            // nothing indexes into this composite
-            return;
-        }
-
-        const newContentForIndex = replacements
-            .slice(0, numActive)
-            .map((repl: any) =>
-                typeof repl === "string" ? repl : repl.componentIdx,
+        try {
+            const blankStringReplacements = replacements.map(
+                (repl: any) => typeof repl === "string" && repl.trim() === "",
             );
 
-        this.core.replaceIndexResolutionsInResolver(
-            { content: newContentForIndex },
-            indexResolution,
-        );
+            const { indexResolution } =
+                await determineParentAndIndexResolutionForResolver({
+                    core: this.core,
+                    component,
+                    updateOldReplacementsStart: 0,
+                    updateOldReplacementsEnd: numActive,
+                    blankStringReplacements,
+                });
 
-        this.core.rootNames = this.core.calculateRootNames?.().names;
+            const indexParent =
+                indexResolution.ReplaceAll?.parent ??
+                indexResolution.ReplaceRange?.parent ??
+                null;
 
-        // A reference resolved through another composite has to be
-        // reconsidered as well; one resolved through this composite is
-        // covered by the blockers its own caller adds.
-        if (indexParent !== component.componentIdx) {
-            const indexParentComposite = this.core._components[indexParent];
+            if (indexParent !== null) {
+                const newContentForIndex = replacements
+                    .slice(0, numActive)
+                    .map((repl: any) =>
+                        typeof repl === "string" ? repl : repl.componentIdx,
+                    );
 
-            if (indexParentComposite) {
-                await this.core.dependencies.addBlockersFromChangedReplacements(
-                    indexParentComposite,
+                this.core.replaceIndexResolutionsInResolver(
+                    { content: newContentForIndex },
+                    indexResolution,
                 );
+
+                this.core.rootNames = this.core.calculateRootNames?.().names;
+
+                // A reference resolved through another composite has to be
+                // reconsidered as well; one resolved through this composite is
+                // covered by the blockers its own caller adds.
+                if (indexParent !== component.componentIdx) {
+                    indexParentComposite = this.core._components[indexParent];
+                }
             }
+        } catch (e: any) {
+            console.error(e);
+            this.markCompositeInError({
+                composite: component,
+                message: e.message,
+                source: e,
+            });
+        }
+
+        if (indexParentComposite) {
+            await this.core.dependencies.addBlockersFromChangedReplacements(
+                indexParentComposite,
+            );
         }
     }
 
