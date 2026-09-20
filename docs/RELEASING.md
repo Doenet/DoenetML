@@ -157,7 +157,9 @@ When `main` accumulates breaking changes and you decide to ship them:
 5. **Apply the branch-local changes** (below) in a PR into the new branch.
 6. **Land the `minor` on `main`.** Usually this rides along with the first breaking
    PR rather than being its own changeset.
-7. **Retire the oldest line** — stop backporting, and say so.
+7. **Retire the oldest line** — stop backporting, say so, and drop its branch
+   from the `production` environment's policy, so the list added to in step 4
+   does not accumulate branches nobody releases from.
 
 ### The version collision, which is easy to miss
 
