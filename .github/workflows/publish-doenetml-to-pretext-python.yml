@@ -5,7 +5,13 @@
 # (see `setup.py:get_doenetml_version`), so it stays in lockstep with the
 # `@doenet/doenetml` npm packages.  Publishing therefore happens on GitHub
 # `release` events only — the same trigger the npm production release uses in
-# `publish.yml` — never on pushes to `main`.
+# `publish.yml` — never on branch pushes.
+#
+# On the 0.7 maintenance line this stays as it is: PyPI has no dist-tags, so
+# `pip install doenetml-to-pretext` always resolves to the highest version and
+# an 0.7.x upload published after 0.8.x cannot displace it. There is no `latest`
+# here to protect, which is why this workflow survives while the npm side had to
+# be re-tagged.
 #
 # Uploads use PyPI Trusted Publishing (OIDC), so no long-lived API token is
 # needed.  Before the first publish, configure a trusted publisher on PyPI (and
@@ -106,8 +112,9 @@ jobs:
               with:
                   python-version: "3.12"
 
-            # A release tag must point at a commit on main whose CI passed, just
-            # like the npm production release in publish.yml.  Manual dispatch
+            # A release tag must point at a commit on the 0.7 maintenance branch
+            # whose CI passed, just like the npm production release in
+            # publish.yml.  (On `main` the same guard names `main`.)  Manual dispatch
             # runs (used for TestPyPI dry runs from feature branches) skip these
             # guards.
             - name: Verify CI succeeded for target commit
@@ -123,7 +130,7 @@ jobs:
                   TARGET_SHA: ${{ steps.checked-sha.outputs.sha }}
               run: node .github/scripts/verify-ci.mjs
 
-            - name: Verify tag commit is on main
+            - name: Verify tag commit is on the 0.7 branch
               if: github.event_name == 'release'
               run: |
                   git fetch origin 0.7

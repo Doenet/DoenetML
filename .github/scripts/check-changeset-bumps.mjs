@@ -28,9 +28,20 @@ const ALLOWED_BUMP = "patch";
  * `---` fences. Returns null when the file has no front matter, which is how
  * `README.md` and any stray note in the directory are skipped rather than
  * reported as malformed.
+ *
+ * The pattern is `mdRegex` from `@changesets/parse`, copied rather than
+ * imported because this runs before `npm ci` and must stay dependency-free.
+ * Copying it exactly is the point: anything stricter skips a file that
+ * `changeset version` still acts on, and skipping is the one failure this
+ * script cannot afford. A leading blank line, a byte-order mark, a stray note
+ * above the fence or an indented closing fence all defeat an anchored
+ * `/^---\n...\n---/` while `changeset version` reads the front matter
+ * underneath them and bumps exactly as it says.
  */
+const FRONT_MATTER = /\s*---([^]*?)\n\s*---(?:\s*(?:\n|$))/;
+
 function frontMatter(text) {
-    const match = text.match(/^---\r?\n([\s\S]*?)\r?\n---/);
+    const match = text.match(FRONT_MATTER);
     return match ? match[1] : null;
 }
 
