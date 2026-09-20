@@ -189,6 +189,12 @@ Match the footer to the agent that authored the content (and update the link/lab
 
 This includes review-comment replies posted via `gh api ... /replies`, full reviews (their summary body and any inline comments) posted via `gh api ... /reviews`, top-level PR comments, and any `gh issue create` / `gh issue comment` invocations. PR and issue *descriptions* created via `gh pr create` / `gh issue create` already get the footer through their templated body — this rule is the catch for the smaller surfaces where it's easy to forget.
 
+## Releasing
+
+DoenetML ships from two lines: `main` (current) and a maintenance branch (`0.7`) taking patch-only backports. **[`docs/RELEASING.md`](docs/RELEASING.md)** is the runbook — the dist-tag scheme and why maintenance tags carry a suffix, how a stable release is cut, the backport flow, how to open the next line, and the handful of npm and GitHub Actions behaviours that make this area surprising.
+
+Two things worth knowing before touching anything here: a backport PR is based on the maintenance branch rather than `main`, and `latest` on npm always belongs to whatever line `main` is on — so a change that reaches users on the maintenance line got there by being cherry-picked to it after landing here.
+
 ## Changesets
 
 The repo uses Changesets for version management. Configuration is in `.changeset/config.json`. **When creating or editing a file under `.changeset/`, invoke the [`changesets`](.github/skills/changesets/SKILL.md) skill** — it documents which `@doenet/*` packages a changeset must list, which must never appear, how version propagation works (one-directional, forward to consumers only), the private-flag trap, and the changeset file format. Don't pattern-match the package list from a sibling `.changeset/*.md` without consulting the skill — recurring mistakes have crept in that way, always the same shape: listing an internal package (`@doenet/utils`, `@doenet/lsp-tools`, `@doenet/static-assets`, …) instead of the published packages that carry the change to users. Only six packages are ever published; every other `@doenet/*` package is bundled into `@doenet/doenetml`.

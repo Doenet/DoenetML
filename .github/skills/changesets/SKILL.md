@@ -77,7 +77,15 @@ Fixed-group members all version together regardless of whether they're listed, b
 
 ## Bump type
 
-While the repo is < 1.0, default to `patch` for every package in every changeset — even for new API or larger-feeling changes. Revisit this convention once the first 1.0 release is on the horizon.
+**Default to `patch`** — even for new API or larger-feeling changes.
+
+Use `minor` only to **open a new release line**. While the repo is < 1.0 a minor bump is the breaking-change marker: `0.7` → `0.8` is what `1.0` → `2.0` will be later. The first backward-incompatible change after a stable release carries the `minor`; every further breaking change in the same unreleased cycle stays `patch`, because they all ship in the line that first one opened. That is what keeps breaking changes batched into a line instead of each spawning one of its own — and it matters, because each line that opens is a line someone has to maintain.
+
+Say so in the body when a change is breaking, whatever the bump type. `minor` marks the release; the body is what tells a reader which change did it.
+
+Never use `major` before 1.0.
+
+**On a maintenance branch, `patch` is the only bump allowed**, and CI enforces it (`.github/scripts/check-changeset-bumps.mjs` on that branch). This is a cherry-pick hazard rather than an authoring one: a backport brings the original changeset file with it, and the bump type is the one part that stops being true on the way across. A `minor` there would compute the *next* line's version from the wrong branch and collide with `main`. See [`docs/RELEASING.md`](../../../docs/RELEASING.md) for the backport flow.
 
 ## File format
 
