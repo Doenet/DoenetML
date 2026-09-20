@@ -95,9 +95,10 @@ uses). The one thing to know is that the binary is fetched rather than inlined o
 host that cannot make a same-origin request for it — a `srcdoc` or blob-URL document, for instance
 — should use `@doenet/standalone` instead, which carries everything in one file.
 
-The engine's WASM is inlined into the bundle rather than fetched, so no extra network request is
-made, but the bundle carries it: the engine is 2.38 MiB uncompressed and 777 kB gzipped, against
-roughly 1 MiB (about 290 kB gzipped) for the JavaScript library it replaces.
+In `@doenet/standalone`, and in anything built from this repository, the engine's WASM is inlined
+into the bundle rather than fetched, so no extra network request is made, but the bundle carries
+it: the engine is 2.38 MiB uncompressed and 777 kB gzipped, against roughly 1 MiB (about 290 kB
+gzipped) for the JavaScript library it replaces.
 
 Building DoenetML from source needs no toolchain it did not need before. The engine arrives
 prebuilt in the `math-expressions` package, so nothing here compiles it: `npm run build` still

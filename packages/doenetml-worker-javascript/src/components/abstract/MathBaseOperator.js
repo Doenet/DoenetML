@@ -5,6 +5,7 @@ import {
     mathOperatorInputsFromChildren,
     returnBreakStringsIntoMathsBySpacesSugarInstruction,
 } from "../../utils/mathOperatorChildren";
+import { isNumericConstant } from "../../utils/math";
 
 export default class MathOperator extends MathComponent {
     static componentType = "_mathOperator";
@@ -232,10 +233,22 @@ export default class MathOperator extends MathComponent {
                                 );
                                 inputToChildIndex.push(childInd);
                             } else {
-                                // math
-                                let value =
+                                // math — `NaN` for anything with no numeric
+                                // reading, the same coercion
+                                // `mathOperatorInputsFromChildren` applies to
+                                // the forward definition's inputs and for the
+                                // same reason. No `inverseNumericOperator`
+                                // reads `inputs` today (`<min>` and `<max>`,
+                                // the only two, decide from `canBeModified`
+                                // alone), so this states the contract rather
+                                // than repairing a defect; a `Complex` here
+                                // would be a string concatenation to the first
+                                // one that did read it.
+                                const value =
                                     child.stateValues.value.evaluate_to_constant();
-                                inputs.push(value);
+                                inputs.push(
+                                    isNumericConstant(value) ? value : NaN,
+                                );
                                 canBeModified.push(
                                     child.stateValues.canBeModified,
                                 );

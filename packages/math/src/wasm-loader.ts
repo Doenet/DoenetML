@@ -163,7 +163,8 @@ const guarded = new Proxy(glue as unknown as WasmModule, {
                           `before using math expressions (tried to access "${String(prop)}").`
                     : "@doenet/math: the WASM core was not inlined into this build. " +
                           "Run `npm run build -w packages/math` (its `build:wasm` step " +
-                          "compiles the Rust core) and rebuild anything that bundles it " +
+                          "inlines the core out of the `math-expressions` package) and " +
+                          "rebuild anything that bundles it " +
                           `(tried to access "${String(prop)}").`,
             );
         }

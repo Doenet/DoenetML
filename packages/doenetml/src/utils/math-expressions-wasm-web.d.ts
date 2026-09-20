@@ -1,19 +1,20 @@
 /**
  * The published `math-expressions`'s `--target web` wasm-bindgen glue.
  *
- * Declared here because the specifier does not resolve *in this repository*:
- * `math-expressions` is `file:../math` in every workspace, and `@doenet/math`
- * has no `./wasm-web/*` export — it inlines the core instead of shipping one
- * beside the bundle. The published package does export that subpath, and
- * `./mathWasm.ts` reaches for it only on the path where the published package
- * is what satisfied the peer dependency, which by construction never runs
- * here.
+ * Declared here because *in this repository* the specifier resolves to the
+ * wrong module: `math-expressions` is `file:../math` in every workspace, and
+ * `@doenet/math` answers this subpath with a stub that throws
+ * (`packages/math/src/wasm-web-stub.ts`), since it inlines the core instead of
+ * shipping one beside the bundle. Typing the import from that stub would
+ * describe the placeholder rather than the module the code actually calls,
+ * which only ever happens outside this repository — on the path where the
+ * published `math-expressions` is what satisfied the peer dependency.
  *
- * So this is a declaration of something absent on purpose, and it is the
- * narrowest one that compiles: the fallback calls `default()` with no argument
- * and passes the namespace to upstream's `setWasmModule`, which takes an
- * opaque module. Nothing reads an individual binding off it, so nothing more
- * needs describing.
+ * So this describes the published glue, and it is the narrowest description
+ * that compiles: the fallback calls `default()` with no argument and passes
+ * the namespace to upstream's `setWasmModule`, which takes an opaque module.
+ * Nothing reads an individual binding off it, so nothing more needs
+ * describing.
  */
 declare module "math-expressions/wasm-web/math_expressions_wasm.js" {
     /**

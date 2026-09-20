@@ -113,10 +113,13 @@ export default defineConfig(({ mode }) => {
                       // `math-expressions/wasm-web/…` on the consumer path,
                       // and rollup resolves a dynamic import at build time
                       // unless told not to. An exact-match entry does not
-                      // cover a subpath, and here it cannot resolve —
-                      // `@doenet/math`, which backs the specifier in this
-                      // repository, deliberately has no such export. It is
-                      // the consumer's `math-expressions` that answers it,
+                      // cover a subpath, and here the subpath resolves to the
+                      // wrong thing: `@doenet/math`, which backs the specifier
+                      // in this repository, exports it as a stub that throws
+                      // (`src/wasm-web-stub.ts`), and baking that stub into
+                      // the published bundle would leave a consumer with a
+                      // fallback that cannot work. It is the consumer's own
+                      // `math-expressions` that has to answer this specifier,
                       // so it has to leave this build untouched.
                       //
                       // Deliberately not added to EXTERNAL_DEPS: that list is

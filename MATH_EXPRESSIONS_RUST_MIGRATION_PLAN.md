@@ -22,20 +22,24 @@ the person doing the release; nothing in either repo enforces it. It matters bec
 `.github/workflows/publish.yml` publishes a **dev release to npm on every successful CI run on
 `main`** — merging is releasing.
 
-1. Merge [math-expressions#84](https://github.com/Doenet/math-expressions/pull/84).
-2. Publish **`math-expressions@3.x`** from that repo to npm.
-3. Only then merge the DoenetML side, having first replaced
-   `"math-expressions": "file:../math"` with the published range (Step 6 below).
+1. Merge [math-expressions#84](https://github.com/Doenet/math-expressions/pull/84). **Done.**
+2. Publish **`math-expressions@3.x`** from that repo to npm. **Done** —
+   `math-expressions@3.0.0-alpha.1` is on the registry, and `packages/math` depends on it.
+3. Only then merge the DoenetML side. **Nothing left to edit first**: Step 6 below carried the
+   published range into this tree, so merging is the whole of step 3.
 
-Merging DoenetML first would try to release a `@doenet/doenetml` whose bundle keeps a bare
+Merging DoenetML before step 2 would have released a `@doenet/doenetml` whose bundle keeps a bare
 `import ... from "math-expressions"` that resolves to nothing on a consumer's machine — or, if they
 already have the unrelated `math-expressions@2.x` in their tree, silently to the *legacy JS engine*,
 which is worse than a build error.
 
-The one mechanism to know: `scripts/transform-package-json.ts` copies each externalized
-dependency's declared range verbatim into the built `dist/package.json`'s `peerDependencies`, so
-`packages/doenetml/package.json`'s `"math-expressions"` range is exactly the range a consumer
-installs. Step 3's edit is the whole of it.
+The one mechanism to know: `scripts/transform-package-json.ts` writes each externalized
+dependency's range into the built `dist/package.json`'s `peerDependencies`, and that range is
+exactly what a consumer installs. For `math-expressions` it comes from `publishRanges` in
+`packages/doenetml/vite.config.ts` (`^3.0.0-alpha.1`) rather than from the manifest, which keeps
+saying `file:../math`. Step 6 records why: declaring the registry range in the manifest makes npm
+install the published package *inside* `packages/doenetml`, shadowing the seam there while every
+sibling still resolves it.
 
 > There used to be a build-time shape test on that range that forced `"private": true` when it
 > looked local, so that a premature merge turned the publish job red. It was removed at the
