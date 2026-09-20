@@ -80,7 +80,7 @@ Step 6 of `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md`; because the seam is an alia
 and no bundler rule moves — changing `packages/doenetml/package.json`'s
 `"math-expressions": "file:../math"` to the published range is what unblocks publication. *Which*
 range depends on the version string the maintainer actually publishes, and the two cases differ:
-`^3.0.0` for a real `3.0.0`, but `^3.0.0-alpha1` (or an exact pin) for a prerelease, because npm
+`^3.0.0` for a real `3.0.0`, but `^3.0.0-alpha.1` (or an exact pin) for a prerelease, because npm
 semver excludes prereleases from `^3.x`. Step 6 of `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md` states
 both cases; nothing in the build checks which one is right.
 

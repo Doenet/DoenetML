@@ -54,7 +54,7 @@ The repo is a Rust monorepo; the JS library survives only as an out-of-tree orac
 | --- | --- | --- |
 | `math-expressions-rs/` | The core Rust crate: text/LaTeX parsing, equality (numeric, finite-field, exact, structural), normalize/simplify/expand, differentiation, symbolic + certified integration, matrices/eigen, ODEs, assumptions, factoring, arbitrary precision. | **Stage 2** (as a crate) |
 | `math-expressions-rs-wasm/` | The `wasm-bindgen` boundary (`src-rust/`) + TypeScript bindings (`src-js/`), notably the AST→math.js bridge backing `.f()`. `build-wasm.sh <target> <outdir>` accepts **`web`** and `nodejs`, with an optional `wasm-opt -Oz` pass. | Both |
-| `math-expressions-js-compat/` | **Published as `math-expressions` v3 (`3.0.0-alpha1`)** — a drop-in TypeScript reimplementation of the legacy `me.*` API over the WASM core, preserving the synchronous surface. | **Stage 1** |
+| `math-expressions-js-compat/` | **Published as `math-expressions` v3 (`3.0.0-alpha.1`)** — a drop-in TypeScript reimplementation of the legacy `me.*` API over the WASM core, preserving the synchronous surface. | **Stage 1** |
 | `packages/playground/` | Vite/React app running Rust-WASM against canonical JS. Ships the `web` build to GitHub Pages on every push to `main`. | Reference |
 
 ### The playground already proves the browser path
@@ -458,19 +458,35 @@ binary's wasm magic number and that it is over 1 MB, then `initSync`s it and run
 
 #### ⚠️ Two things to get right before writing any range
 
-**1. `^3.x` will not install `3.0.0-alpha1`.** Upstream's `package.json` says `3.0.0-alpha1`, which
+**1. `^3.x` will not install `3.0.0-alpha.1`.** Upstream's `package.json` says `3.0.0-alpha.1`, which
 is a *prerelease*, and npm semver excludes prereleases from `^3.0.0` / `^3.x`. Measured:
 
-| range | matches `3.0.0-alpha1` | matches `3.0.0` |
+| range | matches `3.0.0-alpha.1` | matches `3.0.0` |
 | --- | --- | --- |
 | `^3.x` / `^3.0.0` | **no** | yes |
-| `^3.0.0-alpha1` | yes | yes |
-| `3.0.0-alpha1` | yes | no |
+| `^3.0.0-alpha.1` | yes | yes |
+| `3.0.0-alpha.1` | yes | no |
 
-So if the alpha is what gets published, every range below must be `^3.0.0-alpha1` (or pinned
+So if the alpha is what gets published, every range below must be `^3.0.0-alpha.1` (or pinned
 exactly), **not** `^3.x`. If upstream bumps to a release version first, `^3.0.0` is right. Decide
 this before step 1, because nothing in the build checks it — the shape test that used to look at
 these ranges was removed, and it never resolved them against the registry anyway.
+
+**And keep the dot.** Upstream said `3.0.0-alpha1` until
+[the version commit](https://github.com/Doenet/math-expressions/pull/84); the 2.x line still says
+`2.0.0-alpha94`. Without the dot the whole tail is one *alphanumeric* identifier, which semver
+compares as text, so the sequence does not order:
+
+```js
+["2.0.0-alpha8", "2.0.0-alpha9", "2.0.0-alpha10", "2.0.0-alpha96"].sort(semver.compare);
+// 2.0.0-alpha10  2.0.0-alpha96  2.0.0-alpha8  2.0.0-alpha9
+```
+
+`2.0.0-alpha10` is therefore *older* than `2.0.0-alpha9`, and `^2.0.0-alpha9` does not match
+alpha10 or alpha11 — it reaches alpha96 only because `alpha9` is a text prefix of `alpha96`. With
+the dot, `1` is a *numeric* identifier: `prerelease("3.0.0-alpha.1")` is `["alpha", 1]`,
+`3.0.0-alpha.9` precedes `3.0.0-alpha.10`, and `^3.0.0-alpha.1` follows every later alpha. A range
+written here can only be as good as the version it names.
 
 **2. Check which repo publishes.** `.gitmodules` points at
 `https://github.com/siefkenj/math-expressions.git` (branch `doenet`), while this document's prose

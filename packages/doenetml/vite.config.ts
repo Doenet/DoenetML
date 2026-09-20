@@ -29,7 +29,7 @@ const EXTERNAL_DEPS = ["react", "react-dom", "math-expressions"];
 // resolve — changing it to the range matching the version actually published is
 // Step 6 of `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md`, and that document states
 // the order the release has to follow and which range each published version
-// shape needs (`^3.0.0` for a release, `^3.0.0-alpha1` for a prerelease, since
+// shape needs (`^3.0.0` for a release, `^3.0.0-alpha.1` for a prerelease, since
 // npm semver excludes prereleases from `^3.x`).
 
 // https://vitejs.dev/config/
