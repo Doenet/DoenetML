@@ -71,31 +71,41 @@ host and because one artifact behaves identically under Vitest and in the browse
 attributes that to issue #1375, which is a pre-existing mis-citation — #1375 is a VS Code extension
 diagnostics bug — so no issue number is repeated here.)
 
-**Publishability** is the one open item, and it is upstream-solved, this-side-pending: `@doenet/math`
-is `private: true`, so the externalized `math-expressions` import in a published `@doenet/doenetml`
-tarball resolves to nothing — or to npm's `math-expressions@2.x`, a different engine. The
-resolution is that `math-expressions@3.x` publishes to npm (its `package publishability` CI job
-already verifies the tarball works, `--target web` wasm included) and this side swaps the seam per
-Step 6 of `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md`; because the seam is an alias, no call site
-and no bundler rule moves — changing `packages/doenetml/package.json`'s
-`"math-expressions": "file:../math"` to the published range is what unblocks publication. *Which*
-range depends on the version string the maintainer actually publishes, and the two cases differ:
-`^3.0.0` for a real `3.0.0`, but `^3.0.0-alpha.1` (or an exact pin) for a prerelease, because npm
-semver excludes prereleases from `^3.x`. Step 6 of `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md` states
-both cases; nothing in the build checks which one is right.
+**Publishability** is settled. `@doenet/math` is `private: true`, so an externalized
+`math-expressions` import in a published `@doenet/doenetml` tarball would resolve to nothing — or
+to npm's `math-expressions@2.x`, a different engine. `math-expressions@3.0.0-alpha.1` is on the
+registry now (its `package publishability` CI job packs the tarball, installs it into a throwaway
+project outside the workspace and drives both loading paths), and this side swapped the seam per
+Step 6 of `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md`. Because the seam is an alias, no call site and
+no bundler rule moved.
 
-Nothing in this repo *enforces* that order, and nothing should: the person who publishes
-`math-expressions@3.x` is the person who merges these two PRs, so code protecting them from
-themselves is only a thing to maintain. Five review passes wrote and rewrote a shape test on the
-range, and two of them opened a hole the previous one's fix had left; the test is gone. The order
-is stated once, at the top of `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md`, and that is where it
-lives.
+**The range a consumer installs is not in `packages/doenetml/package.json`.** That manifest keeps
+saying `file:../math`, as do the other six; the published range is the
+`MATH_EXPRESSIONS_PUBLISHED_RANGE` constant in `packages/doenetml/vite.config.ts`, handed to
+`createPackageJsonTransformer` as `publishRanges`. Declaring the registry range in the manifest
+instead was measured and rejected: npm then installs the published package *inside*
+`packages/doenetml`, shadowing the seam in that one workspace, and `tsc` fails on `initMathWasm`,
+which is `@doenet/math`'s export and not upstream's — so the package would type-check and test
+against a different module than it ships. Step 6's checklist carries the same warning against its
+own step 2, which is where the instruction to edit the manifest used to be.
 
-What remains is the mechanism the order acts on, which is worth knowing:
-`scripts/transform-package-json.ts` copies each externalized dependency's declared range verbatim
-into the built `dist/package.json`'s `peerDependencies`. So `packages/doenetml/package.json`'s
-`"math-expressions"` range *is* the range a consumer installs, and editing it is the whole of the
-publishability change.
+The range is `^3.0.0-alpha.1`, and the dot earns its place twice: npm's caret excludes prereleases,
+so the range has to name one, and semver compares an undotted prerelease tail as text, so
+`^3.0.0-alpha1` would match neither `alpha10` nor `alpha11`. When upstream reaches a real `3.0.0`
+this becomes `^3.0.0`, in that one constant. Nothing in either build checks which is right.
+
+Nothing in this repo ever *enforced* the release order that got here — publish upstream, then
+merge this — and nothing should have: the person who publishes `math-expressions@3.x` is the person
+who merges these two PRs, so code protecting them from themselves is only a thing to maintain. Five
+review passes wrote and rewrote a shape test on the range, and two of them opened a hole the
+previous one's fix had left; the test is gone. The order is stated once, under "Release order" at
+the top of `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md`, and that is where it lives.
+
+The mechanism underneath is worth knowing: `scripts/transform-package-json.ts` copies each
+externalized dependency's declared range verbatim into the built `dist/package.json`'s
+`peerDependencies`, except where `publishRanges` names the dependency, in which case the
+declaration is ignored and the named range ships. Read `packages/doenetml/dist/package.json` after
+a build to see which range a consumer would install.
 
 ## Building
 
@@ -103,36 +113,47 @@ A Rust toolchain is required — but it was required before this diff too, and s
 been the standing error here. `packages/doenetml-worker-rust:build:rust` runs
 `npx wasm-pack build lib-js-wasm-binding`, `packages/doenetml:build` depends on it through
 `doenetml-worker`, and `npm run build` *is* `packages/doenetml:build`; that is true at the merge
-base as well. What this diff adds is (a) a `wasm-bindgen-cli` on `PATH` matching the submodule's
-pinned `wasm-bindgen` (`0.2.126`) — nothing before it invoked the CLI directly, since `wasm-pack`
-carries its own — and (b) an explicit `rustup target add wasm32-unknown-unknown`, because
-`build-wasm.sh` calls `cargo build --target wasm32-unknown-unknown` where `wasm-pack` adds the
-target for itself. Both of those go at Step 6; the toolchain does not (Step 6 checklist, item 10).
-CI installs them via
-`.github/actions/setup-math-wasm`; the devcontainer bakes it in via the `wasm-toolchain` feature.
-Every workflow checkout that builds needs `submodules: recursive` plus that action: `ci.yml`,
-`publish.yml`, `gh-pages-docs.yml` and `publish-doenetml-to-pretext-python.yml` — 14 checkouts and
-12 uses of the action, the two devcontainer jobs in `ci.yml` taking the checkout without the action
-because the container image carries the toolchain itself.
+base as well, and `wasm-pack` brings its own `wasm32-unknown-unknown` target and bindgen.
 
-`packages/math`'s `build:wasm` declares wireit `files`/`output` so the WASM compile caches; wireit
+**This diff adds nothing to that, as of Step 6.** The engine arrives prebuilt: upstream's tarball
+ships both wasm-bindgen targets, so `packages/math/scripts/build-wasm.mjs` reads the `--target web`
+binary out of `node_modules` and base64-inlines it, and nothing here invokes `cargo` for it. For
+most of this branch's life it did compile the engine, out of a `vendor/math-expressions` submodule,
+and that cost a `wasm-bindgen-cli` on `PATH` matching the submodule's pinned `wasm-bindgen`
+(`0.2.126`), an explicit `rustup target add wasm32-unknown-unknown` for the `cargo build` in
+`build-wasm.sh`, a `.github/actions/setup-math-wasm` used by twelve CI steps, `submodules:
+recursive` on fourteen checkouts across `ci.yml`, `publish.yml`, `gh-pages-docs.yml` and
+`publish-doenetml-to-pretext-python.yml`, and a `wasm-toolchain` devcontainer feature. Step 6
+deleted every one of them; what is left in `.github/` and `.devcontainer/` that `main` does not
+have is unrelated to the engine, and listed under "What is still riding along".
+
+`packages/math`'s `build:wasm` declares wireit `files`/`output` so the unpack caches; wireit
 propagates "not fully tracked" to every dependent and `../math:build` is a dependency of seven
 packages (`utils`, `doenetml`, `doenetml-prototype`, `doenetml-to-pretext`,
 `doenetml-worker-javascript`, `doenetml-worker-rust`, `test-cypress`), so without it CI's
-`WIREIT_CACHE: local` never hits. Declaring the outputs is why
-`build-wasm.mjs` copies the wasm-bindgen glue into `src/generated/` rather than aliasing into the
-submodule — wireit refuses an output outside the package.
+`WIREIT_CACHE: local` never hits. Declaring the outputs is also why `build-wasm.mjs` copies the
+wasm-bindgen glue into `src/generated/` rather than letting `vite.config.ts` alias it straight out
+of `node_modules` — wireit refuses an output outside the package, and `dropDefaultWasmPath` matches
+on that directory.
 
 ## Sizes
 
-Order of magnitude, not a fingerprint — the wasm is not byte-reproducible build to build, and CI
-builds without `wasm-opt` (a developer with binaryen installed measures smaller);
-`packages/standalone/bundle-budgets.json` records the same caveats. Measured at the tenth review
-pass and re-measured at the thirteenth: `web`-target WASM 1.69 MiB, 2.25 MiB as base64,
-`dist/engine-rust.js` 2.41 MiB, ~792 kB gzipped — against roughly 1 MiB for the JavaScript library
-it replaces. `@doenet/standalone`'s
-main bundle *shrank* (13.82 → 11.41 MiB observed) because libraries stopped carrying private
-copies of the engine once the seam was externalized everywhere.
+These are a fingerprint now, which they were not for most of this branch's life. The core used to
+be compiled here out of a submodule, so its size moved with the machine — an optional `wasm-opt
+-Oz` pass ran or did not depending on whether binaryen happened to be installed. Step 6 made it the
+prebuilt binary the lockfile pins, inlined verbatim, so every build carries identical bytes;
+`packages/standalone/bundle-budgets.json` says the same thing, and records that this is what
+retired its "measure on CI, not locally" caveat.
+
+At `math-expressions@3.0.0-alpha.1`: `--target web` WASM 1,772,658 B (1.69 MiB), 2.25 MiB once
+base64'd, `packages/math/dist/engine-rust.js` 2,498,063 B (2.38 MiB), 779 kB gzipped — against
+roughly 1 MiB for the JavaScript library it replaces. `@doenet/standalone`'s bundles carry one
+inlined core each and no more, which is what `npm run check:size -w packages/standalone` enforces:
+4.30 MiB for the eagerly-parsed chunk, 11.13 MiB for the single-file inline variant, 7.12 MiB for
+the worker. Those three are what the merge's code splitting (`main`'s #1728) left; the earlier
+before/after pair recorded here measured a bundle that no longer exists in that shape. The reason
+they are smaller than they would be is unchanged: libraries stopped carrying private copies of the
+engine once the seam was externalized everywhere.
 
 ## Conventions the switch established
 

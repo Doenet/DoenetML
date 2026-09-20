@@ -422,9 +422,11 @@ Two results worth carrying forward, because they were not what the checklist pre
   published tarball ships both wasm-bindgen targets, so nothing here compiles the engine:
   `.github/actions/setup-math-wasm`, the `wasm-toolchain` devcontainer feature, every
   `submodules: recursive` checkout and the `git submodule update` in `postCreateCommand.sh` were
-  all deleted, returning `.github/workflows/` and `.devcontainer/` to what `main` has. `npm run
-  build` still reaches `wasm-pack` for `packages/doenetml-worker-rust`, which brings its own
-  target and bindgen — which is how `main` has always built.
+  all deleted, which leaves `.github/workflows/` and `.devcontainer/` byte-identical to `main`
+  *for these concerns*. `.devcontainer/` is byte-identical outright; `.github/` still differs from
+  `main` by three things that have nothing to do with the engine and are listed in the PR
+  description. `npm run build` still reaches `wasm-pack` for `packages/doenetml-worker-rust`, which
+  brings its own target and bindgen — which is how `main` has always built.
 - **The inlined core is reproducible now.** It used to be whatever the local `cargo` produced:
   the binary built on one developer machine measured 1,768,937 bytes against the published
   1,772,658. The bytes every build inlines are the lockfile's, so a local bundle and a CI bundle
@@ -648,11 +650,14 @@ registry is still `2.0.0-alpha95` — 3.x is not published as of the twentieth p
       about the CI race that causes. Re-read them once `build:wasm` is gone; they may be
       simplifiable but they are *not* dead, since `packages/math` survives.
     - Update `MATH_EXPRESSIONS_ENGINE_NOTES.md`'s "Building" section, which still tells a
-      contributor to install a matching `wasm-bindgen-cli`.
+      contributor to install a matching `wasm-bindgen-cli`. **Missed when the step ran**; done at
+      review cycle 3, along with its "Publishability" section, which still gave the step-2
+      instruction this list's own step 2 records as a trap.
     - `package-lock.json` regenerates on `npm install`; check the
       `"node_modules/math-expressions"` link entry survives.
     - `packages/math/README.md`, `src/engine-rust.ts`, `src/wasm-loader.ts` all name the submodule
-      in comments.
+      in comments. Done — each now names it only in the past tense, as the thing the published
+      package replaced.
 
 12. **Verify.** `npm run build:all-no-docs`; `npm run test -w packages/math`;
     `npm run test -w packages/standalone` (the transform-package-json tests read

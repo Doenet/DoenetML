@@ -2,12 +2,13 @@
  * Browser/node loader for the math-expressions WASM core.
  *
  * This module supplies the WASM to `math-expressions` through its
- * `setWasmModule` injection point. That entry point is new in the current
- * upstream revision; before it existed we had to *alias* the compat package's
- * node-only `lib/_wasm.ts` to this file from `vite.config.ts`, which meant a
- * build-tool rule stood between the library and its own loader. The injection
- * API replaces that: compat is now imported as an ordinary package, and the
- * only bundler configuration left is resolving the submodule's paths.
+ * `setWasmModule` injection point. That entry point is new in v3; before it
+ * existed we had to *alias* the compat package's node-only `lib/_wasm.ts` to
+ * this file from `vite.config.ts`, which meant a build-tool rule stood between
+ * the library and its own loader. The injection API replaces that: upstream is
+ * imported as an ordinary npm package, and the one bundler rule left in this
+ * package resolves `math-expressions-wasm-glue` to the copy of the glue that
+ * `scripts/build-wasm.mjs` writes into `src/generated/`.
  *
  * The bytes are inlined (see `scripts/build-wasm.mjs`), so instantiation never
  * touches the network. Two entry points, because the realms differ:

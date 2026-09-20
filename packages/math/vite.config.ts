@@ -82,9 +82,9 @@ export default defineConfig({
     base: "./",
     plugins: [
         dropDefaultWasmPath(),
-        // Our own `src/` only. The compat layer's `lib/**` is loosely typed
-        // JS-in-TS and is an implementation detail of this package; consumers
-        // are typed by `src/types.ts`, and the submodule modules we import are
+        // Our own `src/` only. Consumers are typed by `src/types.ts`, which
+        // re-exports the published package's own declarations, and the one
+        // specifier no package supplies — `math-expressions-wasm-glue` — is
         // declared in `src/vendor-shims.d.ts` rather than walked.
         //
         // `src/generated/` is excluded on top of that. It is build output, no
@@ -104,14 +104,14 @@ export default defineConfig({
         //
         // `src/vendor-shims.d.ts` is excluded on top of *that*, and for the
         // opposite reason to `src/generated/**`: `copyDtsFiles` copies it, but
-        // the plugin rewrites module specifiers on the way, turning its
-        // `declare module "math-expressions-js-compat"` into a *relative* path
-        // into the submodule. That is invalid TypeScript — `TS2436: Ambient
-        // module declaration cannot specify relative module name` — and it put
-        // an absolute path outside the package into a shipped `dist/`,
-        // which is precisely the leak `engine-rust.ts` and `wasm-loader.ts`
-        // are written to avoid. Nothing in `dist/` references the file; it is
-        // input to *our* type-check, not part of our published surface.
+        // the plugin rewrites module specifiers on the way. Drop the exclusion
+        // and `dist/vendor-shims.d.ts` ships
+        // `declare module './generated/math_expressions_wasm.js'` — a relative
+        // name in an ambient declaration, which is invalid TypeScript
+        // (`TS2436: Ambient module declaration cannot specify relative module
+        // name`) and points at git-ignored build output that is not in `dist/`
+        // at all. Nothing in `dist/` references the file; it is input to *our*
+        // type-check, not part of our published surface.
         dts({
             include: ["src"],
             exclude: ["src/generated/**", "src/vendor-shims.d.ts"],

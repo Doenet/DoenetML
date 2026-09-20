@@ -5,9 +5,12 @@
 depends on. (It was a pinned `vendor/math-expressions` submodule revision until the package was
 published; entries checked before that name the revision they were checked against.)
 
-This is the ledger the seam refers to: where the Rust engine diverges from the shape
-`packages/math/src/vendored/math-expressions.d.ts` describes, the divergence is recorded here rather
-than hidden behind a widened type or a local patch in `packages/math/src/engine-rust.ts`.
+This is the ledger the seam refers to: where the Rust engine diverges from the shape the package's
+own `types/math-expressions.d.ts` describes — the legacy library's contract, which the engine is a
+drop-in for — the divergence is recorded here rather than hidden behind a widened type or a local
+patch in `packages/math/src/engine-rust.ts`. (Until Step 6 this repo held its own vendored copy of
+that file and the ledger was measured against it; `packages/math/src/types.ts` now re-exports from
+the package, so there is one declaration file and nothing to keep in step.)
 
 ## Open — five items
 
@@ -17,8 +20,8 @@ than hidden behind a widened type or a local patch in `packages/math/src/engine-
 4. `derivative` does not descend into a container.
 5. No initializer: every browser host rebuilds the same four-part bootstrap.
 
-The declaration side of items 2 and 3 has been settled — the published and vendored `.d.ts` files
-now say what the engine does — so what is open in each is engine work, not documentation.
+The declaration side of items 2 and 3 has been settled — the published `.d.ts` now says what the
+engine does — so what is open in each is engine work, not documentation.
 
 **`substitute_component` accepts a receiver that is not a container, and answers.** Legacy validated
 the head at each level of the path and the index range, throwing `expected list, tuple, vector, or
@@ -48,8 +51,8 @@ by that much.
 
 **The declarations no longer claim otherwise.** Until the twenty-second pass the 48 were declared
 on `Expression` and mirrored on `Context`, so TypeScript accepted `expr.sin()` and it failed at
-runtime. They have been removed from both the published
-`types/math-expressions.d.ts` and this repo's vendored copy — 96 declarations, plus `Context`'s own
+runtime. They have been removed from the published
+`types/math-expressions.d.ts` — 96 declarations, plus `Context`'s own
 `ZmodN` and `parser_parameters`, which are Context-only properties and so fell outside the
 `Expression` audit that measured the 48. A `.d.ts` whose job is to describe a drop-in earns nothing
 by promising members that are not there: keeping them made the failure a compile-time *success* and
@@ -77,8 +80,9 @@ copy hand-written ones, so `packages/math/dist/types.d.ts` shipped a
 `expr.sin()` because it accepted *everything*. `copyDtsFiles` fixed that, which is what put the
 width of this surface in play at all.
 
-The names are enumerated in a comment at the end of `Expression` in both files, and one goes back
-the moment the engine implements it — the list is the gap, not a decision to leave it open.
+The names are enumerated in a comment at the end of `Expression` in `types/math-expressions.d.ts`,
+and one goes back the moment the engine implements it — the list is the gap, not a decision to
+leave it open.
 
 **A worse class than the missing members: declared parameters the engine ignores.** A missing
 method throws. A parameter that is declared, accepted and dropped compiles, runs, and answers the
@@ -137,9 +141,9 @@ measured against the built package first.**
 | `solve_linear` answers a frozen `ABSENT_EXPRESSION` whose `.tree` is `undefined` | **accepted**, and said so in the declaration: legacy handed back an `Expression` to read `.tree` off, and declaring `\| undefined` would break exactly the callers the stand-in exists for. Test the `.tree`, not the result |
 | `Expression.match` drops `allow_extended_match`, which the free `utils.match` honors | **fixed**, not documented — `Expression.match` now delegates to the shared implementation, which is what its own comment already claimed, and `MatchOptions` declares the option because it now works from both entry points |
 
-The five declaration changes are also in this repo's vendored copy; the two files still differ only
-by the trailing v3 block and one Prettier line wrap, which is the check the vendored header
-describes.
+All five declaration changes are in the published `types/math-expressions.d.ts`, which is the one
+this repo now types against; the vendored copy that used to have to be kept in step with it is gone
+with the submodule.
 
 **No initializer, so every browser host rebuilds the same bootstrap — and one part of it is a
 race.**
@@ -153,18 +157,37 @@ same for every host.
 initializations — `if (wasm !== undefined) return wasm;`, where `wasm` is assigned at the end by
 `__wbg_finalize_init` — so two callers that overlap both pass the guard and both instantiate:
 
+Run it under node, from a directory where `math-expressions` resolves:
+
 ```js
 import * as glue from "math-expressions/wasm-web/math_expressions_wasm.js";
+import { readFileSync } from "node:fs";
+import { createRequire } from "node:module";
 
-// Both paths, because `__wbg_load` prefers `instantiateStreaming` and falls
-// back to `instantiate` when the response is not served as application/wasm.
+// Explicit bytes, because `glue.default()` with no argument reaches for
+// `new URL('…_bg.wasm', import.meta.url)`, and node's `fetch` declines a
+// `file:` URL. In a browser drop these three lines and call `glue.default()`;
+// the count is the same.
+const bytes = readFileSync(
+    createRequire(import.meta.url).resolve(
+        "math-expressions/wasm-web/math_expressions_wasm_bg.wasm",
+    ),
+);
+
+// Both entry points: `__wbg_load` takes `instantiate` for bytes and prefers
+// `instantiateStreaming` for a fetched response, falling back when the server
+// does not serve application/wasm. Counting one of them alone reports 0 on
+// whichever path is not taken, and reads as no bug.
 let n = 0;
 for (const k of ["instantiate", "instantiateStreaming"]) {
     const real = WebAssembly[k];
     WebAssembly[k] = (...a) => (n++, real.apply(WebAssembly, a));
 }
 
-await Promise.all([glue.default(), glue.default()]);
+await Promise.all([
+    glue.default({ module_or_path: bytes }),
+    glue.default({ module_or_path: bytes }),
+]);
 console.log(n); // 2 — one per caller, where one is expected
 ```
 
