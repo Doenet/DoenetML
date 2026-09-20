@@ -112,6 +112,11 @@ jobs:
             # guards.
             - name: Verify CI succeeded for target commit
               if: github.event_name == 'release'
+              # `verify-ci.mjs` now waits out a CI run that is still going
+              # rather than failing on it, under a 60-minute budget of its own.
+              # This is the backstop on that wait, so a hanging API read cannot
+              # hold the runner indefinitely.
+              timeout-minutes: 70
               env:
                   GITHUB_TOKEN: ${{ github.token }}
                   REPO: ${{ github.repository }}
