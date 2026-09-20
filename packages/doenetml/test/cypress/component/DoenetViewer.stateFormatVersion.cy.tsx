@@ -34,8 +34,17 @@ const VIEWER_TIMEOUT = 30_000;
 /** How long an answer the viewer must NOT restore is given to be restored. */
 const SETTLE = 1000;
 
-/** Answer the next `SPLICE.getState` with `state`, quoting its request id. */
-function answerGetStateWith(state: Record<string, unknown>) {
+/**
+ * Answer the next `SPLICE.getState` with each of `states` in turn, every one
+ * quoting the request's id.
+ *
+ * Several answers to one request is the ordinary case, not a contrivance: a
+ * page can hold more than one answerer — under the standalone coordinator the
+ * in-page warehouse answers a restored activity while a persistence host
+ * answers the same request out of durable storage — and which lands first is
+ * not the viewer's to choose.
+ */
+function answerGetStateWith(...states: Record<string, unknown>[]) {
     return cy.window().then((win) => {
         const answered = { sent: false };
         const listener = (e: MessageEvent) => {
@@ -43,14 +52,16 @@ function answerGetStateWith(state: Record<string, unknown>) {
                 return;
             }
             win.removeEventListener("message", listener);
-            win.postMessage(
-                {
-                    subject: "SPLICE.getState.response",
-                    message_id: e.data.message_id,
-                    state,
-                },
-                "*",
-            );
+            for (const state of states) {
+                win.postMessage(
+                    {
+                        subject: "SPLICE.getState.response",
+                        message_id: e.data.message_id,
+                        state,
+                    },
+                    "*",
+                );
+            }
             answered.sent = true;
         };
         win.addEventListener("message", listener);
@@ -144,6 +155,40 @@ describe("DoenetViewer saved state carrying a format version", () => {
 
             // Discarded, not failed: the failure pane is what the reader used
             // to get here, and it takes the document away with it.
+            cy.contains("Error loading doc state").should("not.exist");
+        });
+    });
+
+    it("lets a second answerer restore after the first answered in an older format", function () {
+        // A page can hold more than one answerer, and only a *usable* answer
+        // consumes the open request — otherwise the first to land decides,
+        // whether or not it had anything this viewer could restore. State in a
+        // format this viewer cannot read restores nothing, so it must not shut
+        // out an answerer that does have readable work.
+        //
+        // The two answers are the same bytes under two labels, so the version
+        // field is the only thing that makes one of them unusable.
+        const staleState = {
+            ...this.savedState,
+            data_format_version: "0.7.0",
+        };
+
+        answerGetStateWith(staleState, this.savedState).then((answered) => {
+            mountRestoringViewer();
+
+            cy.contains("You typed: earlier work", {
+                timeout: VIEWER_TIMEOUT,
+            }).should("exist");
+            cy.wrap(null, { timeout: VIEWER_TIMEOUT }).should(() => {
+                expect(answered.sent, "the host answered").to.eq(true);
+            });
+            cy.get(TEXT_INPUT).should("have.value", "earlier work");
+
+            // The answerer that had the work retires the earlier one's notice:
+            // nothing was lost after all.
+            cy.contains("Your saved work could not be loaded").should(
+                "not.exist",
+            );
             cy.contains("Error loading doc state").should("not.exist");
         });
     });

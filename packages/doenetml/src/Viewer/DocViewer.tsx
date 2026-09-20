@@ -158,6 +158,21 @@ const NON_SPLICE_PLATFORM_ERROR_CODES = new Set([
     "bad_request",
 ]);
 
+/**
+ * Whether `state` is saved work this viewer's format can read.
+ *
+ * A host stores the payload opaquely and hands it back unread, so one written
+ * by an older version of Doenet arrives looking exactly like a current one —
+ * the `data_format_version` inside it is the only thing that tells them apart.
+ * 0.8 re-keyed saved state from component build indices to identifiers derived
+ * from the document (Doenet/DoenetML#1944), so 0.7's keys no longer denote the
+ * same components; applying them would put a reader's values on the wrong ones
+ * rather than fail.
+ */
+function savedStateIsReadable(state: Record<string, any>) {
+    return state?.data_format_version === data_format_version;
+}
+
 export const DocContext = createContext<{
     doenetViewerUrl?: string;
     doenetImagesUrl?: string;
@@ -1157,6 +1172,28 @@ export function DocViewer({
                         e.data.state &&
                         e.data.state.cid === cid.current
                     ) {
+                        if (!savedStateIsReadable(e.data.state)) {
+                            // Saved work this viewer's format cannot read (see
+                            // `savedStateIsReadable`). Tested here, ahead of
+                            // the consume below, because state that cannot be
+                            // read is not a usable answer: it restores
+                            // nothing, so it must not shut out an answerer
+                            // that has something restorable. Two answerers on
+                            // one page is the ordinary case this protects —
+                            // the standalone coordinator's in-page warehouse
+                            // and a persistence host answer the same request,
+                            // and which lands first is not ours to choose.
+                            //
+                            // The document is already starting clean: the boot
+                            // does not wait for this answer. So nothing here
+                            // rebuilds anything — the reader is told, and the
+                            // request is left open. A later answerer that does
+                            // have readable work clears this notice when it
+                            // restores.
+                            noticeSavedStateFromOlderVersion();
+                            return;
+                        }
+
                         // One request, one answer. A page can hold several
                         // listeners willing to answer: under the standalone
                         // coordinator the in-page warehouse answers a restored
@@ -1170,9 +1207,10 @@ export function DocViewer({
                         // first usable answer the one that counts.
                         //
                         // Only a usable answer consumes it: one carrying no
-                        // state (a host with nothing saved for this activity)
-                        // or state for a different `cid` must not shut out a
-                        // better one still to come.
+                        // state (a host with nothing saved for this activity),
+                        // state for a different `cid`, or state in a format
+                        // this viewer cannot read must not shut out a better
+                        // one still to come.
                         //
                         // A rebuild that then fails below keeps the request
                         // consumed on purpose: the failure is reported to the
@@ -2450,30 +2488,32 @@ export function DocViewer({
         }
     }
 
+    /**
+     * Tell the reader their saved work was written by a version whose format
+     * this viewer cannot read, so the document has started clean.
+     *
+     * Worth saying rather than leaving them to discover it: they lose an
+     * attempt in progress. The credit already recorded for them is unaffected,
+     * because score is reported separately from state.
+     */
+    function noticeSavedStateFromOlderVersion() {
+        setStateLoadNotice(
+            translate(
+                "saved-state-from-older-version",
+                undefined,
+                STATE_FROM_OLDER_VERSION_FALLBACK,
+            ),
+        );
+    }
+
     function processLoadedDocState(data: Record<string, any>) {
-        if (data.data_format_version !== data_format_version) {
-            // Saved state whose shape this version cannot read. Everything a
-            // host holds is opaque to it and gets handed back unread, so a
-            // payload written by an older version arrives looking exactly like
-            // a current one — the version inside it is the only thing that
-            // tells them apart. 0.8 re-keyed saved state from component build
-            // indices to identifiers derived from the document, so 0.7's keys
-            // no longer denote the same components; applying them would put a
-            // reader's values on the wrong ones rather than fail
-            // (Doenet/DoenetML#1944).
-            //
-            // Start the document clean, and say so. The reader loses an
-            // attempt in progress, which is worth telling them rather than
-            // letting them discover it; the credit they have already been
-            // recorded is unaffected, because score is reported separately
-            // from state.
-            setStateLoadNotice(
-                translate(
-                    "saved-state-from-older-version",
-                    undefined,
-                    STATE_FROM_OLDER_VERSION_FALLBACK,
-                ),
-            );
+        if (!savedStateIsReadable(data)) {
+            // Nothing to restore from: start the document clean, and say so.
+            // The `SPLICE.getState` handler tests this before it gets here, so
+            // the case this catches is a viewer handed `initialState` directly
+            // — the `doenetml-iframe` park/unpark path, whose snapshot is a
+            // real `reportScoreAndState` payload and so carries the field.
+            noticeSavedStateFromOlderVersion();
             return;
         }
 

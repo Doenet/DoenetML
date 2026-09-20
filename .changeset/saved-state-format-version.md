@@ -10,6 +10,8 @@ The payload a host stores carried no version. Hosts are told to keep it opaque a
 
 `data_format_version` now travels *inside* the payload, alongside `cid`, where it survives that round trip; a field beside it would not. On load, a payload whose version this viewer does not recognise is discarded and the document starts fresh, with a notice beside it saying the work was saved by an earlier version. Credit already recorded is unaffected, since score is reported separately from the state.
 
+A page can hold more than one answerer for the same request — under the standalone coordinator an in-page warehouse answers while a persistence host answers out of durable storage — and an answer in a format this viewer cannot read restores nothing, so it does not shut out an answerer that still has readable work. The reader is told either way, and a later answerer that does restore clears the notice.
+
 The same field already guarded locally cached state in IndexedDB and is unchanged there. It is bumped to `0.8.0`, which also clears that cache.
 
 For hosts: nothing to change. The payload stays opaque and is still stored and returned as-is.
