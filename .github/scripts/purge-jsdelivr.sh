@@ -90,16 +90,42 @@ VERIFY_PATHS=(
 # Both waits are about the release itself rather than any one floating URL, so
 # they run once no matter how many specs follow. The registry wait is what makes
 # the purges meaningful: until npm serves this version under the tag, purging a
-# floating URL only re-fetches the previous release.
+# floating URL only re-fetches the previous release. A wait that fails is fatal
+# by way of `set -e`: it says the release is not there to purge towards, which
+# is true of every spec equally.
+#
+# One CDN wait covers them all, including the ranges, because jsDelivr resolves
+# a range from near-live registry metadata rather than from a long-lived cache
+# of its own — its resolver answers `cache-control: max-age=10` — so a range has
+# nothing to catch up on once the pinned version is fetchable. What is cached
+# for 12 hours is the resolved file, which is exactly what the purge drops.
 wait_for_registry_tag "${PACKAGE}" "${TAG}" "${VERSION}"
 wait_for_cdn_version "${PACKAGE}" "${VERSION}"
 
-# Each spec is purged and then verified to serve ${VERSION}, the tag included.
-# A failure here is fatal by way of `set -e`, which is the point: a stale line
-# range is the same broken embed as a stale dist-tag, for up to the 12-hour edge
-# TTL, and it should fail the step rather than pass quietly.
-purge_and_verify "${PACKAGE}" "${TAG}" "${VERSION}"
-for spec in "${EXTRA_SPECS[@]}"; do
+# Every spec is purged and then verified to serve ${VERSION}, the dist-tag
+# included, and a spec is still attempted after an earlier one has failed. They
+# are independent cache keys serving different hosts — `latest` is the URL the
+# docs hand out, the line range is what `doenetmlVersion="0.7"` generates — so
+# purging one is worth doing whether or not the other took, and neither is made
+# worse by the other being stale. Stopping at the first failure would leave the
+# rest both unpurged and unmentioned: the operator would get an error naming
+# only `latest`, complete with a by-hand `curl` for `latest`, and the line range
+# would sit a release behind for the full 12-hour TTL — the very staleness this
+# step exists to end. Failures are collected and reported together instead.
+FAILED_SPECS=()
+for spec in "${TAG}" "${EXTRA_SPECS[@]}"; do
     echo
-    purge_and_verify "${PACKAGE}" "${spec}" "${VERSION}"
+    purge_and_verify "${PACKAGE}" "${spec}" "${VERSION}" || FAILED_SPECS+=("${spec}")
 done
+
+if [[ ${#FAILED_SPECS[@]} -gt 0 ]]; then
+    echo >&2
+    echo "Error: ${#FAILED_SPECS[@]} of $((${#EXTRA_SPECS[@]} + 1)) floating URL(s) could not be confirmed" >&2
+    echo "       at ${VERSION}; each is reported in full above." >&2
+    for spec in "${FAILED_SPECS[@]}"; do
+        echo "         ${PACKAGE}@${spec}" >&2
+    done
+    echo "       Re-running this step retries all of them: the ones that did take are" >&2
+    echo "       already current and pass again without another purge landing." >&2
+    exit 1
+fi
