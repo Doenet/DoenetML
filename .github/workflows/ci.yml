@@ -48,11 +48,6 @@ jobs:
 
         steps:
             - uses: actions/checkout@v6
-              with:
-                  # @doenet/math compiles its WASM core from this submodule at
-                  # build time; checkout skips submodules by default.
-                  submodules: recursive
-            - uses: ./.github/actions/setup-math-wasm
             - name: Use Node.js ${{ matrix.node-version }}
               uses: actions/setup-node@v6
               with:
@@ -130,11 +125,6 @@ jobs:
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
         steps:
             - uses: actions/checkout@v6
-              with:
-                  # @doenet/math compiles its WASM core from this submodule at
-                  # build time; checkout skips submodules by default.
-                  submodules: recursive
-            - uses: ./.github/actions/setup-math-wasm
             - name: Use Node.js ${{ matrix.node-version }}
               uses: actions/setup-node@v6
               with:
@@ -176,11 +166,6 @@ jobs:
                 test-group: [group1, group2, group3, group4]
         steps:
             - uses: actions/checkout@v6
-              with:
-                  # @doenet/math compiles its WASM core from this submodule at
-                  # build time; checkout skips submodules by default.
-                  submodules: recursive
-            - uses: ./.github/actions/setup-math-wasm
             - name: Use Node.js ${{ matrix.node-version }}
               uses: actions/setup-node@v6
               with:
@@ -229,11 +214,6 @@ jobs:
                     ]
         steps:
             - uses: actions/checkout@v6
-              with:
-                  # @doenet/math compiles its WASM core from this submodule at
-                  # build time; checkout skips submodules by default.
-                  submodules: recursive
-            - uses: ./.github/actions/setup-math-wasm
             - name: Use Node.js ${{ matrix.node-version }}
               uses: actions/setup-node@v6
               with:
@@ -345,15 +325,6 @@ jobs:
         timeout-minutes: 25
         steps:
             - uses: actions/checkout@v6
-              with:
-                  # @doenet/math compiles its WASM core from this submodule at
-                  # build time; checkout skips submodules by default.
-                  #
-                  # No `setup-math-wasm` step here, unlike every other job that
-                  # builds: the build runs *inside* the devcontainer, whose
-                  # image already carries the Rust toolchain through the
-                  # `wasm-toolchain` feature in `.devcontainer/`.
-                  submodules: recursive
 
             - name: Install devcontainer CLI
               run: npm install -g @devcontainers/cli@0
@@ -385,14 +356,6 @@ jobs:
         timeout-minutes: 25
         steps:
             - uses: actions/checkout@v6
-              with:
-                  # @doenet/math compiles its WASM core from this submodule at
-                  # build time; checkout skips submodules by default.
-                  #
-                  # No `setup-math-wasm` step here: the build runs inside the
-                  # devcontainer, whose image carries the Rust toolchain through
-                  # the `wasm-toolchain` feature in `.devcontainer/`.
-                  submodules: recursive
 
             - name: Download build artifacts
               uses: actions/download-artifact@v8
@@ -451,11 +414,6 @@ jobs:
 
         steps:
             - uses: actions/checkout@v6
-              with:
-                  # @doenet/math compiles its WASM core from this submodule at
-                  # build time; checkout skips submodules by default.
-                  submodules: recursive
-            - uses: ./.github/actions/setup-math-wasm
             - name: Use Node.js ${{ matrix.node-version }}
               uses: actions/setup-node@v6
               with:
@@ -600,11 +558,6 @@ jobs:
 
         steps:
             - uses: actions/checkout@v6
-              with:
-                  # @doenet/math compiles its WASM core from this submodule at
-                  # build time; checkout skips submodules by default.
-                  submodules: recursive
-            - uses: ./.github/actions/setup-math-wasm
             - name: Use Node.js ${{ matrix.node-version }}
               uses: actions/setup-node@v6
               with:
@@ -677,11 +630,6 @@ jobs:
 
         steps:
             - uses: actions/checkout@v6
-              with:
-                  # @doenet/math compiles its WASM core from this submodule at
-                  # build time; checkout skips submodules by default.
-                  submodules: recursive
-            - uses: ./.github/actions/setup-math-wasm
             - name: Use Node.js ${{ matrix.node-version }}
               uses: actions/setup-node@v6
               with:

@@ -1,7 +1,6 @@
 /**
- * The Rust/WASM engine: `math-expressions-js-compat` (published upstream as
- * `math-expressions` v3), used unmodified from the `vendor/math-expressions`
- * submodule.
+ * The Rust/WASM engine: the published `math-expressions` package (upstream
+ * v3), used unmodified.
  *
  * This module is now a straight re-export. It previously carried four gap
  * fills, all of which landed upstream (math-expressions PR #84) and have been
@@ -31,9 +30,7 @@
  * `Context` import.
  */
 import "./wasm-loader";
-import CompatContext, {
-    isTree as compatIsTree,
-} from "math-expressions-js-compat";
+import CompatContext, { isTree as compatIsTree } from "math-expressions";
 import type {
     Bindings,
     Context as ContextType,
@@ -62,15 +59,15 @@ export {
  * The two re-exports below are restated against types from `./types` rather
  * than handed straight back out, and that is the whole point of them.
  *
- * Re-exporting the imported bindings directly makes the emitted `.d.ts` say
- * `import { default as Context, isTree } from
- * '../../../vendor/math-expressions/.../lib/math-expressions.ts'` — a relative
- * path into the submodule's *source*. Since `index.d.ts` → `engine.d.ts` →
+ * Re-exporting the imported bindings directly puts upstream's own declarations
+ * into the emitted `.d.ts` by reference. Since `index.d.ts` → `engine.d.ts` →
  * `engine-rust.d.ts`, every consumer of `@doenet/math` then type-checks that
  * file, and the 18 packages here running `dts({ rollupTypes: true })` run
  * API Extractor over it. One upstream commit adding a construct API Extractor
  * cannot analyse (an object binding pattern, as it happens) took out
- * `@doenet/utils`, and with it `build:all` and every Cypress run.
+ * `@doenet/utils`, and with it `build:all` and every Cypress run. Naming the
+ * types locally keeps that blast radius closed whatever upstream's
+ * declarations contain.
  *
  * `./vendor-shims.d.ts` was meant to be the single named contract with the
  * submodule, but it only governs what we *import*: node resolution finds the

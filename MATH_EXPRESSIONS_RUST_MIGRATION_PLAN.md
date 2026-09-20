@@ -405,12 +405,31 @@ comparisons (compare parsed trees or use `equals`) over rewriting expected strin
 stops being coupled to one formatter. Flip the default only when memory is flat and the
 divergence ledger is empty or accepted; keep the flag one release, then delete it.
 
-### Step 6 — Retire the submodule for the npm `math-expressions@3.x` dependency
+### Step 6 — Retire the submodule for the npm `math-expressions@3.x` dependency — **done**
 
-This is the decided end state for Stage 1, and it is **imminent, not hypothetical**: the maintainer
-publishes `math-expressions@3.x` and moves this branch onto it *before* merging (see "Release
-order"). What follows is a checklist to execute in one sitting, measured against this tree at the
-current pin — every count and path below was re-verified at the twentieth review pass.
+`math-expressions@3.0.0-alpha.1` is published, `packages/math` depends on it, and
+`vendor/math-expressions` is gone. The checklist below is kept as the record of what was done and
+why, not as work outstanding; it held up almost exactly, and the three places it did not are marked
+in the steps.
+
+Two results worth carrying forward, because they were not what the checklist predicted:
+
+- **The toolchain requirement this branch added is gone entirely, not merely reduced.** The
+  published tarball ships both wasm-bindgen targets, so nothing here compiles the engine:
+  `.github/actions/setup-math-wasm`, the `wasm-toolchain` devcontainer feature, every
+  `submodules: recursive` checkout and the `git submodule update` in `postCreateCommand.sh` were
+  all deleted, returning `.github/workflows/` and `.devcontainer/` to what `main` has. `npm run
+  build` still reaches `wasm-pack` for `packages/doenetml-worker-rust`, which brings its own
+  target and bindgen — which is how `main` has always built.
+- **The inlined core is reproducible now.** It used to be whatever the local `cargo` produced:
+  the binary built on one developer machine measured 1,768,937 bytes against the published
+  1,772,658. The bytes every build inlines are the lockfile's, so a local bundle and a CI bundle
+  carry an identical engine. That retires the "measure on CI, not locally" caveat in
+  `packages/standalone/bundle-budgets.json`.
+
+What follows is the checklist as written, measured against this tree at the pin it was written
+for — every count and path below was re-verified at the twentieth review pass, and again when it
+was executed.
 
 **What does *not* change — this is what the alias design bought.** No call site moves: the
 files still say `import me from "math-expressions"`, and every bundler rule already names that bare
@@ -501,8 +520,15 @@ registry is still `2.0.0-alpha95` — 3.x is not published as of the twentieth p
    first (it packs, installs into a throwaway project outside the workspace and drives both loading
    paths), then publish. Note the exact published version string.
 
-2. **`packages/doenetml/package.json`** — change `"math-expressions": "file:../math"` (line 95, in
-   `dependencies`) to the published range. This is the one that matters for publication:
+2. **`packages/doenetml/package.json`** — **not what was done, and doing it would break the
+   workspace.** Declaring the registry range here makes npm install the published package at
+   `packages/doenetml/node_modules/math-expressions`, shadowing the seam in that one workspace:
+   `tsc` then fails on `initMathWasm`, which is `@doenet/math`'s and not upstream's, and the
+   package would test against a different module than it ships. Measured, not reasoned about.
+   The declared range stays `file:../math`; the published range is named in
+   `packages/doenetml/vite.config.ts` and reaches the manifest through
+   `createPackageJsonTransformer`'s `publishRanges`. The original instruction read: change it
+   (line 95, in `dependencies`) to the published range. This is the one that matters for publication:
    `scripts/transform-package-json.ts` copies an externalized dependency's declared range verbatim
    into the built `dist/package.json`'s `peerDependencies`, so this range is exactly what a
    consumer installs. Rebuild and read `packages/doenetml/dist/package.json` to confirm.
@@ -532,7 +558,9 @@ registry is still `2.0.0-alpha95` — 3.x is not published as of the twentieth p
    node resolution (`math-expressions-js-compat` → the package; `math-expressions-js-compat/lib/*`
    → its `./lib/*` export; `math-expressions-rs-wasm` → gone, it is bundled into upstream's
    `dist/`) and `math-expressions-wasm-glue` points at whatever step 4 writes. **Keep
-   `dropDefaultWasmPath()`** (lines 34–84) — the glue still carries the
+   `dropDefaultWasmPath()`** — kept, and its `id.startsWith(GENERATED)` guard needed no change,
+   because `build-wasm.mjs` still copies the glue into `src/generated/`; resolving it from
+   `node_modules` instead would have slipped past the plugin and put the ~2.25 MiB duplicate back (lines 34–84) — the glue still carries the
    `new URL('…_bg.wasm', import.meta.url)` line that would inline a second 2.24 MiB copy, and the
    plugin hard-fails if it stops matching. Re-point its `id.startsWith(GENERATED)` guard (line 51)
    if the glue is no longer copied into `src/generated/`.

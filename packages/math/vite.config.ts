@@ -3,11 +3,6 @@ import dts from "vite-plugin-dts";
 import { fileURLToPath } from "node:url";
 import { resolve } from "node:path";
 
-const SUBMODULE = fileURLToPath(
-    new URL("../../vendor/math-expressions/", import.meta.url),
-);
-const JS_COMPAT = resolve(SUBMODULE, "packages/math-expressions-js-compat");
-const RS_WASM = resolve(SUBMODULE, "packages/math-expressions-rs-wasm");
 // Written by scripts/build-wasm.mjs; git-ignored.
 const GENERATED = fileURLToPath(new URL("src/generated/", import.meta.url));
 
@@ -113,7 +108,7 @@ export default defineConfig({
         // `declare module "math-expressions-js-compat"` into a *relative* path
         // into the submodule. That is invalid TypeScript — `TS2436: Ambient
         // module declaration cannot specify relative module name` — and it put
-        // a `../../../vendor/math-expressions/…` path into a shipped `dist/`,
+        // an absolute path outside the package into a shipped `dist/`,
         // which is precisely the leak `engine-rust.ts` and `wasm-loader.ts`
         // are written to avoid. Nothing in `dist/` references the file; it is
         // input to *our* type-check, not part of our published surface.
@@ -124,21 +119,21 @@ export default defineConfig({
         }),
     ],
     resolve: {
+        // One alias left of the four this package used to need.
+        //
+        // `math-expressions-js-compat` and `math-expressions-rs-wasm` were
+        // paths into the `vendor/math-expressions` submodule, pointing at its
+        // TypeScript sources. Both are now ordinary node resolution:
+        // `engine-rust.ts` imports the published `math-expressions` package,
+        // which bundles its own wasm bindings, so there is nothing left to
+        // redirect.
         alias: [
-            {
-                find: /^math-expressions-js-compat\/lib\/(.*)$/,
-                replacement: resolve(JS_COMPAT, "lib/$1"),
-            },
-            {
-                find: /^math-expressions-js-compat$/,
-                replacement: resolve(JS_COMPAT, "lib/math-expressions.ts"),
-            },
-            {
-                find: /^math-expressions-rs-wasm$/,
-                replacement: resolve(RS_WASM, "src-js/index.ts"),
-            },
-            // The generated wasm-bindgen glue for the `web` target, copied
-            // into this package by scripts/build-wasm.mjs.
+            // The wasm-bindgen glue for the `web` target, copied into this
+            // package by scripts/build-wasm.mjs out of the published tarball.
+            // Still an alias because the copy is what `dropDefaultWasmPath`
+            // rewrites — the plugin matches on `src/generated/`, and a module
+            // resolved in `node_modules` would slip past it, putting the
+            // ~2.25 MiB duplicate back.
             {
                 find: /^math-expressions-wasm-glue$/,
                 replacement: resolve(GENERATED, "math_expressions_wasm.js"),

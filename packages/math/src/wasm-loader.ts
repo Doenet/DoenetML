@@ -1,7 +1,7 @@
 /**
  * Browser/node loader for the math-expressions WASM core.
  *
- * This module supplies the WASM to `math-expressions-js-compat` through its
+ * This module supplies the WASM to `math-expressions` through its
  * `setWasmModule` injection point. That entry point is new in the current
  * upstream revision; before it existed we had to *alias* the compat package's
  * node-only `lib/_wasm.ts` to this file from `vite.config.ts`, which meant a
@@ -31,8 +31,8 @@ import * as glue from "math-expressions-wasm-glue";
 // so importing from the barrel forced the load before injection could happen and
 // it silently lost the race to compat's node fallback. The handle is a lazy
 // getter now, so nothing here loads the WASM until a method is actually called.
-import { setWasmModule } from "math-expressions-js-compat";
-import type { WasmModule } from "math-expressions-rs-wasm";
+import { setWasmModule } from "math-expressions";
+import type { WasmModule } from "./wasm-module";
 import { WASM_BASE64, WASM_BYTE_LENGTH } from "./generated/wasm-bytes";
 
 let initialized = false;
@@ -183,7 +183,6 @@ setWasmModule(guarded);
 
 // `guarded` is deliberately not exported. Nothing imports it — the compat layer
 // receives it through `setWasmModule` above, and this module is not in the
-// package's `exports` map — while exporting it made the emitted `.d.ts` say
-// `import { WasmModule } from '../../../vendor/math-expressions/.../src-js/index.ts'`,
-// putting a second submodule source file into every consumer's type program.
-// See the note in `./engine-rust` for why that is worth avoiding.
+// package's `exports` map — while exporting it would pull `WasmModule` into the
+// emitted `.d.ts`, and with it every consumer's type program. See the note in
+// `./engine-rust` for why that is worth avoiding.

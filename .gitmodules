@@ -1,4 +1,0 @@
-[submodule "vendor/math-expressions"]
-	path = vendor/math-expressions
-	url = https://github.com/siefkenj/math-expressions.git
-	branch = doenet

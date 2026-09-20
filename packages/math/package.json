@@ -56,13 +56,8 @@
             "command": "node scripts/build-wasm.mjs",
             "files": [
                 "scripts/build-wasm.mjs",
-                "../../vendor/math-expressions/Cargo.toml",
-                "../../vendor/math-expressions/Cargo.lock",
-                "../../vendor/math-expressions/packages/math-expressions-rs/Cargo.toml",
-                "../../vendor/math-expressions/packages/math-expressions-rs/src/**",
-                "../../vendor/math-expressions/packages/math-expressions-rs-wasm/Cargo.toml",
-                "../../vendor/math-expressions/packages/math-expressions-rs-wasm/build-wasm.sh",
-                "../../vendor/math-expressions/packages/math-expressions-rs-wasm/src-rust/**"
+                "node_modules/math-expressions/vendor/wasm-web/**",
+                "../../node_modules/math-expressions/vendor/wasm-web/**"
             ],
             "output": [
                 "src/generated/**"
@@ -75,8 +70,8 @@
                 "src/**/*.ts",
                 "vite.config.ts",
                 "tsconfig.json",
-                "../../vendor/math-expressions/packages/math-expressions-js-compat/lib/**/*.ts",
-                "../../vendor/math-expressions/packages/math-expressions-rs-wasm/src-js/**/*.ts",
+                "node_modules/math-expressions/dist/**",
+                "../../node_modules/math-expressions/dist/**",
                 "src/generated/**"
             ],
             "output": [
@@ -91,6 +86,7 @@
         }
     },
     "dependencies": {
+        "math-expressions": "^3.0.0-alpha.1",
         "mathjs": "^15.2.0"
     }
 }

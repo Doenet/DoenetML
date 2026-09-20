@@ -96,10 +96,12 @@ host that cannot make a same-origin request for it — a `srcdoc` or blob-URL do
 — should use `@doenet/standalone` instead, which carries everything in one file.
 
 The engine's WASM is inlined into the bundle rather than fetched, so no extra network request is
-made, but the bundle carries it: the engine is 2.41 MiB uncompressed and 792 kB gzipped, against
-roughly 1 MiB (about 290 kB gzipped) for the JavaScript library it replaces. Building DoenetML from
-source already required a Rust toolchain — `packages/doenetml-worker-rust` compiles DoenetML's own
-core with `wasm-pack`, and that is on `npm run build`'s critical path. What this adds on top is a
-`wasm-bindgen-cli` on `PATH` whose version matches the engine's pinned `wasm-bindgen`, and an
-explicit `rustup target add wasm32-unknown-unknown` (`wasm-pack` adds that target itself; the
-engine's build calls `cargo` directly and does not).
+made, but the bundle carries it: the engine is 2.38 MiB uncompressed and 777 kB gzipped, against
+roughly 1 MiB (about 290 kB gzipped) for the JavaScript library it replaces.
+
+Building DoenetML from source needs no toolchain it did not need before. The engine arrives
+prebuilt in the `math-expressions` package, so nothing here compiles it: `npm run build` still
+reaches `wasm-pack` for `packages/doenetml-worker-rust`, DoenetML's own core, exactly as it always
+has, and `wasm-pack` brings its own wasm target and bindgen. The bytes the bundle inlines are
+therefore the ones the lockfile pins, so a local build and a CI build now carry an identical
+engine — they did not while it was compiled here from source.

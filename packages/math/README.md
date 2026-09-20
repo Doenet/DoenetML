@@ -32,22 +32,26 @@ follow-up work that was deliberately left out.
 
 ## The engine
 
-`math-expressions-js-compat` (upstream v3) over the Rust core compiled to WASM,
-from the `vendor/math-expressions` submodule. It is the only engine.
+The published `math-expressions` package (upstream v3) over the Rust core
+compiled to WASM. It is the only engine, and it arrives prebuilt — this package
+inlines the `--target web` binary the tarball ships rather than compiling one,
+so it needs no Rust toolchain and every build inlines the bytes the lockfile
+pins.
 
 ```bash
 npm run build -w packages/math
 ```
 
-Building requires a Rust toolchain — which the repo already needed, since
-`packages/doenetml-worker-rust` compiles DoenetML's own core with `wasm-pack`
-on `npm run build`'s critical path. What this package adds is
-`rustup target add wasm32-unknown-unknown` (explicitly: the build below calls
-`cargo build --target …` directly, where `wasm-pack` adds the target itself)
-and a `wasm-bindgen-cli` on `PATH` matching the `wasm-bindgen` version pinned
-in the submodule's `Cargo.toml`
-(`cargo install wasm-bindgen-cli --version <pinned>`). Both requirements leave
-with the submodule; the toolchain stays.
+Building this package needs no Rust toolchain. The engine arrives prebuilt in
+the `math-expressions` package, which ships both wasm-bindgen targets in its
+tarball; `scripts/build-wasm.mjs` reads the `--target web` binary out of
+`node_modules` and base64-inlines it. (The repo as a whole still needs Rust,
+because `packages/doenetml-worker-rust` compiles DoenetML's own core with
+`wasm-pack` on `npm run build`'s critical path — but `wasm-pack` brings its own
+target and bindgen.)
+
+Because the binary is the lockfile's rather than whatever the local `cargo`
+produced, every build inlines identical bytes.
 
 ### The legacy library is gone
 
@@ -59,52 +63,27 @@ occasional debugging convenience was not worth the hazard: with both packages
 present, `import me from "math-expressions"` silently meant *different engines*
 in different packages depending on resolution.
 
-Its hand-written type definitions were the one thing still needed, and those are
-vendored verbatim in [`src/vendored/math-expressions.d.ts`](src/vendored/math-expressions.d.ts).
-They are the API contract those files are written against; they arrived with
-that library but were never *about* it, since the Rust engine is a drop-in for
-exactly this shape.
+Its hand-written type definitions were the one thing still needed, and those
+now come from `math-expressions`'s own published `types` entry — see
+[`src/types.ts`](src/types.ts). This package used to carry a 1,283-line vendored
+copy, because the engine reached the repository through a git submodule that
+published nothing; the copy's header carried a line-by-line argument that it
+still matched upstream, which is a claim that stays true only while someone
+keeps checking it. Depending on the package makes the question unaskable.
 
-The same declarations are now `math-expressions@3.x`'s own published `types`
-entry, so this copy goes away when the submodule does — see Step 6 of the
-migration plan. The shared part of the contract matches line for line, `diff`ed
-at the current pin. Comparing the two with comments and blank lines stripped — the
-stable way to say it, since either file's prose moves without its contract
-moving — gives 422 declaration lines here against 445 upstream. (Both counts
-moved at the twenty-second pass, when the two files were narrowed to the members
-the engine actually implements; re-derive them rather than quoting these, as
-Step 6 of the migration plan says.) Of that 23-line delta, 21 are upstream's
-trailing *v3 additions* block, which Step 6 absorbs rather than reconciling:
-
-- `OdeState`, `OdeSolution` and `dopri` — hand-rolled here in
-  [`src/types.ts`](src/types.ts), so those three declarations go too;
-- `setWasmModule` — declared here in
-  [`src/vendor-shims.d.ts`](src/vendor-shims.d.ts) instead, because at the
-  current pin it is reached through the submodule rather than a published
-  package;
-- `declare const MathExpression: Context; export default …` — deliberately
-  absent here, because `engine-rust.ts` supplies that value.
-
-The remaining 2 lines are not a contract difference at all: `evaluate_to_constant`'s
-signature is wrapped across three lines upstream and one here, because this copy
-is Prettier-gated by DoenetML CI and upstream's tree is not — so byte-identity in
-both directions is not achievable.
-
-A hand-written `.d.ts` under `src/` only reaches consumers because
-`vite.config.ts` passes `copyDtsFiles` to `vite-plugin-dts`: the plugin
-*generates* declarations for `.ts` sources but does not copy `.d.ts` ones, so
-without it `dist/types.d.ts` re-exports from a path that is not in `dist/`.
-That failure is silent — consumers set `skipLibCheck`, so the unresolved import
-becomes `any` rather than an error, and the whole type surface disappears
-without anything going red.
-
-To A/B against the old engine now, check out a commit from before the switch.
+Three declarations stayed local, and `src/types.ts` says why at each: `OdeState`
+and `OdeSolution` are re-exported straight from upstream, `Dopri` is
+`typeof import("math-expressions").dopri` so it cannot drift from the value
+`engine-rust.ts` re-exports, and the shape of the injected wasm module lives in
+[`src/wasm-module.ts`](src/wasm-module.ts) — upstream types `setWasmModule` as
+taking an opaque module, which is honest about what it does with the argument
+but says nothing about what the argument has to be.
 
 ## WASM initialization
 
 The Rust engine's WASM is **inlined** into `dist/engine-rust.js` as base64 — at
-the pinned submodule revision, 1.69 MiB of WASM becoming 2.25 MiB of base64 in a
-2.41 MiB chunk (792 kB gzipped) — the same approach `packages/doenetml-worker/src/CoreWorker.ts` uses for
+`math-expressions@3.0.0-alpha.1`, 1.69 MiB of WASM becoming 2.25 MiB of base64
+in a 2.38 MiB chunk (777 kB gzipped) — the same approach `packages/doenetml-worker/src/CoreWorker.ts` uses for
 `lib_doenetml_worker_bg.wasm`. It instantiates from bytes, so it needs no
 `fetch` — which matters because `fetch` is blocked for blob/data URLs in the VS
 Code web-worker extension host. (`CoreWorker.ts` cites issue #1375 for this; that
@@ -165,9 +144,10 @@ src/
   engine-rust.ts     compat over the Rust core
   wasm-loader.ts     inlined WASM, injected into compat via setWasmModule
   components.ts      getComponent — component access as a test rather than a throw
-  types.ts           the types consumers import
-  vendored/          math-expressions.d.ts — the API contract, vendored
-  vendor-shims.d.ts  declared surface of the submodule modules we consume
+  types.ts           the types consumers import, re-exported from math-expressions
+  wasm-module.ts     shape of the wasm module wasm-loader.ts injects
+  wasm-web-stub.ts   resolves the subpath @doenet/doenetml names on its consumer path
+  vendor-shims.d.ts  the one specifier no package supplies: math-expressions-wasm-glue
   generated/         wasm-bytes.ts plus the wasm-bindgen glue (math_expressions_wasm.js
                      and its .d.ts), all written by scripts/build-wasm.mjs (git-ignored)
 test/

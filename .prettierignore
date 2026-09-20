@@ -23,4 +23,3 @@ packages/doenetml-print/python/pretext_wasm/core
 # A separate git repository with its own prettier config and history. Without
 # this, a root `prettier:format` rewrites ~74 files nothing has touched, and the
 # collateral has to be reverted by hand before committing.
-vendor/math-expressions

@@ -1,6 +1,6 @@
 /**
  * The engine: the Rust core compiled to WASM, reached through
- * `math-expressions-js-compat`.
+ * `math-expressions`.
  *
  * This module used to be a build-time switch between two engines. There is only
  * one now — the legacy JavaScript library was removed once it stopped carrying

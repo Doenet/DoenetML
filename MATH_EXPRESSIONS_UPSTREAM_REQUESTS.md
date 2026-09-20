@@ -1,7 +1,9 @@
 # math-expressions: what DoenetML still needs
 
 **For:** maintainers of [`Doenet/math-expressions`](https://github.com/Doenet/math-expressions)
-**Against:** the pinned `vendor/math-expressions` submodule revision — `siefkenj/math-expressions@doenet`
+**Against:** `math-expressions@3.0.0-alpha.1` as published to npm, which is what `packages/math`
+depends on. (It was a pinned `vendor/math-expressions` submodule revision until the package was
+published; entries checked before that name the revision they were checked against.)
 
 This is the ledger the seam refers to: where the Rust engine diverges from the shape
 `packages/math/src/vendored/math-expressions.d.ts` describes, the divergence is recorded here rather
@@ -364,7 +366,7 @@ The related `is_real(cbrt(-8)) = false` incompleteness (`Facts::of_constant` cla
 `eval_complex`, which now answers the real branch for these) is resolved for the odd-root shapes by
 the same change; the broader "non-realness does not propagate through `+`/`*`/`^`" incompleteness
 is unchanged and remains deliberately declined — see the "Non-realness does not propagate through
-`+`, `*` or `^`" entry in `vendor/math-expressions/active-plans/PR84_REVIEW_KNOWN_ISSUES.md`.
+`+`, `*` or `^`" entry in the engine repository's `active-plans/PR84_REVIEW_KNOWN_ISSUES.md`.
 
 ### Everything earlier
 
