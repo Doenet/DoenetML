@@ -19,6 +19,8 @@ Every component built from the document now carries an identifier derived from t
 
 Keying attributes by name is what closes the last of #1944: `x` and `y` can no longer be handed each other's identifiers, whatever order they are visited in. Hanging a named component off its nearest named ancestor is what lets an author edit elsewhere in a document without discarding the work readers have already done in it.
 
+One kind of component keeps a build index, and does not need anything better: the ones Doenet inserts at run time to adapt a component to where it was written — a `<point>` written in a paragraph rather than in a graph gets one. They hold none of a reader's work, because everything they show is computed from the component they adapt, which is keyed by the document.
+
 Two consequences worth stating plainly:
 
 - **Reader state saved by 0.7 is not read by 0.8.** The keys no longer denote the same components, and 0.7's keys were not assigned reliably enough to translate. A reader with an attempt in progress at the upgrade sees that document open fresh. Credit already recorded is unaffected — score is reported separately from state.

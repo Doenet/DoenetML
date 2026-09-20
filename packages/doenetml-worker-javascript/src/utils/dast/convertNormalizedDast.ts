@@ -496,14 +496,17 @@ export function assignDocumentDerivedStateIds(document: SerializedComponent) {
  * The name the author wrote for `component`, or `undefined` where they wrote
  * none.
  *
- * Every component reaches here carrying a name, because
- * `pluginAddCompatibilityNames` gives the unnamed ones `_<componentType><n>` —
- * and those are assigned from a counter in document order, so anchoring on one
- * would be no more stable than the position it replaces and would cost more
- * bytes. They are recognised by their leading underscore, which is the form
- * that plugin documents. Should an author write a name of that form themselves,
- * the only consequence is that the component is keyed by position rather than
- * by name: less robust to an edit above it, but no less correct.
+ * Not every name in the tree is the author's. `pluginAddCompatibilityNames`
+ * names every element the author left unnamed, `_<componentType><n>`, from a
+ * counter in document order — so anchoring on one would be no more stable than
+ * the position it replaces, and would cost more bytes. They are recognised by
+ * their leading underscore, which is the form that plugin documents. Should an
+ * author write a name of that form themselves, the only consequence is that
+ * the component is keyed by position rather than by name: less robust to an
+ * edit above it, but no less correct.
+ *
+ * What is built after that plugin runs — everything sugar adds, in the parser
+ * and again here — carries no name at all, and falls to position the same way.
  */
 function authorGivenName(component: SerializedComponent): string | undefined {
     const nameAttribute = component.attributes?.name;

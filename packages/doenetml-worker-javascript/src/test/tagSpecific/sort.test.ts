@@ -925,15 +925,18 @@ describe("Sort tag tests @group4", async () => {
         );
     });
 
-    // Saved reader state is keyed by `stateId`, and a `<sort>` replacement used
-    // to have none -- `createNewComponentIndices` cleared it, so the key fell
-    // back to `componentIdx`. A fresh load assigns those indices in
-    // sorted-position order, while a save was made in creation order, so a
-    // value written into a sorted position came back on the wrong replacement
-    // (Doenet/DoenetML#1944). These are the reproductions from the `<sort>`
-    // rearrangement work (Doenet/DoenetML#1949), which is where the defect was
-    // found; each needs the write to land on the replacement itself, which is
-    // why the children are literals and the input binds to an index.
+    // The round trip these were written for: type into a sorted position, save,
+    // reload, and get back the list that was on screen. They come from the
+    // `<sort>` rearrangement work (Doenet/DoenetML#1949), which is where the
+    // keying defects in this file were found.
+    //
+    // Recorded for what they are, because it is not what it looks like: each
+    // passes with `<sort>`'s `stateIdInfo` removed. Typing into `$s[n]` does
+    // not write to the replacement -- the write is inverted through to the
+    // `<sort>`'s own child, which is why the saved key is `/~s/2` and not a
+    // replacement's. The assertion that does need the minted ids is the last
+    // one in this block; the one that needs `UpdateExecutor`'s guard against a
+    // component deleted mid-update is in `statePersistenceContents`.
     async function typeThenReload({
         doenetML,
         latex,
@@ -1022,13 +1025,16 @@ describe("Sort tag tests @group4", async () => {
     });
 
     it("gives its replacements ids that a rebuild reproduces", async () => {
-        // The round trips above also pass where the replacements are recreated
-        // on every reorder, because recreating drops the stale saved entry
-        // along with the component. This is the assertion that does not: the
-        // replacements have to carry an id the composite minted, so that one
-        // which *survives* a reorder keeps an identity a fresh load reproduces.
-        // Without it `createNewComponentIndices` clears `stateId` and the id
-        // falls back to `componentIdx`, which is reassigned on every build.
+        // The round trips above pass either way; this is the assertion that
+        // does not. The replacements have to carry an id the composite minted
+        // off its own document-derived id, so that a second build of the same
+        // document hands them the same ids. Without it
+        // `createNewComponentIndices` clears `stateId` and the key falls back
+        // to `componentIdx`, a position in the build.
+        //
+        // Across builds of the same document, that is: a reorder recreates
+        // every replacement with fresh ids, so this says nothing about work
+        // done on a replacement a later reorder recreates (see `Sort.js`).
         const doenetML = `
     <sort name="s">5 3 1</sort>
     <p name="pList">$s</p>

@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "./test-core";
-import { movePoint, updateTextInputValue } from "./actions";
+import {
+    movePoint,
+    updateMathInputValue,
+    updateTextInputValue,
+} from "./actions";
 
 // What a reader's saved state costs should track what the reader did, not how
 // big the document is. It did not: every essential value an ordinary
@@ -329,4 +333,61 @@ describe("the reader's work is not only what they typed @group4", () => {
             check(stateVariables[idx].stateValues, idx);
         });
     }
+});
+
+describe("an update that deletes a component it wrote to is still saved whole @group4", () => {
+    // Merging an update's changes read each written component's `stateId` off
+    // the component. A composite that recreates its replacements deletes them
+    // during the very update that wrote to them -- `<sort>` does it on every
+    // reorder -- so by the time the merge ran the component was gone and the
+    // read threw. `performAction` catches, so nothing surfaced: the throw
+    // simply took the rest of `performUpdate` with it, including the writes
+    // not yet merged and the save the call would have scheduled.
+    //
+    // Typing into a position of a `<sort>` is the reader-visible form. The
+    // typing reorders the list, the reorder corrects the input to whatever now
+    // sits in the position it is bound to, and that correction is on the far
+    // side of the throw -- so the input's saved state stayed at what the reader
+    // typed and a reload showed them a value they were no longer looking at.
+    const DOC = `
+    <sort name="s">5 3 1</sort>
+    <p name="pList">$s</p>
+    <mathInput name="mi" bindValueTo="$s[1]" />
+  `;
+
+    async function inputAndList({ core, resolvePathToNodeIdx }: any) {
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const input = stateVariables[await resolvePathToNodeIdx("mi")];
+        return {
+            shown: input.stateValues.rawRendererValue,
+            value: input.stateValues.value.toString(),
+            list: stateVariables[
+                await resolvePathToNodeIdx("pList")
+            ].activeChildren.map((child: any) =>
+                stateVariables[child.componentIdx].stateValues.value.toString(),
+            ),
+        };
+    }
+
+    it("reloads a `<sort>` showing what the reader was looking at", async () => {
+        const first = await createTestCore({ doenetML: DOC });
+        await updateMathInputValue({
+            latex: "7",
+            componentIdx: await first.resolvePathToNodeIdx("mi"),
+            core: first.core,
+        });
+
+        const live = await inputAndList(first);
+        // Typing 7 into the smallest of 5, 3, 1 leaves 3 the smallest, so the
+        // box the reader is looking at ends up showing 3, not the 7 they typed.
+        expect(live).eqls({ shown: "3", value: "3", list: ["3", "5", "7"] });
+
+        await first.core.saveImmediately();
+        const second = await createTestCore({
+            doenetML: DOC,
+            initialState: first.scoreState.state as string,
+        });
+
+        expect(await inputAndList(second)).eqls(live);
+    });
 });

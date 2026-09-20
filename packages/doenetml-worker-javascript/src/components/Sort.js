@@ -195,11 +195,18 @@ export default class Sort extends CompositeComponent {
         }
 
         // Without this, `createNewComponentIndices` clears `stateId` and each
-        // replacement falls back to its `componentIdx` -- which a fresh load
-        // assigns in sorted-position order while a save was made in creation
-        // order, so a reader's value comes back on the wrong replacement
-        // (Doenet/DoenetML#1944). A prefixed id is assigned once, at creation,
-        // and never reassigned.
+        // replacement falls back to its `componentIdx` -- a position in the
+        // build, which moves whenever anything ahead of this `<sort>` does, so
+        // a reader's value comes back on the wrong replacement
+        // (Doenet/DoenetML#1944). An id minted off the composite's own
+        // document-derived id moves with nothing but the document.
+        //
+        // What it does not survive is a reorder: `calculateReplacementChanges`
+        // recreates every replacement, and each recreation takes the next
+        // numbers from this counter, so work done on a replacement that a
+        // later reorder recreates is dropped by the rebuild rather than landing
+        // on a different one. Every counter-based composite behaves that way;
+        // it is not what this is fixing.
         const stateIdInfo = {
             prefix: `${component.stateId}|`,
             num: workspace.replacementsCreated,

@@ -325,8 +325,9 @@ export default class Shuffle extends CompositeComponent {
         }
 
         // See the note in `Sort.js`: without a `stateIdInfo` these replacements
-        // are keyed by `componentIdx`, which a fresh load assigns in shuffled
-        // order while a save was made in creation order (Doenet/DoenetML#1944).
+        // are keyed by `componentIdx`, a position in the build, which moves
+        // whenever anything ahead of this `<shuffle>` does and is minted afresh
+        // every time the shuffled children change (Doenet/DoenetML#1944).
         const stateIdInfo = {
             prefix: `${component.stateId}|`,
             num: workspace.replacementsCreated,

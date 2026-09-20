@@ -345,8 +345,9 @@ export default class Collect extends CompositeComponent {
         }
 
         // See the note in `Sort.js`: without a `stateIdInfo` these replacements
-        // are keyed by `componentIdx`, which is reassigned on every build, so
-        // saved reader state can land on the wrong one (Doenet/DoenetML#1944).
+        // are keyed by `componentIdx`, a position in the build, which moves
+        // whenever anything ahead of this `<collect>` does, so saved reader
+        // state can land on the wrong one (Doenet/DoenetML#1944).
         const stateIdInfo = {
             prefix: `${component.stateId}|`,
             num: workspace.replacementsCreated,

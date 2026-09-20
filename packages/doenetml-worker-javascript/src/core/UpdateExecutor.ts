@@ -522,8 +522,15 @@ export class UpdateExecutor {
                         // merge; before this guard the missing `stateId` threw
                         // here, and because `performAction` catches, the throw
                         // silently took the rest of `performUpdate` with it —
-                        // the remaining components' writes were never merged
-                        // and no save was even scheduled.
+                        // the remaining components' writes were never merged,
+                        // and the save this call would have scheduled was not.
+                        // What a reader saw of that: typing into a `<sort>`
+                        // reorders it, the reorder corrects the input to
+                        // whatever now sits in the position it is bound to, and
+                        // that correction is on the far side of the throw. The
+                        // input's saved state stayed at what they typed, so a
+                        // reload showed them a different value from the one
+                        // they had just been looking at.
                         continue;
                     }
                     const stateId = component.stateId;

@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "./test-core";
-import { movePoint } from "./actions";
+import { movePoint, updateMathInputValue } from "./actions";
 
 // Saved reader state is keyed by `stateId`, and for everything written in the
 // document that id is just the component's index. The index is minted while
@@ -117,31 +117,80 @@ describe("saved state is keyed by an identifier a rebuild reproduces @group4", (
         expect(coords).eqls([3, -5]);
     });
 
-    it("gives every component an id of its own, with nothing left on the index", async () => {
-        // `ComponentBuilder` still falls back to `componentIdx.toString()` for a
-        // component that arrives without a `stateId`. Nothing should reach it:
-        // this is the evidence for that, and the guard that would notice if some
-        // new way of creating a component started skipping the path.
-        const { core } = await createTestCore({
-            doenetML: `
+    // Everything the document builds, plus the one thing it does not: a
+    // `<point>` written in a paragraph rather than in a graph is shown through
+    // a `coords` component Doenet inserts at run time to adapt it to where it
+    // sits. Adapters are built by `ChildMatcher`, long after the pass that
+    // assigns document-derived ids, and take no `stateId` of their own.
+    const MIXED_DOC = `
     <p name="intro">text <m>x^2</m></p>
     <graph><point name="P" x="0" y="1" /><point name="Q">(1,2)</point></graph>
     <repeat name="r" for="1 2 3" valueName="v"><p>$v</p></repeat>
     <sort name="s">5 3 1</sort>
     <mathInput name="mi" bindValueTo="$P.x" />
     <answer name="ans">$P.x</answer>
-  `,
-        });
+    <p name="inline"><point name="A">(1,2)</point></p>
+    <mathInput name="miA" bindValueTo="$A.x" />
+  `;
+
+    it("leaves nothing but a run-time adapter on a bare component index", async () => {
+        // `ComponentBuilder` still falls back to `componentIdx.toString()` for a
+        // component that arrives without a `stateId`. Nothing the document
+        // builds should reach it: this is the evidence for that, and the guard
+        // that would notice if some new way of building one started skipping
+        // the path.
+        const { core } = await createTestCore({ doenetML: MIXED_DOC });
 
         const onBareIndex = core
             .core!._components!.filter((component: any) => component)
-            .filter((component: any) => /^\d+$/.test(component.stateId))
-            .map(
-                (component: any) =>
-                    `${component.componentType}#${component.componentIdx}`,
-            );
+            .filter((component: any) => /^\d+$/.test(component.stateId));
 
-        expect(onBareIndex).eqls([]);
+        // The adapter is the documented exception, so the assertion below
+        // would pass vacuously on a document that builds none.
+        expect(
+            onBareIndex.map((component: any) => component.componentType),
+            "this document no longer builds an adapter, so the exception is untested",
+        ).toContain("coords");
+
+        expect(
+            onBareIndex
+                .filter((component: any) => component.adaptedFrom === undefined)
+                .map(
+                    (component: any) =>
+                        `${component.componentType}#${component.componentIdx}`,
+                ),
+        ).eqls([]);
+    });
+
+    it("saves nothing under a bare component index", async () => {
+        // Why the exception above is harmless. An adapter holds none of the
+        // reader's work — everything it shows is computed from the component it
+        // adapts, which is keyed by the document — so no key a rebuild cannot
+        // reproduce ever leaves the worker. Interacting through `$A.x` is what
+        // would put one there if that were wrong.
+        const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
+            { doenetML: MIXED_DOC },
+        );
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            x: 3,
+            y: -5,
+            core,
+        });
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: await resolvePathToNodeIdx("miA"),
+            core,
+        });
+        await core.saveImmediately();
+
+        const keys = Object.keys(JSON.parse(scoreState.state as string));
+        expect(
+            keys.filter((key) => !key.startsWith("__")).length,
+            "nothing was saved, so this proves nothing",
+        ).toBeGreaterThan(0);
+        expect(keys.filter((key) => /^\d+$/.test(key))).eqls([]);
     });
 
     it("hands the same document the same keys on every build", async () => {
