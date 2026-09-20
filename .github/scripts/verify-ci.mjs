@@ -27,12 +27,20 @@
  *   VERIFY_CI_TIMEOUT_MS        - total budget for waiting on a pending run
  *                                 (default 3600000, i.e. 60 minutes)
  *   VERIFY_CI_MISSING_GRACE_MS  - how long to keep looking when the commit has
- *                                 no runs at all yet (default 300000, 5 minutes)
+ *                                 no runs at all yet, and how long to tolerate
+ *                                 back-to-back failed API reads
+ *                                 (default 300000, 5 minutes)
  *   VERIFY_CI_POLL_INTERVAL_MS  - delay between polls (default 30000)
  *
- * Both budgets are wall-clock and share one clock: a slow or hanging API read
- * spends the budget rather than extending it. The caller should still set
- * `timeout-minutes` on the step as a backstop.
+ * The waiting budget is wall-clock from the moment this script starts, so a
+ * slow API read spends it rather than extending it. The grace for unreadable
+ * responses is measured from the first of a run of them instead, and restarts
+ * on the next read that succeeds — one blip must not end a wait that is
+ * otherwise watching a healthy run. Worst case is therefore the waiting budget
+ * plus that grace plus one poll (65.5 minutes at the defaults), which is what
+ * the callers' `timeout-minutes: 70` backstop has to cover. A `fetch` that
+ * hangs is bounded by Node's own header/body timeouts, not by this script, so
+ * that backstop is not optional.
  */
 
 const token = process.env.GITHUB_TOKEN;
@@ -94,11 +102,14 @@ async function sleep(ms) {
 /**
  * The CI runs recorded for `targetSha`, newest first.
  *
- * A read that fails is reported and treated as "nothing known yet" rather than
- * ending the job: the budget above is there to absorb a registry or API blip,
- * and giving up on the first 5xx would reintroduce the failure mode this script
- * exists to remove. A run that is genuinely absent is decided by the budget
- * running out, not by one unlucky request.
+ * Returns null for a read that could not be made sense of — a transport error,
+ * an error status, a body that is not JSON, or one without the expected array.
+ * That is reported and treated as "nothing known yet" rather than ending the
+ * job: giving up on the first 5xx would reintroduce the failure mode this
+ * script exists to remove. A run that is genuinely absent is decided by a
+ * budget running out, not by one unlucky request. Null is deliberately
+ * distinct from an empty array, which is the API stating authoritatively that
+ * the commit has no runs (it answers `{"total_count":0,"workflow_runs":[]}`).
  */
 async function fetchRuns() {
     let response;
@@ -128,8 +139,24 @@ async function fetchRuns() {
         return null;
     }
 
-    const data = await response.json();
-    const runs = data.workflow_runs ?? [];
+    let data;
+    try {
+        data = await response.json();
+    } catch (error) {
+        console.warn(
+            `  could not parse the CI workflow run listing: ${error.message ?? error}`,
+        );
+        return null;
+    }
+
+    const runs = data?.workflow_runs;
+    if (!Array.isArray(runs)) {
+        console.warn(
+            "  CI workflow run listing had no workflow_runs array; treating it as unread.",
+        );
+        return null;
+    }
+
     return runs.filter((run) => run.head_sha === targetSha);
 }
 
@@ -137,10 +164,17 @@ function describe(run) {
     return `run ${run.id} (status=${run.status}, conclusion=${run.conclusion ?? "none"}) ${run.html_url}`;
 }
 
+/** Whether any run for this commit has been seen, at any point in the wait. */
+let sawRuns = false;
+/** When the current unbroken streak of unreadable responses began, if any. */
+let firstUnreadableAt = null;
+
 while (true) {
     const runs = await fetchRuns();
 
     if (runs !== null) {
+        firstUnreadableAt = null;
+
         const succeeded = runs.find(
             (run) => run.status === "completed" && run.conclusion === "success",
         );
@@ -170,7 +204,13 @@ while (true) {
         // much shorter budget than a run we can actually see progressing. The
         // budget is checked before the progress line so the last thing printed
         // before the failure is the failure itself.
-        const budget = runs.length > 0 ? timeoutMs : missingGraceMs;
+        //
+        // Having seen a run latches the long budget on. The listing is only
+        // eventually consistent, and a single reply that omits a run we were
+        // watching must not retroactively reclassify a wait that is already
+        // minutes old as "CI never ran" and end it on the spot.
+        sawRuns ||= runs.length > 0;
+        const budget = sawRuns ? timeoutMs : missingGraceMs;
         if (Date.now() - startedAt >= budget) {
             if (runs.length === 0) {
                 console.error(
@@ -199,11 +239,19 @@ while (true) {
                 `  no CI run recorded for ${targetSha} yet — ${elapsedSeconds()}s elapsed`,
             );
         }
-    } else if (Date.now() - startedAt >= missingGraceMs) {
-        console.error(
-            `Could not read CI workflow runs for commit ${targetSha} after ${elapsedSeconds()}s.`,
-        );
-        process.exit(1);
+    } else {
+        // Bound consecutive unreadable responses rather than total elapsed
+        // time: an API blip twenty minutes into a perfectly healthy wait is
+        // exactly what this script is supposed to ride out, and measuring
+        // from the start of the wait would instead make it fatal.
+        firstUnreadableAt ??= Date.now();
+        const unreadableMs = Date.now() - firstUnreadableAt;
+        if (unreadableMs >= missingGraceMs) {
+            console.error(
+                `Could not read CI workflow runs for commit ${targetSha} for ${Math.round(unreadableMs / 1000)}s (${elapsedSeconds()}s into the wait).`,
+            );
+            process.exit(1);
+        }
     }
 
     await sleep(pollIntervalMs);
