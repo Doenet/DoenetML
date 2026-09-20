@@ -40,11 +40,14 @@
  * slow API read spends it rather than extending it. The grace for unreadable
  * responses is measured from the first of a run of them instead, and restarts
  * on the next read that succeeds — one blip must not end a wait that is
- * otherwise watching a healthy run. Worst case is therefore the waiting budget
- * plus that grace plus one poll (65.5 minutes at the defaults), which is what
- * the callers' `timeout-minutes: 70` backstop has to cover. A `fetch` that
- * hangs is bounded by Node's own header/body timeouts, not by this script, so
- * that backstop is not optional.
+ * otherwise watching a healthy run. While reads fail promptly, the script
+ * reaches an exit of its own within the waiting budget plus that grace plus
+ * one poll — 65.5 minutes at the defaults, inside the callers'
+ * `timeout-minutes: 70`. Reads need not fail promptly, though: a `fetch` that
+ * hangs is bounded only by Node's own header/body timeouts, 300 s apiece, so
+ * two hung reads at the end of the budget would take this past 70 minutes and
+ * the backstop would end the step first. That costs the specific message, not
+ * the verdict, and it is why the backstop is not optional.
  */
 
 const token = process.env.GITHUB_TOKEN;
