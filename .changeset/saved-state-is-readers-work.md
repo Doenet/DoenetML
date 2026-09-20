@@ -8,7 +8,7 @@ A reader's saved state is the work they did, not a copy of the document around i
 
 Every essential value an ordinary definition computed was recorded alongside the reader's own writes, and the reader's first interaction anywhere flushed that whole document-wide record into the saved state. So working one exercise on a page persisted state for every other exercise: the function's expression over again, entries whose value was `null`, and the placeholder from each `<choice><math>?</math></choice>` — none of it the reader's, and all of it recomputed identically on a fresh load of the same document under the same variant.
 
-Measured on one *Active Calculus* exercise, after a single drag of a constrained point: **1322 bytes across 21 entries becomes 156 bytes across 2** — the two being the point's position, which is the only thing in there the reader chose. With five independent exercises on a page and only the first worked, the saved state is now the same size as it is for one exercise; before, it grew with every exercise present.
+Measured on one *Active Calculus* exercise, after a single drag of a constrained point: **1322 bytes across 21 entries becomes 160 bytes across 2** — the two being the point's position, which is the only thing in there the reader chose. With five independent exercises on a page and only the first worked, the saved state is now the same size as it is for one exercise; before, it grew with every exercise present.
 
 The values are still recorded internally, because a partial write to an array merges into whatever entry is already there and the definition path is what puts that base in place. What changed is what leaves the worker.
 
