@@ -191,3 +191,142 @@ describe("what a rebuild cannot recompute is still saved @group4", () => {
         expect(keys.sort()).eqls(["/~sampled", "/~ti"]);
     });
 });
+
+describe("the reader's work is not only what they typed @group4", () => {
+    // The filter above is stated as "drop what is known to be only a
+    // definition's", so what it keeps is everything a reader's own action
+    // wrote. That set is wider than the inputs and the dragged point the tests
+    // above cover: revealing a solution, opening a hint, turning a page, moving
+    // a slider, panning a graph and writing in a code editor are all work a
+    // reader would expect back, and nothing else in the suite checks that any
+    // of them survives a reload.
+    //
+    // None of these is currently classified as a definition's work, so none of
+    // them discriminates between the filter's two sets today. What each one
+    // catches is the change that would make one of them so — a component whose
+    // state starts being set in a definition, which is exactly how this loss
+    // would arrive: silently, on a reader who reloads (Doenet/DoenetML#1940).
+    const CASES: {
+        name: string;
+        doenetML: string;
+        /** The action the reader takes, and what it should leave behind. */
+        act: (t: any) => Promise<void>;
+        check: (stateValues: Record<string, any>, idx: number) => void;
+        /** The component whose restored state the check reads. */
+        target: string;
+    }[] = [
+        {
+            name: "a revealed solution stays revealed",
+            doenetML: `<problem><answer name="a">x</answer><solution name="sol"><p>because</p></solution></problem>`,
+            target: "sol",
+            act: async (t) => {
+                await t.core.requestAction({
+                    componentIdx: await t.resolvePathToNodeIdx("sol"),
+                    actionName: "revealSolution",
+                    args: {},
+                });
+            },
+            check: (stateValues) => expect(stateValues.open).eq(true),
+        },
+        {
+            name: "an opened hint stays open",
+            doenetML: `<hint name="h"><title>Hint</title><p>try this</p></hint>`,
+            target: "h",
+            act: async (t) => {
+                await t.core.requestAction({
+                    componentIdx: await t.resolvePathToNodeIdx("h"),
+                    actionName: "revealHint",
+                    args: {},
+                });
+            },
+            check: (stateValues) => expect(stateValues.open).eq(true),
+        },
+        {
+            name: "the page a paginator was left on",
+            doenetML: `<paginator name="pg"><section name="s1"><p>one</p></section><section name="s2"><p>two</p></section></paginator>`,
+            target: "pg",
+            act: async (t) => {
+                await t.core.requestAction({
+                    componentIdx: await t.resolvePathToNodeIdx("pg"),
+                    actionName: "setPage",
+                    args: { number: 2 },
+                });
+            },
+            check: (stateValues) => expect(stateValues.currentPage).eq(2),
+        },
+        {
+            name: "where a slider was left",
+            doenetML: `<slider name="s" from="0" to="10" />`,
+            target: "s",
+            act: async (t) => {
+                await t.core.requestAction({
+                    componentIdx: await t.resolvePathToNodeIdx("s"),
+                    actionName: "changeValue",
+                    args: { value: 4 },
+                });
+            },
+            check: (stateValues) => expect(stateValues.value).eq(4),
+        },
+        {
+            name: "a graph the reader panned",
+            doenetML: `<graph name="g"><point name="P">(1,2)</point></graph>`,
+            target: "g",
+            act: async (t) => {
+                await t.core.requestAction({
+                    componentIdx: await t.resolvePathToNodeIdx("g"),
+                    actionName: "changeAxisLimits",
+                    args: { xMin: -3, xMax: 7, yMin: -4, yMax: 6 },
+                });
+            },
+            check: (stateValues) => {
+                expect(stateValues.xMin).eq(-3);
+                expect(stateValues.yMax).eq(6);
+            },
+        },
+        {
+            name: "what a reader wrote in a code editor",
+            doenetML: `<codeEditor name="ce" />`,
+            target: "ce",
+            act: async (t) => {
+                const componentIdx = await t.resolvePathToNodeIdx("ce");
+                await t.core.requestAction({
+                    componentIdx,
+                    actionName: "updateImmediateValue",
+                    args: { text: "written by the reader" },
+                });
+                await t.core.requestAction({
+                    componentIdx,
+                    actionName: "updateValue",
+                    args: {},
+                });
+            },
+            check: (stateValues) =>
+                expect(stateValues.value).eq("written by the reader"),
+        },
+    ];
+
+    for (const { name, doenetML, act, check, target } of CASES) {
+        it(name, async () => {
+            const first = await createTestCore({ doenetML });
+            await act(first);
+            await first.core.saveImmediately();
+
+            const saved = first.scoreState.state as string;
+            expect(
+                Object.keys(JSON.parse(saved)),
+                "the reader's action saved nothing, so the reload below proves nothing",
+            ).not.eqls([]);
+
+            const second = await createTestCore({
+                doenetML,
+                initialState: saved,
+            });
+            const idx = await second.resolvePathToNodeIdx(target);
+            const stateVariables = await second.core.returnAllStateVariables(
+                false,
+                true,
+            );
+            check(stateVariables[idx].stateValues, idx);
+        });
+    }
+});
