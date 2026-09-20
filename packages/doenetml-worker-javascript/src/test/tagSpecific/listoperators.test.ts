@@ -143,13 +143,13 @@ describe("List operator tag tests @group4", async () => {
                 core,
                 resolvePathToNodeIdx,
                 name: "pMin",
-                text: "x, min( x, y ), min( x, y, z )",
+                text: "x, min(x, y), min(x, y, z)",
             });
             await expectText({
                 core,
                 resolvePathToNodeIdx,
                 name: "pMax",
-                text: "x, max( x, y ), max( x, y, z )",
+                text: "x, max(x, y), max(x, y, z)",
             });
             await expectText({
                 core,

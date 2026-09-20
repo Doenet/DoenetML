@@ -1,5 +1,5 @@
 import me from "math-expressions";
-import { isNumericConstant, textToAst } from "./math";
+import { textToAst } from "./math";
 import { codedDiagnostic } from "./diagnostics";
 import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "../components/commonsugar/lists";
 
@@ -120,7 +120,7 @@ export function extractComparableValue({
                 numericalValue,
                 textValue: component.stateValues.value.toString(),
             },
-            stillNumeric: isNumericConstant(numericalValue),
+            stillNumeric: !Number.isNaN(numericalValue),
         };
     }
 
@@ -164,7 +164,7 @@ export function extractComparableValue({
                 numericalValue,
                 textValue: compValue.toString(),
             },
-            stillNumeric: isNumericConstant(numericalValue),
+            stillNumeric: !Number.isNaN(numericalValue),
         };
     }
 
@@ -412,7 +412,7 @@ export function comparableValueFromRaw(value) {
         return {
             numericalValue,
             textValue: value.toString(),
-            isNumeric: isNumericConstant(numericalValue),
+            isNumeric: !Number.isNaN(numericalValue),
         };
     }
     return { numericalValue: NaN, textValue: String(value), isNumeric: false };

@@ -121,7 +121,7 @@ describe("Content-transparent composites inside typed containers @group2", () =>
                  <math name="m"><collect from="$g" componentType="point" /></math>`,
                 "m",
             ),
-        ).eq("( 1, 2 ), ( 3, 4 )");
+        ).eq("(1, 2), (3, 4)");
     });
 
     it("<setup> contributes nothing inside <math>", async () => {

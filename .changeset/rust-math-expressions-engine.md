@@ -1,9 +1,9 @@
 ---
-"@doenet/doenetml": patch
-"@doenet/standalone": patch
-"@doenet/doenetml-iframe": patch
-"@doenet/vscode-extension": patch
-"doenet-vscode-extension": patch
+"@doenet/doenetml": minor
+"@doenet/standalone": minor
+"@doenet/doenetml-iframe": minor
+"@doenet/vscode-extension": minor
+"doenet-vscode-extension": minor
 ---
 
 Replace the JavaScript `math-expressions` library with the Rust core compiled to WASM.

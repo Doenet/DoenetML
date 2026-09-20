@@ -7,11 +7,12 @@ This is the ledger the seam refers to: where the Rust engine diverges from the s
 `packages/math/src/vendored/math-expressions.d.ts` describes, the divergence is recorded here rather
 than hidden behind a widened type or a local patch in `packages/math/src/engine-rust.ts`.
 
-## Open — three items
+## Open — four items
 
 1. `substitute_component`/`get_component` validate nothing.
 2. The engine is missing 48 of the legacy surface's members.
 3. Nine declared parameters the engine accepts and ignores.
+4. `derivative` does not descend into a container.
 
 The declaration side of items 2 and 3 has been settled — the published and vendored `.d.ts` files
 now say what the engine does — so what is open in each is engine work, not documentation.
@@ -136,6 +137,34 @@ measured against the built package first.**
 The five declaration changes are also in this repo's vendored copy; the two files still differ only
 by the trailing v3 block and one Prettier line wrap, which is the check the vendored header
 describes.
+
+**`derivative` does not descend into a container.**
+
+```js
+import me from "math-expressions";
+me.fromText("(1, 3, 1, 2)").derivative("x").toString(); // "0"
+me.fromText("(x^2, x^3)").derivative("x").toString();   // "derivative((x^2, x^3), x)"
+me.fromText("[x^2, x^3]").derivative("x").toString();   // "derivative([x^2, x^3], x)"
+```
+
+Two shapes of the same gap. A container is not differentiated componentwise at all: a non-constant
+one comes back as an *unevaluated* `derivative(...)` application, and a constant one folds to a
+scalar `0`. Both should be containers — `d/dx (1, 3, 1, 2)` is `(0, 0, 0, 0)` and
+`d/dx (x^2, x^3)` is `(2x, 3x^2)` — and in the constant case collapsing to one `0` also loses the
+component count, so a consumer cannot tell a four-component constant from a scalar one.
+
+Legacy threw on both — "Operator tuple not implemented for conversion to mathjs" — which is why
+DoenetML's `derivativeOfFormula` has a `catch` that answers `\uff3f`. Answering instead of throwing
+is the improvement; what is answered is the part that is wrong.
+
+Reachable from ordinary markup: `<function><math>1</math><numberList>3 1 2</numberList></function>`
+folds both children into one tuple formula, and `<derivative>` over it now renders `0`.
+DoenetML handles vector-valued formulas itself (`derivativeOfFormula` differentiates each component
+when the head is a vector operator), so this bites only where the container reaches `derivative`
+whole. Recorded rather than worked around, because the workaround would be to re-add a shape check
+the engine is better placed to make.
+
+Checked against submodule revision `46f4c49`.
 
 ## Closed
 

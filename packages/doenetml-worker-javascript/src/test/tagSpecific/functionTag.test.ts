@@ -7672,9 +7672,17 @@ describe("Function tag tests @group4", async () => {
             ).eq("");
         });
 
-        it("gives an empty derivative rather than no document", async () => {
+        it("gives a derivative rather than no document", async () => {
             // Only reachable once the extrema crash above is gone: before that
             // the document never got far enough to take a derivative.
+            //
+            // `0`, where the legacy JavaScript library gave `\uff3f`. The
+            // formula the sugar builds here is the tuple `(1, 3, 1, 2)`;
+            // `derivative` threw on it before, and `derivativeOfFormula`'s
+            // caller turned that into the blank. The Rust engine differentiates
+            // it instead — as a constant, so `0`. Reported upstream: the answer
+            // for a tuple should be a tuple of zeros, not a scalar. Either way
+            // it is a value rather than a crash, which is what this test is for.
             const { stateVariables, resolvePathToNodeIdx } = await build(`
     <function name="f"><math>1</math><numberList>3 1 2</numberList></function>
     <derivative name="d">$f</derivative>
@@ -7683,7 +7691,7 @@ describe("Function tag tests @group4", async () => {
             expect(
                 stateVariables[await resolvePathToNodeIdx("p1")].stateValues
                     .text,
-            ).eq("\uff3f");
+            ).eq("0");
         });
 
         it("still differentiates the formulas it can", async () => {
@@ -7692,7 +7700,7 @@ describe("Function tag tests @group4", async () => {
             for (const [doenetML, expected] of [
                 [
                     `<function name="f">x^2</function><p name="p1">$f.minimum1</p>`,
-                    "( 0, 0 )",
+                    "(0, 0)",
                 ],
                 [
                     `<function name="f" through="(0,0) (1,1) (2,0)" /><p name="p1">$f.numMaxima</p>`,
@@ -7700,7 +7708,7 @@ describe("Function tag tests @group4", async () => {
                 ],
                 [
                     `<function name="f" variables="t">(t,t^2)</function><derivative name="d">$f</derivative><p name="p1">$d</p>`,
-                    "( 1, 2 t )",
+                    "(1, 2 t)",
                 ],
             ] as [string, string][]) {
                 const { stateVariables, resolvePathToNodeIdx } =
