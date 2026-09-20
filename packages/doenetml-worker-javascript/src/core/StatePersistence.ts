@@ -135,6 +135,9 @@ export class StatePersistence {
      * route this bookkeeping does not know about is saved rather than silently
      * dropped.
      *
+     * Dropped for a second reason: an entry belonging to a component that
+     * shadows another. See `_isNonPropShadow`.
+     *
      * `__`-prefixed keys are reserved sentinels rather than components' entries
      * (`__componentNeedingUpdateValue`), and are always carried.
      */
@@ -142,17 +145,81 @@ export class StatePersistence {
         const cumulative = this.core.cumulativeStateVariableChanges;
         const toSave: Record<string, any> = {};
         for (const stateId in cumulative) {
+            if (stateId.startsWith("__")) {
+                toSave[stateId] = cumulative[stateId];
+                continue;
+            }
             // Optional, and deliberately so: a `Core` always has both sets,
             // but a stand-in driving this class directly need not, and the
             // answer when they are missing should be to save the entry.
             const onlyADefinitionsWork =
                 this.core.definitionSetStateIds?.has(stateId) &&
                 !this.core.readerTouchedStateIds?.has(stateId);
-            if (stateId.startsWith("__") || !onlyADefinitionsWork) {
-                toSave[stateId] = cumulative[stateId];
+            if (onlyADefinitionsWork || this._isNonPropShadow(stateId)) {
+                continue;
             }
+            toSave[stateId] = cumulative[stateId];
         }
         return toSave;
+    }
+
+    /**
+     * Whether `stateId` belongs to a component that shadows another component
+     * wholesale — a plain copy, or a composite's replacement of what it copies.
+     *
+     * Such a component holds no essential value of its own. Every write that
+     * reaches it is a mirror of a write to the component it shadows: a
+     * variable the shadow shadows has its inverse redirected to the target
+     * (`shadowInverseDefinition`), and the essential-value writer then mirrors
+     * the target's write back down over `shadowedBy`
+     * (`EssentialValueWriter.calculateEssentialVariableChanges` and
+     * `calculatePrimitiveChildChanges`, which recurse into exactly the shadows
+     * this predicate selects). So what is recorded against the shadow is a
+     * duplicate of what is recorded against its target, and the target's copy
+     * is the one that is saved.
+     *
+     * Persisting the duplicate is worse than redundant. The two entries are
+     * restored independently, and nothing makes the order in which they land
+     * agree with the order in which a composite hands its replacements out. A
+     * composite that *recreates* its replacements on every change hides this,
+     * because `DeletionEngine` drops the shadow's entry along with the
+     * component; a composite that keeps them — which is the whole point of
+     * Doenet/DoenetML#1947, and what Doenet/DoenetML#1949 does for `<sort>` —
+     * keeps the stale duplicate too, and it is applied on top of the value
+     * restored to the source. A reader's answer comes back on the wrong
+     * element of a sorted list.
+     *
+     * Two kinds of copy are deliberately *not* selected:
+     *
+     * - A **prop** shadow (`<math extend="$P.x" />`). The writer's recursion
+     *   skips these, so a prop shadow's essential values are its own rather
+     *   than a mirror of its target's, and dropping them would lose the
+     *   reader's work.
+     * - An **unlinked** copy (`<point copy="$A" />`), which carries
+     *   `unlinkedCopySource` and no `shadows` at all: nothing propagates
+     *   between it and its source in either direction, so its state is its
+     *   own. It falls outside this predicate by construction rather than by a
+     *   clause here.
+     *
+     * An **adapter** is not a shadow either. It is linked to what it adapts by
+     * a separate `adapter` dependency and keeps its own essential values — a
+     * `<boolean>` shown in a `<graph>` through a `<text>` is dragged by its
+     * `anchor`, which belongs to the adapter and to nothing else.
+     *
+     * Unresolvable ids are kept, in the same fail-safe direction as the rest of
+     * this filter: an entry whose component is gone cannot be shown to be a
+     * duplicate, so it is saved.
+     */
+    _isNonPropShadow(stateId: string): boolean {
+        const componentIdx = this.core.componentIdxByStateId?.[stateId];
+        if (componentIdx === undefined) {
+            return false;
+        }
+        const component = this.core._components?.[componentIdx];
+        return (
+            component?.shadows !== undefined &&
+            component.shadows.propVariable === undefined
+        );
     }
 
     /**
