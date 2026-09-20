@@ -35320,6 +35320,16 @@
                     "type": "boolean"
                 },
                 {
+                    "name": "sort",
+                    "description": "Sort the list before searching it.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "side",
                     "description": "Which end of a run of equal values the target is placed at.",
                     "highlighted": true,
@@ -35362,6 +35372,12 @@
                     "isArray": false,
                     "description": "Whether this component is treated as a response for the purposes of assessment.",
                     "fromAttribute": true
+                },
+                {
+                    "name": "sortFirst",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Sort the list before searching it."
                 },
                 {
                     "name": "side",

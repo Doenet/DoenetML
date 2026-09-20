@@ -42165,6 +42165,13 @@
                         "false"
                     ]
                 },
+                "sort": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "side": {
                     "optional": true,
                     "type": [
@@ -42926,6 +42933,12 @@
                     "isArray": false,
                     "description": "Whether this component is treated as a response for the purposes of assessment.",
                     "fromAttribute": true
+                },
+                {
+                    "name": "sortFirst",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Sort the list before searching it."
                 },
                 {
                     "name": "side",

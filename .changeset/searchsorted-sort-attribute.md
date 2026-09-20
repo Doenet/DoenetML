@@ -1,0 +1,32 @@
+---
+"@doenet/doenetml": patch
+"@doenet/standalone": patch
+"@doenet/doenetml-iframe": patch
+"@doenet/vscode-extension": patch
+"doenet-vscode-extension": patch
+---
+
+`<searchSorted>` can sort its own list.
+
+`<searchSorted>` answers where a value belongs in a list that is already in
+ascending order, and declines a list that is not. An author whose list is
+unsorted had to sort it first and hand the result over:
+
+```doenet
+<sort name="sorted">$values</sort>
+<searchSorted target="$targets">$sorted</searchSorted>
+```
+
+Writing `sort` on the operator says the same thing in one step:
+
+```doenet
+<searchSorted sort target="$targets">$values</searchSorted>
+```
+
+The answers are the same either way, and `side` still chooses which end of a
+run of equal values is reported. Without the attribute nothing changes.
+
+In a document where the values move — points a reader drags, numbers they
+type — the shorter form is also much quicker, because the separate `<sort>`
+produced a component for every value and everything reading it had to follow
+them.

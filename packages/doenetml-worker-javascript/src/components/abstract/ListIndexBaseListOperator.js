@@ -1,6 +1,7 @@
 import CompositeComponent from "./CompositeComponent";
 import me from "math-expressions";
 import {
+    compareExtractedValues,
     returnBreakStringsIntoTypeSugarInstruction,
     returnListValueStateVariableDefinitions,
 } from "../../utils/listValues";
@@ -151,6 +152,7 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
         // `definition` it would not be.
         const componentType = this.componentType;
         const validateValues = this.validateValues;
+        const supportsSort = this.supportsSort === true;
 
         Object.assign(
             stateVariableDefinitions,
@@ -189,14 +191,34 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "locate",
                 },
+                ...(supportsSort
+                    ? {
+                          sortFirst: {
+                              dependencyType: "stateVariable",
+                              variableName: "sortFirst",
+                          },
+                      }
+                    : {}),
             }),
             definition({ dependencyValues }) {
+                let values = dependencyValues.listValues;
+                if (dependencyValues.sortFirst) {
+                    values = [...values].sort((a, b) =>
+                        compareExtractedValues(
+                            a,
+                            b,
+                            dependencyValues.allAreNumeric,
+                        ),
+                    );
+                }
                 const results = locateEachTarget({
-                    values: dependencyValues.listValues,
+                    values,
                     targets: dependencyValues.comparableTargets,
                     numeric: dependencyValues.allAreNumeric,
                     locate: dependencyValues.locate,
-                    validateValues,
+                    validateValues: dependencyValues.sortFirst
+                        ? () => undefined
+                        : validateValues,
                 });
 
                 return {

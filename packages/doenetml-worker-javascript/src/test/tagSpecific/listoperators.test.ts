@@ -552,6 +552,63 @@ describe("List operator tag tests @group4", async () => {
             expect(warnings.filter(notSorted)).eqls([]);
         });
 
+        it("`sort` sorts the list instead of declining it", async () => {
+            // The precondition is the operator's to keep once the author has
+            // asked it to sort, so the same list that gets 0 above gets a
+            // position here, and no warning.
+            const { text, warnings } = await resultsFor(`
+    <p name="p"><searchSorted sort target="25">10 30 20</searchSorted></p>
+    `);
+            expect(text).eq("3");
+            expect(warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("`sort` agrees with sorting the list first", async () => {
+            // Same answers by both routes, including for targets that fall
+            // before, between, on, and after the values.
+            const viaSort = await resultsFor(`
+    <numberList name="v">30 10 20 10</numberList>
+    <sort name="s">$v</sort>
+    <p name="p"><searchSorted target="5 10 25 99">$s</searchSorted></p>
+    `);
+            const viaAttr = await resultsFor(`
+    <numberList name="v">30 10 20 10</numberList>
+    <p name="p"><searchSorted sort target="5 10 25 99">$v</searchSorted></p>
+    `);
+            expect(viaAttr.text).eq(viaSort.text);
+            expect(viaAttr.text).eq("1, 1, 4, 5");
+            expect(viaAttr.warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("`sort` leaves `side` its meaning", async () => {
+            const left = await resultsFor(`
+    <p name="p"><searchSorted sort side="left" target="2">3 2 1 2 2</searchSorted></p>
+    `);
+            const right = await resultsFor(`
+    <p name="p"><searchSorted sort side="right" target="2">3 2 1 2 2</searchSorted></p>
+    `);
+            expect(left.text).eq("2");
+            expect(right.text).eq("5");
+        });
+
+        it("`sort` of text values sorts as text", async () => {
+            const { text, warnings } = await resultsFor(`
+    <p name="p"><searchSorted sort type="text" target="cherry">pear apple cherry</searchSorted></p>
+    `);
+            expect(text).eq("2");
+            expect(warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("without `sort`, nothing changes", async () => {
+            // The attribute defaults off, so the precondition still applies to
+            // every document that does not ask for it.
+            const { text, warnings } = await resultsFor(`
+    <p name="p"><searchSorted sort="false" target="25">10 30 20</searchSorted></p>
+    `);
+            expect(text).eq("0");
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+
         it("a descending list is unsorted", async () => {
             const { text, warnings } = await resultsFor(`
     <p name="p"><searchSorted target="25">30 20 10</searchSorted></p>

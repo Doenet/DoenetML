@@ -150,6 +150,8 @@ function participatesInOrder(value, numeric) {
 export class SearchSorted extends ListIndexBaseListOperator {
     static componentType = "searchSorted";
 
+    static supportsSort = true;
+
     static componentDocs = {
         summary:
             "The position at which each target would be inserted to keep a sorted list sorted",
@@ -201,6 +203,14 @@ export class SearchSorted extends ListIndexBaseListOperator {
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
+
+        attributes.sort = {
+            createComponentOfType: "boolean",
+            createStateVariable: "sortFirst",
+            defaultValue: false,
+            public: true,
+            description: "Sort the list before searching it.",
+        };
 
         attributes.side = {
             createComponentOfType: "text",
