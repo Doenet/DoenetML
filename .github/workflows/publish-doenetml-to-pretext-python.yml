@@ -126,9 +126,9 @@ jobs:
             - name: Verify tag commit is on main
               if: github.event_name == 'release'
               run: |
-                  git fetch origin main
-                  if ! git merge-base --is-ancestor HEAD origin/main; then
-                      echo "Error: release tag commit is not reachable from origin/main" >&2
+                  git fetch origin 0.7
+                  if ! git merge-base --is-ancestor HEAD origin/0.7; then
+                      echo "Error: release tag commit is not reachable from origin/0.7" >&2
                       exit 1
                   fi
 

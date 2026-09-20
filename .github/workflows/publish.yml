@@ -1,10 +1,19 @@
 name: Publish
 
+# The 0.7 maintenance line. Differences from `main`'s copy, all deliberate:
+#
+#   * No `workflow_run` trigger. GitHub always runs a `workflow_run` workflow
+#     from the *default* branch, so a copy here could never be what executes --
+#     which is why this line's dev channel is `workflow_dispatch` only, and why
+#     its stable releases come from the `release` event, whose workflow file
+#     does come from the tagged commit.
+#   * No VS Code extension. The Marketplace and Open VSX each carry a single
+#     ascending version stream, so an 0.7.x extension published after 0.8.x is
+#     either rejected or has to claim a version it does not have.
+#   * Publishes under `0.7-stable` / `0.7-dev`, never `latest` / `dev`. The
+#     per-package `publish` scripts on this branch pin `--tag 0.7-stable`, so
+#     even a bare `npm run publish` by hand cannot move `latest`.
 on:
-    workflow_run:
-        workflows: ["CI"]
-        types: [completed]
-        branches: ["main"]
     release:
         types: [published]
     workflow_dispatch:
@@ -34,11 +43,7 @@ jobs:
     dev-release:
         name: Dev Release
         runs-on: ubuntu-latest
-        if: >-
-            (github.event_name == 'workflow_run' &&
-            github.event.workflow_run.conclusion == 'success' &&
-            github.event.workflow_run.head_branch == 'main') ||
-            (github.event_name == 'workflow_dispatch' && inputs.channel == 'dev')
+        if: ${{ github.event_name == 'workflow_dispatch' && inputs.channel == 'dev' }}
         permissions:
             actions: read
             id-token: write
@@ -47,7 +52,7 @@ jobs:
             - name: Checkout repository
               uses: actions/checkout@v6
               with:
-                  ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
+                  ref: ${{ github.sha }}
 
             - name: Determine checked out commit SHA
               id: checked-sha
@@ -87,15 +92,17 @@ jobs:
                   npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07
               env:
                   WIREIT_CACHE: "local"
-                  # Dev builds use @latest so they remain functional even when a
-                  # prefigure version bump hasn't been published to npm yet.
-                  # Production builds (below) keep the exact pinned default.
-                  VITE_PREFIGURE_MODULE_URL: "https://cdn.jsdelivr.net/npm/@doenet/prefigure@latest/prefigure.js"
+                  # `main`'s copy overrides this to @latest so a dev build keeps
+                  # working before a prefigure bump reaches npm. Not here: on the
+                  # maintenance line @latest is whatever the *current* line last
+                  # published, so the override would pull an 0.8-era runtime into
+                  # a 0.7 build. Falling through to the exact pin in
+                  # `prefigureConfig.ts` is the point.
 
             - name: Publish dev release
               id: publish-npm
               if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
-              run: npm run publish -- --tag dev
+              run: npm run publish -- --tag 0.7-dev
               env:
                   WIREIT_CACHE: "local"
 
@@ -122,133 +129,7 @@ jobs:
                   (steps.publish-npm.outcome == 'success' ||
                    steps.publish-npm.outcome == 'failure')
               timeout-minutes: 50
-              run: bash .github/scripts/purge-jsdelivr.sh dev
-
-    # Publishes a VS Code extension pre-release on every successful CI run on
-    # main, mirroring the `dev-release` pattern for npm packages.
-    #
-    # Version scheme: the extension version uses an integer semver (required by
-    # the VS Code Marketplace), so we cannot use the `-dev.N` suffix that npm
-    # dev packages use.  Instead we add a large offset (10000) to the publish
-    # workflow run number to keep the patch well above any stable patch while
-    # remaining unique and monotonically increasing.  The two are correlatable:
-    #   npm 0.7.20-dev.150  ↔  VS Code 0.7.10150  (publish workflow run 150)
-    # A workflow rerun republishes the same code under the same version, which
-    # is correct — "version already published" on a rerun means the first
-    # attempt succeeded.
-    #
-    # Secret requirement: `VSCE_PAT` must be configured as a **repository-level**
-    # secret (not only in the `production` environment) for this job to publish.
-    # If the secret is absent the publish step emits a warning and exits cleanly.
-    # `OVSX_PAT` does the same for the Open VSX mirror, which is what puts the
-    # extension within reach of VS Code-compatible editors such as VSCodium
-    # (#1317).  Each registry is published independently: a missing token for
-    # one leaves the other's publish untouched.
-    dev-vscode-extension:
-        name: Dev VS Code Extension Pre-release
-        runs-on: ubuntu-latest
-        if: >-
-            (github.event_name == 'workflow_run' &&
-            github.event.workflow_run.conclusion == 'success' &&
-            github.event.workflow_run.head_branch == 'main') ||
-            (github.event_name == 'workflow_dispatch' && inputs.channel == 'dev')
-        permissions:
-            actions: read
-            contents: read
-        steps:
-            - name: Checkout repository
-              uses: actions/checkout@v6
-              with:
-                  ref: ${{ github.event_name == 'workflow_run' && github.event.workflow_run.head_sha || github.sha }}
-
-            - name: Determine checked out commit SHA
-              id: checked-sha
-              run: echo "sha=$(git rev-parse HEAD)" >> "$GITHUB_OUTPUT"
-
-            - name: Use Node.js 24
-              uses: actions/setup-node@v6
-              with:
-                  node-version: 24.x
-                  cache: "npm"
-
-            - name: Install dependencies
-              run: npm ci
-
-            - name: Verify CI succeeded for target commit
-              # `verify-ci.mjs` now waits out a CI run that is still going
-              # rather than failing on it, under a 60-minute budget of its own.
-              # This is the backstop on that wait, so a hanging API read cannot
-              # hold the runner indefinitely.
-              timeout-minutes: 70
-              env:
-                  GITHUB_TOKEN: ${{ github.token }}
-                  REPO: ${{ github.repository }}
-                  TARGET_SHA: ${{ steps.checked-sha.outputs.sha }}
-              run: node .github/scripts/verify-ci.mjs
-
-            - name: Compute pre-release version
-              id: prerelease-version
-              run: |
-                  # Read the current stable version from the extension manifest.
-                  CURRENT=$(node -p "require('./packages/vscode-extension/extension/package.json').version")
-                  MAJOR=$(echo "$CURRENT" | cut -d. -f1)
-                  MINOR=$(echo "$CURRENT" | cut -d. -f2)
-                  # Add 10000 to the publish workflow run number to keep pre-release
-                  # patches well above any stable patch (e.g. 0.7.20).  Correlates
-                  # with the npm dev release: npm 0.7.20-dev.150 ↔ VS Code 0.7.10150.
-                  PATCH=$(( ${{ github.run_number }} + 10000 ))
-                  VERSION="${MAJOR}.${MINOR}.${PATCH}"
-                  echo "version=${VERSION}" >> "$GITHUB_OUTPUT"
-                  echo "Pre-release version: ${VERSION} (publish run: ${{ github.run_number }})"
-
-            - name: Set pre-release version in extension manifest
-              run: |
-                  node -e "
-                    const fs = require('fs');
-                    const version = '${{ steps.prerelease-version.outputs.version }}';
-                    for (const p of [
-                      'packages/vscode-extension/package.json',
-                      'packages/vscode-extension/extension/package.json',
-                    ]) {
-                      const pkg = JSON.parse(fs.readFileSync(p, 'utf8'));
-                      pkg.version = version;
-                      fs.writeFileSync(p, JSON.stringify(pkg, null, 4) + '\n');
-                    }
-                  "
-
-            - name: Build VS Code extension
-              run: |
-                  export NODE_OPTIONS="--max_old_space_size=6114"
-                  npm run build -w @doenet/vscode-extension
-              env:
-                  WIREIT_CACHE: "local"
-
-            - name: Publish VS Code extension pre-release
-              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
-              run: |
-                  # secrets.* is not available in `if:` expressions (GitHub Actions
-                  # treats secrets as empty strings there), so we guard here in the
-                  # shell where the secret is actually populated via env:.
-                  if [ -z "${VSCE_PAT}" ]; then
-                      echo "::warning::VSCE_PAT repository secret is not set — VS Code extension pre-release was not published."
-                      echo "Add VSCE_PAT as a repository-level secret (Settings → Secrets → Actions) to enable pre-release publishing."
-                      exit 0
-                  fi
-                  npm run publish:prerelease -w @doenet/vscode-extension
-              env:
-                  VSCE_PAT: ${{ secrets.VSCE_PAT }}
-
-            - name: Publish Open VSX pre-release
-              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
-              run: |
-                  if [ -z "${OVSX_PAT}" ]; then
-                      echo "::warning::OVSX_PAT repository secret is not set — Open VSX pre-release was not published."
-                      echo "Add OVSX_PAT as a repository-level secret (Settings → Secrets → Actions) to enable Open VSX pre-release publishing."
-                      exit 0
-                  fi
-                  npm run publish:openvsx:prerelease -w @doenet/vscode-extension
-              env:
-                  OVSX_PAT: ${{ secrets.OVSX_PAT }}
+              run: bash .github/scripts/purge-jsdelivr.sh 0.7-dev
 
     production-release:
         name: Production Release
@@ -321,18 +202,18 @@ jobs:
                   RELEASE_VERSION: ${{ steps.release-tag.outputs.version }}
               run: node .github/scripts/validate-tag-versions.mjs
 
-            - name: Verify tag commit is on main
+            - name: Verify tag commit is on the 0.7 branch
               run: |
-                  git fetch origin main
-                  if ! git merge-base --is-ancestor HEAD origin/main; then
-                      echo "Error: release tag commit is not reachable from origin/main" >&2
+                  git fetch origin 0.7
+                  if ! git merge-base --is-ancestor HEAD origin/0.7; then
+                      echo "Error: release tag commit is not reachable from origin/0.7" >&2
                       exit 1
                   fi
 
             - name: Build workspaces
               run: |
                   export NODE_OPTIONS="--max_old_space_size=6114"
-                  npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07 -w @doenet/vscode-extension
+                  npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07
               env:
                   WIREIT_CACHE: "local"
 
@@ -342,28 +223,6 @@ jobs:
               run: npm run publish
               env:
                   WIREIT_CACHE: "local"
-
-            - name: Publish VS Code extension
-              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
-              run: npm run publish -w @doenet/vscode-extension
-              env:
-                  VSCE_PAT: ${{ secrets.VSCE_PAT }}
-
-            - name: Publish Open VSX release
-              if: ${{ !(github.event_name == 'workflow_dispatch' && inputs.dry_run) }}
-              run: |
-                  # Warn rather than fail when the token is missing, so a
-                  # release that has already gone out to npm and the
-                  # Marketplace is not left red over a mirror that can be
-                  # re-run on its own.
-                  if [ -z "${OVSX_PAT}" ]; then
-                      echo "::warning::OVSX_PAT repository secret is not set — the Open VSX release was not published."
-                      echo "Add OVSX_PAT as a repository-level secret (Settings → Secrets → Actions) to enable Open VSX publishing."
-                      exit 0
-                  fi
-                  npm run publish:openvsx -w @doenet/vscode-extension
-              env:
-                  OVSX_PAT: ${{ secrets.OVSX_PAT }}
 
             # Last, and deliberately so. The purge waits for npm to finish
             # processing the publish and then for jsDelivr to fetch it before it
@@ -433,10 +292,10 @@ jobs:
                   # hyphen": `1.0.0+build-1` carries one inside its `+` suffix
                   # and is a plain release that `1.0` does serve.
                   if [[ "${RELEASE_VERSION%%+*}" == *-* ]]; then
-                      echo "${RELEASE_VERSION} is a prerelease; no line range resolves to it. Purging the 'latest' dist-tag only."
-                      bash .github/scripts/purge-jsdelivr.sh latest
+                      echo "${RELEASE_VERSION} is a prerelease; no line range resolves to it. Purging the '0.7-stable' dist-tag only."
+                      bash .github/scripts/purge-jsdelivr.sh 0.7-stable
                   else
                       LINE="$(echo "${RELEASE_VERSION}" | cut -d. -f1,2)"
-                      echo "Purging the 'latest' dist-tag and the '${LINE}' line range."
-                      bash .github/scripts/purge-jsdelivr.sh latest "" "${LINE}"
+                      echo "Purging the '0.7-stable' dist-tag and the '${LINE}' line range."
+                      bash .github/scripts/purge-jsdelivr.sh 0.7-stable "" "${LINE}"
                   fi

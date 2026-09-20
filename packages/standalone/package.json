@@ -27,7 +27,7 @@
         "check:size": "node scripts/check-bundle-size.mjs",
         "test": "vitest",
         "preview": "vite preview",
-        "publish": "npm run build && node ../../.github/scripts/npm-publish-with-retry.mjs dist"
+        "publish": "npm run build && node ../../.github/scripts/npm-publish-with-retry.mjs dist --tag 0.7-stable"
     },
     "wireit": {
         "build": {

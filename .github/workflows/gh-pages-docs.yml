@@ -2,10 +2,10 @@
 name: Deploy static content to Pages
 
 on:
-    # Runs on pushes targeting the default branch
-    push:
-        branches: ["main"]
-
+    # Deliberately no `push:` trigger on the 0.7 maintenance branch. The
+    # docs site is a single unversioned build published from `main`; a deploy
+    # from here would overwrite it with the maintenance line.
+    #
     # Allows you to run this workflow manually from the Actions tab
     workflow_dispatch:
 

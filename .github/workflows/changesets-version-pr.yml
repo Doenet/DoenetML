@@ -3,11 +3,16 @@ name: Changesets Version PR
 on:
     push:
         branches:
-            - main
+            - "0.7"
     workflow_dispatch:
 
 concurrency:
-    group: changesets-version-pr
+    # Keyed on the ref rather than global. The group used to be a bare
+    # string, which was fine while only `main` ran this workflow; with a
+    # maintenance line it is shared across branches, and
+    # `cancel-in-progress` would let a push to one cancel the other's
+    # version PR.
+    group: changesets-version-pr-${{ github.ref }}
     cancel-in-progress: true
 
 permissions:

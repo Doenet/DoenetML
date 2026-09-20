@@ -2,7 +2,7 @@ name: CI
 
 on:
     push:
-        branches: ["main"]
+        branches: ["0.7"]
     pull_request:
         branches: ["*"]
     workflow_dispatch:
@@ -378,6 +378,26 @@ jobs:
             - name: Cargo clippy
               working-directory: ./packages/doenetml-worker-rust
               run: cargo clippy -- -D warnings
+
+    # Only on the 0.7 maintenance line. A backport arrives by cherry-pick and
+    # brings its changeset file with it; the bump type is the one part of that
+    # file which stops being true on the way across, and a `minor` here would
+    # version this branch to 0.8.0 and collide with `main`.
+    changeset-bumps:
+        name: Changesets Are Patch Only
+        runs-on: ubuntu-latest
+
+        steps:
+            - name: Checkout sources
+              uses: actions/checkout@v6
+
+            - name: Use Node.js 24
+              uses: actions/setup-node@v6
+              with:
+                  node-version: 24.x
+
+            - name: Check changeset bump types
+              run: node .github/scripts/check-changeset-bumps.mjs
 
     build-docs:
         runs-on: ubuntu-latest
