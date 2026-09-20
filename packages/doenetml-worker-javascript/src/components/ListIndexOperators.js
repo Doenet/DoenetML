@@ -209,6 +209,7 @@ export class SearchSorted extends ListIndexBaseListOperator {
             createStateVariable: "sort",
             defaultValue: false,
             public: true,
+            highlighted: true,
             description:
                 "Report where each target belongs among the values in ascending order, whatever order they are written in.",
         };
