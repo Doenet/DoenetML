@@ -552,7 +552,7 @@ describe("List operator tag tests @group4", async () => {
             expect(warnings.filter(notSorted)).eqls([]);
         });
 
-        it("`sort` sorts the list instead of declining it", async () => {
+        it("`sort` answers a list that would otherwise be declined", async () => {
             // The precondition is the operator's to keep once the author has
             // asked it to sort, so the same list that gets 0 above gets a
             // position here, and no warning.
@@ -580,6 +580,18 @@ describe("List operator tag tests @group4", async () => {
             expect(viaAttr.warnings.filter(notSorted)).eqls([]);
         });
 
+        it("`sort` still has nothing to search in an empty list", async () => {
+            // Counting the entries below the target gives 0 here, and 0 + 1 is
+            // a position the list does not have. An empty list is answered
+            // before any scan runs, with or without the attribute.
+            const { text, warnings } = await resultsFor(`
+    <numberList name="e"></numberList>
+    <p name="p"><searchSorted sort target="5">$e</searchSorted></p>
+    `);
+            expect(text).eq("0");
+            expect(warnings.filter(notSorted)).eqls([]);
+        });
+
         it("`sort` leaves `side` its meaning", async () => {
             const left = await resultsFor(`
     <p name="p"><searchSorted sort side="left" target="2">3 2 1 2 2</searchSorted></p>
@@ -589,6 +601,25 @@ describe("List operator tag tests @group4", async () => {
     `);
             expect(left.text).eq("2");
             expect(right.text).eq("5");
+        });
+
+        it("`sort` places infinities where sorting first does", async () => {
+            // An infinite value is equal to itself but subtracts to NaN, and
+            // the count leans on the equality for `side="right"`: the run of
+            // infinities has to be counted, not skipped.
+            const values = `<mathList name="v">Infinity 1 -Infinity Infinity 5</mathList>`;
+            const viaSort = await resultsFor(`
+    ${values}
+    <sort name="s">$v</sort>
+    <p name="p"><searchSorted target="-Infinity Infinity">$s</searchSorted>; <searchSorted side="right" target="-Infinity Infinity">$s</searchSorted></p>
+    `);
+            const viaAttr = await resultsFor(`
+    ${values}
+    <p name="p"><searchSorted sort target="-Infinity Infinity">$v</searchSorted>; <searchSorted sort side="right" target="-Infinity Infinity">$v</searchSorted></p>
+    `);
+            expect(viaAttr.text).eq(viaSort.text);
+            expect(viaAttr.text).eq("1, 4; 2, 6");
+            expect(viaAttr.warnings.filter(notSorted)).eqls([]);
         });
 
         it("`sort` of text values sorts as text", async () => {
