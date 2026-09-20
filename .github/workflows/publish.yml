@@ -395,8 +395,12 @@ jobs:
             #
             # `timeout-minutes` is the backstop on the script's own waiting —
             # 20 minutes of registry wait, 15 of CDN wait and roughly 8 of
-            # sleeps between purge retries, now once per floating URL — so a
-            # wedged request cannot hold the runner.
+            # sleeps between purge retries, which is now spent once per
+            # floating URL rather than once in total. That is about 52 minutes
+            # of waiting in the worst case, which no longer fits under 50, so
+            # the backstop is 60: a wedged request still cannot hold the
+            # runner, and a slow-but-succeeding second purge is not cut off
+            # partway by the backstop meant for a wedged one.
             #
             # Two floating URLs move on a production release, not one. `latest`
             # is the dist-tag; the line range is what a host pins when it sets
@@ -411,10 +415,23 @@ jobs:
                   !cancelled() &&
                   (steps.publish-npm.outcome == 'success' ||
                    steps.publish-npm.outcome == 'failure')
-              timeout-minutes: 50
+              timeout-minutes: 60
               env:
                   RELEASE_VERSION: ${{ steps.release-tag.outputs.version }}
               run: |
-                  LINE="$(echo "${RELEASE_VERSION}" | cut -d. -f1,2)"
-                  echo "Purging the 'latest' dist-tag and the '${LINE}' line range."
-                  bash .github/scripts/purge-jsdelivr.sh latest "" "${LINE}"
+                  # No line range tracks a prerelease: `@0.7` is the npm range
+                  # `>=0.7.0 <0.8.0`, and a semver range never matches a
+                  # version with a prerelease part, so `0.8.0-beta1` is served
+                  # by no range URL and has nothing cached under one. Asking
+                  # for it anyway would verify the range against a version it
+                  # cannot serve and fail a release that is perfectly fine, so
+                  # a prerelease gets the dist-tag alone — the same reason the
+                  # dev channel passes no extra spec.
+                  if [[ "${RELEASE_VERSION}" == *-* ]]; then
+                      echo "${RELEASE_VERSION} is a prerelease; no line range resolves to it. Purging the 'latest' dist-tag only."
+                      bash .github/scripts/purge-jsdelivr.sh latest
+                  else
+                      LINE="$(echo "${RELEASE_VERSION}" | cut -d. -f1,2)"
+                      echo "Purging the 'latest' dist-tag and the '${LINE}' line range."
+                      bash .github/scripts/purge-jsdelivr.sh latest "" "${LINE}"
+                  fi

@@ -43,12 +43,10 @@ if [[ -z "${VERSION}" ]]; then
     exit 1
 fi
 
-# Everything past `version` is an extra spec. Guarded because `shift 2` fails
-# under `set -e` when the caller passed only a tag.
-EXTRA_SPECS=()
-if [[ $# -gt 2 ]]; then
-    EXTRA_SPECS=("${@:3}")
-fi
+# Everything past `version` is an extra spec. `${@:3}` expands to nothing when
+# fewer arguments were passed, so the one-argument call `purge-jsdelivr.sh dev`
+# needs no guard here and the loops below simply do not run.
+EXTRA_SPECS=("${@:3}")
 
 for spec in "${EXTRA_SPECS[@]}"; do
     if [[ -z "${spec}" ]]; then
