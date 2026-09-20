@@ -427,7 +427,12 @@ jobs:
                   # cannot serve and fail a release that is perfectly fine, so
                   # a prerelease gets the dist-tag alone — the same reason the
                   # dev channel passes no extra spec.
-                  if [[ "${RELEASE_VERSION}" == *-* ]]; then
+                  #
+                  # Build metadata is stripped before looking for the `-`, so
+                  # that the test means "has a prerelease part" and not "has a
+                  # hyphen": `1.0.0+build-1` carries one inside its `+` suffix
+                  # and is a plain release that `1.0` does serve.
+                  if [[ "${RELEASE_VERSION%%+*}" == *-* ]]; then
                       echo "${RELEASE_VERSION} is a prerelease; no line range resolves to it. Purging the 'latest' dist-tag only."
                       bash .github/scripts/purge-jsdelivr.sh latest
                   else

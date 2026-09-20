@@ -45,7 +45,8 @@ fi
 
 # Everything past `version` is an extra spec. `${@:3}` expands to nothing when
 # fewer arguments were passed, so the one-argument call `purge-jsdelivr.sh dev`
-# needs no guard here and the loops below simply do not run.
+# needs no guard here: the check below runs zero times, and the purge loop is
+# left with the dist-tag alone.
 EXTRA_SPECS=("${@:3}")
 
 for spec in "${EXTRA_SPECS[@]}"; do
@@ -125,7 +126,8 @@ if [[ ${#FAILED_SPECS[@]} -gt 0 ]]; then
     for spec in "${FAILED_SPECS[@]}"; do
         echo "         ${PACKAGE}@${spec}" >&2
     done
-    echo "       Re-running this step retries all of them: the ones that did take are" >&2
-    echo "       already current and pass again without another purge landing." >&2
+    echo "       Re-running this step retries all of them, which is safe: a spec that" >&2
+    echo "       did take is purged once more and then verifies on the first attempt," >&2
+    echo "       since the bytes it re-fetches are the ones it already serves." >&2
     exit 1
 fi
