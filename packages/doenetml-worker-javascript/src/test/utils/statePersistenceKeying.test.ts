@@ -26,7 +26,7 @@ function adapterOf(core: any, componentIdx: number) {
 //
 // Because it was a race, a single observation says almost nothing: three
 // separate investigations each drew a confident mechanism from one run and all
-// three were wrong. The two tests that turn on that race therefore repeat.
+// three were wrong. Every test here that turns on that race therefore repeats.
 
 const REPEATS = 20;
 
@@ -96,6 +96,95 @@ describe("saved state is keyed by an identifier a rebuild reproduces @group4", (
         ).filter((key) => !key.startsWith("__"));
 
         expect(keys.sort()).eqls(["/~P@x", "/~P@y"]);
+    });
+
+    // The document walk is not the only thing that mints a `stateId`. A
+    // composite mints one per replacement, `<composite stateId>|<n>`, from a
+    // counter it advances while walking the serialized tree it was handed
+    // (`createNewComponentIndices`) -- so those ids are positional in a way the
+    // document-derived ones deliberately are not, and they are stable only for
+    // as long as that walk is. An unlinked copy is the sharpest case: it keeps
+    // its own state rather than mirroring its source's, so a reader's drag of
+    // one is saved under two of those ids, one per coordinate, and which of
+    // them holds `x` is the walk's business (Doenet/DoenetML#1976).
+    const COPY_DOC = `<graph><point name="A" x="1" y="2" /><point copy="$A" name="A2" /></graph>`;
+
+    /** Build `COPY_DOC`, drag the copy to (3, -5), and save. */
+    async function savedDragOfTheCopy() {
+        const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
+            { doenetML: COPY_DOC },
+        );
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("A2"),
+            x: 3,
+            y: -5,
+            core,
+        });
+        await core.saveImmediately();
+        return scoreState.state as string;
+    }
+
+    /**
+     * A saved payload as `key=value` lines, sorted by key.
+     *
+     * Sorted, because the order `cumulativeStateVariableChanges` happens to be
+     * in is not what this is about; what matters is that a given key holds the
+     * same value in every build. Compared with the value attached rather than
+     * as a bare key list, because the two keys that swap here are both present
+     * either way -- a key list is identical across a swap and sees nothing.
+     */
+    function keyedValues(saved: string) {
+        const parsed = JSON.parse(saved);
+        return Object.keys(parsed)
+            .filter((key) => !key.startsWith("__"))
+            .sort()
+            .map((key) => `${key}=${JSON.stringify(parsed[key])}`)
+            .join("\n");
+    }
+
+    it("hands a composite's replacements the same keys on every build", async () => {
+        const first = keyedValues(await savedDragOfTheCopy());
+        expect(
+            first.split("\n").length,
+            "the drag was not saved under the copy's own keys, so the repeat proves nothing",
+        ).eq(2);
+
+        for (let i = 1; i < REPEATS; i++) {
+            expect(
+                keyedValues(await savedDragOfTheCopy()),
+                "a rebuild of the same document saved the reader's drag under different keys",
+            ).eq(first);
+        }
+    });
+
+    it("restores an unlinked copy's drag to the same place, every time", async () => {
+        // The half of the above that the reader sees. Saving and restoring
+        // each pick their keys from a build of their own, so they can disagree
+        // in either direction; with one payload restored over and over, a
+        // disagreement shows up as the copy coming back at (-5, 3).
+        const saved = await savedDragOfTheCopy();
+
+        const outcomes = new Set<string>();
+        for (let i = 0; i < REPEATS; i++) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: COPY_DOC,
+                initialState: saved,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            outcomes.add(
+                stateVariables[await resolvePathToNodeIdx("A2")].stateValues.xs
+                    .map((x: any) => x.evaluate_to_constant())
+                    .join(","),
+            );
+        }
+
+        expect(
+            [...outcomes],
+            "the same saved bytes restored the copy to more than one place",
+        ).eqls(["3,-5"]);
     });
 
     it("survives an edit elsewhere in the document", async () => {

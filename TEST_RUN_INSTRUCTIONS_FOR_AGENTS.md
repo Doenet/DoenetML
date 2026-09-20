@@ -62,13 +62,29 @@ run rather than ending it.
 
 Every `@doenet/*` package's `exports` point at its `dist/`, and no vitest config aliases them back to `src/`. A test that imports another package **by its `@doenet/` name** gets the **last build** of it. (A *relative* path bypasses `exports` and resolves to whatever it points at. `packages/static-assets/scripts/get-schema.ts` and `packages/doenetml-worker-javascript/src/test/utils/test-core.ts` reach a sibling's `src/` that way and so see an edit without a rebuild, while `doenetml-worker-rust/lib-doenetml-core/tests/parse-dast.ts` reaches `parser/dist` and still needs one.)
 
-Nothing rebuilds it for you: almost no `test` script does, so neither `npm run test -w <pkg>` nor `npx vitest` builds anything. The exceptions are `doenetml-prototype`, `doenetml-to-pretext` and `doenetml-worker-rust`, whose `test` runs a Wireit build first.
+Nothing rebuilds it for you: almost no `test` script does, so neither `npm run test -w <pkg>` nor `npx vitest` builds anything. The exceptions are `doenetml-prototype`, `doenetml-to-pretext`, `doenetml-worker-rust`, `doenetml-worker-javascript` and `math`, whose `test` runs a Wireit build first.
 
 **Rule: after editing `packages/<A>/src/`, run `npm run build -w @doenet/<A>` before running tests in any package other than `<A>`.**
 
 An up-to-date build is a Wireit cache hit and returns in well under a second, so run it rather than reasoning about whether it is needed.
 
 Why this matters more than it sounds: the failure is usually **silent**. A removed or renamed export throws (`someFn is not a function`), which at least looks like a problem. The common case is worse — the old code still runs, so the suite passes against the previous behavior, or a fix you just made appears to have done nothing. Do not conclude that a change had no effect until you have rebuilt the package you changed.
+
+### The worker's Rust WASM is a third case
+
+`node_modules/lib-doenetml-worker` is a symlink into `packages/doenetml-worker-rust/lib-js-wasm-binding/pkg` — the untracked output of `wasm-pack`, not a `dist/` and not a `src/`. `doenetml-worker-javascript/src/test/utils/test-core.ts` imports the Rust core through it, so **every Vitest test in that package runs against whatever WASM was last built on this machine**, however long ago that was. Editing a `.rs` file is not what puts it out of date; a `git pull` that brings in someone else's is enough, and nothing says so.
+
+Stale WASM does not throw. The core boots, runs, and answers — with the behavior of the older build. In Doenet/DoenetML#1976 that looked exactly like a live data-corruption bug: two state-persistence tests failed reproducibly on `main` and passed in CI on the same commit, because CI builds `packages/doenetml-worker` before its test job and a local run had no equivalent step.
+
+`npm run test -w @doenet/doenetml-worker-javascript -- --run <files>` now rebuilds the WASM first (`test:before`). A bare `npx vitest` from inside the package does not, so if you reach for one, build it yourself:
+
+```bash
+npm run build:rust -w @doenet/doenetml-worker-rust
+```
+
+**Before concluding that a test failing locally and passing in CI is a flake or a real defect, rule this out.**
+
+`test:before` also rebuilds `doenetml-worker-javascript` itself, which is not redundant: `@doenet/debug-hooks` is bundled with `@doenet/doenetml-worker-javascript` left external, so the `resolvePathToNodeIdx` every test calls runs `expandCompositeComponent` out of the **built** worker while the test around it reads `src/`. Editing a component and running one spec used to exercise your edit everywhere except there. The cost is that a run straight after a source edit spends about fifteen seconds in `vite build` before Vitest starts; a run that changed nothing is still a cache hit in under a second.
 
 ### Generated sources need the build too
 
