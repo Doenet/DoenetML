@@ -5,6 +5,7 @@ import {
     callAction,
     updateMathInputValue,
     updateTextInputValue,
+    updateValue,
 } from "../utils/actions";
 import me from "math-expressions";
 import seedrandom from "seedrandom";
@@ -1861,6 +1862,49 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 expect(Number.isInteger(value)).eq(true);
             }
         }
+    });
+
+    it("selectRandomNumbers has no resample action", async () => {
+        // A selection is made once and is the variant's, so `resample` is not
+        // an action `<selectRandomNumbers>` offers. Asking for it anyway used
+        // to reach `<sampleRandomNumbers>`'s action, which writes a state
+        // variable this component does not have: the button threw a stack
+        // trace into the console and told the author nothing. Now it warns.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><selectRandomNumbers name="s" type="gaussian" mean="3" standardDeviation="1" numToSelect="5" /></p>
+    <callAction name="again" target="$s" actionName="resample"><label>Resample</label></callAction>
+    <number name="n">1</number>
+    <updateValue name="bump" target="$n" newValue="$n+1"><label>Bump</label></updateValue>
+    `,
+        });
+
+        const before = await current_values(core, resolvePathToNodeIdx, "s");
+        expect(before.length).eq(5);
+
+        await callAction({
+            core,
+            componentIdx: await resolvePathToNodeIdx("again"),
+        });
+
+        expect(await current_values(core, resolvePathToNodeIdx, "s")).eqls(
+            before,
+        );
+
+        const warnings = getDiagnosticsByType(core).warnings;
+        expect(warnings.length).eq(1);
+        expect(warnings[0].message).contain("Cannot call resample");
+        expect(warnings[0].message).contain("$s");
+
+        // the page is still live: an unrelated update afterwards takes effect
+        await updateValue({
+            core,
+            componentIdx: await resolvePathToNodeIdx("bump"),
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(2);
     });
 
     it("same discrete samples for given variant if variantDeterminesSeed", async () => {
