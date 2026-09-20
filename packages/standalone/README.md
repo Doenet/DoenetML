@@ -263,8 +263,9 @@ Each payload records the saved-state format it was written in, so that state
 an upgraded viewer cannot read is discarded rather than applied to components
 it no longer denotes. When that happens the document opens fresh and the
 student is told beside it that their work was saved by an earlier version of
-Doenet; nothing on the host side changes, and the score reported for the
-attempt is unaffected. Keeping the payload opaque — stored and returned
+Doenet; nothing on the host side changes, and the credit already recorded
+for the student is unaffected, because score is reported separately from the
+state. The fresh attempt goes on reporting its own score as usual. Keeping the payload opaque — stored and returned
 exactly as received — is what carries that format marker back.
 
 **The gap — and `SPLICE.flushState`.** Reports are throttled (one per 60

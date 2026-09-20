@@ -8,7 +8,7 @@
 
 Saved state was keyed by each component's index in the build. An index is a position in the build, so it moved whenever anything ahead of it changed — and a reader's values then came back on the wrong components, silently. Adding a paragraph above a graph was enough: a point dragged to (3, −5) reloaded at (−5, 1).
 
-Every component now carries an identifier derived from the document instead:
+Every component a reader can put work into now carries an identifier derived from the document instead:
 
 | what | key |
 | --- | --- |
@@ -16,7 +16,7 @@ Every component now carries an identifier derived from the document instead:
 | an unnamed component | its position under its parent |
 | a component built from an attribute | `@x`, `@y` — **by attribute name** |
 | a composite's replacement | its composite's key, plus which replacement it is |
-| a component Doenet inserts to adapt another to where it was written | the adapted component's key |
+| a component Doenet inserts to adapt another to where it was written | the adapted component's key, plus which adapter it is |
 
 Keying attributes by name is what closes the last of #1944: `x` and `y` can no longer be handed each other's identifiers, whatever order they are visited in. Hanging a named component off its nearest named ancestor is what lets an author edit elsewhere in a document without discarding the work readers have already done in it.
 

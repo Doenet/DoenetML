@@ -26,7 +26,7 @@ function adapterOf(core: any, componentIdx: number) {
 //
 // Because it was a race, a single observation says almost nothing: three
 // separate investigations each drew a confident mechanism from one run and all
-// three were wrong. Every test here therefore repeats.
+// three were wrong. The two tests that turn on that race therefore repeat.
 
 const REPEATS = 20;
 
@@ -149,11 +149,16 @@ describe("saved state is keyed by an identifier a rebuild reproduces @group4", (
     <graph><boolean name="b">true</boolean></graph>
   `;
 
-    it("leaves nothing on a bare component index, adapters included", async () => {
-        // `ComponentBuilder` still falls back to `componentIdx.toString()` for a
-        // component that arrives without a `stateId`. Nothing should reach it:
-        // this is the evidence for that, and the guard that would notice if
-        // some new way of building a component started skipping the path.
+    it("leaves nothing in this document on a bare component index, adapters included", async () => {
+        // `ComponentBuilder` still falls back to `componentIdx.toString()` for
+        // a component that arrives without a `stateId`, and this is the guard
+        // that would notice a new way of building one skipping the path.
+        //
+        // Not a claim that the fallback is unreachable: an `_error` component
+        // raised while the document is being built still lands on it. That one
+        // has no actions and seeds its variables from the build, so no reader
+        // can put work into it -- which is the property the next test pins,
+        // and the one that actually matters for saved state.
         const { core } = await createTestCore({ doenetML: MIXED_DOC });
 
         const live = core.core!._components!.filter(

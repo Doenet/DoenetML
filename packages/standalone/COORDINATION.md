@@ -81,7 +81,7 @@ yourself (same option names, camelCase).
   the normal `SPLICE.reportScoreAndState` channel such a backend already
   consumes.
 - On such a page the warehouse and the backend both answer a restoring
-  activity's `SPLICE.getState`. The **first answer carrying state wins**:
+  activity's `SPLICE.getState`. The **first answer carrying state this viewer can restore from wins**:
   the warehouse answers at once and holds the reader's most recent work, so
   the backend's later answer — a round trip to storage, and possibly behind
   what the reader has just done — is ignored. On a fresh page load the

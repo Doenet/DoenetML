@@ -384,7 +384,8 @@ export async function normalizedDastToSerializedComponents(
  * builds — a composite's replacements, and the adapters `ChildMatcher`
  * inserts (`<adapted stateId>@@adapt<n>`) — are keyed where they are built, in
  * each case off a component this pass has already anchored. Between them that
- * accounts for everything; nothing is left on the `componentIdx` fallback in
+ * accounts for everything a reader can put work into; nothing holding their
+ * work is left on the `componentIdx` fallback in
  * `ComponentBuilder`, and `statePersistenceKeying.test.ts` asserts as much.
  */
 export function assignDocumentDerivedStateIds(document: SerializedComponent) {
