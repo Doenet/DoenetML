@@ -260,10 +260,13 @@ export class StatePersistence {
      * defining child's value, which `calculatePrimitiveChildChanges` mirrors
      * into every non-prop shadow unconditionally.
      *
-     * Anything else unrecognized — a key that is an `essentialVarName` rather
-     * than a state variable's name, say — is treated as not mirrored, so the
-     * entry is saved. The failure mode of a bookkeeping slip should not be
-     * losing a reader's work.
+     * Any other key that does not name a state variable on the component is
+     * treated as not mirrored, so the entry is saved. Both writers of the
+     * cumulative bag key it by state-variable name — `UpdateExecutor` merges
+     * from `newStateVariableValues` and from `essentialValuesSavedInDefinition`,
+     * and both are built that way — so this is a guard against a route that
+     * does not exist today rather than a case with a name. The failure mode of
+     * a bookkeeping slip should not be losing a reader's work.
      */
     _isMirroredFromShadowedComponent(component: any, varName: string): boolean {
         if (varName.startsWith("__def_primitive_")) {

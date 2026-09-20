@@ -6,6 +6,7 @@ import {
     updateMathInputValue,
     updateSelectedIndices,
     updateTextInputValue,
+    updateValue,
 } from "./actions";
 
 // A component that copies another wholesale -- `<mathInput extend="$mi" />`, or
@@ -148,6 +149,34 @@ describe("a shadow's state is its source's, and is not persisted twice @group4",
             expect(await trip.live(name, "value")).eq("hello");
             expect(await trip.restored(name, "value")).eq("hello");
             expect(await trip.restored(name, "valueChanged")).eq(true);
+        }
+    });
+
+    it("drops a shadow's copy of a primitive defining child's value", async () => {
+        // `<updateValue>` on a copied `<number>` rewrites the number's
+        // primitive defining child rather than any state variable, and
+        // `calculatePrimitiveChildChanges` mirrors that into every non-prop
+        // shadow unconditionally -- no flag gates it. The key under the copy is
+        // `__def_primitive_0`, which is not a state variable name at all, so it
+        // is the one kind of key `_isMirroredFromShadowedComponent` has to
+        // recognize by name rather than by looking it up in `component.state`.
+        //
+        // This is the clause the three `<sort>` reproductions of
+        // Doenet/DoenetML#1949 turn on -- their orphaned entry has exactly this
+        // shape -- and those live on another branch, so without this test
+        // nothing here would notice the clause going away.
+        const doc = `<number name="n">5</number><number extend="$n" name="n2" /><updateValue name="uv" target="$n2" newValue="7" type="number" />`;
+        const trip = await roundTrip(doc, async (core, resolve) => {
+            await updateValue({ componentIdx: await resolve("uv"), core });
+        });
+
+        expect(trip.keys).eqls(["/~n"]);
+        expect(Object.keys(JSON.parse(trip.saved)["/~n"])).eqls([
+            "__def_primitive_0",
+        ]);
+        for (const name of ["n", "n2"]) {
+            expect(await trip.live(name, "value")).eq(7);
+            expect(await trip.restored(name, "value")).eq(7);
         }
     });
 
