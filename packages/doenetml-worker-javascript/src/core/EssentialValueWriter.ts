@@ -36,11 +36,11 @@ type NewStateVariableValues = Record<string, Record<string, any>>;
  *    composites whose replacements need recomputing after a value moved
  *
  * Writes directly to `comp.essentialState[*]`, `compStateObj.usedDefault`
- * / `usedDefaultByArrayKey`, `parent.definingChildren[*]`, and
- * `updateInfo.stateVariableUpdatesForMissingComponents`. Reads (but does
- * not own) `cumulativeStateVariableChanges` (written by `UpdateExecutor`
- * and `DeletionEngine`) and `essentialValuesSavedInDefinition` (written
- * by `StateVariableEvaluator`). Holds a back-reference to Core for the
+ * / `usedDefaultByArrayKey`, and `parent.definingChildren[*]`. Reads (but
+ * does not own) `cumulativeStateVariableChanges` (written by
+ * `UpdateExecutor` and `DeletionEngine`) and
+ * `essentialValuesSavedInDefinition` (written by
+ * `StateVariableEvaluator`). Holds a back-reference to Core for the
  * rest of the hot state and the other extracted managers.
  *
  * Note: this is the essential-write engine. The save-to-localStorage /
@@ -216,9 +216,9 @@ export class EssentialValueWriter {
      * intermediate inverse-definition results.
      *
      * For each component:
-     *   - Skips and stashes onto `updateInfo.stateVariableUpdatesForMissingComponents`
-     *     when the component does not exist yet (it will be re-applied
-     *     once the component is created via `checkForDependenciesOnNewComponent`).
+     *   - Reports a broken invariant and skips it when the component is not
+     *     in the tree. Every index in the batch was read off a live
+     *     component, so there should be no such thing.
      *   - For each variable, calls `processNewStateVariableValueForVariable`,
      *     which dispatches into the array / scalar / essential / primitive-child
      *     branches and may recurse into shadowing variables.
@@ -246,21 +246,26 @@ export class EssentialValueWriter {
             let comp = this.core._components[cIdx];
 
             if (comp === undefined) {
-                // console.warn(`can't update state variables of component ${cIdx}, as it doesn't exist.`);
-                // nFailures += 1;
-
-                let updatesForComp =
-                    this.core.updateInfo
-                        .stateVariableUpdatesForMissingComponents[cIdx];
-                if (updatesForComp === undefined) {
-                    updatesForComp =
-                        this.core.updateInfo.stateVariableUpdatesForMissingComponents[
-                            cIdx
-                        ] = {};
-                }
-
-                Object.assign(updatesForComp, newStateVariableValues[cIdx]);
-
+                // This used to file the write onto
+                // `updateInfo.stateVariableUpdatesForMissingComponents` against
+                // `cIdx`, to be replayed when the component appeared. Nothing
+                // replays it: that map is drained by `stateId`
+                // (`checkForStateVariablesUpdatesForNewComponent`), and the two
+                // key spaces only ever coincided while `stateId` fell back to
+                // the component index, which it no longer does for anything.
+                //
+                // Nor is there a component for it to be replayed onto. Every
+                // index in `newStateVariableValues` was read off a live
+                // component -- the inverse-definition recursion walks
+                // dependencies, `shadowedBy` and parents, all of them live
+                // objects -- so "the component does not exist yet", which the
+                // old comment claimed, is not a state this bag can be in.
+                // Reaching here means something else is wrong, and it is worth
+                // hearing about rather than quietly filing under a key no one
+                // reads.
+                reportInternalError(
+                    `can't update state variables of component ${cIdx}, as it doesn't exist.`,
+                );
                 continue;
             }
 

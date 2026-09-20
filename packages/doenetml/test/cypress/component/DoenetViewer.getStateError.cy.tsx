@@ -1,5 +1,6 @@
 import React from "react";
 import { DoenetViewer } from "../../../src/doenetml-inline-worker";
+import { data_format_version } from "@doenet/utils";
 
 // What a host's `SPLICE.getState` failure reaches the reader as.
 //
@@ -223,7 +224,9 @@ describe("DoenetViewer SPLICE.getState error responses", () => {
             afterGetStateRequest(request);
 
             cy.then(() => {
-                answer(win, { state: { cid: request.cid! } });
+                answer(win, {
+                    state: { cid: request.cid!, data_format_version },
+                });
             });
 
             cy.contains("the document itself", {
@@ -235,7 +238,7 @@ describe("DoenetViewer SPLICE.getState error responses", () => {
             cy.then(() => {
                 answer(win, {
                     messageId: request.id!,
-                    state: { cid: request.cid! },
+                    state: { cid: request.cid!, data_format_version },
                 });
             });
             cy.contains("Error loading doc state", {
@@ -263,7 +266,7 @@ describe("DoenetViewer SPLICE.getState error responses", () => {
             cy.then(() => {
                 answer(win, {
                     messageId: request.id!,
-                    state: { cid: request.cid! },
+                    state: { cid: request.cid!, data_format_version },
                     error: { code: 500, message: "storage unavailable" },
                 });
             });

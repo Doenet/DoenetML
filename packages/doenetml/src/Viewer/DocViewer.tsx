@@ -66,6 +66,7 @@ import {
     CORE_START_FAILED_DOCUMENT_MESSAGE,
     CORE_START_RETRY_MESSAGE,
     SAVED_STATE_UNAVAILABLE_MESSAGE,
+    STATE_FROM_OLDER_VERSION_FALLBACK,
 } from "./coreWorkerBoot";
 import type { ResolvedTheme } from "../utils/theme";
 import {
@@ -2450,6 +2451,32 @@ export function DocViewer({
     }
 
     function processLoadedDocState(data: Record<string, any>) {
+        if (data.data_format_version !== data_format_version) {
+            // Saved state whose shape this version cannot read. Everything a
+            // host holds is opaque to it and gets handed back unread, so a
+            // payload written by an older version arrives looking exactly like
+            // a current one — the version inside it is the only thing that
+            // tells them apart. 0.8 re-keyed saved state from component build
+            // indices to identifiers derived from the document, so 0.7's keys
+            // no longer denote the same components; applying them would put a
+            // reader's values on the wrong ones rather than fail
+            // (Doenet/DoenetML#1944).
+            //
+            // Start the document clean, and say so. The reader loses an
+            // attempt in progress, which is worth telling them rather than
+            // letting them discover it; the credit they have already been
+            // recorded is unaffected, because score is reported separately
+            // from state.
+            setStateLoadNotice(
+                translate(
+                    "saved-state-from-older-version",
+                    undefined,
+                    STATE_FROM_OLDER_VERSION_FALLBACK,
+                ),
+            );
+            return;
+        }
+
         let coreInfo = JSON.parse(data.coreInfo, serializedComponentsReviver);
 
         let rendererState =

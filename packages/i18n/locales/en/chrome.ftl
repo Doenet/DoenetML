@@ -245,3 +245,9 @@ core-start-retry = Try again
 # without the reader's saved work (#1741). The host's own wording follows
 # this lead-in, so it says what was lost rather than why.
 saved-state-unavailable = Your saved work could not be loaded.
+
+# Follows `saved-state-unavailable` when the reason is that the saved work was
+# written by an earlier version of Doenet, whose saved state this version
+# cannot read (#1944). The document starts fresh; credit already recorded is
+# unaffected, since it is stored separately from the work itself.
+saved-state-from-older-version = It was saved by an earlier version of Doenet, so this activity has started fresh.

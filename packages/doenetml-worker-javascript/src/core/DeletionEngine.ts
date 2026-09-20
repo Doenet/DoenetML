@@ -302,6 +302,8 @@ export async function deleteComponents({
 
         // delete from cumulativeStateVariableChanges
         delete core.cumulativeStateVariableChanges[component.stateId];
+        core.readerTouchedStateIds.delete(component.stateId);
+        core.definitionSetStateIds.delete(component.stateId);
 
         // don't use recursive form since all children should already be included
         deregisterComponent({ core, component, recursive: false });

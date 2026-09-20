@@ -476,6 +476,13 @@ export class UpdateExecutor {
                     for (let varName in this.core
                         .essentialValuesSavedInDefinition[stateId]) {
                         if (essentialState[varName] !== undefined) {
+                            // Recorded, not withheld: a later partial write to
+                            // an array merges into this entry, and this is what
+                            // puts the `mergeObject` base there. What it is not
+                            // is the reader's work, so unless they also write
+                            // to this component it does not get persisted
+                            // (Doenet/DoenetML#1940).
+                            this.core.definitionSetStateIds.add(stateId);
                             this.core.essentialValueWriter.mergeIntoCumulative(
                                 stateId,
                                 varName,
@@ -492,8 +499,26 @@ export class UpdateExecutor {
             // merge in new state variables set in update
             for (let newValuesProcessed of newStateVariableValuesProcessed) {
                 for (const componentIdxStr in newValuesProcessed) {
-                    const stateId =
-                        this.core._components[Number(componentIdxStr)].stateId;
+                    const component =
+                        this.core._components[Number(componentIdxStr)];
+                    if (!component) {
+                        // The update deleted this component after writing to
+                        // it — a composite recreating its replacements is the
+                        // ordinary way that happens, and `<sort>` does it on
+                        // every reorder. Its saved entry has already been
+                        // dropped by `DeletionEngine`, so there is nothing to
+                        // merge; before this guard the missing `stateId` threw
+                        // here, and because `performAction` catches, the throw
+                        // silently took the rest of `performUpdate` with it —
+                        // the remaining components' writes were never merged
+                        // and no save was even scheduled.
+                        continue;
+                    }
+                    const stateId = component.stateId;
+                    // What the reader themselves changed, as opposed to what a
+                    // definition computed: this is the set that is persisted
+                    // (Doenet/DoenetML#1940).
+                    this.core.readerTouchedStateIds.add(stateId);
                     for (let varName in newValuesProcessed[componentIdxStr]) {
                         this.core.essentialValueWriter.mergeIntoCumulative(
                             stateId,

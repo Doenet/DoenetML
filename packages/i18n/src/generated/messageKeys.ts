@@ -75,6 +75,7 @@ export type MessageKey =
     | "core-start-failed-document"
     | "core-start-retry"
     | "saved-state-unavailable"
+    | "saved-state-from-older-version"
     | "color.black"
     | "color.white"
     | "color.gray"
@@ -707,6 +708,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "core-start-failed-document",
     "core-start-retry",
     "saved-state-unavailable",
+    "saved-state-from-older-version",
     "color.black",
     "color.white",
     "color.gray",

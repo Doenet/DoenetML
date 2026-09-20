@@ -2775,4 +2775,48 @@ describe("Collect tag tests @group4", async () => {
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("11, 99, 99, 44");
     });
+    it("gives its replacements ids that a rebuild reproduces", async () => {
+        // Saved reader state is keyed by `stateId`, and without one of its own
+        // a `<collect>` replacement falls back to its `componentIdx`, which is
+        // reassigned on every build (Doenet/DoenetML#1944).
+        const doenetML = `
+    <graph name="g">
+      <point name="A">(1,2)</point>
+      <point name="B">(3,4)</point>
+    </graph>
+    <collect name="c" from="$g" componentType="point" />
+  `;
+
+        async function replacementStateIds() {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const components = core.core!._components!;
+            const composite = components[await resolvePathToNodeIdx("c")];
+            return {
+                prefix: `${composite.stateId}|`,
+                stateIds: composite.replacements.map(
+                    (replacement: any) =>
+                        components[replacement.componentIdx].stateId,
+                ),
+            };
+        }
+
+        const { prefix, stateIds } = await replacementStateIds();
+        expect(stateIds.length).eq(2);
+        for (const stateId of stateIds) {
+            // Minted by the composite, off its own document-derived id — not
+            // the component index, which is reassigned on every build.
+            expect(
+                stateId,
+                `a collect replacement fell back to its component index: ${stateId}`,
+            ).satisfy(
+                (id: string) =>
+                    id.startsWith(prefix) &&
+                    /^\d+$/.test(id.slice(prefix.length)),
+            );
+        }
+        expect(new Set(stateIds).size, "two replacements share an id").eq(2);
+        expect((await replacementStateIds()).stateIds).eqls(stateIds);
+    });
 });

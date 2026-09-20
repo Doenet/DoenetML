@@ -320,6 +320,18 @@ export default class Shuffle extends CompositeComponent {
 
         let componentsCopied = [];
 
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        // See the note in `Sort.js`: without a `stateIdInfo` these replacements
+        // are keyed by `componentIdx`, which a fresh load assigns in shuffled
+        // order while a save was made in creation order (Doenet/DoenetML#1944).
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         let originalComponentIndices =
             await component.stateValues.originalComponentIndices;
 
@@ -335,6 +347,7 @@ export default class Shuffle extends CompositeComponent {
                 const res = createNewComponentIndices(
                     [serializedComponent],
                     nComponents,
+                    stateIdInfo,
                 );
                 nComponents = res.nComponents;
 
@@ -350,6 +363,7 @@ export default class Shuffle extends CompositeComponent {
         });
 
         workspace.componentsCopied = componentsCopied;
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return {
             replacements,

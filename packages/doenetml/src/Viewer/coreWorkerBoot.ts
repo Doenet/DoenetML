@@ -257,6 +257,10 @@ export const CORE_START_RETRY_MESSAGE = "Try again";
 export const SAVED_STATE_UNAVAILABLE_MESSAGE =
     "Your saved work could not be loaded.";
 
+/** Untranslated fallback for `saved-state-from-older-version`. */
+export const STATE_FROM_OLDER_VERSION_FALLBACK =
+    "It was saved by an earlier version of Doenet, so this activity has started fresh.";
+
 /**
  * Resolve/reject with `task()`, but reject with a timeout error if it does
  * not settle within `ms`. The underlying promise is left to settle on its

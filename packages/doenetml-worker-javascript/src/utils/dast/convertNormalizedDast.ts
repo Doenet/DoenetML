@@ -329,12 +329,193 @@ export async function normalizedDastToSerializedComponents(
     //     nComponents,
     // );
 
+    const document = sugarResult.components[0] as SerializedComponent;
+
+    // Last, so that the walk sees the final tree -- after references became
+    // copies, after attributes became components, and after sugar added
+    // whatever it adds.
+    assignDocumentDerivedStateIds(document);
+
     return {
-        document: sugarResult.components[0] as SerializedComponent,
+        document,
         nComponents,
         diagnostics,
         sources: [...normalized_root.sources],
     };
+}
+
+/**
+ * Give every component built from the document an identifier derived from where
+ * it sits in that document, rather than from the order it happened to be built
+ * in.
+ *
+ * Saved reader state is keyed by `stateId`, and `ComponentBuilder` falls back to
+ * `componentIdx.toString()` for anything that arrives without one — which, until
+ * this pass, was the whole authored tree and every component built from an
+ * attribute. A component index is a position in the build, so it moves whenever
+ * anything before it changes, and a reader's saved values then come back on the
+ * wrong components (Doenet/DoenetML#1944, Doenet/DoenetML#1940).
+ *
+ * The path is built from what the author wrote:
+ *
+ * | segment | form | example |
+ * |---|---|---|
+ * | document root | `` (empty) | `` |
+ * | k-th child, unnamed | `/k` | `/0/2` |
+ * | k-th child, named `P` | `/~P` | `/~P` |
+ * | attribute `x` | `@x` | `/~P@x` |
+ * | i-th reference in an attribute | `@x/i` | `/~P@through/0` |
+ * | index component in a reference path | `@@p.i` | `/~q@@0.0` |
+ *
+ * Two properties matter. **Attributes are keyed by name**, so the swap in #1944
+ * — where `x` and `y` were handed each other's indices — cannot be expressed in
+ * this scheme at all, independently of the iteration order they are visited in.
+ * And **a named element is keyed by its name**, so inserting something earlier
+ * in the document does not move it; an author renaming it does, which is
+ * acceptable because `cid` already discards saved state on any change to the
+ * document text.
+ *
+ * Only components that do not already carry a `stateId` are given one, so the
+ * ids composites mint for their replacements (`<composite stateId>|<n>`) are
+ * left alone — those hang off a composite whose own id this pass has made
+ * stable, so the whole tree becomes anchored to the document.
+ */
+export function assignDocumentDerivedStateIds(document: SerializedComponent) {
+    const assigned = new Set<string>();
+
+    /**
+     * @param fullPath   this component's position, counting every ancestor
+     * @param namedAnchor the path of the nearest ancestor the author named,
+     *   which is what a named component hangs off instead of its position
+     */
+    function assign(
+        component: SerializedComponent | string,
+        fullPath: string,
+        namedAnchor: string,
+    ) {
+        if (typeof component === "string") {
+            return;
+        }
+
+        const name = authorGivenName(component);
+
+        // A named component hangs off the nearest named ancestor, skipping the
+        // positions of any unnamed ones in between: that is what lets an author
+        // wrap it in a `<div>`, or add a paragraph above it, without moving it.
+        // Where the name is not available -- unnamed, or the name is already
+        // taken -- position is the fallback, and a tree position is unique by
+        // construction.
+        let path = fullPath;
+        if (name !== undefined) {
+            const anchored = `${namedAnchor}/~${name}`;
+            // A name the author reused elsewhere under the same anchor cannot
+            // identify this component, so fall back to its position rather than
+            // hand two components the same key.
+            if (!assigned.has(anchored)) {
+                path = anchored;
+            }
+        }
+
+        assigned.add(path);
+        if (component.stateId === undefined) {
+            component.stateId = path;
+        }
+
+        // Descendants hang off this component's name if it has one, so that a
+        // named ancestor shields everything under it from edits above.
+        const anchorForChildren = name !== undefined ? path : namedAnchor;
+
+        for (const [index, child] of component.children.entries()) {
+            if (typeof child === "string") {
+                continue;
+            }
+            assign(child, `${path}/${index}`, anchorForChildren);
+        }
+
+        // Sorted so the recursion order does not depend on the order the
+        // attributes happen to be stored in -- the very thing #1944 was about.
+        // The names are what the ids are built from, so sorting changes no id.
+        for (const attrName of Object.keys(component.attributes).sort()) {
+            const attribute = component.attributes[attrName];
+            if (attribute.type === "component") {
+                assign(
+                    attribute.component,
+                    `${path}@${attrName}`,
+                    anchorForChildren,
+                );
+            } else if (attribute.type === "references") {
+                for (const [
+                    index,
+                    reference,
+                ] of attribute.references.entries()) {
+                    assign(
+                        reference,
+                        `${path}@${attrName}/${index}`,
+                        anchorForChildren,
+                    );
+                }
+            }
+        }
+
+        // Components written inside the index of a reference path -- the `<b/>`
+        // of `$a[<b/>]`. `ComponentBuilder` builds these too, so they need ids
+        // of their own or they fall back to their index.
+        const extending = component.extending as any;
+        const refResolution = extending
+            ? (extending.Ref ??
+              extending.ExtendAttribute ??
+              extending.CopyAttribute)
+            : undefined;
+        if (refResolution?.originalPath) {
+            for (const [partIndex, pathPart] of (
+                refResolution.originalPath as SerializedRefResolutionPathPart[]
+            ).entries()) {
+                for (const [
+                    pieceIndex,
+                    indexPiece,
+                ] of pathPart.index.entries()) {
+                    for (const [
+                        valueIndex,
+                        value,
+                    ] of indexPiece.value.entries()) {
+                        assign(
+                            value,
+                            `${path}@@${partIndex}.${pieceIndex}.${valueIndex}`,
+                            anchorForChildren,
+                        );
+                    }
+                }
+            }
+        }
+    }
+
+    assign(document, "", "");
+}
+
+/**
+ * The name the author wrote for `component`, or `undefined` where they wrote
+ * none.
+ *
+ * Every component reaches here carrying a name, because
+ * `pluginAddCompatibilityNames` gives the unnamed ones `_<componentType><n>` —
+ * and those are assigned from a counter in document order, so anchoring on one
+ * would be no more stable than the position it replaces and would cost more
+ * bytes. They are recognised by their leading underscore, which is the form
+ * that plugin documents. Should an author write a name of that form themselves,
+ * the only consequence is that the component is keyed by position rather than
+ * by name: less robust to an edit above it, but no less correct.
+ */
+function authorGivenName(component: SerializedComponent): string | undefined {
+    const nameAttribute = component.attributes?.name;
+    if (
+        nameAttribute?.type === "primitive" &&
+        nameAttribute.primitive.type === "string" &&
+        nameAttribute.primitive.value &&
+        !nameAttribute.primitive.value.startsWith("_")
+    ) {
+        return nameAttribute.primitive.value;
+    }
+    return undefined;
 }
 
 /**

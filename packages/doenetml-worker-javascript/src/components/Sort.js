@@ -190,6 +190,21 @@ export default class Sort extends CompositeComponent {
 
         let componentsCopied = [];
 
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        // Without this, `createNewComponentIndices` clears `stateId` and each
+        // replacement falls back to its `componentIdx` -- which a fresh load
+        // assigns in sorted-position order while a save was made in creation
+        // order, so a reader's value comes back on the wrong replacement
+        // (Doenet/DoenetML#1944). A prefixed id is assigned once, at creation,
+        // and never reassigned.
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         for (let valueObj of await component.stateValues.sortedValues) {
             let replacementSource;
 
@@ -209,6 +224,7 @@ export default class Sort extends CompositeComponent {
                 const res = createNewComponentIndices(
                     [serializedComponent],
                     nComponents,
+                    stateIdInfo,
                 );
                 nComponents = res.nComponents;
                 replacements.push(res.components[0]);
@@ -223,6 +239,7 @@ export default class Sort extends CompositeComponent {
         });
 
         workspace.componentsCopied = componentsCopied;
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return {
             replacements,

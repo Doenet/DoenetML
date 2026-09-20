@@ -113,6 +113,49 @@ export class StatePersistence {
     }
 
     /**
+     * The reader's own work, out of everything `cumulativeStateVariableChanges`
+     * holds.
+     *
+     * That bag also carries every essential value an ordinary definition
+     * computed, because the reader's first interaction anywhere flushes the
+     * document-wide `essentialValuesSavedInDefinition` into it. Those values
+     * are not the reader's, and not worth persisting: they are recomputed
+     * identically on a fresh load of the same document under the same variant,
+     * which is what the definition would do anyway. Left in, they meant a page
+     * of exercises paid for every exercise as soon as the reader touched any
+     * one of them (Doenet/DoenetML#1940).
+     *
+     * They stay in the in-memory bag — a partial write to an array merges into
+     * whatever is recorded there, and the definition path is what puts the
+     * `mergeObject` base in place — so the filter is applied here, on the way
+     * out, where both of `performUpdate`'s passes have already run.
+     *
+     * Stated as "drop what is known to be only a definition's" rather than
+     * "keep what is known to be the reader's", so that an entry arriving by a
+     * route this bookkeeping does not know about is saved rather than silently
+     * dropped.
+     *
+     * `__`-prefixed keys are reserved sentinels rather than components' entries
+     * (`__componentNeedingUpdateValue`), and are always carried.
+     */
+    _readerStateToSave(): Record<string, any> {
+        const cumulative = this.core.cumulativeStateVariableChanges;
+        const toSave: Record<string, any> = {};
+        for (const stateId in cumulative) {
+            // Optional, and deliberately so: a `Core` always has both sets,
+            // but a stand-in driving this class directly need not, and the
+            // answer when they are missing should be to save the entry.
+            const onlyADefinitionsWork =
+                this.core.definitionSetStateIds?.has(stateId) &&
+                !this.core.readerTouchedStateIds?.has(stateId);
+            if (stateId.startsWith("__") || !onlyADefinitionsWork) {
+                toSave[stateId] = cumulative[stateId];
+            }
+        }
+        return toSave;
+    }
+
+    /**
      * Build the serialized document-state payload — the shape
      * `reportScoreAndState` delivers to hosts and `DocViewer`'s
      * `initialState` accepts back.
@@ -121,7 +164,7 @@ export class StatePersistence {
         const core = this.core;
 
         const coreStateString = JSON.stringify(
-            core.cumulativeStateVariableChanges,
+            this._readerStateToSave(),
             serializedComponentsReplacer,
         );
         let rendererStateString: string | null = null;
@@ -135,6 +178,13 @@ export class StatePersistence {
 
         return {
             payload: {
+                // Inside the payload, not beside it: a host is told to store
+                // this blob opaquely and hand it back unread, so a sibling
+                // field on the message would not survive the round trip. It is
+                // the only thing that tells a payload written by an older
+                // version from a current one, and without it a 0.8 core would
+                // apply 0.7's keys to components they no longer denote.
+                data_format_version,
                 cid: core.cid,
                 coreInfo: core.coreInfoString,
                 coreState: coreStateString,

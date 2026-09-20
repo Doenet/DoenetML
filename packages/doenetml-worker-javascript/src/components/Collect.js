@@ -340,6 +340,18 @@ export default class Collect extends CompositeComponent {
 
         let replacements = [];
 
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        // See the note in `Sort.js`: without a `stateIdInfo` these replacements
+        // are keyed by `componentIdx`, which is reassigned on every build, so
+        // saved reader state can land on the wrong one (Doenet/DoenetML#1944).
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
+
         let numReplacementsByCollected = [];
         let numReplacementsSoFar = 0;
         let replacementNamesByCollected = [];
@@ -364,6 +376,7 @@ export default class Collect extends CompositeComponent {
                     numComponentsForSource,
                     publicCaseInsensitiveAliasSubstitutions,
                     nComponents,
+                    stateIdInfo,
                 });
                 diagnostics.push(...results.diagnostics);
                 nComponents = results.nComponents;
@@ -386,6 +399,7 @@ export default class Collect extends CompositeComponent {
             (x) => x.componentIdx,
         );
         workspace.replacementNamesByCollected = replacementNamesByCollected;
+        workspace.replacementsCreated = stateIdInfo.num;
         return { replacements, diagnostics, nComponents };
     }
 
@@ -398,6 +412,7 @@ export default class Collect extends CompositeComponent {
         compositeAttributesObj,
         numComponentsForSource,
         publicCaseInsensitiveAliasSubstitutions,
+        stateIdInfo,
         nComponents,
     }) {
         // console.log(`create replacement for collected ${collectedNum}, ${numReplacementsSoFar}`)
@@ -428,6 +443,7 @@ export default class Collect extends CompositeComponent {
         let res = createNewComponentIndices(
             serializedReplacements,
             nComponents,
+            stateIdInfo,
         );
         serializedReplacements = res.components;
         nComponents = res.nComponents;
@@ -448,6 +464,7 @@ export default class Collect extends CompositeComponent {
                 componentInfoObjects,
                 compositeAttributesObj,
                 nComponents,
+                stateIdInfo,
             });
 
             const attributesFromComposite = res.attributes;
@@ -480,6 +497,18 @@ export default class Collect extends CompositeComponent {
         let diagnostics = [];
 
         let numReplacementsFoundSoFar = 0;
+
+        if (workspace.replacementsCreated === undefined) {
+            workspace.replacementsCreated = 0;
+        }
+
+        // Continues the counter `createSerializedReplacements` left behind, so
+        // a replacement recreated here cannot be minted the id of one that is
+        // still alive.
+        const stateIdInfo = {
+            prefix: `${component.stateId}|`,
+            num: workspace.replacementsCreated,
+        };
 
         workspace.numReplacementsByCollected = [
             ...workspace.numReplacementsByCollected,
@@ -614,6 +643,7 @@ export default class Collect extends CompositeComponent {
                     compositeAttributesObj,
                     numComponentsForSource,
                     publicCaseInsensitiveAliasSubstitutions,
+                    stateIdInfo,
                 });
                 diagnostics.push(...results.diagnostics);
                 nComponents = results.nComponents;
@@ -676,6 +706,7 @@ export default class Collect extends CompositeComponent {
             (x) => x.componentIdx,
         );
         workspace.replacementNamesByCollected = replacementNamesByCollected;
+        workspace.replacementsCreated = stateIdInfo.num;
 
         return { replacementChanges, diagnostics, nComponents };
     }
@@ -691,6 +722,7 @@ export default class Collect extends CompositeComponent {
         numComponentsForSource,
         publicCaseInsensitiveAliasSubstitutions,
         nComponents,
+        stateIdInfo,
     }) {
         let diagnostics = [];
 
@@ -704,6 +736,7 @@ export default class Collect extends CompositeComponent {
             numComponentsForSource,
             publicCaseInsensitiveAliasSubstitutions,
             nComponents,
+            stateIdInfo,
         });
         diagnostics.push(...results.diagnostics);
         nComponents = results.nComponents;
