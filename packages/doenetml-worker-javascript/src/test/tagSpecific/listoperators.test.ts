@@ -554,8 +554,8 @@ describe("List operator tag tests @group4", async () => {
 
         it("`allowUnsorted` answers a list that would otherwise be declined", async () => {
             // The precondition is the operator's to keep once the author has
-            // asked it to sort, so the same list that gets 0 above gets a
-            // position here, and no warning.
+            // said the values may be in any order, so the same list that gets 0
+            // above gets a position here, and no warning.
             const { text, warnings } = await resultsFor(`
     <p name="p"><searchSorted allowUnsorted target="25">10 30 20</searchSorted></p>
     `);
@@ -631,7 +631,8 @@ describe("List operator tag tests @group4", async () => {
         });
 
         it("`allowUnsorted` leaves out a value with no place in the order", async () => {
-            // Without `sort`, a value that takes no part is stepped over and
+            // Without `allowUnsorted`, a value that takes no part is stepped
+            // over and
             // keeps its slot, so 10 belongs at 5 — after the 9, the last of
             // four entries. With `allowUnsorted` the operator is the one deciding
             // the order, and a value with no place in it has no slot to keep,
@@ -673,7 +674,7 @@ describe("List operator tag tests @group4", async () => {
             ).eq("3");
         });
 
-        it("without `sort`, nothing changes", async () => {
+        it("without `allowUnsorted`, nothing changes", async () => {
             // The attribute defaults off, so the precondition still applies to
             // every document that does not ask for it.
             const { text, warnings } = await resultsFor(`

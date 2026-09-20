@@ -88,8 +88,8 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
     // unordered list is not a position at all.
     static validateValues = null;
 
-    // Whether the subclass declares a `sort` attribute, which waives the
-    // precondition above: what the attribute then promises about the answer is
+    // Whether the subclass declares an `allowUnsorted` attribute, which waives
+    // the precondition above: what the attribute then promises about the answer is
     // the subclass's to keep, in `locate`. `<indexOf>` searches any list at
     // all and has nothing to waive.
     static supportsAllowUnsorted = false;
@@ -196,7 +196,7 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "locate",
                 },
-                // Declared only by a subclass that offers a `sort`
+                // Declared only by a subclass that offers an `allowUnsorted`
                 // attribute, since the rest have no such state variable.
                 ...(supportsAllowUnsorted
                     ? {
