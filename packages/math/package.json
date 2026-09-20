@@ -18,6 +18,10 @@
         "./engine-rust": {
             "types": "./dist/engine-rust.d.ts",
             "import": "./dist/engine-rust.js"
+        },
+        "./wasm-web/math_expressions_wasm.js": {
+            "types": "./dist/wasm-web-stub.d.ts",
+            "import": "./dist/wasm-web-stub.js"
         }
     },
     "scripts": {

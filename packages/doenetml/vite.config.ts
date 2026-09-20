@@ -23,14 +23,23 @@ import {
 const EXTERNAL_DEPS = ["react", "react-dom", "math-expressions"];
 
 // `math-expressions` stays in that list, and that is what puts it into the
-// published `dist/package.json`'s `peerDependencies`: the transformer copies
-// this package's declared range verbatim. So the range in `package.json` is the
-// range that ships. It is `file:../math` today, which no npm consumer can
-// resolve — changing it to the range matching the version actually published is
-// Step 6 of `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md`, and that document states
-// the order the release has to follow and which range each published version
-// shape needs (`^3.0.0` for a release, `^3.0.0-alpha.1` for a prerelease, since
-// npm semver excludes prereleases from `^3.x`).
+// published `dist/package.json`'s `peerDependencies`.
+//
+// The range is named here rather than taken from `package.json`, because the
+// two want different strings. `package.json` says `file:../math`, which is what
+// makes every `import me from "math-expressions"` in this package resolve to
+// `@doenet/math` — the seam that inlines the WASM core, and the module every
+// sibling workspace and the standalone app resolve too. Declaring the registry
+// range there instead would make npm install the published package *inside*
+// `packages/doenetml`, so this package alone would type-check and test against
+// a different module than it ships.
+//
+// The dot in `-alpha.1` is load-bearing: without it npm semver reads the tail
+// as one alphanumeric identifier and compares it as text, so `-alpha.10` would
+// sort before `-alpha.9`. See the range table in
+// `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md`. When upstream reaches a real
+// `3.0.0`, this becomes `^3.0.0`.
+const MATH_EXPRESSIONS_PUBLISHED_RANGE = "^3.0.0-alpha.1";
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -59,6 +68,10 @@ export default defineConfig(({ mode }) => {
                         dest: "./",
                         transform: createPackageJsonTransformer({
                             externalDeps: EXTERNAL_DEPS,
+                            publishRanges: {
+                                "math-expressions":
+                                    MATH_EXPRESSIONS_PUBLISHED_RANGE,
+                            },
                         }),
                     },
                     // Ship the README in the published package (`dist/` is
@@ -95,7 +108,21 @@ export default defineConfig(({ mode }) => {
             rollupOptions: devBuild
                 ? undefined
                 : {
-                      external: EXTERNAL_DEPS,
+                      // The subpath pattern alongside the bare names:
+                      // `utils/mathWasm.ts` reaches
+                      // `math-expressions/wasm-web/…` on the consumer path,
+                      // and rollup resolves a dynamic import at build time
+                      // unless told not to. An exact-match entry does not
+                      // cover a subpath, and here it cannot resolve —
+                      // `@doenet/math`, which backs the specifier in this
+                      // repository, deliberately has no such export. It is
+                      // the consumer's `math-expressions` that answers it,
+                      // so it has to leave this build untouched.
+                      //
+                      // Deliberately not added to EXTERNAL_DEPS: that list is
+                      // also what becomes `peerDependencies`, and the subpath
+                      // is not a package to depend on.
+                      external: [...EXTERNAL_DEPS, /^math-expressions\//],
                       output: {
                           globals: Object.fromEntries(
                               EXTERNAL_DEPS.map((dep) => [dep, dep]),

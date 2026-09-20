@@ -54,10 +54,13 @@ function sourceManifest(fields) {
  * `fields` is the dependency-declaring part of the source manifest, so a test
  * can put a range in `devDependencies` instead of `dependencies`.
  */
-function transformFields(fields, externalDeps) {
+function transformFields(fields, externalDeps, publishRanges) {
     const warn = vi.spyOn(console, "warn").mockImplementation(() => {});
     try {
-        const output = createPackageJsonTransformer({ externalDeps })(
+        const output = createPackageJsonTransformer({
+            externalDeps,
+            publishRanges,
+        })(
             sourceManifest(fields),
             path.join(REPO_ROOT, "packages/standalone/package.json"),
         );
@@ -71,11 +74,49 @@ function transformFields(fields, externalDeps) {
 }
 
 /** The common case: everything declared as a plain `dependencies` entry. */
-function transform(dependencies, externalDeps) {
-    return transformFields({ dependencies }, externalDeps);
+function transform(dependencies, externalDeps, publishRanges) {
+    return transformFields({ dependencies }, externalDeps, publishRanges);
 }
 
 describe("createPackageJsonTransformer", () => {
+    it("publishes an override in place of the declared range", () => {
+        // The case this exists for: the declared range is what makes the
+        // specifier resolve *inside the workspace*, and it is not installable
+        // from a registry. The published manifest has to say the other one.
+        const { pkg, warnings } = transform(
+            { "math-expressions": "file:../math" },
+            ["math-expressions"],
+            { "math-expressions": "^3.0.0-alpha.1" },
+        );
+
+        expect(pkg.peerDependencies).toEqual({
+            "math-expressions": "^3.0.0-alpha.1",
+        });
+        expect(warnings).toEqual([]);
+    });
+
+    it("publishes an override for a dep the manifest never declares", () => {
+        // An override is a complete answer on its own, so a package that
+        // externalizes something it does not itself depend on still ships a
+        // usable range rather than the warning below.
+        const { pkg, warnings } = transform({}, ["math-expressions"], {
+            "math-expressions": "^3.0.0-alpha.1",
+        });
+
+        expect(pkg.peerDependencies).toEqual({
+            "math-expressions": "^3.0.0-alpha.1",
+        });
+        expect(warnings).toEqual([]);
+    });
+
+    it("leaves a dep with no override on its declared range", () => {
+        const { pkg } = transform({ react: "^19.2.3" }, ["react"], {
+            "math-expressions": "^3.0.0-alpha.1",
+        });
+
+        expect(pkg.peerDependencies).toEqual({ react: "^19.2.3" });
+    });
+
     it("promotes an externalized dep to a peer dependency", () => {
         const { pkg, warnings } = transform(
             { react: "^19.2.3", "@doenet/utils": "file:../utils" },
@@ -196,9 +237,39 @@ describe("packages/doenetml externalizes the math seam and declares it", () => {
     });
 
     it("passes the unfiltered list to the package.json transformer", () => {
+        // `EXTERNAL_DEPS` itself, not a filtered copy. Other options may be
+        // passed alongside it — `publishRanges` is — so this pins the list
+        // rather than the whole call.
         expect(configSource).toMatch(
-            /createPackageJsonTransformer\(\{\s*externalDeps: EXTERNAL_DEPS,?\s*\}\)/,
+            /createPackageJsonTransformer\(\{[\s\S]*?externalDeps: EXTERNAL_DEPS,/,
         );
+    });
+
+    /**
+     * The declared range stays `file:../math`, because that is what makes
+     * `import me from "math-expressions"` resolve to `@doenet/math` here. So
+     * the published range has to come from somewhere else, and a `file:` range
+     * reaching the tarball is the failure this catches: npm cannot resolve it,
+     * and the bundle's bare import would find nothing.
+     */
+    it("publishes a registry-resolvable range for the math seam", () => {
+        const override = configSource.match(
+            /publishRanges: \{\s*"math-expressions":\s*([\s\S]*?),?\s*\}/,
+        );
+        expect(
+            override,
+            "no publishRanges entry for math-expressions",
+        ).not.toBe(null);
+        const range = configSource.match(
+            /MATH_EXPRESSIONS_PUBLISHED_RANGE = "([^"]+)"/,
+        )?.[1];
+        expect(range, "no MATH_EXPRESSIONS_PUBLISHED_RANGE").toBeTruthy();
+        expect(range.startsWith("file:")).toBe(false);
+        // A caret range over a prerelease needs the prerelease in it, or npm
+        // excludes every prerelease of that version — including the one named.
+        if (range.startsWith("^") && range.includes("-")) {
+            expect(range).toMatch(/^\^\d+\.\d+\.\d+-/);
+        }
     });
 
     it("declares a range for every externalized dep", () => {

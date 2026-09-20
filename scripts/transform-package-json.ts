@@ -15,17 +15,36 @@ const require = createRequire(import.meta.url);
  * resolve — the release order in `MATH_EXPRESSIONS_RUST_MIGRATION_PLAN.md` is
  * about exactly that.
  *
+ * `publishRanges` is for the case where those two jobs want different strings.
+ * `math-expressions` is the one: every workspace declares it as
+ * `file:../math`, which is what makes a bare `import me from
+ * "math-expressions"` resolve to `@doenet/math` — the seam that inlines the
+ * WASM core. Writing the registry range into that manifest instead would make
+ * npm install the published package *inside* `packages/doenetml`, shadowing
+ * the seam there while every sibling still resolved it, so this package would
+ * type-check and test against a different module than it ships. The declared
+ * range therefore stays local and the published one is named here, where it is
+ * about publishing and nothing else.
+ *
  * @param externalDeps An array of dependencies that should be externalized.
+ * @param publishRanges Ranges to emit instead of the declared one, per dependency.
  * @param targetDir The directory where the `package.json` file will be written. This is usually `./dist`, but it may be a different subdirectory. Any paths in the exports field of package.json are rewritten to be relative to this directory instead.
  */
 export function createPackageJsonTransformer({
     externalDeps = [],
+    publishRanges = {},
     targetDir = "./dist",
 }: {
     /**
      * A list of external dependencies. These dependencies will be listed as peer dependencies in the final package.json file.
      */
     externalDeps?: string[];
+    /**
+     * Per-dependency overrides for the range written into `peerDependencies`.
+     * A dependency named here needs no range in the source manifest at all;
+     * one named here *and* declared there has the declaration ignored.
+     */
+    publishRanges?: Record<string, string>;
     /**
      * The directory where the final `package.json` file will be placed. Default is `./dist`.
      */
@@ -62,13 +81,13 @@ export function createPackageJsonTransformer({
         // the bundle imports it by name and the consumer has to provide it.
         pkg.peerDependencies = {};
         for (const dep of externalDeps) {
-            const range = allDeps[dep];
+            const range = publishRanges[dep] ?? allDeps[dep];
             if (!range) {
                 // Nothing to emit — there is no range to copy. Warn rather than
                 // throw: the emitted manifest is still valid, it just leaves
                 // the consumer to supply the import on their own.
                 console.warn(
-                    `${pkg.name}: "${dep}" is externalized by vite but no version is declared in package.json, so it will not appear in peerDependencies`,
+                    `${pkg.name}: "${dep}" is externalized by vite but has neither a publishRanges entry nor a version in package.json, so it will not appear in peerDependencies`,
                 );
                 continue;
             }

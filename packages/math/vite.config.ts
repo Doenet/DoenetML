@@ -152,6 +152,9 @@ export default defineConfig({
             entry: {
                 index: "./src/index.ts",
                 "engine-rust": "./src/engine-rust.ts",
+                // Resolves the subpath `@doenet/doenetml` names on its
+                // consumer-only fallback path; see src/wasm-web-stub.ts.
+                "wasm-web-stub": "./src/wasm-web-stub.ts",
             },
             formats: ["es"],
         },

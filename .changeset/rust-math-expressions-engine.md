@@ -79,6 +79,22 @@ but the engine is a different implementation and some results differ:
   describe one particular video, so a new source starts from zero instead of inheriting the old
   video's position and having the player seek into the middle of a video nobody has watched.
 
+**If you install `@doenet/doenetml` rather than building this repository, you now need one more
+package.** The engine used to be bundled invisibly inside the library; it is now a peer dependency,
+so that an application embedding several `@doenet/*` libraries resolves one copy of it rather than
+one per library:
+
+```
+npm install math-expressions@^3.0.0-alpha.1
+```
+
+That is the whole of it — no code, and no initialization step. `@doenet/doenetml` brings the engine
+up itself and waits for it before rendering, and your bundler emits the WASM binary as an ordinary
+asset beside your other chunks (Vite and webpack 5 both recognize the pattern the engine's loader
+uses). The one thing to know is that the binary is fetched rather than inlined on this path, so a
+host that cannot make a same-origin request for it — a `srcdoc` or blob-URL document, for instance
+— should use `@doenet/standalone` instead, which carries everything in one file.
+
 The engine's WASM is inlined into the bundle rather than fetched, so no extra network request is
 made, but the bundle carries it: the engine is 2.41 MiB uncompressed and 792 kB gzipped, against
 roughly 1 MiB (about 290 kB gzipped) for the JavaScript library it replaces. Building DoenetML from

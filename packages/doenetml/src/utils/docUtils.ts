@@ -8,7 +8,7 @@ import {
     normalizeDocumentDast,
 } from "@doenet/parser";
 import { resolveDocumentLocale } from "@doenet/i18n";
-import { initMathWasm } from "math-expressions";
+import { initMathEngine } from "./mathWasm";
 import { readDocumentLang } from "./documentLang";
 
 export type CoreWorkerHandle = {
@@ -365,17 +365,17 @@ export async function initializeCoreWorker({
 }) {
     // The renderers this document is about to mount reach for math on the main
     // thread — tick labels, graph controls, the `<label>` of a point, a
-    // disabled input's styling. `@doenet/math` compiles its WASM core eagerly
-    // wherever a synchronous compile is legal, which covers node and the core
-    // worker but *not* the browser main thread, where it refuses the 2 MiB
-    // synchronous compile and leaves the host to await it. Nothing did, so
-    // every one of those paths threw "the WASM core is not initialized yet"
-    // and the component silently failed to render.
+    // disabled input's styling. The engine refuses a synchronous compile of a
+    // binary that size off-worker, so nothing on this thread can use it until
+    // an async compile has finished. Before anything awaited one, every such
+    // path threw "the WASM core is not initialized yet" and the component
+    // silently failed to render. `./mathWasm` covers both the seam and a
+    // consumer's published `math-expressions`.
     //
     // Started here rather than awaited, so the compile overlaps this
     // initialization's own work and its turn on the worker, and awaited before
     // we return so that no renderer can exist before the engine is ready.
-    const mathWasmReady = initMathWasm();
+    const mathWasmReady = initMathEngine();
     // Registering a handler now, rather than relying on the `await` below,
     // because the promise is held across several `await`s that can each throw.
     // If one does, nothing ever awaits this one and the runtime reports an
