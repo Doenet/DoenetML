@@ -7,9 +7,11 @@ name: Publish
 #     which is why this line's dev channel is `workflow_dispatch` only, and why
 #     its stable releases come from the `release` event, whose workflow file
 #     does come from the tagged commit.
-#   * No VS Code extension. The Marketplace and Open VSX each carry a single
-#     ascending version stream, so an 0.7.x extension published after 0.8.x is
-#     either rejected or has to claim a version it does not have.
+#   * No VS Code extension. On both the Marketplace and Open VSX the stable
+#     channel is a single ascending stream shared with `main` (pre-releases run
+#     beside it on their own numbers, `0.7.10<run_number>`, which is why a
+#     stable upload can sit below them). Once `main` ships an 0.8.x extension,
+#     an 0.7.x one is a downgrade there and is refused.
 #   * Publishes under `0.7-stable` / `0.7-dev`, never `latest` / `dev`. The
 #     per-package `publish` scripts on this branch pin `--tag 0.7-stable`, so
 #     even a bare `npm run publish` by hand cannot move `latest`. What the pin

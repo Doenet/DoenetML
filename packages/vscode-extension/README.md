@@ -49,10 +49,12 @@ Extension packaging and publishing is automated as part of the production releas
 
 > **On the 0.7 maintenance branch, none of this runs and none of it should be run by hand.**
 > `publish.yml` here builds and publishes the four npm packages only; the Marketplace and
-> Open VSX steps are not on this branch. Both registries carry a single ascending version
-> stream shared with `main`, so releasing an 0.7.x extension would either be rejected as a
-> downgrade or — worse, before `main` takes its minor — put a maintenance-line build in
-> front of every user as the newest extension there is. The two manifests still version with
+> Open VSX steps are not on this branch. On both registries the stable channel is a single
+> ascending stream shared with `main` — the `0.7.10<run_number>` pre-releases run beside it
+> on their own numbers, which is why a stable upload can sit below them. So releasing an
+> 0.7.x extension from here would either be rejected as a downgrade, once `main` has shipped
+> an 0.8.x one, or — worse, before that — be accepted and put a maintenance-line build in
+> front of every stable user as the newest extension there is. The two manifests still version with
 > the fixed group because `validate-tag-versions.mjs` requires it; they are simply never
 > published from here. The `publish`, `publish:prerelease`, `publish:openvsx` and
 > `publish:openvsx:prerelease` scripts below still work if you run them with a token, which

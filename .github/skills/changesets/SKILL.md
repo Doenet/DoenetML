@@ -53,9 +53,9 @@ Don't infer "never published" from `"private": true` alone, and don't infer "pub
 **The two reliable signals**, either of which settles it:
 
 1. The package's `vite.config.ts` runs `scripts/transform-package-json.ts`. Internal packages have no such step.
-2. The package has a `publish` script in its own `package.json` that runs `.github/scripts/npm-publish-with-retry.mjs`, and the root `publish` script names its workspace. Internal packages have neither.
+2. The package has a `publish` script in its own `package.json` that runs `.github/scripts/npm-publish-with-retry.mjs`, and the root `publish` script names its workspace. Internal packages have neither. Both signals are about npm, so neither one catches `@doenet/vscode-extension`: it goes to the VS Code Marketplace via `vsce`, and it is in the fixed group regardless — treat it as settled by the fixed-group list above rather than by these two.
 
-   On this branch that list is the four npm packages only: `@doenet/vscode-extension` still versions with the fixed group but is never published here (the Marketplace carries one ascending version stream, so an 0.7.x extension released after 0.8.x cannot go out), and `@doenet/prefigure` is released from `main` alone — its `publish` script on this branch refuses to run, and `publish-prefigure.yml` is not on this branch at all.
+   On this branch that list is the four npm packages only: `@doenet/vscode-extension` still versions with the fixed group but is never published here (the Marketplace's stable channel is one ascending stream shared with `main`, so an 0.7.x extension released after 0.8.x is a downgrade there and cannot go out), and `@doenet/prefigure` is released from `main` alone — its `publish` script on this branch refuses to run, and `publish-prefigure.yml` is not on this branch at all.
 
 Check one of those before adding an unfamiliar package to a changeset — the enumeration above is a convenience, and new packages land as internal by default.
 
@@ -64,7 +64,7 @@ Check one of those before adding an unfamiliar package to a changeset — the en
 Propagation is **one-directional — forward to consumers that re-bundle or re-render the change, never back to dependencies of the changed package.** Include a package iff:
 
 1. Its own source changed in this branch (and the package is published), OR
-2. It bundles, re-exports, or embeds the changed source, and the change is something that package's users will notice. Example: a change in `packages/doenetml/src` is visible to `@doenet/standalone` (bundles `@doenet/doenetml`), `@doenet/doenetml-iframe` (bundles `@doenet/standalone`), and `@doenet/vscode-extension` / `doenet-vscode-extension` (embed the editor) — list those alongside `@doenet/doenetml`. Look at recent changesets in the same area for the conventional set.
+2. It bundles, re-exports, or embeds the changed source, and the change is something that package's users will notice. Example: a change in `packages/doenetml/src` is visible to `@doenet/standalone` (bundles `@doenet/doenetml`), `@doenet/doenetml-iframe` (bundles `@doenet/standalone`), and `@doenet/vscode-extension` / `doenet-vscode-extension` (embed the editor) — list those alongside `@doenet/doenetml`. **On this branch stop before the two extension manifests**; the note at the end of this section says why. Look at recent changesets in the same area for the conventional set.
 
 ### The doenetml → standalone → doenetml-iframe chain (always propagate)
 

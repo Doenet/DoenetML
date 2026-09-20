@@ -4,9 +4,13 @@
  * This branch exists only for backports, and its version sequence has to stay
  * inside 0.7.x. A `minor` changeset here would make `changeset version` compute
  * 0.8.0 and open a line that already belongs to `main` — two branches would
- * then claim the same version, and whichever published second would either fail
- * on "cannot publish over" or quietly ship a different tree under a version
- * someone had already installed.
+ * then claim the same version. npm never lets the second one replace the first
+ * one's tarball, and our release path does not even report that refusal as an
+ * error: `npm-publish-with-retry.mjs` matches `EPUBLISHCONFLICT` / "cannot
+ * publish over" as already-published, calls the publish a success, and then
+ * points the dist-tag it was given at whatever tree got there first. So the
+ * second line's release would quietly leave `0.7-stable` serving `main`'s
+ * build.
  *
  * It is worth a CI job rather than a convention because the mistake arrives by
  * cherry-pick: a fix that was `minor` on `main` carries its changeset file
@@ -31,9 +35,13 @@ const ALLOWED_BUMP = "patch";
  *
  * The pattern is `mdRegex` from `@changesets/parse`, copied rather than
  * imported because this runs before `npm ci` and must stay dependency-free.
- * Copying it exactly is the point: anything stricter skips a file that
- * `changeset version` still acts on, and skipping is the one failure this
- * script cannot afford. A leading blank line, a byte-order mark, a stray note
+ * The part that decides what matches is copied character for character; the
+ * only edit is to the trailing group, from `(\s*(?:\n|$)[^]*)` — which captures
+ * the summary — to a non-capturing `(?:\s*(?:\n|$))`, because nothing here
+ * reads the summary and the pattern is unanchored at its end either way.
+ * Matching no less than changesets does is the point: anything stricter skips a
+ * file that `changeset version` still acts on, and skipping is the one failure
+ * this script cannot afford. A leading blank line, a byte-order mark, a stray note
  * above the fence or an indented closing fence all defeat an anchored
  * `/^---\n...\n---/` while `changeset version` reads the front matter
  * underneath them and bumps exactly as it says.
