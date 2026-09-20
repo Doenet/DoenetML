@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createTestCore } from "./test-core";
 import { updateTextInputValue } from "./actions";
+import { data_format_version } from "@doenet/utils";
 
 // The main realm's half of the page-hide flush (Doenet/DoenetML#1726).
 //
@@ -88,5 +89,31 @@ describe("throttled state is mirrored to the main realm (#1726) @group4", () => 
             "third",
         );
         expect(scoreState.state).not.toContain("third");
+    });
+});
+
+describe("the saved payload says which format it is in @group4", () => {
+    it("carries the data format version inside the state a host stores", async () => {
+        // A host stores this blob opaquely and hands it back unread, so a
+        // payload written by an older version of Doenet arrives looking exactly
+        // like a current one. The version inside it is the only thing that
+        // tells them apart — and 0.8 re-keyed saved state, so applying 0.7's
+        // keys would put a reader's values on components they no longer denote
+        // rather than fail (Doenet/DoenetML#1944). It has to be *inside* the
+        // payload; a field beside it would not survive the round trip.
+        const { core, resolvePathToNodeIdx, lastStateReport } =
+            await createTestCore({ doenetML: DOC });
+
+        await updateTextInputValue({
+            text: "saved",
+            componentIdx: await resolvePathToNodeIdx("ti"),
+            core,
+        });
+        await core.saveImmediately();
+
+        expect(lastStateReport.payload).not.toBeNull();
+        expect(lastStateReport.payload!.data_format_version).eq(
+            data_format_version,
+        );
     });
 });

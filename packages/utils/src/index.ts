@@ -38,4 +38,17 @@ export * from "./version/doenetMLversion";
 import * as subsets from "./math/subset-of-reals";
 export { subsets };
 
-export const data_format_version = "0.7.0";
+/**
+ * The shape of the saved reader state this version writes and will read back.
+ *
+ * Bumped whenever that shape changes in a way that makes older state
+ * unreadable, which discards it rather than misapplying it. 0.8.0 re-keyed
+ * saved state from component build indices to identifiers derived from the
+ * document (Doenet/DoenetML#1944), so 0.7 state does not denote the same
+ * components any more.
+ *
+ * It travels inside the state payload itself, which hosts are told to store
+ * opaquely and hand back unread — a sibling field on the message would not
+ * survive that round trip.
+ */
+export const data_format_version = "0.8.0";

@@ -1,6 +1,7 @@
 import React from "react";
 import { DoenetViewer } from "../../../src/doenetml-inline-worker";
 import { doenetGlobalConfig } from "../../../src/global-config";
+import { data_format_version } from "@doenet/utils";
 
 // Component coverage for `coreStartFailedCallback` (#1709): the failure
 // counterpart of `initializedCallback`.
@@ -95,6 +96,10 @@ describe("DoenetViewer coreStartFailedCallback (#1709)", () => {
                     message_id: e.data.message_id,
                     state: {
                         cid: e.data.cid,
+                        // Says it is in a format this viewer reads, so the
+                        // version gate lets it through to the parse that the
+                        // malformed `coreInfo` below is here to fail.
+                        data_format_version,
                         coreInfo: "this is not JSON",
                         coreState: "{}",
                     },

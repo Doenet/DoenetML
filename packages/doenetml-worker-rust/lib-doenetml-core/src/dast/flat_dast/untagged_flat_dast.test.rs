@@ -262,3 +262,54 @@ fn flattening_carries_a_parser_diagnostic_code() {
     // the message catalogs still has something to show.
     assert!(error.message.starts_with("Invalid DoenetML: The tag `<p>`"));
 }
+
+/// The attribute names of the first element in `source`, in the order the
+/// flattener produced them.
+///
+/// Deliberately does not go through `FlatRoot::to_xml`, which sorts attributes
+/// before printing "to ensure stable printing" -- that sort is what kept the
+/// nondeterminism these tests are about invisible to the suite.
+fn flattened_attribute_names(source: &str) -> Vec<String> {
+    let flat_root = FlatRoot::from_dast(&dast_root(source));
+    flat_root
+        .nodes
+        .iter()
+        .find_map(|node| match node {
+            FlatNode::Element(element) if !element.attributes.is_empty() => Some(
+                element
+                    .attributes
+                    .iter()
+                    .map(|attribute| attribute.name.clone())
+                    .collect(),
+            ),
+            _ => None,
+        })
+        .expect("no element with attributes was flattened")
+}
+
+#[test]
+fn flattens_attributes_in_source_order() {
+    // Written out of alphabetical order on purpose: sorting by name would pass
+    // an `x, y, name` document while still moving the indices if #122 ever
+    // replaces the map with a `Vec`.
+    assert_eq!(
+        flattened_attribute_names(r#"<point y="1" x="0" name="P" />"#),
+        vec!["y", "x", "name"]
+    );
+}
+
+#[test]
+fn flattens_attributes_in_the_same_order_every_time() {
+    // `DastElement::attributes` is a `HashMap`, whose iteration order Rust
+    // randomizes per process -- so this is the shape of test that catches the
+    // defect. A single build proves nothing: before the fix, ten builds of this
+    // document gave five different orders, and saved reader state keyed on the
+    // resulting indices restored a dragged point with its coordinates swapped
+    // about a third of the time (Doenet/DoenetML#1944).
+    let source = r#"<point x="0" y="1" name="P" />"#;
+    let first = flattened_attribute_names(source);
+
+    for _ in 0..20 {
+        assert_eq!(flattened_attribute_names(source), first);
+    }
+}

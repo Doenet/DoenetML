@@ -137,6 +137,20 @@ export default class BaseComponent {
 
     static componentType = "_base";
 
+    /**
+     * Whether the essential values this component's *definitions* compute are
+     * reproduced by a fresh build of the same document under the same variant.
+     *
+     * Saved state keeps only the reader's work and drops what a definition
+     * computed, on the premise that a fresh load recomputes it identically
+     * (Doenet/DoenetML#1940). A component whose definition draws from a seed
+     * the variant does not determine breaks that premise: its values exist
+     * nowhere but in the saved state, and dropping them changes the numbers
+     * under a reader who reloads. Such a component sets this to `false` and its
+     * definition-set essential values are persisted like the reader's own.
+     */
+    static definitionEssentialValuesAreReproducible = true;
+
     static get rendererType() {
         return this.componentType;
     }

@@ -179,6 +179,19 @@ export async function createTestCore({
     };
 
     /**
+     * The whole of the last real report's `state`, not just its `coreState`.
+     *
+     * `scoreState.state` keeps only the `coreState` string, which is what
+     * almost every test wants. The envelope around it -- `coreInfo` above all,
+     * which carries the entire initial renderer instruction tree -- is what a
+     * host actually stores, so a test measuring what persistence costs has to
+     * be able to see it (Doenet/DoenetML#1940).
+     */
+    const lastStateReport: { payload: Record<string, any> | null } = {
+        payload: null,
+    };
+
+    /**
      * The payloads of `pending` reports, in arrival order — mirrors of what
      * the 60-second database throttle is holding back (Doenet/DoenetML#1726).
      * A real host never saves one (`DocViewer` buffers them for the page-hide
@@ -202,12 +215,11 @@ export async function createTestCore({
         }
         scoreState.score = data.score;
 
-        if (
-            typeof data.state === "object" &&
-            data.state !== null &&
-            "coreState" in data.state
-        ) {
-            scoreState.state = data.state.coreState as string;
+        if (typeof data.state === "object" && data.state !== null) {
+            lastStateReport.payload = data.state as Record<string, any>;
+            if ("coreState" in data.state) {
+                scoreState.state = data.state.coreState as string;
+            }
         }
     }
 
@@ -243,7 +255,14 @@ export async function createTestCore({
         return resolvePathImmediatelyToNodeIdx(name, rustCore, core, origin);
     }
 
-    return { core, rustCore, resolvePathToNodeIdx, scoreState, pendingReports };
+    return {
+        core,
+        rustCore,
+        resolvePathToNodeIdx,
+        scoreState,
+        pendingReports,
+        lastStateReport,
+    };
 }
 
 const LOCALES_DIR = path.resolve(__dirname, "../../../../i18n/locales");

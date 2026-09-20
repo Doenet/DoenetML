@@ -350,6 +350,15 @@ To restore, remount the viewer with the saved state:
 />
 ```
 
+Each payload records the saved-state format it was written in, so that state
+an upgraded viewer cannot read is discarded rather than applied to components
+it no longer denotes. When that happens the document opens fresh and the
+student is told beside it that their work was saved by an earlier version of
+Doenet; nothing on the host side changes, and the credit already recorded
+for the student is unaffected, because score is reported separately from the
+state. The fresh attempt goes on reporting its own score as usual. Keeping the payload opaque — stored and returned
+exactly as received — is what carries that format marker back.
+
 **The gap — and `SPLICE.flushState`.** Reports are throttled (one per 60
 seconds per viewer), so at any moment the student may have committed work
 that no report has delivered yet. A host that unmounts a viewer based on
@@ -489,11 +498,12 @@ logged to the console instead:
   load failure with one of these codes — any other code, or none at all,
   reaches the student as long as it comes with a `message`.
 
-A request has a single answer: the **first** response carrying state for
-this `cid` is the one the viewer reboots from, and every response after
-that — errors included — is ignored. A response with no state — or state for a
-different `cid` — does not count as that answer, so a listener with nothing
-saved cannot shut out one still in flight. Answer once, out of durable
+A request has a single answer: the **first** response carrying state this
+viewer can restore from is the one it reboots from, and every response after
+that — errors included — is ignored. A response with no state, state for a
+different `cid`, or state written in a saved-state format this version cannot
+read does not count as that answer, so a listener with nothing usable cannot
+shut out one still in flight. Answer once, out of durable
 storage: a host that replies from an in-memory cache first and from storage
 afterwards keeps the cache's answer.
 

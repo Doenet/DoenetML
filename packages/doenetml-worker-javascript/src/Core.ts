@@ -206,6 +206,36 @@ export default class Core {
     requestedVariant?: Record<string, any>;
     receivedStateVariableChanges: boolean;
     cumulativeStateVariableChanges: any;
+    /**
+     * The `stateId`s a reader's own action has written to, in this session or
+     * a previous one, and the `stateId`s whose entries were merged in from
+     * `essentialValuesSavedInDefinition` — the values ordinary *definitions*
+     * computed, which the reader's first interaction anywhere flushes into
+     * `cumulativeStateVariableChanges` document-wide.
+     *
+     * `StatePersistence` saves an entry unless it is in the second set and not
+     * in the first: what a definition computed and no reader ever touched. That
+     * is what made working one exercise persist state for every other exercise
+     * on a page — none of it the reader's, and all of it recomputed identically
+     * on a fresh load of the same document under the same variant
+     * (Doenet/DoenetML#1940).
+     *
+     * Two sets rather than one, and phrased as "drop what is known to be only a
+     * definition's" rather than "keep what is known to be the reader's", so an
+     * entry that arrives by some route neither set knows about is saved rather
+     * than silently dropped. The failure mode of a bookkeeping slip should not
+     * be losing a reader's work.
+     *
+     * The values stay in `cumulativeStateVariableChanges` either way: a partial
+     * write to an array merges into whatever entry is recorded there, and the
+     * definition path is what puts the `mergeObject` base in place (see
+     * `EssentialValueWriter.mergeIntoCumulative`). The filter is applied on the
+     * way out, in `buildDocStatePayload`, where both of `performUpdate`'s
+     * passes have already run — so a component touched for the first time in
+     * the current update is already accounted for.
+     */
+    readerTouchedStateIds!: Set<string>;
+    definitionSetStateIds!: Set<string>;
     canonicalGeneratedVariantString?: string;
     canonicalDocVariantStrings?: string[];
     coreInfoString?: string;
@@ -413,6 +443,18 @@ export default class Core {
             JSON.stringify(stateVariableChanges, serializedComponentsReplacer),
             serializedComponentsReviver,
         );
+
+        // Everything restored from a previous session was saved as the
+        // reader's work, so it stays theirs now — otherwise re-saving would
+        // quietly drop it. `__componentNeedingUpdateValue` is a reserved
+        // sentinel rather than a component's entry (see `UpdateExecutor`), and
+        // `buildDocStatePayload` carries every `__` key across regardless.
+        this.readerTouchedStateIds = new Set(
+            Object.keys(this.cumulativeStateVariableChanges).filter(
+                (stateId) => !stateId.startsWith("__"),
+            ),
+        );
+        this.definitionSetStateIds = new Set();
 
         this.requestedVariantIndex = requestedVariantIndex;
         this.requestedVariant = requestedVariant;

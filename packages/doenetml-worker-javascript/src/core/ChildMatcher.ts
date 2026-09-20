@@ -512,6 +512,23 @@ export async function substituteAdapter({
     if (originalChild.componentIdx != undefined) {
         newSerializedChild = originalChild.getAdapter(adapterIndUsed);
         newSerializedChild.componentIdx = core._components.length;
+        // An adapter is built here, at run time, long after the walk that
+        // gives every component the document builds an identifier derived
+        // from where it sits in it. Without an id of its own it falls back to
+        // its build index, which moves whenever anything ahead of it does --
+        // and an adapter does hold a reader's work. A `<boolean>` written in
+        // a `<graph>` is adapted to a `<text>`, and a `<text>` in a graph is
+        // dragged by the reader; its `anchor` is theirs, is saved, and under
+        // a build index came back on nothing at all after an edit above it
+        // (Doenet/DoenetML#1944).
+        //
+        // What identifies an adapter is the component it adapts and which of
+        // that component's adapters was used -- both of which a rebuild
+        // reproduces, because the adapted component is itself keyed by the
+        // document. `@@adapt<n>` cannot collide with a document-derived path:
+        // an attribute segment is `@<name>`, and the only other `@@` form is
+        // a reference path's index, whose segment is digits and dots.
+        newSerializedChild.stateId = `${originalChild.stateId}@@adapt${adapterIndUsed}`;
         core._components[core._components.length] = undefined;
     } else {
         // XXX: how does this work with the new componentIdx approach?

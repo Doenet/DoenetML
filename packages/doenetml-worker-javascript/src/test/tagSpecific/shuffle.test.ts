@@ -769,4 +769,44 @@ describe("Shuffle tag tests @group1", async () => {
             ),
         ).eq(true);
     });
+    it("gives its replacements ids that a rebuild reproduces", async () => {
+        // Saved reader state is keyed by `stateId`, and without one of its own
+        // a `<shuffle>` replacement falls back to its `componentIdx` -- which a
+        // fresh load assigns in shuffled order while a save was made in
+        // creation order, so a reader's value can come back on the wrong
+        // replacement (Doenet/DoenetML#1944).
+        const doenetML = `<shuffle name="s"><math>a</math><math>b</math><math>c</math></shuffle>`;
+
+        async function replacementStateIds() {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const components = core.core!._components!;
+            const composite = components[await resolvePathToNodeIdx("s")];
+            return {
+                prefix: `${composite.stateId}|`,
+                stateIds: composite.replacements.map(
+                    (replacement: any) =>
+                        components[replacement.componentIdx].stateId,
+                ),
+            };
+        }
+
+        const { prefix, stateIds } = await replacementStateIds();
+        expect(stateIds.length).eq(3);
+        for (const stateId of stateIds) {
+            // Minted by the composite, off its own document-derived id — not
+            // the component index, which is reassigned on every build.
+            expect(
+                stateId,
+                `a shuffle replacement fell back to its component index: ${stateId}`,
+            ).satisfy(
+                (id: string) =>
+                    id.startsWith(prefix) &&
+                    /^\d+$/.test(id.slice(prefix.length)),
+            );
+        }
+        expect(new Set(stateIds).size, "two replacements share an id").eq(3);
+        expect((await replacementStateIds()).stateIds).eqls(stateIds);
+    });
 });

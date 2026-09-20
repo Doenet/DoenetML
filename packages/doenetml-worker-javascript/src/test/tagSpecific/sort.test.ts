@@ -889,6 +889,157 @@ describe("Sort tag tests @group4", async () => {
         );
     });
 
+    // The round trip these were written for: type into a sorted position, save,
+    // reload, and get back the list that was on screen. They come from the
+    // `<sort>` rearrangement work (Doenet/DoenetML#1949), which is where the
+    // keying defects in this file were found.
+    //
+    // Recorded for what they are, because it is not what it looks like: each
+    // passes with `<sort>`'s `stateIdInfo` removed. Typing into `$s[n]` does
+    // not write to the replacement -- the write is inverted through to the
+    // `<sort>`'s own child, which is why the saved key is `/~s/2` and not a
+    // replacement's. The assertion that does need the minted ids is the last
+    // one in this block; the one that needs `UpdateExecutor`'s guard against a
+    // component deleted mid-update is in `statePersistenceContents`.
+    async function typeThenReload({
+        doenetML,
+        latex,
+    }: {
+        doenetML: string;
+        latex: string;
+    }) {
+        const first = await createTestCore({ doenetML });
+        await updateMathInputValue({
+            latex,
+            componentIdx: await first.resolvePathToNodeIdx("mi"),
+            core: first.core,
+        });
+
+        async function sortedValues({
+            core,
+            resolvePathToNodeIdx,
+        }: {
+            core: PublicDoenetMLCore;
+            resolvePathToNodeIdx: ResolvePathToNodeIdx;
+        }) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[
+                await resolvePathToNodeIdx("pList")
+            ].activeChildren.map((child: any) =>
+                stateVariables[child.componentIdx].stateValues.value.toString(),
+            );
+        }
+
+        const live = await sortedValues(first);
+
+        await first.core.saveImmediately();
+        const savedState = first.scoreState.state as string;
+
+        const second = await createTestCore({
+            doenetML,
+            initialState: savedState,
+        });
+
+        return { live, reloaded: await sortedValues(second), savedState };
+    }
+
+    it("a value typed into a sorted position survives a reload", async () => {
+        const { live, reloaded } = await typeThenReload({
+            doenetML: `
+    <sort name="s">5 3 1</sort>
+    <p name="pList">$s</p>
+    <mathInput name="mi" bindValueTo="$s[1]" />
+  `,
+            latex: "7",
+        });
+
+        expect(live).eqls(["3", "5", "7"]);
+        expect(reloaded).eqls(live);
+    });
+
+    it("a value typed into the second sorted position survives a reload", async () => {
+        const { live, reloaded } = await typeThenReload({
+            doenetML: `
+    <sort name="s">5 3 1</sort>
+    <p name="pList">$s</p>
+    <mathInput name="mi" bindValueTo="$s[2]" />
+  `,
+            latex: "0",
+        });
+
+        expect(live).eqls(["0", "1", "5"]);
+        expect(reloaded).eqls(live);
+    });
+
+    it("a value typed into the last sorted position survives a reload", async () => {
+        const { live, reloaded } = await typeThenReload({
+            doenetML: `
+    <sort name="s">2 4 6 8</sort>
+    <p name="pList">$s</p>
+    <mathInput name="mi" bindValueTo="$s[4]" />
+  `,
+            latex: "1",
+        });
+
+        expect(live).eqls(["1", "2", "4", "6"]);
+        expect(reloaded).eqls(live);
+    });
+
+    it("gives its replacements ids that a rebuild reproduces", async () => {
+        // The round trips above pass either way; this is the assertion that
+        // does not. The replacements have to carry an id the composite minted
+        // off its own document-derived id, so that a second build of the same
+        // document hands them the same ids. Without it
+        // `createNewComponentIndices` clears `stateId` and the key falls back
+        // to `componentIdx`, a position in the build.
+        //
+        // Across builds of the same document, that is: a reorder recreates
+        // every replacement with fresh ids, so this says nothing about work
+        // done on a replacement a later reorder recreates (see `Sort.js`).
+        const doenetML = `
+    <sort name="s">5 3 1</sort>
+    <p name="pList">$s</p>
+  `;
+
+        async function replacementStateIds() {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const components = core.core!._components!;
+            const composite = components[await resolvePathToNodeIdx("s")];
+            return {
+                prefix: `${composite.stateId}|`,
+                stateIds: composite.replacements.map(
+                    (replacement: any) =>
+                        components[replacement.componentIdx].stateId,
+                ),
+            };
+        }
+
+        const { prefix, stateIds } = await replacementStateIds();
+        expect(stateIds.length).eq(3);
+        for (const stateId of stateIds) {
+            // Minted by the composite, off its own document-derived id — not
+            // the component index, which is reassigned on every build.
+            expect(
+                stateId,
+                `a sort replacement fell back to its component index: ${stateId}`,
+            ).satisfy(
+                (id: string) =>
+                    id.startsWith(prefix) &&
+                    /^\d+$/.test(id.slice(prefix.length)),
+            );
+        }
+        expect(new Set(stateIds).size, "two replacements share an id").eq(3);
+
+        // The property the saved state actually depends on: a second build of
+        // the same document hands the same replacements the same ids.
+        expect((await replacementStateIds()).stateIds).eqls(stateIds);
+    });
+
     it("string children ignored when mixed with non-string children with warning", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

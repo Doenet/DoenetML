@@ -1,5 +1,5 @@
 use crate::dast::{
-    DastElement, DastElementContent, DastError, DastFunctionRef, DastRef, DastRoot,
+    DastAttribute, DastElement, DastElementContent, DastError, DastFunctionRef, DastRef, DastRoot,
     DastTextRefElementContent, PathPart, Position,
 };
 
@@ -7,6 +7,38 @@ use super::{
     FlatAttribute, FlatElement, FlatError, FlatFunctionRef, FlatIndex, FlatNode, FlatPathPart,
     FlatRef, FlatRoot, Index, UntaggedContent,
 };
+
+/// The attributes of `elm`, in the order they were written in the source.
+///
+/// `DastElement::attributes` is a `HashMap`, so its own order is arbitrary and
+/// varies between runs of the same program. Sorting by `position` recovers the
+/// authored order. Attributes synthesized during normalization carry no
+/// `position`; they sort after the authored ones, by name, so the order is
+/// total and deterministic either way.
+///
+/// Source order is also the order a `Vec<DastAttribute>` would give if #122
+/// replaces the map, so indices minted under this ordering do not move again
+/// when that lands. Sorting by name instead would guarantee they do.
+fn ordered_attributes(elm: &DastElement) -> Vec<&DastAttribute> {
+    /// `Position`/`Point` derive only `PartialEq`, so compare an orderable key
+    /// built from them rather than the structs themselves. The leading `bool`
+    /// puts positionless (synthesized) attributes last.
+    fn sort_key(attr: &DastAttribute) -> (bool, usize, usize, &str) {
+        match attr.position.as_ref() {
+            Some(position) => (
+                false,
+                position.start.line,
+                position.start.column,
+                attr.name.as_str(),
+            ),
+            None => (true, 0, 0, attr.name.as_str()),
+        }
+    }
+
+    let mut attributes: Vec<&DastAttribute> = elm.attributes.values().collect();
+    attributes.sort_by(|a, b| sort_key(a).cmp(&sort_key(b)));
+    attributes
+}
 
 impl FlatRoot {
     /// Create a new `FlatRoot` from a `DastRoot`.
@@ -47,9 +79,15 @@ impl FlatRoot {
                     .iter()
                     .map(|child| self.merge_content(child, Some(idx)))
                     .collect();
-                let attributes: Vec<FlatAttribute> = elm
-                    .attributes
-                    .values()
+                // `DastElement::attributes` is a `HashMap`, and Rust randomizes
+                // its iteration order on purpose. Everything below allocates
+                // node indices as it walks, so an unordered walk hands the same
+                // document different indices from one build to the next -- and
+                // saved reader state is keyed on those indices, which is how a
+                // reloaded point came back with its coordinates swapped
+                // (Doenet/DoenetML#1944). Walk in source order instead.
+                let attributes: Vec<FlatAttribute> = ordered_attributes(elm)
+                    .into_iter()
                     .map(|attr| {
                         let children = attr
                             .children

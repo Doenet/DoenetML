@@ -470,12 +470,31 @@ export class UpdateExecutor {
         ) {
             for (const stateId in this.core.essentialValuesSavedInDefinition) {
                 const componentIdx = this.core.componentIdxByStateId[stateId];
-                let essentialState =
-                    this.core._components[componentIdx]?.essentialState;
+                const component = this.core._components[componentIdx];
+                let essentialState = component?.essentialState;
+                // A definition that draws from a seed the variant does not
+                // determine -- `<sampleRandomNumbers>` and the other two
+                // date-seeded samplers -- produces values a fresh build does
+                // not reproduce. They exist nowhere but in the saved state, so
+                // they are persisted like the reader's own work rather than
+                // dropped as a definition's (see
+                // `BaseComponent.definitionEssentialValuesAreReproducible`).
+                const reproducible =
+                    (component?.constructor as any)
+                        ?.definitionEssentialValuesAreReproducible !== false;
                 if (essentialState) {
                     for (let varName in this.core
                         .essentialValuesSavedInDefinition[stateId]) {
                         if (essentialState[varName] !== undefined) {
+                            // Recorded, not withheld: a later partial write to
+                            // an array merges into this entry, and this is what
+                            // puts the `mergeObject` base there. What it is not
+                            // is the reader's work, so unless they also write
+                            // to this component it does not get persisted
+                            // (Doenet/DoenetML#1940).
+                            if (reproducible) {
+                                this.core.definitionSetStateIds.add(stateId);
+                            }
                             this.core.essentialValueWriter.mergeIntoCumulative(
                                 stateId,
                                 varName,
@@ -492,8 +511,33 @@ export class UpdateExecutor {
             // merge in new state variables set in update
             for (let newValuesProcessed of newStateVariableValuesProcessed) {
                 for (const componentIdxStr in newValuesProcessed) {
-                    const stateId =
-                        this.core._components[Number(componentIdxStr)].stateId;
+                    const component =
+                        this.core._components[Number(componentIdxStr)];
+                    if (!component) {
+                        // The update deleted this component after writing to
+                        // it — a composite recreating its replacements is the
+                        // ordinary way that happens, and `<sort>` does it on
+                        // every reorder. Its saved entry has already been
+                        // dropped by `DeletionEngine`, so there is nothing to
+                        // merge; before this guard the missing `stateId` threw
+                        // here, and because `performAction` catches, the throw
+                        // silently took the rest of `performUpdate` with it —
+                        // the remaining components' writes were never merged,
+                        // and the save this call would have scheduled was not.
+                        // What a reader saw of that: typing into a `<sort>`
+                        // reorders it, the reorder corrects the input to
+                        // whatever now sits in the position it is bound to, and
+                        // that correction is on the far side of the throw. The
+                        // input's saved state stayed at what they typed, so a
+                        // reload showed them a different value from the one
+                        // they had just been looking at.
+                        continue;
+                    }
+                    const stateId = component.stateId;
+                    // What the reader themselves changed, as opposed to what a
+                    // definition computed: this is the set that is persisted
+                    // (Doenet/DoenetML#1940).
+                    this.core.readerTouchedStateIds.add(stateId);
                     for (let varName in newValuesProcessed[componentIdxStr]) {
                         this.core.essentialValueWriter.mergeIntoCumulative(
                             stateId,

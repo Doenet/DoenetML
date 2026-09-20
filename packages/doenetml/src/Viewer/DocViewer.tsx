@@ -66,6 +66,7 @@ import {
     CORE_START_FAILED_DOCUMENT_MESSAGE,
     CORE_START_RETRY_MESSAGE,
     SAVED_STATE_UNAVAILABLE_MESSAGE,
+    STATE_FROM_OLDER_VERSION_FALLBACK,
 } from "./coreWorkerBoot";
 import type { ResolvedTheme } from "../utils/theme";
 import {
@@ -156,6 +157,21 @@ const NON_SPLICE_PLATFORM_ERROR_CODES = new Set([
     "wrong_origin",
     "bad_request",
 ]);
+
+/**
+ * Whether `state` is saved work this viewer's format can read.
+ *
+ * A host stores the payload opaquely and hands it back unread, so one written
+ * by an older version of Doenet arrives looking exactly like a current one —
+ * the `data_format_version` inside it is the only thing that tells them apart.
+ * 0.8 re-keyed saved state from component build indices to identifiers derived
+ * from the document (Doenet/DoenetML#1944), so 0.7's keys no longer denote the
+ * same components; applying them would put a reader's values on the wrong ones
+ * rather than fail.
+ */
+function savedStateIsReadable(state: Record<string, any>) {
+    return state?.data_format_version === data_format_version;
+}
 
 export const DocContext = createContext<{
     doenetViewerUrl?: string;
@@ -1156,6 +1172,28 @@ export function DocViewer({
                         e.data.state &&
                         e.data.state.cid === cid.current
                     ) {
+                        if (!savedStateIsReadable(e.data.state)) {
+                            // Saved work this viewer's format cannot read (see
+                            // `savedStateIsReadable`). Tested here, ahead of
+                            // the consume below, because state that cannot be
+                            // read is not a usable answer: it restores
+                            // nothing, so it must not shut out an answerer
+                            // that has something restorable. Two answerers on
+                            // one page is the ordinary case this protects —
+                            // the standalone coordinator's in-page warehouse
+                            // and a persistence host answer the same request,
+                            // and which lands first is not ours to choose.
+                            //
+                            // The document is already starting clean: the boot
+                            // does not wait for this answer. So nothing here
+                            // rebuilds anything — the reader is told, and the
+                            // request is left open. A later answerer that does
+                            // have readable work clears this notice when it
+                            // restores.
+                            noticeSavedStateFromOlderVersion();
+                            return;
+                        }
+
                         // One request, one answer. A page can hold several
                         // listeners willing to answer: under the standalone
                         // coordinator the in-page warehouse answers a restored
@@ -1169,9 +1207,10 @@ export function DocViewer({
                         // first usable answer the one that counts.
                         //
                         // Only a usable answer consumes it: one carrying no
-                        // state (a host with nothing saved for this activity)
-                        // or state for a different `cid` must not shut out a
-                        // better one still to come.
+                        // state (a host with nothing saved for this activity),
+                        // state for a different `cid`, or state in a format
+                        // this viewer cannot read must not shut out a better
+                        // one still to come.
                         //
                         // A rebuild that then fails below keeps the request
                         // consumed on purpose: the failure is reported to the
@@ -2449,7 +2488,41 @@ export function DocViewer({
         }
     }
 
+    /**
+     * Tell the reader their saved work was written by a version whose format
+     * this viewer cannot read, so the document has started clean.
+     *
+     * Worth saying rather than leaving them to discover it: they lose an
+     * attempt in progress. The credit already recorded for them is unaffected,
+     * because score is reported separately from state.
+     */
+    function noticeSavedStateFromOlderVersion() {
+        setStateLoadNotice(
+            translate(
+                "saved-state-from-older-version",
+                undefined,
+                STATE_FROM_OLDER_VERSION_FALLBACK,
+            ),
+        );
+    }
+
     function processLoadedDocState(data: Record<string, any>) {
+        if (!savedStateIsReadable(data)) {
+            // Nothing to restore from: start the document clean, and say so.
+            // The `SPLICE.getState` handler tests this before it gets here,
+            // so what reaches this branch is `initialState` — a host that
+            // keeps `reportScoreAndState` payloads itself and hands the last
+            // one back rather than answering a request for it, which is the
+            // pattern both embedding READMEs document and which at an upgrade
+            // hands back a payload the older version wrote. The
+            // `doenetml-iframe` park/unpark path comes through here too, but
+            // its snapshot is a `reportScoreAndState` payload from the very
+            // bundle it is about to unpark into, so it carries a matching
+            // field and passes.
+            noticeSavedStateFromOlderVersion();
+            return;
+        }
+
         let coreInfo = JSON.parse(data.coreInfo, serializedComponentsReviver);
 
         let rendererState =
