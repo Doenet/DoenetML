@@ -124,8 +124,8 @@ and that cost a `wasm-bindgen-cli` on `PATH` matching the submodule's pinned `wa
 `build-wasm.sh`, a `.github/actions/setup-math-wasm` used by twelve CI steps, `submodules:
 recursive` on fourteen checkouts across `ci.yml`, `publish.yml`, `gh-pages-docs.yml` and
 `publish-doenetml-to-pretext-python.yml`, and a `wasm-toolchain` devcontainer feature. Step 6
-deleted every one of them; what is left in `.github/` and `.devcontainer/` that `main` does not
-have is unrelated to the engine, and listed under "What is still riding along".
+deleted every one of them. `.devcontainer/` is byte-identical to `main`; `.github/` still differs
+by three things unrelated to the engine, named in the PR description.
 
 `packages/math`'s `build:wasm` declares wireit `files`/`output` so the unpack caches; wireit
 propagates "not fully tracked" to every dependent and `../math:build` is a dependency of seven
@@ -146,7 +146,7 @@ prebuilt binary the lockfile pins, inlined verbatim, so every build carries iden
 retired its "measure on CI, not locally" caveat.
 
 At `math-expressions@3.0.0-alpha.1`: `--target web` WASM 1,772,658 B (1.69 MiB), 2.25 MiB once
-base64'd, `packages/math/dist/engine-rust.js` 2,498,063 B (2.38 MiB), 779 kB gzipped — against
+base64'd, `packages/math/dist/engine-rust.js` 2,498,063 B (2.38 MiB), 777 kB gzipped — against
 roughly 1 MiB for the JavaScript library it replaces. `@doenet/standalone`'s bundles carry one
 inlined core each and no more, which is what `npm run check:size -w packages/standalone` enforces:
 4.30 MiB for the eagerly-parsed chunk, 11.13 MiB for the single-file inline variant, 7.12 MiB for
