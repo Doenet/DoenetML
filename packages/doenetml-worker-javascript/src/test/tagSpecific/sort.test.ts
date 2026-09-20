@@ -996,9 +996,11 @@ describe("Sort tag tests @group4", async () => {
         // `createNewComponentIndices` clears `stateId` and the key falls back
         // to `componentIdx`, a position in the build.
         //
-        // Across builds of the same document, that is: a reorder recreates
-        // every replacement with fresh ids, so this says nothing about work
-        // done on a replacement a later reorder recreates (see `Sort.js`).
+        // Across builds of the same document, that is. Within one build, a
+        // rebuild — a changed set of values, or a reorder that moves too much
+        // to be worth rearranging — recreates every replacement with fresh
+        // ids, so this says nothing about work done on a replacement such a
+        // rebuild recreates (see `Sort.js`).
         const doenetML = `
     <sort name="s">5 3 1</sort>
     <p name="pList">$s</p>
@@ -1067,5 +1069,659 @@ describe("Sort tag tests @group4", async () => {
                 ),
             ),
         ).eq(true);
+    });
+    describe("reordering reuses the replacements", async () => {
+        async function replacementIndices(
+            core: PublicDoenetMLCore,
+            resolvePathToNodeIdx: ResolvePathToNodeIdx,
+            name: string,
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[
+                await resolvePathToNodeIdx(name)
+            ].replacements!.map((x) => x.componentIdx);
+        }
+
+        it("a value moving past another keeps every replacement component", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="m" prefill="3" />
+    <sort name="s">5 $m 1 20 30</sort>
+    <p name="pList">$s</p>
+    <p name="pSecond">$s[2]</p>
+  `,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["1", "3", "5", "20", "30"],
+            });
+
+            const before = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+
+            // 3 becomes 9, which sorts past 5 rather than before it
+            await updateMathInputValue({
+                latex: "9",
+                componentIdx: await resolvePathToNodeIdx("m"),
+                core,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["1", "5", "9", "20", "30"],
+            });
+
+            const after = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+
+            // The same components, moved: recreating them would have handed
+            // out fresh indices.
+            expect([...after].sort()).eqls([...before].sort());
+            expect(after).not.eqls(before);
+
+            // an index into the sort follows the new order
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("pSecond")]
+                    .stateValues.text,
+            ).eq("5");
+        });
+
+        it("a reorder that moves nearly everything rebuilds instead", async () => {
+            // What rearranging saves is the replacements that stay put, so a
+            // step that moves almost all of them saves nothing and costs the
+            // move on top of the rebuild that whatever copies the list pays
+            // anyway. Past half the list moving, `<sort>` rebuilds.
+            //
+            // `1 2 3 4 $m` with `m` at 5 is already sorted. Dropping `m` below
+            // 1 shifts all five entries by one, leaving none where it was.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="m" prefill="5" />
+    <sort name="s">1 2 3 4 $m</sort>
+    <p name="pList">$s</p>
+  `,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["1", "2", "3", "4", "5"],
+            });
+
+            const before = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+
+            await updateMathInputValue({
+                latex: "0",
+                componentIdx: await resolvePathToNodeIdx("m"),
+                core,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["0", "1", "2", "3", "4"],
+            });
+
+            const after = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+
+            // Rebuilt, so every replacement has a fresh index.
+            expect(after.length).eq(before.length);
+            expect(
+                after.some((idx) => before.includes(idx)),
+                "expected a rebuild, but some replacement survived",
+            ).eq(false);
+
+            // Moving it back one place leaves three of the five where they
+            // are, so that one rearranges and the components survive.
+            await updateMathInputValue({
+                latex: "1.5",
+                componentIdx: await resolvePathToNodeIdx("m"),
+                core,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["1", "1.5", "2", "3", "4"],
+            });
+
+            const rearranged = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+
+            expect([...rearranged].sort()).eqls([...after].sort());
+            expect(rearranged).not.eqls(after);
+        });
+
+        it("exactly half the replacements staying put still rearranges", async () => {
+            // The cut point itself: `1 2 $m 4` with `m` at 3 is already
+            // sorted, and dropping `m` between 1 and 2 leaves the first and
+            // last of the four where they were — half of them.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="m" prefill="3" />
+    <sort name="s">1 2 $m 4</sort>
+    <p name="pList">$s</p>
+  `,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["1", "2", "3", "4"],
+            });
+
+            const before = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+
+            await updateMathInputValue({
+                latex: "1.5",
+                componentIdx: await resolvePathToNodeIdx("m"),
+                core,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["1", "1.5", "2", "4"],
+            });
+
+            const after = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+
+            expect([...after].sort()).eqls([...before].sort());
+            expect(after).not.eqls(before);
+        });
+
+        it("a repeated child is matched off in order", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="m" prefill="4" />
+    <setup><math name="a">2</math></setup>
+    <sort name="s"
+        >$a $m $a <number>20</number><number>30</number
+        ><number>40</number></sort
+    >
+    <p name="pList">$s</p>
+  `,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["2", "2", "4", "20", "30", "40"],
+            });
+
+            const before = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+
+            await updateMathInputValue({
+                latex: "-1",
+                componentIdx: await resolvePathToNodeIdx("m"),
+                core,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["-1", "2", "2", "20", "30", "40"],
+            });
+
+            const after = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+
+            expect([...after].sort()).eqls([...before].sort());
+            expect(after).not.eqls(before);
+        });
+
+        it("a changed set of children still recreates", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="n" prefill="3" />
+    <sequence name="seq" from="1" to="$n" />
+    <sort name="s">$seq</sort>
+    <p name="pList">$s</p>
+  `,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["1", "2", "3"],
+            });
+
+            await updateMathInputValue({
+                latex: "5",
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["1", "2", "3", "4", "5"],
+            });
+
+            await updateMathInputValue({
+                latex: "2",
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["1", "2"],
+            });
+        });
+
+        it("a copy of the sort is reordered with it", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="m" prefill="3" />
+    <sort name="s">5 $m 1 20 30</sort>
+    <p name="pList">$s</p>
+    <p name="pCopy">$s</p>
+    <p name="pCopySecond">$s[2]</p>
+  `,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["1", "3", "5", "20", "30"],
+                pName: "pCopy",
+            });
+
+            const before = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+
+            await updateMathInputValue({
+                latex: "9",
+                componentIdx: await resolvePathToNodeIdx("m"),
+                core,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["1", "5", "9", "20", "30"],
+                pName: "pCopy",
+            });
+
+            // The sort rearranged rather than rebuilt, which is the case this
+            // test is about: the copy follows a rearrangement.
+            const after = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+            expect([...after].sort()).eqls([...before].sort());
+            expect(after).not.eqls(before);
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("pCopySecond")]
+                    .stateValues.text,
+            ).eq("5");
+        });
+
+        it("a prop reference follows the reorder", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <graph name="g">
+      <point name="A">(5,0)</point>
+      <point name="B">(2,0)</point>
+      <point name="C">(9,0)</point>
+      <point name="D">(200,0)</point>
+      <point name="E">(300,0)</point>
+    </graph>
+    <sort name="s">$A $B $C $D $E</sort>
+    <p name="pList">$s</p>
+    <p name="pProp">$s.x</p>
+  `,
+            });
+
+            async function expectProp(text: string) {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("pProp")]
+                        .stateValues.text,
+                ).eq(text);
+            }
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: [
+                    "(2, 0)",
+                    "(5, 0)",
+                    "(9, 0)",
+                    "(200, 0)",
+                    "(300, 0)",
+                ],
+            });
+            await expectProp("2, 5, 9, 200, 300");
+
+            const before = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+
+            await movePoint({
+                componentIdx: await resolvePathToNodeIdx("A"),
+                x: 100,
+                y: 0,
+                core,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: [
+                    "(2, 0)",
+                    "(9, 0)",
+                    "(100, 0)",
+                    "(200, 0)",
+                    "(300, 0)",
+                ],
+            });
+            await expectProp("2, 9, 100, 200, 300");
+
+            // The prop reference is following a rearrangement rather than a
+            // rebuild.
+            const after = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+            expect([...after].sort()).eqls([...before].sort());
+            expect(after).not.eqls(before);
+        });
+
+        it("a list that empties and refills", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="n" prefill="0" />
+    <sequence name="seq" from="1" to="$n" />
+    <sort name="s">$seq</sort>
+    <p name="pList">$s</p>
+  `,
+            });
+
+            // Nothing to sort: the composite has no replacements to keep.
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: [],
+            });
+
+            for (const [latex, sorted_result] of [
+                ["3", ["1", "2", "3"]],
+                ["0", []],
+                ["1", ["1"]],
+            ] as [string, string[]][]) {
+                await updateMathInputValue({
+                    latex,
+                    componentIdx: await resolvePathToNodeIdx("n"),
+                    core,
+                });
+
+                await test_sort({ core, resolvePathToNodeIdx, sorted_result });
+            }
+        });
+
+        it("values that do not parse as numbers are rearranged like any other", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="m" prefill="3" />
+    <numberList name="nl">x y</numberList>
+    <sort name="s">5 $m 1 $nl</sort>
+    <p name="pList">$s</p>
+  `,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["1", "3", "5", "NaN", "NaN"],
+            });
+
+            const before = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+
+            await updateMathInputValue({
+                latex: "9",
+                componentIdx: await resolvePathToNodeIdx("m"),
+                core,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["1", "5", "9", "NaN", "NaN"],
+            });
+
+            const after = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+
+            expect([...after].sort()).eqls([...before].sort());
+            expect(after).not.eqls(before);
+        });
+
+        it("replacements of different types carry their types into the new order", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="m" prefill="3" />
+    <setup><number name="five">5</number><math name="one">1</math
+        ><math name="twenty">20</math><number name="thirty">30</number></setup>
+    <sort name="s">$five $m $one $twenty $thirty</sort>
+    <p name="pList">$s</p>
+  `,
+            });
+
+            async function replacementTypes() {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                return stateVariables[
+                    await resolvePathToNodeIdx("pList")
+                ].activeChildren.map(
+                    (child) => stateVariables[child.componentIdx].componentType,
+                );
+            }
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["1", "3", "5", "20", "30"],
+            });
+            expect(await replacementTypes()).eqls([
+                "math",
+                "math",
+                "number",
+                "math",
+                "number",
+            ]);
+
+            const before = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+
+            // 3 becomes 9, so the number moves out of third place
+            await updateMathInputValue({
+                latex: "9",
+                componentIdx: await resolvePathToNodeIdx("m"),
+                core,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["1", "5", "9", "20", "30"],
+            });
+            expect(await replacementTypes()).eqls([
+                "math",
+                "number",
+                "math",
+                "math",
+                "number",
+            ]);
+
+            // The types travel with the components, so this has to be the
+            // rearranging path rather than a rebuild that would have made
+            // them afresh.
+            const after = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+            expect([...after].sort()).eqls([...before].sort());
+            expect(after).not.eqls(before);
+        });
+
+        it("sorted points stay live after they reorder", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <graph name="g">
+      <point name="A">(1,0)</point>
+      <point name="B">(2,0)</point>
+      <point name="C">(3,0)</point>
+      <point name="D">(100,0)</point>
+      <point name="E">(200,0)</point>
+      <point name="F">(300,0)</point>
+    </graph>
+    <graph name="g2"><sort name="s">$A $B $C $D $E $F</sort></graph>
+    <p name="pList">$s</p>
+  `,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: [
+                    "(1, 0)",
+                    "(2, 0)",
+                    "(3, 0)",
+                    "(100, 0)",
+                    "(200, 0)",
+                    "(300, 0)",
+                ],
+            });
+
+            const before = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+
+            // move A past the others, so the sorted order changes
+            await movePoint({
+                componentIdx: await resolvePathToNodeIdx("A"),
+                x: 10,
+                y: 0,
+                core,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: [
+                    "(2, 0)",
+                    "(3, 0)",
+                    "(10, 0)",
+                    "(100, 0)",
+                    "(200, 0)",
+                    "(300, 0)",
+                ],
+            });
+
+            const after = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+
+            expect([...after].sort()).eqls([...before].sort());
+            expect(after).not.eqls(before);
+
+            // the rearranged copies still track the points they copy
+            await movePoint({
+                componentIdx: await resolvePathToNodeIdx("B"),
+                x: 20,
+                y: 0,
+                core,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: [
+                    "(3, 0)",
+                    "(10, 0)",
+                    "(20, 0)",
+                    "(100, 0)",
+                    "(200, 0)",
+                    "(300, 0)",
+                ],
+            });
+        });
     });
 });

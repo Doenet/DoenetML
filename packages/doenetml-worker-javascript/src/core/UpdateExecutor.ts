@@ -516,8 +516,9 @@ export class UpdateExecutor {
                     if (!component) {
                         // The update deleted this component after writing to
                         // it — a composite recreating its replacements is the
-                        // ordinary way that happens, and `<sort>` does it on
-                        // every reorder. Its saved entry has already been
+                        // ordinary way that happens, and `<sort>` does it
+                        // whenever it rebuilds rather than moving the
+                        // replacements it has. Its saved entry has already been
                         // dropped by `DeletionEngine`, so there is nothing to
                         // merge; before this guard the missing `stateId` threw
                         // here, and because `performAction` catches, the throw

@@ -7,6 +7,84 @@ import {
     returnListValueStateVariableDefinitions,
 } from "../utils/listValues";
 
+/**
+ * The permutation taking `previous` to `current`, or `null` if `current` is
+ * not a reordering of `previous`.
+ *
+ * Entry `k` of the result is the position in `previous` of the component that
+ * belongs at position `k` now, which is the form
+ * `changeType: "rearrangeReplacements"` takes: the replacement built from that
+ * component is at that same position in the composite's replacements.
+ *
+ * A component may legitimately appear twice — `<sort>$a $a</sort>` copies it
+ * once per occurrence — so positions are matched off in order rather than by
+ * lookup, which pairs the first occurrence with the first, the second with the
+ * second, and keeps the result a permutation.
+ */
+function arrangementFromCopiedComponents(previous, current) {
+    if (previous === undefined || previous.length !== current.length) {
+        return null;
+    }
+
+    const positionsByComponent = new Map();
+    for (const [ind, componentIdx] of previous.entries()) {
+        let positions = positionsByComponent.get(componentIdx);
+        if (positions === undefined) {
+            positions = [];
+            positionsByComponent.set(componentIdx, positions);
+        }
+        positions.push(ind);
+    }
+
+    const arrangement = [];
+    const nextOccurrence = new Map();
+
+    for (const componentIdx of current) {
+        const positions = positionsByComponent.get(componentIdx);
+        const occurrence = nextOccurrence.get(componentIdx) ?? 0;
+
+        if (positions === undefined || occurrence >= positions.length) {
+            // A component that was not copied before, or copied fewer times:
+            // the children changed rather than merely moved.
+            return null;
+        }
+
+        arrangement.push(positions[occurrence]);
+        nextOccurrence.set(componentIdx, occurrence + 1);
+    }
+
+    return arrangement;
+}
+
+/**
+ * Whether moving the replacements into `arrangement` is worth doing rather than
+ * rebuilding them.
+ *
+ * What a rearrangement saves is the replacements that *don't* move: those keep
+ * their components, and so does whatever copies the sorted list. A replacement
+ * that does move costs a copy of the list the same rebuild it would have paid
+ * anyway, and the move on top of it.
+ *
+ * So the saving is proportional to how many entries stay where they were, and a
+ * step that reorders nearly everything is better off rebuilt. On forty sorted
+ * points read by a `<p>`, the two paths cost about the same when half the list
+ * moves; below that rearranging wins by progressively more, above it rebuilding
+ * does. A drag carries a value past one neighbor at a time and leaves all but
+ * two entries where they were; typing a value that belongs at the far end is
+ * what reaches the other case.
+ */
+function worthRearranging(arrangement) {
+    let stayed = 0;
+
+    for (const [ind, previousInd] of arrangement.entries()) {
+        if (previousInd === ind) {
+            stayed++;
+        }
+    }
+
+    return stayed * 2 >= arrangement.length;
+}
+
 export default class Sort extends CompositeComponent {
     static componentType = "sort";
 
@@ -201,12 +279,16 @@ export default class Sort extends CompositeComponent {
         // (Doenet/DoenetML#1944). An id minted off the composite's own
         // document-derived id moves with nothing but the document.
         //
-        // What it does not survive is a reorder: `calculateReplacementChanges`
-        // recreates every replacement, and each recreation takes the next
-        // numbers from this counter, so work done on a replacement that a
-        // later reorder recreates is dropped by the rebuild rather than landing
-        // on a different one. Every counter-based composite behaves that way;
-        // it is not what this is fixing.
+        // What it does not survive is a rebuild: every replacement is made
+        // again, and each recreation takes the next numbers from this counter,
+        // so work done on a replacement that a later rebuild recreates is
+        // dropped rather than landing on a different one. Every counter-based
+        // composite behaves that way; it is not what this is fixing.
+        //
+        // Two things rebuild: a changed set of values, and a reorder that
+        // `worthRearranging` turns down. A reorder it accepts is not a
+        // rebuild — `calculateReplacementChanges` moves the replacements it
+        // already has, and their ids travel with them.
         const stateIdInfo = {
             prefix: `${component.stateId}|`,
             num: workspace.replacementsCreated,
@@ -291,7 +373,35 @@ export default class Sort extends CompositeComponent {
             return { replacementChanges: [], diagnostics, nComponents };
         }
 
-        // for now, just recreated
+        // Sorting the same children into a different order is the common case
+        // — a value changed, or one moved past another — and the replacements
+        // we would build are copies of the same components we already copied,
+        // just in new positions. Rearranging them keeps every replacement
+        // alive, so a dependency that resolved to one of them survives the
+        // change and the core has nothing to delete or create. (A reference
+        // that copies the output, such as `$sorted[2]`, still gets a
+        // replacement of its own built afresh — it just resolves to a
+        // component that is still there.)
+        const arrangement = arrangementFromCopiedComponents(
+            workspace.componentsCopied,
+            componentsToCopy,
+        );
+
+        if (arrangement && worthRearranging(arrangement)) {
+            workspace.componentsCopied = componentsToCopy;
+
+            return {
+                replacementChanges: [
+                    { changeType: "rearrangeReplacements", arrangement },
+                ],
+                diagnostics,
+                nComponents,
+            };
+        }
+
+        // Either the children themselves changed, so there is nothing to
+        // reuse, or so few replacements would stay put that moving them costs
+        // more than building them again.
         let replacementResults = await this.createSerializedReplacements({
             component,
             components,
