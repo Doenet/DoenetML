@@ -2509,10 +2509,16 @@ export function DocViewer({
     function processLoadedDocState(data: Record<string, any>) {
         if (!savedStateIsReadable(data)) {
             // Nothing to restore from: start the document clean, and say so.
-            // The `SPLICE.getState` handler tests this before it gets here, so
-            // the case this catches is a viewer handed `initialState` directly
-            // — the `doenetml-iframe` park/unpark path, whose snapshot is a
-            // real `reportScoreAndState` payload and so carries the field.
+            // The `SPLICE.getState` handler tests this before it gets here,
+            // so what reaches this branch is `initialState` — a host that
+            // keeps `reportScoreAndState` payloads itself and hands the last
+            // one back rather than answering a request for it, which is the
+            // pattern both embedding READMEs document and which at an upgrade
+            // hands back a payload the older version wrote. The
+            // `doenetml-iframe` park/unpark path comes through here too, but
+            // its snapshot is a `reportScoreAndState` payload from the very
+            // bundle it is about to unpark into, so it carries a matching
+            // field and passes.
             noticeSavedStateFromOlderVersion();
             return;
         }

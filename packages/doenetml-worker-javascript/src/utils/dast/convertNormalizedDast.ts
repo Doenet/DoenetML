@@ -365,7 +365,7 @@ export async function normalizedDastToSerializedComponents(
  * | k-th child, named `P` | `/~P` | `/~P` |
  * | attribute `x` | `@x` | `/~P@x` |
  * | i-th reference in an attribute | `@x/i` | `/~P@through/0` |
- * | index component in a reference path | `@@p.i` | `/~q@@0.0` |
+ * | index component in a reference path | `@@p.i.v` | `/~q@@0.0.0` |
  *
  * Two properties matter. **Attributes are keyed by name**, so the swap in #1944
  * — where `x` and `y` were handed each other's indices — cannot be expressed in
@@ -379,6 +379,13 @@ export async function normalizedDastToSerializedComponents(
  * ids composites mint for their replacements (`<composite stateId>|<n>`) are
  * left alone — those hang off a composite whose own id this pass has made
  * stable, so the whole tree becomes anchored to the document.
+ *
+ * This pass sees only what the document builds. The other components Doenet
+ * builds — a composite's replacements, and the adapters `ChildMatcher`
+ * inserts (`<adapted stateId>@@adapt<n>`) — are keyed where they are built, in
+ * each case off a component this pass has already anchored. Between them that
+ * accounts for everything; nothing is left on the `componentIdx` fallback in
+ * `ComponentBuilder`, and `statePersistenceKeying.test.ts` asserts as much.
  */
 export function assignDocumentDerivedStateIds(document: SerializedComponent) {
     const assigned = new Set<string>();

@@ -22,9 +22,11 @@ import {
 // discover. Credit already recorded is unaffected, since score is reported
 // separately from state.
 //
-// Both halves are asserted against the same payload, so the version field is
-// the only thing that decided: read at the current version, discarded at an
-// older one.
+// Every case below is asserted against the same captured payload, so the
+// version field is the only thing that decided: read at the current version,
+// discarded at an older one. Both routes a payload can arrive by are covered —
+// a host answering `SPLICE.getState`, and a host handing the last
+// `reportScoreAndState` payload straight back as `initialState`.
 
 const DOC = `<p>Enter text: <textInput name="ti" /></p>
 <p>You typed: $ti.value</p>`;
@@ -157,6 +159,68 @@ describe("DoenetViewer saved state carrying a format version", () => {
             // to get here, and it takes the document away with it.
             cy.contains("Error loading doc state").should("not.exist");
         });
+    });
+
+    it("discards an older format handed in as `initialState`", function () {
+        // The other route into the same gate, and the one a host takes at an
+        // upgrade: rather than answering `SPLICE.getState`, it keeps the
+        // `reportScoreAndState` payloads itself and hands the last one back as
+        // `initialState` (the pattern both embedding READMEs document). That
+        // payload skips the `getState` handler entirely, so the discard has to
+        // happen where the state is processed as well as where it is answered.
+        const staleState = {
+            ...this.savedState,
+            data_format_version: "0.7.0",
+        };
+
+        cy.mount(
+            <DoenetViewer
+                doenetML={DOC}
+                addVirtualKeyboard={false}
+                flags={{ allowLoadState: true }}
+                initialState={staleState}
+            />,
+        );
+
+        cy.contains("Enter text:", { timeout: VIEWER_TIMEOUT }).should("exist");
+        cy.wait(SETTLE);
+
+        cy.contains("Your saved work could not be loaded", {
+            timeout: VIEWER_TIMEOUT,
+        }).should("exist");
+        cy.contains("saved by an earlier version of Doenet").should("exist");
+
+        // Discarded, and the document works without it.
+        cy.get(TEXT_INPUT).should("have.value", "");
+        cy.contains("You typed: earlier work").should("not.exist");
+        cy.contains("Error loading doc state").should("not.exist");
+
+        // And the fresh document is a working one: what the reader does now
+        // is the document's own, not a half-restored mixture.
+        cy.get(TEXT_INPUT).type("{selectall}{backspace}later work{enter}");
+        cy.contains("You typed: later work", {
+            timeout: VIEWER_TIMEOUT,
+        }).should("exist");
+    });
+
+    it("restores the same `initialState` when it is in the format this viewer reads", function () {
+        // The control for the case above: the same payload, unrelabelled, does
+        // restore — so what decided there was the version field and not the
+        // `initialState` route itself.
+        cy.mount(
+            <DoenetViewer
+                doenetML={DOC}
+                addVirtualKeyboard={false}
+                flags={{ allowLoadState: true }}
+                initialState={this.savedState}
+            />,
+        );
+
+        cy.contains("You typed: earlier work", {
+            timeout: VIEWER_TIMEOUT,
+        }).should("exist");
+        cy.get(TEXT_INPUT).should("have.value", "earlier work");
+        cy.contains("Your saved work could not be loaded").should("not.exist");
     });
 
     it("lets a second answerer restore after the first answered in an older format", function () {

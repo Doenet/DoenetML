@@ -8,7 +8,7 @@
 
 Saved state was keyed by each component's index in the build. An index is a position in the build, so it moved whenever anything ahead of it changed — and a reader's values then came back on the wrong components, silently. Adding a paragraph above a graph was enough: a point dragged to (3, −5) reloaded at (−5, 1).
 
-Every component built from the document now carries an identifier derived from the document instead:
+Every component now carries an identifier derived from the document instead:
 
 | what | key |
 | --- | --- |
@@ -16,10 +16,11 @@ Every component built from the document now carries an identifier derived from t
 | an unnamed component | its position under its parent |
 | a component built from an attribute | `@x`, `@y` — **by attribute name** |
 | a composite's replacement | its composite's key, plus which replacement it is |
+| a component Doenet inserts to adapt another to where it was written | the adapted component's key |
 
 Keying attributes by name is what closes the last of #1944: `x` and `y` can no longer be handed each other's identifiers, whatever order they are visited in. Hanging a named component off its nearest named ancestor is what lets an author edit elsewhere in a document without discarding the work readers have already done in it.
 
-One kind of component keeps a build index, and does not need anything better: the ones Doenet inserts at run time to adapt a component to where it was written — a `<point>` written in a paragraph rather than in a graph gets one. They hold none of a reader's work, because everything they show is computed from the component they adapt, which is keyed by the document.
+That last row is worth spelling out, because it is the one a reader can see. A component written where its own type does not fit is shown through one Doenet inserts to adapt it: a `<boolean>` put in a `<graph>` is drawn as a piece of text, and a piece of text in a graph is something the reader can drag. Where they drag it to is their work, and it is saved. Doenet builds that stand-in while the document runs rather than while reading it, so until now it fell back to a build index — and a paragraph added above the graph put the label back where it started. It is now keyed by the component it stands in for.
 
 Two consequences worth stating plainly:
 

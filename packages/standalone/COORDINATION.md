@@ -86,8 +86,9 @@ yourself (same option names, camelCase).
   the backend's later answer — a round trip to storage, and possibly behind
   what the reader has just done — is ignored. On a fresh page load the
   warehouse is empty and stays silent, leaving the backend's answer the
-  only one, and it restores as usual. An answer with no state does not
-  count as the winner, so a backend with nothing saved cannot shut out an
+  only one, and it restores as usual. An answer with no state — or with
+  state written in a saved-state format this version cannot read — does not
+  count as the winner, so a backend with nothing usable cannot shut out an
   answer still in flight. The rule is purely about order, so a backend
   that answered **synchronously** out of an in-memory cache would win
   instead — return the reader's saved state from storage rather than from
