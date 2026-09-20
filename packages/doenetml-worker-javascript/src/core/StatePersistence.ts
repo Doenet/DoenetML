@@ -174,9 +174,12 @@ export class StatePersistence {
      * entry has to be one the essential-value writer keeps in sync with the
      * component it shadows (`_isMirroredFromShadowedComponent`). A write to
      * such a variable is redirected to the target (`shadowInverseDefinition`)
-     * and mirrored from there back down over `shadowedBy`, so what is recorded
-     * against the shadow is a duplicate of what is recorded against its
-     * target, and the target's copy is the one that is saved.
+     * and mirrored from there back down over `shadowedBy`, so every variable
+     * under the shadow's id is recorded under the target's id too, with the
+     * same value. The shadow's entry is often a subset of the target's rather
+     * than a copy of it — a copied `<mathInput>` records seven variables under
+     * its source and three of those seven under the copy — and it is the
+     * target's record that is saved.
      *
      * Persisting the duplicate is worse than redundant. The two entries are
      * restored independently, and nothing makes the order in which they land
@@ -193,11 +196,17 @@ export class StatePersistence {
      *
      * - A **prop** shadow (`<math extend="$P.x" />`). The writer's recursion
      *   generally skips these, so a prop shadow's essential values can be its
-     *   own rather than a mirror of its target's, and dropping them would lose
-     *   the reader's work. (It does follow an *implicit* prop shadow of a
-     *   component whose `implicitPropReturnsSameType` is set; that one is a
-     *   duplicate too, and is kept anyway rather than widening the rule for a
-     *   few bytes.)
+     *   own rather than a mirror of its target's, and dropping them could lose
+     *   the reader's work. The test here is the one
+     *   `calculatePrimitiveChildChanges` uses;
+     *   `calculateEssentialVariableChanges` is one case wider, following an
+     *   *implicit* prop shadow of a component whose
+     *   `implicitPropReturnsSameType` is set — that one is a duplicate too,
+     *   and is kept anyway rather than widening the rule for a few bytes. No
+     *   document has been found in which this clause is what keeps an entry;
+     *   the prop shadows that record anything record
+     *   `doNotShadowEssential` variables, which the per-variable check keeps
+     *   regardless. It is carried because the writer's recursion carries it.
      * - An **unlinked** copy (`<point copy="$A" />`), which carries
      *   `unlinkedCopySource` and no `shadows` at all: nothing propagates
      *   between it and its source in either direction, so its state is its

@@ -13,8 +13,9 @@ import {
 // a composite's replacement of what it copies -- shadows it. Most of what such
 // a component records is not its own: a variable it shadows redirects its
 // inverse to the target, and the essential-value writer then mirrors the
-// target's write back down over `shadowedBy`, so the entry under the shadow's
-// id is a duplicate of the entry under its source's.
+// target's write back down over `shadowedBy`, so every variable under the
+// shadow's id is recorded under its source's id too, with the same value --
+// often a subset of what is under the source's id rather than a copy of it.
 //
 // Saving the duplicate is worse than wasteful. The two entries are restored
 // independently, and nothing makes the order they land in agree with the order
@@ -255,6 +256,46 @@ describe("a shadow's state is its source's, and is not persisted twice @group4",
         const anchor =
             stateVariables[restoredAdapter.componentIdx].stateValues.anchor;
         expect(anchor.tree ?? anchor).eqls(["vector", 7, -7]);
+    });
+
+    it("keeps an entry whose component the document no longer builds", async () => {
+        // A reload seeds the cumulative bag from the payload, so an entry can
+        // outlive the component that wrote it: the reader's work on a question
+        // a later build of the document does not produce. The rule cannot tell
+        // such an entry from a duplicate -- there is no component to read
+        // `shadows` off -- so it keeps it, in the same fail-safe direction as
+        // the rest of the filter. Like the two above this passes either way by
+        // design; it is here because the alternative silently discards a
+        // reader's answer.
+        const both = `<mathInput name="mi" /><mathInput name="mi2" />`;
+        const onlyOne = `<mathInput name="mi" />`;
+
+        const first = await createTestCore({ doenetML: both });
+        for (const name of ["mi", "mi2"]) {
+            await updateMathInputValue({
+                latex: "5",
+                componentIdx: await first.resolvePathToNodeIdx(name),
+                core: first.core,
+            });
+        }
+        await first.core.saveImmediately();
+        const saved = first.scoreState.state as string;
+        expect(savedKeys(saved)).eqls(["/~mi", "/~mi2"]);
+
+        const second = await createTestCore({
+            doenetML: onlyOne,
+            initialState: saved,
+        });
+        await updateMathInputValue({
+            latex: "6",
+            componentIdx: await second.resolvePathToNodeIdx("mi"),
+            core: second.core,
+        });
+        await second.core.saveImmediately();
+        expect(savedKeys(second.scoreState.state as string)).eqls([
+            "/~mi",
+            "/~mi2",
+        ]);
     });
 
     it("keeps a copied hint's own open state", async () => {
