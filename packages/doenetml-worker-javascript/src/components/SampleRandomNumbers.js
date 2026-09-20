@@ -1,6 +1,7 @@
 import {
     sampleFromRandomNumbers,
     validGaussianParameters,
+    validLogNormalParameters,
     validBinomialParameters,
     validHypergeometricParameters,
     validPoissonMean,
@@ -43,7 +44,15 @@ export default class SampleRandomNumbers extends CompositeComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
+        // `type` and the count are the two attributes every use of this
+        // component sets on purpose, and between them they decide what it does:
+        // which distribution, and how many values from it. Every other attribute
+        // here parameterizes one distribution, and is grouped with the rest of
+        // that distribution's parameters below, so that the reference page opens
+        // on the choice rather than on fifteen parameters for six distributions
+        // the reader is not using.
         attributes.numSamples = {
+            highlighted: true,
             description: "Number of samples to draw.",
             createComponentOfType: "number",
             createStateVariable: "numSamples",
@@ -55,11 +64,14 @@ export default class SampleRandomNumbers extends CompositeComponent {
         // discreteuniform: determined by from, to, and step
         // uniform: between from and to (step ignored)
         // gaussian: gaussian with prescribed mean and standard deviation
+        // lognormal: exponential of a gaussian with prescribed logMean and
+        //     logStandardDeviation
         // hypergeometric: determined by numTotal, numSuccesses, and numDraws
         // binomial: determined by numTrials and probability
         // poisson: determined by mean
 
         attributes.type = {
+            highlighted: true,
             description: "Distribution from which to sample.",
             createComponentOfType: "text",
             createStateVariable: "type",
@@ -81,6 +93,11 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     value: "gaussian",
                     description:
                         "Normal (Gaussian) distribution with the specified mean and standard deviation.",
+                },
+                {
+                    value: "logNormal",
+                    description:
+                        "Log-normal distribution: the exponential of a normal distribution with the specified `logMean` and `logStandardDeviation`.",
                 },
                 {
                     value: "hypergeometric",
@@ -106,6 +123,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         // one of those numbers presented as the default would be wrong half the
         // time. Each distribution supplies its own below, where the type is known.
         attributes.mean = {
+            groupName: "sampling-gaussian",
             createComponentOfType: "number",
             createStateVariable: "specifiedMean",
             defaultValue: null,
@@ -114,6 +132,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         attributes.standardDeviation = {
+            groupName: "sampling-gaussian",
             createComponentOfType: "number",
             createStateVariable: "specifiedStandardDeviation",
             defaultValue: 1,
@@ -122,13 +141,48 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         attributes.variance = {
+            groupName: "sampling-gaussian",
             createComponentOfType: "number",
             createStateVariable: "specifiedVariance",
             defaultValue: 1,
             description: "Variance of the sampling distribution (Gaussian).",
         };
 
+        // The log-normal's parameters are named apart from the gaussian's because
+        // they describe a different thing: they are the center and spread of the
+        // normal distribution whose exponential the samples are, not of the samples
+        // themselves. Reusing `mean` would have made `mean="0"` produce values
+        // averaging about 1.65, and the reported `mean` disagree with the attribute
+        // of the same name.
+        attributes.logMean = {
+            groupName: "sampling-lognormal",
+            createComponentOfType: "number",
+            createStateVariable: "specifiedLogMean",
+            defaultValue: 0,
+            description:
+                "Mean of the underlying normal distribution (log-normal).",
+        };
+
+        attributes.logStandardDeviation = {
+            groupName: "sampling-lognormal",
+            createComponentOfType: "number",
+            createStateVariable: "specifiedLogStandardDeviation",
+            defaultValue: 1,
+            description:
+                "Standard deviation of the underlying normal distribution (log-normal).",
+        };
+
+        attributes.logVariance = {
+            groupName: "sampling-lognormal",
+            createComponentOfType: "number",
+            createStateVariable: "specifiedLogVariance",
+            defaultValue: 1,
+            description:
+                "Variance of the underlying normal distribution (log-normal).",
+        };
+
         attributes.from = {
+            groupName: "sampling-range",
             createComponentOfType: "number",
             createStateVariable: "specifiedFrom",
             defaultValue: null,
@@ -136,6 +190,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         attributes.to = {
+            groupName: "sampling-range",
             createComponentOfType: "number",
             createStateVariable: "specifiedTo",
             defaultValue: null,
@@ -143,6 +198,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         attributes.step = {
+            groupName: "sampling-range",
             createComponentOfType: "number",
             createStateVariable: "specifiedStep",
             defaultValue: 1,
@@ -151,6 +207,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         attributes.exclude = {
+            groupName: "sampling-range",
             createComponentOfType: "numberList",
             createStateVariable: "exclude",
             defaultValue: [],
@@ -158,6 +215,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         attributes.numTotal = {
+            groupName: "sampling-discrete",
             createComponentOfType: "number",
             createStateVariable: "specifiedNumTotal",
             defaultValue: null,
@@ -165,6 +223,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         attributes.numSuccesses = {
+            groupName: "sampling-discrete",
             createComponentOfType: "number",
             createStateVariable: "specifiedNumSuccesses",
             defaultValue: null,
@@ -173,6 +232,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         attributes.numDraws = {
+            groupName: "sampling-discrete",
             createComponentOfType: "number",
             createStateVariable: "specifiedNumDraws",
             defaultValue: null,
@@ -181,6 +241,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         attributes.numTrials = {
+            groupName: "sampling-discrete",
             createComponentOfType: "number",
             createStateVariable: "specifiedNumTrials",
             defaultValue: 1,
@@ -189,6 +250,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         attributes.probability = {
+            groupName: "sampling-discrete",
             createComponentOfType: "number",
             createStateVariable: "specifiedProbability",
             defaultValue: 0.5,
@@ -200,6 +262,13 @@ export default class SampleRandomNumbers extends CompositeComponent {
             attributes[attrName] = {
                 leaveRaw: true,
                 description: numberDisplayAttrs[attrName].description,
+                // Redeclaring these as `leaveRaw` drops everything else the
+                // helper put on them, the docs grouping included, which left the
+                // five of them loose in "Other" beside this component's own
+                // parameters. They shape how a number is written rather than
+                // which numbers are drawn, so they belong under their own
+                // heading as they do everywhere the helper is used unaltered.
+                groupName: numberDisplayAttrs[attrName].groupName,
             };
         }
 
@@ -229,6 +298,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         stateVariableDefinitions.step = {
             description:
                 "Step size between sample values (for discrete distributions).",
+            groupName: "sampling-range",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -256,6 +326,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
 
         stateVariableDefinitions.from = {
             description: "Lower bound of the sampling range.",
+            groupName: "sampling-range",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -264,6 +335,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
                 {
                     variableName: "to",
                     public: true,
+                    groupName: "sampling-range",
                     shadowingInstructions: {
                         createComponentOfType: "number",
                     },
@@ -405,6 +477,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         // that kept updating while the frozen selection ignored it would describe a
         // distribution the component is not using.
         stateVariableDefinitions.numTotal = {
+            groupName: "sampling-discrete",
             description: "Size of the population drawn from (hypergeometric).",
             public: true,
             shadowingInstructions: {
@@ -422,6 +495,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         stateVariableDefinitions.numSuccesses = {
+            groupName: "sampling-discrete",
             description:
                 "Number of successes in the population drawn from (hypergeometric).",
             public: true,
@@ -442,6 +516,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         stateVariableDefinitions.numDraws = {
+            groupName: "sampling-discrete",
             description:
                 "Number of items drawn without replacement to form each sample (hypergeometric).",
             public: true,
@@ -460,6 +535,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         stateVariableDefinitions.numTrials = {
+            groupName: "sampling-discrete",
             description:
                 "Number of independent trials making up each sample (binomial).",
             public: true,
@@ -478,6 +554,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         };
 
         stateVariableDefinitions.probability = {
+            groupName: "sampling-discrete",
             description: "Probability that each trial succeeds (binomial).",
             public: true,
             shadowingInstructions: {
@@ -556,6 +633,82 @@ export default class SampleRandomNumbers extends CompositeComponent {
             },
         };
 
+        // The log-normal's parameters as the author gave them. Public, unlike the
+        // gaussian's, because they are the only description of the distribution the
+        // author wrote: the reported `mean` and `variance` are of the samples, and
+        // neither recovers a parameter without the other.
+        stateVariableDefinitions.logMean = {
+            groupName: "sampling-lognormal",
+            description:
+                "Mean of the underlying normal distribution (log-normal).",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "number",
+            },
+            returnDependencies: () => ({
+                specifiedLogMean: {
+                    dependencyType: "stateVariable",
+                    variableName: "specifiedLogMean",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: { logMean: dependencyValues.specifiedLogMean },
+            }),
+        };
+
+        stateVariableDefinitions.logStandardDeviation = {
+            groupName: "sampling-lognormal",
+            description:
+                "Standard deviation of the underlying normal distribution (log-normal).",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "number",
+            },
+            additionalStateVariablesDefined: [
+                {
+                    variableName: "logVariance",
+                    public: true,
+                    groupName: "sampling-lognormal",
+                    shadowingInstructions: {
+                        createComponentOfType: "number",
+                    },
+                    description:
+                        "Variance of the underlying normal distribution (log-normal).",
+                },
+            ],
+            returnDependencies: () => ({
+                specifiedLogVariance: {
+                    dependencyType: "stateVariable",
+                    variableName: "specifiedLogVariance",
+                },
+                specifiedLogStandardDeviation: {
+                    dependencyType: "stateVariable",
+                    variableName: "specifiedLogStandardDeviation",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                // settled together, and for the same reasons, as the gaussian pair
+                // above: whichever the author wrote decides both, and each is kept
+                // as written rather than round-tripped through the other, which
+                // would lose the sign of a negative spread
+                const fromStandardDeviation =
+                    usedDefault.specifiedLogVariance &&
+                    !usedDefault.specifiedLogStandardDeviation;
+
+                return {
+                    setValue: {
+                        logStandardDeviation: fromStandardDeviation
+                            ? dependencyValues.specifiedLogStandardDeviation
+                            : Math.sqrt(dependencyValues.specifiedLogVariance),
+                        logVariance: fromStandardDeviation
+                            ? dependencyValues.specifiedLogStandardDeviation **
+                              2
+                            : dependencyValues.specifiedLogVariance,
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.poissonMean = {
             returnDependencies: () => ({
                 specifiedMean: {
@@ -574,9 +727,23 @@ export default class SampleRandomNumbers extends CompositeComponent {
             },
         };
 
+        // The three moments are what an author reads off the component --- the
+        // values themselves arrive as its replacements rather than as a property ---
+        // so they are the properties the reference page opens on. The parameter
+        // properties beside them repeat the attributes that set them, and sit in
+        // their distribution's group as those attributes do.
+        //
+        // These three carry a group of their own rather than inheriting one,
+        // because a property with no group takes the group of the attribute it
+        // shares a name with: `mean`, `standardDeviation` and `variance` are
+        // gaussian attributes, but as properties they report the moments of
+        // whichever distribution is in use, and filing them under the gaussian
+        // would tell a reader of a poisson or binomial the wrong thing.
         stateVariableDefinitions.mean = {
             description: "Mean of the sampling distribution.",
             stateVariablesDeterminingDependencies: ["type"],
+            highlighted: true,
+            groupName: "sampling-moments",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -596,6 +763,15 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     dependencies.standardDeviation = {
                         dependencyType: "stateVariable",
                         variableName: "gaussianStandardDeviation",
+                    };
+                } else if (stateValues.type === "lognormal") {
+                    dependencies.logMean = {
+                        dependencyType: "stateVariable",
+                        variableName: "logMean",
+                    };
+                    dependencies.logStandardDeviation = {
+                        dependencyType: "stateVariable",
+                        variableName: "logStandardDeviation",
                     };
                 } else if (stateValues.type === "poisson") {
                     dependencies.poissonMean = {
@@ -657,6 +833,17 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     mean = validGaussianParameters(dependencyValues)
                         ? dependencyValues.mean
                         : NaN;
+                } else if (dependencyValues.type === "lognormal") {
+                    // e^(mu + sigma^2 / 2), which overflows to Infinity for
+                    // parameters whose distribution genuinely has a mean larger
+                    // than a number can hold
+                    mean = validLogNormalParameters(dependencyValues)
+                        ? Math.exp(
+                              dependencyValues.logMean +
+                                  dependencyValues.logStandardDeviation ** 2 /
+                                      2,
+                          )
+                        : NaN;
                 } else if (dependencyValues.type === "poisson") {
                     // out-of-range parameters describe no distribution, so this
                     // case and the two below report NaN, just as their samples do
@@ -703,6 +890,8 @@ export default class SampleRandomNumbers extends CompositeComponent {
         stateVariableDefinitions.variance = {
             description: "Variance of the sampling distribution.",
             stateVariablesDeterminingDependencies: ["type"],
+            highlighted: true,
+            groupName: "sampling-moments",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -727,6 +916,15 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     dependencies.standardDeviation = {
                         dependencyType: "stateVariable",
                         variableName: "gaussianStandardDeviation",
+                    };
+                } else if (stateValues.type === "lognormal") {
+                    dependencies.logMean = {
+                        dependencyType: "stateVariable",
+                        variableName: "logMean",
+                    };
+                    dependencies.logStandardDeviation = {
+                        dependencyType: "stateVariable",
+                        variableName: "logStandardDeviation",
                     };
                 } else if (stateValues.type === "poisson") {
                     // the variance of a Poisson distribution equals its mean,
@@ -792,6 +990,27 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     variance = validGaussianParameters(dependencyValues)
                         ? dependencyValues.gaussianVariance
                         : NaN;
+                } else if (dependencyValues.type === "lognormal") {
+                    const logVariance =
+                        dependencyValues.logStandardDeviation ** 2;
+                    if (!validLogNormalParameters(dependencyValues)) {
+                        variance = NaN;
+                    } else if (logVariance === 0) {
+                        // A spread of zero is one value repeated, whose variance
+                        // is 0. The formula below would read it as 0 times the
+                        // Infinity a large enough center overflows to, and report
+                        // NaN for a distribution that is perfectly determined.
+                        variance = 0;
+                    } else {
+                        // (e^(sigma^2) - 1) e^(2 mu + sigma^2), with `expm1` for
+                        // the first factor so that a small spread does not lose
+                        // its precision to the 1 it is subtracted from
+                        variance =
+                            Math.expm1(logVariance) *
+                            Math.exp(
+                                2 * dependencyValues.logMean + logVariance,
+                            );
+                    }
                 } else if (dependencyValues.type === "poisson") {
                     // the variance of a Poisson distribution equals its mean,
                     // including the NaN that an out-of-range mean reports
@@ -856,6 +1075,8 @@ export default class SampleRandomNumbers extends CompositeComponent {
 
         stateVariableDefinitions.standardDeviation = {
             description: "Standard deviation of the sampling distribution.",
+            highlighted: true,
+            groupName: "sampling-moments",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "number",
@@ -917,6 +1138,14 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     standardDeviation: {
                         dependencyType: "stateVariable",
                         variableName: "gaussianStandardDeviation",
+                    },
+                    logMean: {
+                        dependencyType: "stateVariable",
+                        variableName: "logMean",
+                    },
+                    logStandardDeviation: {
+                        dependencyType: "stateVariable",
+                        variableName: "logStandardDeviation",
                     },
                     numTotal: {
                         dependencyType: "stateVariable",

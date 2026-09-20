@@ -141847,6 +141847,7 @@
                         "uniform",
                         "discreteUniform",
                         "gaussian",
+                        "logNormal",
                         "hypergeometric",
                         "binomial",
                         "poisson"
@@ -141865,6 +141866,24 @@
                     ]
                 },
                 "variance": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "logMean": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "logStandardDeviation": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "logVariance": {
                     "optional": true,
                     "type": [
                         "string"
@@ -142061,6 +142080,24 @@
                     "description": "Probability that each trial succeeds (binomial)."
                 },
                 {
+                    "name": "logMean",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Mean of the underlying normal distribution (log-normal)."
+                },
+                {
+                    "name": "logStandardDeviation",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Standard deviation of the underlying normal distribution (log-normal)."
+                },
+                {
+                    "name": "logVariance",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Variance of the underlying normal distribution (log-normal)."
+                },
+                {
                     "name": "mean",
                     "type": "number",
                     "isArray": false,
@@ -142155,6 +142192,7 @@
                         "uniform",
                         "discreteUniform",
                         "gaussian",
+                        "logNormal",
                         "hypergeometric",
                         "binomial",
                         "poisson"
@@ -142173,6 +142211,24 @@
                     ]
                 },
                 "variance": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "logMean": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "logStandardDeviation": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "logVariance": {
                     "optional": true,
                     "type": [
                         "string"
@@ -142375,6 +142431,24 @@
                     "type": "number",
                     "isArray": false,
                     "description": "Probability that each trial succeeds (binomial)."
+                },
+                {
+                    "name": "logMean",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Mean of the underlying normal distribution (log-normal)."
+                },
+                {
+                    "name": "logStandardDeviation",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Standard deviation of the underlying normal distribution (log-normal)."
+                },
+                {
+                    "name": "logVariance",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Variance of the underlying normal distribution (log-normal)."
                 },
                 {
                     "name": "mean",

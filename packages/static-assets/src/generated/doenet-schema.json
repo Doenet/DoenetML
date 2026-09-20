@@ -111288,11 +111288,13 @@
                 {
                     "name": "type",
                     "description": "Distribution from which to sample.",
+                    "highlighted": true,
                     "defaultValue": "uniform",
                     "values": [
                         "uniform",
                         "discreteUniform",
                         "gaussian",
+                        "logNormal",
                         "hypergeometric",
                         "binomial",
                         "poisson"
@@ -111309,6 +111311,10 @@
                         {
                             "value": "gaussian",
                             "description": "Normal (Gaussian) distribution with the specified mean and standard deviation."
+                        },
+                        {
+                            "value": "logNormal",
+                            "description": "Log-normal distribution: the exponential of a normal distribution with the specified `logMean` and `logStandardDeviation`."
                         },
                         {
                             "value": "hypergeometric",
@@ -111328,94 +111334,132 @@
                 {
                     "name": "mean",
                     "description": "Mean of the sampling distribution (Gaussian or Poisson). Defaults to 0 for Gaussian and 1 for Poisson.",
+                    "groupName": "sampling-gaussian",
                     "defaultValue": null,
                     "type": "number"
                 },
                 {
                     "name": "standardDeviation",
                     "description": "Standard deviation of the sampling distribution (Gaussian).",
+                    "groupName": "sampling-gaussian",
                     "defaultValue": 1,
                     "type": "number"
                 },
                 {
                     "name": "variance",
                     "description": "Variance of the sampling distribution (Gaussian).",
+                    "groupName": "sampling-gaussian",
+                    "defaultValue": 1,
+                    "type": "number"
+                },
+                {
+                    "name": "logMean",
+                    "description": "Mean of the underlying normal distribution (log-normal).",
+                    "groupName": "sampling-lognormal",
+                    "defaultValue": 0,
+                    "type": "number"
+                },
+                {
+                    "name": "logStandardDeviation",
+                    "description": "Standard deviation of the underlying normal distribution (log-normal).",
+                    "groupName": "sampling-lognormal",
+                    "defaultValue": 1,
+                    "type": "number"
+                },
+                {
+                    "name": "logVariance",
+                    "description": "Variance of the underlying normal distribution (log-normal).",
+                    "groupName": "sampling-lognormal",
                     "defaultValue": 1,
                     "type": "number"
                 },
                 {
                     "name": "from",
                     "description": "Lower bound of the sampling range.",
+                    "groupName": "sampling-range",
                     "defaultValue": null,
                     "type": "number"
                 },
                 {
                     "name": "to",
                     "description": "Upper bound of the sampling range.",
+                    "groupName": "sampling-range",
                     "defaultValue": null,
                     "type": "number"
                 },
                 {
                     "name": "step",
                     "description": "Step size between samples for the discrete-uniform distribution.",
+                    "groupName": "sampling-range",
                     "defaultValue": 1,
                     "type": "number"
                 },
                 {
                     "name": "exclude",
                     "description": "Values to exclude from the sample space.",
+                    "groupName": "sampling-range",
                     "defaultValue": [],
                     "type": "numberList"
                 },
                 {
                     "name": "numTotal",
                     "description": "Size of the population drawn from (hypergeometric).",
+                    "groupName": "sampling-discrete",
                     "defaultValue": null,
                     "type": "number"
                 },
                 {
                     "name": "numSuccesses",
                     "description": "Number of successes in the population drawn from (hypergeometric).",
+                    "groupName": "sampling-discrete",
                     "defaultValue": null,
                     "type": "number"
                 },
                 {
                     "name": "numDraws",
                     "description": "Number of items drawn without replacement to form each sample (hypergeometric).",
+                    "groupName": "sampling-discrete",
                     "defaultValue": null,
                     "type": "number"
                 },
                 {
                     "name": "numTrials",
                     "description": "Number of independent trials making up each sample (binomial).",
+                    "groupName": "sampling-discrete",
                     "defaultValue": 1,
                     "type": "number"
                 },
                 {
                     "name": "probability",
                     "description": "Probability that each trial succeeds (binomial).",
+                    "groupName": "sampling-discrete",
                     "defaultValue": 0.5,
                     "type": "number"
                 },
                 {
                     "name": "displayDigits",
-                    "description": "Number of significant digits to display when rendering this number."
+                    "description": "Number of significant digits to display when rendering this number.",
+                    "groupName": "number-display"
                 },
                 {
                     "name": "displayDecimals",
-                    "description": "Number of decimal places to display when rendering this number."
+                    "description": "Number of decimal places to display when rendering this number.",
+                    "groupName": "number-display"
                 },
                 {
                     "name": "displaySmallAsZero",
-                    "description": "Threshold below which numbers are displayed as zero."
+                    "description": "Threshold below which numbers are displayed as zero.",
+                    "groupName": "number-display"
                 },
                 {
                     "name": "padZeros",
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
+                    "groupName": "number-display"
                 },
                 {
                     "name": "avoidScientificNotation",
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation.",
+                    "groupName": "number-display"
                 },
                 {
                     "name": "asList",
@@ -111430,6 +111474,7 @@
                 {
                     "name": "numToSelect",
                     "description": "How many random numbers to select.",
+                    "highlighted": true,
                     "defaultValue": 1,
                     "type": "integer"
                 }
@@ -111461,14 +111506,16 @@
                     "type": "text",
                     "isArray": false,
                     "description": "Distribution from which to sample.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "numToSelect",
                     "type": "integer",
                     "isArray": false,
                     "description": "How many random numbers to select.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "doenetML",
@@ -111480,67 +111527,102 @@
                     "name": "step",
                     "type": "number",
                     "isArray": false,
-                    "description": "Step size between sample values (for discrete distributions)."
+                    "description": "Step size between sample values (for discrete distributions).",
+                    "groupName": "sampling-range"
                 },
                 {
                     "name": "from",
                     "type": "number",
                     "isArray": false,
-                    "description": "Lower bound of the sampling range."
+                    "description": "Lower bound of the sampling range.",
+                    "groupName": "sampling-range"
                 },
                 {
                     "name": "to",
                     "type": "number",
                     "isArray": false,
-                    "description": "Upper bound of the sampling range."
+                    "description": "Upper bound of the sampling range.",
+                    "groupName": "sampling-range"
                 },
                 {
                     "name": "numTotal",
                     "type": "number",
                     "isArray": false,
-                    "description": "Size of the population drawn from (hypergeometric)."
+                    "description": "Size of the population drawn from (hypergeometric).",
+                    "groupName": "sampling-discrete"
                 },
                 {
                     "name": "numSuccesses",
                     "type": "number",
                     "isArray": false,
-                    "description": "Number of successes in the population drawn from (hypergeometric)."
+                    "description": "Number of successes in the population drawn from (hypergeometric).",
+                    "groupName": "sampling-discrete"
                 },
                 {
                     "name": "numDraws",
                     "type": "number",
                     "isArray": false,
-                    "description": "Number of items drawn without replacement to form each sample (hypergeometric)."
+                    "description": "Number of items drawn without replacement to form each sample (hypergeometric).",
+                    "groupName": "sampling-discrete"
                 },
                 {
                     "name": "numTrials",
                     "type": "number",
                     "isArray": false,
-                    "description": "Number of independent trials making up each sample (binomial)."
+                    "description": "Number of independent trials making up each sample (binomial).",
+                    "groupName": "sampling-discrete"
                 },
                 {
                     "name": "probability",
                     "type": "number",
                     "isArray": false,
-                    "description": "Probability that each trial succeeds (binomial)."
+                    "description": "Probability that each trial succeeds (binomial).",
+                    "groupName": "sampling-discrete"
+                },
+                {
+                    "name": "logMean",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Mean of the underlying normal distribution (log-normal).",
+                    "groupName": "sampling-lognormal"
+                },
+                {
+                    "name": "logStandardDeviation",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Standard deviation of the underlying normal distribution (log-normal).",
+                    "groupName": "sampling-lognormal"
+                },
+                {
+                    "name": "logVariance",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Variance of the underlying normal distribution (log-normal).",
+                    "groupName": "sampling-lognormal"
                 },
                 {
                     "name": "mean",
                     "type": "number",
                     "isArray": false,
-                    "description": "Mean of the sampling distribution."
+                    "description": "Mean of the sampling distribution.",
+                    "groupName": "sampling-moments",
+                    "highlighted": true
                 },
                 {
                     "name": "variance",
                     "type": "number",
                     "isArray": false,
-                    "description": "Variance of the sampling distribution."
+                    "description": "Variance of the sampling distribution.",
+                    "groupName": "sampling-moments",
+                    "highlighted": true
                 },
                 {
                     "name": "standardDeviation",
                     "type": "number",
                     "isArray": false,
-                    "description": "Standard deviation of the sampling distribution."
+                    "description": "Standard deviation of the sampling distribution.",
+                    "groupName": "sampling-moments",
+                    "highlighted": true
                 }
             ],
             "top": true,
@@ -111633,17 +111715,20 @@
                 {
                     "name": "numSamples",
                     "description": "Number of samples to draw.",
+                    "highlighted": true,
                     "defaultValue": 1,
                     "type": "number"
                 },
                 {
                     "name": "type",
                     "description": "Distribution from which to sample.",
+                    "highlighted": true,
                     "defaultValue": "uniform",
                     "values": [
                         "uniform",
                         "discreteUniform",
                         "gaussian",
+                        "logNormal",
                         "hypergeometric",
                         "binomial",
                         "poisson"
@@ -111660,6 +111745,10 @@
                         {
                             "value": "gaussian",
                             "description": "Normal (Gaussian) distribution with the specified mean and standard deviation."
+                        },
+                        {
+                            "value": "logNormal",
+                            "description": "Log-normal distribution: the exponential of a normal distribution with the specified `logMean` and `logStandardDeviation`."
                         },
                         {
                             "value": "hypergeometric",
@@ -111679,94 +111768,132 @@
                 {
                     "name": "mean",
                     "description": "Mean of the sampling distribution (Gaussian or Poisson). Defaults to 0 for Gaussian and 1 for Poisson.",
+                    "groupName": "sampling-gaussian",
                     "defaultValue": null,
                     "type": "number"
                 },
                 {
                     "name": "standardDeviation",
                     "description": "Standard deviation of the sampling distribution (Gaussian).",
+                    "groupName": "sampling-gaussian",
                     "defaultValue": 1,
                     "type": "number"
                 },
                 {
                     "name": "variance",
                     "description": "Variance of the sampling distribution (Gaussian).",
+                    "groupName": "sampling-gaussian",
+                    "defaultValue": 1,
+                    "type": "number"
+                },
+                {
+                    "name": "logMean",
+                    "description": "Mean of the underlying normal distribution (log-normal).",
+                    "groupName": "sampling-lognormal",
+                    "defaultValue": 0,
+                    "type": "number"
+                },
+                {
+                    "name": "logStandardDeviation",
+                    "description": "Standard deviation of the underlying normal distribution (log-normal).",
+                    "groupName": "sampling-lognormal",
+                    "defaultValue": 1,
+                    "type": "number"
+                },
+                {
+                    "name": "logVariance",
+                    "description": "Variance of the underlying normal distribution (log-normal).",
+                    "groupName": "sampling-lognormal",
                     "defaultValue": 1,
                     "type": "number"
                 },
                 {
                     "name": "from",
                     "description": "Lower bound of the sampling range.",
+                    "groupName": "sampling-range",
                     "defaultValue": null,
                     "type": "number"
                 },
                 {
                     "name": "to",
                     "description": "Upper bound of the sampling range.",
+                    "groupName": "sampling-range",
                     "defaultValue": null,
                     "type": "number"
                 },
                 {
                     "name": "step",
                     "description": "Step size between samples for the discrete-uniform distribution.",
+                    "groupName": "sampling-range",
                     "defaultValue": 1,
                     "type": "number"
                 },
                 {
                     "name": "exclude",
                     "description": "Values to exclude from the sample space.",
+                    "groupName": "sampling-range",
                     "defaultValue": [],
                     "type": "numberList"
                 },
                 {
                     "name": "numTotal",
                     "description": "Size of the population drawn from (hypergeometric).",
+                    "groupName": "sampling-discrete",
                     "defaultValue": null,
                     "type": "number"
                 },
                 {
                     "name": "numSuccesses",
                     "description": "Number of successes in the population drawn from (hypergeometric).",
+                    "groupName": "sampling-discrete",
                     "defaultValue": null,
                     "type": "number"
                 },
                 {
                     "name": "numDraws",
                     "description": "Number of items drawn without replacement to form each sample (hypergeometric).",
+                    "groupName": "sampling-discrete",
                     "defaultValue": null,
                     "type": "number"
                 },
                 {
                     "name": "numTrials",
                     "description": "Number of independent trials making up each sample (binomial).",
+                    "groupName": "sampling-discrete",
                     "defaultValue": 1,
                     "type": "number"
                 },
                 {
                     "name": "probability",
                     "description": "Probability that each trial succeeds (binomial).",
+                    "groupName": "sampling-discrete",
                     "defaultValue": 0.5,
                     "type": "number"
                 },
                 {
                     "name": "displayDigits",
-                    "description": "Number of significant digits to display when rendering this number."
+                    "description": "Number of significant digits to display when rendering this number.",
+                    "groupName": "number-display"
                 },
                 {
                     "name": "displayDecimals",
-                    "description": "Number of decimal places to display when rendering this number."
+                    "description": "Number of decimal places to display when rendering this number.",
+                    "groupName": "number-display"
                 },
                 {
                     "name": "displaySmallAsZero",
-                    "description": "Threshold below which numbers are displayed as zero."
+                    "description": "Threshold below which numbers are displayed as zero.",
+                    "groupName": "number-display"
                 },
                 {
                     "name": "padZeros",
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
+                    "groupName": "number-display"
                 },
                 {
                     "name": "avoidScientificNotation",
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation.",
+                    "groupName": "number-display"
                 },
                 {
                     "name": "variantDeterminesSeed",
@@ -111815,14 +111942,16 @@
                     "type": "number",
                     "isArray": false,
                     "description": "Number of samples to draw.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "type",
                     "type": "text",
                     "isArray": false,
                     "description": "Distribution from which to sample.",
-                    "fromAttribute": true
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "variantDeterminesSeed",
@@ -111841,67 +111970,102 @@
                     "name": "step",
                     "type": "number",
                     "isArray": false,
-                    "description": "Step size between sample values (for discrete distributions)."
+                    "description": "Step size between sample values (for discrete distributions).",
+                    "groupName": "sampling-range"
                 },
                 {
                     "name": "from",
                     "type": "number",
                     "isArray": false,
-                    "description": "Lower bound of the sampling range."
+                    "description": "Lower bound of the sampling range.",
+                    "groupName": "sampling-range"
                 },
                 {
                     "name": "to",
                     "type": "number",
                     "isArray": false,
-                    "description": "Upper bound of the sampling range."
+                    "description": "Upper bound of the sampling range.",
+                    "groupName": "sampling-range"
                 },
                 {
                     "name": "numTotal",
                     "type": "number",
                     "isArray": false,
-                    "description": "Size of the population drawn from (hypergeometric)."
+                    "description": "Size of the population drawn from (hypergeometric).",
+                    "groupName": "sampling-discrete"
                 },
                 {
                     "name": "numSuccesses",
                     "type": "number",
                     "isArray": false,
-                    "description": "Number of successes in the population drawn from (hypergeometric)."
+                    "description": "Number of successes in the population drawn from (hypergeometric).",
+                    "groupName": "sampling-discrete"
                 },
                 {
                     "name": "numDraws",
                     "type": "number",
                     "isArray": false,
-                    "description": "Number of items drawn without replacement to form each sample (hypergeometric)."
+                    "description": "Number of items drawn without replacement to form each sample (hypergeometric).",
+                    "groupName": "sampling-discrete"
                 },
                 {
                     "name": "numTrials",
                     "type": "number",
                     "isArray": false,
-                    "description": "Number of independent trials making up each sample (binomial)."
+                    "description": "Number of independent trials making up each sample (binomial).",
+                    "groupName": "sampling-discrete"
                 },
                 {
                     "name": "probability",
                     "type": "number",
                     "isArray": false,
-                    "description": "Probability that each trial succeeds (binomial)."
+                    "description": "Probability that each trial succeeds (binomial).",
+                    "groupName": "sampling-discrete"
+                },
+                {
+                    "name": "logMean",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Mean of the underlying normal distribution (log-normal).",
+                    "groupName": "sampling-lognormal"
+                },
+                {
+                    "name": "logStandardDeviation",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Standard deviation of the underlying normal distribution (log-normal).",
+                    "groupName": "sampling-lognormal"
+                },
+                {
+                    "name": "logVariance",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Variance of the underlying normal distribution (log-normal).",
+                    "groupName": "sampling-lognormal"
                 },
                 {
                     "name": "mean",
                     "type": "number",
                     "isArray": false,
-                    "description": "Mean of the sampling distribution."
+                    "description": "Mean of the sampling distribution.",
+                    "groupName": "sampling-moments",
+                    "highlighted": true
                 },
                 {
                     "name": "variance",
                     "type": "number",
                     "isArray": false,
-                    "description": "Variance of the sampling distribution."
+                    "description": "Variance of the sampling distribution.",
+                    "groupName": "sampling-moments",
+                    "highlighted": true
                 },
                 {
                     "name": "standardDeviation",
                     "type": "number",
                     "isArray": false,
-                    "description": "Standard deviation of the sampling distribution."
+                    "description": "Standard deviation of the sampling distribution.",
+                    "groupName": "sampling-moments",
+                    "highlighted": true
                 }
             ],
             "top": true,
