@@ -18,7 +18,8 @@ fraction of what it did, and the more of the document reads the sorted list the
 larger that difference is.
 
 A value that lands most of the way across the list in a single step is the
-exception. Only what actually moved is moved, so a step that reorders nearly
-everything leaves whatever reads the list as much to rebuild as before.
+exception, and `<sort>` takes the old route for it: what a rearrangement saves
+is the results that stay where they are, so once most of them would move there
+is nothing left to save and rebuilding is the cheaper of the two.
 
 Sorting a changed set of values — one added, one removed — rebuilds as before.

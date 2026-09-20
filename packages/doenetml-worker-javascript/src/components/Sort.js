@@ -56,6 +56,35 @@ function arrangementFromCopiedComponents(previous, current) {
     return arrangement;
 }
 
+/**
+ * Whether moving the replacements into `arrangement` is worth doing rather than
+ * rebuilding them.
+ *
+ * What a rearrangement saves is the replacements that *don't* move: those keep
+ * their components, and so does whatever copies the sorted list. A replacement
+ * that does move costs a copy of the list the same rebuild it would have paid
+ * anyway, and the move on top of it.
+ *
+ * So the saving is proportional to how many entries stay where they were, and a
+ * step that reorders nearly everything is better off rebuilt. On forty sorted
+ * points read by a `<p>`, the two paths cost about the same when half the list
+ * moves; below that rearranging wins by progressively more, above it rebuilding
+ * does. A drag carries a value past one neighbor at a time and leaves all but
+ * two entries where they were; typing a value that belongs at the far end is
+ * what reaches the other case.
+ */
+function worthRearranging(arrangement) {
+    let stayed = 0;
+
+    for (const [ind, previousInd] of arrangement.entries()) {
+        if (previousInd === ind) {
+            stayed++;
+        }
+    }
+
+    return stayed * 2 >= arrangement.length;
+}
+
 export default class Sort extends CompositeComponent {
     static componentType = "sort";
 
@@ -356,7 +385,7 @@ export default class Sort extends CompositeComponent {
             componentsToCopy,
         );
 
-        if (arrangement) {
+        if (arrangement && worthRearranging(arrangement)) {
             workspace.componentsCopied = componentsToCopy;
 
             return {
