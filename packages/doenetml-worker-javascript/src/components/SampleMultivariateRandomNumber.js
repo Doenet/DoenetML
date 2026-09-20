@@ -64,6 +64,13 @@ export default class SampleMultivariateRandomNumber extends CompositeComponent {
 
     static componentType = "sampleMultivariateRandomNumber";
 
+    // `variantDeterminesSeed` is false by default, so these samples are drawn
+    // from a date-seeded generator and a fresh build of the same document
+    // under the same variant does not reproduce them. They exist nowhere but
+    // in the saved state, so they are persisted rather than treated as a
+    // definition's recomputable work (Doenet/DoenetML#1940).
+    static definitionEssentialValuesAreReproducible = false;
+
     static componentDocs = {
         summary:
             "Samples one number per category from a multivariate distribution, drawn together rather than independently",

@@ -460,16 +460,16 @@ export function assignDocumentDerivedStateIds(document: SerializedComponent) {
         // Components written inside the index of a reference path -- the `<b/>`
         // of `$a[<b/>]`. `ComponentBuilder` builds these too, so they need ids
         // of their own or they fall back to their index.
-        const extending = component.extending as any;
-        const refResolution = extending
-            ? (extending.Ref ??
-              extending.ExtendAttribute ??
-              extending.CopyAttribute)
+        // `unwrapSource` rather than a hand-written unwrap, so a fourth kind of
+        // `Source` could not silently leave a subtree unvisited.
+        const refResolution = component.extending
+            ? unwrapSource(component.extending)
             : undefined;
         if (refResolution?.originalPath) {
-            for (const [partIndex, pathPart] of (
-                refResolution.originalPath as SerializedRefResolutionPathPart[]
-            ).entries()) {
+            for (const [
+                partIndex,
+                pathPart,
+            ] of refResolution.originalPath.entries()) {
                 for (const [
                     pieceIndex,
                     indexPiece,

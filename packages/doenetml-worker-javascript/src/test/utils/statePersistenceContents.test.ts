@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "./test-core";
-import { movePoint } from "./actions";
+import { movePoint, updateTextInputValue } from "./actions";
 
 // What a reader's saved state costs should track what the reader did, not how
 // big the document is. It did not: every essential value an ordinary
@@ -118,5 +118,76 @@ describe("saved state is the reader's work @group4", () => {
                 await second.resolvePathToNodeIdx("P0"),
             ),
         ).eqls(moved);
+    });
+});
+
+describe("what a rebuild cannot recompute is still saved @group4", () => {
+    // The filter above drops what a definition computed, on the premise that a
+    // fresh load of the same document under the same variant recomputes it.
+    // `<sampleRandomNumbers>` breaks that premise: `variantDeterminesSeed` is
+    // false by default, so it draws from a date-seeded generator and its values
+    // exist nowhere but in the saved state. Dropping them changes the numbers
+    // under a reader who reloads — the question they were answering becomes a
+    // different question.
+    const DOC = `
+<textInput name="ti" />
+<sampleRandomNumbers name="sampled" numSamples="3" from="0" to="1" />
+<selectRandomNumbers name="selected" numToSelect="3" from="0" to="1" />`;
+
+    async function drawsOf(core: any, resolve: any, name: string) {
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        return stateVariables[await resolve(name)].stateValues.sampledValues;
+    }
+
+    it("a date-seeded sampler draws the same numbers after a reload", async () => {
+        const first = await createTestCore({ doenetML: DOC });
+        const drawn = await drawsOf(
+            first.core,
+            first.resolvePathToNodeIdx,
+            "sampled",
+        );
+        expect(drawn.length).eq(3);
+
+        // The reader touches something else entirely: the sampler's values are
+        // not theirs, which is exactly why the filter would drop them.
+        await updateTextInputValue({
+            text: "worked",
+            componentIdx: await first.resolvePathToNodeIdx("ti"),
+            core: first.core,
+        });
+        await first.core.saveImmediately();
+
+        const second = await createTestCore({
+            doenetML: DOC,
+            initialState: first.scoreState.state as string,
+        });
+        expect(
+            await drawsOf(second.core, second.resolvePathToNodeIdx, "selected"),
+            "the variant-seeded selection did not reproduce, so the sampler comparison below proves nothing",
+        ).eqls(
+            await drawsOf(first.core, first.resolvePathToNodeIdx, "selected"),
+        );
+        expect(
+            await drawsOf(second.core, second.resolvePathToNodeIdx, "sampled"),
+        ).eqls(drawn);
+    });
+
+    it("but a selection the variant determines still costs nothing", async () => {
+        // The counterweight: `<selectRandomNumbers>` draws from the variant's
+        // own generator, so a rebuild reproduces it and there is nothing to
+        // persist. Without this, "save what a rebuild cannot reproduce" would
+        // be free to decay back into saving everything.
+        const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
+            { doenetML: DOC },
+        );
+        await updateTextInputValue({
+            text: "worked",
+            componentIdx: await resolvePathToNodeIdx("ti"),
+            core,
+        });
+        await core.saveImmediately();
+
+        const keys = Object.keys(JSON.parse(scoreState.state as string));
+        expect(keys.sort()).eqls(["/~sampled", "/~ti"]);
     });
 });

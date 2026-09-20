@@ -470,8 +470,18 @@ export class UpdateExecutor {
         ) {
             for (const stateId in this.core.essentialValuesSavedInDefinition) {
                 const componentIdx = this.core.componentIdxByStateId[stateId];
-                let essentialState =
-                    this.core._components[componentIdx]?.essentialState;
+                const component = this.core._components[componentIdx];
+                let essentialState = component?.essentialState;
+                // A definition that draws from a seed the variant does not
+                // determine -- `<sampleRandomNumbers>` and the other two
+                // date-seeded samplers -- produces values a fresh build does
+                // not reproduce. They exist nowhere but in the saved state, so
+                // they are persisted like the reader's own work rather than
+                // dropped as a definition's (see
+                // `BaseComponent.definitionEssentialValuesAreReproducible`).
+                const reproducible =
+                    (component?.constructor as any)
+                        ?.definitionEssentialValuesAreReproducible !== false;
                 if (essentialState) {
                     for (let varName in this.core
                         .essentialValuesSavedInDefinition[stateId]) {
@@ -482,7 +492,9 @@ export class UpdateExecutor {
                             // is the reader's work, so unless they also write
                             // to this component it does not get persisted
                             // (Doenet/DoenetML#1940).
-                            this.core.definitionSetStateIds.add(stateId);
+                            if (reproducible) {
+                                this.core.definitionSetStateIds.add(stateId);
+                            }
                             this.core.essentialValueWriter.mergeIntoCumulative(
                                 stateId,
                                 varName,

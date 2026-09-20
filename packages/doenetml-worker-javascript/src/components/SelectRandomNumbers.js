@@ -5,6 +5,13 @@ import { convertUnresolvedAttributesForComponentType } from "../utils/dast/conve
 export default class SelectRandomNumbers extends SampleRandomNumbers {
     static componentType = "selectRandomNumbers";
 
+    // Unlike `<sampleRandomNumbers>`, which it extends, this draws from the
+    // variant's generator -- it deletes `variantDeterminesSeed` and takes
+    // `sharedParameters.variantRng` unconditionally -- so a fresh build of the
+    // same document under the same variant reproduces its selection and there
+    // is nothing to persist.
+    static definitionEssentialValuesAreReproducible = true;
+
     static componentDocs = {
         summary:
             "Selects a fixed set of random numbers to create document variants",

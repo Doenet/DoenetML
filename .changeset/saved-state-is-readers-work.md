@@ -12,6 +12,8 @@ Measured on one *Active Calculus* exercise, after a single drag of a constrained
 
 The values are still recorded internally, because a partial write to an array merges into whatever entry is already there and the definition path is what puts that base in place. What changed is what leaves the worker.
 
+One thing a definition computes is still saved: the draws of `<sampleRandomNumbers>`, `<samplePrimeNumbers>` and `<sampleMultivariateRandomNumber>`. Their `variantDeterminesSeed` is false by default, so they sample from a generator seeded by the clock and no rebuild reproduces them — the saved state is the only place those numbers exist. Dropping them would have changed the numbers under a reader who reloaded, turning the question they were part-way through answering into a different one. `<selectRandomNumbers>`, which draws from the variant's own generator, still costs nothing.
+
 Also fixed, in the same code: when a composite deleted one of its replacements during the same update that wrote to it — `<sort>` does this on every reorder — merging the update's changes threw on the missing component. Because the throw was caught upstream, it silently took the rest of the update with it, including scheduling the save at all. A reader typing into a `<sort>` could see their change on screen and have it never be persisted.
 
 Closes #1940.
