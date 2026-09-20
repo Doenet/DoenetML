@@ -2,16 +2,18 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "./test-core";
 import {
     moveText,
+    submitAnswer,
     updateMathInputValue,
+    updateSelectedIndices,
     updateTextInputValue,
 } from "./actions";
 
 // A component that copies another wholesale -- `<mathInput extend="$mi" />`, or
-// a composite's replacement of what it copies -- shadows it. A shadow holds no
-// essential value of its own: a variable it shadows redirects its inverse to
-// the target, and the essential-value writer then mirrors the target's write
-// back down over `shadowedBy`. So everything recorded against a shadow is a
-// duplicate of what is recorded against its source.
+// a composite's replacement of what it copies -- shadows it. Most of what such
+// a component records is not its own: a variable it shadows redirects its
+// inverse to the target, and the essential-value writer then mirrors the
+// target's write back down over `shadowedBy`, so the entry under the shadow's
+// id is a duplicate of the entry under its source's.
 //
 // Saving the duplicate is worse than wasteful. The two entries are restored
 // independently, and nothing makes the order they land in agree with the order
@@ -22,6 +24,14 @@ import {
 // for `<sort>` -- keeps the stale duplicate too, and it lands on top of the
 // value restored to the source. The reader's answer comes back on the wrong
 // element of a sorted list.
+//
+// "Most" and not "all": the writer deliberately does not mirror a
+// `doNotShadowEssential` or `shadowVariable` value, and for those the shadow
+// holds the only copy. A `<choice>` inside a `<shuffle>` is the case that
+// matters -- the shuffle's replacement is the choice's primary shadow and is
+// where `submitted` lives -- and a revealed copy of a `<hint>` is the simplest
+// one. The last two tests in this file are those; they are why the rule reads
+// every variable in an entry rather than stopping at the component.
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -216,5 +226,75 @@ describe("a shadow's state is its source's, and is not persisted twice @group4",
         const anchor =
             stateVariables[restoredAdapter.componentIdx].stateValues.anchor;
         expect(anchor.tree ?? anchor).eqls(["vector", 7, -7]);
+    });
+
+    it("keeps a copied hint's own open state", async () => {
+        // `open` is `doNotShadowEssential`, so revealing a copy of a `<hint>`
+        // does not reveal the original and the record of it exists only under
+        // the copy's id. Keyed on the component alone the rule dropped it, and
+        // the reader's hint closed itself on reload.
+        const doc = `<hint name="h"><title>Hint</title><p>secret</p></hint><hint extend="$h" name="h2" />`;
+        const trip = await roundTrip(doc, async (core, resolve) => {
+            await core.requestAction({
+                componentIdx: await resolve("h2"),
+                actionName: "revealHint",
+                args: {},
+            });
+        });
+
+        expect(trip.keys.length).eq(1);
+        // The copy is open and the original is not -- on screen, and after a
+        // reload. The second half is what says the entry was saved; the first
+        // says it was not mirrored onto the original by some other route.
+        expect(await trip.live("h2", "open")).eq(true);
+        expect(await trip.live("h", "open")).eq(false);
+        expect(await trip.restored("h2", "open")).eq(true);
+        expect(await trip.restored("h", "open")).eq(false);
+    });
+
+    it("keeps the submitted marking on a shuffled choice", async () => {
+        // A `<choice>` inside a `<shuffle>` is defined *from* the shuffle's
+        // replacement rather than the other way round: the replacement is the
+        // choice's primary shadow, `submitted` and `hasBeenSubmitted` are
+        // `doNotShadowEssential` on it, and `Choice`'s own inverse definition
+        // refuses to run when a primary shadow exists. So the replacement
+        // holds the only record that the reader submitted this choice, and
+        // dropping it lost the answer's marking on reload -- in the very
+        // composite this change is meant to make safe.
+        const doc = `
+<answer name="ans">
+  <choiceInput name="ci">
+    <shuffle>
+      <choice name="c1" credit="1">correct</choice>
+      <choice name="c2">wrong one</choice>
+      <choice name="c3">wrong two</choice>
+    </shuffle>
+  </choiceInput>
+</answer>`;
+        const trip = await roundTrip(doc, async (core, resolve) => {
+            await updateSelectedIndices({
+                componentIdx: await resolve("ci"),
+                selectedIndices: [1],
+                core,
+            });
+            await submitAnswer({
+                componentIdx: await resolve("ans"),
+                core,
+            });
+        });
+
+        async function marks(read: (n: string, v: string) => Promise<any>) {
+            return Promise.all(
+                ["c1", "c2", "c3"].map(async (name) => [
+                    await read(name, "submitted"),
+                    await read(name, "hasBeenSubmitted"),
+                ]),
+            );
+        }
+
+        const live = await marks(trip.live);
+        // Exactly one choice was submitted, whichever the shuffle put first.
+        expect(live.filter(([submitted]) => submitted).length).eq(1);
+        expect(await marks(trip.restored)).eqls(live);
     });
 });

@@ -6,7 +6,9 @@
 
 A copy no longer saves its own duplicate of the state belonging to what it copies.
 
-`<mathInput extend="$mi" />`, and every replacement a composite makes of something it copies, *shadows* the component it came from. A shadow holds no essential value of its own: a write into it is redirected to its source before it is recorded, and the source's write is then mirrored back down onto every shadow. Both ended up in the saved state, so a reader who typed into either half of a copied input was stored twice.
+`<mathInput extend="$mi" />`, and every replacement a composite makes of something it copies, *shadows* the component it came from. A write into a shadow is redirected to its source before it is recorded, and the source's write is then mirrored back down onto every shadow. Both ended up in the saved state, so a reader who typed into either half of a copied input was stored twice.
+
+The copy keeps whatever state really is its own. A few things a copy holds are never mirrored from what it copies — a revealed `<hint>` stays revealed only on the copy the reader opened, and a `<choice>` inside a `<shuffle>` records that it was submitted on the shuffled copy rather than on the choice as written — and those are saved as before.
 
 Nothing a reader can see changes here — the copy is restored from its source's entry, as it already was — but the payload a host stores is smaller wherever a document copies anything, which is most documents that use a composite.
 

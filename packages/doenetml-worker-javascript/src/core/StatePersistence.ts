@@ -135,8 +135,9 @@ export class StatePersistence {
      * route this bookkeeping does not know about is saved rather than silently
      * dropped.
      *
-     * Dropped for a second reason: an entry belonging to a component that
-     * shadows another. See `_isNonPropShadow`.
+     * Dropped for a second reason: an entry that holds nothing but a
+     * component's mirror of the state of another component it shadows. See
+     * `_isNonPropShadow`.
      *
      * `__`-prefixed keys are reserved sentinels rather than components' entries
      * (`__componentNeedingUpdateValue`), and are always carried.
@@ -164,19 +165,18 @@ export class StatePersistence {
     }
 
     /**
-     * Whether `stateId` belongs to a component that shadows another component
-     * wholesale — a plain copy, or a composite's replacement of what it copies.
+     * Whether everything recorded against `stateId` is a mirror of what is
+     * recorded against another component, and so already saved under that
+     * component's id.
      *
-     * Such a component holds no essential value of its own. Every write that
-     * reaches it is a mirror of a write to the component it shadows: a
-     * variable the shadow shadows has its inverse redirected to the target
-     * (`shadowInverseDefinition`), and the essential-value writer then mirrors
-     * the target's write back down over `shadowedBy`
-     * (`EssentialValueWriter.calculateEssentialVariableChanges` and
-     * `calculatePrimitiveChildChanges`, which recurse into exactly the shadows
-     * this predicate selects). So what is recorded against the shadow is a
-     * duplicate of what is recorded against its target, and the target's copy
-     * is the one that is saved.
+     * The component has to shadow another wholesale — a plain copy, or a
+     * composite's replacement of what it copies — and *every* variable in its
+     * entry has to be one the essential-value writer keeps in sync with the
+     * component it shadows (`_isMirroredFromShadowedComponent`). A write to
+     * such a variable is redirected to the target (`shadowInverseDefinition`)
+     * and mirrored from there back down over `shadowedBy`, so what is recorded
+     * against the shadow is a duplicate of what is recorded against its
+     * target, and the target's copy is the one that is saved.
      *
      * Persisting the duplicate is worse than redundant. The two entries are
      * restored independently, and nothing makes the order in which they land
@@ -192,9 +192,12 @@ export class StatePersistence {
      * Two kinds of copy are deliberately *not* selected:
      *
      * - A **prop** shadow (`<math extend="$P.x" />`). The writer's recursion
-     *   skips these, so a prop shadow's essential values are its own rather
-     *   than a mirror of its target's, and dropping them would lose the
-     *   reader's work.
+     *   generally skips these, so a prop shadow's essential values can be its
+     *   own rather than a mirror of its target's, and dropping them would lose
+     *   the reader's work. (It does follow an *implicit* prop shadow of a
+     *   component whose `implicitPropReturnsSameType` is set; that one is a
+     *   duplicate too, and is kept anyway rather than widening the rule for a
+     *   few bytes.)
      * - An **unlinked** copy (`<point copy="$A" />`), which carries
      *   `unlinkedCopySource` and no `shadows` at all: nothing propagates
      *   between it and its source in either direction, so its state is its
@@ -216,9 +219,62 @@ export class StatePersistence {
             return false;
         }
         const component = this.core._components?.[componentIdx];
-        return (
-            component?.shadows !== undefined &&
-            component.shadows.propVariable === undefined
+        if (
+            component?.shadows === undefined ||
+            component.shadows.propVariable !== undefined
+        ) {
+            return false;
+        }
+        const entry = this.core.cumulativeStateVariableChanges[stateId];
+        if (entry === undefined) {
+            return false;
+        }
+        return Object.keys(entry).every((varName) =>
+            this._isMirroredFromShadowedComponent(component, varName),
+        );
+    }
+
+    /**
+     * Whether `varName`'s essential value on a component that shadows another
+     * is kept in sync with the component it shadows, rather than being the
+     * shadow's own.
+     *
+     * Shadowing a component wholesale does not shadow all of its state:
+     * `createReferenceShadowStateVariableDefinitions` turns only the
+     * `shadowVariable`/`isShadow` variables into shadows of the target's, and
+     * `EssentialValueWriter` mirrors an essential write down over `shadowedBy`
+     * only for the variables it does *not* skip. It skips exactly two kinds,
+     * and for both the shadow's value is its own and the only copy of it:
+     *
+     * - `doNotShadowEssential` — `<hint>`'s `open`, `<choice>`'s `submitted`
+     *   and `hasBeenSubmitted`, `<award>`'s `awarded`, `disabled`/`fixed` on
+     *   every component. A `<choice>` inside a `<shuffle>` or a `<sort>` is
+     *   the sharpest case: the shuffle's replacement is the choice's
+     *   *primary shadow*, the source's own `submitted` is defined from it, and
+     *   the source's inverse definition refuses to run (`Choice.js`), so the
+     *   replacement holds the only record that the reader submitted it.
+     * - `shadowVariable` — written on the shadow only by a definition, since
+     *   an update's write to one is redirected to the target instead.
+     *
+     * A `__def_primitive_*` key is not a state variable but a primitive
+     * defining child's value, which `calculatePrimitiveChildChanges` mirrors
+     * into every non-prop shadow unconditionally.
+     *
+     * Anything else unrecognized — a key that is an `essentialVarName` rather
+     * than a state variable's name, say — is treated as not mirrored, so the
+     * entry is saved. The failure mode of a bookkeeping slip should not be
+     * losing a reader's work.
+     */
+    _isMirroredFromShadowedComponent(component: any, varName: string): boolean {
+        if (varName.startsWith("__def_primitive_")) {
+            return true;
+        }
+        const stateVarObj = component.state?.[varName];
+        if (stateVarObj === undefined) {
+            return false;
+        }
+        return !(
+            stateVarObj.doNotShadowEssential || stateVarObj.shadowVariable
         );
     }
 
