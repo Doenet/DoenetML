@@ -142,10 +142,22 @@ When `main` accumulates breaking changes and you decide to ship them:
    `push:` list names it literally — which is exactly what makes the gap easy to
    miss.
 3. **Protect the branch** like `main`.
-4. **Apply the branch-local changes** (below) in a PR into the new branch.
-5. **Land the `minor` on `main`.** Usually this rides along with the first breaking
+4. **Add the branch to the `production` environment's deployment branch policy**
+   (Settings → Environments → production → Deployment branches). The policy is a
+   list of refs allowed to deploy, and a new branch is not on it. Without this,
+   a `workflow_dispatch` production run from the branch is **rejected before any
+   step runs** — the job reports `failure` with zero steps, so there is no job
+   log to read. The reason is an annotation on the run summary page: *Branch
+   "0.8" is not allowed to deploy to production due to environment protection
+   rules.* Look there first; a stepless failure is not an unexplained one.
+
+   Real releases are unaffected either way: a `release` event runs on
+   `refs/tags/vX.Y.Z`, which the policy's `v*` tag entry already matches. So this
+   only costs you the ability to rehearse, which is exactly when you want it.
+5. **Apply the branch-local changes** (below) in a PR into the new branch.
+6. **Land the `minor` on `main`.** Usually this rides along with the first breaking
    PR rather than being its own changeset.
-6. **Retire the oldest line** — stop backporting, and say so.
+7. **Retire the oldest line** — stop backporting, and say so.
 
 ### The version collision, which is easy to miss
 
