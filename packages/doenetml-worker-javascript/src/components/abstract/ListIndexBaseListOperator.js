@@ -88,6 +88,12 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
     // unordered list is not a position at all.
     static validateValues = null;
 
+    // Whether the subclass declares a `sort` attribute, which waives the
+    // precondition above: what the attribute then promises about the answer is
+    // the subclass's to keep, in `locate`. `<indexOf>` searches any list at
+    // all and has nothing to waive.
+    static supportsSort = false;
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
@@ -151,7 +157,7 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
         // `definition` it would not be.
         const componentType = this.componentType;
         const validateValues = this.validateValues;
-        const supportsSort = this.supportsSort === true;
+        const supportsSort = this.supportsSort;
 
         Object.assign(
             stateVariableDefinitions,
@@ -190,16 +196,13 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "locate",
                 },
-                // Declared only by a subclass that offers a `sort` attribute
-                // (`supportsSort`), since the rest have no such state variable.
-                // All it does here is waive the subclass's precondition: what
-                // the attribute promises about the answer is the subclass's to
-                // keep, in `locate`.
+                // Declared only by a subclass that offers a `sort`
+                // attribute, since the rest have no such state variable.
                 ...(supportsSort
                     ? {
-                          sortFirst: {
+                          sort: {
                               dependencyType: "stateVariable",
-                              variableName: "sortFirst",
+                              variableName: "sort",
                           },
                       }
                     : {}),
@@ -210,7 +213,7 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
                     targets: dependencyValues.comparableTargets,
                     numeric: dependencyValues.allAreNumeric,
                     locate: dependencyValues.locate,
-                    validateValues: dependencyValues.sortFirst
+                    validateValues: dependencyValues.sort
                         ? () => undefined
                         : validateValues,
                 });

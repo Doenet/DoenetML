@@ -206,7 +206,7 @@ export class SearchSorted extends ListIndexBaseListOperator {
 
         attributes.sort = {
             createComponentOfType: "boolean",
-            createStateVariable: "sortFirst",
+            createStateVariable: "sort",
             defaultValue: false,
             public: true,
             description:
@@ -281,7 +281,7 @@ export class SearchSorted extends ListIndexBaseListOperator {
                     // reading here: a value with no place in the order has no
                     // slot to keep once the operator is the one doing the
                     // ordering.
-                    if (dependencyValues.sortFirst) {
+                    if (dependencyValues.sort) {
                         let count = 0;
                         for (const value of values) {
                             const comparison = compareExtractedValues(
@@ -323,9 +323,9 @@ export class SearchSorted extends ListIndexBaseListOperator {
                         dependencyType: "stateVariable",
                         variableName: "side",
                     },
-                    sortFirst: {
+                    sort: {
                         dependencyType: "stateVariable",
-                        variableName: "sortFirst",
+                        variableName: "sort",
                     },
                 },
             ),

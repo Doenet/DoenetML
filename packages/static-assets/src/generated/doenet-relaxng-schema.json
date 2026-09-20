@@ -42935,10 +42935,11 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "sortFirst",
+                    "name": "sort",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Report where each target belongs among the values in ascending order, whatever order they are written in."
+                    "description": "Report where each target belongs among the values in ascending order, whatever order they are written in.",
+                    "fromAttribute": true
                 },
                 {
                     "name": "side",
