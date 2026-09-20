@@ -7,12 +7,13 @@ This is the ledger the seam refers to: where the Rust engine diverges from the s
 `packages/math/src/vendored/math-expressions.d.ts` describes, the divergence is recorded here rather
 than hidden behind a widened type or a local patch in `packages/math/src/engine-rust.ts`.
 
-## Open — four items
+## Open — five items
 
 1. `substitute_component`/`get_component` validate nothing.
 2. The engine is missing 48 of the legacy surface's members.
 3. Nine declared parameters the engine accepts and ignores.
 4. `derivative` does not descend into a container.
+5. No initializer: every browser host rebuilds the same four-part bootstrap.
 
 The declaration side of items 2 and 3 has been settled — the published and vendored `.d.ts` files
 now say what the engine does — so what is open in each is engine work, not documentation.
@@ -137,6 +138,67 @@ measured against the built package first.**
 The five declaration changes are also in this repo's vendored copy; the two files still differ only
 by the trailing v3 block and one Prettier line wrap, which is the check the vendored header
 describes.
+
+**No initializer, so every browser host rebuilds the same bootstrap — and one part of it is a
+race.**
+
+The package ships the `--target web` wasm-bindgen glue and `setWasmModule`, which is the right seam
+and is enough to build on. What it does not ship is the thing to build: a host that wants the
+engine in a browser has to work out four separate things, none of them about math, all of them the
+same for every host.
+
+**The one that is a defect rather than a chore.** `__wbg_init` guards only *completed*
+initializations — `if (wasm !== undefined) return wasm;`, where `wasm` is assigned at the end by
+`__wbg_finalize_init` — so two callers that overlap both pass the guard and both instantiate:
+
+```js
+import * as glue from "math-expressions/wasm-web/math_expressions_wasm.js";
+
+// Both paths, because `__wbg_load` prefers `instantiateStreaming` and falls
+// back to `instantiate` when the response is not served as application/wasm.
+let n = 0;
+for (const k of ["instantiate", "instantiateStreaming"]) {
+    const real = WebAssembly[k];
+    WebAssembly[k] = (...a) => (n++, real.apply(WebAssembly, a));
+}
+
+await Promise.all([glue.default(), glue.default()]);
+console.log(n); // 2 — one per caller, where one is expected
+```
+
+Two instantiations of a 1.8 MiB module, and the second's `__wbg_finalize_init` replaces the
+module-level instance the first already handed to `setWasmModule` — so a host that injected the
+first is now holding a stale one. Reproduced at `3.0.0-alpha.1` from the published tarball, with no
+DoenetML code involved. A host cannot fix this from outside without wrapping every call site,
+which is single-flighting on upstream's behalf.
+
+**The three that are chores.** Which compile is legal depends on the realm — `initSync` in a worker
+or under Node, the async `default()` on a browser main thread, where a module this size is refused —
+and nothing in the package says so or decides it. Injection has to happen before anything parses,
+or the compat layer falls through to its Node loader and reports a missing `setWasmModule` that the
+host already called. And until initialization finishes, every property access on the module fails
+inside Rust rather than saying what is wrong.
+
+**The ask:** an initializer that takes bytes and does all four.
+
+```ts
+export function initWasmFromBytes(bytes: BufferSource): Promise<void>;
+export function initWasmFromBytesSync(bytes: BufferSource): void;
+```
+
+Bytes rather than a URL, because that is the input every host can produce and the one `fetch`
+cannot always be used for — `fetch` of a blob/data URL is blocked in the VS Code web-worker
+extension host, which is why DoenetML inlines the binary rather than fetching a sibling file.
+A URL-taking convenience on top would be welcome but is not the request.
+
+What it would replace: `packages/math/src/wasm-loader.ts` in this repository is ~120 lines, and all
+of it except `decodeWasm()` — the base64 that is DoenetML's own inlining decision — is the four
+things above. `packages/doenetml/src/utils/mathWasm.ts` is a second copy of the realm-and-injection
+half, written for consumers of the published library, and it exists because `initMathWasm` is ours
+rather than upstream's. Both would shrink to "decode our bytes, hand them over".
+
+Checked against submodule revision `9632181`, which is `3.0.0-alpha.1` as published; the same code
+is on `main` as `13543bf` (#84).
 
 **`derivative` does not descend into a container.**
 
