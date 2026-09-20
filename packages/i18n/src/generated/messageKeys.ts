@@ -537,6 +537,7 @@ export type MessageKey =
     | "sample-distribution-slow"
     | "index-operator-missing-target"
     | "index-operator-no-values"
+    | "index-operator-values-not-sorted"
     | "sample-multivariate-parameters-invalid"
     | "sample-multivariate-draws-too-many"
     | "sample-multivariate-type-not-specified"
@@ -1168,6 +1169,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "sample-distribution-slow",
     "index-operator-missing-target",
     "index-operator-no-values",
+    "index-operator-values-not-sorted",
     "sample-multivariate-parameters-invalid",
     "sample-multivariate-draws-too-many",
     "sample-multivariate-type-not-specified",

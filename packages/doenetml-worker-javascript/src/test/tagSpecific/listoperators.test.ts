@@ -502,6 +502,288 @@ describe("List operator tag tests @group4", async () => {
         });
     });
 
+    describe("searchSorted requires a list that is sorted", async () => {
+        async function resultsFor(doenetML: string, name = "p") {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const d = getDiagnosticsByType(core);
+            return {
+                text: stateVariables[await resolvePathToNodeIdx(name)]
+                    .stateValues.text,
+                warnings: d.warnings.map((w) => w.message),
+            };
+        }
+
+        const notSorted = (m: string) =>
+            m.includes("searchSorted") &&
+            m.includes("already in ascending order");
+
+        it("an unsorted list gets 0 rather than a plausible position", async () => {
+            // Counting the entries below the target would answer 2 here, which
+            // is a position in no meaningful sense: there is no arrangement of
+            // this list in which 25 belongs second.
+            const { text, warnings } = await resultsFor(`
+    <p name="p"><searchSorted target="25">10 30 20</searchSorted></p>
+    `);
+            expect(text).eq("0");
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+
+        it("a sorted list is not reported", async () => {
+            const { text, warnings } = await resultsFor(`
+    <p name="p"><searchSorted target="25">10 20 30</searchSorted></p>
+    `);
+            expect(text).eq("3");
+            expect(warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("equal neighbors are in order", async () => {
+            // A run of equal values is the whole subject of `side`, so it must
+            // not be what makes a list unsorted.
+            const { text, warnings } = await resultsFor(`
+    <p name="p"><searchSorted target="2" side="right">1 2 2 2 3</searchSorted></p>
+    `);
+            expect(text).eq("5");
+            expect(warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("a descending list is unsorted", async () => {
+            const { text, warnings } = await resultsFor(`
+    <p name="p"><searchSorted target="25">30 20 10</searchSorted></p>
+    `);
+            expect(text).eq("0");
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+
+        it("one entry out of place at the end is enough", async () => {
+            const { text, warnings } = await resultsFor(`
+    <p name="p"><searchSorted target="25">10 20 30 5</searchSorted></p>
+    `);
+            expect(text).eq("0");
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+
+        it("a one-entry list and an empty list are sorted", async () => {
+            const one = await resultsFor(`
+    <p name="p"><searchSorted target="25">10</searchSorted></p>
+    `);
+            expect(one.text).eq("2");
+            expect(one.warnings.filter(notSorted)).eqls([]);
+
+            // An empty list is already declined as having nothing to look
+            // through, which is info rather than a warning; it must not also
+            // be called unsorted.
+            const none = await resultsFor(`
+    <p name="p"><searchSorted target="25"></searchSorted></p>
+    `);
+            expect(none.text).eq("0");
+            expect(none.warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("text out of alphabetical order is unsorted", async () => {
+            const { text, warnings } = await resultsFor(`
+    <textList name="tl">apple pear fig</textList>
+    <p name="p"><searchSorted type="text" target="cherry">$tl</searchSorted></p>
+    `);
+            expect(text).eq("0");
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+
+        it("sortedness is judged by the comparison the search will use", async () => {
+            // Read as text, `2 10` is out of order even though it is in
+            // ascending numerical order — and a text target is what makes the
+            // comparison textual.
+            const { text, warnings } = await resultsFor(`
+    <p name="p"><searchSorted type="text" target="b">2 10</searchSorted></p>
+    `);
+            expect(text).eq("0");
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+
+        it("each target is judged by its own comparison", async () => {
+            // One operator, two comparisons: the numeric target compares
+            // numerically against a list that is in numerical order and gets a
+            // position, while the non-numeric one compares as text against a
+            // list that is not in text order and gets 0.
+            const { text, warnings } = await resultsFor(`
+    <p name="p"><searchSorted type="math" target="5 b">2 10</searchSorted></p>
+    `);
+            expect(text).eq("2, 0");
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+
+        it("many targets on an unsorted list report once", async () => {
+            // The list is one fact about the document however many targets ask
+            // about it, and the queue keeps every distinct message forever.
+            const { text, warnings } = await resultsFor(`
+    <numberList name="targets">1 2 3 4 5</numberList>
+    <p name="p"><searchSorted target="$targets">10 30 20</searchSorted></p>
+    `);
+            expect(text).eq("0, 0, 0, 0, 0");
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+
+        it("a value that is not a number neither confirms nor refutes sortedness", async () => {
+            // `x` compares neither above nor below anything, so there is no
+            // inversion to find and no warning to raise. Reporting one here
+            // would fire on every `<searchSorted>` near a number that does not
+            // parse, including while it is being typed.
+            const { text, warnings } = await resultsFor(`
+    <numberList name="nl">1 x 9</numberList>
+    <p name="p"><searchSorted target="4">$nl</searchSorted></p>
+    `);
+            expect(text).eq("2");
+            expect(warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("a value that is not a number does not hide the disorder around it", async () => {
+            // `1` and `9` are still compared with each other across the `x`
+            // between them. Comparing only neighbors would find no inversion
+            // — every comparison involving `x` is `NaN`, and `NaN > 0` is
+            // false — and answer 2, a position in no arrangement of this list.
+            const { text, warnings } = await resultsFor(`
+    <numberList name="nl">9 x 1</numberList>
+    <p name="p"><searchSorted target="4">$nl</searchSorted></p>
+    `);
+            expect(text).eq("0");
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+
+        it("a math that is not a real number takes no part in the ordering either", async () => {
+            // A list of `<math>` values is compared numerically, and `i` is a
+            // `<math>` like the others — but it evaluates to something that is
+            // not a number, so it compares with nothing, exactly as a number
+            // that does not parse does. The 9 and the 1 on either side of it
+            // are still compared with each other.
+            const { text, warnings } = await resultsFor(`
+    <mathList name="ml">9 i 1</mathList>
+    <p name="p"><searchSorted target="4">$ml</searchSorted></p>
+    `);
+            expect(text).eq("0");
+            expect(warnings.filter(notSorted).length).eq(1);
+
+            // And in order it is passed over rather than reported, as `x` is.
+            const inOrder = await resultsFor(`
+    <mathList name="ml">1 i 9</mathList>
+    <p name="p"><searchSorted target="4">$ml</searchSorted></p>
+    `);
+            expect(inOrder.text).eq("2");
+            expect(inOrder.warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("the position steps over a value that is not a number", async () => {
+            // 10 belongs after the 9, which is the last of four entries, so
+            // the only position that describes this list is 5. Counting the
+            // entries below the target answers 3, because the two `x`s ahead
+            // of them are not counted — and position 3 is where the 1 is.
+            const { text, warnings } = await resultsFor(`
+    <numberList name="nl">x x 1 9</numberList>
+    <p name="p"><searchSorted target="10">$nl</searchSorted></p>
+    `);
+            expect(text).eq("5");
+            expect(warnings.filter(notSorted)).eqls([]);
+
+            // And a target that belongs between the 1 and the 9 goes after
+            // the 1, at 4, not at 2 where the second `x` is.
+            const between = await resultsFor(`
+    <numberList name="nl">x x 1 9</numberList>
+    <p name="p"><searchSorted target="4">$nl</searchSorted></p>
+    `);
+            expect(between.text).eq("4");
+            expect(between.warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("sorting the values first restores the position", async () => {
+            // The remedy the warning names, and the shape of the reference
+            // page's example.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="scores">30 87 75 147</numberList>
+    <sort name="sorted">$scores</sort>
+    <p name="pRaw"><searchSorted target="80">$scores</searchSorted></p>
+    <p name="pSorted"><searchSorted target="80">$sorted</searchSorted></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pRaw",
+                text: "0",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pSorted",
+                text: "3",
+            });
+
+            // The page says the first one warns; the second must not add a
+            // second warning of its own.
+            const warnings = getDiagnosticsByType(core).warnings.map(
+                (w) => w.message,
+            );
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+
+        it("indexOf is unaffected by an unsorted list", async () => {
+            // `<indexOf>` asks whether a value is present, which needs no
+            // ordering at all.
+            const { text, warnings } = await resultsFor(`
+    <p name="p"><indexOf target="20">10 30 20</indexOf></p>
+    `);
+            expect(text).eq("3");
+            expect(warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("a list that goes out of order and back reports once and answers again", async () => {
+            // The queue is append-only, so a list that is unsorted only in
+            // passing keeps the message; what must not happen is a second
+            // entry for the second time it happens, and the operator must
+            // answer again once the order is restored.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="mi" prefill="5" />
+    <numberList name="nl">1 $mi 9</numberList>
+    <p name="p"><searchSorted target="4">$nl</searchSorted></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "2",
+            });
+
+            for (const latex of ["0", "5", "0", "5"]) {
+                await updateMathInputValue({
+                    latex,
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+                await core.returnAllStateVariables(false, true);
+            }
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "2",
+            });
+
+            const warnings = getDiagnosticsByType(core).warnings.map(
+                (w) => w.message,
+            );
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+    });
+
     describe("index-returning operators", async () => {
         it("argMin and argMax of numbers", async () => {
             let { core, resolvePathToNodeIdx } = await createTestCore({
@@ -1264,7 +1546,7 @@ describe("List operator tag tests @group4", async () => {
             let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <mathList name="ml">1 Infinity 5</mathList>
-    <mathList name="dup">1 Infinity Infinity 9</mathList>
+    <mathList name="dup">1 5 Infinity Infinity</mathList>
     <mathList name="neg">-Infinity -Infinity 3</mathList>
     <p name="pFind"><indexOf target="Infinity">$ml</indexOf></p>
     <p name="pNeg"><indexOf target="-Infinity">$neg</indexOf></p>
@@ -1275,6 +1557,8 @@ describe("List operator tag tests @group4", async () => {
 
             // Subtracting equal infinities gives NaN rather than 0, so without
             // an equality test first none of these would find their target.
+            // `dup` ends with its infinities because `<searchSorted>` asks for
+            // a sorted list, and nothing sorts above an infinity.
             await expectText({
                 core,
                 resolvePathToNodeIdx,

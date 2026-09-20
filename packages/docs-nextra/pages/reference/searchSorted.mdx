@@ -13,6 +13,11 @@ which each `target` would have to be inserted for the list to stay sorted. Unlik
 [`<indexOf>{:dn}`](indexOf), the target need not appear in the list — this answers "where
 does it belong?", not "is it there?".
 
+The list has to be in ascending order, and `<searchSorted>{:dn}` checks that it is. Given
+values that are not in order it reports 0 instead of a position — the same "no position" it
+gives when `target` is missing — and warns, rather than returning a number that looks like
+a position but is not one. Equal neighbors are in order; that run is what `side` is about.
+
 <AttrPropDisplay name='searchSorted'/>
 
 ## Examples
@@ -33,6 +38,35 @@ does it belong?", not "is it there?".
 
 A target smaller than everything gives 1; a target larger than everything gives 5, one
 past the last index.
+
+
+
+---
+
+### Example: the list has to be sorted
+
+
+```doenet-editor-horiz
+<numberList name="scores">30 87 75 147</numberList>
+
+<p>As written: <searchSorted target="80">$scores</searchSorted></p>
+
+<sort name="sorted">$scores</sort>
+<p>Sorted first: $sorted</p>
+<p>Position in the sorted list: <searchSorted target="80">$sorted</searchSorted></p>
+```
+
+
+
+The first `<searchSorted>{:dn}` gets 0 and a warning: 87 comes before 75, so no single
+position describes where 80 belongs. Sorting the values first — with
+[`<sort>{:dn}`](sort) here, though a list that is already built in order, such as a
+[`<cumulativeSum>{:dn}`](cumulativeSum) of positive numbers, needs nothing — gives a
+position again.
+
+This matters most when the values change as the activity runs. A list assembled from
+inputs can be out of order while it is being filled in, and `<searchSorted>{:dn}` answers
+0 for exactly as long as it is.
 
 
 
