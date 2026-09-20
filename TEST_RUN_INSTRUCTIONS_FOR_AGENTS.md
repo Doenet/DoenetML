@@ -84,6 +84,8 @@ npm run build:rust -w @doenet/doenetml-worker-rust
 
 **Before concluding that a test failing locally and passing in CI is a flake or a real defect, rule this out.**
 
+`test:before` also rebuilds `doenetml-worker-javascript` itself, which is not redundant: `@doenet/debug-hooks` is bundled with `@doenet/doenetml-worker-javascript` left external, so the `resolvePathToNodeIdx` every test calls runs `expandCompositeComponent` out of the **built** worker while the test around it reads `src/`. Editing a component and running one spec used to exercise your edit everywhere except there. The cost is that a run straight after a source edit spends about fifteen seconds in `vite build` before Vitest starts; a run that changed nothing is still a cache hit in under a second.
+
 ### Generated sources need the build too
 
 A generator that writes into `src/generated/` has not produced a `dist/` yet. Run the package's `build` afterwards:
