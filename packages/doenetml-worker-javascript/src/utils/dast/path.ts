@@ -1,19 +1,28 @@
 import { FlatPathPart } from "@doenet/doenetml-worker";
+import { unwrapSource } from "./convertNormalizedDast";
+import {
+    isSerializedComponent,
+    SerializedComponent,
+    SerializedRefResolutionPathPart,
+} from "./types";
+
+/**
+ * A part of a reference path, either as the parser flattened it or as it was
+ * serialized onto a component's ref resolution. The two shapes agree on
+ * everything compared here.
+ */
+type PathPart = FlatPathPart | SerializedRefResolutionPathPart;
 
 /**
  * Return `true` if two paths `path1` and `path2` are identical other than their `position` attributes.
  * Otherwise return `false`.
  */
 export function comparePathsIgnorePosition(
-    path1: FlatPathPart[] | null,
-    path2: FlatPathPart[] | null,
+    path1: PathPart[] | null,
+    path2: PathPart[] | null,
 ) {
     if (path1 === null) {
-        if (path2 == null) {
-            return true;
-        } else {
-            return false;
-        }
+        return path2 === null;
     } else if (path2 === null) {
         return false;
     }
@@ -36,7 +45,96 @@ export function comparePathsIgnorePosition(
                 return false;
             }
 
-            return index1.value.every((v, k) => v == index2.value[k]);
+            return index1.value.every((v, k) =>
+                compareIndexValues(v, index2.value[k]),
+            );
         });
+    });
+}
+
+/**
+ * Compare one entry of a path index.
+ *
+ * A literal index — the `1` of `$m[1]` — is carried as the string `"1"`, so
+ * two writings of it are equal as values. An index that is itself a reference
+ * — the `$i` of `$m[$i]` — is carried as a component, and the two writings an
+ * author makes of it are two distinct objects. Comparing those as values says
+ * that such an index differs from itself, so their structure is compared
+ * instead.
+ */
+function compareIndexValues(value1: unknown, value2: unknown) {
+    if (isSerializedComponent(value1) && isSerializedComponent(value2)) {
+        return compareIndexComponents(value1, value2);
+    }
+
+    return value1 == value2;
+}
+
+/**
+ * Compare two components appearing inside a path index.
+ *
+ * Each writing of an index gets its own component index and its own position,
+ * so those are what to look past. What has to agree is what the index names:
+ * the same component type, the same referent and remaining path where it is a
+ * reference, and the same children where it is built out of them.
+ *
+ * A reference is compared by where it lands, not by how it was spelled. Two
+ * spellings that reach the same component with the same path still unresolved
+ * — `$holder.k` written in one place and `$k` in the other — name one value,
+ * and `Award` already treats the reference *around* the index that way. So
+ * `originalPath`, which records the spelling, is not compared: doing so made
+ * an index stricter than the reference containing it, and made a nested index
+ * cost twice as much per level, since the same components hang off both paths.
+ *
+ * Attributes are not compared, because an index carries none an author wrote.
+ * The only attribute on a component in this position is `createComponentOfType`,
+ * which follows from where the component sits rather than from anything typed,
+ * so it is equal on both sides whenever the rest is. Attribute syntax written
+ * on a reference inside an index — `$m[$i{link="false"}]` — does not reach
+ * here at all; it is dropped earlier, in an index and in ordinary content
+ * alike. Should that change, this is where the new attributes would need a
+ * rule of their own.
+ */
+function compareIndexComponents(
+    component1: SerializedComponent,
+    component2: SerializedComponent,
+): boolean {
+    if (component1.componentType !== component2.componentType) {
+        return false;
+    }
+
+    const extending1 = component1.extending
+        ? unwrapSource(component1.extending)
+        : null;
+    const extending2 = component2.extending
+        ? unwrapSource(component2.extending)
+        : null;
+
+    if (extending1 || extending2) {
+        if (
+            !extending1 ||
+            !extending2 ||
+            extending1.nodeIdx !== extending2.nodeIdx ||
+            !comparePathsIgnorePosition(
+                extending1.unresolvedPath,
+                extending2.unresolvedPath,
+            )
+        ) {
+            return false;
+        }
+    }
+
+    if (component1.children.length !== component2.children.length) {
+        return false;
+    }
+
+    return component1.children.every((child1, i) => {
+        const child2 = component2.children[i];
+
+        if (isSerializedComponent(child1) && isSerializedComponent(child2)) {
+            return compareIndexComponents(child1, child2);
+        }
+
+        return child1 === child2;
     });
 }

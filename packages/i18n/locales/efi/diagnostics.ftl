@@ -416,7 +416,8 @@ variant-attribute-wrong-type-for-sequence =
     ikemke ndifiọk unique variants { $component } orụk { $type } koro { $attribute } idịghe { $expected ->
         [letters-combination] udian n̄wed
         [math-expression] ikọ math oro edide
-       *[integer] integer
+        [integer] integer
+       *[number] number
     }.
 
 variant-length-not-integer = ikemke ndifiọk unique variants { $component } koro length idịghe integer.

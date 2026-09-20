@@ -42,15 +42,12 @@ color =
     .purple = ungu
     .pink = jambon
     .brown = cokelat
-
 line-width =
     .thick = tebel
     .thin = tipis
-
 line-style =
     .dashed = putus-putus
     .dotted = titik-titik
-
 # Noun phrases. Balinese marks no plural on the noun, so «garis» is the word for
 # one line and for many alike.
 fill-style =
@@ -60,7 +57,6 @@ fill-style =
     .backdiagonal = garis miring mabalik
     .dots = titik
     .diamonds = belah ketupat
-
 noun =
     .line = garis
     .line-segment = ruas garis
@@ -80,7 +76,6 @@ noun =
     .diamond = belah ketupat
     .cross = pangkah
     .plus = plus
-
 # The side count follows the adjectives as a complement, so that they stay
 # beside the noun they describe — the `[noun-tail]` branch of `style-with-noun`.
 noun-regular-polygon =
@@ -88,10 +83,8 @@ noun-regular-polygon =
         [tail] ane ngelah { $numSides } sisi
        *[head] poligon beraturan
     }
-
 # One answer for every noun: Balinese has no grammatical gender.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -105,22 +98,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun first and the adjectives behind it, which is the opposite of English.
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = bek
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } misi { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } misi { $pattern }
@@ -128,7 +117,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $filled } { $color } { $nounTail } misi { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Balinese has no article, so the two `-article` branches say what the other two
 # say. They are kept apart because English's distinction is between a first
 # clause and a further one, which this file does mark: «misi» against «tur».
@@ -139,35 +127,28 @@ style-border-clause =
         [and-article] tur tepi { $border }
        *[with] misi tepi { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = tusing bek
-
 style-text =
     { $parts ->
         [background] { $color } misi dasar { $background }
        *[plain] { $color }
     }
-
 style-background-none = tusing ada
-
 
 ## Boolean words
 
 boolean-true = patut
 boolean-false = iwang
 
-
 ## Answer buttons
 
 answer-submit-label = Cek gaene
 answer-submit-label-no-correctness = Kirim pasaut
-
 
 ## Sectional blocks
 
@@ -194,7 +175,6 @@ section-name =
     .solution = Pamragat
     .task = Tugas
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -204,9 +184,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Tunjuk
-
 
 ## Tables and figures
 
@@ -217,7 +195,6 @@ table-name =
         [unnumbered-title] Tabel{ ": " }
        *[unnumbered] Tabel
     }
-
 figure-name =
     { $parts ->
         [numbered] Gambar { $enumeration }
@@ -226,22 +203,18 @@ figure-name =
        *[unnumbered] Gambar
     }
 
-
 ## Paginator controls
 
 paginator-previous = Sadurunge
 paginator-next = Salanturne
 paginator-page = Kaca
-
 paginator-page-status = { $pageLabel } { $currentPage } uli { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = utawi
 piecewise-condition-if = yen
 piecewise-condition-otherwise = yen tusing
-
 
 ## Chemistry
 ##
@@ -255,6 +228,5 @@ piecewise-condition-otherwise = yen tusing
 ## substances Balinese does name itself are the place a speaker should start.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Simbol kimia ane tusing sah
 chemistry-invalid-ionic-compound = Senyawa ionik ane tusing sah

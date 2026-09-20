@@ -43,15 +43,12 @@ color =
     .purple = දම්
     .pink = රෝස
     .brown = දුඹුරු
-
 line-width =
     .thick = ඝන
     .thin = තුනී
-
 line-style =
     .dashed = ඉරි සහිත
     .dotted = තිත් සහිත
-
 # Noun phrases: they follow «සමඟ» and modify nothing.
 fill-style =
     .horizontal = තිරස් රේඛා
@@ -60,7 +57,6 @@ fill-style =
     .backdiagonal = ප්‍රතිවිකර්ණ රේඛා
     .dots = තිත්
     .diamonds = දියමන්ති
-
 noun =
     .line = රේඛාව
     .line-segment = රේඛා ඛණ්ඩය
@@ -80,7 +76,6 @@ noun =
     .diamond = දියමන්තිය
     .cross = කුරුසය
     .plus = ධන ලකුණ
-
 # The side count is a phrase in front of the noun, as the adjectives are, so it
 # folds into the head and there is no tail: «පැති 5ක් සහිත සමකෝණික බහුඅස්‍රය».
 # «පැති» is the word for sides and «-ක්» the indefinite the count takes.
@@ -89,11 +84,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] පැති { $numSides }ක් සහිත සමකෝණික බහුඅස්‍රය
     }
-
 # Sinhala adjectives do not agree, so every noun answers the same and the
 # answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -107,23 +100,19 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # «පිරවූ», the participle "filled", stands in front of the colour the way every
 # other adjective here does.
 style-filled-word = පිරවූ
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } සමඟ { $filled } { $color }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } සමඟ { $filled } { $color } { $noun }
@@ -131,7 +120,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } සමඟ { $filled } { $color } { $noun } { $nounTail }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «සමඟ» is a postposition and follows what it governs, so the border phrase
 # comes first and the word joining it last. Sinhala has no article, so the
 # `-article` branches read like the ones without.
@@ -142,36 +130,29 @@ style-border-clause =
         [and-article] සහ { $border } මායිමක්
        *[with] { $border } මායිමක් සමඟ
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = නොපිරවූ
-
 # «මත», on, is a postposition and follows the background it governs.
 style-text =
     { $parts ->
         [background] { $background } පසුබිමක් මත { $color }
        *[plain] { $color }
     }
-
 style-background-none = කිසිවක් නැත
-
 
 ## Boolean words
 
 boolean-true = සත්‍ය
 boolean-false = අසත්‍ය
 
-
 ## Answer buttons
 
 answer-submit-label = පිළිතුර පරීක්ෂා කරන්න
 answer-submit-label-no-correctness = පිළිතුර යොමු කරන්න
-
 
 ## Sectional blocks
 
@@ -196,7 +177,6 @@ section-name =
     .solution = විසඳුම
     .task = කාර්යය
     .theorem = ප්‍රමේයය
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -206,9 +186,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = ඉඟිය
-
 
 ## Tables and figures
 
@@ -219,7 +197,6 @@ table-name =
         [unnumbered-title] වගුව{ ": " }
        *[unnumbered] වගුව
     }
-
 figure-name =
     { $parts ->
         [numbered] රූපය { $enumeration }
@@ -228,22 +205,18 @@ figure-name =
        *[unnumbered] රූපය
     }
 
-
 ## Paginator controls
 
 paginator-previous = පෙර
 paginator-next = මීළඟ
 paginator-page = පිටුව
-
 paginator-page-status = { $numPages } න් { $pageLabel } { $currentPage }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = හෝ
 piecewise-condition-if = නම්
 piecewise-condition-otherwise = එසේ නොමැති නම්
-
 
 ## Chemistry
 ##
@@ -258,6 +231,5 @@ piecewise-condition-otherwise = එසේ නොමැති නම්
 ## a Sinhala speaker should fill in, and filling it in needs no permission.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = අවලංගු රසායනික සංකේතයකි
 chemistry-invalid-ionic-compound = අවලංගු අයනික සංයෝගයකි

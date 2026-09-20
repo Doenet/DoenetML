@@ -118,6 +118,244 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("an expanded input becomes room to write inside a handout", async () => {
+        // A text area is a place to write a long answer, which on paper is blank
+        // space. PreTeXt only leaves that space inside a printout division.
+        source = `<p>Explain your reasoning: <textInput expanded /></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source))
+            .toMatchInlineSnapshot(`
+              "<handout>
+              <p workspace="1.25in">Explain your reasoning: </p>
+              </handout>"
+            `);
+    });
+
+    it("room to write is sized by the input's height", async () => {
+        source = `<p>Explain: <textInput expanded height="3in" /></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<p workspace="3in">`,
+        );
+    });
+
+    it("two expanded inputs in a paragraph each get their own room", async () => {
+        source = `<p>A <textInput expanded /> B <textInput expanded height="2in" /></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<p workspace="3.25in">`,
+        );
+    });
+
+    it("a hand-graded answer written on its own gets room to write in", async () => {
+        // The `expanded` answer sugars in an expanded text input, but is written
+        // outside any paragraph, so the space needs a paragraph of its own.
+        source = `<answer type="text" handGraded expanded />`;
+        expect(await coreRunner.processToFlatDastAsFragment(source))
+            .toMatchInlineSnapshot(`
+              "<handout>
+              <p workspace="1.25in"></p>
+              </handout>"
+            `);
+    });
+
+    it("a hand-graded answer keeps its label alongside the room to write", async () => {
+        // Only the input is replaced by the space; the answer wrapping it still
+        // renders the label that asks the question.
+        source = `<answer type="text" handGraded expanded><label>Explain</label></answer>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source))
+            .toMatchInlineSnapshot(`
+          "<handout>
+          <p workspace="1.25in">Explain</p>
+          </handout>"
+        `);
+    });
+
+    it("a hand-graded answer in a list item keeps the item's text in the paragraph", async () => {
+        // A list item holds either inline content or blocks, never a mix, so the
+        // paragraph carrying the space takes in the text written alongside it.
+        source = `<ol><li>Why? <answer type="text" handGraded expanded /></li></ol>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<li xml:id="doenet-id-2"><p workspace="1.25in">Why? </p></li>`,
+        );
+    });
+
+    it("a list item's inline elements are taken into the paragraph too", async () => {
+        // The run the paragraph takes in is not just written-out text: an
+        // expression left beside the paragraph would be the same illegal mix.
+        source = `<ol><li><m>2+2=</m> <answer type="text" handGraded expanded /></li></ol>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<li xml:id="doenet-id-2"><p workspace="1.25in"><m>2+2=</m> </p></li>`,
+        );
+    });
+
+    it("a list item's other components are taken into the paragraph too", async () => {
+        // The run is decided by naming the components that stand on their own,
+        // so one that renders as text is taken in whether or not the export has
+        // been taught anything else about it.
+        source = `<ol><li><latex>x^2</latex> <answer type="text" handGraded expanded /></li></ol>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<li xml:id="doenet-id-2"><p workspace="1.25in">x^2 </p></li>`,
+        );
+    });
+
+    it("a component showing text is taken in, though a block one is not", async () => {
+        // `<displayDoenetML>` shows its text with no element around it, so it is
+        // part of the run; `<codeEditor>` exports as a `<program>`, which stands
+        // on its own and is left standing.
+        source = `<ol><li><displayDoenetML>Why?</displayDoenetML> <answer type="text" handGraded expanded /></li></ol>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<li xml:id="doenet-id-2"><p workspace="1.25in">Why? </p></li>`,
+        );
+
+        source = `<ol><li><codeEditor>x</codeEditor><answer type="text" handGraded expanded /></li></ol>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `</program><p workspace="1.25in"></p></li>`,
+        );
+    });
+
+    it("a choice input is a block or part of the run, as it is written", async () => {
+        // The same tag reads both ways: a choice input lists every choice as its
+        // own block, unless it is written inline, where it is the chosen one read
+        // as part of the sentence.
+        source = `<ol><li><choiceInput><choice>yes</choice><choice>no</choice></choiceInput><answer type="text" handGraded expanded /></li></ol>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<li xml:id="doenet-id-2"><ol><li>◯ yes</li><li>◯ no</li></ol><p workspace="1.25in"></p></li>`,
+        );
+
+        source = `<ol><li>Pick: <choiceInput inline><choice>yes</choice><choice>no</choice></choiceInput> <answer type="text" handGraded expanded /></li></ol>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<li xml:id="doenet-id-2"><p workspace="1.25in">Pick:  <fillin characters="5"></fillin> </p></li>`,
+        );
+    });
+
+    it("room to write is placed outside the formatting around the question", async () => {
+        // A paragraph may not sit inside `<em>`, so the space is placed outside
+        // it and the formatting is taken into the paragraph with the rest.
+        source = `<ol><li><em>Why? <answer type="text" handGraded expanded /></em></li></ol>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<li xml:id="doenet-id-2"><p workspace="1.25in"><em>Why? </em></p></li>`,
+        );
+    });
+
+    it("blocks inside a wrapper that shows only its children still stand", async () => {
+        // A `<paginator>`, like a `<div>`, exports as its children alone, so what it
+        // holds is what decides whether the paragraph takes it in.
+        source = `<ol><li><paginator><p>Content</p></paginator><answer type="text" handGraded expanded /></li></ol>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<li xml:id="doenet-id-2"><p>Content</p><p workspace="1.25in"></p></li>`,
+        );
+
+        source = `<div><p>Content</p></div><answer type="text" handGraded expanded />`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<p>Content</p><p workspace="1.25in"></p>`,
+        );
+    });
+
+    it("a list item's blocks are left standing beside the room to write", async () => {
+        // A list item already holding blocks takes no run in: the paragraph
+        // carrying the space stands as one more block of its own.
+        source = `<ol><li><p>Why?</p><answer type="text" handGraded expanded /></li></ol>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<li xml:id="doenet-id-2"><p>Why?</p><p workspace="1.25in"></p></li>`,
+        );
+    });
+
+    it("room to write inside a problem stays inside the problem", async () => {
+        source = `<problem><p>Explain.</p><answer type="text" handGraded expanded /></problem>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<p>Explain.</p><p workspace="1.25in"></p></problem>`,
+        );
+    });
+
+    it("a document without an expanded input is not made into a handout", async () => {
+        source = `<p>Short answer: <textInput /></p>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<p>Short answer: <fillin characters="8"></fillin></p>"`,
+        );
+    });
+
+    it("a hidden expanded input claims no room to write", async () => {
+        // An input the reader never sees asks them nothing, so it needs no room
+        // and the document holding it is not made into a handout.
+        source = `<p>Explain: <textInput expanded hide /></p>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(`"<p>Explain: </p>"`);
+    });
+
+    it("only the section holding an expanded input becomes a handout", async () => {
+        source = `<section><title>A</title><p>Why? <textInput expanded /></p></section><section><title>B</title><p>Plain</p></section>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).toContain(`<handout xml:id="doenet-id-1">`);
+        expect(exported).toContain(`<section xml:id="doenet-id-6">`);
+    });
+
+    it("an expanded input stays a blank where no printout can hold the space", async () => {
+        // No PreTeXt printout may contain a division, so a section that also holds
+        // sections of its own cannot become a handout, and the input keeps its blank.
+        source = `<section><title>A</title><p>Why? <textInput expanded /></p><section><title>B</title><p>Inner</p></section></section>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).not.toContain(`handout`);
+        expect(exported).toContain(`<fillin characters="8"></fillin>`);
+    });
+
+    it("the handout wrapped around a whole document repeats its title", async () => {
+        // The `<article>` PreTeXt builds around the document has to keep the title,
+        // so the handout renders it a second time to head the printed page.
+        source = `<title>My activity</title><p>Why? <textInput expanded /></p>`;
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
+          "<?xml version="1.0" encoding="UTF-8"?>
+          <pretext>
+          <article>
+          <title>My activity</title><handout>
+          <title>My activity</title><p workspace="1.25in">Why? </p>
+          </handout>
+          </article>
+          </pretext>"
+        `);
+    });
+
+    it("an unfilled input inside an <m> becomes a fillin", async () => {
+        // An input written inside an expression is a blank the reader writes
+        // on, so it exports as PreTeXt's own <fillin> rather than as nothing.
+        source = `<p><m>x = <textInput /> + 3</m></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<m>x = <fillin characters="8"></fillin> + 3</m>`,
+        );
+    });
+
+    it("an input with a value inside an <m> exports the value", async () => {
+        source = `<p><m>x = <textInput prefill="y^2" /> + 3</m></p>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).toContain(`<m>x = y^2 + 3</m>`);
+        expect(exported).not.toContain("fillin");
+    });
+
+    it("a math input inside an <m> exports as mathematics", async () => {
+        // The field contributes its value as LaTeX, so an exported worksheet
+        // shows the expression the reader entered rather than a plain-text
+        // transcription of it.
+        source = `<p><m>x = <mathInput prefillLatex="\\sqrt{2}" /> + 3</m></p>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).toContain(`<m>x = \\sqrt{2} + 3</m>`);
+        expect(exported).not.toContain("fillin");
+    });
+
+    it("an unfilled math input inside an <m> becomes a fillin", async () => {
+        source = `<p><m>x = <mathInput /> + 3</m></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<m>x = <fillin characters="8"></fillin> + 3</m>`,
+        );
+    });
+
+    it("an unfilled input inside an <md> becomes a fillin", async () => {
+        source = `<md><mrow>f(x) \\amp = x^2</mrow><mrow>f'(x) \\amp = <textInput /></mrow></md>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<fillin characters="8"></fillin>`,
+        );
+    });
+
     it("renders mathInput nested inside answer", async () => {
         source = `<answer><mathInput /><mathInput /></answer>`;
         expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
@@ -236,6 +474,65 @@ describe("Pretext export", async () => {
             .toMatchInlineSnapshot(`
           "<tabular><row header="yes" bottom="minor"><cell right="minor"><em></em></cell><cell right="minor">A</cell><cell right="minor">C</cell><cell right="minor">D</cell><cell right="minor">E</cell></row><row bottom="minor"><cell right="minor"><em>3</em></cell><cell right="minor"></cell><cell right="minor">2</cell><cell right="minor"></cell><cell right="minor"></cell></row><row bottom="minor"><cell right="minor"><em>4</em></cell><cell right="minor"></cell><cell right="minor">4</cell><cell right="minor"></cell><cell right="minor"></cell></row><row bottom="minor"><cell right="minor"><em>5</em></cell><cell right="minor"></cell><cell right="minor"></cell><cell right="minor"></cell><cell right="minor"></cell></row></tabular>"
         `);
+    });
+
+    it("spreadsheet header row is emphasized", async () => {
+        source = `<spreadsheet minNumRows="2" minNumColumns="2" columnHeaders="false" rowHeaders="false">
+  <row header>
+    <cell>name</cell>
+    <cell>value</cell>
+  </row>
+  <row>
+    <cell>a</cell>
+    <cell>1</cell>
+  </row>
+</spreadsheet>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular><row header="yes" bottom="minor"><cell right="minor">name</cell><cell right="minor">value</cell></row><row bottom="minor"><cell right="minor">a</cell><cell right="minor">1</cell></row></tabular>"`,
+        );
+    });
+
+    it("spreadsheet header row is emphasized only where it has cells", async () => {
+        source = `<spreadsheet minNumRows="2" minNumColumns="3" columnHeaders="false" rowHeaders="false">
+  <row header>
+    <cell>name</cell>
+  </row>
+  <row>
+    <cell>a</cell>
+    <cell>1</cell>
+  </row>
+</spreadsheet>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular><row header="yes" bottom="minor"><cell right="minor">name</cell><cell right="minor"></cell><cell right="minor"></cell></row><row bottom="minor"><cell right="minor">a</cell><cell right="minor">1</cell><cell right="minor"></cell></row></tabular>"`,
+        );
+    });
+
+    it("spreadsheet header row is emphasized under the generated row and column labels", async () => {
+        // The default A/B/C strip and 1/2/3 column shift what each rendered
+        // row and cell stands for, and a hidden column shifts it again, so the
+        // emphasis has to be looked up by spreadsheet position, not by
+        // position in the rendered table.
+        source = `<spreadsheet minNumRows="3" minNumColumns="3" hiddenColumns="1">
+  <row>
+    <cell>x</cell>
+    <cell>y</cell>
+    <cell>z</cell>
+  </row>
+  <row header>
+    <cell>name</cell>
+    <cell>value</cell>
+    <cell>note</cell>
+  </row>
+</spreadsheet>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular><row header="yes" bottom="minor"><cell right="minor"><em></em></cell><cell right="minor">B</cell><cell right="minor">C</cell></row><row bottom="minor"><cell right="minor"><em>1</em></cell><cell right="minor">y</cell><cell right="minor">z</cell></row><row header="yes" bottom="minor"><cell right="minor"><em>2</em></cell><cell right="minor">value</cell><cell right="minor">note</cell></row><row bottom="minor"><cell right="minor"><em>3</em></cell><cell right="minor"></cell><cell right="minor"></cell></row></tabular>"`,
+        );
     });
 
     // TODO: un-skip when direct <md> conversion behavior is finalized

@@ -10,7 +10,22 @@ Include
 <script type="module" src="doenet-standalone.js"></script>
 ```
 
-in your webpage. Then you can call the globally-exported function
+in your webpage. The bundle is code-split: the editor stack and individual
+component renderers load on demand from the `chunks/` directory published
+beside `doenet-standalone.js` (the co-located `doenetml-worker/` and
+`locales/` are fetched the same way), so serve the package directory as-is
+rather than copying the one file. Served from a CDN under a floating tag
+(`@latest`, or no version), the bundle resolves its chunks — like the worker
+and message catalogs — at the exact release it was built as, so an
+already-cached entry keeps working across releases. A host that needs a truly single file —
+for example one that evaluates the bundle from a Blob or `srcdoc` URL, where
+relative chunk resolution has no base — can use
+`doenet-standalone-inline.js`, which inlines every chunk (it still loads the
+core worker from `doenetml-worker/` beside it, or from
+`/doenetml-worker/index.js` at the page origin when the bundle URL has no
+usable base).
+
+Then you can call the globally-exported function
 `renderDoenetViewerToContainer` (or `renderDoenetEditorToContainer` for the
 editor), which expects a `<div>` element containing a
 `<script type="text/doenetml"></script>` as a child.
@@ -294,6 +309,26 @@ owned by a separate host.
 > Every viewer in the target window receives a broadcast request and
 > responds (correlate by `activity_id`/`doc_id`/`message_id`).
 
+#### The page going away flushes on its own
+
+A host need not send `flushState` for an ordinary departure. The viewer
+flushes whatever the throttle is holding back when its page hides — on
+`pagehide` and on a `visibilitychange` to `hidden` — so closing the tab,
+typing a new URL, following an external link, or backgrounding a tab on a
+phone no longer strands up to a minute of work. The flushed work arrives as
+an ordinary `SPLICE.reportScoreAndState` message, so a host that already
+persists those saves it with no extra code. Nothing is torn down on the way,
+so a page that comes back — a re-foregrounded tab, a back/forward-cache
+restore — carries on with its state already saved.
+
+> **Important:** for this to survive a real unload, your listener has to
+> persist **synchronously**. The report is handed over by dispatching the
+> message event directly rather than posting it, because a document being
+> unloaded is destroyed before a posted message is ever delivered — but a
+> listener that defers its own write (a `fetch`, a `setTimeout`, an `await`)
+> is destroyed just the same. Write from the listener itself, with
+> `navigator.sendBeacon` or a synchronous store such as `localStorage`.
+
 ### Loading saved state at boot (`SPLICE.getState`)
 
 With `flags: { allowLoadState: true }` and no `initialState` in the config,
@@ -318,10 +353,58 @@ saved state for this document (an object previously received from
 { subject: "SPLICE.getState.response", message_id, state }
 ```
 
+Quote the `message_id`: a response carrying state is only read by the viewer
+whose request it names. Replies reach every viewer in the window, and `cid`
+cannot tell two of them apart — it hashes the DoenetML text alone, so a
+second attempt at the same document, or that document opened twice on a
+page, carries the identical `cid`. An unaddressed answer would be restored
+by all of them.
+
 If there is no saved state, no response is needed. To surface a load
 failure to the student instead, respond with
-`{ subject: "SPLICE.getState.response", error: { code, message } }`
-(and no `message_id`).
+`{ subject: "SPLICE.getState.response", error: { code, message } }`,
+either quoting the request's `message_id` or leaving it out — an error is
+the one reply the viewer will take unaddressed, since the worst it costs is
+a notice the next usable answer clears. Prefer quoting it even so: an
+unaddressed error is taken by whichever request is open when it lands, on
+every viewer on the page, including one a rebuild opened after the error was
+sent. A reply quoting a *different* id is ignored, since that id belongs to
+some other request.
+
+The `message` is shown to the student **beside** the document, not in place
+of it: the request stays open until an answer carries usable state, so an
+error can land long after the document is on screen and being worked in, and
+what it reports is that the document started without the student's saved
+work rather than that there is no document. If no core could be started
+either, the viewer says so on its failure pane and adds this message beneath
+it, so the two are not mutually erasing.
+
+Two kinds of error reach the student's screen as nothing at all, and both are
+logged to the console instead:
+
+- An error carrying no string `message`. The viewer has no text of its own
+  worth showing a student here, so send the text you want them to read.
+- An error whose `code` is `unsupported_subject`, `unauthorized`,
+  `wrong_origin` or `bad_request`. Those are an LTI platform's postMessage
+  vocabulary for a message it will not act on, not a host's load failure:
+  Canvas answers *any* message on *any* of its pages, so a Doenet activity
+  embedded in one gets `unsupported_subject` back for every `SPLICE` message
+  it sends. The other three refuse a subject the platform does recognize,
+  and are reserved alongside it. They all mean the page is not a host, which
+  is the same to the viewer as no answer at all. Do not report a genuine
+  load failure with one of these codes — any other code, or none at all,
+  reaches the student as long as it comes with a `message`.
+
+A request has a single answer: the **first** response carrying state for
+this `cid` is the one the viewer reboots from, and every response after
+that — errors included — is ignored. A response with no state — or state for a
+different `cid` — does not count as that answer, so a listener with nothing
+saved cannot shut out one still in flight. Answer once, out of durable
+storage: a host that replies from an in-memory cache first and from storage
+afterwards keeps the cache's answer. The rule is what makes a page holding
+more than one such listener work — see
+[COORDINATION.md](https://github.com/Doenet/DoenetML/blob/main/packages/standalone/COORDINATION.md)
+for the coordinator beside a book's own persistence layer.
 
 Passing `initialState` in the config (or `initialState: null` for "start
 fresh") skips this request entirely.

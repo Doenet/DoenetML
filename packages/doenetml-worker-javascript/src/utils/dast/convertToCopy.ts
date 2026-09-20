@@ -11,7 +11,7 @@ import {
     UnflattenedPathPart,
     UnflattenedRefResolution,
 } from "./intermediateTypes";
-import { unwrapSource } from "./convertNormalizedDast";
+import { addSource, unwrapSource } from "./convertNormalizedDast";
 
 export function convertRefsToCopies({
     serializedComponents,
@@ -262,6 +262,13 @@ export function convertRefsToCopies({
                             comp.componentType === "integer"
                         ) {
                             // round value
+                            // Remember what was written first. Now that an
+                            // element can be written between the brackets
+                            // (#1909), a `<number>` retyped here is markup the
+                            // author typed, and an attribute error naming
+                            // `<integer>` would name a component that appears
+                            // nowhere in their document (#1919).
+                            comp.authoredComponentType = comp.componentType;
                             comp.componentType = "integer";
                             return {
                                 value: [comp],
@@ -291,6 +298,19 @@ export function convertRefsToCopies({
                                 type: "unflattened",
                                 componentType: "integer",
                                 componentIdx: nComponents++,
+                                // This wrapper is not something an author wrote,
+                                // so it does not get an author's sugar. Without
+                                // this, now that `applySugar` reaches an index's
+                                // contents (#1909), `<number>`'s operator sugar
+                                // fires on the pieces of an ordinary `$a[$i+1]`
+                                // and builds a `<math>` that nothing needs —
+                                // two extra components per index, and per
+                                // iteration inside a `<repeat>`. The components
+                                // written between the brackets still get their
+                                // own sugar: `skipSugar` stops only this
+                                // component's instructions, not the recursion
+                                // into its children.
+                                skipSugar: true,
                                 attributes: {},
                                 doenetAttributes: {},
                                 children: res.components,
@@ -345,6 +365,19 @@ export function convertRefsToCopies({
 }
 
 /**
+ * The same path with every index emptied.
+ *
+ * Used for the copy of a resolution that must not own the components sitting in
+ * its indices. The path parts themselves are rebuilt rather than mutated, since
+ * the original is still in use by whoever does own them.
+ */
+function dropIndexComponents(
+    path: UnflattenedPathPart[],
+): UnflattenedPathPart[] {
+    return path.map((pathPart) => ({ ...pathPart, index: [] }));
+}
+
+/**
  * Convert evaluate component to the serialized component
  * format needed for the javascript core
  */
@@ -377,6 +410,14 @@ function convertEvaluate({
         doenetAttributes: {},
         state: {},
         extending: evaluateComponent.extending,
+        // This component is synthesized rather than written, but it is the one
+        // that carries the reference — so anything that reports a problem with
+        // the reference reports it from here. Without a position such a
+        // diagnostic has no location to show the author, and two of them
+        // covering different references look identical and are deduplicated
+        // into one. The `<evaluate>`'s own span is where the author wrote it.
+        position: evaluateComponent.position,
+        sourceDoc: evaluateComponent.sourceDoc,
     };
 
     let res = convertRefsToCopies({
@@ -419,6 +460,32 @@ function convertEvaluate({
     // Note: we don't delete the `extending` attribute of the `<evaluate>` even though it isn't directly used,
     // as it is used in sugar to determine whether or not the component is a reference
     // delete evaluateComponent.extending;
+
+    // What it must *not* keep is the index. `functionComponent` was handed this
+    // very object, and `convertRefsToCopies` rewrites a resolution's paths in
+    // place, so the conversion just above left the `<evaluate>` pointing at the
+    // same freshly built index components as the `function` it created. Both then
+    // reach `createIsolatedComponents`, which instantiates each component in a
+    // path index — and the second one throws `Found a duplicate componentIdx`,
+    // blanking the document (#1917).
+    //
+    // The index belongs to the function: in `$$f[$k](3)` it picks which function
+    // is called, not part of what the call returns. So the `<evaluate>` keeps the
+    // path it was written with and gives up the components in it. Nothing reads
+    // them from here — every other consumer of an `<evaluate>`'s `extending`
+    // tests only that it is a reference, or compares `nodeIdx` and
+    // `unresolvedPath`.
+    evaluateComponent.extending = addSource(
+        {
+            ...refResolution,
+            originalPath: dropIndexComponents(refResolution.originalPath),
+            unresolvedPath:
+                refResolution.unresolvedPath === null
+                    ? null
+                    : dropIndexComponents(refResolution.unresolvedPath),
+        },
+        evaluateComponent.extending!,
+    );
 
     // The child of the evaluate is a list of the form `<ol><li></li><li></li></ol>""
     // The grandchildren become children of the input attribute,

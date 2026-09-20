@@ -66,37 +66,67 @@ locales/<locale>/
   editor.ftl        # editor and LSP surfaces                — uiLocale
 ```
 
-English is the source of truth. Every translation — `ace`, `af`, `ak`, `am`,
-`ar`, `arn`, `as`, `ast`, `ay`, `az`, `ba`, `ban`, `bci`, `be`, `bem`, `bg`,
-`bho`, `bik`, `bin`, `bm`, `bn`, `bo`, `br`, `brx`, `bs`, `bua`, `bum`, `ca`,
-`ce`, `ceb`, `ch`, `chm`, `co`, `cs`, `cv`, `cy`, `da`, `dag`, `de`, `dje`,
-`doi`, `dv`, `dyo`, `dyu`, `dz`, `ee`, `efi`, `el`, `es`, `et`, `eu`, `ewo`,
-`fa`, `ff`, `fi`, `fil`, `fj`, `fo`, `fon`, `fr`, `fy`, `ga`, `gaa`, `gd`,
-`gl`, `gn`, `gu`, `ha`, `haw`, `he`, `hi`, `hil`, `hnj`, `hr`, `ht`, `hu`,
-`hy`, `id`, `ig`, `ilo`, `is`, `it`, `ja`, `jv`, `ka`, `kab`, `kbp`, `kg`,
-`ki`, `kk`, `km`, `kmb`, `kn`, `ko`, `kok`, `kpe`, `kr`, `kri`, `ks`, `ktu`,
-`kv`, `ky`, `lb`, `lg`, `ln`, `lo`, `lom`, `lt`, `lua`, `luo`, `lv`, `mad`,
-`mai`, `men`, `mg`, `mi`, `min`, `mk`, `ml`, `mn`, `mni`, `mnk`, `mos`, `mr`,
-`ms`, `mt`, `my`, `myv`, `nah`, `nb`, `nds`, `ne`, `nl`, `nso`, `ny`, `nyn`,
-`oc`, `oj`, `om`, `or`, `os`, `pa`, `pam`, `pcm`, `pl`, `ps`, `pt`, `qu`,
-`quc`, `rm`, `rn`, `ro`, `ru`, `rw`, `sa`, `sah`, `sat`, `sc`, `scn`, `sd`,
-`se`, `sg`, `shi`, `si`, `sk`, `sl`, `sm`, `sn`, `so`, `sq`, `sr`, `ss`, `st`,
-`su`, `sus`, `sv`, `sw`, `ta`, `te`, `tem`, `tet`, `tg`, `th`, `ti`, `tiv`,
-`tk`, `tlh`, `tn`, `to`, `tpi`, `tr`, `ts`, `tt`, `ty`, `tyv`, `udm`, `ug`,
-`uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vi`, `war`, `wo`, `xal`, `xh`, `yi`,
-`yo`, `zgh`, `zh-Hans`, `zh-Hant`, `zu` — is an **unreviewed machine-generated
-seed**, which each file's own header says at the top, and which is what #1521's
-translation platform is for. None has been read by a speaker. Correcting one
-needs no permission and no coordination: a wrong string is just wrong, and the
-English is one key away.
+English is the source of truth. Every translation —
+`ab`, `ace`, `acf`, `ady`, `af`, `ak`, `alt`, `am`, `an`, `ar`,
+`arn`, `as`, `ast`, `av`, `awa`, `ay`, `az`, `ba`, `bal`, `ban`,
+`bar`, `bbc`, `bci`, `be`, `bem`, `bg`, `bho`, `bi`, `bik`, `bin`,
+`bjn`, `bm`, `bn`, `bo`, `br`, `brh`, `brx`, `bs`, `bua`, `bug`,
+`bum`, `bzj`, `ca`, `cab`, `cbk`, `ce`, `ceb`, `cgg`, `ch`, `chk`,
+`ckb`,
+`co`, `crh`, `cs`, `csb`, `cv`, `cy`, `da`, `dag`, `dar`, `de`,
+`dje`, `djk`, `dng`, `doi`, `dsb`, `dtp`, `dv`, `dyo`, `dyu`, `dz`,
+`ee`, `efi`, `egl`, `el`, `es`, `et`, `eu`, `ewo`, `ext`, `fa`,
+`ff`, `fi`, `fil`, `fit`, `fj`, `fo`, `fon`, `fr`, `frp`, `frr`,
+`fur`, `fy`, `ga`, `gaa`, `gag`, `gbm`, `gcf`, `gcr`, `gd`, `gil`,
+`gl`, `glk`, `gn`, `gor`, `grt`, `gsw`, `gu`, `gv`, `ha`, `haw`,
+`haz`, `he`, `hi`, `hif`, `hil`, `hne`, `hnj`, `hr`, `hsb`, `ht`,
+`hu`, `hy`, `iba`, `id`, `ig`, `ilo`, `inh`, `is`, `it`, `iu`,
+`ja`, `jam`, `jv`, `ka`, `kaa`, `kab`, `kbd`, `kbp`, `kca`, `kek`,
+`kfy`, `kg`, `kha`, `ki`, `kjh`, `kk`, `kl`, `km`, `kmb`, `kmr`,
+`kn`, `ko`, `koi`, `kok`, `kos`, `kpe`, `kpv`, `kr`, `krc`, `kri`,
+`krl`, `ks`, `ksh`, `ksw`, `ktu`, `kum`, `kw`, `ky`, `lad`, `lb`,
+`lbe`, `lez`, `lg`, `li`, `lij`, `lld`, `lmo`, `ln`, `lo`, `lom`,
+`lrc`, `lt`, `lua`, `luo`, `lus`, `lv`, `mad`, `mag`, `mai`, `mak`,
+`mdf`, `men`, `mg`, `mh`, `mhr`, `mi`, `min`, `miq`, `mk`, `ml`,
+`mn`, `mni`, `mnk`, `mns`, `mnw`, `mos`, `mr`, `mrj`, `mrw`, `ms`,
+`mt`, `mwl`, `mwr`, `my`, `myv`, `mzn`, `nah`, `nap`, `nb`, `nds`,
+`ne`, `new`, `nia`, `niu`, `nl`, `nn`, `nog`, `nrf`, `nso`, `ny`,
+`nyn`, `oc`, `oj`, `olo`, `om`, `or`, `os`, `pa`, `pag`, `pam`,
+`pap`, `pcm`, `pl`, `pms`, `pon`, `ps`, `pt`, `qu`, `quc`, `rar`,
+`rm`, `rn`, `ro`, `rom`, `ru`, `rue`, `rw`, `sa`, `sah`, `sat`,
+`sc`, `scn`, `sco`, `sd`, `se`, `sg`, `sgh`, `shi`, `shn`, `si`,
+`sjd`, `sk`, `skr`, `sl`, `sm`, `sma`, `smj`, `smn`, `sms`, `sn`,
+`so`, `sq`, `sr`, `srm`, `srn`, `ss`, `st`, `su`, `sus`, `sv`,
+`sw`, `syl`, `szl`, `ta`, `tab`, `tcy`, `te`, `tem`, `tet`, `tg`,
+`th`, `ti`, `tiv`, `tk`, `tkl`, `tlh`, `tly`, `tn`, `to`, `tpi`,
+`tr`, `ts`, `tsg`, `tt`, `ttt`, `tvl`, `ty`, `tyv`, `udm`, `ug`,
+`uk`, `umb`, `ur`, `urh`, `uz`, `ve`, `vec`, `vep`, `vi`, `vro`,
+`wa`, `war`, `wbl`, `wls`, `wo`, `xal`, `xh`, `xog`, `yi`, `yo`,
+`yua`,
+`zgh`, `zh-Hans`, `zh-Hant`, `zu`, `zza`
+— is an **unreviewed machine-generated seed**, which each file's own
+header says at the top, and which is what #1521's translation platform is for.
+None has been read by a speaker. Correcting one needs no permission and no
+coordination: a wrong string is just wrong, and the English is one key away.
 
-A hundred and forty-one of them are deliberately partial. A hundred and forty
-are partial in the same place — the two chemistry tables — while Klingon is
-partial almost everywhere, for a different reason: see
-[A language with no word for it](#a-language-with-no-word-for-it). The hundred
-and forty are: Somali, Hmong Njua, Amharic, Assamese, Nepali, Burmese,
-Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino, Vietnamese, Zulu, Xhosa,
-Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
+Two hundred and seventy of them are deliberately partial. Two hundred
+and sixty-six are partial in the same place — the two chemistry tables —
+while four are partial more widely, each for its own reason: Klingon almost
+everywhere, for the reason in
+[A language with no word for it](#a-language-with-no-word-for-it);
+Inuktitut over the geometry nouns as well, for the reason in
+[Fifteen catalogs of the Americas](#fifteen-catalogs-of-the-americas-and-the-line-the-lexifier-draws);
+and Chiga and Soga over six further keys each — the three chemistry prose
+messages, so that the chemistry group falls back entire rather than half in
+one language and half in another, and the three geometry nouns
+`noun.slope-field`, `noun.vector-field` and `noun.rectangle`, where a
+descriptive phrase would have been the seed's own invention rather than a
+word, or would have named the wrong figure. Both are at 439/575, and the
+reason is in
+[Two catalogs of East Africa](#two-catalogs-of-east-africa-and-the-thirteen-the-batch-did-not-seed).
+The two hundred and sixty-six are: Somali, Hmong Njua, Amharic, Assamese,
+Nepali, Burmese, Pashto, Sindhi, Uyghur, Kannada, Punjabi, Filipino,
+Vietnamese, Zulu, Xhosa, Kinyarwanda, Nyanja, Hausa, Yoruba, Igbo, Oromo, Khmer, Lao, Sinhala, Cebuano,
 Malagasy, Māori, Samoan, Hawaiian, Wolof, Bambara, Akan, Ewe, Lingala, Shona,
 Southern Sotho, Setswana, Tigrinya, Ganda, Luxembourgish, Western Frisian, Low
 German, Romansh, Occitan, Asturian, Sardinian, Sicilian, Corsican, Northern
@@ -110,8 +140,26 @@ Tachelhit, Rundi, Nyankole, Luba-Lulua, Kituba, Mooré, Dagbani, Dyula,
 Mandinka, Ga, Tiv, Kanuri, Kongo, Fon, Nigerian Pidgin, Krio, Kabiyè, Temne,
 Mende, Umbundu, Kimbundu, Zarma, Baoulé, Bini, Bulu, Jola-Fonyi, Efik, Ewondo,
 Kpelle, Loma, Susu, Urhobo, Bashkir, Chuvash, Yakut, Tuvinian, Buriat,
-Kalmyk, Udmurt, Komi, Erzya, Mari, Ossetic and Chechen
-leave `element-name` and `element-anion-name` out, so those 130 keys fall back
+Kalmyk, Udmurt, Komi, Erzya, Mari, Ossetic, Chechen, Abkhazian, Adyghe,
+Kabardian, Avaric, Lezghian, Dargwa, Lak, Tabasaran, Ingush, Karachay-Balkar,
+Kumyk, Nogai, Talysh, Kurdish, Central Kurdish, Southern Sami, Lule Sami,
+Inari Sami, Skolt Sami, Kildin Sami, Veps, Livvi-Karelian, Karelian, Võro,
+Tornedalen Finnish, Moksha, Komi-Permyak, Hill Mari, Khanty, Mansi,
+Marshallese, Chuukese, Pohnpeian, Kosraean, Gilbertese, Niuean, Tokelauan,
+Tuvaluan, Rarotongan, Wallisian, Bislama, Scots, Swiss German, Colognian,
+Limburgish, Friulian, Venetian, Ligurian, Piedmontese, Neapolitan, Upper
+Sorbian, Lower Sorbian, Kashubian, Silesian, Rusyn, Crimean Tatar, Gagauz,
+Karakalpak, Khakas, Southern Altai, Balochi, Hazaragi, Muslim Tat, Zazaki,
+Shughni, Dungan, Wakhi, Kalaallisut, Yucatec Maya, Qʼeqchiʼ, Garifuna,
+Mískito, Papiamentu, Sranan Tongo, Jamaican Creole, Guadeloupean Creole
+French, Saint Lucian Creole French, Guianese Creole French, Belize Kriol,
+Aukan, Saramaccan, Buginese, Makasar, Banjar, Gorontalo, Nias, Batak Toba,
+Iban, Central Dusun, Pangasinan, Chavacano, Tausug, Maranao, Shan, Mon,
+S'gaw Karen, Awadhi, Chhattisgarhi, Magahi, Marwari, Garhwali, Kumaoni,
+Newari, Sylheti, Tulu, Mizo, Khasi, Garo, Saraiki, Brahui, Fiji Hindi,
+Aragonese, Extremaduran, Ladino, Mirandese, Walloon, Arpitan, Norman,
+Lombard, Emilian, Ladin, Cornish, Manx, Bavarian, Northern Frisian and
+Romani leave `element-name` and `element-anion-name` out, so those 130 keys fall back
 to English and `lint:i18n` reports the gap. The first nine have no settled
 chemical nomenclature to seed from, and inventing one would be worse than the
 English a student meets in their own textbook. Kannada has two — native
@@ -139,6 +187,30 @@ seed could reproduce rather than invent. An unreviewed guess written in a
 script the reader cannot check against the English beside it is worse than the
 English, so those three are the first place a speaker should look, and the
 catalogs say so in their own headers.
+
+**Thirteen of the second European batch are the school-system case, and every
+one of the thirteen has a named parallel text to work from.**
+Every one of those thirteen is spoken inside a state whose secondary
+chemistry is taught in a national language that already has a catalog here:
+Spanish for Aragonese and Extremaduran, Portuguese for Mirandese, French for
+Walloon and Arpitan, Italian for Lombard and Emilian, Italian or German for
+Ladin, German for Bavarian and Northern Frisian, English for Cornish, Manx and
+Norman — Jersey schools in English, so `nrf` sits with the Celtic pair rather
+than with the Gallo-Romance ones.
+None of them has a settled published list of all 118, and each catalog's
+header names the language its own reader met the table in — so a speaker who
+wants to fill the gap knows which parallel text to work from, and there is a
+parallel text to work from in every case.
+
+The two that are not that case are worth separating out, because both are
+about a *population* rather than a school system. A Ladino speaker met the
+periodic table in Hebrew, Turkish or French depending on which community they
+were schooled in, and those three differ, so naming one would report a fact
+about a migration. Romani is the same shape at larger scale: `rom` is spoken
+across a dozen state school systems and its readers met the table in
+Romanian, Hungarian, Slovak, Serbian, Bulgarian or Spanish, with no Romani
+list of the 118 in any variety. These are the Northern Sami case — the gap is
+a fact about where speakers live, not about the language.
 
 Javanese and Sundanese are the two of that batch's ten that supply the names,
 and they are a case of their own: their schools teach chemistry out of
@@ -276,6 +348,123 @@ about the medium of instruction is a property of a language. `locales/sw` and
 `locales/ki` are the same pair in Kenya, one education system and two different
 answers.
 
+**All fifteen of the Caucasus and Kurdish batch are partial, and fourteen of
+the fifteen are partial for the school-system reason.** Secondary chemistry
+across the North Caucasus is taught in Russian, so for the twelve Cyrillic
+catalogs the fallback *is* the curriculum, exactly as it was for the twelve of
+the Russian Federation batch — one sentence for twelve education ministries
+that are really one.
+`locales/tly` is a two-country version of the same case and the only one that
+has to name two: Talysh schooling is Azerbaijani-medium in Azerbaijan and
+Persian-medium in Iran, so there is no single curriculum to point at.
+`locales/kmr` is a third variant, Kurmanji-medium secondary schooling barely
+existing at all — Turkish in Turkey, Arabic in Syria.
+
+**`locales/ckb` is the fifteenth and the one claim about a language, and it
+stands beside `locales/kmr` the way `locales/bo` stands beside `locales/dz`.**
+Central Kurdish *is* the medium of secondary science teaching in the Kurdistan
+Region of Iraq, and its schools print the periodic table in Sorani — so the
+names exist, and this is the Khmer and Tibetan case rather than the
+school-system one: what is missing is a settled convention this seed could
+reproduce rather than invent, published lists differing in how far they
+transliterate and from which source language. Two catalogs of one
+macrolanguage, two different reasons for the same gap, and the Kurdish pair
+makes the point in two scripts and two directions at once.
+
+**All fifteen of the Uralic north are partial, and the batch is the first where
+the school-system case and the `locales/se` case arrive together in one
+family.** Twelve are the ordinary case in three mediums: Russian for Kildin
+Sami, Veps, Livvi, Karelian, Moksha, Komi-Permyak, Hill Mari, Khanty and Mansi,
+Estonian for Võro, Finnish for Inari and Skolt Sami. `locales/fit` is the same
+case in Sweden, and it is the one place where Meänkieli parts company with
+`locales/fi`, which supplies the whole table: Finland teaches chemistry in
+Finnish and Sweden does not teach it in Meänkieli.
+
+**`locales/sma` and `locales/smj` are the two that inherit `locales/se`'s
+problem exactly**, and this is the second time it has arisen — the batch that
+seeded Northern Sami recorded that a Sami pupil meets the Norwegian, Swedish or
+Finnish names depending on which side of a border their school is. Southern and
+Lule Sami are both spoken across the Norwegian-Swedish border, so both inherit
+it in full, and `locales/smj`'s header says so in as many words. Three Sami
+catalogs, one problem, and the answer is the same each time: choosing a list
+would report a fact about a border rather than about the language.
+
+**All eleven of the Oceania batch are partial, and every one of them is the
+school-system case** — English-medium across Micronesia, Niue, Tokelau,
+Tuvalu, the Cook Islands and Vanuatu, and French-medium on ʻUvea, which is
+`locales/wls` and the one of the eleven pointed at a fallback that is not
+English. Most of the eleven record `locales/sm`'s and `locales/haw`'s reason
+beside it rather than instead of it: a Pacific language with everyday words
+for the substances known long before the elements were, and no settled list of
+all 118 over them. `locales/bi` names its three — «aean», «gol», «silva» — as
+where a speaker should start.
+
+**The Silk Road batch splits twelve to three: twelve leave the tables out and
+three supply them.** The twelve are
+the school-system case, in a medium that changes almost catalog by catalog —
+Russian for `kjh`, `alt` and `dng`, Russian and Ukrainian for `crh`, Russian
+and Romanian for `gag`, Uzbek and Russian for `kaa`, Tajik and Russian for `sgh`, Azerbaijani for `ttt`, Turkish
+for `zza`, Urdu, English and Persian for `bal`, Dari and Pashto for `haz`, and
+`wbl`, which is the one with no single fallback at all, a Gojali pupil meeting
+the English names and a Wakhan pupil the Tajik ones. The three that supply
+them are `mzn`, `glk` and `lrc`: see [Fifteen catalogs along the Silk
+Road](#fifteen-catalogs-along-the-silk-road-and-three-element-tables-borrowed-whole)
+for why a Persian table in a Mazanderani catalog is a loan the language
+genuinely uses rather than an invented nomenclature.
+
+**All fifteen of the Southeast Asian batch are partial, and like the second
+sub-Saharan batch and the African and Berber one they split no ways at all:**
+every one of the fifteen is the school-system case, in four mediums. Chemistry
+is taught in Indonesian in Sulawesi, South Kalimantan, Nias and North Sumatra,
+so `bug`, `mak`, `bjn`, `gor`, `nia` and `bbc` meet the table in the language
+`locales/id` carries it in; in Malay in Sabah and Sarawak, so `iba` and `dtp`
+meet the one `locales/ms` does; in English across the Philippines from the
+intermediate grades, which is the `fil` and `ceb` case again for `pag`, `cbk`,
+`tsg` and `mrw`; and in Burmese in Shan and Mon States, where Shan- and
+Mon-medium schooling does not run to the grades where the periodic table is
+taught.
+
+What falls through is English in all fifteen cases, which is the curriculum
+language for the four Philippine catalogs and a *second* language for the ten
+taught in Indonesian, Malay or Burmese. Those ten are not reached by
+`locales/id` or `locales/ms` either: nothing folds `bjn` onto Indonesian or
+`iba` onto Malay, and this batch's `ms` entry in `MACROLANGUAGE_MEMBERS` leaves
+`bjn` out deliberately. So the reason these keys are omitted is that there is no
+settled Buginese or Mon list to write down — not that English is what those
+readers use.
+
+`ksw` is the one with no single fallback, `locales/wbl`'s shape one batch on: a
+Karen pupil in Myanmar meets the table in Burmese and one in the diaspora in
+English or Thai, and choosing either would hide the split. Four school systems, fifteen catalogs, and not one claim about
+a language among them; see [Fifteen languages of Southeast
+Asia](#fifteen-languages-of-southeast-asia-and-the-batch-whose-word-order-follows-a-border)
+for what does divide the batch.
+
+**All fifteen of the second South Asian batch are partial as well, and they
+split two ways rather than the first South Asian batch's five.** Thirteen are
+the school-system case in five mediums: chemistry is taught in Hindi across the
+Hindi belt and Uttarakhand, so `awa`, `hne`, `mag`, `gbm` and `kfy` meet the
+table in the language `locales/hi` carries it in; in Nepali in the Kathmandu
+Valley for `new`; in Bengali in Sylhet for `syl`, which is the
+one of the fifteen whose fallback language is a catalog on this roster that
+*does* carry the names, `locales/bn`; in English across Meghalaya and Mizoram
+for `kha`, `grt` and `lus`; in Urdu in southern Punjab and Balochistan for
+`skr` and `brh`; and in English in Fiji for `hif`.
+
+`tcy` is the fourteenth and the one that is nobody's case above: Tulu-medium
+schooling stops below the grades where the periodic table appears, so a Tulu
+pupil meets it in Kannada — and `locales/kn` omits the tables too, for the
+Kannada reason of having two nomenclatures and no way to pick. So the neighbour
+a Tulu reader would be sent to does not carry the list either, and English falls
+through to a reader whose curriculum is in neither language. `syl` is the
+contrast inside the same batch: its neighbour `locales/bn` does carry it.
+
+The fifteenth is `mwr`, the school-system case with a second reason on top of
+it and the only entry here that is also a claim about a language: Rajasthan
+teaches chemistry in Hindi, and Marwari has no settled list of all 118 to seed
+from in any case. Each catalog's header says which of the three cases it is
+in.
+
 That is a decision per language and not per script: Bangla supplies the names
 its schools use, and Assamese, written in the same letters, does not. The same
 line runs through the Arabic script — Arabic, Persian and Urdu supply them and
@@ -310,7 +499,9 @@ subtag before negotiating — the same service `Intl.getCanonicalLocales` alread
 performs for `iw`, `in` and `mo`, which it maps to `he`, `id` and `ro` on its
 own. `nn` is left alone: Nynorsk is a written standard of its own, and
 answering it with Bokmål would be a substitution rather than a
-canonicalization.
+canonicalization. `locales/nn` now exists and does not change that — `nn`
+reaches its own catalog, and `no` still reaches `nb`, because a reader who
+says only `no` has not said which standard they read.
 
 Filipino needs no such entry, and that is worth saying so nobody adds one:
 `fil` is the standard language's code and `tl` is the deprecated one, so
@@ -334,7 +525,10 @@ per-language prose. CLDR has no language data at all for a few of the tags this
 repository ships catalogs for, though, and a `<document lang>` autocomplete
 offering a reader "ktu" and expecting them to know what it is helps nobody. So
 `LOCALE_NAME_FALLBACKS`, in `scripts/catalogUtils.ts`, supplies a name for the
-locales CLDR has none for: today `nah`, `dag`, `ktu`, `mnk` and `kbp`.
+locales CLDR has none for. Which locales those are is the table's own business
+and is not repeated here: it grows with every batch that seeds a tag ICU has
+never heard of, and a copy of the list in this file would be a copy that goes
+stale.
 
 It fills a gap and never overrides one. ICU is asked with `fallback: "none"`, so
 it answers `undefined` where it has nothing — rather than its own rendering of
@@ -342,6 +536,16 @@ the tag's subtags, which reads like a name and is not one — and the table is
 read only there. The rule above therefore still holds: a language is named
 whatever CLDR names it, and an entry stops being consulted the day ICU learns a
 name of its own.
+
+**A batch section states counts, not superlatives.** Three claims of the form
+"the first batch to…" or "the best-named batch the roster has had" have now
+been written into this file and later found false — one about grammatical
+duals, one about `zero` plural categories, and one about display names. Each
+was true of the batch that wrote it and false across the roster, and each
+survived several readings because checking it means measuring every earlier
+batch rather than the one in front of you. A count is checkable in one command
+and stays true; a superlative is a claim about twenty other sections that
+nobody re-measures when the twenty-first lands. Write the count.
 
 The names in the table are **unreviewed and machine-generated**, the same status
 as the seed catalogs — the best available answer, not a speaker's. `endonym` is
@@ -507,7 +711,9 @@ with a `qu` catalog sitting on disk, and nothing said why.
 membership** — ISO 639-3's for the four macrolanguages, ISO 639-5's grouping for
 `nah` — which is what makes it checkable rather than a matter of taste, and what
 distinguishes it from the `nn` and `fat` cases above: neither of those is a
-member of `nb` or `ak`, and both are deliberately left to miss. The member CLDR
+member of `nb` or `ak`, and neither is folded onto its neighbour. `fat` is
+left to miss outright; `nn` has a catalog of its own, and what it still does
+not do is answer `no`. The member CLDR
 already folds is listed anyway, so each list reads as the whole of a group rather
 than the leftovers of one, and so a change in ICU data cannot silently drop a
 code out of coverage. `negotiate.test.ts` asserts both halves.
@@ -573,6 +779,79 @@ scale: `to` is the only one of the fifteen whose **endonym** CLDR knows — the
 roster reads "Tongan (lea fakatonga)" — and the other fourteen read their
 English name once. None of the fifteen is right-to-left, so `direction.ts` is
 untouched.
+
+### Naming a catalog when a sibling member has one too
+
+A catalog is named after the **individual language it is written in**, not after
+the macrolanguage that language belongs to, whenever a *sibling* member of that
+macrolanguage also has a catalog here.
+
+The rule exists because a macrolanguage tag makes a promise the file cannot
+keep. `locales/ku` was written in Northern Kurdish (Kurmanji) while
+`locales/ckb` sat beside it in Sorani: `ku` covers both, so the directory name
+claimed a reader it could not serve, and the only thing keeping Sorani readers
+out of it was an explicit exclusion in `MACROLANGUAGE_MEMBERS`. The same held
+for `locales/kv` (Komi-Zyrian, beside `locales/koi`) and `locales/chm` (Meadow
+Mari, beside `locales/mrj`). All three were renamed — to `locales/kmr`,
+`locales/kpv` and `locales/mhr` — so that each tag names what is actually in the
+file.
+
+**An alias adds a fallback; it does not replace the tag.** `available` is not
+only this repository's roster — a host passes its own catalogs in as
+`localeResources`, and [the contract those have is that they
+win](#delivery). So `negotiateLocales` asks for the tag as written *and then*
+its alias, in that order. Rewriting `ku` to `kmr` before matching would step
+over a host that had keyed a catalog on `ku`: its key would never be compared
+against anything, and its reader would get English while the translation sat in
+memory. Keeping the original in front means the host's catalog is preferred,
+the alias still carries the request to the bundled catalog when no host catalog
+answers. That is what makes an alias safe to add to a tag that already worked,
+which all three of these were.
+
+What an alias cannot do is tell the two tags apart. `normalizeLocaleTag` folds
+`kmr` to `ku` before negotiation runs — ICU's canonicalization again — so
+`<document lang="kmr">` and `<document lang="ku">` arrive as the same request,
+and a host offering catalogs under *both* keys is answered with the
+macrolanguage's for either. That predates the aliases rather than following
+from them: `kmr` folded to `ku` before there was a `locales/kmr` to fold it
+onto. Undoing it would mean `normalizeLocaleTag` declining to canonicalize
+these three subtags, which changes what a normalized tag means everywhere and
+is a decision worth taking on its own.
+
+**The rename is only safe with an alias behind it, and the reason is a trap
+worth stating plainly.** ICU canonicalizes each of these member codes straight
+back onto its macrolanguage:
+
+```js
+new Intl.Locale("kmr").toString(); // "ku"
+new Intl.Locale("kpv").toString(); // "kv"
+new Intl.Locale("mhr").toString(); // "chm"
+```
+
+`normalizeLocaleTag` runs that canonicalization, so a hand-typed `<document
+lang="kmr">` has already become `ku` before negotiation sees it. A directory
+named `kmr` is therefore unreachable under **both** names unless something maps
+the macrolanguage *forward* onto the member — which is what the `ku: "kmr"`,
+`kv: "kpv"` and `chm: "mhr"` rows in `LANGUAGE_ALIASES` do. Delete them as
+redundant and three catalogs fall to English with nothing to say why.
+
+That is the mirror of the `koi`/`mrj` case: there an alias had to be *removed*
+for a member's own catalog to win, here one has to be *added* for a member's own
+catalog to be reachable at all. `negotiate.test.ts` asserts both the
+canonicalization and the negotiation result, so neither half can be quietly
+dropped.
+
+Two consequences are worth knowing before applying this rule to a fourth
+catalog. The **roster label does not change**: `Intl.DisplayNames` gives `kmr`
+the same "Kurdish" it gives `ku`, so what the rename buys is a precise tag
+rather than a more precise name. And a member list that had shrunk to exactly
+one member disappears entirely, because that member is now the catalog's own
+name — which is what happened to `kv` and `chm`.
+
+The rule does **not** reach every macrolanguage-named catalog on the roster.
+`ms`, `fa`, `sw` and others ship no sibling member catalog, so nothing about
+their tags overclaims in the way `ku` did, and renaming them would move each off
+the ISO 639-1 code an author is most likely to type for no gain.
 
 ### The South Asian batch
 
@@ -1233,8 +1512,8 @@ already partially does for the Liberian half.
 
 Bashkir, Chuvash, Yakut, Tuvan, Buryat, Kalmyk, Udmurt, Komi, Erzya, Mari,
 Ossetian and Chechen — twelve catalogs from **five families** (Turkic: `ba`,
-`cv`, `sah`, `tyv`; Mongolic: `bua`, `xal`; Uralic: `udm`, `kv`, `myv`, `chm`;
-Iranian: `os`; Nakh: `ce`), all written in Cyrillic, all spoken inside the
+`cv`, `sah`, `tyv`; Mongolic: `bua`, `xal`; Uralic: `udm`, `kpv`, `myv`,
+`mhr`; Iranian: `os`; Nakh: `ce`), all written in Cyrillic, all spoken inside the
 Russian Federation. It is the roster's first batch whose whole membership
 shares a **script** without sharing a family, and that is what makes it useful:
 every question the earlier batches asked about what a family or a region
@@ -1321,6 +1600,12 @@ reach a catalog only because the map names them, which is the failure that map
 exists to prevent. Each catalog says in its own header which standard it is:
 Russia Buriat, Komi-Zyrian, Meadow Mari.
 
+Only `bua` is still keyed that way. The Komi and Mari catalogs are named
+`locales/kpv` and `locales/mhr` today, after the varieties they are written in,
+and their macrolanguage codes reach them through `LANGUAGE_ALIASES` instead —
+see [Naming a catalog when a sibling member has one
+too](#naming-a-catalog-when-a-sibling-member-has-one-too).
+
 `bxu` is the batch's **script debt** and is recorded rather than fixed: China
 Buriat maximizes to `bxu-Mong-CN`, so CLDR's own data says such a reader most
 likely arrives in the Mongolian script and what `locales/bua` gives them is
@@ -1328,8 +1613,9 @@ Cyrillic. That is `locales/dje`'s debt to `tda` in Tifinagh and `locales/kr`'s
 to `kby` in Ajami, and the answer to it is a second catalog rather than a change
 in `negotiate.ts`.
 
-**The other nine filter unaided, so the batch adds no `LANGUAGE_ALIASES` entry
-at all**, and — for the first time in several batches — **no
+**The other nine filter unaided, so the batch added no `LANGUAGE_ALIASES` entry
+at all** — the `kv` and `chm` rows there arrived later, with the naming rule
+above — and — for the first time in several batches — **no
 `LOCALE_NAME_FALLBACKS` entry either**: CLDR has an English name for every one
 of the twelve. Four of those names will look wrong and are not, the
 `ny`-reads-Nyanja rule again: `sah` renders as **Yakut**, `tyv` as
@@ -1338,13 +1624,15 @@ header says which language it is. `os` is also the one locale here whose
 maximization names a country outside Russia — `os-Cyrl-GE`, Georgia — which is
 CLDR's data rather than an error and costs negotiation nothing.
 
-`mdf` is the near miss worth naming, because it is the other half of a pair
-whose first half now has a catalog. Moksha and Erzya are two languages with two
-ISO 639-3 codes and no macrolanguage over them, so `locales/myv` can do nothing
-for a Moksha reader and must not pretend to — the rule working rather than a
-gap in it, exactly as `fat` and `alq` land. `krc`, `kum`, `nog`, `ady`, `kbd`,
-`av` and `sel` fall to English for the same reason, and `negotiate.test.ts`
-pins every one of them.
+`mdf` was the near miss worth naming, because it was the other half of a pair
+whose first half had a catalog. Moksha and Erzya are two languages with two
+ISO 639-3 codes and no macrolanguage over them, so `locales/myv` could do
+nothing for a Moksha reader and must not pretend to — the rule working rather
+than a gap in it, exactly as `fat` and `alq` land. `krc`, `kum`, `nog`, `ady`,
+`kbd`, `av` and `sel` fell to English for the same reason. Only `sel` still
+does: the other seven have catalogs of their own as of the Caucasus and Kurdish
+and the Uralic north batches, and `negotiate.test.ts` pins each of them in the
+`describe` for the batch that wrote it.
 
 #### The chemistry gap
 
@@ -1375,6 +1663,2532 @@ error this seed is least able to check. `locales/lom` set the precedent for
 saying that in a file's own header rather than leaving a reader to discover it,
 and 118 unreviewed element coinages would have been the least defensible thing
 in the file.
+
+### Fifteen catalogs across the Caucasus, and the batch that stops agreeing about word order
+
+Abkhaz, Adyghe, Kabardian, Avar, Lezgian, Dargwa, Lak, Tabasaran, Ingush,
+Karachay-Balkar, Kumyk, Nogai, Talysh, Kurmanji Kurdish and Central Kurdish —
+fifteen catalogs from **five families** (Northwest Caucasian: `ab`, `ady`,
+`kbd`; Northeast Caucasian: `av`, `lez`, `dar`, `lbe`, `tab`; Nakh: `inh`;
+Turkic: `krc`, `kum`, `nog`; Iranian: `tly`, `kmr`, `ckb`), and three scripts.
+It picks up where the Russian Federation batch stopped in the most literal way
+available: **six of these fifteen were named in that batch's own test** as
+neighbours of `ba` and `ce` that fall back to English rather than being guessed
+at. `krc`, `kum`, `nog`, `ady`, `kbd` and `av` reach a catalog now because one
+was written for them, not because `negotiate.ts` learned to fold a neighbour
+onto a neighbour, and `negotiate.test.ts` says so where those rows used to be.
+
+**This is the first batch that cannot be pinned as one word order.** Every
+earlier one could: the Russian Federation's twelve are prenominal to a catalog,
+and `styleDescriptions.test.ts` asserts that as an identity. Here ten put the
+description in front of the noun and five put it behind — and the five are not
+a group anyone reading a map would predict. All three Northwest Caucasian
+catalogs are postnominal, and so are **both** Kurdish ones, which are Iranian
+and sit at the other end of the batch from them. Northeast Caucasian, Nakh and
+Turkic are prenominal throughout. So a family predicts word order inside this
+batch and the region does not, which is the mirror image of what the batch says
+about agreement below — and the test holds both groups from opposite sides,
+`startsWith` for one and `endsWith` for the other, so that the noun is being
+appended to a description or prefixed to it rather than woven into it.
+
+**Agreement splits four ways, and only two of the four are a fork.**
+
+`locales/inh` and `locales/kmr` genuinely agree. Ingush is Chechen's sister and
+forks the в-/й-/б-/д- class system the same way `locales/ce` does — and forks
+one message more: **`line-style.dashed`, which `locales/ce` leaves flat**
+although «кагйина» is the same kind of participle and `describeStroke` hands
+every adjective the same `$gender`. The branch is live rather than decorative,
+and the divergence is a question for a speaker of either language rather than a
+defect in either file; the test pins both forks so nobody flattens one catalog
+to match its neighbour without answering it. `locales/kmr` is the other, and its
+mechanism is not a class at all — see [The Kurdish pair](#the-kurdish-pair).
+
+**`locales/av` agrees more than Chechen does and still forks nothing, which is
+the sharpest thing in the batch.** Avar has three singular classes and a
+plural, the marker is a *suffix* rather than a prefix, and — unlike Chechen,
+where the colour and width words take no marker at all — **every attributive
+adjective carries it**. On the face of it every style word in the file should
+fork. None does, because every noun this core names is a thing rather than a
+person and so is class III: `[v]`, `[j]` and `[l]` would be variants nothing
+can select. That is the reachability rule `locales/ve`, `locales/ts`,
+`locales/ki` and `locales/bem` already apply to their unreached Bantu classes,
+arriving for the first time from a language that agrees *more* rather than
+less. `locales/lbe` reaches the same place from four classes. `locales/dar` is
+the one of the three whose select is actually written out — `[v]` вицӀибси,
+`[r]` рицӀибси, `*[b]` бицӀибси, with only the last reachable — left standing
+so that filling in a class table costs a speaker one line rather than a
+rewrite.
+
+**`locales/lez` is the Northeast Caucasian language that lost its classes**,
+and its header says so where a reader who knows the family will look for a fork
+and must not find one. `locales/tab`'s classes survive on numerals, verbs and
+pronouns and never reach an attributive adjective. `locales/ab`'s agreement is
+a verb prefix and nothing the core names is human. `locales/ady`,
+`locales/kbd`, the three Turkic catalogs, `locales/tly` and `locales/ckb` never
+had classes to lose, and each header says so where a reader would look for the
+fork its neighbours have. Thirteen catalogs, five different reasons for the
+same flat `noun-gender`, in one region; `locales/inh` and `locales/kmr` are the
+only two whose `noun-gender` answers per noun.
+
+#### The Kurdish pair
+
+`locales/kmr` and `locales/ckb` are **two members of one macrolanguage, with a
+catalog each and no catalog named after the macrolanguage itself**, and
+they differ in every dimension this package has: script, direction, and whether
+the language agrees.
+
+Kurmanji is Latin (Hawar), left to right, and has masculine and feminine nouns
+linked to their adjectives by an ezafe. The bound ezafe cannot be welded onto
+`{ $noun }` — the constraint [An affix cannot be welded to a
+placeable](#an-affix-cannot-be-welded-to-a-placeable) describes — so
+`locales/kmr` writes the free particle «ya» after a feminine noun and «yê» after
+a masculine one, repeating it before each further adjective, and three messages
+fork on `$gender`: `style-stroke`, `style-filled` and `style-filled-with-noun`.
+A line is feminine and a polygon masculine, so one description changes in three
+places and the other does not change at all, which is what the test pins.
+`style-filled-word` is flat, because «dagirtî» is a past participle and does
+not inflect — the agreement beside it is carried entirely by the particle.
+
+Sorani is Perso-Arabic, right to left, and **has no gender at all**, having
+lost the distinction Kurmanji keeps. So `locales/ckb` forks nothing while its
+sibling writes a full gender table. It solved the ezafe problem the other way
+round: rather than a free particle, **every entry in its `noun` table is
+written with its ezafe already on it**, so the composition messages add nothing
+and the adjectives chain with a free «و». Sorani's ezafe is always written,
+where Persian's is an unwritten vowel a space can carry, which is why
+`locales/fa`'s answer was not available to it.
+
+`locales/ckb` is the roster's eleventh right-to-left catalog and needed nothing
+from `direction.ts`: direction is keyed on the script, `ckb` maximizes to
+`ckb-Arab-IQ`, and `kmr` maximizes to `ku-Latn-TR` — ICU canonicalizes `kmr`
+onto `ku` first, and both roads end in the Latin script. One macrolanguage
+rendering in both directions is the plainest demonstration this repository has
+that direction is a fact about a script rather than about a language.
+
+#### Negotiation
+
+**`kmr` is a key in `MACROLANGUAGE_MEMBERS` that is a *member* rather than the
+macrolanguage, and still excludes one of its own siblings.** ISO 639-3 gives
+Kurdish three members — `ckb`, `kmr`, `sdh` — and this key names one of them
+and lists a second. `ckb` is left out because it has a catalog of its own, and
+folding it would serve a Sorani reader Kurmanji in a script they do not read.
+That is `locales/mnk` excluding `bam` and `dyu`. `sdh` reaches a catalog only
+because the map names it.
+
+The catalog was originally called `locales/ku`, after the macrolanguage, and
+was renamed to `locales/kmr` under the rule described in [Naming a catalog when
+a sibling member has one
+too](#naming-a-catalog-when-a-sibling-member-has-one-too). A reader who types
+`ku` still reaches it.
+
+`sdh` is the batch's **script debt**, and it is recorded rather than fixed:
+Southern Kurdish maximizes to `sdh-Arab-IR`, so CLDR's own data says such a
+reader most likely arrives in the Perso-Arabic script, and what published
+membership hands them is Latin Kurmanji. Routing it to `locales/ckb` on script
+alone would read better and would be exactly the judgement these maps exist to
+avoid — sharing a script is not a membership fact. That is `locales/bua`'s debt
+to `bxu` in Mongolian script and `locales/kr`'s to `kby` in Ajami, and the
+answer to it is a `sdh` catalog.
+
+`lki` (Laki) is the near miss worth naming, because everything except the
+published mapping points the other way: it is written in the same script as
+`ckb`, and it is often described as a variety of Southern Kurdish. ISO 639-3's
+macrolanguage mapping still gives it a code outside `kur`, so it falls back —
+`alq` beside `oj` and `kbl` beside `kr` land the same way. `zza`, `agx`, `ddo`,
+`xmf` and `sva` are the same shape in five other families, and
+`negotiate.test.ts` pins every one.
+
+**The other thirteen filter unaided, so the batch added no `LANGUAGE_ALIASES`
+entry at all** — the `ku: "kmr"` row there arrived later, with the naming rule
+above — and every regional and script tag — `ab-GE`, `lez-AZ`, `tly-IR`,
+`ku-SY`, `ckb-IQ`, `ab-Latn`, `ku-Arab`, `tly-Cyrl` — reaches its catalog on
+ICU data plus that one row. The script asymmetries the headers record: `kmr` is
+Latin and answers `ku-Arab`, `tly` is Latin and answers both `tly-Cyrl` and
+`tly-Arab`, `ckb` is Perso-Arabic and answers `ckb-Latn`, and
+the twelve Cyrillic ones answer a Latin tag with Cyrillic. As ever the answer
+to a mismatch is a second catalog beside the first rather than a rename of it.
+
+**`lbe` and `tab` need `LOCALE_NAME_FALLBACKS` entries, and they part company
+over the endonym.** CLDR has no language data for either tag, so without the
+table `<document lang>`'s autocomplete would offer a reader "lbe" and "tab" and
+nothing else. Lak gets both fields — its own headers name the language «лакку
+маз» and three of the four repeat it — while Tabasaran gets only an English
+name, because no header of its commits to a self-name in any script and a wrong
+endonym is worse than none. Its label therefore reads "Tabasaran (tab)", which
+is `locales/bci`'s and `locales/lom`'s shape rather than a new one.
+
+Four of the batch's CLDR names will look wrong and are not, the
+`ny`-reads-Nyanja rule again: `ab` renders as **Abkhazian**, `av` as
+**Avaric**, `lez` as **Lezghian**, and `kmr` — which ICU canonicalizes to `ku`
+and whose endonym it therefore gives as "kurdî (kurmancî)" — labels itself
+**"Kurdish (kurdî (kurmancî))"**, nested parenthesis and all. That last one is
+the label consequence of the rename spelled out under [Naming a catalog when a
+sibling member has one
+too](#naming-a-catalog-when-a-sibling-member-has-one-too): the tag is now the
+member's, and the name CLDR answers with is still the macrolanguage's.
+`supportedLocales.ts` is derived rather than hand-written,
+which is the whole point: adding fifteen languages cost no per-language prose,
+and the price of that is that ICU's rendering stands even when it reads oddly.
+Each catalog's header says which language it is.
+
+#### What the batch could not do, and says so
+
+**`piecewise-condition-if` splits, and the wall is syntax rather than family.**
+The renderer places the key *before* the mathematics it introduces. Abkhaz,
+Adyghe, Kabardian and Lak all mark a condition on a clause-final verb form and
+have no free word to put in front, so all four record the `locales/sah` shape
+beside the key rather than inventing a workaround — the same limit five
+catalogs of the previous batch recorded. The other eleven land correctly, and
+**nine of the eleven do it with the same borrowed word**: «эгер» in Lezgian,
+Dargwa, Tabasaran, Karachay-Balkar, Kumyk and Nogai, «əqər» in Talysh, «eger»
+in Kurmanji and «ئەگەر» in Sorani, all of them Persian and all of them
+clause-initial in languages whose own conditional is a suffix that would close
+the clause. Avar's «нагагь» and Ingush's «нагахьа» are the two that land on
+native words. Three Northwest Caucasian catalogs and Lak on one side of that
+line, and every Turkic and Iranian one on the other — which is the shape the
+previous batch found too, where two Turkic catalogs fell on each side and the
+wall turned out to be syntax rather than ancestry.
+
+**Two catalogs put a regular polygon's side count in a trailing complement**,
+where thirteen fold it into the noun and leave `noun-regular-polygon`'s `[tail]`
+branch empty. `locales/kbd` cannot incorporate the numeral into a word it does
+not own — Kabardian would write «къуапитху», and the count arrives as a
+formatted `{ $numSides }` — so it appends «къуапэ 5 иӀэу» behind the
+description; `locales/ckb`'s noun carries its ezafe and takes the count in a
+«بە … ەوە» phrase behind it. Those two are why `$part` is not dead weight.
+`styleDescriptions.test.ts` holds all fifteen to rendering the count exactly
+once, and names `kbd` and `ckb` against `ab`, `ady` and `kmr` — the three other
+postnominal catalogs, which are where the tail is what the string ends with and
+so the only group in which the split is visible from the outside.
+
+**`locales/ady` and `locales/kbd` both record a limit the affix rule creates
+from the other direction.** A postnominal adjective in Circassian is normally
+written *together* with its noun as one word, and the noun is a placeable, so
+both catalogs write it as a separate word one space away from the compound a
+speaker would write. Splitting the key would not help: the affix belongs to
+whichever word lands last, and that word is a placeable too.
+
+Three catalogs are candid about vocabulary rather than grammar, and they are
+where a speaker should start. **`locales/tly` is the least certain catalog in
+the batch** and says so — Talysh is endangered, its written output is small,
+and its Latin orthography is not fully settled even within the tradition this
+catalog writes. **`locales/dar` discloses that seven of its twelve colour slots
+are plain Russian words**, its header naming that the file's most valuable
+edit; that is a decision to leave a visible gap rather than coin seven terms,
+`locales/xal`'s judgement in a different part of a file. **`locales/nog` names
+`editor.ftl` as the file with the most invented vocabulary it contains**, built
+from general Kipchak on the Kazakh and Karakalpak pattern because Nogai has no
+published equivalents. Correcting any of it needs no permission.
+
+### Fifteen catalogs of the Uralic north, and the first member lists to shrink
+
+Southern, Lule, Inari, Skolt and Kildin Sami; Veps, Livvi, Karelian, Võro and
+Meänkieli; Moksha, Komi-Permyak and Hill Mari; Khanty and Mansi — fifteen
+catalogs from **one family**, which is what makes the batch useful, because
+every earlier batch was assembled around a region (the Caucasus), a script (the
+Russian Federation) or a continent. This one holds the family constant and
+varies everything else: two scripts, five countries, four branches, and a range
+from a national minority language of Sweden to two Siberian languages with a
+few hundred speakers each.
+
+Held that way, the family predicts a great deal about grammar and almost
+nothing about delivery.
+
+**All fifteen agree about word order, and that is the answer to the question
+the Caucasus batch left open.** That batch was the first whose members did not
+agree — ten prenominal, five postnominal — which made it fair to ask whether a
+batch can be pinned as one shape at all any more. This one can: every catalog
+here puts the description in front of the noun, across both scripts and all
+four branches, and `styleDescriptions.test.ts` holds all fifteen to it over six
+nouns rather than the one the rows spell out.
+
+**None of the fifteen forks on `$gender`, and the test says so rather than the
+headers.** No Uralic language has grammatical gender, so `noun-gender` returns
+one token in every file — the flat answer eleven of the Russian Federation's
+twelve gave. What is new is that it is *asserted*: the same suite checks that a
+catalog's adjectives come out identical whatever noun follows them, which is
+exactly what `locales/inh` and `locales/kmr` fail — their descriptions come out
+in two different shapes depending on the noun — and it turns "this language
+does not agree" from a remark in a header into a property of the file.
+(`locales/ce` and `locales/av` write a `$gender` fork too, but the branches no
+noun key can reach; that is the separate thing the "Dagestanian agreement that
+no message can reach" rows pin.)
+
+**Four catalogs do use `$role`, and none of them for gender.** Finnic
+adjectives agree in *case*, so `locales/vep`, `locales/olo`, `locales/krl` and
+`locales/fit` fork on the syntactic position the way `locales/fi` does — a
+nominative standing alone, an adessive inside a border clause. `locales/vro` is
+the honest failure beside them and says so in its own header: Võro needs the
+same fork and the seed declined to invent the oblique forms it would take, so
+two messages read with a nominative where a genitive or adessive belongs. That
+is a recorded debt of exactly the kind `locales/ewo` set the precedent for, and
+it costs a speaker a handful of lines to pay off.
+
+#### The dual, and the one Sami language that cannot write it
+
+**`sma`, `smj`, `smn` and `sms` resolve `one`, `two` and `other`** — the `se`
+shape, and the only place in the roster where a plural category exists because
+a language counts in pairs. Each writes all three branches where the count and
+its noun are the whole quantified phrase — `attempts-remaining` and the
+editor's two accessibility counters, exactly the three messages `locales/se`
+writes them in — keeping `two` and `other` apart even though they coincide in
+wording, because they are two categories rather than one with a spelling
+variant. Three diagnostics messages print a count inside a longer clause —
+`function-domain-insufficient-dimensions`,
+`function-iterates-input-output-mismatch` and
+`field-function-wrong-num-outputs` — and keep English's two-branch shape, as
+`locales/se` does for the first two: a count of two falls to `*[other]`, whose
+noun is right after any numeral and whose verb wants the dual. Each
+`diagnostics.ftl` header records that as a debt rather than a decision, and a
+speaker can pay it off in a dozen lines.
+
+**`sjd` is the family's fifth, and gets only `one` and `other`.** Kildin Sami
+has a dual as surely as the others do; what it does not have is CLDR plural
+data, so `Intl.PluralRules("sjd")` resolves against the *runtime's* default
+locale and a `[two]` branch in that catalog would be text nothing could select.
+Its header says so, `chrome.test.ts` pins both halves — the four resolving from
+their own data, `sjd` resolving from something else — and the assertion is made
+through `resolvedOptions().locale` rather than by rendering a count, because
+what a runtime with no `sjd` data falls back to is the environment's business.
+
+That is not a fact about Kildin Sami, and it is not rare: **eleven of these
+fifteen tags have no CLDR plural data at all**, as `myv`, `kpv`, `mhr` and
+`tlh` already did before them. The roster's plural shapes are a map of CLDR's
+coverage, not of how the world's languages count, and the four Sami catalogs
+are here to make the difference visible from inside one family.
+
+#### Negotiation: the first entries to shrink
+
+**`MACROLANGUAGE_MEMBERS` lost two members in this batch, and no previous batch
+has ever removed one.** `koi` (Komi-Permyak) was folded onto `locales/kpv` and
+`mrj` (Hill Mari) onto `locales/mhr`, both added by the Russian Federation
+batch, both correct at the time: neither had anywhere else to go, and a reader
+served a neighbouring standard beats a reader served English. The moment each
+had a catalog of its own the fold became the thing the map exists to prevent —
+`applyLanguageAlias` rewrites the tag *before* negotiation, so a `locales/koi`
+on disk would have been unreachable while every Komi-Permyak reader kept
+getting Zyrian.
+
+So `kv` was left listing `kpv` alone and `chm` listing `mhr` alone. That was
+`kmr` excluding `ckb` and `mnk` excluding `bam` and `dyu`, arriving for the
+first time as a *removal* rather than as an omission, and `negotiate.test.ts`
+asserts it as a removal: `koi` and `mrj` reach themselves even when the
+neighbouring standard's catalog is also on offer.
+
+Those two one-member lists are gone now, and their disappearance finished the
+argument this batch started. A list folding a macrolanguage's last unwritten
+member onto a catalog written *in* that member is not a fold at all, so when
+the catalogs were renamed to `locales/kpv` and `locales/mhr` both rows became
+`LANGUAGE_ALIASES` entries instead. See [Naming a catalog when a sibling
+member has one too](#naming-a-catalog-when-a-sibling-member-has-one-too).
+
+**`mdf` moved for the same reason without ever having been folded.** The
+Russian Federation batch pinned Moksha on English and explained why at length:
+Moksha and Erzya are two languages with two ISO 639-3 codes and no
+macrolanguage over them, so `locales/myv` could do nothing for a Moksha reader
+and must not pretend to. `locales/myv`'s own header ends that argument by
+saying the answer is "a `locales/mdf` beside this one, not a widening of this
+one". This batch wrote that file. The row moved rather than being deleted,
+because what it was pinning still holds — Moksha reaches a catalog now because
+one was written for it, not because `negotiate.ts` learned to fold a sister
+onto a sister.
+
+**Seven near misses, more than any earlier batch, because the north is full of
+languages one code away from a catalog.** `sje` (Pite), `sju` (Ume) and `sjt`
+(Ter) are Sami beside four Sami catalogs; `izh` (Ingrian), `liv` (Livonian) and
+`vot` (Votic) are Finnic beside five. `fkv` (Kven) is the sharpest: it stands
+to `fit` roughly as Meänkieli stands to Finnish, is written in a closely
+related orthography, and is a separate ISO 639-3 language on the other side of
+a national border — so folding it would be a judgement about how close two
+varieties are rather than a published fact, which is `lki` beside `ckb` and
+`alq` beside `oj`.
+
+**`smi` is left to miss for `son`'s reason rather than `nah`'s**, and the
+difference is CLDR's rather than a preference. Both are collection codes, and
+this repository aliases `nah` because it names one written standard the group's
+members can be served with. `smi` covers ten languages in two scripts across
+four countries, and `new Intl.Locale("smi").maximize()` adds neither script nor
+region — CLDR has no opinion about which of them a bare `smi` means, exactly as
+it has none about `son`. Picking Northern Sami because it is the largest would
+be the judgement these maps exist to avoid. The test asserts the absent
+maximization rather than merely the absent entry, so a change in ICU data fails
+there and invites someone to reconsider.
+
+**Four locales need `LOCALE_NAME_FALLBACKS` entries** — `sjd`, `olo`, `kca` and
+`mns`, which CLDR has no language data for at all — and they split over the
+endonym the way `locales/lbe` and `locales/tab` do. Three of the headers name
+their own language, so those spellings are copied into the table letter for
+letter; no `locales/olo` header commits to a self-name, so Livvi-Karelian's
+label reads "Livvi-Karelian (olo)" rather than guessing between the Livvi and
+the Finnish spelling of it. Two more of the batch's CLDR names will look
+wrong and are not, the `ny`-reads-Nyanja rule again: `mrj` renders as
+**Western Mari** where every header in it says Hill Mari, and `fit` as
+**Tornedalen Finnish** where the language calls itself Meänkieli. The table
+fills gaps and never overrides ICU, so both stand as CLDR writes them and each
+catalog's header says which language it is.
+
+#### What the batch could not do, and says so
+
+**`piecewise-condition-if` splits four against eleven, and the wall is syntax
+rather than branch.** The renderer places the key *before* the mathematics it
+introduces. Komi-Permyak's «кӧ», Hill Mari's «гӹнь», Khanty's «ки» and Mansi's
+«ке» are all clause-final enclitics, so all four record the `locales/dv` shape
+beside the key rather than inventing a workaround — the same limit
+`locales/kpv`, `locales/udm` and `locales/mhr` recorded in the Russian
+Federation batch, which means every Permic and Mari catalog in the roster now
+sits on that line. The other eleven land correctly, and they include both of
+the batch's Cyrillic non-Ugric files: Moksha's «кда» and Kildin Sami's «кōhт»
+open their clauses, as the four Latin Sami catalogs'
+«jis»/«jus»/«jõs» and Finnic's «ku»/«gu»/«kun»/«jos» do. Two Ob-Ugric and two
+Volga-Permic catalogs on one side, every Sami and Finnic one on the other.
+
+**`locales/kca` and `locales/mns` record a second limit that no earlier catalog
+has**: their causal postposition follows the clause it marks, so English's "X
+is ignored because Y" cannot be written as one sentence and both files write
+two. That is the affix rule from a new direction — not a bound morpheme that
+cannot reach a placeable, but a free word whose position the message shape does
+not offer — and both `diagnostics.ftl` headers name it as a real loss rather
+than a stylistic choice.
+
+**Four catalogs are candid about vocabulary rather than grammar, and they are
+where a speaker should start.** `locales/kca` and `locales/mns` say plainly
+that much of their editor and diagnostics vocabulary is **coined rather than
+attested**, and each lists its coinages by name in its own header — the
+`locales/nog` disclosure applied to two whole files. `locales/sjd` marks itself
+the least certain of the five Sami catalogs, for `locales/xal`'s reasons:
+severely endangered, small written output, Russian technical nouns where
+written Kildin uses them. `locales/sms` records that a large share of its
+lexicon is *derived* from Northern Sami by regular sound correspondence rather
+than found in Skolt, and names the two words it is least sure of. Correcting
+any of it needs no permission.
+
+**Two pairs of catalogs are deliberately not copies of each other, and both say
+so.** `krl` and `olo` are Karelian Proper and Livvi, two ISO 639-3 languages
+with no macrolanguage over them, close enough that a reader of one can largely
+read the other — which is exactly why neither file is a respelling of the
+other: `krl` has «š», the adessive `-lla/-llä`, «ta» and «kun»; `olo` has plain
+«s», the merged `-l`, «da» and «gu», and takes its technical nouns from Russian
+where `krl` takes Finnic ones. `mdf` and `myv` are the same relationship one
+branch over. Neither pair can serve the other's reader and neither pretends to.
+
+### Eleven catalogs across Oceania, and the batch that grades its own confidence
+
+The roster goes from 245 locales to 256: Marshallese (`mh`), Chuukese (`chk`),
+Pohnpeian (`pon`), Kosraean (`kos`) and Gilbertese (`gil`) in Micronesia;
+Niuean (`niu`), Tokelauan (`tkl`), Tuvaluan (`tvl`), Rarotongan (`rar`) and
+Wallisian (`wls`) in Polynesia; and Bislama (`bi`), the English-lexified creole
+of Vanuatu.
+
+It is the first batch assembled around **an ocean** rather than a family, a
+script or a state, and the first whose members are spread across nine countries
+and territories without a single shared administration between them.
+
+#### The batch that needed nothing from the maps
+
+`MACROLANGUAGE_MEMBERS` and `LANGUAGE_ALIASES` are **unchanged**, and after two
+batches that each turned on them that is worth saying rather than passing over.
+The Caucasus batch had to keep `ckb` *out* of a list it had never been in; the
+Uralic north had to take `koi` and `mrj` *out* of lists they were already in.
+Here not one of the eleven is a macrolanguage, not one is a member of one, and
+not one was being folded onto a wider code — so every tag reached English on its
+own account before this batch and reaches its own catalog after it.
+`negotiate.test.ts` asserts that as a property rather than leaving it implicit:
+each of the eleven resolves to itself against the full roster and to English
+against a roster of English alone.
+
+Two of them — `mh` and `bi` — have ISO 639-1 codes, so a reader can also arrive
+under the alpha-3 (`mah`, `bis`) that `Intl.getCanonicalLocales` folds. Those
+rows are pinned because the folding is ICU's rather than this repository's.
+
+#### Not one member has CLDR plural data
+
+This is the first batch of which that is true, and it inverts the Uralic north's
+finding. There, four Sami catalogs wrote a `[two]` branch because their own CLDR
+rules select it and a fifth could not; here the fifth case is the whole batch.
+`Intl.PluralRules` resolves all eleven tags against the *runtime's* default
+locale, so a category branch in any of these files would be text selected by
+English's rules on English's terms.
+
+The catalogs are not the worse for it, because the grammar agrees with the
+constraint: a noun in these languages is not marked for number after a numeral,
+so a single unselected form is the right translation as well as the safe one.
+`chrome.test.ts` holds all eleven to it — no `zero`, `two`, `few` or `many`
+branch anywhere — and holds the other half too, that each still renders its
+count and still selects the explicit `[0]` branch, which is matched against the
+number rather than against a category and so stays legal.
+
+Two catalogs found the same wall from a different direction. Pohnpeian and
+Gilbertese both count with **numeral classifiers**, and in both the classifier is
+a suffix on the numeral word — «uoua», «ruuw», never «2-ua» — so a count that
+arrives as `{ $count }` gives it nothing to attach to. That is the README's
+existing "an affix cannot be welded to a placeable" rule reached through a
+classifier rather than through a case ending, and `chk` records it a third time.
+
+#### A declared confidence scale, and the tier that was dropped
+
+The honest thing about this batch is that its eleven catalogs are **not equally
+good, and each one says where it sits.** Published lexical material for these
+languages ranges from a modern dictionary with a searchable web edition to a
+1907 missionary wordlist that exists nowhere as text, and the catalogs track
+that range rather than papering over it:
+
+- **Translated.** `pon`, `mh`, `chk`, `niu`, `tkl`, `tvl`, `rar`, `wls`, `bi`
+  write their own vocabulary throughout, leaning on a published dictionary each
+  header names.
+- **Framed.** `kos` and `gil` write a catalog's *frame* in the language —
+  «Tia ku in…», «Wangin…», «ke sripen» — around English technical nouns, and
+  say so.
+
+**A third tier was seeded and then dropped from the batch, which is worth
+recording rather than losing.** Nauruan (`na`), Yapese (`yap`), Palauan (`pau`)
+and Rotuman (`rtm`) began as correct frames with the whole technical lexicon
+declared as English loans, and a later pass recovered their *basic* vocabulary —
+colour terms, thick and thin, the geometric nouns — from Josephs, Churchward and
+Jensen. That recovery reached `content.ftl` and stopped there, because the style
+tables are single words and the other three namespaces are sentences: their
+`chrome.ftl`, `editor.ftl` and `diagnostics.ftl` stayed byte-identical to
+English, translating none of their 67, 64 and 220 messages. Shipping them would
+have put over 5,000 lines of English under four locale directories where the
+existing English fallback already puts identical text on screen, so all four are
+held back for a later batch with better lexical sources. Every key, placeable and
+variant key is in place in them, so nothing structural stands in the way; what
+they need is words.
+
+No word went in by guess. Where a dictionary gave nothing the English loan
+stands and is *declared* a loan rather than respelled by an invented loan
+phonology — `locales/kos` argues that case explicitly, on the grounds that
+`b c d g h j q v x z` are not Kosraean letters, so a loan should stay visibly a
+loan. `styleDescriptions.test.ts` pins the words that are the language beside
+the ones that are not, which makes replacing a loan a visible diff rather than a
+silent improvement.
+
+#### A colour system that is not English's
+
+`locales/gil` is the batch's one colour-system mismatch: «mawaawa» covers green
+and blue both, so it is assigned to one key and the other keeps a loan, with the
+header saying why rather than splitting the word silently.
+
+#### Word order, and a disagreement inside a subfamily
+
+Ten of the eleven put the adjectives behind the noun and one puts them in
+front — `bi`, which follows `locales/tpi`. A region is not a word order and here
+neither is a family: the ten postnominal catalogs and the one prenominal one all
+share the region, and every catalog but `bi` shares the family. Two catalogs
+write a linker out themselves: `chk`'s relative «mi» and `gil`'s «ae».
+
+The sharper split is over the side count. Eight of the eleven — `chk`, `pon`,
+`kos`, `niu`, `tvl`, `rar`, `wls` and `bi` — make it a following clause and so
+reach `[noun-tail]`, which is the widest use `[noun-tail]` has had in one batch.
+The other three fold it into the head: `mh`, `gil` and `tkl`, each because its
+own grammar puts it there. `tkl` is the interesting one, because it is
+Tuvaluan's closest relative here and `tvl` went the other way — a disagreement
+*inside* a subfamily, which no earlier batch's had, and both files state their
+choice so a reviewer can tell it is deliberate.
+
+A catalog that reaches `[noun-tail]` has to place the tail the same way in
+`style-with-noun` and in `style-filled-with-noun`, or the same polygon is
+assembled two ways in one language depending on whether it is filled.
+`locales/pon` and `locales/kos` each said in their headers that the tail closes
+the phrase and then placed it right after the noun in the filled message; both
+are corrected, and `styleDescriptions.test.ts` now renders the filled phrase for
+all eleven so the two messages cannot drift apart again.
+
+#### Pairs that are deliberately not copies of each other
+
+Five relationships in this batch could each have produced a respelling of an
+existing catalog, and every one of the five is argued in a header instead.
+`niu` and `wls` both sit beside `locales/to`: Niuean has no glottal-stop letter
+where Tongan writes the fakauʻa, and Wallisian writes /ŋ/ as a single `g`, so
+"correcting" a `g` to `ng` would convert that file into Tongan. `rar` sits
+beside `locales/mi` and `locales/ty` with a ten-row correspondence table and the
+instruction not to edit it back toward Māori. `bi` sits beside `locales/tpi`
+with fifteen rows and the rule stated outright that resemblance is not
+evidence. And `tkl` and `tvl` sit beside each other and beside `locales/sm`,
+each warning that the two are expected to look alike and that **their agreement
+is not evidence either is right**, since one process produced both — the
+self-suspicion the Uralic north batch had to discover by auditing itself, built
+in here from the start.
+
+`tkl`'s header also names its own largest risk, which is the shape this
+convention takes when a sound law is only half applicable: Samoan `ʻ`
+corresponds to Tokelauan `k` where it continues Proto-Polynesian \*k and to
+nothing where it does not, and the seed cannot always tell which.
+
+#### Also here
+
+- A `LOCALE_NAME_FALLBACKS` entry for `wls`, the only tag of the eleven CLDR
+  has no name for in any language, its own included. The endonym «Fakaʻuvea» is
+  copied letter for letter from `locales/wls`'s headers — `locales/sjd` fashion
+  rather than `locales/olo` fashion, because those headers do commit to a
+  self-name. ICU knows the other ten in English, down to `tkl` and `niu`. It
+  knows none of the eleven **in its own language**, so `wls` — the one tag it
+  could not name at all — is the only one of the batch whose roster label reads
+  as a pair: "Wallisian (Fakaʻuvea)" beside ten that read their English name
+  once.
+- Two tags left to miss for `smi`'s reason one family up: `map`, the ISO 639-5
+  collection over all Austronesian languages, which maximizes to nothing at all,
+  and — recorded rather than fixed — `und-WF`, which CLDR maximizes to
+  **French**. That is true of Wallis and Futuna's administration and schooling,
+  and is why `locales/wls`'s loans are French-mediated where `locales/to`'s are
+  English-mediated; `locales/rar` is the mirror image, taking English loans where
+  `locales/ty` takes French ones.
+- Twelve near misses, and the Pacific's are sharper than the north's because its
+  language boundaries do not follow its political ones. `kpg` and `nkr` are
+  *Polynesian* languages spoken inside the Federated States of Micronesia, so
+  neither the country's catalogs nor the family's is the right answer. `fud`
+  (East Futunan) is this batch's `fkv` and sharper than `fkv` was: it is not
+  merely a sister of a catalogued language but is spoken in the **same
+  territory** as `wls`.
+- The first catalogs to carry `math-embedded-input-blank`, its ordinal and
+  `math-embedded-input-shape-unsuitable`, which no earlier seeded batch has, so
+  each of the eleven sits at 445/575 rather than 442.
+- Regenerated locale roster and schema, so `<document lang>` autocompletes all
+  eleven.
+
+#### Honesty
+
+Every string is machine-generated and unread by a speaker, and each catalog says
+so in its own header. Beyond the confidence scale above, `locales/chk` names
+«pwóón» — its word for *answer*, the highest-frequency word in the catalog — as
+one it could not confirm, and `locales/gil` names its colour line as its least
+certain. Each catalog lists its own coinages, and correcting any of it needs no
+permission.
+
+### Fifteen regional languages of Europe, and the batch that splits five, five and five
+
+The roster goes from 256 locales to 271: **Germanic** — Norwegian Nynorsk
+(`nn`), Scots (`sco`), Swiss German (`gsw`), Colognian (`ksh`) and Limburgish
+(`li`); **Romance** — Friulian (`fur`), Venetian (`vec`), Ligurian (`lij`),
+Piedmontese (`pms`) and Neapolitan (`nap`); **Slavic** — Upper Sorbian
+(`hsb`), Lower Sorbian (`dsb`), Kashubian (`csb`), Silesian (`szl`) and Rusyn
+(`rue`).
+
+It is the first batch assembled as **three families of five in one continent**
+rather than around an ocean, a script, a state or a family, and the shape is
+not decoration: nearly everything below divides along it, and the two places
+where it does *not* are the interesting ones.
+
+#### One complete catalog, and fourteen school systems
+
+`locales/nn` is the batch's one complete catalog and carries the whole
+periodic table. That is the `locales/bs` and `locales/sw` case: Norway teaches
+chemistry in Norwegian and prints the table in it, so the names exist and are
+settled. The list is `locales/nb`'s but for the two words where the standards
+genuinely differ — **«Kopar»** for Bokmål «Kobber» and **«Jarn»** for «Jern» —
+and a reviewer should expect the other 116 to agree.
+
+**All fourteen others are the school-system case, and — like the second
+sub-Saharan batch and the African and Berber one — they split no ways at all.**
+Secondary science is taught in Italian across Friuli, the Veneto, Liguria,
+Piedmont and Campania; in Standard German in German-speaking Switzerland and
+the Rhineland; in Dutch in Limburg; in Polish in Pomerania and Upper Silesia;
+in German in Lusatia; in English in Scotland; and in Slovak, Polish or
+Ukrainian across Rusyn's range depending on the state. So in all fourteen the
+fallback *is* the curriculum, and `locales/it`, `locales/de`, `locales/nl`,
+`locales/pl` and `locales/sk` are the parallel texts each header names.
+
+`locales/sco` is the batch's plainest case of it. For the other thirteen a
+school-system gap means the reader meets the table in a *neighbouring*
+language — a Friulian pupil in Italian, a Sorbian one in German. A Scots
+speaker meets it in **the fallback language itself**, which is not new in the
+roster: `pcm` and `kri` are the same coincidence for two English-lexified
+creoles (see [the chemistry gap, and the case where the fallback is the
+language](#the-chemistry-gap-and-the-case-where-the-fallback-is-the-language)),
+and every catalog whose school system teaches in English — `gil`, `tpi`, `mh`,
+`tkl`, `tvl`, `niu` and `bi` among them — falls back to the language of the
+classroom rather than of a neighbouring state. What is particular to Scots is
+that English is also its *sister* language, which is the difficulty
+`locales/sco`'s header is written around.
+
+#### The plural split, and three categories no catalog here had
+
+The batch divides **eight to seven** on whether CLDR has plural data at all,
+and it is the first in which both states arrive together in numbers.
+`Intl.PluralRules` resolves `nn`, `hsb`, `dsb`, `gsw`, `ksh`, `vec`, `lij` and
+`fur` against their own data; it resolves `sco`, `li`, `nap`, `pms`, `csb`,
+`szl` and `rue` against the runtime's default locale, so a category branch in
+any of those seven would be text selected by English's rules on English's
+terms. None of the seven writes one. `chrome.test.ts` holds both halves.
+
+Three of the eight write a category the batch's other twelve could not, and a
+fourth has one it deliberately leaves unwritten:
+
+- **`hsb` and `dsb` write a `two`.** Upper and Lower Sorbian have a living
+  grammatical dual, and CLDR has it: «jedyn pospyt», «dwaj pospytaj», «tři
+  pospyty», «pjeć pospytow». Neither the dual nor the four-branch plural is
+  new here: `ar`, `he`, `mt`, `br`, `cy`, `ga`, `gd`, `se`, `sat`, the four
+  other Sami catalogs and `sl` all resolve `two` and all write it —
+  `locales/sl` writes a Slavic dual as living as this one — and `pl`, `ru`,
+  `uk`, `be`, `sl` and `gd` already write four branches. What is new is that
+  these two arrive as a **pair of neighbouring written standards** that both
+  have it, which is why their agreement is not evidence either is right; see
+  the note on `dsb` beside `hsb` below.
+- **`ksh` writes a `zero`.** Colognian is the only locale in the batch whose
+  own rules select one, and its header spells out the distinction that makes it
+  safe: an explicit `[0]` is matched against the *number*, a `[zero]` against
+  the *category*, and writing both into one selector would be two mechanisms
+  competing for the same input. So the branch goes where English leaves a real
+  count with no `[0]` already standing on it — `help-suggestions-footer` in
+  `locales/ksh/editor.ftl` — and `attempts-remaining` keeps English's literal
+  and nothing beside it. `chrome.test.ts` pins both halves.
+- **`vec` has a `many` and deliberately does not write it.** Venetian's `many`
+  fires at exact millions and nowhere else — `1000000` selects it and `1500000`
+  does not — and no noun counted in these catalogs changes shape there. The
+  absence is recorded so a later reader does not take it for an oversight.
+
+`szl`, `csb` and `rue` are the sharpest of the seven without data, because all
+three really do have a `few`/`many` split of their own. The branch that could
+be written is exactly the branch that would be got wrong.
+
+#### The batch that needed nothing from the maps, and the row that had to *stay*
+
+`MACROLANGUAGE_MEMBERS` and `LANGUAGE_ALIASES` are **unchanged**. Not one of
+the fifteen is a macrolanguage, not one is a member of one, and not one was
+being folded onto a wider code — so every tag reached English on its own
+account before this batch and reaches its own catalog after it.
+
+**The interesting part is the row that did not change.** `no` still maps to
+`nb`, and now that `locales/nn` exists that is a decision rather than an
+oversight. A reader who types `no` has named the macrolanguage over both
+written Norwegians and has not said which they read; Bokmål is what CLDR fills
+a bare `no` in as, and pointing `no` at the new catalog would be the
+substitution the `fat` row is left out for, running the other way.
+`negotiate.test.ts` pins `nn`, `nb` and `no` together so the three cannot drift.
+
+Two of the fifteen — `nn` and `li` — have ISO 639-1 codes, so a reader can also
+arrive under the alpha-3 (`nno`, `lim`) that `Intl.getCanonicalLocales` folds.
+Those rows are pinned because the folding is ICU's rather than this
+repository's.
+
+**Alsatian is this batch's near miss that is not one.** `gsw-FR` is Alsatian,
+and ISO puts it *inside* `gsw` rather than beside it, so an Alsatian reader
+reaches `locales/gsw` and is served the Zurich-based koine that catalog is
+written in. That is the trade region-stripping already makes for `es-MX`, and
+`locales/gsw`'s header says which variety it is so a reader can tell what they
+were served.
+
+Twenty-one tags are left to miss, and this batch's near misses are the densest
+the roster has had, because Europe's regional languages sit in continua rather
+than on islands: `bar`, `swg` and `wae` beside `gsw` — `wae` spoken *inside
+Switzerland* and still a language with a code of its own; `pfl` and `yec`
+beside `ksh`; `stq`, `frr`, `vls` and `zea` beside `li`; `lmo`, `rgn`, `cim`
+and `mhn` among the five Romance catalogs, with `cim` and `mhn` being *Germanic*
+languages spoken inside Italy, so neither the country's catalogs nor the
+family's is the right answer; `mwl`, `ext`, `an` and `wa`; `sgs` and `ltg`;
+`pdc` and `hrx`.
+
+**`eml` is left to miss for `map`'s reason.** Emilian-Romagnol is the one tag
+in this region CLDR has no data of any kind for: it maximizes to nothing at all
+and `Intl.DisplayNames` has no name for it in any language, its own included. A
+tag ICU cannot place is the clearest possible case for leaving it alone rather
+than guessing which of `lij`, `vec` or `pms` its reader would rather have.
+
+**`rue` maximizes to Ukraine**, while the codification `locales/rue` is written
+in is the Prešov one, standardized in Slovakia. That is CLDR's answer rather
+than a wrong one, and it is recorded rather than worked around — the
+`und-WF`-maximizes-to-French row of the Oceania batch, one batch on.
+
+#### Word order, and the family line that finally predicts something
+
+Ten of the fifteen put the adjectives in front of the noun and five put them
+behind, and for the first time in this file **the split is exactly the family
+split**: all five Romance catalogs are postnominal, all five Germanic and all
+five Slavic ones prenominal. Every earlier batch recorded the opposite —
+`locales/bi` disagreeing with ten Austronesian neighbours it shares a region
+with, `locales/tkl` disagreeing with its own closest relative. Here the
+families do the work, and it is worth saying plainly that this is the exception
+rather than the rule the roster has found.
+
+**Ten of the fifteen reach `[noun-tail]` and five do not, and that is the
+family line a second time.** Every one of the five Romance catalogs folds the
+side count into a complement behind the adjectives — «poligon regolâr di 5
+bandis» — which is `locales/es`'s and `locales/it`'s shape, and the five Slavic
+ones do the same with a preposition of their own, «z 5 bokami». The Germanic
+five fold it into the head, as English does, and leave the `[tail]` branch
+empty. A catalog that reaches `[noun-tail]` has to place the tail the same way
+in `style-with-noun` and in `style-filled-with-noun`, or the same polygon is
+assembled two ways in one language depending on whether it is filled; all ten
+do, which is the drift `locales/pon` and `locales/kos` had to be corrected
+for.
+
+#### Pairs that are deliberately not copies of each other
+
+Six relationships in this batch could each have produced a respelling of an
+existing catalog, and every one of the six is argued in a header instead.
+
+- **`nn` beside `nb`** is the sharpest, and the one this file has a name for
+  already: two standards, two directories, the `hr`-against-`sr` case this file
+  already applies to `locales/tn` beside `locales/st` — and here the two
+  standards really are two written forms of one language rather than two
+  standard languages, which makes the pull between them stronger, not weaker.
+  `locales/nn`'s header lists the words a corrector must not "fix" —
+  «ikkje», «kva», «frå», «eit», «sida», «berre», «nokon», «fleire».
+- **`dsb` beside `hsb`** is the batch's `tkl`/`tvl`: two standards close enough
+  that a seed reading one while writing the other will reproduce its choices,
+  so the two catalogs are *expected* to look alike and **their agreement is not
+  evidence either is right**. `locales/dsb`'s header names its own largest risk
+  outright — the Upper-to-Lower correspondences («hdyž»→«gaž»,
+  «dokelž»→«dokulaž», «dyrbi»→«musy», «njemóžu»→«njamóžom») are regular enough
+  to apply mechanically, and a file built out of them is a transposition rather
+  than a translation.
+- **`szl` and `csb` beside `pl`**, **`li` beside `nl`**, and **`gsw` and `ksh`
+  beside `de`** are the same shape at one remove: a roofing language whose
+  gravity a seed falls into when it has nothing better. Each header lists the
+  everyday words where the two part company, because those are what a reviewer
+  can check in a second.
+- **`sco` beside `en`** is that shape at its limit. English is Scots's sister
+  language *and* its roofing language, so a seed with nothing to say falls into
+  English without anything looking wrong. `locales/pcm`, `locales/kri` and
+  `locales/bi` meet the same trap from the other side, as creoles English
+  lexified; what no other catalog has is a *sister* language that is also the
+  roof. `locales/sco`'s header answers it the way `locales/bi` answers it for
+  an English-lexified creole: a word is written
+  there because a Scots dictionary has it, not because it differs from English,
+  and the header lists the words the file leans on so a reviewer can say which
+  of them a reader would actually meet.
+
+#### Orthographies, and why the diacritics are not decoration
+
+Six of the fifteen write in a spelling a corrector could easily "simplify" into
+a different language, and each says so at the top of its own files: the
+**ślabikŏrzowy szrajbōnek** for `szl` («ō», «ŏ», «ô», «ã», «õ» are letters, not
+decorated Polish ones); the **grafîa ofiçiâ** for `lij` («ç», «ñ», the
+circumflex); the **grafìa piemontèisa** for `pms` («ë», «ò», «ù», «n-»); the
+**grafie uficiâl** for `fur` (the circumflex, «ç», «cj», «gj»); the **unified
+Venetian spelling** for `vec` («x» for the voiced sibilant, and **no «ł»**);
+and the **Dieth-Schreibung** for `gsw` (double vowels for length, and **no ß
+anywhere**, which is its sharpest break from `locales/de`). `nap` records
+something that is not a spelling habit at all: **metaphony**, the stressed
+vowel that raises in the masculine singular and not in the feminine —
+«gruosso»/«grossa», «russo»/«rossa», «niro»/«nera» — so that nobody
+regularizes one of a pair to match the other.
+
+#### Also here
+
+- **No `LOCALE_NAME_FALLBACKS` entry at all.** CLDR knows every one of the
+  fifteen in English and **ten** of them in themselves. Two earlier batches
+  needed nothing from the table either — the four African languages of #1687
+  and the twelve Cyrillic ones of #1689 — so this is the third, not the first.
+- **No `direction.ts` change.** Fourteen are Latin and `rue` is Cyrillic; all
+  fifteen run left to right.
+- **Five** of the fifteen read their **English name once** in
+  `<document lang>`'s autocomplete, because CLDR has no endonym for them —
+  `sco`, `li`, `nap`, `csb` and `rue`, which is the `co` case, now familiar.
+  The other ten read as a pair: "Norwegian Nynorsk (norsk nynorsk)", "Swiss
+  German (Schwiizertüütsch)", "Colognian (Kölsch)", "Friulian (furlan)",
+  "Venetian (veneto)", "Ligurian (ligure)", "Piedmontese (piemontèis)",
+  "Upper Sorbian (hornjoserbšćina)", "Lower Sorbian (dolnoserbšćina)" and
+  "Silesian (ślōnski)".
+- Regenerated locale roster and schema, so `<document lang>` autocompletes all
+  fifteen.
+
+#### Honesty
+
+Every string is machine-generated and unread by a speaker, and each catalog
+says so in its own header. The batch's own worst risk is not a missing word but
+a present one: five of these fifteen sit under a roofing language that a
+machine translating into them will reach for, and `locales/sco` sits under the
+very language it falls back to. The headers name that risk rather than leaving
+a reviewer to discover it, and correcting any of it needs no permission.
+
+### Fifteen catalogs along the Silk Road, and three element tables borrowed whole
+
+The roster goes from 271 locales to 286: Crimean Tatar (`crh`), Gagauz
+(`gag`), Karakalpak (`kaa`), Khakas (`kjh`) and Southern Altai (`alt`) —
+Turkic, across four states and two scripts; Mazanderani (`mzn`), Gilaki
+(`glk`), Northern Luri (`lrc`), Balochi (`bal`) and Hazaragi (`haz`) —
+Iranian, Perso-Arabic and right to left; Muslim Tat (`ttt`), Zazaki (`zza`)
+and Shughni (`sgh`) — Iranian in three other scripts; Dungan (`dng`), which is
+Sinitic written in Cyrillic; and Wakhi (`wbl`), a Pamir language of northern
+Pakistan.
+
+It is assembled around a **trade route** rather than a family, a script, a
+state or an ocean: what its members share is a corridor rather than a
+common descent, and almost every property this file tracks splits inside it.
+
+#### Three scripts, and five catalogs that had to choose between two
+
+The batch writes **Latin** (`crh`, `gag`, `kaa`, `ttt`, `zza`, `wbl`),
+**Cyrillic** (`kjh`, `alt`, `sgh`, `dng`) and **Perso-Arabic** (`mzn`, `glk`,
+`lrc`, `bal`, `haz`). That count understates it, because **five of the fifteen
+are written in two scripts today** and each of those five had to choose one
+and say so:
+
+- `crh` writes the **Latin alphabet standardized in Ukraine in 2021**, and its
+  header states plainly that Cyrillic is equally current among readers in
+  Crimea. `kaa` writes the **current Latin alphabet** of Karakalpakstan's
+  schoolbooks, over a Cyrillic that is also official and whose replacement has
+  been legislated and put off more than once. `ttt` writes the **Latin
+  alphabet of Azerbaijan**, over the Cyrillic that Dagestan has used for
+  longer and in which most published Tat still appears. `wbl` writes the
+  **Latin practice of Pakistan** without diacritics, over the Cyrillic of
+  Tajikistan. `sgh` writes the **Cyrillic of Gorno-Badakhshan**, over the
+  Latin and Arabic-script practices used chiefly in Afghanistan.
+- The rule every one of them states is the same, and it is the roster's
+  existing one: a corrector who prefers the other script must convert **all
+  four files at once** and must never mix two alphabets inside a catalog.
+- `locales/kjh`'s and `locales/alt`'s headers go further and name the exact
+  extra letters their files may contain — **і ғ ң ӧ ӱ ӌ** and **ј ҥ ӧ ӱ** —
+  warning a corrector not to fold them into their Russian look-alikes. That is
+  a checkable claim, and worth re-checking after any edit: dumping the
+  non-ASCII letters a catalog actually uses is a one-liner, and it is how two
+  homoglyph slips in the seed were found. `locales/kjh` had written the
+  Tajik **ҷ** (U+04B7) where Khakas has **ӌ** (U+04CC), and `locales/dng` the
+  Latin **ə** (U+0259) beside the Cyrillic **ә** (U+04D9) it uses everywhere
+  else — the same phoneme spelled two ways in one file, invisible on screen
+  and fatal to a search.
+
+Three of the Perso-Arabic five make an orthographic choice of a different
+kind. The Gilaki and Luri Wikipedias write «ؤ» for /o/ and «ۊ» for /u/;
+`locales/glk` and `locales/lrc` **decline the convention**, on the ground that
+applying it evenly would mean guessing the vowel of every borrowed technical
+term and that half an orthography is worse than none. `locales/mzn` declines
+the same two letters for the same reason. All three then have to say that «ؤ»
+still occurs inside Persian loanwords like «مؤلفه», where it is an ordinary
+hamza carrier and not the vowel letter, so that nobody "fixes" it.
+
+**Two script asymmetries, both the `locales/ha` and `locales/kr` shape.**
+`new Intl.Locale("crh").maximize()` is `crh-Cyrl-UA` and
+`new Intl.Locale("kaa").maximize()` is `kaa-Cyrl-UZ`, while both catalogs are
+Latin — so a reader arriving under `crh-Cyrl` or `kaa-Cyrl` reaches a Latin
+catalog. That is the asymmetry `pa`, `sr` and `ha` already have, and the
+answer to it is a second catalog rather than a rename of the first. The other
+thirteen agree with CLDR: `ttt` maximizes to `-Latn-AZ`, `zza` to `-Latn-TR`,
+`wbl` to `-Latn-PK`, `sgh` to `-Cyrl-TJ`, `dng` to `-Cyrl-KG`, `kjh` and `alt`
+to `-Cyrl-RU`, `gag` to `-Latn-MD`, and all five Perso-Arabic ones to `-Arab`.
+
+#### Negotiation: two macrolanguages, and a member that names the standard
+
+`MACROLANGUAGE_MEMBERS` gained exactly **two** entries.
+
+**`zza: ["diq", "kiu"]`** is the sharper of the two. `locales/zza` is written
+in the **Vate standard**, which leans on the Northern forms where Northern
+(Kirmanckî, `kiu`) and Southern (Dimlî, `diq`) Zazaki part company.
+`Intl.getCanonicalLocales("diq")` already returns `zza`, so the Southern code
+reached the catalog without help; `kiu` does not fold and reaches it **only
+because this list exists** — and `kiu` names the very variety the catalog is
+written in. That inverts the usual shape of these lists, where the member the
+map has to rescue is the one the catalog serves least well.
+
+**`bal: ["bcc", "bgn", "bgp"]`** is the ordinary shape with its cost named.
+`locales/bal` is Southern Balochi as written in Pakistan, on the Urdu letter
+inventory; `bcc` is that variety's own code and the one ICU already folds.
+`bgn` (Western Balochi, written in Iran) and `bgp` (Eastern) reach the catalog
+through the map alone, and the entry says outright that the Iranian
+orthography is a different convention rather than a spelling variant, so a
+Western Balochi reader is served a spelling they must adjust to. That is the
+trade region-stripping makes everywhere else — a language they can read rather
+than English — and the answer to it is a second catalog.
+
+**`zza` also left a list, which is the batch's other negotiation change.** It
+had been one of the Caucasus batch's near misses in `negotiate.test.ts`,
+listed there beside `lki` as a language one code away from a catalog it must
+not be folded onto. Seeding it turned it from a near miss into a hit, so it
+was removed from that list rather than left to assert something no longer
+true. `lki` stays exactly where it was, which is the point: Laki did not
+become reachable because a neighbour did.
+
+Nothing else moved. `LANGUAGE_ALIASES` is unchanged, and thirteen of the
+fifteen tags are neither macrolanguages nor members of one.
+
+Five tags are worth naming as near misses this batch does **not** fold, and
+each is one code away from a catalog it resembles: `bqi` (Bakhtiari) and `luz`
+(Southern Luri) beside `locales/lrc`, which is Northern Luri and an individual
+language with no macrolanguage over it; `srh` (Sarikoli) and `yah`
+(Yazgulyam), Shughni's own subgroup, beside `locales/sgh`; and `jdt`
+(Judeo-Tat) beside `locales/ttt`, which `locales/ttt`'s header explicitly
+names as a separate written tradition rather than a variety of itself.
+
+**`prs` is the one that needs saying because it is *not* a near miss.**
+`Intl.getCanonicalLocales("prs")` returns `fa-AF`, so a Dari reader
+region-strips to `locales/fa` today and gets Iranian Persian. That is exactly
+the fact `locales/haz`'s chemistry argument turns on, below.
+
+#### One tag with CLDR plural data, and fourteen without
+
+`bal` is the one, and it is worth reading beside `fa`.
+`new Intl.PluralRules("bal").resolvedOptions().locale` is `"bal"`, its
+categories are `one` and `other`, and **zero falls in `other`** — where
+Persian's rule counts zero with the singular. So a `[few]` or `[many]` branch
+would be unreachable, and `locales/bal` writes none.
+
+What `locales/bal` also does not do is fork a **count**, and that is a fact
+about Balochi rather than about CLDR: a Balochi noun after a numeral stays
+unmarked, so the two categories would carry identical text. Every count
+message is a single `*[other]`.
+
+The other fourteen tags have no CLDR plural data at all, so
+`Intl.PluralRules` resolves them against the **runtime's** default locale and a
+category branch in any of those files would be text selected by something
+else's rules. Thirteen of the fourteen collapse their count selects to one
+form rather than writing a branch nothing could select — and the grammar
+agrees with the constraint in all fifteen, since Turkic, Iranian and Sinitic
+alike leave a noun unmarked after a numeral.
+
+**`[one]` still appears in eleven of the fifteen, and almost everywhere it is
+not a count.** Ten catalogs — every one of the fifteen except `alt`, `kaa`,
+`kjh`, `ttt` and `sgh` — write exactly one `[one]`, and all ten write it in the
+same message: `field-function-wrong-num-outputs`, which forks on how many
+outputs a component *needs* ("one output" against "two outputs") rather than on
+a quantity the reader is looking at. `alt`, `kaa` and `kjh` write that same
+fork as the numeric literal `[1]`, which Fluent matches against the number
+before consulting any plural rule and which therefore does not depend on whose
+rules the runtime picked; `ttt` omits the message. **`locales/sgh` is the one
+catalog in the batch that forks a real count**, in sixteen places across three
+files — plus the same output fork the other ten write, twice over — and it has
+no rules of its own to do it with: English's rules
+select the branch and it says the same thing as the `*[other]` beside it, so a
+Shughni reader is served Shughni either way. That is recorded rather than
+forbidden — `one` is the one category every runtime default can select — and
+`test/chrome.test.ts` pins the whole distribution, reading each catalog's
+`chrome.ftl` and `diagnostics.ftl` together so that a claim about a catalog is
+not checked against a fraction of it.
+
+English's explicit `[0]` numeric
+literals are kept everywhere, because Fluent matches those against the number
+itself before consulting any plural rule. `locales/dng` gives the sharpest
+reason for keeping one: Dungan says "none left" with the negative «мый»
+rather than with a numeral.
+
+#### The chemistry gap splits twelve against three, and the three are new
+
+Twelve catalogs leave `element-name` and `element-anion-name` out, for the
+reasons the roster already knows: no settled list, and a school system that
+teaches the periodic table in another language. The mediums are listed in
+[Catalog layout](#catalog-layout) above. Two of the twelve add something to
+that argument:
+
+- **`locales/haz`'s gap is a *missing sibling* rather than a missing list.**
+  Hazaragi is a variety of Persian, so
+  a Persian table is exactly the kind of loan the three below ship — but the
+  table a Hazara pupil meets is the **Dari** one, which differs from
+  `locales/fa`'s Iranian names in a scatter of places and belongs in a `prs`
+  catalog that does not exist. Writing the Iranian names and calling them
+  Hazaragi would report a fact about Tehran. So the keys fall back to English
+  and the header says which catalog would end the argument.
+- **`locales/wbl` is the one with no single fallback at all.** Wakhi's
+  readership is split across three states: a Gojali pupil meets the English
+  names and a Wakhan pupil the Tajik ones. English falls through, which is
+  what half the readership's textbooks print, and the header says that
+  choosing either would hide the split.
+
+**`locales/mzn`, `locales/glk` and `locales/lrc` supply the tables, and they
+carry `locales/fa`'s character for character.** That has been checked rather
+than asserted: all three files' `element-name` and `element-anion-name` are
+byte-identical to the Persian ones.
+
+The complete tables the roster already had were each a language's own list —
+Afrikaans's, Bosnian's, Swahili's — or, in
+`locales/jv` and `locales/su`, an adapted one: those two take the Indonesian
+names their schools' textbooks print, but their `element-name` tables are
+*not* `locales/id`'s, because both keep their own words for the substances
+known long before the elements were. These three copy a neighbour's table
+**unchanged**, and argue for it: chemistry in Māzandarān, Gilan and Lorestan is **taught, examined and
+printed in Persian**, so the settled, checkable list of 118 names a
+Mazanderani, Gilaki or Luri speaker actually reads and writes *is* the Persian
+one. It is a loan the language genuinely uses rather than a nomenclature this
+seed invented, which is the only kind of table it may ship — and it serves a
+reader better than English, which is neither their school language nor their
+own. All three headers forbid the obvious "improvement": a corrector must
+**not** respell these names with Mazanderani, Gilaki or Luri vowels or attach
+a native plural to them, because there is no native nomenclature to correct
+them towards and respelling would produce a vocabulary nobody uses.
+
+That decision has an arithmetic consequence worth recording. **`locales/glk`
+and `locales/lrc` reach 575/575**, which `locales/nn` of the European regional
+batch had reached one batch earlier — `lint:i18n` notes only the catalogs that
+fall short, so those three are the non-English ones it says nothing about at
+all (`npm run lint:i18n -w @doenet/i18n` prints the list). `fa` and `de` it
+still lists at 560/575, because they predate the fifteen newest keys.
+`nn` got there by writing a Norwegian periodic table; these two get there by
+borrowing a Persian one, which is why the arithmetic is worth recording twice. `locales/mzn` is at
+573/575, and its two gaps are deliberate and shared with `fa`: it omits
+`noun.slope-field` and
+`noun.vector-field`, because Mazanderani has no phrase for either that is not
+a transparent calque of the English. The other twelve sit at 445/575, except
+`alt` and `kjh` at 443 and `ttt` at 435.
+
+**`locales/ttt` is the batch's thinnest catalog and the only one that omits
+anything beyond chemistry.** Its `diagnostics.ftl` leaves out ten of the
+longest messages — the three `style-definition-*` contrast paragraphs, the
+`<slopeField>`/`<vectorField>` pair and `field-variables-ignored`, the two
+`sectionWideCheckWork` paragraphs, `math-input-invalid-function-names` and
+`math-embedded-input-shape-unsuitable` — on the ground that writing
+four-clause sentences about software would mean inventing a Tat syntax for a
+subject Tat has never been written about. The header names the omitted groups
+where they would have appeared, so a reviewer sees the gaps rather than
+hunting for them. `alt` and `kjh` are two keys thinner than their Turkic
+siblings for `locales/mzn`'s reason rather than `locales/ttt`'s: neither could
+establish an Altai or Khakas phrase for a slope field or a vector field, and
+both say beside the gap that a calque would be invention.
+
+#### Word order splits inside the batch, and inside a family
+
+Eleven catalogs put the description in front of the noun and four put it
+behind, and the split does not follow the family, the script or the region.
+The eleven prenominal ones are every Turkic catalog (`crh`, `gag`, `kaa`,
+`kjh`, `alt`), `dng`, `sgh`, `wbl`, `bal` — and `mzn` and `glk`. The four
+postnominal ones are `lrc`, `haz`, `ttt` and `zza`, which link the noun to its
+modifiers with an **ezafe**.
+
+**The Iranian catalogs disagree with each other, which is the batch's most
+useful finding.** Mazanderani and Gilaki are head-final: an adjective precedes
+its noun, so `style-with-noun` reads `{ $description } { $noun }` — English's
+order, arrived at from the opposite direction, and the exact reverse of what
+`locales/fa` writes. Northern Luri and Hazaragi are head-initial and build the
+phrase the Persian way. Four Iranian languages, all four of them beside `fa`
+and borrowing most of their technical vocabulary from it, and they do not
+agree about the one thing a reader would expect a family to settle.
+
+**Balochi is the third position and states it as a decision.** Its
+attributive suffix `-ēn` sits on the **adjective**, which the catalog writes
+itself, so the prenominal order it chooses disposes of the placeable problem
+entirely: nothing is welded to a value the catalog cannot see. An ezafe
+construction does exist in Balochi, chiefly in the Eastern varieties and in a
+literary register, and the header says a corrector who prefers it must convert
+the whole file rather than one message.
+
+**`locales/zza` takes `locales/ckb`'s way out** — its ezafe is a bound vowel
+on the noun (`-o`, `-a`, `-ê`, with `y` inserted after a vowel), so every
+entry in its `noun` table is written **with its ezafe already on it** and the
+composition messages add nothing. Two stiffnesses are recorded rather than
+hidden: written Zazaki repeats the ezafe before each modifier after the first
+and this catalog writes it once, and a masculine noun after «bi» takes the
+oblique where this catalog writes the direct form. `locales/ttt` is the one
+that had no way out and welded the affix anyway; see [An affix cannot be
+welded to a placeable](#an-affix-cannot-be-welded-to-a-placeable).
+
+**Two catalogs write an affix against a placeable and are not that case.**
+`locales/wbl` puts its postpositions «-ir» and «-dar» straight onto
+`{ $component }` and `{ $startLine }` in twenty-nine places across three of its four files, and
+`locales/sgh` does the same with Tajik's «-ро». Both affixes have a single
+invariant shape, so this is `{ $numSides }-kulmio`'s adjacency rather than
+`locales/tg`'s agreement, and all three of `locales/wbl`'s headers that
+mention the postpositions now say which of the two it is. `locales/gag` is the
+one place in the batch where the distinction had to be *acted* on: a Gagauz
+ordinal suffix harmonizes with the vowels of the spoken numeral — «beșinci»
+but «dokuzuncu» — which a digit does not show, so the line and row numbers are
+written with a period after the figure, `{ $line }. satır`, exactly as
+`locales/crh` and `locales/tr` write theirs.
+
+Only four catalogs use `[noun-tail]` — `lrc`, `haz`, `bal` and `zza` — and the
+other eleven fold a polygon's side count into the head. For ten of the eleven
+that follows from the adjective order, since a modifier precedes; `locales/ttt`
+is the one that trails its adjectives and heads the count anyway, which is why
+`styleDescriptions.test.ts` pins the two choices as independent.
+
+**Not one of the fifteen forks on `$gender` or `$role`,** which the Oceania
+batch's eleven did not either — though the European regional batch in between
+does, in fourteen of its fifteen. The reason for the silence here is not
+Oceania's. Oceania's eleven had no gender to fork on; here **two of the
+fifteen do**, and
+both decline for stated reasons rather than by default. `locales/zza` has
+masculine and feminine, and spends the agreement in the `noun` table, so the
+attributive adjectives after the ezafe are invariable and nothing is left to
+fork. `locales/sgh` is the honest failure: Shughni distinguishes gender in the
+demonstratives, in some nouns and in parts of the verb, and its header says in
+as many words that the seed cannot assign the right gender to *line*, *curve*
+and *region* and would rather leave the agreement flat than get it wrong in
+eighty places — with the note that the machinery is already wired for a
+speaker who fills `noun-gender` in. `locales/wbl` is a third shape again: it
+declines to write down "no gender" as a *finding*, because the Pamir languages
+differ here, and says what it is actually confident of, which is that it has
+no reliable table to fork with.
+
+#### Naming: five gaps
+
+`LOCALE_NAME_FALLBACKS` gained five entries — CLDR names none of `kjh`,
+`haz`, `dng`, `sgh` and `wbl` in any language, their own included. That is a
+fact about where these languages are written rather than about how many speak
+them: ICU knows the other ten of the fifteen.
+
+The five split over the endonym the way `locales/lbe` and `locales/tab` do,
+and the split is decided by the catalogs rather than by the table.
+`locales/kjh` and `locales/wbl` each name their language exactly one way
+wherever their headers name it at all — `wbl` in all four files, `kjh` in
+`chrome.ftl` and `content.ftl` — so «хакас тілі» and «Xik zik» are copied
+letter for letter. The other three name theirs **two** ways — «хуэйзў хуа»
+beside «хуэйзў йүян», «Шугнонӣ» beside «х̌уг̌нӯн зивод», «هزارگی» beside
+«آزرگی» — so all three take `locales/olo`'s shape and their labels read
+"Dungan (dng)", "Shughni (sgh)" and "Hazaragi (haz)": an admitted gap rather
+than a guess.
+
+**Three of the ten CLDR does name, it names differently from the catalogs, and
+all three stand** — the `ny`-reads-Nyanja rule, arriving three times in one
+batch where the Uralic north, the last batch to hit it, hit it twice. The roster renders `kaa` as
+**Kara-Kalpak**, `bal` as **Baluchi** and `zza` as **Zaza**, where every
+header in those files writes Karakalpak, Balochi and Zazaki. The table fills
+gaps and never overrides ICU, so each catalog's own header says which language
+it is and the label stays as CLDR writes it.
+
+A fourth mismatch is finer and is worth knowing about because it looks like an
+inconsistency. CLDR's endonym for `lrc` is «لۊری شومالی» and for `mzn`
+«مازرونی» — the first spelled with the very «ۊ» those catalogs decided not to
+use, the second without the diacritic `locales/mzn` writes. So the roster's
+label and the catalog's own prose disagree about a letter. Both are right in
+their own place: the label is CLDR's and the file is the seed's, and neither
+is authority over the other.
+
+#### What the batch could not do, and says so
+
+**Three catalogs say outright that most of their vocabulary is not their own
+language's.** `locales/lrc`, `locales/mzn` and `locales/glk` each state that
+apart from the copula, the plural suffix, the numeral classifier and a short
+list of everyday words, the vocabulary in them is **Persian**, deliberately
+and openly, because none of the three has a register of its own for geometry
+or for software. All three tell a reviewer to expect to be **rewriting
+sentences, not correcting typos**. `locales/haz` records the mirror image:
+most of its vocabulary is shared with Dari word for word, and **a Dari word in
+that file is not an oversight** — the two places Hazaragi's own usage shows
+are «قد» for *with* and «بلدِ» for *for*.
+
+**`locales/sgh` keeps a loan register for two whole namespaces.** Its
+`diagnostics.ftl` header says that Shughni has no written register for
+compiler diagnostics at all, that a Shughni speaker who reads an error message
+reads it in Tajik or Russian, and that the file therefore keeps **that loan
+register** rather than inventing a Shughni one: the wording is Tajik almost
+throughout, with the Russian internationalisms Tajik itself uses, and **only
+the conjunctions are Shughni** — «ат» for *and*, «йо» for *or*. It calls
+itself a usable frame and not yet Shughni prose. That is the Oceania batch's
+"framed" tier stated for two whole namespaces rather than for a vocabulary.
+
+**`locales/kjh` and `locales/alt` say how thin they are before they say
+anything else.** Khakas has a literary standard and a press but essentially no
+written technical register — mathematics and chemistry in Khakassia are taught
+in Russian — and its header says the catalog is **thinner and less certain
+than its Turkic siblings `tyv` and `sah`**, with much of the geometric
+vocabulary a first attempt at a calque rather than an attested word. Southern
+Altai is better provided for and still tells a speaker to expect to rewrite
+rather than merely correct. Both name the same suspicion: their
+corner-based figure names («кӧп пулуңныг», «кӧп мӱйӱштӱ») read as Khakas and
+Altai, and a mathematics teacher in either republic would very likely write
+«треугольник» and «прямоугольник», because that is what the textbook in front
+of them says. Neither file picks the register; both ask a speaker to.
+
+**`locales/wbl` names the risk that a reader outside Pakistan may not
+recognize its spellings at all**, since the Cyrillic used in Tajikistan is the
+other live orthography and converting to it would mean changing the source
+language of the loans as well — Tajik and Russian instead of Urdu and English
+— which is why its header calls that a conversion rather than a
+transliteration. It also says its colour line is its least certain: the seed
+could not establish Wakhi's own basic colour terms, so all twelve are the
+Persianate words current across the region.
+
+**`locales/ttt` marks itself the least certain of the batch and asks a
+reviewer to assume every line needs work.**
+
+Every string in all fifteen is machine-generated and unread by a speaker, and
+each file says so at the top. Correcting any of it needs no permission.
+
+### Fifteen catalogs of the Americas, and the line the lexifier draws
+
+The roster goes from 286 locales to 301: Kalaallisut (`kl`) and Inuktitut
+(`iu`) in the north; Yucatec Maya (`yua`), Qʼeqchiʼ (`kek`), Garifuna (`cab`)
+and Mískito (`miq`) in Mesoamerica and on the Caribbean coast of Central
+America; and **nine creoles** — Papiamentu (`pap`), Sranan Tongo (`srn`),
+Jamaican Creole (`jam`), Guadeloupean Creole French (`gcf`), Saint Lucian
+Creole French (`acf`), Guianese Creole French (`gcr`), Belize Kriol (`bzj`),
+Aukan (`djk`) and Saramaccan (`srm`).
+
+Nine of fifteen makes this the first batch a *contact* language dominates, and
+that is what most of its properties turn out to be about. A creole is a hard
+case for nearly every list in this package: it belongs to no macrolanguage,
+CLDR mostly does not name it, its technical vocabulary comes from a language it
+is not a variety of, and two creoles of one lexifier can converge on a phrase
+without being one catalog.
+
+#### Six languages that could not be seeded, and why they are not here
+
+The batch was assembled as fifteen and six of the first fifteen were dropped:
+Navajo (`nv`), Cherokee (`chr`), Lakota (`lkt`), Mohawk (`moh`), Plains Cree
+(`cr`) and Miʼkmaq (`mic`). Seeded honestly they came to **6, 13, 16, 20, 26
+and 13 keys of 575** — against the 445 the rest of the batch reaches — and
+they were replaced by the six creoles rather than shipped at that size. The
+reasoning is recorded in #1655, which is the issue for all six, but one part of
+it belongs here because it bears on every future batch:
+
+**A loan register is only honest where a loan register exists.** `locales/sgh`
+records that a Shughni speaker reads a compiler error in Tajik or Russian and
+keeps that register openly, and this batch does the same thing nine times over
+— Danish in `kl`, Dutch in `srn` and `djk`, French in the three
+French-lexifier creoles. It does **not** transfer to Navajo or Mohawk. There
+is no Navajo technical register to record: a speaker doing mathematics does it
+in English and does not Navajo-ize *polygon*. Writing «pálagan» would not be a
+loan register but English respelled, which reads as translation to a tool, as
+noise to a speaker, and which a reviewer has to delete before they can begin.
+That is worse than the English fallback, which at least announces itself. The
+rule the batch settled on: **carry a loan register where speakers already carry
+one, and leave the key out where they do not.**
+
+`locales/iu` is the same judgement applied inside a catalog rather than to
+one — see the coverage note below.
+
+#### Coverage: fourteen at the ceiling, and one that stops short on purpose
+
+Fourteen of the fifteen sit at **445/575**, which is the whole catalog minus
+the two chemistry tables and the same figure the Silk Road batch reached. The
+chemistry reason is the school-system one for all fifteen and is stated in
+each `content.ftl` header: science is taught in Dutch
+in Curaçao, Bonaire and Suriname, in Danish in Greenland, in Spanish in Yucatán
+and Alta Verapaz, in French in Guadeloupe and French Guiana, and in English in
+Belize, Jamaica and Saint Lucia. In none of the fifteen is the fallback a
+guess about the language; it is the language the periodic table is actually
+taught in.
+
+**`iu` is at 373/575, and the 72-key difference is one decision.** Inuktitut
+has no settled syllabic forms for *matrix*, *interval*, *domain*, *variant*,
+*index*, *row* or *column*, so the catalog writes those few technical nouns in
+roman letters inside a syllabic sentence — the `sgh` move — but it **omits the
+`noun` table whole**, all twenty geometry names, rather than doing the same
+thing twenty more times. Writing "line segment" in roman letters inside an
+Inuktitut catalog raises the coverage number without giving the reader anything
+the English fallback did not already give them. That is the one place in the
+roster where a catalog's own header argues that a *lower* number is the better
+answer, and it is why `iu` is named separately in the count of partial catalogs
+above.
+
+The visible consequence is worth knowing before it surprises someone: a style
+description in Inuktitut comes out as «line thick dashed ᐊᐅᐸᖅᑐᖅ», three
+English words and a syllabic colour. That is the fallback working, not a bug,
+and `styleDescriptions.test.ts` leaves `iu` out of both word-order tables for
+exactly that reason — asserting an order over a phrase three quarters of which
+is English would be asserting English's order.
+
+#### Word order: the lexifier decides, and `pap` is the one that surprises
+
+Seven catalogs put the modifiers in front of the noun and seven put them
+behind, and **the line is drawn by the lexifier rather than by geography**. The
+English- and Dutch-lexifier creoles are prenominal — `jam`, `bzj`, `srn`, and
+the two Maroon creoles `djk` and `srm` — and so are `yua` and `kek`, which are
+Mayan and prenominal on their own account. The three French-lexifier creoles
+(`gcf`, `acf`, `gcr`) are postnominal because French is, and `cab` and `miq`
+because Garifuna and Mískito are.
+
+**`pap` is the one that would be guessed wrong from its neighbours.** It sits
+with the French-lexifier creoles rather than with the English- and
+Dutch-lexifier ones it shares a sea with, because its vocabulary is Iberian and
+an Iberian adjective follows its noun: «liña diki di strepi kòrá», the noun
+first.
+
+`kl` is the seventh postnominal catalog and is not a lexifier case at all.
+Kalaallisut builds the phrase by suffixing, so what comes out is a noun
+followed by agreeing participles — «titarneq silissooq avissaartorsimasoq
+aappaluttoq» — and the description is the *tail* of the phrase rather than its
+head, which is the shape `style-with-noun` needs to be read against.
+
+#### Negotiation: the map's third kind of exclusion
+
+`MACROLANGUAGE_MEMBERS` gained exactly **one** entry, and it is there to record
+an exclusion rather than to rescue a member.
+
+`iu` is the only macrolanguage among the fifteen, and ISO 639-3 gives it two
+members: `ike` (Eastern Canadian Inuktitut) and `ikt` (Inuinnaqtun). ICU folds
+`ike` on its own, so `iu: ["ike"]` changes no negotiation result — it is the
+`quz` and `ojg` shape, a member written down so the list is the whole of a
+group. **`ikt` is left out, and the reason is the script**: Inuinnaqtun is
+written in roman letters, and every Inuktitut word in `locales/iu` is
+syllabic — the roman that appears there is DoenetML's own identifiers and the
+handful of declared English loans the coverage section above describes, never
+Inuktitut prose. So folding `ikt` would hand a reader a catalog whose every
+translated sentence is in a script they do not read. This map
+now excludes members for three different reasons, and they are worth keeping
+apart: `kbl` under `kr` and `alq` under `oj` because published membership does
+not cover them; `bam` and `dyu` under `mnk` because they have catalogs of their
+own; and `ikt` because the catalog cannot serve a member membership *does*
+cover.
+
+**Nine creoles and not one macrolanguage question between them.** That is the
+structural fact behind this section: a creole is not a member of its lexifier,
+so nothing folds `gcf` onto `fr` or `jam` onto `en`, and nothing should.
+`negotiate.test.ts` asserts the reverse direction as well — French stays on
+French — because the tempting mistake is to treat a lexifier catalog as a
+fallback for a creole that has none.
+
+`iu` maximizes to `iu-Cans-CA`, so CLDR and the catalog agree about the script
+and a reader arriving under a bare `iu` gets syllabics. `iu-Latn` is the `pa`,
+`sr` and `ha` asymmetry, and the answer to it is a second catalog rather than a
+rename of this one. The other fourteen maximize to `-Latn`.
+
+#### Nine names CLDR does not have, and nine endonyms
+
+`LOCALE_NAME_FALLBACKS` gained **nine** entries — `yua`, `cab`, `miq`, `gcf`,
+`acf`, `gcr`, `bzj`, `djk` and `srm` — which is the largest number a batch
+here has needed, the next largest being the seven of the West and Central
+African batch, and is a fact about which languages CLDR carries rather than
+about how many speak these. ICU names the other six — `kl`, `iu`, `kek`,
+`pap`, `srn` and `jam` — and stops there; six of the nine gaps are creoles,
+and the three creoles ICU *does* name are the three with national or
+quasi-official standing.
+
+Every one of the nine gets an endonym, which is where this block parts company
+with the Silk Road's. Each of these catalogs names its language exactly one way
+in all four of its files, so there is nothing to choose between and
+`locales/olo`'s admitted-gap shape — a label reading "Livvi-Karelian (olo)" —
+is needed nowhere here. The spellings are copied letter for letter from the
+catalogs' own headers, so a corrector who respells a catalog must respell its
+roster label with it.
+
+#### Plurals: three catalogs with rules, and the roster's seventeenth dual
+
+Three of the fifteen have CLDR plural data of their own — `iu`, `kl` and `pap`
+— and the other twelve resolve to the runtime's default locale, so any category
+branch they wrote would be selected by English's rules on English's terms. All
+twelve therefore write one unselected form wherever English forks a count.
+
+**`iu` is the reason that matters.** Inuktitut's rules give it `one`, `two` and
+`other`, and `attempts-remaining` writes all three with a different ending in
+each: ᐆᒃᑐᕐᓂᒃᓴᖅ, ᐆᒃᑐᕐᓂᒃᓵᒃ, ᐆᒃᑐᕐᓂᒃᓴᐃᑦ. Sixteen catalogs on the roster already
+write a `[two]` their own rules select — Arabic, Hebrew, Maltese, Slovene, the
+Celtic four, the Sorbian pair, Santali and the five Sami — and `iu` is the
+seventeenth and the first in the Americas. A dual that repeated the plural
+would be a branch that renders and says nothing, which is the same defect as a
+`[one]` in a locale that cannot
+select one, met from the other side, so the test asserts the three forms differ
+rather than merely that three branches exist.
+
+The seed shipped five branches of exactly that kind, and all five were in `kl`
+and `iu` — which is where they matter, since those are two of the three
+catalogs here whose branches a runtime can actually select. Each wrote a count
+select whose branches were the same sentence: «interval» and «input» are
+roman-letter loans in `iu` that take no Inuktitut number ending, and `kl`'s
+«input-eqarpoq» does not change with the count because the numeral carries it.
+All five are now single forms, which is the honest shape for a message whose
+wording does not turn on the count, and `catalogLint.test.ts` holds every
+select in the batch to having at least two branches that differ.
+
+The floor is *some* branch differing rather than all of them, and the
+difference matters: `style-border-clause` forks four ways on an article
+English has and a linker English spells two ways, and six of these catalogs
+collapse one of those forks. `kl` and `miq` write no article, so
+`[with-article]` lands on `[with]` and `[and-article]` on `[and]`; `cab`,
+`srn`, `djk` and `srm` use one word for both *with* and *and*, so `[with]`
+lands on `[and]` and the two article branches stay together. Either way two
+branches remain, and either way it is a distinction the target language does
+not draw rather than one the translation lost.
+
+#### One character, and the homoglyph question in a new form
+
+`locales/yua` and `locales/kek` state in their headers that the glottal stop
+and the ejectives are written with **U+02BC MODIFIER LETTER APOSTROPHE**
+throughout. In Mayan orthography that mark is a letter, not punctuation, and
+its look-alikes are U+2019 and ASCII U+0027 — indistinguishable on screen,
+substituted silently by any editor with smart quotes, and fatal to a search.
+`catalogLint.test.ts` holds both catalogs to it, the way it holds `alt`, `kjh`
+and `dng` to their Cyrillic inventories.
+
+The straight ASCII apostrophe is deliberately **not** forbidden there, and the
+reason is worth recording because it is the kind of thing a later tightening
+would get wrong: English's own messages quote enumerated values with straight
+quotes and write the derivative as `y'`, and both come through a translation
+unchanged. It is the curly one that would be a silent respelling of a Mayan
+letter.
+
+Two more claims of the same checkable kind: `locales/iu` writes no ᐦ (U+1426),
+the Cree final, since the Nunavut inventory uses ᕼ (U+157C) — a check that
+matters precisely because the batch ships no Cree catalog for it to have been
+copied from — and `locales/srm` allows exactly one accented letter beyond its
+`ë`/`ö` vowels, «á», the preverbal negator, whose accent marks the word rather
+than a tone. Saramaccan is tonal and this seed writes no tone at all; the
+headers say so in all four files, because a half-restored tone system would be
+worse than a stated absence.
+
+#### Two catalogs that agree, and are not one catalog
+
+`jam` and `bzj` produce the same words for a styled line — «tik dash-dash red
+lain» — and the same boolean words, «chruu» and «faals». Both are
+English-lexifier creoles written in a phonemic orthography, so short everyday
+words converge; that is the language, not a copy. What would be worth catching
+is a catalog duplicated under two tags, so the tests assert a *rate* rather
+than a difference: `styleDescriptions.test.ts` holds more than a third of the
+values the two both define in `content.ftl` to differing, beside the phrase
+itself, and `catalogLint.test.ts` holds 342 of their 389 values across all
+four namespaces to it.
+
+The French-lexifier trio is the same question with a sharper answer. `gcf` and
+`gcr` render this phrase identically — the two languages agree on all four
+words — while `acf` differs by one sound, the etymological French /r/ that
+Saint Lucian writes «w»: «tiwè» against «tirè». Underneath, the three are not
+close: `gcr` writes the indefinite «roun» 161 times in its diagnostics where
+`gcf` writes «on» in the same slot and «roun» nowhere at all, and only 14 of
+their 220 shared diagnostics are identical.
+The three headers name the conventions that separate them, so a reviewer can
+tell an intrusion from a coincidence.
+
+#### What the headers admit
+
+Each catalog records where it stands. `locales/cab` marks itself the least
+certain of the fifteen and names the specific words — the colour terms
+«haruti», «wuriti», «funati» and the pair «buiti»/«mabuiti» — a speaker should
+check first. `locales/miq` records that its conditional marker «kaka» is
+clause-final in Mískito while the renderer places it before the inequality, so
+the message reads out of position: a defect in the composition rather than in
+the words, and one only a speaker could have spotted. `locales/jam` flags
+«pwaint» for *point*, built on Cassidy's «bwai» because English /ɔɪ/ has no
+letter in the five-vowel system, as the single most-repeated uncertain form in
+the catalog. `locales/gcr` records that it writes the equative «sé» throughout
+where Guianese also uses «sa».
+
+Three of the fifteen commit to an orthography over a live alternative and say
+so: `pap` writes the phonological spelling of Curaçao and Bonaire over Aruba's
+etymological one, `jam` the Cassidy–JLU system over the English-based spelling
+most written Jamaican actually uses, and `bzj` the National Kriol Council
+orthography over the same ad-hoc English practice. All three say the same
+thing about it — a reviewer who prefers the other system should **respell
+rather than retranslate**, and must convert all four files at once.
+Every string in all fifteen is machine-generated and unread by a speaker, and
+each file says so at the top. Correcting any of it needs no permission.
+
+### Fifteen languages of Southeast Asia, and the batch whose word order follows a border
+
+The roster goes from 301 locales to 316: Buginese (`bug`), Makasar (`mak`),
+Banjar (`bjn`), Gorontalo (`gor`), Nias (`nia`) and Toba Batak (`bbc`) — six
+languages of Indonesia; Iban (`iba`) and Kadazandusun (`dtp`) — Malaysian
+Borneo; Pangasinan (`pag`), Chavacano (`cbk`), Tausug (`tsg`) and Maranao
+(`mrw`) — the Philippines, three of them from Mindanao and Sulu; and Shan
+(`shn`), Mon (`mnw`) and S'gaw Karen (`ksw`) — Myanmar, all three in the
+Myanmar script.
+
+It is assembled around a **region** rather than a family: eleven of the
+fifteen are Austronesian, one is Tai-Kadai, one Austroasiatic, one
+Sino-Tibetan and one a Spanish-lexifier creole. Every one of the fifteen sits
+at **445/575 keys** — the whole catalog minus the two chemistry tables — and
+that uniformity is the batch's least interesting property. What splits inside
+it is word order, and the line it splits on is a national border.
+
+#### Word order splits eleven against four, and the line is a country
+
+Eleven catalogs put the noun first and four put the description first. The
+four are **exactly the four Philippine ones**, and no other property in this
+file divides the batch that way: not family, not script, not script direction,
+not the register the technical vocabulary is borrowed from.
+
+Postnominal, rendered for "thick dashed red line":
+
+- `bug` «garis tebal pettu-pettu macella'», `mak` «garis kapala'
+  tappolo-polo eja», `bjn` «garis kandal putus-putus habang», `gor` «garis
+  tebal putus-putus meela», `nia` «garis tebal putus-putus merah», `bbc`
+  «garis na hapal putus-putus rara», `iba` «garis tebal putus-putus mirah»,
+  `dtp` «garis tebal putus-putus aragang»;
+- `shn` «သဵၼ်ႈ သီလႅင် ၶၢတ်ႇ ၼႃ», `mnw` «မျဉ်း အနီ အပြတ် ထူ», `ksw`
+  «မျဉ်း ဂီၤ အပြတ် ဖးထီၣ်».
+
+Prenominal: `tsg` «makapal nga pinutu'-putu' nga pula nga linya», `pag`
+«makapal a putol-putol a ambalanga a linya», `cbk` «grueso cortao rojo linea»,
+`mrw` «makapal a dashed a mariga a linya».
+
+Two things are worth reading off that list before the split itself. The
+eight Indonesian and Malaysian catalogs **all write «garis»**, and six of the
+eight write «putus-putus» — which is one Indonesian word rather than six
+languages agreeing, and `bug`'s «pettu-pettu» and `mak`'s «tappolo-polo» are
+the two that are not it. Against that, **seven of the eight supply a red of
+their own** — macella', eja, habang, meela, rara, mirah, aragang — and
+`locales/nia` is the one that falls back to Indonesian «merah», which its own
+header calls a gap in the seed rather than a claim about Nias. That file
+attempts two colour words in Nias, «aitö» and «afusi», and marks even those as
+unverified; red is one the seed could not supply, not one the language lacks.
+
+The three Myanmar catalogs invert further than the Indonesian ones do: all
+three fix the description as **colour, then dash pattern, then thickness**,
+where every other catalog in the batch keeps English's internal sequence of
+the three adjectives. Only the head moved in eight files; in three the whole
+run reversed.
+
+**`locales/cbk` is the sharp case, and its header says which "correction" to
+expect.** Zamboangueño's lexicon is Spanish and its syntax is Philippine, so
+the modifier goes in *front* — «rojo linea», not «linea roja» — which is the
+opposite of Spanish's own order. A reviewer who reads the vocabulary as
+Spanish will read the word order as an error, and `content.ftl`'s header names
+that as the single thing about these files most likely to be corrected
+wrongly.
+
+#### One question, five answers: what joins a noun to its modifiers
+
+The batch asks the linker question harder than any before it, because the
+languages in it answer it five different ways and three of the answers are in
+one country.
+
+- **A free linker, written out.** `tsg` writes «nga» and `pag` and `mrw` write
+  «a», in every position. `locales/tsg`'s header argues the point the Bisayan
+  catalogs already made: «nga» never contracts onto the word before it, so it
+  can stand next to a placeable without the catalog knowing what lands there
+  — the escape from [A ligature is an affix too](#a-ligature-is-an-affix-too).
+  `locales/mrw` makes the same claim about «a» and adds the observation that
+  this is the one place a thin catalog is on firmer ground than the fuller
+  ones beside it.
+- **No linker at all.** `cbk` juxtaposes. Its header states why in one line:
+  the Spanish lexicon came without a ligature and the creole did not build
+  one, so nothing in that file is at risk from the ligature problem — the
+  only Philippine catalog in the roster that can say so.
+- **A postnominal relator.** `bbc` writes «na» between the noun and the
+  description, once in front of the run rather than before each adjective.
+  Its header names that as the one place a reader can tell the file from
+  `locales/ban` at a glance: same word order, different linker.
+- **Nothing, by juxtaposition.** The other Indonesian catalogs put the
+  modifier straight behind the noun.
+- **A prefix on the modifier the catalog cannot supply.** `locales/nia` is
+  the honest failure. A Nias property word takes an attributive form in `s-`
+  — «ebua» becomes «sebua» — and there is no «stebal» to build on an
+  Indonesian loan, so every loan adjective in that file stands bare in its
+  citation form. Its header sets the three side by side: Toba Batak needs a
+  relator, Gorontalo needs nothing, and Nias wants morphology this seed
+  cannot write.
+
+**`locales/pag` is the one where the free linker is knowingly wrong part of
+the time.** Pangasinan's linker has two shapes and the *preceding* word picks
+them — «a» after a consonant, enclitic «-n» after a vowel — so the catalog
+does what `locales/pam` and `locales/bik` did, writes the free «a»
+everywhere, and names the exact entries in its own tables where it misfires:
+«ambalanga», «lila», «kape», «diamante», «tuldek-tuldek». It also misfires
+after an author's own `lineColorWord`, which the catalog cannot see, and the
+header says the fix is a change to what the composition messages are handed
+rather than to the tables.
+
+`locales/dtp` states its rule rather than its exception: «dot» is written
+where it introduces a relative clause and omitted between a noun and a bare
+describing word. Its header calls that the file's largest open question and
+says correcting the split corrects every message at once.
+
+#### Not one of the fifteen has CLDR plural data
+
+`new Intl.PluralRules(tag).resolvedOptions().locale` is the runtime's own
+default for every one of the fifteen. So a `zero`, `two`, `few`, `many` or
+`one` branch anywhere in the batch would be text selected by somebody else's
+rules, and **no such branch is written anywhere**: sixty files, zero plural
+categories. That is the Oceania batch's finding arriving a second time, and
+here the grammar agrees with the constraint without exception — none of these
+fifteen languages marks a noun for number after a numeral, and `shn`, `mnw`
+and `ksw` count with a classifier the frame has no place for in any case.
+
+What all fifteen keep is English's numeric literals, which Fluent matches
+against the number itself before consulting any plural rule. Each catalog
+writes exactly **one `[0]`** — `attempts-remaining` — and exactly **one
+`[1]`** — `field-function-wrong-num-outputs`, which forks on how many outputs
+a component *needs* rather than on a count the reader is looking at. Fifteen
+catalogs, the same two literals in the same two messages, and nothing else.
+
+#### Negotiation: one entry, and it is the second-largest in the map
+
+`MACROLANGUAGE_MEMBERS` gained exactly one row, and seeding `bjn` forced it:
+Banjar is one of the 36 ISO 639-3 members of Malay. **`ms` lists 33 of them**,
+which makes it the map's second-largest entry — behind only `qu`'s
+forty-three, with `nah`'s thirty just behind it — and the three
+that are missing are the point of the row rather than an oversight — `ind`
+(`locales/id`), `min` (`locales/min`) and `bjn` (`locales/bjn`) are members
+this repository answers for itself, which is the `bam`/`dyu` shape under
+`mnk`. Listing `min` or `bjn` would take a Minangkabau or Banjar reader off
+the catalog written for them and put them on Standard Malay; `ind` would be
+inert either way, since ICU rewrites it before negotiation is consulted.
+
+Two costs are named in the comment rather than left to be discovered. **`mfa`
+(Pattani Malay) maximizes to `mfa-Arab-TH`**, so a reader most likely arriving
+in Jawi is served Rumi — `locales/kr`'s asymmetry with `kby` again, and the
+answer to it is a second catalog rather than a change to the map. And **`max`
+(North Moluccan Malay) and `xmm` (Manado Malay) are Malay-lexifier trade
+creoles** rather than varieties of Malay, listed all the same because unlike
+`ktu` under `kg` ISO 639-3 puts them *inside* the macrolanguage; the map
+follows membership rather than second-guessing it.
+
+Nothing else moved. `LANGUAGE_ALIASES` is unchanged, and **`kzj` (Coastal
+Kadazan) needs no row at all**: `Intl.getCanonicalLocales("kzj")` already
+returns `dtp`, so ICU folds it before this file is reached, while `dtb`
+(Labuk-Kinabatangan Kadazan) and `drg` (Rungus) miss and fall to English,
+which `locales/dtp`'s header records as the cost of one tag per catalog.
+
+The near misses this batch does **not** fold are mostly siblings inside one
+island group rather than the far-flung relatives the Silk Road block listed:
+`btd`, `bts`, `btx` and `btz` beside `bbc`, which ISO 639-3 makes four
+separate languages rather than members of anything; `mdr` (Mandar) beside
+`bug` and `mak`; `mdh` (Maguindanaon) beside `mrw`; `krj` and `akl` beside
+`tsg`; and `nij` (Ngaju), which is `bjn`'s Bornean neighbour and, being Barito
+rather than Malayic, not in `msa` either. **`blk` (Pa'o) and `kjp` (Eastern
+Pwo) beside `ksw` are the sharpest**, because `kar` is an ISO 639-5
+*collection* code rather than a macrolanguage: there is no membership fact
+that could let either reach the S'gaw catalog even if one were wanted.
+
+#### Naming: five gaps, and two labels that disagree with their catalogs
+
+`LOCALE_NAME_FALLBACKS` gained five entries — `tsg`, `mrw`, `mnw`, `ksw` and
+`cbk` — and the split is geographic rather than about speaker numbers. ICU
+names all six Indonesian tags in the batch, both Malaysian ones, `pag` — the
+one Philippine tag from Luzon rather than the south — and the one Myanmar tag
+whose language a state is named after, and stops at three languages of the
+southern Philippines and two more of Myanmar.
+
+Four of the five get endonyms, because each names its language exactly one way
+wherever its headers name it: «Bahasa Sūg», «Basa a Mëranaw», «ဘာသာမန်»,
+«ကညီကျိာ်». **`cbk` takes `locales/olo`'s admitted-gap shape**, because its
+header names the language two ways — «Chavacano» beside «Chabacano de
+Zamboanga» — and picking one here would settle in the roster what the catalog
+deliberately leaves open; the label reads "Chavacano (cbk)". **`shn` needs no
+row in either column**: CLDR already gives it «တႆး», which is the spelling
+`locales/shn` writes.
+
+**Two of the ten CLDR does name, it names differently from the catalog, and
+both stand** — the `ny`-reads-Nyanja rule, twice in one batch. The roster
+renders `bbc` as **Batak Toba** where every header in those files writes Toba
+Batak, and `dtp` as **Central Dusun** where the catalog writes Kadazandusun
+throughout and treats "Central Dusun" as the ISO label rather than the name.
+The table fills gaps and never overrides ICU, so each catalog's own header
+says which language it is and the label stays as CLDR writes it.
+
+Nothing else in negotiation had to move for scripts, either: all fifteen tags
+maximize the way their catalogs are written — `-Latn-ID` for the six
+Indonesian ones, `-Latn-MY` for `iba` and `dtp`, `-Latn-PH` for the four
+Philippine ones, `-Mymr-MM` for the three from Myanmar — so this batch adds
+none of the `ha`/`kr` asymmetries the Silk Road batch collected.
+
+#### Scripts, and four catalogs that argued their way to Latin
+
+Twelve catalogs are Latin and three are Myanmar-script, and four of the twelve
+had a script of their own to decline. None of the four declines it by default;
+each gives a reason.
+
+- **`bug` and `mak` against Lontara** (and, for Makasar, the older Ukiri'
+  Jangang-jangang as well). Both headers give the same two reasons: Latin is
+  what the language is printed in today, and Lontara writes neither the final
+  glottal stop, nor the geminates, nor the syllable-final nasal — the three
+  things these spellings turn on — so a Lontara catalog would spell «de'» and
+  «dé», «kebo'» and «kebo» identically and a reviewer could not tell a
+  correction from a typo. Both call a conversion a *conversion* rather than a
+  transliteration, because the dropped distinctions would have to be restored
+  by someone who knows the words.
+- **`bbc` against Surat Batak**, on a different ground: the script is taught,
+  printed and carved, and it is simply not what Toba Batak is *written* in —
+  every newspaper, hymnal, dictionary and schoolbook since the nineteenth
+  century is Latin. Its header adds that a Surat Batak seed would also have to
+  settle a dozen questions no current practice settles, starting with where to
+  put the pangolat.
+- **`tsg` against Sulat Sūg**, and this is the one argued from the software
+  rather than from the language. Tausug's Jawi-derived tradition is older and
+  still written, but these strings sit beside DoenetML source, attribute names
+  and mathematics that are Latin and left to right, and a right-to-left
+  catalog would put a bidi boundary in the middle of nearly every message. The
+  header's conclusion is the roster's standing one: a reader who wants Sulat
+  Sūg should have a catalog of its own rather than a mixture.
+
+All four say the same thing about how to change their minds — **all four files
+at once, never a mixture inside one catalog** — as do `pag` (modernised
+against Spanish-influenced spelling), `cbk` (traditional Spanish-based against
+the phonemic orthography promoted in Zamboanga City), `bjn` (Banjar Hulu's
+three vowels), `iba`, `dtp`, `nia` (the northern standard) and `mrw` (the
+schwa written «ë»).
+
+**The three Myanmar-script catalogs write their own language's letters, and a
+homoglyph audit during seeding caught two headers claiming letters their text
+did not contain.** `locales/shn` uses the Shan consonants ၵ ၶ ၸ ၺ ၼ ၽ ၾ ႁ ဢ
+with the Shan vowels and tone marks, and warns against folding any of them
+into their Burmese look-alikes. `locales/mnw` uses Mon ၚ and ၜ and the medials
+ၞ ၟ ၠ. `locales/ksw` uses the S'gaw signs ၢ ၣ ၤ. Two claims did not survive
+checking: `mnw` had listed ဿ and ၝ and `ksw` had listed ဢ and ၡ as letters in
+use, and none of the four appears in either catalog's text. **The headers were
+corrected to match the files rather than the other way round** — each now says
+the letters are real parts of the orthography that no word this catalog
+happens to use needs — which is what a checkable claim is for. `ksw` also
+records that ၦ and ၯ are **Pwo** letters, deliberately absent, and that a Pwo
+letter inside an S'gaw file is a mistake rather than a variant.
+
+One letter is shared and is the batch's own homoglyph trap: **`ၢ` U+1062 is
+named MYANMAR VOWEL SIGN SGAW KAREN EU and Shan writes it too**, for /aa/
+before a final consonant. `locales/shn/chrome.ftl` says so beside the letter,
+so nobody "corrects" it out of the Shan files as a Karen leak.
+
+The two Myanmar-script catalogs also disagree about **spacing**, and both say
+so. Shan publishing separates words with spaces; Mon follows the Burmese
+convention of running a clause together with a space at the phrase boundary;
+S'gaw Karen spaces phrases but not words. Each header states its practice
+because it decides where the messages may wrap in a narrow panel, and
+`locales/mnw`'s adds that the difference from `locales/shn` is real rather
+than an inconsistency between two files of one batch.
+
+#### The chemistry gap does not split at all
+
+All fifteen leave `element-name` and `element-anion-name` out, and all fifteen
+are the school-system case. The mediums are the batch's one geographic fact:
+**Indonesian** for the six Indonesian catalogs, **Malay** for `iba` and `dtp`
+— out of textbooks printing the Dewan Bahasa dan Pustaka names `locales/ms`
+already carries — **English** for the four Philippine ones, which is the `fil`
+and `ceb` case those catalogs already record, and **Burmese** for `shn` and
+`mnw`, whose Shan- and Mon-medium schooling does not run to the grades where
+the periodic table is taught.
+
+**`locales/ksw` is the one with two fallbacks rather than one**, and it is the
+`locales/wbl` shape from the batch before. In Myanmar a Karen pupil meets the
+table in Burmese; in the diaspora, in English or in Thai. Its header says that
+coining 118 names would invent a nomenclature no reader has met *and* hide
+that split, and that English falls through because it is at least what part
+of the readership's schooling uses.
+
+None of the fifteen is the Kannada case of having two lists, and none is the
+Khmer case of having the names but no convention to reproduce. Every one of
+the fifteen translates the three messages that are *frames* rather than names,
+on the standing ground that a frame is the catalog's business whether or not
+the names in it ever are.
+
+#### Confidence, and where the batch is thin
+
+Every header grades itself, and two claim to be thinnest — compatibly, since
+`dtp` is not one of the four `mrw` scopes itself against.
+`locales/dtp/chrome.ftl` says "THIS IS THE THINNEST CATALOG OF ITS BATCH, AND
+IT SAYS SO FIRST RATHER THAN LAST"; `locales/mrw/chrome.ftl` says "This is the
+thinnest of the four Philippine catalogs added with it", which is a claim
+about four files rather than fifteen. Both are scoped, and both are about
+vocabulary rather than coverage: all fifteen sit at the same 445 keys, so
+"thinnest" here never means a catalog that translates less.
+
+**`bjn` and `iba` are the strongest**, and for the same reason: both are
+Malayic, and the risk in a Malayic catalog is that it becomes Indonesian or
+Malay with a few words changed. Both are written around that risk and both
+name the check. Banjar keeps an everyday layer apart from the Indonesian
+technical register — «kada», «kadada», «kawa», «nang», «gasan», «matan»,
+«lawan», «amun», «tagal», «lantaran» — and says a message where «tidak»,
+«yang» or «untuk» has crept back is a defect rather than a variant. Iban says
+the same of «yang», «ada», «tidak», «dengan» and «atau», and calls it the
+defect this seed is most likely to have made.
+
+**`gor`, `nia`, `dtp` and the three Myanmar catalogs are frames around
+declared loans**, and each says which words are the frame. That is the tier
+`locales/sgh` reached for two whole namespaces one batch earlier, arriving
+here for six catalogs at once.
+
+**`locales/mnw` supplies no native colour word at all.** All twelve are
+Burmese loans in Burmese spelling, and its header says plainly that Mon
+certainly has its own words for at least black, white and red, that they are
+absent because the seed does not know them rather than because they do not
+exist, and that correcting the twelve is a bigger improvement to the catalog
+than correcting anything else in it. The rest of the batch's colour lines
+grade themselves the same way and land in different places: `bbc` and `mrw`
+five native words, `ksw` five, `shn` six, `gor` five *attempted and
+unverified*, `nia` two, `bug` five, `mak` four, and `iba` and `dtp` each
+naming the same five Malay loans — gray, orange, purple, pink and brown —
+among their twelve, which is as close as this batch comes to two catalogs
+agreeing about anything.
+
+**Several catalogs declare a paraphrase where they had no word, and use it
+everywhere so that one search replaces it.** `locales/gor` writes «diila
+pohutuwolo» — literally *is not acted on* — for English's *is ignored*;
+`locales/nia` writes «lö tefaigi», *is not looked at*; `locales/pag` writes
+«Ag-uusaren», *is not used*; `locales/mrw` writes two, *is not used* for
+*ignored* and *is not seen* for *not found*. Each header names its own and
+says it is the first thing to replace. `locales/bbc` records the milder
+version: it is not sure «diparrohahon» is the right word for *ignored* in a
+warning a beginner sees fifty times, and picked one and used it everywhere so
+that changing it is one search.
+
+#### Things the batch records rather than fixes
+
+**`locales/mnw` marks a conditional clause-finally.** Mon writes မ္ဂး after
+the condition where English writes "if" in front of it, and
+`piecewise-condition-if` is placed by the renderer *before* the mathematics it
+introduces, so the word cannot be moved from inside the catalog. It is written
+in the position the core gives it and the limit is recorded beside the key —
+the `locales/dv` shape, reached for the first time by an Austroasiatic
+catalog. It is the only one of the fifteen on that side of the line: the other
+fourteen conditionals are clause-initial and land correctly, «rékko»,
+«punna», «amun», «wonu», «na», «molo», «enti», «nung», «no», «si», «bang»,
+«amay ka», «သင်ဝႃႈ» and «မ့ၢ်».
+
+**`locales/nia` applies no initial mutation anywhere.** A Nias noun changes
+its initial consonant in certain syntactic positions — the property the
+language is best known for — and the seed cannot apply it reliably. Applying
+it in some places and not others would be worse than not applying it, so every
+noun is in its citation form and the header tells a reviewer to expect to
+**mutate rather than to correct**: the words are meant to be right and the
+morphology is simply missing.
+
+**`locales/dtp` cannot write Kadazandusun verbal aspect**, so `answer-checking`
+and `answer-submitting` are a bare verb with an ellipsis — «Periksa…»,
+«Hantar…» — rather than "is being checked". Its header calls that a hole
+rather than a style and the first thing to fix.
+
+**`locales/bug` writes no noun with the definite suffix `-é`.** Buginese marks
+a definite noun with it, its shape depends on the last sound of the word it
+attaches to, and several of these messages end in a placeable the catalog
+never sees — so every noun is written bare, the `noun` table included. That is
+[An affix cannot be welded to a
+placeable](#an-affix-cannot-be-welded-to-a-placeable) reached from a new
+direction, and the cost is named: the nouns read as indefinite throughout. The
+same enclitic still closes the relative clauses the catalog writes out in full
+— «iya riruntu'é», «iya weddingngé» — where there is no placeable for it to
+land on, and its header distinguishes the two.
+
+**`locales/iba` and `locales/dtp` have near-identical `noun` tables**, and
+that is a fact about one education ministry rather than about two languages.
+Sabah, Sarawak and the peninsula teach mathematics out of the same Malay
+textbooks, so both tables are the Dewan Bahasa terms and they differ in four
+entries out of twenty — «kawasan» against «pomogunan» for the region,
+«tanda silang» against «tanda pangkah» for the cross, «bebilang» against
+«berbilang» for the polyline, which is Iban's `be-` where Malay writes `ber-`,
+and «kecherunan» against «kecerunan» for the slope field, Iban keeping the
+digraph «ch» that Malay respelled to «c». The `be-`/`ber-` difference runs on
+into `noun-regular-polygon`'s «besisi» against «bersisi», outside the table.
+`locales/dtp`'s header says where to look instead: what differs between those
+two catalogs and `locales/ms`, whose table is nearly the same again, is
+everything around the table.
+
+Every string in all fifteen is machine-generated and unread by a speaker, and
+each file says so at the top. Correcting any of it needs no permission.
+
+### Fifteen catalogs of South Asia, and the batch that is mostly frame
+
+The roster goes from 316 locales to 331: Awadhi (`awa`), Chhattisgarhi
+(`hne`), Magahi (`mag`), Marwari (`mwr`), Garhwali (`gbm`) and Kumaoni
+(`kfy`) — six Indo-Aryan languages of the Hindi belt, Rajasthan and
+Uttarakhand; Newar (`new`) and Sylheti (`syl`) — Nepal and northeastern
+Bangladesh; Tulu (`tcy`) — Dravidian, coastal Karnataka; Mizo (`lus`), Khasi
+(`kha`) and Garo (`grt`) — three languages of Northeast India in three
+families; Saraiki (`skr`) and Brahui (`brh`) — Pakistan, one Indo-Aryan and
+one Dravidian; and Fiji Hindi (`hif`), the batch's one diaspora language.
+
+Like the Southeast Asian batch it is assembled around a region, and like it
+every one of the fifteen sits at **445/575 keys**, the whole catalog minus the
+two chemistry tables. Three properties are worth reading off it, and the first
+one is uncomfortable.
+
+#### Most of what these files translate is the frame, and the headers say so
+
+Nine of the fifteen are Indo-Aryan languages with no medium of secondary
+education and therefore no settled technical register of their own, and
+Newar — Sino-Tibetan, not Indo-Aryan — is in the same position with Nepali
+in the loan role, which makes ten catalogs. What a
+seed can supply for them is the **grammar**, and what it cannot supply is the
+**vocabulary**: «रेखा», «बहुभुज», «फलन», «विशेषता» are Hindi in `awa`, `hne`,
+`mag`, `mwr`, `gbm` and `kfy` alike, «মিছা» sits in a Sylheti sentence around
+a Bengali noun, and Saraiki's geometry is Urdu's. The catalogs do not disguise
+this. Each header states the loan register in its own words, which makes it a
+declared property of the seed rather than something a reviewer discovers.
+
+The differentiation is real and it is concentrated in the frame — the copula,
+the negator, the postpositions, the participles, the plural marker and the
+imperative class. `awa` writes «अहै», «नाहीं», genitive «क», dative «खातिर»,
+oblique plural in -न; `hne` writes «हे», «नइ», the dative «बर» that no other
+catalog in the batch uses, the plural «मन» and the habitual «-थे»; `mag`
+writes «हइ», «ना», dative «लेल», plural «सब» and the eastern -ल participles
+(«देल», «कएल», «मिलल»). Those are three languages rather than one language
+spelled three ways, and a reviewer correcting the nouns is correcting the
+half the seed knew it could not do.
+
+The batch's colour words are the one place the vocabulary is native more often
+than not: `awa` उजर/पियर, `hne` पंडरा/पींयर, `mag` उज्जर/पीयर where
+`locales/hi` writes सफ़ेद and पीला, `new`'s हाकु, तुयु, ह्याउँ, `tcy`'s
+ಬೊಲ್ದು, ಮಂಜಲ್, ಪಚ್ಚೆ, Saraiki's ساوا. Each catalog's header names which of its
+twelve colours are the language's own and which are loans, because that
+distinction is the one a speaker can fix in a single line.
+
+#### Word order splits thirteen against two, and the two are neighbours
+
+Thirteen catalogs put the modifiers in front of the noun and two put them
+behind. Thirteen to two is unremarkable — South Asia is left-branching, and
+the nine Indo-Aryan catalogs inherit Hindi's order with its vocabulary. What
+the split is *not* is genetic or geographic.
+
+Prenominal, rendered for "thick dashed red line": `awa`, `hne` and `mag`
+«मोट खंडित लाल रेखा», `mwr` «मोटो खंडित लाल रेखा», `gbm` «मोटु खंडित लाल रेखा»,
+`kfy` «मोटो खंडित लाल रेखा», `new` «बाक्लो धर्के ह्याउँ रेखा», `syl`
+«মোটা দাগ-দাগ লাল রেখা», `tcy` «ದಪ್ಪ ತುಂಡು ತುಂಡುದ ಕೆಂಪು ಗೆರೆ», `grt`
+«dal·gipa dashgipa gitchak lain», `skr` «موٹی منقطع لال لکیر», `brh`
+«دبیز خط چین سرخ خط», `hif` «mota dash waala laal lakiir».
+
+Postnominal: `kha` «lain bakhraw badash basaw», `lus` «line lian dash-nei
+sen».
+
+**The two are `kha` and `lus`, and `grt` is not one of them.** Khasi and Garo
+are spoken in the same state and seeded in the same batch; Garo and Mizo are
+both Tibeto-Burman. So Meghalaya writes the phrase both ways, and Garo and
+Mizo — the batch's two Tibeto-Burman catalogs of Northeast India — disagree
+with each other, while Newar, Sino-Tibetan as well but half a subcontinent
+away, sits with the prenominal thirteen. Garo's `-gipa`
+attributive precedes its noun, Mizo's follows. Neither family nor geography
+predicts this row, which is why `styleDescriptions.test.ts` pins all fifteen
+rather than a representative from each side.
+
+`brh` is the other row worth reading twice, from the opposite direction:
+Brahui is Dravidian, sits among Indo-Aryan neighbours, and writes their order.
+`tcy` is Dravidian too and prenominal for the same areal reason. Order
+follows the neighbourhood here, which is the Southeast Asian batch's `cbk`
+finding arriving from the other side — there a creole kept its substrate's
+order against its lexicon, here two Dravidian languages take their
+neighbours'.
+
+Every one of the fifteen keeps English's internal sequence of the three
+adjectives, so what moves in `kha` and `lus` is the noun alone. **No catalog
+in the batch writes a linker between modifier and noun**, so nothing here
+comes near the hazard [A ligature is an affix too](#a-ligature-is-an-affix-too)
+describes — which is what separates this batch from the Philippine half of
+the last one, where three catalogs wrote «nga» or «a» in every position.
+
+#### One catalog agrees its adjectives, and fourteen do not
+
+`skr` is the batch's only `$gender` and `$role` fork. Saraiki keeps
+Indo-Aryan's marked adjective classes whole, so «موٹی» stands before the
+feminine «لکیر» and «موٹا» before a masculine noun, and `noun-gender` forks on
+`$noun` in the shape `locales/ur` and `locales/hi` already use — with
+«پس منظر» masculine where Hindi's «पृष्ठभूमि» is feminine.
+
+The other fourteen write one invariant form each, and the reason differs and
+matters:
+
+- **Eight cases where it is a claim about the language.** Brahui has no
+  gender at all; Tulu marks it on verbs and pronouns but not on attributives;
+  Fiji Hindi has levelled Hindi's agreement away, so the `-a` form stands in
+  every position for a noun of either gender. Newar, Khasi, Mizo, Garo and
+  Sylheti are the same case for the same reason — no attributive agreement to
+  lose. In all of these `noun-gender`'s single `neuter` token is an answer
+  rather than a placeholder.
+- **Six cases where it is a gap, and the headers call it the file's largest
+  defect.** Awadhi, Chhattisgarhi, Magahi, Marwari, Garhwali and Kumaoni all
+  *do* inflect marked adjectives, and all six write them unagreed. Reinstating
+  agreement means writing a trustworthy gender for every `noun` entry first,
+  and a confidently wrong agreement table is harder to repair than a uniformly
+  unagreed one; `locales/hi` and now `locales/skr` are the shapes to lift the
+  forks from once the genders exist.
+
+`[noun-tail]` is unused in all fifteen: the side count precedes the noun
+everywhere, so `head` carries the phrase whole.
+
+#### Two right-to-left catalogs, and one that is right by the wrong route
+
+`skr` and `brh` take the roster's right-to-left catalogs from sixteen to
+eighteen, and both are new entries in `direction.ts`'s `RTL_LANGUAGES` on the
+same terms `bal` and `haz` were: each maximizes to `-Arab`, so the script rule
+already answers a parseable tag, and the entry earns its keep on the fallback
+path where nothing could be parsed. Brahui is the first Dravidian language on
+that list, which is `direction.ts`'s own point — direction is a fact about a
+script and not about a family.
+
+`hif` is the instructive one. ICU maximizes it to `hif-Deva-FJ`, which is
+wrong about the script — Fiji Hindi is written in Latin letters by the people
+who write it — and right about the direction anyway, because both candidate
+scripts run left to right. The tag reaches the correct answer by a route that
+does not hold in general, and `hif`'s `chrome.ftl` and `content.ftl` headers
+both say so.
+
+`grt` is the batch's second instance of the same route: ICU maximizes it to
+`grt-Beng-IN`, and the Garo catalog here is written in the Latin orthography.
+Two of the fifteen, then, get the direction right off a script neither
+catalog is written in. Neither needs an entry in `RTL_LANGUAGES`, because
+both the maximized script and the real one run left to right — but the pair
+is why a maximized script is evidence about direction and not about how a
+catalog is spelled.
+
+Neither right-to-left catalog welds anything to a placeable. Brahui's case
+clitics are normally joined in print and are written separated in all four
+files, because the word in front of one is so often a placeable; the header
+records that as a spelling decision made for safety rather than a correction.
+
+#### Not one of the fifteen has CLDR plural data
+
+`new Intl.PluralRules(tag).resolvedOptions().locale` is the runtime's own
+default for every one of the fifteen, so no catalog writes a `zero`, `one`,
+`two`, `few` or `many` branch anywhere: sixty files, zero plural categories.
+That is the Southeast Asian batch's finding again, and here it costs
+something. Those fifteen languages did not mark a noun for number after a
+numeral; these do — every one of them — and the catalogs still cannot fork on
+one, because the branch would be selected by whatever locale the runtime fell
+back to rather than by the language. `hi`, `bn`, `ur`, `mr` and `ne` sit
+beside them on the roster with rules of their own. Whether a tag has plural
+data follows whether a CLDR locale was ever requested for it.
+
+Each catalog writes exactly one `[0]` — `attempts-remaining`, where English
+writes `[0]` too — and one `[1]`, in
+`field-function-wrong-num-outputs`, which forks on how many outputs a
+component *needs*. The `[1]` is not English's own branch: English selects
+that message on the plural category `[one]`, and a catalog with no plural
+rules substitutes the numeric literal, which Fluent matches against the
+number itself. Neither branch consults a plural rule, which is why both
+survive where the category forks could not. `chrome.test.ts` holds both
+halves.
+
+#### Negotiation gained nothing, and three tags left a list instead
+
+`MACROLANGUAGE_MEMBERS` and `LANGUAGE_ALIASES` are untouched by this batch.
+Every one of the fifteen tags is one `Intl.getCanonicalLocales` leaves alone
+and filtering negotiation matches on its own, so seeding them cost negotiation
+nothing.
+
+What did change is a list in `negotiate.test.ts`. `kfy`, `mag` and `grt` were
+asserted there as *near misses* — Indo-Aryan and Tibeto-Burman neighbours of
+`mai`, `bho` and `brx` that the membership rule declined to fold onto them,
+falling to English on purpose. All three now have catalogs and are asserted
+against them instead, with `hoc` and `njz` left behind holding the original
+point. Nothing about the map changed to let them through: **the way off that
+list is a directory, not an entry in `MACROLANGUAGE_MEMBERS`.**
+
+Six of the fifteen need `LOCALE_NAME_FALLBACKS`, and the split does not follow
+speaker numbers: ICU names `awa`, `mag`, `mwr`, `new`, `tcy`, `lus`, `kha`,
+`brh` and `hif`, and has nothing for `hne`, `gbm`, `kfy`, `syl`, `grt` or
+`skr` — Chhattisgarhi has more speakers than several tags ICU does name. Each
+of the six gets an endonym in the script its own catalog is written in, Garo's
+in the Latin orthography that writes its raised dot as `·`.
+
+#### Five scripts, and three of the choices are contested
+
+Devanagari for the six Hindi-belt catalogs and for `new`; the Bengali script
+for `syl`; Kannada for `tcy`; Latin for `lus`, `kha`, `grt` and `hif`;
+Perso-Arabic for `skr` and `brh`. Three of those are decisions a reader may
+disagree with, and each header argues its case: **Newar** is written in
+Devanagari rather than Ranjana, which is a living display script with thin
+font coverage rather than the script of continuous prose; **Sylheti** in the
+Bengali script rather than Sylheti Nagri, whose smaller inventory would
+collapse distinctions this seed cannot restore; and **Tulu** in Kannada rather
+than Tigalari, whose revival is real but whose orthography for *modern* Tulu
+is not settled. In all three the answer to a disagreement is a second catalog
+beside the first rather than a rename of it, which is `pa`'s and `sr`'s answer
+in [A language CLDR has no name for](#a-language-cldr-has-no-name-for).
+
+Numbers render in Latin digits in every one of the fifteen, including the
+Devanagari, Bengali, Kannada and Perso-Arabic catalogs, so a digit inside a
+sentence matches the count formatted beside it.
+
+### Fifteen more European catalogs, and the batch CLDR had an opinion about
+
+The roster goes from 331 locales to 346: Aragonese (`an`), Extremaduran
+(`ext`), Ladino (`lad`) and Mirandese (`mwl`) — four Ibero-Romance languages,
+one of them a diaspora language rather than a regional one; Walloon (`wa`),
+Arpitan (`frp`) and Norman (`nrf`) — three Gallo-Romance languages spread
+across five states; Lombard (`lmo`), Emilian (`egl`) and Ladin (`lld`) —
+northern Italy and the Dolomites; Cornish (`kw`) and Manx (`gv`) — two revived
+Celtic languages; Bavarian (`bar`) and Northern Frisian (`frr`) — two Germanic
+ones; and Romani (`rom`), the batch's one Indo-Aryan language and the one whose
+speakers are spread over the whole continent.
+
+It is the second batch assembled around Europe — #1773 seeded the first
+fifteen — and all fifteen sit at **445/575 keys**, the whole catalog minus the
+two chemistry tables. (The first European batch was fourteen at 445 and one,
+`nn`, complete: Nynorsk is the exception, with the elements filled in.) The
+subsections below read off the properties of this one worth recording.
+
+#### CLDR has plural rules for a third of them, ending a two-batch run of none
+
+The two batches before this one — Southeast Asia (#1779) and South Asia (#1784)
+— each reported the same finding: CLDR has no plural data for any of their
+tags, so no catalog in either may write a category branch. That is not a law
+about small languages, and this batch is the reminder. **Five of these fifteen
+have rules of their own** — `an`, `wa`, `kw`, `gv` and `lld` — which is a
+smaller share than the first European batch's eight of fifteen and a larger one
+than the Americas batch's three. What is new is not the count but `kw`: `cy`
+and `ar` are the two established catalogs whose languages declare all six
+plural categories, and Cornish is the third language on the roster to reach
+that list.
+
+`kw` is the far end of it. Cornish declares **all six categories**, and every
+one is reachable from an integer: 0 is `zero`, 1 is `one`, and the rest turn on
+the last two digits — 2, 22 and 42 are `two`, 3, 23 and 43 are `few`, 21, 41
+and 61 are `many`. What varies after a Cornish numeral is not the noun's
+ending, because the noun stays singular; it is the noun's **initial mutation**,
+so the branches differ in the word's first letter and nowhere else. The catalog
+writes four of the six as named branches — `one`, `two`, `few` and `many`,
+plus the `*[other]` default every select must carry — and not `zero`, which is
+`attempts-remaining`'s numeric `[0]` instead, saying something different from
+any category. Where the counted noun begins with a vowel or with `l` — «entrans»,
+«askorrans», «interval», «linen» — nothing moves and the select is left off
+altogether, since six identical branches are the rule against dead branches
+arriving by another road.
+
+The seam a reviewer should look at first is the other side of that rule.
+`attempts-remaining` and `editor-accessibility-label` do fork a mutable noun
+(«prov» → «brov» → «frov», «torrva» → «dorrva» → «thorrva»), but four
+diagnostics print a numeral in front of a mutable consonant and are still
+written once: `circle-through-points-non-numerical` («poynt»),
+`select-too-few-options` («komponent») and the two
+`select-from-sequence-too-few-*` messages («gwerth»), plus
+`polygon`'s side-count tail in `content.ftl` («tenewen»). `locales/kw`'s
+headers name them, because a seed that forks one such noun and not another is
+inconsistent in a way only a speaker can settle. `locales/gv` has the same
+seam at `{ $numToSelect } bree`, and says so.
+
+`gv` and `lld` are the opposite lesson, and it is one the lint rule cannot
+state. Both declare a `many` that no realistic count in these messages
+reaches, for two different reasons. Manx's `many` is CLDR's category for a count written
+with a visible decimal fraction — 0.5, 1.5 — so no integer selects it at all.
+Ladin's is reachable from an integer, but only from an exact whole multiple of
+a million, the Italian-style rule behind the compact «un milion» forms — a
+count no message here is plausibly given, though nothing forbids one. `allowedPluralCategories` reads the declared
+list, so a `[many]` branch in either would parse, lint clean and never render —
+the exact failure
+[A plural branch nothing can select](#a-plural-branch-nothing-can-select)
+exists to prevent, arriving through the one door that rule leaves open. Neither
+catalog writes one, and `chrome.test.ts` holds both by asking the rules which
+counts actually select the category rather than by trusting the declared list.
+Manx's `few` is left unwritten for the opposite reason again: it is reachable
+(0, 20, 40, …) but takes the same radical form `other` does, so `*[other]`
+already writes it.
+
+`wa` is the small trap. Walloon's `one` covers **zero as well as one**, so a
+`[one]` branch in a Walloon catalog means something an English-reading
+translator would not assume it means. `locales/wa` says so in its headers and
+keeps `attempts-remaining`'s `[0]` anyway, because "no attempts left" is a
+different sentence rather than a different ending.
+
+The ten with no rules take the usual trade — English's `one`/`other` split,
+recorded in each header — but only four of them end up taking it. **Six write
+no category branch at all**: `ext`, `lad`, `mwl`, `bar`, `frr` and `rom` each
+phrase every counted message as a clause that does not have to agree with the
+count, so there was nothing for a `[one]` to do. That is a stylistic choice
+rather than a rule, and it is the honest end of the trade the other four took.
+
+Where a `[one]` in one of the ten would have been *dead* — both branches
+reading the same words — it is dropped rather than written twice. `lmo` and
+`egl` were the two catalogs of the fifteen that had them, in
+`function-iterates-input-output-mismatch`, `function-domain-insufficient-dimensions`
+and `editor-accessibility-label`, and a dead `[one]` is worse in a no-data
+locale than anywhere else: it is not merely unread, it is chosen by some other
+language's rules while looking translated.
+
+**`field-function-wrong-num-outputs` is where the two halves of the batch part
+company**, and the rule it follows is not English's. Its `$expected` selector
+is not a plural: it counts a component's outputs — one for a slope field, two
+for a vector field — and the two branches say different things rather than the
+same thing in two numbers. `locales/en` writes it as the category `[one]`,
+which is right for English because English's `one` is exactly 1. In a locale
+CLDR has no rules for, that `[one]` would be selected by whatever language the
+runtime fell back to, so all ten write the numeric **`[1]`** instead — the same
+exact-value mechanism `attempts-remaining`'s `[0]` uses — while the five with
+rules of their own keep the category, since their own rules are what select it.
+The South Asian batch set the precedent; `chrome.test.ts` now holds both halves
+of it.
+
+#### Word order splits twelve against three, and the split is genetic
+
+The postnominal side is the large one here, as it was for the Oceania batch's
+ten of eleven, and unlike the two batches before this one. The ten Romance
+catalogs and the two Celtic ones put the adjectives behind the noun; the two
+Germanic ones and Romani put them in front.
+
+Postnominal, rendered for "thick dashed red line": `an` «linia gorda
+discontinua roya», `ext` «linia gorda descontinua colorá», `lad` «linya gruesa
+deskontinua kolorada», `mwl` «lhinha grossa traceijada burmeilha», `wa` «roye
+spesse rodje a trets», `frp` «legne èpèssa roja a trèts», `nrf` «ligne êpaisse
+rouoge à traits», `lmo` «linea grossa trattegiada rossa», `egl` «lénnia gròsa
+trategèda róssa», `lld` «linia grossa tratejada cuecia», `kw` «linen dew derrys
+rudh», `gv` «linney chiu vrisht yiarg».
+
+Prenominal: `bar` «dicke gstrichlte rode Linie», `frr` «dik struket rüüdj
+line», `rom` «thuli phagli loli linia».
+
+**`rom` is the row that makes the point.** Romani has been spoken in Europe for
+six hundred years, its speakers live among the languages of ten of the other
+fourteen catalogs here, and it still writes the order `locales/hi` and
+`locales/mr` write rather than the order of every Romance neighbour around it.
+The second South Asian batch found word order following the neighbourhood
+rather than the family tree; this batch finds the reverse. Both are true, which
+is the useful conclusion: areal pressure reaches a phrase's order sometimes and
+not always, and a seed that assumed either way round would have been wrong once.
+
+`wa`, `frp` and `nrf` are the batch's one departure from English's internal
+sequence of the three adjectives. All three render the dash pattern as an
+**invariable prepositional phrase** — «a trets», «à traits» — rather than as an
+adjective, and a prepositional phrase cannot sit between two adjectives, so
+those three read width – colour – pattern where the other twelve read width –
+pattern – colour.
+
+#### Two catalogs agree at the front of the word
+
+Fourteen of the fifteen agree their adjectives with the noun's gender. Twelve
+mark it with an ending. **`kw` and `gv` mark it with an initial mutation**:
+Cornish lenites after a feminine singular noun, so «tew» — thick — becomes
+«dew», the same word with a different first letter, and Manx turns «brisht»
+into «vrisht».
+
+That mechanism is not new to the roster — `cy`, `ga`, `br` and `gd` were all
+seeded with it, and `locales/cy` writes «trwchus»/«drwchus» exactly as
+`locales/kw` writes «tew»/«dew». What is new is **Manx**, because its *first*
+adjective is invariant and the mutation appears only on the two behind it:
+«chiu vrisht yiarg» against «chiu brisht jiarg». In all five of the other
+mutating catalogs — `cy`, `ga`, `br`, `gd` and `kw` — the width word itself
+changes, so a test that compared the
+width word alone — which is exactly what the second South Asian batch's block
+does, correctly, for catalogs that suffix — would have caught them and would
+have called `locales/gv` invariant. `styleDescriptions.test.ts` compares whole
+rendered phrases for that reason.
+
+`frr` is the one catalog of the fifteen that does not agree, and it is a fact
+about the language rather than a gap in the seed: Mooring's attributive
+adjective takes no ending in the indefinite singular for either gender, and no
+description this software builds is definite or plural. The catalog still
+answers `noun-gender` with Mooring's real two genders, so a reviewer who finds
+a context that does inflect has the selector already in place.
+
+#### Ladino lays out left to right, and `direction.ts` had to be taught it
+
+This batch found a bug that no previous one could have, and it is worth stating
+plainly because the fix is a new rule rather than a new table entry.
+
+`Intl.Locale("lad").maximize()` returns **`lad-Hebr`**. That is historically
+right — Judeo-Spanish was written in Hebrew letters, square, Rashi and
+solitreo, for four centuries — and it is stale about readers: `locales/lad` is
+written in the **Latin** Aki Yerushalayim orthography, which is what a Ladino
+reader meets today and what the Autoridad Nasionala del Ladino publishes in.
+`directionOf("lad")` read CLDR's likely script and answered `"rtl"`, so a
+Ladino activity would have rendered a Latin catalog right to left: every line
+reversed, punctuation on the wrong end of it.
+
+`CATALOG_SCRIPTS` in `direction.ts` is the fix, and its rule is narrower than
+"this language has two scripts". Direction follows **the script the text is
+actually in**, and for a bare tag *this repository* is what decided which
+script that is — so the table is keyed on the same fact a catalog's header
+records, and an entry belongs in it only when a catalog is written in a script
+CLDR would not have guessed. A tag that names its script keeps it: `lad-Hebr`
+is right-to-left, because a host that writes it means it.
+
+`lad` is the only entry, and `direction.test.ts` is what keeps it that way. The
+test does not consult the table; it reads every catalog's **message values**,
+select variants included — not the ids, which are ASCII everywhere, not the
+placeables and selector heads, which are ASCII too, and not the headers, which
+are English prose quoting words in the language — counts right-to-left letters against
+left-to-right ones, and requires the majority to agree with `directionOf`. All
+348 pass, the Ladino bug would have failed it, and so would the reverse
+mistake: a catalog written in Hebrew or Arabic letters for a language CLDR
+thinks is Latin.
+
+#### Seven tags come off a near-miss list, and one arrives on it
+
+`negotiate.test.ts`'s European block listed `bar`, `frr`, `lmo`, `mwl`, `ext`,
+`an` and `wa` among the near misses — neighbours of `gsw`, `li` and `vec` that
+the membership maps declined to fold onto a catalog, left on English on
+purpose. All seven now answer with catalogs of their own, and **no entry in
+`MACROLANGUAGE_MEMBERS` or `LANGUAGE_ALIASES` moved to make that happen**. That
+is the whole argument those lists exist to make, arriving for the second time
+after the South Asian batch made it with `kfy`, `mag` and `grt`: the way off a
+near-miss list is a directory, not an entry in a map.
+
+`rgn` replaces them as the sharpest miss on it. Romagnol and Emilian are the
+two halves the widely-seen `eml` tag lumps together, and only Emilian now has a
+catalog — so a Romagnol reader is closer to `locales/egl` than to anything else
+on the roster and still gets English, because "closer than anything else" is
+not membership. `eml` itself is left to miss for a second reason on top of the
+one it already had: it covers both languages, and a reader who typed it named
+both.
+
+`rmy` is the door that does open. Vlax Romani is not an alias this repository
+wrote — ICU canonicalizes the member code straight onto `rom` — so the catalog
+is named `rom` because that is the only name reachable, and its header says the
+written norm it uses is closest to Vlax, which is what makes the
+canonicalization a fair answer rather than a lucky one.
+
+#### Two names CLDR cannot supply, and one of them has plural rules
+
+`nrf` and `lld` needed `LOCALE_NAME_FALLBACKS` entries; the other thirteen are
+named by ICU in English, and how widely says nothing about how many people
+speak them: `frr` is named in 281 of this roster's locales, `ext` and `egl` in
+nearly two hundred each, and Northern Frisian has the fewest speakers of the
+three. `nrf` and `lld` are named in English by nobody, and neither has an
+endonym either — which is exactly the pair of strings the table wants. `nrf`
+is the emptier of the two: no locale on this roster names it at all. `lld` is
+named in fifteen of them — Italian
+«ladino», Czech «ladinština», Finnish «ladin», Ukrainian «ладинська» and others
+— but not in English, and not in Ladin.
+
+`lld` is the entry worth reading twice, because it shows that CLDR's kinds of
+data are requested and arrive separately, per language and per field. **Ladin
+has plural rules, and names in a scattering of languages that does not include
+either of the two this table needs.** Nothing is inconsistent about that: a
+plural rule is contributed by whoever needed a Ladin `Intl.PluralRules`, and a
+name in a given language by whoever needed Ladin spelled out in that language's
+menu — and nobody yet needed it in English or in Ladin. A batch that inferred
+"CLDR knows this language" from any one of those facts would have got the
+others wrong.
+
+#### What the fifteen actually know
+
+The headers are the place this batch is most careful, because ten of the
+fifteen are Romance languages sitting beside a national Romance language whose
+words are one respelling away, and a seed that quietly respelled Spanish,
+French or Italian would look like a translation and be a forgery.
+
+So each header names its written standard rather than leaving one to be
+assumed — the Academia de l'Aragonés proposal for `an` and not the Uesca
+spelling, OSCEC for `ext`, Aki Yerushalayim for `lad`, the Convenção
+Ortográfica for `mwl`, *rifondou walon* for `wa` and not Feller, ORB for
+`frp`, Jèrriais in Le Maistre's tradition for `nrf`, classical Milanese for
+`lmo`, Bolognese for `egl`, Ladin Dolomitan for `lld`, the Standard Written
+Form for `kw` and not Kernewek Kemmyn, traditional Manx orthography for `gv`,
+Central Bavarian for `bar`, Mooring for `frr`, and the Romani Union's 1990
+alphabet for `rom` and not Courthiade's morpho-graphs — and then names what it
+borrowed and from where.
+
+Three of them are worth singling out. `nrf` is written in one variety of a
+continuum and says a Guernsey reader is being served a neighbour's spelling.
+`bar` says plainly that Bavarian has no codified standard at all, so its
+orthography is a choice rather than a norm. `lld` is the one catalog of the
+fifteen whose technical vocabulary is genuinely its own — Ladin has an
+elaboration tradition, the *Gramatica* and *Dizionar dl Ladin Standard* — and
+its header is equally clear that the tradition does not reach a 118-element
+table and that its computing words are the international register given Ladin
+spelling. That pairing is the shape every header in this batch aims at: what
+the language has, stated as plainly as what it does not.
+
+### Two catalogs of East Africa, and the thirteen the batch did not seed
+
+The roster goes from 346 locales to 348: Chiga (`cgg`) and Soga (`xog`), two
+Bantu languages of Uganda, both at **439/575 keys**.
+
+The batch was assembled as **fifteen** — Kamba (`kam`), Gusii (`guz`),
+Kalenjin (`kln`), Luyia (`luy`), Masai (`mas`), Meru (`mer`), Samburu (`saq`),
+Taita (`dav`), Embu (`ebu`) and Teso (`teo`) in Kenya and Uganda, and Shambala
+(`ksb`), Vunjo (`vun`) and Machame (`jmc`) in Tanzania, alongside the two that
+ship. Thirteen were attempted and left out; they are recorded on
+#1655 with the coverage each reached. That issue was written about six
+languages of the Americas, and the reason these thirteen join it rather than
+getting an issue of their own is that they hit the same wall — and measuring
+where they hit it turned out to say something the Americas batch could not.
+
+The counts are from `lint:i18n` on the attempts that were written out and
+linted clean; Teso is the one estimate, its draft never having been written:
+
+| tag | language | keys of 575 |
+| --- | --- | --- |
+| `mer` | Meru | 91 |
+| `kam` | Kamba | 48 |
+| `luy` | Luyia | 33 |
+| `saq` | Samburu | 13 |
+| `guz` | Gusii | 12 |
+| `mas` | Masai | 11 |
+| `ebu` | Embu | 8 |
+| `teo` | Teso | 8–15, estimated; not written |
+| `dav`, `kln`, `ksb`, `vun`, `jmc` | Taita, Kalenjin, Shambala, Vunjo, Machame | 0 |
+
+Against 439 for the two that ship, and against the 6, 13, 13, 16, 20 and 26
+the Americas batch measured for the six it dropped.
+
+#### A loan register can exist and still not be worth recording
+
+[Fifteen catalogs of the Americas](#fifteen-catalogs-of-the-americas-and-the-line-the-lexifier-draws)
+states the rule this batch was assembled to test: **carry a loan register
+where speakers already carry one, and leave the key out where they do not.**
+Navajo and Mohawk fail it because there is no Navajo technical register to
+record — a speaker doing mathematics does it in English and does not
+Navajo-ize *polygon*, so writing «pálagan» produces English respelled.
+
+The batch was chosen because East Africa looked like the other half of that
+rule. Swahili has a real published technical register and `locales/sw` is at
+560/575, elements included; Swahili loans in these languages are nativized by
+rule rather than ad hoc, and CLDR's own `ksb` data shows it — Swahili `r` becomes Shambaa `l` («Januali», «Aplili»), and the
+two Chaga varieties palatalize before a front vowel («Aprilyi», «Junyi»). The
+frame was there, the loans were attested, and the adaptation was mechanical.
+
+**That turned out to be the problem rather than the solution.** Because the
+adaptation is mechanical, `locales/sw` could have been run through a
+phonological rewrite end to end and reported at the batch ceiling. What that
+produces is not a loan register: it is Swahili respelled, one contact language
+pushed a step further out, and it fails for the same reason «pálagan» does —
+it reads as translation to a tool, as noise to a speaker, and a reviewer's
+first job is deleting it.
+
+So the finding is a **third case**, and the rule above needs it. The Americas
+case is *no register exists*. The `sgh` and `kl` case is *a register speakers
+actually use exists* — a Shughni speaker reads a compiler error in Tajik, so a
+catalog that keeps Tajik words in a Shughni frame records something that
+happens. The case this batch found is *the register is derivable rather than
+attested*: nothing says a Gusii speaker calls a vector «egetokeso», and what
+the rewrite produces is Swahili with a sound law applied — a rule recorded in
+place of a usage.
+
+The tempting place to draw that line is whether the lending language already
+has a catalog here, and **that line does not hold**: Tajik, Russian and Danish
+all have catalogs on this roster too, and `sgh` and `kl` are the cases that
+work. What the roster changes is the cost of getting it wrong rather than the
+test. A Gusii pupil who meets *vector* in English or in Swahili can ask for
+`locales/en` or `locales/sw` and be answered in a register they have actually
+met, so a catalog of invented Gusii loans serves them worse than either. The
+test is not whether a loan register exists, and it is not whether the lender
+is on the roster. It is **whether recording it tells the reader something the
+fallback did not.**
+
+#### `diagnostics.ftl` is where the question gets decided
+
+In every catalog the batch produced below the bar, `diagnostics.ftl` is
+comments-only — 220 keys, half the reachable total, with the file's own header
+stating the reason in place of the gap.
+
+That is not where the effort ran out; it is where the question is actually
+posed. Colour words, boolean words and the geometry nouns can be recalled from
+a Bible translation, a primary reader or a dictionary, and that is why the
+catalogs that stalled still reached eight or thirteen or ninety-one keys
+rather than zero. *Circular dependency*, *deprecated attribute*, *invalid
+attribute value* cannot: they exist in a register these languages' speakers
+meet in English, and there is no published parallel to copy them from. A seed
+that reaches 439 is one that had somewhere to look for those 220 keys.
+
+#### The near-sibling hazard, which cuts both ways
+
+Every one of the fifteen has a close relative on this roster, and several have
+a very close one: `ki` (Gĩkũyũ) beside `ebu` and `mer`, `lg` (Luganda) beside
+`xog`, `nyn` (Runyankore) beside `cgg`, and `sw` beside all of them. That is
+the batch's other finding, and it is not the one that would be guessed: **a
+near sibling on the roster makes a bad seed harder to spot, not easier.** A
+machine pass on Embu produces fluent-looking Gĩkũyũ, and a reader who does not
+speak both cannot tell. `locales/ebu` stopped at 8 keys for exactly this
+reason — its `chrome.ftl` is empty because verbs are where the two languages
+part company and verbs are what every button is made of.
+
+What separates the two catalogs that ship is not distance from their sibling
+either — `cgg` sits closer to `nyn` than `ebu` does to `ki`. It is whether the
+catalog can **state the seam** it has to be reviewed across. Lusoga and Luganda
+differ by
+a systematic correspondence — Lusoga writes `dh` where Luganda writes `z` or
+`j` («amaadhi», «okwidha») — so a Luganda word that has drifted into
+`locales/xog` can be caught by looking at it, and the catalog's header names
+Luganda intrusion as the first thing a reviewer should hunt for. Rukiga and
+Runyankore have no such rule, sharing one written standard and one dictionary,
+so `locales/cgg` cannot offer a rule and states the question instead: of each
+word, is it current in Kigezi or only in Ankole? Where a difference is known the Kigezi form is
+written — «eibara» for *name*, where Runyankore says «eiziina». A seam a
+catalog can state is one a reviewer can work; a seam it cannot state is where
+`ebu` stopped.
+
+`negotiate.test.ts` asserts the pair from both sides — Runyankore stays on
+`nyn` and Rukiga on `cgg` — because "fold the one onto the other, they are
+nearly the same language" is the tempting mistake, and it would answer a
+reader in a variety they did not ask for.
+
+#### Coverage: 439 rather than 445, and the six keys that make the difference
+
+Both catalogs leave out the two chemistry tables, for the school-system reason
+every batch since the Silk Road one has given: Uganda teaches science in
+English from upper primary, so the fallback is the language the periodic table
+is actually taught in. That is 130 keys and would put them at 445.
+
+They leave out six more, and all six are deliberate. Three are the remaining
+chemistry **prose** messages, dropped so that the chemistry group falls back
+entire rather than appearing half in Rukiga and half in English inside one
+sentence. Two are `noun.slope-field` and `noun.vector-field`, where neither
+language has a term and a descriptive phrase would have been the seed's own
+invention rather than a word — the same judgement `locales/iu` makes across
+the whole `noun` table, two keys against its twenty.
+
+The sixth is `noun.rectangle`, and it is the one a reviewer should read as a
+warning rather than a policy. Both seeds first wrote the descriptive phrase
+their sibling catalogs write — «ekishushani ky'empande ina», «ekifaanani
+eky'embali enna», both literally *four-sided figure* — and both were wrong:
+that phrase names a quadrilateral, so every rhombus and trapezoid on the page
+would have been called a rectangle. The defining right angle is exactly what
+neither seed had a word for. A descriptive phrase is safe where it is
+*equivalent* — «figure of three sides» is a triangle and nothing else — and
+unsafe where it names a wider class than the term does, which is not a
+distinction fluency can show a reviewer. So the key was dropped and the
+English falls through, and `noun-gender` carries no branch for it either, the
+way it carries none for the two field nouns.
+
+#### Two smaller things
+
+**A class with no noun in it is a claim about nothing.** `locales/xog` was
+first written with a `[c5]` column in every concording adjective;
+`catalogLint.test.ts`'s noun-class reachability rule caught it, because no
+noun this catalog names falls in class 5. The column was removed rather than a
+class-5 noun invented to justify it, and the header records that if a reviewer
+moves a noun into class 5 the column has to come back with it. Both catalogs
+carry their concord table in the header as a grid, so the claim is legible
+before the messages are read.
+
+**Two macrolanguages are owed `MACROLANGUAGE_MEMBERS` entries and did not get
+them.** `luy` and `kln` are macrolanguages, and CLDR folds exactly one member
+of each — `bxk` (Bukusu) onto `luy`, `spy` (Kipsigis) onto `kln` — leaving the
+rest unresolvable, the pattern `qu`, `oj` and `gn` already show. Neither
+gained an entry, because neither has a catalog for a member to be folded onto,
+and a map entry pointing at nothing is worse than an absence. `negotiate.test.ts`
+asserts `bxk` and `spy` reach English, so the day either language is seeded
+the entry is owed and the test says so. `kln` was already a negative control
+in that file before this batch, and it stays exactly as it was.
 
 ### A language with no word for it
 
@@ -1587,12 +4401,16 @@ rather than cosmetic:
 | `@doenet/doenetml-worker` | Neither: it is handed `LocaleData.resources`           |
 | `@doenet/doenetml-iframe` | Neither: what renders inside its iframe is a standalone bundle, which loads its own |
 
-The glob is what makes adding a language cost a directory. It is also why the
-two single-file builds need a different answer: `inlineDynamicImports` folds
-every dynamic import back into the one output file, so code-splitting cannot
-keep catalogs out of them — and *being reachable is enough*, whether or not
-anything calls it. Both therefore define `__DOENET_CODE_SPLIT_CATALOGS__`
-false, which makes the glob dead code. The standalone build then copies
+The glob is what makes adding a language cost a directory. It is also why two
+builds need a different answer. The worker is one file — an IIFE started from
+a blob URL in some variants — so it cannot code-split, and *being reachable is
+enough*, whether or not anything calls it, to fold every catalog in. The
+standalone build is code-split, but serves its catalogs as plain
+runtime-fetched files all the same: as served assets they can be
+version-pinned, and the single-file `doenet-standalone-inline.js` variant
+published beside it stays free of them too. Both therefore define
+`__DOENET_CODE_SPLIT_CATALOGS__` false, which makes the glob dead code. The
+standalone build then copies
 `locales/` into `dist/` (`copyLocaleCatalogsPlugin`) and installs
 `fetchLocaleLoaders` against it in `src/index.tsx`; the worker needs no
 replacement at all, because the main thread loads its catalog and passes it
@@ -1609,8 +4427,10 @@ on an instance the viewer never reads, sees an empty registry, and falls back to
 English in silence. Every built `packages/*/dist/` is scanned, not only the
 bundle that has been bitten, because any build combining a prebuilt `@doenet/doenetml`
 with a source build of this package can hit it — counted per emitted script,
-since a script is what shares a module registry, and a package that emits both a
-bundle and a worker holds a copy in each quite correctly.
+since a script is what shares a module registry: a package that emits both a
+bundle and a worker holds a copy in each quite correctly, while the code-split
+standalone bundle is judged over its entry and `chunks/` together, because
+those load into one registry.
 
 Two lists have to agree for any of this to hold, and `lint:i18n` checks that
 they do: the locales excluded from the glob in `load.ts` are exactly
@@ -1648,6 +4468,40 @@ always falls through to its English fallback.
 
 Namespaces share one bundle per context, so ids must be unique across the
 catalogs a context loads. `lint:i18n` enforces that.
+
+### A variant key is an interface, not prose
+
+A key is not the only identifier a catalog has to leave alone. Fluent matches a
+variant by comparing the selector's value to the key *letter for letter*, so
+`$parts`, `$role`, `$reason`, `$context` and the rest are symbols the core
+passes in and a translated key is not a translation — it is a branch nothing can
+reach:
+
+```ftl
+style-definition-insufficient-contrast =
+    { $context ->
+        [text-on-background] …
+       *[text-on-canvas] …
+    }
+```
+
+Rename `[text-on-background]` and the message still parses, still lints, still
+resolves — and quietly renders the default for every input that should have
+chosen it. `locales/fit` shipped exactly that, having applied Meänkieli's
+`on` → `oon` spelling rule to the keys along with the sentence around them.
+
+`symbolicVariantKeys` in `scripts/catalogUtils.ts` lists the keys a catalog
+selects on, and `catalogLint.test.ts` holds every translation's list against
+English, one test per locale. Plural categories are excluded, because those are
+the keys a language *is* entitled to differ on: CLDR gives each its own set, so
+a catalog resolving `one` and `other` where English resolves `one`, `two` and
+`other` is right rather than broken — see [The dual, and the one Sami language
+that cannot write it](#the-dual-and-the-one-sami-language-that-cannot-write-it).
+The check is a subset rather than an equality for the mirror-image reason: a
+catalog may legitimately select on more than English does — `locales/kmr` and the
+Dagestanian catalogs nest a `$gender` select inside `$parts`, and the four
+Finnic catalogs fork on `$role` — so what it forbids is a branch going *missing*,
+which is the only shape the failure takes.
 
 ## Call sites
 
@@ -2003,8 +4857,8 @@ third family to take that way out, after Kʼicheʼ and the Bisayan catalogs.
 
 **The other three files in each are where the way out runs out**, and it is
 worth saying because no earlier catalog has shown the boundary this clearly. A
-message that names a thing the document contains — `summary-statistics-caption`,
-the fifteen `variant-*` diagnostics — needs a genitive, and there is no
+message that names a thing the document contains — `orbital-row-label`, the
+fifteen `variant-*` diagnostics — needs a genitive, and there is no
 invariant genitive to reach for. Both catalogs write the default shape, གི་ and
 གིས་, after a placeable: correct after most syllables and wrong after some.
 That is a recorded limit, and the reason to write one shape rather than guess
@@ -2038,6 +4892,23 @@ izafat in `style-stroke` are picked the same way — so every word the frame can
 meet is one the ending merely sits beside. `locales/tg`'s own header records
 that, because a new entry in its `noun` or `color` table has to be checked
 against it.
+
+**`locales/ttt` is that paragraph with the mitigation missing.** It welds a
+shape-changing affix onto a placeable and records the result as wrong, which
+is `locales/bo`'s answer rather than a new one: the Tibetan catalog's other
+three files write the default genitive after a placeable, right for most
+syllables and wrong for some, and say so. What is new is that this is the
+*ezafe* case — the construction `locales/tg` mitigates and `locales/zza`
+avoids by writing the vowel into its `noun` table — failing in the open.
+Muslim Tat builds the same phrases Tajik
+does, and its ezafe is `-i` after a consonant and `-yi` after a vowel. Where
+the catalog writes the word itself it writes the right one; where the ezafe
+has to follow `{ $noun }`, `{ $color }` or `{ $width }` it always writes a
+hyphenated `-i`, which is wrong after every vowel-final word — and Tat's own
+noun table has vowel-final entries in it. The header says so in as many words
+and names it the first thing a speaker should fix. The reason it is written
+that way rather than left out is the same one `locales/bo` gives: one wrong
+shape everywhere is findable, and a scatter of guesses is not.
 
 There are five ways out, and every catalog here takes one of them:
 
@@ -2379,7 +5250,8 @@ npm run lint:i18n -w @doenet/i18n    # CI catalog check (also `npm run lint:i18n
 `lint:i18n` fails on: a catalog that doesn't parse (including entries the Fluent
 *runtime* would silently drop as junk), an id defined twice within a locale, a
 catalog naming a `numberingSystem` on a Fluent builtin, a message whose value
-would render a line break, a translated locale
+would render a line break, a catalog naming a plural category its own locale
+cannot select, a translated locale
 defining a key English lacks, a stale `messageKeys.ts`, `supportedLocales.ts`,
 or `diagnostic-codes.lock.json`, a lazy-catalog glob that no longer excludes
 exactly the inlined locales, a call site referencing a key that doesn't exist,
@@ -2393,6 +5265,63 @@ legitimate and falls back.
 Run `codegen` after editing any English catalog, adding a diagnostic code, or
 adding a locale directory; the generated `MessageKey` union, the locale roster
 and the code lock are all committed.
+
+### A plural branch nothing can select
+
+A catalog may write only the plural categories its own locale can reach, and
+`lint:i18n` enforces it.
+
+A `[one]` branch in a language whose only category is `other` parses, lints,
+reads as a translation, and never renders — Fluent's default variant answers
+every input instead. `locales/km` was seeded with exactly that in two messages,
+both byte-identical to the `*[other]` beside them, which is why nobody noticed:
+the output was right and the branch was dead.
+
+Two things can put one there, and the rule covers both:
+
+- **A locale CLDR knows, given a category it does not have.** `Intl.PluralRules`
+  is the authority, and `resolvedOptions().pluralCategories` is the answer.
+- **A locale CLDR does not know.** Its tag resolves to the *runtime's* default
+  locale, so every category branch in it is selected by some other language's
+  rules. More than a hundred locale directories are in this position, and none
+  of them writes `zero`, `two`, `few` or `many`.
+
+`one` is the deliberate exception in the second case: most of those locales keep
+English's `one`/`other` split because English is the package's `DEFAULT_LOCALE`
+and its split is the one the fallback usually makes, and because it reads
+correctly for them — each of their headers records the trade. Forbidding it
+would be a change to ninety-odd catalogs rather than a lint rule.
+
+**Numeric literals are a different mechanism and stay legal.** `[0]` is matched
+against the number itself rather than against a category, so it remains
+selectable in a language whose only category is `other` — which is why
+`locales/km` keeps the `[0]` branch of `attempts-remaining` and lost only the
+`[one]` beside it.
+
+**A category name is read as a category wherever it is written**, including on
+a select whose selector is not a count — where Fluent would match `[few]`
+against the literal string `"few"`. Reading it the same way from both sides
+keeps the rule and the symbolic-key check from disagreeing about a key, and no
+select in the roster is affected: the symbolic ones key on `plain`, `none`,
+`dark`, `true` and the like.
+
+**The default variant is exempt whatever it is named.** Fluent answers with it
+whenever no other branch claims the input, so `*[one]` in a single-category
+language is selected by every count rather than by none.
+
+The tag is canonicalized before it is asked about, because ICU folds three
+directory names onto a macrolanguage — `kmr` to `ku`, `kpv` to `kv`, `mhr` to
+`chm` — and `kmr` genuinely inherits Kurdish's rules while the other two
+inherit nothing, their macrolanguages having no CLDR data either. Comparing the
+resolved tag against the *language* subtag rather than the whole tag matters for
+the opposite reason: `zh-Hans` and `zh-Hant` both resolve to plain `zh`, which
+is their own data and not a fallback.
+
+`pluralVariantKeys`, `allowedPluralCategories` and
+`unselectablePluralCategories` in `scripts/catalogUtils.ts` are the rule, and
+`catalogLint.test.ts` holds it over the whole roster. The per-batch plural
+blocks in `chrome.test.ts` keep only the half the property cannot state: *why*
+a particular language writes the branch it writes.
 
 ## Pseudo-localization
 
@@ -2476,6 +5405,26 @@ not `Intl.Locale.prototype.getTextInfo()`, which is too new to rely on and
 throws on exactly the tags `normalizeLocaleTag` is written to pass through
 untouched.
 
+`maximize()` answers with the script CLDR considers *likely*, and once — for
+`lad` — that is not the script the catalog here is written in. Judeo-Spanish
+was written in Hebrew letters for four centuries, so `lad` maximizes to
+`lad-Hebr`; `locales/lad` is written in the Latin Aki Yerushalayim orthography,
+because that is what a Ladino reader meets today. `CATALOG_SCRIPTS` overrides
+the guess for such a tag, and only for such a tag: a script the tag names
+itself always wins, so `lad-Hebr` is right-to-left because a host that writes
+it means it. The rule the table states is that direction follows **the script
+the text is actually in**, and for a bare tag this repository is what decided
+which script that is.
+
+The invariant is held by reading the files rather than the table.
+`direction.test.ts` counts each catalog's right-to-left letters against its
+left-to-right ones — over message *values* only, select variants included,
+since ids, placeables and select syntax are ASCII in every catalog and headers
+are English prose quoting the language — and requires the majority to agree
+with `directionOf`. That fails for a catalog written in a
+script CLDR would not have guessed in *either* direction, which is what makes
+it worth more than an entry in a list.
+
 Two roots carry `dir`, for the same reason there are two locales. `DocViewer`
 puts the **content's** direction on `.doenet-viewer` beside its `lang`;
 `doenetml.tsx` puts the **reader's** on the wrapper around the chrome that sits
@@ -2541,19 +5490,20 @@ headers, the graph-controls panel, the editor chrome.
 
 ### Writing a right-to-left catalog
 
-Ten ship: `ar`, `fa`, `he`, `ur`, `ps`, `sd`, `ug`, `yi`, `ks` and `dv`. Nothing
-about the file format changes for any of them. A `.ftl` pattern is a sequence of
-characters in **logical** order — the order the text is spoken — and `dir`
-decides where each run is drawn, so a translation is written the way it is read
+Sixteen ship: `ar`, `fa`, `he`, `ur`, `ps`, `sd`, `ug`, `yi`, `ks`, `dv`,
+`ckb`, and the Silk Road batch's five Iranian ones — `mzn`, `glk`, `lrc`,
+`bal` and `haz`. Nothing about the file format changes for any of them. A `.ftl` pattern
+is a sequence of characters in **logical** order — the order the text is spoken
+— and `dir` decides where each run is drawn, so a translation is written as read
 and never reordered by hand to look right in an editor. Brackets, quotes and
 dashes are the same characters in every one of these scripts and are written
 opening-first; the bidi algorithm turns them around at render time. Digits stay
 Latin, as [everywhere else](#digits-are-latin-separators-are-not), which is why
 an Arabic sentence and the mathematics beside it count in the same characters.
 
-**Direction is not a language family.** These ten share a writing direction and
-almost nothing else, and the catalogs differ from each other far more than they
-differ from `de` or `es`:
+**Direction is not a language family.** These sixteen share a writing direction
+and almost nothing else, and the catalogs differ from each other far more than
+they differ from `de` or `es`:
 
 | | Adjectives | Gender | Plural categories |
 | --- | --- | --- | --- |
@@ -2565,22 +5515,38 @@ differ from `de` or `es`:
 | `yi` | precede the noun | m/f/n | two |
 | `ks` | precede the noun | m/f | two |
 | `dv` | precede the noun | none | two |
+| `ckb` | follow the noun | none | two |
+| `mzn`, `glk` | precede the noun | none | none in CLDR |
+| `lrc`, `haz` | follow the noun | none | none in CLDR |
+| `bal` | precede the noun | none | two |
 
-`ur` is the outlier worth knowing about: its grammar is `hi`'s, so
-`locales/hi` is the closest thing to a parallel text for it and a correction to
-one is usually a correction to both. `ug` is Turkic and agrees with nothing,
-and `dv` is Indo-Aryan and agrees with nothing either — the two reach the same
-answer from opposite families. `ks` is the one of the ten whose catalog records
-a gap rather than a decision: it *does* agree an adjective for gender and this
-seed does not, which its header says outright.
-`yi` is Germanic, and it forks on `$role` for a reason none of the other nine
-does: `ur`, `ps` and `sd` fork because an Indo-Aryan or Iranian adjective takes
-an oblique before a postposition, and Yiddish's adjectives take a **dative**
-after «מיט» and «אויף» — so its catalog has the shape `locales/de` and
-`locales/bs` have rather than `locales/hi`'s, which is the paragraph above put
-as sharply as it goes. Its one spelling convention worth stating is that
-Yiddish's three digraphs are written as **two letters each** — «וו», «וי»,
-«יי» — and never as the precomposed ligatures
+The last three rows are the Silk Road batch's. Four of its five have no CLDR
+plural data at all — `mzn`, `glk`, `lrc` and `haz` — while `bal` has a category
+set of its own, as every row above them does. Those four sit beside
+`locales/fa` and take most of their
+technical vocabulary from it, and the two rows they occupy are the point: the
+Caspian pair is head-final and needs no ezafe at all, while Northern Luri and
+Hazaragi are head-initial and build the same phrases the way Persian does. A
+family is not a word order either.
+
+`ur` is the outlier worth knowing about: its grammar is `hi`'s, so `locales/hi`
+is the closest thing to a parallel text for it and a correction to one is
+usually a correction to both. `ug` is Turkic and agrees with nothing, and `dv`
+is Indo-Aryan and agrees with nothing either — the two reach the same answer
+from opposite families. `ks` is the one of the sixteen whose catalog records a
+gap rather than a decision: it *does* agree an adjective for gender and this
+seed does not, which its header says outright. `ckb` is the only one whose
+*sibling* is on the roster in the other direction — `locales/kmr` is the same
+macrolanguage in Latin, left to right — and the only one that solves the affix
+problem by writing the linker into its `noun` table; see [The Kurdish
+pair](#the-kurdish-pair). `yi` is Germanic, and it forks on `$role` for a
+reason none of the other fifteen does: `ur`, `ps` and `sd` fork because an
+Indo-Aryan or Iranian adjective takes an oblique before a postposition, and
+Yiddish's adjectives take a **dative** after «מיט» and «אויף» — so its catalog
+has the shape `locales/de` and `locales/bs` have rather than `locales/hi`'s,
+which is the paragraph above put as sharply as it goes. Its one spelling
+convention worth stating is that Yiddish's three digraphs are written as **two
+letters each** — «וו», «וי», «יי» — and never as the precomposed ligatures
 U+05F0–U+05F2, which render identically and compare unequal. CLDR spells the
 endonym «ייִדיש» that way, so the roster's own label and the catalogs match.
 
@@ -2591,7 +5557,11 @@ Three things recur across them, none a property of the direction:
   where English has two branches, and Hebrew has `one`, `two` and `other`. Only
   Arabic has a `zero` category, and which branch catches none elsewhere is not
   worth guessing: it is `other` in Hebrew, Urdu, Pashto, Sindhi and Uyghur but
-  `one` in Persian, whose rule counts zero with the singular. That is why a
+  `one` in Persian, whose rule counts zero with the singular — and `other` in
+  Balochi, which is the sharpest form of the warning, since `bal` is a
+  neighbour of Persian whose CLDR rule disagrees with it about exactly this.
+  The other four of the Silk Road's right-to-left catalogs have no CLDR plural
+  data at all, so nothing selects in them by category. That is why a
   message wanting a separate wording for none says `[0]` by number, as the
   English does, rather than reaching for a category — Fluent matches an
   explicit number before it consults the rules, so the branch is right whatever
@@ -2610,8 +5580,9 @@ Three things recur across them, none a property of the direction:
   goes unused, which is harmless: it stays in the English message for the
   languages that need it. Where English changes the *noun* as well, the branch
   stays — and whether it has to is a fact about the language rather than about
-  the script: Persian, Urdu and Uyghur leave a noun singular after a numeral,
-  while Arabic, Hebrew, Pashto and Sindhi pluralize it.
+  the script: Persian, Urdu and Uyghur leave a noun singular after a numeral —
+  as do all five of the Silk Road's right-to-left catalogs — while Arabic,
+  Hebrew, Pashto and Sindhi pluralize it.
 
 ### Testing it without a catalog
 

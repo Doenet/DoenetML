@@ -170,7 +170,6 @@ color =
                    *[m] карычневы
                 }
         }
-
 line-width =
     .thick =
         { $role ->
@@ -196,7 +195,6 @@ line-width =
                    *[m] тонкі
                 }
         }
-
 line-style =
     .dashed =
         { $role ->
@@ -222,7 +220,6 @@ line-style =
                    *[m] пункцірны
                 }
         }
-
 # Noun phrases in the instrumental, which is the case «з» takes. They agree
 # with nothing.
 fill-style =
@@ -232,7 +229,6 @@ fill-style =
     .backdiagonal = адваротнымі дыяганальнымі лініямі
     .dots = кропкамі
     .diamonds = ромбамі
-
 noun =
     .line = прамая
     .line-segment = адрэзак
@@ -252,7 +248,6 @@ noun =
     .diamond = ромб
     .cross = крыж
     .plus = плюс
-
 # Belarusian keeps the side count in front of the noun, so the whole of it is
 # one head and there is no tail.
 noun-regular-polygon =
@@ -260,7 +255,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] правільны { $numSides }-вугольнік
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (мнагавугольнік, m)
 # or the head of a phrase the description never names: `border` (рамка, f),
 # `fill` (заліўка, f), `text` (тэкст, m), `background` (фон, m).
@@ -279,7 +273,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -292,13 +285,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # Only ever said of the shape itself, so it is standalone in every description
 # and takes no `$role` branch.
 style-filled-word =
@@ -307,13 +298,11 @@ style-filled-word =
         [n] зафарбаванае
        *[m] зафарбаваны
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } з { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } з { $pattern }
@@ -321,7 +310,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } з { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «рамка» is feminine, so the border's adjectives agree with it and not with
 # the shape it surrounds. Belarusian has no article, so the two `-article`
 # branches read like the two without.
@@ -332,7 +320,6 @@ style-border-clause =
         [and-article] і { $border } рамкай
        *[with] з { $border } рамкай
     }
-
 # The fill-pattern words are instrumental plurals, because their other use is
 # the «з { $pattern }» clause in `style-filled`. So this message supplies a noun
 # for them to hang off — «заліўка», feminine, which is the gender `noun-gender`
@@ -342,29 +329,23 @@ style-fill =
         [pattern] { $color } заліўка з { $pattern }
        *[plain] { $color } заліўка
     }
-
 style-unfilled = незафарбаваны
-
 style-text =
     { $parts ->
         [background] { $color } на { $background } фоне
        *[plain] { $color }
     }
-
 style-background-none = няма
-
 
 ## Boolean words
 
 boolean-true = праўда
 boolean-false = няпраўда
 
-
 ## Answer buttons
 
 answer-submit-label = Праверыць
 answer-submit-label-no-correctness = Адправіць адказ
-
 
 ## Sectional blocks
 
@@ -389,7 +370,6 @@ section-name =
     .solution = Рашэнне
     .task = Задача
     .theorem = Тэарэма
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -399,9 +379,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Падказка
-
 
 ## Tables and figures
 
@@ -412,7 +390,6 @@ table-name =
         [unnumbered-title] Табліца{ ". " }
        *[unnumbered] Табліца
     }
-
 figure-name =
     { $parts ->
         [numbered] Малюнак { $enumeration }
@@ -421,22 +398,18 @@ figure-name =
        *[unnumbered] Малюнак
     }
 
-
 ## Paginator controls
 
 paginator-previous = Назад
 paginator-next = Наперад
 paginator-page = Старонка
-
 paginator-page-status = { $pageLabel } { $currentPage } з { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = або
 piecewise-condition-if = калі
 piecewise-condition-otherwise = інакш
-
 
 ## Chemistry
 
@@ -559,7 +532,6 @@ element-name =
     .lv = Лівермарый
     .ts = Тэнесін
     .og = Аганесон
-
 element-anion-name =
     .h = Гідрыд
     .c = Карбід
@@ -573,8 +545,6 @@ element-anion-name =
     .i = Ёдыд
     .at = Астатыд
     .ts = Тэнесід
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Няправільны хімічны сімвал
 chemistry-invalid-ionic-compound = Няправільнае іоннае злучэнне

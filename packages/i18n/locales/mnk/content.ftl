@@ -50,18 +50,15 @@ color =
     .purple = purupuloo
     .pink = piŋkoo
     .brown = burawunoo
-
 line-width =
     .thick = waroo
     .thin = meseŋo
-
 # Written as invariable «niŋ …» phrases rather than as qualifiers, so that they
 # take no `-o` agreement and can close the description. `style-stroke` puts
 # them last.
 line-style =
     .dashed = niŋ dasoolu
     .dotted = niŋ tombondiŋolu
-
 fill-style =
     .horizontal = laayinoolu meŋ laata
     .vertical = laayinoolu meŋ loota
@@ -69,7 +66,6 @@ fill-style =
     .backdiagonal = laayinoolu meŋ jenketa karoo doo la
     .dots = tombondiŋolu
     .diamonds = dayamondoolu
-
 noun =
     .line = laayinoo
     .line-segment = laayin kuntoo
@@ -89,7 +85,6 @@ noun =
     .diamond = dayamondoo
     .cross = kurusoo
     .plus = lafaa taamanseeroo
-
 # The side count follows the qualifiers, behind «meŋ ye … soto», because
 # Mandinka closes a noun phrase with a relative rather than opening one.
 noun-regular-polygon =
@@ -97,11 +92,9 @@ noun-regular-polygon =
         [tail] meŋ ye karoo { $numSides } soto
        *[head] poligoŋ tembendiŋo
     }
-
 # No grammatical gender, so this answers one token for every noun and the
 # answer goes unused — the shape `locales/en` has.
 noun-gender = kiliŋ
-
 
 ## Style composition
 
@@ -115,21 +108,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = faariŋo
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } niŋ { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } niŋ { $pattern }
@@ -137,7 +126,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } niŋ { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Mandinka has no article, and joins this clause with the invariable «niŋ»
 # whatever came before it, so all four branches read alike.
 style-border-clause =
@@ -147,35 +135,28 @@ style-border-clause =
         [and-article] niŋ naanewo { $border }
        *[with] niŋ naanewo { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = meŋ maŋ faa
-
 style-text =
     { $parts ->
         [background] { $color } niŋ kooma { $background }
        *[plain] { $color }
     }
-
 style-background-none = feŋ te jee
-
 
 ## Boolean words
 
 boolean-true = tooñaa
 boolean-false = faniyaa
 
-
 ## Answer buttons
 
 answer-submit-label = Dookuwo Koroosi
 answer-submit-label-no-correctness = Jaabiroo Kii
-
 
 ## Sectional blocks
 
@@ -200,7 +181,6 @@ section-name =
     .solution = Bataa dandaŋo
     .task = Dookuwo
     .theorem = Teyoreemoo
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -210,9 +190,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Yitandiroo
-
 
 ## Tables and figures
 
@@ -223,7 +201,6 @@ table-name =
         [unnumbered-title] Tabuloo{ ": " }
        *[unnumbered] Tabuloo
     }
-
 figure-name =
     { $parts ->
         [numbered] Natamboo { $enumeration }
@@ -232,24 +209,18 @@ figure-name =
        *[unnumbered] Natamboo
     }
 
-
 ## Paginator controls
 
 paginator-previous = Meŋ tambita
 paginator-next = Meŋ ka naa
 paginator-page = Karataa
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = waraŋ
-
 piecewise-condition-if = niŋ
-
 piecewise-condition-otherwise = dulaa doolu bee to
-
 
 ## Chemistry
 ##
@@ -267,6 +238,5 @@ piecewise-condition-otherwise = dulaa doolu bee to
 ## Africa.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Kemisitiri Taamanseer Kuruŋo
 chemistry-invalid-ionic-compound = Ayoŋ Ñaboo Kuruŋo

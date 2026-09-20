@@ -98,15 +98,12 @@ color =
     .purple = vio
     .pink = piŋki
     .brown = ntɔlɛ
-
 line-width =
     .thick = kpanngban
     .thin = kaan
-
 line-style =
     .dashed = mɔ be pɔtɔli i nun
     .dotted = mɔ ndɛnkɛtɛ o i nun
-
 fill-style =
     .horizontal = liɲ mɔ be tɔli i nun i wia bo lɛ
     .vertical = liɲ mɔ be tɔli i nun sinlɛ lɛ
@@ -114,7 +111,6 @@ fill-style =
     .backdiagonal = liɲ mɔ be tɔli i nun kekle sin i ekun
     .dots = ndɛnkɛtɛ mun
     .diamonds = diaman mun
-
 noun =
     .line = liɲ
     .line-segment = liɲ i wafa kaan
@@ -134,7 +130,6 @@ noun =
     .diamond = diaman
     .cross = kroa
     .plus = kabo sunmanlɛ
-
 # The side count follows the adjectives, joined by «mɔ ɔ wɔ», as the border
 # clause below joins its own complement — Baoulé, like Twi, closes the noun
 # phrase with a relative rather than opening one.
@@ -143,9 +138,7 @@ noun-regular-polygon =
         [tail] mɔ ɔ wɔ nzo { $numSides }
        *[head] wafa mɔ ɔ ti kpokpo kpa
     }
-
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -159,21 +152,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = mɔ be yili i nun ma
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } mɔ { $pattern } o i nun
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } mɔ { $pattern } o i nun
@@ -181,7 +170,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } mɔ { $pattern } o i nun
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Baoulé has no article and joins the complement with the invariable «mɔ ɔ wɔ
 # i su», so all four branches read alike.
 style-border-clause =
@@ -191,21 +179,17 @@ style-border-clause =
         [and-article] mɔ ɔ wɔ i su { $border }
        *[with] mɔ ɔ wɔ i su { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = mɔ be yiman i nun ma
-
 style-text =
     { $parts ->
         [background] { $color } mɔ akyi { $background } o
        *[plain] { $color }
     }
-
 style-background-none = fii
 
 ## Boolean words
@@ -241,7 +225,6 @@ section-name =
     .solution = Tɛlɛ ng'ɔ kle sa'n
     .task = Junman
     .theorem = Nglɛlɛ dan
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -251,7 +234,6 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Ndɛ ɲrɛnnɛn
 
 ## Tables and figures
@@ -263,7 +245,6 @@ table-name =
         [unnumbered-title] Tablo{ ": " }
        *[unnumbered] Tablo
     }
-
 figure-name =
     { $parts ->
         [numbered] Fɔto { $enumeration }
@@ -277,7 +258,6 @@ figure-name =
 paginator-previous = Osu
 paginator-next = Ɲɛ
 paginator-page = Bue
-
 paginator-page-status = { $pageLabel } { $currentPage } (bue { $numPages } nun)
 
 ## Piecewise functions
@@ -292,6 +272,5 @@ piecewise-condition-otherwise = sɛ i sɔ timan sa'n
 ## header's chemistry paragraph.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Simii Nzuɛn Nzɛnzɛ Mɔ I Ti Timan Kpa
 chemistry-invalid-ionic-compound = Ayɔn Nkabo Mɔ I Ti Timan Kpa

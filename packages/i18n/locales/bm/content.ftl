@@ -42,17 +42,14 @@ color =
     .purple = wulenfinman
     .pink = wulenɲɛman
     .brown = bɔgɔlama
-
 line-width =
     .thick = bonman
     .thin = misɛnman
-
 # Written as «ni …» phrases rather than as qualifiers, so that they take no
 # `-man` and can close the description. `style-stroke` puts them last.
 line-style =
     .dashed = ni tirɛw ye
     .dotted = ni pɔnw ye
-
 fill-style =
     .horizontal = liɲi dalenw
     .vertical = liɲi jɔlenw
@@ -60,7 +57,6 @@ fill-style =
     .backdiagonal = liɲi jɛngɛlen kɔfɛtaw
     .dots = pɔnw
     .diamonds = losanziw
-
 noun =
     .line = liɲi
     .line-segment = liɲi tilayɔrɔ
@@ -80,7 +76,6 @@ noun =
     .diamond = losanzi
     .cross = kuruwa
     .plus = fara-taamasere
-
 # The side count follows the qualifiers, behind «min kɛrɛ … ye», because
 # Bambara closes a noun phrase with a relative rather than opening one.
 noun-regular-polygon =
@@ -88,9 +83,7 @@ noun-regular-polygon =
         [tail] min kɛrɛ { $numSides } ye
        *[head] poligɔni bɛnnen
     }
-
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -104,21 +97,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = falen
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } ni { $pattern } ye
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } ni { $pattern } ye
@@ -126,7 +115,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } ni { $pattern } ye
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Bambara has no article and joins the complement with the invariable «ni …
 # ye», so all four branches read alike.
 style-border-clause =
@@ -136,35 +124,28 @@ style-border-clause =
         [and-article] ni dancɛ { $border } ye
        *[with] ni dancɛ { $border } ye
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = falenbali
-
 style-text =
     { $parts ->
         [background] { $color } kɔkanna { $background } kan
        *[plain] { $color }
     }
-
 style-background-none = foyi tɛ
-
 
 ## Boolean words
 
 boolean-true = tiɲɛ
 boolean-false = galon
 
-
 ## Answer buttons
 
 answer-submit-label = Baara Sɛgɛsɛgɛ
 answer-submit-label-no-correctness = Jaabi Ci
-
 
 ## Sectional blocks
 
@@ -189,7 +170,6 @@ section-name =
     .solution = Ɲɛnabɔli
     .task = Baara
     .theorem = Teyorɛmu
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -199,9 +179,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Ladilikan
-
 
 ## Tables and figures
 
@@ -212,7 +190,6 @@ table-name =
         [unnumbered-title] Tabali{ ": " }
        *[unnumbered] Tabali
     }
-
 figure-name =
     { $parts ->
         [numbered] Ja { $enumeration }
@@ -221,22 +198,18 @@ figure-name =
        *[unnumbered] Ja
     }
 
-
 ## Paginator controls
 
 paginator-previous = Kɔfɛta
 paginator-next = Nata
 paginator-page = Sɛbɛnnisɛn
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = walima
 piecewise-condition-if = ni
 piecewise-condition-otherwise = n'o tɛ
-
 
 ## Chemistry
 
@@ -246,6 +219,5 @@ piecewise-condition-otherwise = n'o tɛ
 # language already — and the seed has no settled Bambara list to reproduce. A
 # speaker adding one should add it here.
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Simi Taamasere Tɛ Ɲɛ
 chemistry-invalid-ionic-compound = Iyɔn Fɛn-Fara Tɛ Ɲɛ

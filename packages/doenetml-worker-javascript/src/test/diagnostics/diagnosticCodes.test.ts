@@ -6,7 +6,7 @@ import {
 } from "@doenet/i18n";
 import { createTestCore } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
-import { callAction } from "../utils/actions";
+import { callAction, updateValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -159,12 +159,19 @@ describe("coded diagnostics reach the record @group4", () => {
     });
 
     it("gives every warning either a registered code or an English message", async () => {
+        // The warning has to come from something that will keep warning. This
+        // used to be `<sort name="s">a b c</sort>`, which warned only because
+        // bare strings needed a `type`; once they were read by their content
+        // the document became correct and the test had no warning left to
+        // check. An index that cannot be applied is a mistake in the markup
+        // itself, so it stays one — and the code it emits is pinned
+        // independently, by the `doenet-w0100` test below.
         const { core } = await createTestCore({
             doenetML: `
 <graph>
   <point name="p" />
 </graph>
-<sort name="s">a b c</sort>
+<text extend="$p.styleDescription[1]" />
 `,
         });
 
@@ -249,6 +256,88 @@ describe("coded diagnostics reach the record @group4", () => {
         );
     });
 
+    // The same index written where a component takes its reference in an
+    // attribute rather than in `extend`. The `<updateValue>` is not itself a
+    // reference and so has no resolution to read the `$…` off, so the path
+    // the author wrote reaches the check by travelling with the
+    // `<updateValue>`'s own dependency instead.
+    it("names the reference an index cannot be applied to in a target attribute", async () => {
+        const doenetML = `<point name="p" />
+<updateValue name="uv" target="$p.styleDescription[1]" newValue="x" />`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        // Nothing asks `<updateValue>` for its target until the button is
+        // pressed, which is when the index is applied and when it fails.
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uv"),
+            core,
+        });
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0100");
+        expect(warnings[0].args).eqls({
+            reference: "$p.styleDescription[1]",
+        });
+        expect(warnings[0].message).eq(
+            "Cannot reference index `$p.styleDescription[1]`",
+        );
+        const { start, end } = warnings[0].position!;
+        expect(doenetML.substring(start.offset, end.offset)).eq(
+            `<updateValue name="uv" target="$p.styleDescription[1]" newValue="x" />`,
+        );
+    });
+
+    // `<animateFromSequence>` reads its target as soon as the animation is
+    // on, so there the same warning arrives while the document is built.
+    it("names the reference an index cannot be applied to in an animation target", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<point name="p" />
+<animateFromSequence name="a" target="$p.styleDescription[1]" from="1" to="3" animationOn />`,
+        });
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0100");
+        expect(warnings[0].args).eqls({
+            reference: "$p.styleDescription[1]",
+        });
+    });
+
+    // A copy of an `<updateValue>` is a replacement, and is no more a
+    // reference than the original was — the copy was silent for the same
+    // reason. Carrying the path on the dependency reaches both, so the copy
+    // quotes the `$p.styleDescription[1]` the author wrote rather than the
+    // `$uv` that produced it, and marks the copy's own element.
+    it("names the reference in the target of a copied updateValue", async () => {
+        const doenetML = `<point name="p" />
+<updateValue name="uv" target="$p.styleDescription[1]" newValue="x" />
+<updateValue extend="$uv" name="uv2" />`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uv2"),
+            core,
+        });
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0100");
+        expect(warnings[0].args).eqls({
+            reference: "$p.styleDescription[1]",
+        });
+        const { start, end } = warnings[0].position!;
+        expect(doenetML.substring(start.offset, end.offset)).eq(
+            `<updateValue extend="$uv" name="uv2" />`,
+        );
+    });
+
     it("names the target a missing action was asked of", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `<point name="p" />
@@ -319,6 +408,10 @@ describe("coded diagnostics reach the record @group4", () => {
         // Extending with an index defers resolution until core knows the
         // group's replacements, so this warning is the worker's own rather
         // than the one the Rust resolver raises for a plainly absent name.
+        // The resolver hands back `g` with the index still unresolved, so this
+        // is `RefResolutionDependency`'s *later* warning — the one for an
+        // expanded composite with no replacement at that index — and not the
+        // one the test below reaches.
         const { core } = await createTestCore({
             doenetML: `
 <group name="g"></group>
@@ -335,12 +428,17 @@ describe("coded diagnostics reach the record @group4", () => {
         );
     });
 
-    // The other branch of the same `catch`. Both codes have to sit next to
-    // `code:` as literals for `lint:i18n` to see them raised, which is why
-    // that site spreads a ternary of objects rather than choosing the value —
-    // and a workaround that only one branch exercises is a workaround nobody
-    // would notice breaking.
-    it("codes the other resolution failure the same catch reports", async () => {
+    // A different site: the warning `RefResolutionDependency` raises once no
+    // candidate origin resolves the reference. It reports `doenet-w0105` here
+    // and `doenet-w0104` when the failure is a missing rather than an ambiguous
+    // referent, and both codes have to sit next to `code:` as literals for
+    // `lint:i18n` to see them raised — which is why that site spreads a ternary
+    // of objects rather than choosing the value. This pins the ambiguous branch;
+    // the missing one is pinned by "reference to an iteration still warns when
+    // the nested reference resolves nowhere" in `repeatForSequence.test.ts`, and
+    // a workaround that only one branch exercises is a workaround nobody would
+    // notice breaking.
+    it("codes the resolution failure raised after every candidate origin fails", async () => {
         const { core } = await createTestCore({
             doenetML: `
 <repeat name="r" for="1 2" valueName="v">
@@ -378,6 +476,28 @@ describe("coded diagnostics reach the record @group4", () => {
         });
         expect(infos[0].message).eq(
             "Invalid value `new1` for attribute `format`, using value `text`",
+        );
+    });
+
+    // The other half of `validateAttributeValue`'s rejection: an attribute
+    // whose default is `null` has nothing to fall back to, so it is dropped
+    // rather than replaced and gets a message with no `default` in it. The
+    // component then says for itself what it did without the attribute —
+    // here, `<chart>`'s "no chart type was named".
+    it("codes an attribute value that was dropped for want of a default", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<chart name="c" type="donut"><number>4</number></chart>`,
+        });
+
+        const { infos } = getDiagnosticsByType(core);
+        expect(infos.length).eq(1);
+        expect(infos[0].code).eq("doenet-i0051");
+        expect(infos[0].args).eqls({
+            value: "donut",
+            attribute: "type",
+        });
+        expect(infos[0].message).eq(
+            "Invalid value `donut` for attribute `type`, ignoring it",
         );
     });
 

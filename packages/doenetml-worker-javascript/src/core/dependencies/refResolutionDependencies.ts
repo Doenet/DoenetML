@@ -6,7 +6,24 @@
 
 import { Dependency } from "./Dependency";
 import { codedDiagnostic } from "../../utils/diagnostics";
-import { doenetMLStringForReference } from "../../utils/sourceLocation";
+import {
+    doenetMLDollarsForReference,
+    doenetMLStringForReference,
+} from "../../utils/sourceLocation";
+
+/**
+ * The same path with every index emptied.
+ *
+ * A path that has been through `resolveComponentsInPathIndices` holds only
+ * strings in its indices; one that has not holds the components the author
+ * wrote between the brackets. The second kind must not be handed on as a
+ * resolution result: it ends up in `compositeReplacementRange`, which
+ * `childDependencies.ts` round-trips through `JSON.stringify`, and a live
+ * component is circular.
+ */
+function dropPathIndices(path: any[]): any[] {
+    return path.map((pathPart) => ({ ...pathPart, index: [] }));
+}
 
 export class RefResolutionIndexDependencies extends Dependency {
     static dependencyType = "refResolutionIndexDependencies";
@@ -28,7 +45,9 @@ export class RefResolutionIndexDependencies extends Dependency {
         let composite = this.dependencyHandler._components[this.compositeIdx];
 
         if (!composite) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.compositeIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.compositeIdx,
+            );
             this.missingComponentBlockers.push(this.compositeIdx);
 
             return {
@@ -69,7 +88,15 @@ export class RefResolutionIndexDependencies extends Dependency {
     // If successfully found all integer components return
     // - success: true,
     // - componentList: a list of the component indices of the "integer" components found in the unresolved path
-    // Throw an error if an index of unresolved path does not contain either a string or a single integer component
+    //
+    // An index that did not come out as a single integer component is simply left
+    // out of `componentList`. It used to throw, which blanked the document
+    // (#1917): the index of a component that had already been turned into an
+    // `_error` is not an integer, so an ordinary authoring slip -- a mistyped
+    // attribute on an `<indexOf>` -- took down the page and the diagnostic about
+    // that slip with it. `resolveComponentsInPathIndices` sees the same component
+    // and is the single place that decides the reference is dead, so there is
+    // nothing to report from here.
     async gatherComponentsInPath(originalPath: any) {
         const componentList = [];
         let foundUnexpanded = false;
@@ -88,7 +115,7 @@ export class RefResolutionIndexDependencies extends Dependency {
 
                     if (haveComposite) {
                         if (!indexComponent.isExpanded) {
-                            this.addBlockerForUnexpandedComposite(
+                            await this.addBlockerForUnexpandedComposite(
                                 indexComponent,
                             );
 
@@ -102,9 +129,7 @@ export class RefResolutionIndexDependencies extends Dependency {
                             );
 
                             if (indexComponent.replacements.length !== 1) {
-                                throw Error(
-                                    "Something went wrong as path index is not an integer",
-                                );
+                                continue;
                             }
                             indexComponent = indexComponent.replacements[0];
                         }
@@ -114,9 +139,7 @@ export class RefResolutionIndexDependencies extends Dependency {
                         !foundUnexpanded &&
                         indexComponent.componentType !== "integer"
                     ) {
-                        throw Error(
-                            "Something went wrong as path index is not an integer",
-                        );
+                        continue;
                     }
 
                     componentList.push(indexComponent.componentIdx);
@@ -162,7 +185,8 @@ export class RefResolutionIndexDependencies extends Dependency {
  *
  * If `refResolution.nodeIdx` has any composite descendants
  * or any indices of the path have composites, these composites are first expanded.
- * Then, the `originalPath` path is resolved using the first node of `refResolution.nodesInResolvedPath` as the origin;
+ * Then, the `originalPath` path is resolved from the first of the candidate origins that
+ * `originsToResolveFrom` yields (normally the first node of `refResolution.nodesInResolvedPath`);
  * `nodeIdx` is updated to the matched component, and `unresolvedPath` is updated to any remaining unresolved path.
  *
  * If an index is encountered (which halts the rust resolver), then
@@ -190,13 +214,91 @@ export class RefResolutionDependency extends Dependency {
         this.missingComponentBlockers = [];
     }
 
+    /**
+     * The origins to re-resolve `composite`'s reference from, best first.
+     *
+     * A reference is normally re-resolved from where it now sits, which is what lets a
+     * copied reference find a copied referent: every iteration of a `<repeat>` supplies
+     * its own `valueName`, so the copy of `$i` in each iteration must resolve against
+     * that iteration and not the template.
+     *
+     * A copy can also land where the name it references is not in scope at all, though.
+     * `$r[3]` on `<repeat name="r" valueName="i"><number>$i</number></repeat>` copies
+     * the `<number>` and the `$i` inside it to wherever the reference appears, and `i`
+     * lives inside the repeat, invisible from there. Such a copy shadows the component
+     * it was copied from, and still refers to whatever that one refers to, so fall back
+     * on resolving the reference where the shadowed component sits.
+     *
+     * A shadowing copy is a structural duplicate of what it shadows: its `refResolution`
+     * is serialized from the shadowed component's, so the two carry the same reference —
+     * the same path resolved from a different place — which is what makes their origins
+     * interchangeable candidates. That is why the walk stops at the first link with no
+     * `refResolution` of its own: a component whose reference did not come from the one
+     * it shadows says nothing about where this reference should resolve.
+     */
+    *originsToResolveFrom(composite: any): Generator<number> {
+        // Guards against a cycle in the `shadows` chain, so the walk terminates even if
+        // the chain does not.
+        const visitedSources = new Set<number>();
+        // Two components in the chain can share an origin; resolving from the same place
+        // a second time would only repeat the same failure.
+        const yieldedOrigins = new Set<number>();
+
+        let source = composite;
+
+        while (
+            source?.refResolution &&
+            !visitedSources.has(source.componentIdx)
+        ) {
+            visitedSources.add(source.componentIdx);
+
+            const origin = source.refResolution.nodesInResolvedPath[0];
+
+            if (origin != undefined && !yieldedOrigins.has(origin)) {
+                yieldedOrigins.add(origin);
+                yield origin;
+            }
+
+            // A component that shadows nothing, or whose source is gone, ends the chain.
+            source =
+                this.dependencyHandler._components[
+                    source.shadows?.componentIdx
+                ];
+        }
+    }
+
+    /**
+     * Whether `resolution` landed on the reference itself or on a component containing it.
+     *
+     * A reference can legitimately point at its own container — `$P` inside `P`'s label
+     * is how a label says "my own value" — so such a resolution is used when it is the
+     * only one on offer. It is not what a *copy* wants, though. A composite that names
+     * the item it creates, as `<repeat valueName="i">` does, hands that name to the copy
+     * itself, so a `$i` that the copied content already carried now finds the copy rather
+     * than what it named in the original. Preferring a candidate origin that resolves
+     * outside the reference keeps the copied `$i` pointing where the original one did.
+     */
+    resolvesIntoOwnAncestry(composite: any, resolution: any) {
+        const nodeIdx = resolution.nodeIdx;
+
+        return (
+            nodeIdx === composite.componentIdx ||
+            (composite.ancestors?.some(
+                (ancestor: any) => ancestor.componentIdx === nodeIdx,
+            ) ??
+                false)
+        );
+    }
+
     async determineDownstreamComponents({ force = false } = {}) {
         this.compositeReplacementDependencies = [];
 
         let composite = this.dependencyHandler._components[this.compositeIdx];
 
         if (!composite) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.compositeIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.compositeIdx,
+            );
             this.missingComponentBlockers.push(this.compositeIdx);
 
             return {
@@ -234,7 +336,7 @@ export class RefResolutionDependency extends Dependency {
             }
 
             if (!compositeCreating.isExpanded) {
-                this.addBlockerForUnexpandedComposite(compositeCreating);
+                await this.addBlockerForUnexpandedComposite(compositeCreating);
 
                 return {
                     success: false,
@@ -257,6 +359,54 @@ export class RefResolutionDependency extends Dependency {
                 composite.refResolution.originalPath,
                 force,
             );
+
+        if (resolveComponentResult.indexIsNotANumber) {
+            // The reference cannot be resolved, but it is an authoring mistake
+            // rather than a broken invariant, so it reports and renders as
+            // nothing -- the same as a reference whose referent is missing. The
+            // component sitting in the index has almost always reported an error
+            // of its own already, and that is the one the author needs; this says
+            // why the reference then came up empty (#1917).
+            this.dependencyHandler.core.addDiagnostic(
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0163",
+                    args: {
+                        reference: `${doenetMLDollarsForReference(
+                            composite.refResolution.originalPath,
+                            this.dependencyHandler.core.allDoenetMLs,
+                        )}${doenetMLStringForReference(
+                            composite.refResolution.originalPath,
+                            this.dependencyHandler.core.allDoenetMLs,
+                        )}`,
+                    },
+                    position: composite.position,
+                    sourceDoc: composite.sourceDoc,
+                }),
+            );
+
+            this.extendIdx = -1;
+            // Without the index. Every other branch that gives up hands back a
+            // path whose indices are the literal strings
+            // `resolveComponentsInPathIndices` produced, and we never got one --
+            // so what is left in there is the live component the index was
+            // written from. That path reaches `compositeReplacementRange`, which
+            // is round-tripped through `JSON.stringify` in
+            // `childDependencies.ts`, and a component graph does not survive
+            // that: the reference blanked the document all over again as soon as
+            // anything followed it in the same parent. Nothing can resolve
+            // through an index we could not work out anyway, and the names and
+            // positions the reporting paths read are all still here.
+            this.originalPath = dropPathIndices(
+                composite.refResolution.originalPath,
+            );
+            this.unresolvedPath = this.originalPath;
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
 
         if (!resolveComponentResult.success) {
             return {
@@ -293,7 +443,7 @@ export class RefResolutionDependency extends Dependency {
         if (haveComposite) {
             // make sure that the composite refComponent is expanded
             if (!refComponent.isExpanded) {
-                this.addBlockerForUnexpandedComposite(refComponent);
+                await this.addBlockerForUnexpandedComposite(refComponent);
 
                 return {
                     success: false,
@@ -310,8 +460,6 @@ export class RefResolutionDependency extends Dependency {
             ]);
         }
 
-        let refResolution;
-
         /**
          * Given the ref resolution `composite.refResolution`
          * and the DoenetML string from `this.dependencyHandler.core.allDoenetMLs[0]`,
@@ -323,6 +471,17 @@ export class RefResolutionDependency extends Dependency {
                 this.dependencyHandler.core.allDoenetMLs,
             );
 
+        /**
+         * The `$` or `$$` the author wrote. Hardcoding `$` named a function
+         * reference as something they did not write: `$$fs[$i]` came back as
+         * `$fs[$i]`.
+         */
+        const getDollarsForReference = () =>
+            doenetMLDollarsForReference(
+                composite.refResolution.originalPath,
+                this.dependencyHandler.core.allDoenetMLs,
+            );
+
         // We skip parent search only if we start with no path,
         // which will happen from references to items created in a repeat
         const skip_parent_search = resolveComponentResult.path[0].name === "";
@@ -330,49 +489,85 @@ export class RefResolutionDependency extends Dependency {
         // console.log(
         //     "resolve path",
         //     { path: resolveComponentResult.path },
-        //     composite.refResolution.nodesInResolvedPath[0],
+        //     [...this.originsToResolveFrom(composite)],
         //     skip_parent_search,
         // );
 
-        try {
-            refResolution = this.dependencyHandler.core.resolvePath!(
-                { path: resolveComponentResult.path },
-                composite.refResolution.nodesInResolvedPath[0],
-                skip_parent_search,
-            );
-        } catch (e) {
-            // console.log("resolve error", e);
-            if (e === "NonUniqueReferent" || e === "NoReferent") {
-                const referenceText = getDoenetMLStringForReference();
+        // The resolution from the first candidate origin that produced one; left
+        // `undefined` if every candidate failed (or if there was no candidate to try).
+        let refResolution;
 
-                // TODO: these message match the messages from `format_error_message` of `ref_resolve.ts`.
-                // Rather than duplicating code to make the messages,
-                // we could make sure that `ref_resolve` formats the messages in this case, too.
-                this.dependencyHandler.core.addDiagnostic(
-                    codedDiagnostic({
-                        type: "warning",
-                        // Spread rather than a ternary on the value: the
-                        // code has to sit next to `code:` as a literal, or
-                        // `lint:i18n` reads it as a code nothing raises.
-                        ...(e === "NonUniqueReferent"
-                            ? { code: "doenet-w0105" as const }
-                            : { code: "doenet-w0104" as const }),
-                        args: { reference: `$${referenceText}` },
-                        position: composite.position,
-                        sourceDoc: composite.sourceDoc,
-                    }),
+        // A resolution that landed on the reference itself or on a component containing
+        // it, kept aside in case no candidate origin does better.
+        // See `resolvesIntoOwnAncestry`.
+        let selfReferentialResolution;
+
+        // The failure reported if no candidate origin resolves. It is the failure of the
+        // first candidate — the reference's own position — since that is the one that
+        // describes the document the author wrote; later candidates are only fallbacks.
+        let firstResolutionError:
+            "NonUniqueReferent" | "NoReferent" | undefined;
+
+        for (const origin of this.originsToResolveFrom(composite)) {
+            try {
+                const candidateResolution = this.dependencyHandler.core
+                    .resolvePath!(
+                    { path: resolveComponentResult.path },
+                    origin,
+                    skip_parent_search,
                 );
 
-                this.extendIdx = -1;
-                this.unresolvedPath = this.originalPath;
-                return {
-                    success: true,
-                    downstreamComponentIndices: [],
-                    downstreamComponentTypes: [],
-                };
-            } else {
-                throw e;
+                if (
+                    this.resolvesIntoOwnAncestry(composite, candidateResolution)
+                ) {
+                    selfReferentialResolution ??= candidateResolution;
+                    continue;
+                }
+
+                refResolution = candidateResolution;
+                break;
+            } catch (e) {
+                // console.log("resolve error", e);
+                if (e === "NonUniqueReferent" || e === "NoReferent") {
+                    firstResolutionError ??= e;
+                } else {
+                    throw e;
+                }
             }
+        }
+
+        refResolution ??= selfReferentialResolution;
+
+        if (refResolution === undefined) {
+            const referenceText = getDoenetMLStringForReference();
+
+            // TODO: these message match the messages from `format_error_message` of `ref_resolve.ts`.
+            // Rather than duplicating code to make the messages,
+            // we could make sure that `ref_resolve` formats the messages in this case, too.
+            this.dependencyHandler.core.addDiagnostic(
+                codedDiagnostic({
+                    type: "warning",
+                    // Spread rather than a ternary on the value: the
+                    // code has to sit next to `code:` as a literal, or
+                    // `lint:i18n` reads it as a code nothing raises.
+                    ...(firstResolutionError === "NonUniqueReferent"
+                        ? { code: "doenet-w0105" as const }
+                        : { code: "doenet-w0104" as const }),
+                    args: {
+                        reference: `${getDollarsForReference()}${referenceText}`,
+                    },
+                    position: composite.position,
+                    sourceDoc: composite.sourceDoc,
+                }),
+            );
+
+            this.extendIdx = -1;
+            this.unresolvedPath = this.originalPath;
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
         }
 
         this.extendIdx = refResolution.nodeIdx;
@@ -441,7 +636,7 @@ export class RefResolutionDependency extends Dependency {
             // We ended on a composite component with the next unresolved path being an index.
             // If the composite isn't expanded, that's the next blocker for resolving the reference.
             if (!newRefComponent.isExpanded) {
-                this.addBlockerForUnexpandedComposite(newRefComponent);
+                await this.addBlockerForUnexpandedComposite(newRefComponent);
 
                 return {
                     success: false,
@@ -458,7 +653,9 @@ export class RefResolutionDependency extends Dependency {
                 codedDiagnostic({
                     type: "warning",
                     code: "doenet-w0104",
-                    args: { reference: `$${referenceText}` },
+                    args: {
+                        reference: `${getDollarsForReference()}${referenceText}`,
+                    },
                     position: composite.position,
                     sourceDoc: composite.sourceDoc,
                 }),
@@ -530,6 +727,12 @@ export class RefResolutionDependency extends Dependency {
      * Resolve its `value` state variable, which should be an integer,
      * and use its string value instead of the component.
      *
+     * A component that is not an integer -- or a composite that did not produce
+     * exactly one replacement -- means the index cannot be worked out at all.
+     * That returns `indexIsNotANumber`, and the caller reports it and leaves the
+     * reference resolving to nothing. It used to throw, and since nothing between
+     * here and the worker catches, the whole document went blank (#1917).
+     *
      * Note: we use strings rather than numbers for the literal indices
      * so that the unresolved path follows the `FlatPathPart` assumed by the resolver.
      */
@@ -556,7 +759,7 @@ export class RefResolutionDependency extends Dependency {
 
                     if (haveComposite) {
                         if (!indexComponent.isExpanded) {
-                            this.addBlockerForUnexpandedComposite(
+                            await this.addBlockerForUnexpandedComposite(
                                 indexComponent,
                             );
 
@@ -573,17 +776,13 @@ export class RefResolutionDependency extends Dependency {
                         );
 
                         if (indexComponent.replacements.length !== 1) {
-                            throw Error(
-                                "Something went wrong as path index is not an integer",
-                            );
+                            return { success: true, indexIsNotANumber: true };
                         }
                         indexComponent = indexComponent.replacements[0];
                     }
 
                     if (indexComponent.componentType !== "integer") {
-                        throw Error(
-                            "Something went wrong as path index is not an integer",
-                        );
+                        return { success: true, indexIsNotANumber: true };
                     }
 
                     // save index as a literal string
@@ -676,7 +875,9 @@ export class AttributeRefResolutions extends Dependency {
         let parent = this.dependencyHandler._components[this.parentIdx];
 
         if (!parent) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.parentIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.parentIdx,
+            );
             this.missingComponentBlockers.push(this.parentIdx);
 
             return {
@@ -838,7 +1039,9 @@ export class ComponentsReferencingAttributeDependency extends Dependency {
             this.dependencyHandler._components[this.referencedIdx];
 
         if (!referencedComponent) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.referencedIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.referencedIdx,
+            );
             this.missingComponentBlockers.push(this.referencedIdx);
 
             return {
@@ -943,7 +1146,9 @@ export class StringsFromReferenceAttribute extends Dependency {
         let parent = this.dependencyHandler._components[this.parentIdx];
 
         if (!parent) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.parentIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.parentIdx,
+            );
             this.missingComponentBlockers.push(this.parentIdx);
 
             return {
@@ -1010,7 +1215,9 @@ export class RendererId extends Dependency {
         this.component = this.dependencyHandler._components[this.componentIdx];
 
         if (!this.component) {
-            this.addBlockerUpdateTriggerForMissingComponent(this.componentIdx);
+            await this.addBlockerUpdateTriggerForMissingComponent(
+                this.componentIdx,
+            );
             this.missingComponentBlockers.push(this.componentIdx);
 
             return {

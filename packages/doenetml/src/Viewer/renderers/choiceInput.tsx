@@ -16,12 +16,15 @@ import "./choiceInput.css";
 import {
     calculateValidationState,
     createCheckWorkComponent,
+    wantsFullCheckWorkButton,
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
 import { addValidationStateToShortDescription } from "./utils/validationState";
 import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { useContentT, useT } from "../../utils/i18n";
+import { useInMathSlot, useMathSlotEditing } from "./utils/mathInputSlots";
+import { useMathJaxOutOfTabOrder } from "./utils/useMathJaxOutOfTabOrder";
 
 // type guard
 const isMultiValue = <T,>(
@@ -105,6 +108,25 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
 
     const { darkMode } = useContext(DocContext) || {};
 
+    // Inside an expression there is no room for anything but the control
+    // itself: a visible label drawn among the symbols would read as part of
+    // the math. The expression names the control instead, through its short
+    // description. Read here, with the other hooks, so it is read on every
+    // render whether or not the control goes on to draw anything.
+    const inMathSlot = useInMathSlot();
+
+    // A label that is itself math is typeset by MathJax, which gives it a tab
+    // stop. Inside a slot the label is out of sight, so that stop would land
+    // on nothing a keyboard user can see; the ref is attached only there.
+    const slotRootRef = useRef<HTMLSpanElement>(null);
+    useMathJaxOutOfTabOrder(slotRootRef);
+
+    // A select's width is fixed by its widest choice, so an expression around
+    // it never has to make room for it; while the reader has it open the
+    // expression is still re-typeset in step with any change in it. Outside a
+    // slot this is a no-op.
+    const slotEditing = useMathSlotEditing();
+
     // @ts-ignore
     ChoiceInput.baseStateVariable = "selectedIndices";
 
@@ -135,6 +157,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     });
 
     function onFocusChanged(focused: boolean) {
+        slotEditing.setEditing(focused);
         callAction({
             action: actions.focusChanged,
             args: { focused },
@@ -316,11 +339,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
         .filter(Boolean)
         .join(" ");
 
-    // For inline, the default is a small check work button,
-    // for non-inline, the default is a full check work button
-    const fullCheckWork = SVs.inline
-        ? SVs.forceFullCheckWorkButton
-        : SVs.forceFullCheckWorkButton || !SVs.forceSmallCheckWorkButton;
+    // An inline choice input is a word-sized dropdown in a sentence; a
+    // non-inline one is a block of choices with room beneath it.
+    const fullCheckWork = wantsFullCheckWorkButton(SVs, !SVs.inline);
 
     const checkWorkComponent = createCheckWorkComponent(
         SVs,
@@ -566,16 +587,29 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
             </div>
         );
 
+        // Inside an expression the label is kept out of sight rather than
+        // left out, so `aria-labelledby` names the control from it exactly as
+        // it does elsewhere — a label that is itself math is then spoken as
+        // MathJax reads it, not as its LaTeX.
         const labelComponent = hasLabel ? (
             <label
                 id={labelId}
                 htmlFor={inlineInputId}
-                style={{
-                    marginInlineEnd:
-                        SVs.labelPosition === "end" ? undefined : "4px",
-                    marginInlineStart:
-                        SVs.labelPosition === "end" ? "4px" : undefined,
-                }}
+                className={inMathSlot ? "visually-hidden" : undefined}
+                style={
+                    inMathSlot
+                        ? undefined
+                        : {
+                              marginInlineEnd:
+                                  SVs.labelPosition === "end"
+                                      ? undefined
+                                      : "4px",
+                              marginInlineStart:
+                                  SVs.labelPosition === "end"
+                                      ? "4px"
+                                      : undefined,
+                          }
+                }
             >
                 {label}
             </label>
@@ -600,6 +634,7 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
 
         return (
             <span
+                ref={inMathSlot ? slotRootRef : undefined}
                 // `display: inline` so the label and select flow with the
                 // surrounding paragraph text and a wrapping label keeps the
                 // select after its end rather than beside its first line

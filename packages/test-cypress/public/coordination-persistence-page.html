@@ -1,0 +1,149 @@
+<!doctype html>
+<!-- A coordinated host page that ALSO persists state itself — the
+     Runestone/SCORM arrangement, and the one PreTeXt books are published
+     into. Two independent listeners then answer the same `SPLICE.getState`:
+     the coordinator, out of the in-page warehouse it fills at park time, and
+     the host, out of durable storage. -->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Coordinated activities with a persistence host</title>
+        <script>
+            // Stand-in for Runestone's page-level persistence (and for
+            // ptx_scorm_events.js, which does the same job inside a SCORM
+            // package): save every `SPLICE.reportScoreAndState` durably, and
+            // answer `SPLICE.getState` out of that store.
+            //
+            // Three properties are modelled deliberately, because they are
+            // what decides whether two answerers can share a page:
+            //   * the store OUTLIVES the page (localStorage), so it can answer
+            //     a boot for which the coordinator's warehouse is empty;
+            //   * the answer is ASYNCHRONOUS, as a real backend's is;
+            //   * the store can fall BEHIND what the reader has done, which is
+            //     when the two answerers disagree.
+            (function () {
+                const KEY = "doenet-cypress-persistence-host";
+                const read = () => {
+                    try {
+                        return JSON.parse(localStorage.getItem(KEY)) ?? {};
+                    } catch {
+                        return {};
+                    }
+                };
+                const write = (store) =>
+                    localStorage.setItem(KEY, JSON.stringify(store));
+
+                // Test hooks.
+                window.__hostDelayMs = 400;
+                // Frozen: the store stops accepting saves, so what it answers
+                // with goes stale while the reader keeps working.
+                window.__hostFrozen = false;
+                window.__hostLog = [];
+                window.__hostStore = read;
+
+                function activityIdFor(source) {
+                    for (const frame of document.querySelectorAll("iframe")) {
+                        if (frame.contentWindow === source) {
+                            return frame.id;
+                        }
+                    }
+                    return null;
+                }
+
+                // Ask an activity to push whatever it is holding through the
+                // normal report pipeline. Routine reports are throttled to one
+                // a minute, so without this the store sits a long way behind
+                // the reader. It is the same request the coordinator makes
+                // before parking.
+                window.__hostFlush = (id) => {
+                    document.getElementById(id).contentWindow?.postMessage(
+                        {
+                            subject: "SPLICE.flushState",
+                            message_id: `__hostFlush-${id}`,
+                        },
+                        "*",
+                    );
+                };
+
+                window.addEventListener("message", (event) => {
+                    const data = event.data;
+                    if (
+                        !data ||
+                        typeof data !== "object" ||
+                        typeof data.subject !== "string"
+                    ) {
+                        return;
+                    }
+                    const id = activityIdFor(event.source);
+                    if (!id) {
+                        return;
+                    }
+                    if (data.subject === "SPLICE.reportScoreAndState") {
+                        if (!window.__hostFrozen) {
+                            const store = read();
+                            store[id] = data.state;
+                            write(store);
+                        }
+                        window.__hostLog.push(
+                            `save:${id}${window.__hostFrozen ? ":frozen" : ""}`,
+                        );
+                        return;
+                    }
+                    if (data.subject === "SPLICE.getState") {
+                        const state = read()[id] ?? null;
+                        window.__hostLog.push(
+                            `getState:${id}:${state ? "hit" : "miss"}`,
+                        );
+                        setTimeout(() => {
+                            // The frame may have been parked while this answer
+                            // was in flight — its window is then gone, exactly
+                            // as it is for a host draining a queue of requests.
+                            if (!event.source) {
+                                window.__hostLog.push(`answered:${id}:gone`);
+                                return;
+                            }
+                            event.source.postMessage(
+                                {
+                                    subject: "SPLICE.getState.response",
+                                    message_id: data.message_id,
+                                    state,
+                                },
+                                "*",
+                            );
+                            window.__hostLog.push(
+                                `answered:${id}:${state ? "state" : "null"}`,
+                            );
+                        }, window.__hostDelayMs);
+                    }
+                });
+            })();
+        </script>
+        <script
+            src="/standalone/coordinator.js"
+            data-max-live-viewers="1"
+            data-max-concurrent-boots="1"
+            data-park-delay-ms="300"
+            data-visible-margin="100px"
+            data-flush-timeout-ms="15000"
+            data-shared-core-workers="true"
+        ></script>
+    </head>
+    <body>
+        <h1>Coordinated activities with a persistence host</h1>
+        <iframe
+            id="act1"
+            src="/coordination-activity-1-if.html"
+            width="800"
+            height="500"
+            style="border: 1px solid gray"
+        ></iframe>
+        <div style="height: 2500px">spacer</div>
+        <iframe
+            id="act2"
+            src="/coordination-activity-2-if.html"
+            width="800"
+            height="500"
+            style="border: 1px solid gray"
+        ></iframe>
+    </body>
+</html>

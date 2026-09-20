@@ -61,11 +61,9 @@ color =
     .purple = purple
     .pink = pink
     .brown = brown
-
 line-width =
     .thick = thick
     .thin = thin
-
 # Reduplication used attributively, which is how Naijá makes a modifier out of
 # a verb without building a relative clause. A «wey dey brok-brok» clause would
 # be the more literal rendering and is wrong here: the description is *followed*
@@ -74,7 +72,6 @@ line-width =
 line-style =
     .dashed = brok-brok
     .dotted = dot-dot
-
 fill-style =
     .horizontal = lain wey lie down
     .vertical = lain wey stand up
@@ -82,7 +79,6 @@ fill-style =
     .backdiagonal = lain wey slant di oda way
     .dots = dot dem
     .diamonds = daimon dem
-
 noun =
     .line = lain
     .line-segment = pis of lain
@@ -102,7 +98,6 @@ noun =
     .diamond = daimon
     .cross = kros
     .plus = plọs mak
-
 # The side count is a relative clause and closes the noun phrase behind the
 # describing words rather than opening it, so it goes in the tail — the same
 # place `locales/tiv` puts its own.
@@ -111,11 +106,9 @@ noun-regular-polygon =
         [tail] wey gẹt { $numSides } sait
        *[head] poligọn wey ẹvri sait dey di sem
     }
-
 # Nigerian Pidgin has no noun class and no gender, so every noun answers the
 # same and the answer goes unused.
 noun-gender = wan
-
 
 ## Style composition
 
@@ -132,23 +125,19 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # «don full» — the completive `don` rather than an English passive. There is no
 # adjective here to inflect; the whole word is a verb phrase.
 style-filled-word = don full
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } wit { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } wit { $pattern }
@@ -156,7 +145,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } wit { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # Naijá has no indefinite article where English wants one here, so the
 # `-article` branches read the same as their bare counterparts. The distinction
 # `$parts` carries is still a real one — «wit» opens a clause and «an» chains a
@@ -168,23 +156,18 @@ style-border-clause =
         [and-article] an { $border } bọda
        *[with] wit { $border } bọda
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = e no full
-
 style-text =
     { $parts ->
         [background] { $color } wit { $background } bakgraun
        *[plain] { $color }
     }
-
 style-background-none = nọtin
-
 
 ## Boolean words
 ##
@@ -195,12 +178,10 @@ style-background-none = nọtin
 boolean-true = na tru
 boolean-false = na lai
 
-
 ## Answer buttons
 
 answer-submit-label = Chẹk Wọk
 answer-submit-label-no-correctness = Sẹnd Ansa
-
 
 ## Sectional blocks
 
@@ -225,7 +206,6 @@ section-name =
     .solution = Solushọn
     .task = Task
     .theorem = Tiọrẹm
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -235,9 +215,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Hint
-
 
 ## Tables and figures
 
@@ -248,7 +226,6 @@ table-name =
         [unnumbered-title] Tebul{ ": " }
        *[unnumbered] Tebul
     }
-
 figure-name =
     { $parts ->
         [numbered] Figọ { $enumeration }
@@ -257,25 +234,18 @@ figure-name =
        *[unnumbered] Figọ
     }
 
-
 ## Paginator controls
 
 paginator-previous = Wan Wey Pass
 paginator-next = Nẹks
-
 paginator-page = Pej
-
 paginator-page-status = { $pageLabel } { $currentPage } fọ { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ọ
-
 piecewise-condition-if = if
-
 piecewise-condition-otherwise = if no bi so
-
 
 ## Chemistry
 ##
@@ -290,6 +260,5 @@ piecewise-condition-otherwise = if no bi so
 ## `locales/yo` and `locales/tiv` leave the same gap for the same ministry.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Kẹmistri Simbọl Wey No Korẹkt
 chemistry-invalid-ionic-compound = Ayọnik Kompaun Wey No Korẹkt

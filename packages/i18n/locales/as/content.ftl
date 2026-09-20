@@ -36,15 +36,12 @@ color =
     .purple = বেঙুনীয়া
     .pink = গুলপীয়া
     .brown = মটীয়া
-
 line-width =
     .thick = ডাঠ
     .thin = পাতল
-
 line-style =
     .dashed = ডেচযুক্ত
     .dotted = বিন্দুযুক্ত
-
 # Noun phrases rather than adjectives: they are introduced by ৰে ("using"),
 # which takes a bare noun.
 fill-style =
@@ -54,7 +51,6 @@ fill-style =
     .backdiagonal = বিপৰীত কৰ্ণ ৰেখা
     .dots = বিন্দু
     .diamonds = ৰম্বচ
-
 noun =
     .line = ৰেখা
     .line-segment = ৰেখাখণ্ড
@@ -74,7 +70,6 @@ noun =
     .diamond = ৰম্বচ
     .cross = ক্ৰছ
     .plus = যোগ চিহ্ন
-
 # বাহুবিশিষ্ট ("having sides") attaches the count to the noun that follows, so
 # the whole phrase is one head and there is no tail.
 noun-regular-polygon =
@@ -82,11 +77,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } বাহুবিশিষ্ট সুষম বহুভুজ
     }
-
 # Assamese has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -100,15 +93,12 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = ভৰোৱা
-
 # ৰে follows the pattern it applies to, so the clause English appends comes to
 # the front here.
 style-filled =
@@ -116,7 +106,6 @@ style-filled =
         [pattern] { $pattern }ৰে { $filled } { $color }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern }ৰে { $filled } { $color } { $noun }
@@ -124,7 +113,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern }ৰে { $filled } { $color } { $noun } { $nounTail }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # সৈতে is a postposition, so it follows প্ৰান্ত rather than preceding it as
 # English's `with` does. Assamese has no article, which leaves the `-article`
 # branches reading exactly like the ones without.
@@ -135,15 +123,12 @@ style-border-clause =
         [and-article] আৰু { $border } প্ৰান্তৰ সৈতে
        *[with] { $border } প্ৰান্তৰ সৈতে
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = ভৰোৱা নহোৱা
-
 # The locative -ত marks পটভূমি, and the colour word in front of it is
 # untouched by that.
 style-text =
@@ -151,21 +136,17 @@ style-text =
         [background] { $background } পটভূমিত { $color }
        *[plain] { $color }
     }
-
 style-background-none = নাই
-
 
 ## Boolean words
 
 boolean-true = সঁচা
 boolean-false = মিছা
 
-
 ## Answer buttons
 
 answer-submit-label = পৰীক্ষা কৰক
 answer-submit-label-no-correctness = উত্তৰ দাখিল কৰক
-
 
 ## Sectional blocks
 
@@ -190,7 +171,6 @@ section-name =
     .solution = সমাধান
     .task = কাম
     .theorem = উপপাদ্য
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -200,9 +180,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = ইংগিত
-
 
 ## Tables and figures
 
@@ -213,7 +191,6 @@ table-name =
         [unnumbered-title] তালিকা{ ": " }
        *[unnumbered] তালিকা
     }
-
 figure-name =
     { $parts ->
         [numbered] চিত্ৰ { $enumeration }
@@ -222,28 +199,23 @@ figure-name =
        *[unnumbered] চিত্ৰ
     }
 
-
 ## Paginator controls
 
 paginator-previous = পূৰ্বৱৰ্তী
 paginator-next = পৰৱৰ্তী
 paginator-page = পৃষ্ঠা
-
 # «X-ৰ ভিতৰত Y» — "Y out of X" — puts the total first, so the two counts
 # change places.
 paginator-page-status = { $numPages }-ৰ ভিতৰত { $pageLabel } { $currentPage }
 
-
 ## Piecewise functions
 
 piecewise-condition-or = বা
-
 piecewise-condition-if = যদি
-
 piecewise-condition-otherwise = অন্যথা
 
-
 ## Chemistry
+
 
 # `element-name` and `element-anion-name` are deliberately omitted, and those
 # 130 keys fall back to English.
@@ -259,6 +231,5 @@ piecewise-condition-otherwise = অন্যথা
 # are two catalogs.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = অবৈধ ৰাসায়নিক চিহ্ন
 chemistry-invalid-ionic-compound = অবৈধ আয়নিক যৌগ

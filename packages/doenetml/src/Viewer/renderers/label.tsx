@@ -20,6 +20,7 @@ import {
     detachAnchoredGraphElement,
 } from "./utils/useAnchoredGraphDragHandler";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
+import { resolveBackgroundColor, resolveTextColor } from "./utils/styleColors";
 import { computeLabelMaskCssStyle } from "./utils/labelMaskStyle";
 
 interface LabelSVs {
@@ -76,14 +77,11 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
             return null;
         }
 
-        let textColor =
-            darkMode === "dark"
-                ? SVs.selectedStyle.textColorDarkMode
-                : SVs.selectedStyle.textColor;
-        let backgroundColor =
-            darkMode === "dark"
-                ? SVs.selectedStyle.backgroundColorDarkMode
-                : SVs.selectedStyle.backgroundColor;
+        let textColor = resolveTextColor(SVs.selectedStyle, darkMode);
+        let backgroundColor = resolveBackgroundColor(
+            SVs.selectedStyle,
+            darkMode,
+        );
 
         let { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
             layer: SVs.layer,
@@ -255,14 +253,11 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
                 labelJXG.current.setAttribute({ layer });
             }
 
-            let textColor =
-                darkMode === "dark"
-                    ? SVs.selectedStyle.textColorDarkMode
-                    : SVs.selectedStyle.textColor;
-            let backgroundColor =
-                darkMode === "dark"
-                    ? SVs.selectedStyle.backgroundColorDarkMode
-                    : SVs.selectedStyle.backgroundColor;
+            let textColor = resolveTextColor(SVs.selectedStyle, darkMode);
+            let backgroundColor = resolveBackgroundColor(
+                SVs.selectedStyle,
+                darkMode,
+            );
             let { cssStyle, highlightCssStyle } = computeLabelMaskCssStyle({
                 layer: SVs.layer,
                 backgroundColor,

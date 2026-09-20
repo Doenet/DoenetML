@@ -114,7 +114,6 @@ color =
     .purple = mov
     .pink = roz
     .brown = maron
-
 line-width =
     .thick =
         { $gender ->
@@ -130,14 +129,12 @@ line-width =
             [fu] fukenkeen
            *[ka] kakenkeen
         }
-
 # Written as «ku …» phrases rather than as class-marked qualifiers, so that
 # they take no concord and can close the description. `style-stroke` puts
 # them last.
 line-style =
     .dashed = ku sipatpati
     .dotted = ku sitoni
-
 fill-style =
     .horizontal = silay si lëmp
     .vertical = silay si tell
@@ -145,7 +142,6 @@ fill-style =
     .backdiagonal = silay si jeeñ ku situp
     .dots = sitoni
     .diamonds = sidiyamɔn
-
 # Every noun below carries its class prefix in writing, so `noun-gender`'s
 # table can be read straight off this message. That is the property the
 # header describes.
@@ -168,7 +164,6 @@ noun =
     .diamond = fulosas
     .cross = fukurwa
     .plus = fumandarga plus
-
 # The side count is a relative and closes the noun phrase behind the
 # describing words, so it goes in the tail — mirroring the shape
 # `noun-regular-polygon`'s own comment in `locales/en` asks for.
@@ -177,7 +172,6 @@ noun-regular-polygon =
         [tail] bu am { $numSides } wet
        *[head] bupoligɔn bu yem
     }
-
 # The noun class. Read it against `noun` above: each entry naming one of
 # `noun`'s attributes takes the class that attribute's own written prefix
 # carries, and `regular-polygon` takes `bu` because `noun-regular-polygon`'s
@@ -206,7 +200,6 @@ noun-gender =
        *[other] ka
     }
 
-
 ## Style composition
 
 # The dash pattern is a «ku …» phrase and closes the description, so it
@@ -221,13 +214,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [si] sifees
@@ -235,13 +226,11 @@ style-filled-word =
         [fu] fufees
        *[ka] kafees
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } ku { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } ku { $pattern }
@@ -249,7 +238,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } ku { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «funbaŋ» is the border and leads its own describing words, so they agree
 # with it rather than with the shape it surrounds — which is why `border`
 # answers `fu` in `noun-gender`, matching that word's own `fu-`. Jola-Fonyi
@@ -262,35 +250,28 @@ style-border-clause =
         [and-article] ku funbaŋ { $border }
        *[with] ku funbaŋ { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = fees arus
-
 style-text =
     { $parts ->
         [background] { $color } ku kabaka { $background }
        *[plain] { $color }
     }
-
 style-background-none = lëf
-
 
 ## Boolean words
 
 boolean-true = yem
 boolean-false = arus
 
-
 ## Answer buttons
 
 answer-submit-label = Juut Lil
 answer-submit-label-no-correctness = Lel Kalipi
-
 
 ## Sectional blocks
 
@@ -315,7 +296,6 @@ section-name =
     .solution = Solisiyɔŋ
     .task = Lil
     .theorem = Tiyorɛm
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -325,9 +305,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Kasandi
-
 
 ## Tables and figures
 
@@ -338,7 +316,6 @@ table-name =
         [unnumbered-title] Tabal{ ": " }
        *[unnumbered] Tabal
     }
-
 figure-name =
     { $parts ->
         [numbered] Kamisal { $enumeration }
@@ -347,22 +324,18 @@ figure-name =
        *[unnumbered] Kamisal
     }
 
-
 ## Paginator controls
 
 paginator-previous = Ka paa
 paginator-next = Ka taŋ
 paginator-page = Kapej
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = mba
 piecewise-condition-if = te
 piecewise-condition-otherwise = ku sipeŋ
-
 
 ## Chemistry
 ##
@@ -372,6 +345,5 @@ piecewise-condition-otherwise = ku sipeŋ
 ## elsewhere, is taught in French.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Kamark ka Kimi ka Yem Arus
 chemistry-invalid-ionic-compound = Katofi ka Ayɔn ka Yem Arus

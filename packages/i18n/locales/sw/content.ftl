@@ -85,7 +85,6 @@ color =
     .purple = zambarau
     .pink = waridi
     .brown = kahawia
-
 line-width =
     .thick =
         { $gender ->
@@ -103,14 +102,12 @@ line-width =
             [c7] chembamba
            *[c9] membamba
         }
-
 # Written as an invariable «kwa …» phrase rather than as an adjective, so that
 # it agrees with nothing and can close the phrase. `style-stroke` puts it last
 # for that reason.
 line-style =
     .dashed = kwa vipande
     .dotted = kwa vitone
-
 # Noun phrases: they follow «kwa» or «na» and modify nothing.
 fill-style =
     .horizontal = mistari mlalo
@@ -119,7 +116,6 @@ fill-style =
     .backdiagonal = mistari mshazari kinyume
     .dots = vitone
     .diamonds = rombi
-
 noun =
     .line = mstari
     .line-segment = kipande cha mstari
@@ -139,7 +135,6 @@ noun =
     .diamond = rombi
     .cross = msalaba
     .plus = alama ya kujumlisha
-
 # The side count goes in the tail, behind the adjectives, because «yenye pande
 # 5» is a relative phrase and Swahili closes a noun phrase with it rather than
 # opening one: «pembenyingi sawa nyekundu yenye pande 5».
@@ -148,7 +143,6 @@ noun-regular-polygon =
         [tail] yenye pande { $numSides }
        *[head] pembenyingi sawa
     }
-
 # The noun class, which is what an adjective agrees with. `c9` is the default
 # and the class of every loanword, including a word an author supplies.
 noun-gender =
@@ -169,7 +163,6 @@ noun-gender =
        *[other] c9
     }
 
-
 ## Style composition
 
 # The dash pattern is a «kwa …» phrase and closes the description, so it moves
@@ -184,7 +177,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its adjectives follow, with the noun's own relative
 # complement closing the phrase: «pembenyingi sawa nyekundu yenye pande 5».
 style-with-noun =
@@ -192,7 +184,6 @@ style-with-noun =
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c3] uliojazwa
@@ -201,13 +192,11 @@ style-filled-word =
         [c7] kilichojazwa
        *[c9] iliyojazwa
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } na { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } na { $pattern }
@@ -215,7 +204,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } na { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «mpaka» is class 3 and leads its own adjectives, so the border's words agree
 # with it and not with the shape it surrounds. Swahili has no article and joins
 # a complement with the invariable «na» rather than with a concording relative,
@@ -227,35 +215,28 @@ style-border-clause =
         [and-article] na mpaka { $border }
        *[with] na mpaka { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = bila kujazwa
-
 style-text =
     { $parts ->
         [background] { $color } juu ya mandharinyuma { $background }
        *[plain] { $color }
     }
-
 style-background-none = hakuna
-
 
 ## Boolean words
 
 boolean-true = kweli
 boolean-false = uongo
 
-
 ## Answer buttons
 
 answer-submit-label = Angalia Kazi
 answer-submit-label-no-correctness = Wasilisha Jibu
-
 
 ## Sectional blocks
 
@@ -280,7 +261,6 @@ section-name =
     .solution = Suluhisho
     .task = Kazi
     .theorem = Nadharia
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -290,9 +270,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Kidokezo
-
 
 ## Tables and figures
 
@@ -303,7 +281,6 @@ table-name =
         [unnumbered-title] Jedwali{ ": " }
        *[unnumbered] Jedwali
     }
-
 figure-name =
     { $parts ->
         [numbered] Kielelezo { $enumeration }
@@ -312,22 +289,18 @@ figure-name =
        *[unnumbered] Kielelezo
     }
 
-
 ## Paginator controls
 
 paginator-previous = Iliyotangulia
 paginator-next = Ifuatayo
 paginator-page = Ukurasa
-
 paginator-page-status = { $pageLabel } { $currentPage } kati ya { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = au
 piecewise-condition-if = ikiwa
 piecewise-condition-otherwise = vinginevyo
-
 
 ## Chemistry
 
@@ -455,7 +428,6 @@ element-name =
     .lv = livermoriamu
     .ts = tenesini
     .og = oganesoni
-
 element-anion-name =
     .h = hidraidi
     .c = kabaidi
@@ -469,8 +441,6 @@ element-anion-name =
     .i = ayodaidi
     .at = astataidi
     .ts = tenesaidi
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Alama ya Kikemikali Isiyo Sahihi
 chemistry-invalid-ionic-compound = Kiwanja Ayoni Kisicho Sahihi

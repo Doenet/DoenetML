@@ -50,7 +50,6 @@ color =
         }
     .pink = rose
     .brown = marron
-
 line-width =
     .thick =
         { $gender ->
@@ -62,7 +61,6 @@ line-width =
             [f] fine
            *[m] fin
         }
-
 line-style =
     .dashed =
         { $gender ->
@@ -74,7 +72,6 @@ line-style =
             [f] pointillée
            *[m] pointillé
         }
-
 # Noun phrases: they follow «avec des» and agree with nothing. All six are
 # plural, which is what lets one article cover them all.
 fill-style =
@@ -84,7 +81,6 @@ fill-style =
     .backdiagonal = lignes diagonales inverses
     .dots = points
     .diamonds = losanges
-
 noun =
     .line = ligne
     .line-segment = segment
@@ -104,7 +100,6 @@ noun =
     .diamond = losange
     .cross = croix
     .plus = signe plus
-
 # The noun is split: «polygone régulier» carries the agreement and
 # «à 5 côtés» closes the phrase, so the complement stays beside its own head
 # rather than being stranded after the adjectives.
@@ -113,7 +108,6 @@ noun-regular-polygon =
         [tail] à { $numSides } côtés
        *[head] polygone régulier
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (the shape
 # `noun-regular-polygon` names) or the head of a phrase the description never
 # names: `border`, `fill`, `text`, `background`. Of those only «bordure» is
@@ -133,7 +127,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -146,7 +139,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its adjectives follow: «ligne épaisse rouge». A noun with
 # a complement keeps it: «polygone régulier à 5 côtés épais rouge».
 style-with-noun =
@@ -154,19 +146,16 @@ style-with-noun =
         [noun-tail] { $noun } { $nounTail } { $description }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [f] remplie
        *[m] rempli
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } avec des { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } avec des { $pattern }
@@ -174,7 +163,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } avec des { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «bordure» is feminine, so the border's adjectives agree with it and not with
 # the shape it surrounds. French wants the article in every branch, so only the
 # conjunction distinguishes them.
@@ -185,7 +173,6 @@ style-border-clause =
         [and-article] et une bordure { $border }
        *[with] avec une bordure { $border }
     }
-
 # The gender this message is handed is the one `noun-gender` answers for
 # `fill` — masculine, for «remplissage» — so it names that noun and the colour
 # agrees with it in both variants. The pattern follows in the «avec des»
@@ -195,29 +182,23 @@ style-fill =
         [pattern] remplissage { $color } avec des { $pattern }
        *[plain] remplissage { $color }
     }
-
 style-unfilled = non rempli
-
 style-text =
     { $parts ->
         [background] { $color } sur un fond { $background }
        *[plain] { $color }
     }
-
 style-background-none = aucun
-
 
 ## Boolean words
 
 boolean-true = vrai
 boolean-false = faux
 
-
 ## Answer buttons
 
 answer-submit-label = Vérifier
 answer-submit-label-no-correctness = Envoyer la réponse
-
 
 ## Sectional blocks
 
@@ -242,7 +223,6 @@ section-name =
     .solution = Solution
     .task = Tâche
     .theorem = Théorème
-
 # French puts a space before a colon, which is why the separator differs from
 # the English one rather than being reused.
 section-title-prefix =
@@ -254,9 +234,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ " : " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Indice
-
 
 ## Tables and figures
 
@@ -267,7 +245,6 @@ table-name =
         [unnumbered-title] Tableau{ " : " }
        *[unnumbered] Tableau
     }
-
 figure-name =
     { $parts ->
         [numbered] Figure { $enumeration }
@@ -276,22 +253,18 @@ figure-name =
        *[unnumbered] Figure
     }
 
-
 ## Paginator controls
 
 paginator-previous = Précédent
 paginator-next = Suivant
 paginator-page = Page
-
 paginator-page-status = { $pageLabel } { $currentPage } sur { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ou
 piecewise-condition-if = si
 piecewise-condition-otherwise = sinon
-
 
 ## Chemistry
 
@@ -414,7 +387,6 @@ element-name =
     .lv = Livermorium
     .ts = Tennesse
     .og = Oganesson
-
 element-anion-name =
     .h = Hydrure
     .c = Carbure
@@ -428,8 +400,6 @@ element-anion-name =
     .i = Iodure
     .at = Astature
     .ts = Tennessure
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Symbole chimique invalide
 chemistry-invalid-ionic-compound = Composé ionique invalide

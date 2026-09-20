@@ -1,11 +1,18 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     callAction,
     updateMathInputValue,
     updateTextInputValue,
 } from "../utils/actions";
 import me from "math-expressions";
+import seedrandom from "seedrandom";
+import {
+    sampleBinomial,
+    sampleHypergeometric,
+    samplePoisson,
+} from "../../utils/randomNumbers";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import type { mean as MeanType, variance as VarianceType } from "mathjs";
 const { mean, variance } = me.math as {
@@ -644,6 +651,1247 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 expectedVariance: computedVariance,
             });
         }
+    });
+
+    // The numbers a sampling component currently holds, read off its replacements.
+    async function current_values(
+        core: PublicDoenetMLCore,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
+        name: string,
+    ) {
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx(name);
+        return stateVariables[componentIdx].replacements!.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+    }
+
+    // A helper for the discrete distributions whose edge cases have a single
+    // determined answer, where drawing statistics would be beside the point.
+    async function get_sampled_values(doenetML: string, name: string) {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        return await current_values(core, resolvePathToNodeIdx, name);
+    }
+
+    // Parameters that describe no distribution: every sample and every reported
+    // moment must come back NaN, so that a document never shows a plausible-looking
+    // mean or variance alongside samples that could not be drawn.
+    async function expect_nan_distribution(
+        doenetML: string,
+        numSamples: number,
+    ) {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+        const stateValues = stateVariables[componentIdx].stateValues;
+
+        for (const property of ["mean", "variance", "standardDeviation"]) {
+            expect(Number.isNaN(stateValues[property]), property).eq(true);
+        }
+
+        const values = stateVariables[componentIdx].replacements!.map(
+            (x) => stateVariables[x.componentIdx].stateValues.value,
+        );
+        expect(values.length).eq(numSamples);
+        for (const value of values) {
+            expect(Number.isNaN(value), `sample ${value}`).eq(true);
+        }
+    }
+
+    it("parameters too large to sample promptly are refused, not attempted", async () => {
+        // These samplers are exact but linear in their parameters and run
+        // synchronously on the worker, so a warning alone cannot keep a mistyped
+        // extra zero or two from freezing the activity. Anything whose inner loop
+        // would exceed 1e7 draws per sample is refused the same way an impossible
+        // population is. Each case below would otherwise run for minutes or hours.
+        for (const doenetML of [
+            `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="1000000000" numSuccesses="1" numDraws="500000000" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="binomial" numTrials="1000000000" probability="0.5" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="poisson" mean="1000000000" numSamples="3" />`,
+        ]) {
+            await expect_nan_distribution(doenetML, 3);
+        }
+
+        // The bound is on the draws actually made, not on the population size: the
+        // hypergeometric sampler draws whichever of the taken and left-behind groups
+        // is smaller, so a huge population is fine as long as few items are drawn.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="1000000000" numSuccesses="400000000" numDraws="10" numSamples="3" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        expect(stateVariables[componentIdx].stateValues.mean).closeTo(4, 1e-10);
+        for (const replacement of stateVariables[componentIdx].replacements!) {
+            const value =
+                stateVariables[replacement.componentIdx].stateValues.value;
+            expect(Number.isInteger(value)).eq(true);
+            expect(value).gte(0);
+            expect(value).lte(10);
+        }
+    });
+
+    it("unusable parameters are reported to the author, not just the console", async () => {
+        // A console warning is invisible to someone authoring a document, so each of
+        // these has to arrive as a diagnostic that the surrounding tooling can show,
+        // carrying the offending values so the message can name them.
+        const cases: [string, string, Record<string, unknown>][] = [
+            [
+                `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="10" numSuccesses="11" numDraws="4" />`,
+                "doenet-w0127",
+                { numTotal: 10, numSuccesses: 11, numDraws: 4 },
+            ],
+            [
+                // the three hypergeometric attributes have no default, so leaving
+                // them off is the commonest way to reach that message; each one is
+                // reported as not set rather than as the implementation's `null`
+                `<sampleRandomNumbers name="s" type="hypergeometric" />`,
+                "doenet-w0127",
+                {
+                    numTotal: "not-set",
+                    numSuccesses: "not-set",
+                    numDraws: "not-set",
+                },
+            ],
+            [
+                `<sampleRandomNumbers name="s" type="binomial" numTrials="6" probability="1.5" />`,
+                "doenet-w0129",
+                { numTrials: 6, probability: 1.5 },
+            ],
+            [
+                `<sampleRandomNumbers name="s" type="poisson" mean="-1" />`,
+                "doenet-w0131",
+                // the rate as written, not the reported `mean`, which is NaN here
+                { mean: -1 },
+            ],
+            [
+                `<sampleRandomNumbers name="s" type="binomial" numTrials="1000000000" probability="0.5" />`,
+                "doenet-w0130",
+                { numTrials: 1000000000, maxDraws: 1e7 },
+            ],
+            [
+                `<sampleRandomNumbers name="s" type="poisson" mean="1000000000" />`,
+                "doenet-w0132",
+                { mean: 1000000000, maxDraws: 1e7 },
+            ],
+            [
+                `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="1000000000" numSuccesses="1" numDraws="500000000" />`,
+                "doenet-w0128",
+                { numTotal: 1000000000, numDraws: 500000000, maxDraws: 1e7 },
+            ],
+        ];
+
+        for (const [doenetML, code, args] of cases) {
+            const { core } = await createTestCore({ doenetML });
+            await core.returnAllStateVariables(false, true);
+
+            const warnings = getDiagnosticsByType(core).warnings;
+            const matching = warnings.filter((w) => w.code === code);
+            expect(matching.length, `${code} for ${doenetML}`).eq(1);
+            expect(matching[0].args).eqls(args);
+            // the message an author reads should name the problem, not be empty,
+            // and should never show them a value they did not write
+            expect(matching[0].message.length).greaterThan(20);
+            expect(matching[0].message).not.toContain("null");
+        }
+    });
+
+    it("the hypergeometric is exact at the top of the population range", async () => {
+        // Comparing a [0, 1) draw against numSuccesses / numTotal rounds the number
+        // of representable draws below that quotient up to a whole one, which is a
+        // factor of two when the quotient is itself near the finest value a draw can
+        // take. Drawing the whole number directly removes the quotient, so a
+        // population at the very top of the accepted range is still drawn exactly.
+        const rng = seedrandom.alea("top-of-range");
+        const numTotal = Number.MAX_SAFE_INTEGER;
+        const trials = 200000;
+
+        // half the population are successes, so each draw is a fair coin; a rounding
+        // artifact anywhere in the comparison would show up as a biased one
+        let successes = 0;
+        for (let i = 0; i < trials; i++) {
+            successes += sampleHypergeometric({
+                numTotal,
+                numSuccesses: (numTotal - 1) / 2,
+                numDraws: 1,
+                rng,
+            });
+        }
+        expect(successes / trials).closeTo(0.5, 0.01);
+
+        // and a population with no successes never yields one, however large
+        for (let i = 0; i < 1000; i++) {
+            expect(
+                sampleHypergeometric({
+                    numTotal,
+                    numSuccesses: 0,
+                    numDraws: 1,
+                    rng,
+                }),
+            ).eq(0);
+        }
+    });
+
+    it("a population in the worst band for redraws is still drawn correctly", async () => {
+        // Drawing a whole number rejects the values above the largest whole multiple
+        // of the bound. Just past 2^52 that multiple is the bound itself, so about
+        // half of all draws are discarded — far more than for a population of any
+        // ordinary size, and the point at which the loop is worked hardest.
+        const rng = seedrandom.alea("worst-band");
+        const numTotal = 2 ** 52 + 1;
+        const trials = 100000;
+
+        let successes = 0;
+        for (let i = 0; i < trials; i++) {
+            successes += sampleHypergeometric({
+                numTotal,
+                numSuccesses: (numTotal - 1) / 2,
+                numDraws: 1,
+                rng,
+            });
+        }
+
+        // half the population are successes, so rejecting the wrong band — or
+        // folding it back in instead of redrawing — would show up as a biased coin
+        expect(successes / trials).closeTo(0.5, 0.01);
+    });
+
+    it("each refusal message states a condition the value actually fails", async () => {
+        // A message that lists only conditions the author already satisfies leaves
+        // them no way to find the real one. Every value below is refused, so each
+        // message has to name the requirement it breaks.
+        const cases: [string, string][] = [
+            [
+                // Infinity is non-negative, so saying only "non-negative" explains nothing
+                `<sampleRandomNumbers name="s" type="gaussian" standardDeviation="Infinity" numSamples="2" />`,
+                "finite",
+            ],
+            [
+                `<sampleRandomNumbers name="s" type="gaussian" variance="Infinity" numSamples="2" />`,
+                "finite",
+            ],
+            [
+                // a positive whole number, and still past the exactly-countable range
+                `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="1e16" numSuccesses="10" numDraws="5" numSamples="2" />`,
+                "quadrillion",
+            ],
+            [
+                `<sampleRandomNumbers name="s" type="binomial" numTrials="1e16" probability="0.5" numSamples="2" />`,
+                "quadrillion",
+            ],
+        ];
+
+        for (const [doenetML, mustExplain] of cases) {
+            const { core } = await createTestCore({ doenetML });
+            await core.returnAllStateVariables(false, true);
+
+            const warnings = getDiagnosticsByType(core).warnings;
+            expect(warnings.length, doenetML).eq(1);
+            expect(warnings[0].message.toLowerCase(), doenetML).toContain(
+                mustExplain,
+            );
+        }
+    });
+
+    it("a population too large to count exactly is refused", async () => {
+        // `Number.isInteger(1e308)` is true, and a small `numDraws` keeps the work
+        // bound satisfied, so such a population would otherwise be accepted — and
+        // then `numDraws * numSuccesses` overflows, reporting a mean of Infinity
+        // while the sampler's urn never actually shrinks.
+        await expect_nan_distribution(
+            `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="1e308" numSuccesses="5e307" numDraws="10" numSamples="3" />`,
+            3,
+        );
+
+        // just past the safe-integer boundary
+        await expect_nan_distribution(
+            `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="9007199254740993" numSuccesses="10" numDraws="10" numSamples="3" />`,
+            3,
+        );
+
+        // ...while a population right at the boundary is still sampled, and its
+        // reported mean is a number rather than Infinity
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="9007199254740991" numSuccesses="4503599627370496" numDraws="10" numSamples="3" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        const reportedMean = stateVariables[componentIdx].stateValues.mean;
+        expect(Number.isFinite(reportedMean)).eq(true);
+        expect(reportedMean).closeTo(5, 1e-6);
+    });
+
+    it("a gaussian that describes no distribution reports NaN moments", async () => {
+        // The three discrete distributions report NaN moments for exactly the
+        // parameters whose samples are NaN; the gaussian now does the same, rather
+        // than reporting a plausible spread beside NaN samples.
+        for (const doenetML of [
+            `<sampleRandomNumbers name="s" type="gaussian" variance="-1" numSamples="3" />`,
+            // Infinity passes a bare `>= 0` test but samples to Infinity or NaN
+            `<sampleRandomNumbers name="s" type="gaussian" variance="Infinity" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="gaussian" standardDeviation="Infinity" numSamples="3" />`,
+            // squaring this into the variance and rooting it back out would lose
+            // the sign, sampling it as 2 while the warning says it must be positive
+            `<sampleRandomNumbers name="s" type="gaussian" standardDeviation="-2" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="gaussian" mean="Infinity" numSamples="3" />`,
+        ]) {
+            const { core } = await createTestCore({ doenetML });
+            await expect_nan_distribution(doenetML, 3);
+
+            const warnings = getDiagnosticsByType(core).warnings;
+            expect(warnings.length, doenetML).eq(1);
+            expect(warnings[0].code).eq("doenet-w0126");
+        }
+
+        // a gaussian that does describe a distribution is untouched
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="gaussian" mean="10" variance="4" numSamples="3" />`,
+        });
+        const stateValues = (await core.returnAllStateVariables(false, true))[
+            await resolvePathToNodeIdx("s")
+        ].stateValues;
+        expect(stateValues.mean).closeTo(10, 1e-10);
+        expect(stateValues.variance).closeTo(4, 1e-10);
+        expect(stateValues.standardDeviation).closeTo(2, 1e-10);
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+    });
+
+    it("resampling and reloading keep reporting why the parameters are unusable", async () => {
+        // Reusing values rather than drawing them — after a resample, or when saved
+        // values are loaded back — takes a branch that never reached the sampler, so
+        // the explanation used to disappear while the NaN it explained remained.
+        const doenetML = `
+    <p><sampleRandomNumbers name="s" type="binomial" numTrials="-1" probability="0.5" numSamples="3" /></p>
+    <callAction name="again" target="$s" actionName="resample"><label>Resample</label></callAction>
+    `;
+        function numExplanations(core: PublicDoenetMLCore) {
+            return getDiagnosticsByType(core).warnings.filter(
+                (w) => w.code === "doenet-w0129",
+            ).length;
+        }
+
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(numExplanations(core)).eq(1);
+
+        await callAction({
+            core,
+            componentIdx: await resolvePathToNodeIdx("again"),
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        // still explained, and still not doubled up
+        expect(numExplanations(core)).eq(1);
+
+        // A core accumulates its diagnostics and dedupes them, so the count above
+        // would survive the reuse branch reporting nothing at all. A reload starts
+        // with none, which is where an unexplained NaN would actually reach an
+        // author: the values come back from saved state without the sampler ever
+        // being asked for them.
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(numExplanations(core)).eq(1);
+        for (const replacement of stateVariables[
+            await resolvePathToNodeIdx("s")
+        ].replacements!) {
+            expect(
+                Number.isNaN(
+                    stateVariables[replacement.componentIdx].stateValues.value,
+                ),
+            ).eq(true);
+        }
+    });
+
+    it("a selection freezes its moments even when nothing has read them yet", async () => {
+        // `selectedValues` is resolved eagerly, to expand the composite, but the
+        // reported moments are lazy. If a referenced parameter changes before
+        // anything reads them, a moment first evaluated afterwards would freeze the
+        // new parameter while the selected numbers came from the old one. Note the
+        // update happens before any `returnAllStateVariables`, which would otherwise
+        // resolve and freeze everything first and hide the problem.
+        for (const [type, expectedMean] of [
+            ["gaussian", 10],
+            ["poisson", 10],
+        ] as [string, number][]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="m" prefill="10" />
+    <selectRandomNumbers name="s" type="${type}" mean="$m" numToSelect="4" />
+    `,
+            });
+
+            await updateMathInputValue({
+                latex: "40",
+                componentIdx: await resolvePathToNodeIdx("m"),
+                core,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const componentIdx = await resolvePathToNodeIdx("s");
+            expect(stateVariables[componentIdx].stateValues.mean, type).closeTo(
+                expectedMean,
+                1e-10,
+            );
+        }
+
+        // the same for the spread, which is a separate frozen input
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="sd" prefill="2" />
+    <selectRandomNumbers name="s" type="gaussian" standardDeviation="$sd" numToSelect="4" />
+    `,
+        });
+
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("sd"),
+            core,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+        expect(
+            stateVariables[componentIdx].stateValues.standardDeviation,
+        ).closeTo(2, 1e-10);
+        expect(stateVariables[componentIdx].stateValues.variance).closeTo(
+            4,
+            1e-10,
+        );
+    });
+
+    it("a selected distribution's parameters are frozen with its selection", async () => {
+        // `<selectRandomNumbers>` freezes its moments, so a parameter that kept
+        // tracking a reference would describe a distribution other than the numbers
+        // on the page.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="n" prefill="10" />
+    <selectRandomNumbers name="s" type="binomial" numTrials="$n" probability="0.5" numToSelect="4" />
+    `,
+        });
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+        expect(stateVariables[componentIdx].stateValues.numTrials).eq(10);
+        expect(stateVariables[componentIdx].stateValues.mean).closeTo(5, 1e-10);
+
+        await updateMathInputValue({
+            latex: "40",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[componentIdx].stateValues.numTrials).eq(10);
+        expect(stateVariables[componentIdx].stateValues.mean).closeTo(5, 1e-10);
+    });
+
+    it("a sampled distribution's parameters still follow a reference", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="n" prefill="10" />
+    <sampleRandomNumbers name="s" type="binomial" numTrials="$n" probability="0.5" numSamples="4" />
+    `,
+        });
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        await updateMathInputValue({
+            latex: "40",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[componentIdx].stateValues.numTrials).eq(40);
+        expect(stateVariables[componentIdx].stateValues.mean).closeTo(
+            20,
+            1e-10,
+        );
+    });
+
+    it("selectRandomNumbers forwards its diagnostics too", async () => {
+        // `<selectRandomNumbers>` defines its own `selectedValues` rather than
+        // inheriting `sampledValues`, so it forwards diagnostics by a separate path
+        // that the `<sampleRandomNumbers>` cases above never exercise.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<selectRandomNumbers name="s" type="hypergeometric" numTotal="10" numSuccesses="11" numDraws="4" numToSelect="3" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        const warnings = getDiagnosticsByType(core).warnings.filter(
+            (w) => w.code === "doenet-w0127",
+        );
+        expect(warnings.length).eq(1);
+        expect(warnings[0].args).eqls({
+            numTotal: 10,
+            numSuccesses: 11,
+            numDraws: 4,
+        });
+
+        for (const replacement of stateVariables[componentIdx].replacements!) {
+            expect(
+                Number.isNaN(
+                    stateVariables[replacement.componentIdx].stateValues.value,
+                ),
+            ).eq(true);
+        }
+    });
+
+    it("a fractional or unreadable numSamples does not break the sampler", async () => {
+        // `numSamples` is a number rather than an integer, so it can arrive
+        // fractional; `Array(1.5)` throws, which would take the whole document down.
+        for (const [numSamples, expected] of [
+            ["1.5", 2],
+            ["2.7", 3],
+            ["3", 3],
+        ] as [string, number][]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<sampleRandomNumbers name="s" type="binomial" numTrials="4" probability="0.5" numSamples="${numSamples}" />`,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const componentIdx = await resolvePathToNodeIdx("s");
+            // the count matches what the long-standing loops produce, i.e. the ceiling
+            expect(
+                stateVariables[componentIdx].replacements!.length,
+                `numSamples="${numSamples}"`,
+            ).eq(expected);
+        }
+
+        // the same holds on the refusal path, which builds the run of NaN a
+        // different way; the `gaussian` case is the one that predates this feature
+        for (const parameters of [
+            `type="binomial" numTrials="-1" probability="0.5"`,
+            `type="gaussian" variance="-1"`,
+        ]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<sampleRandomNumbers name="s" ${parameters} numSamples="1.5" />`,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const componentIdx = await resolvePathToNodeIdx("s");
+            const values = stateVariables[componentIdx].replacements!.map(
+                (x) => stateVariables[x.componentIdx].stateValues.value,
+            );
+            expect(values.length, parameters).eq(2);
+            for (const value of values) {
+                expect(Number.isNaN(value)).eq(true);
+            }
+        }
+
+        // a count under one samples nothing, before and after a `resample`, which
+        // reaches the sampler without the `numSamples < 1` short-circuit that
+        // `sampledValues` applies
+        {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <sampleRandomNumbers name="s" type="binomial" numTrials="4" probability="0.5" numSamples="0.5" />
+    <callAction name="again" target="$s" actionName="resample"><label>Resample</label></callAction>
+    `,
+            });
+            const componentIdx = await resolvePathToNodeIdx("s");
+            expect(
+                (await core.returnAllStateVariables(false, true))[componentIdx]
+                    .replacements!.length,
+            ).eq(0);
+
+            await callAction({
+                core,
+                componentIdx: await resolvePathToNodeIdx("again"),
+            });
+
+            expect(
+                (await core.returnAllStateVariables(false, true))[componentIdx]
+                    .replacements!.length,
+            ).eq(0);
+        }
+    });
+
+    it("a gaussian with an impossible spread reports it", async () => {
+        // A supplied `standardDeviation` is kept as written, so a negative one is
+        // refused rather than squared back to positive; a negative `variance`
+        // reaches the sampler as an impossible spread the same way.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="gaussian" variance="-1" numSamples="3" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        const warnings = getDiagnosticsByType(core).warnings.filter(
+            (w) => w.code === "doenet-w0126",
+        );
+        expect(warnings.length).eq(1);
+        expect(warnings[0].args).eqls({ mean: 0, standardDeviation: NaN });
+
+        for (const replacement of stateVariables[componentIdx].replacements!) {
+            expect(
+                Number.isNaN(
+                    stateVariables[replacement.componentIdx].stateValues.value,
+                ),
+            ).eq(true);
+        }
+    });
+
+    it("valid parameters raise no diagnostics", async () => {
+        for (const doenetML of [
+            `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="20" numSuccesses="7" numDraws="5" numSamples="4" />`,
+            `<sampleRandomNumbers name="s" type="binomial" numTrials="10" probability="0.3" numSamples="4" />`,
+            `<sampleRandomNumbers name="s" type="poisson" mean="4" numSamples="4" />`,
+            `<selectRandomNumbers name="s" type="poisson" mean="4" numToSelect="4" />`,
+        ]) {
+            const { core } = await createTestCore({ doenetML });
+            await core.returnAllStateVariables(false, true);
+
+            const diagnostics = getDiagnosticsByType(core);
+            expect(diagnostics.warnings.length, doenetML).eq(0);
+            expect(diagnostics.errors.length, doenetML).eq(0);
+        }
+    });
+
+    it("parameters below the limit but slow to draw are still sampled, with a notice", async () => {
+        // Between the point where a document turns sluggish and the point where it
+        // is refused, the samples are drawn as asked and the author is told why the
+        // page feels slow — something no other part of the document can tell them.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="binomial" numTrials="2000000" probability="0.5" numSamples="2" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        const warnings = getDiagnosticsByType(core).warnings;
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0133");
+        expect(warnings[0].args).eqls({
+            distribution: "binomial",
+            draws: 2000000,
+        });
+
+        expect(stateVariables[componentIdx].stateValues.mean).closeTo(
+            1000000,
+            1e-10,
+        );
+        for (const replacement of stateVariables[componentIdx].replacements!) {
+            const value =
+                stateVariables[replacement.componentIdx].stateValues.value;
+            expect(Number.isInteger(value)).eq(true);
+            expect(value).closeTo(1000000, 20000);
+        }
+    });
+
+    /** log of "n choose k" */
+    function logBinomial(n: number, k: number) {
+        let result = 0;
+        for (let i = 0; i < k; i++) {
+            result += Math.log(n - i) - Math.log(i + 1);
+        }
+        return result;
+    }
+
+    /** exact hypergeometric pmf: C(K, k) * C(N - K, n - k) / C(N, n) */
+    function hypergeometricPmf(
+        numTotal: number,
+        numSuccesses: number,
+        numDraws: number,
+    ) {
+        return (k: number) => {
+            // the support runs from max(0, n - (N - K)) to min(n, K); outside it
+            // one of the binomial coefficients is zero
+            if (
+                k < 0 ||
+                k > numSuccesses ||
+                k > numDraws ||
+                numDraws - k > numTotal - numSuccesses
+            ) {
+                return 0;
+            }
+            return Math.exp(
+                logBinomial(numSuccesses, k) +
+                    logBinomial(numTotal - numSuccesses, numDraws - k) -
+                    logBinomial(numTotal, numDraws),
+            );
+        };
+    }
+
+    /** exact binomial pmf: C(n, k) * p^k * (1 - p)^(n - k) */
+    function binomialPmf(numTrials: number, probability: number) {
+        return (k: number) => {
+            if (k < 0 || k > numTrials) {
+                return 0;
+            }
+            // the k = 0 and k = numTrials terms are skipped rather than
+            // evaluated, so that probability 0 or 1 gives 0 rather than NaN
+            let logProbability = logBinomial(numTrials, k);
+            if (k > 0) {
+                logProbability += k * Math.log(probability);
+            }
+            if (k < numTrials) {
+                logProbability += (numTrials - k) * Math.log(1 - probability);
+            }
+            return Math.exp(logProbability);
+        };
+    }
+
+    /** exact Poisson pmf: e^(-mean) * mean^k / k! */
+    function poissonPmf(mean: number) {
+        return (k: number) => {
+            if (k < 0) {
+                return 0;
+            }
+            let logProbability = -mean;
+            for (let i = 1; i <= k; i++) {
+                logProbability += Math.log(mean) - Math.log(i);
+            }
+            return Math.exp(logProbability);
+        };
+    }
+
+    /**
+     * Draw many variates from `sample` and compare the frequency of each outcome
+     * with its exact probability. Matching the pmf outcome by outcome is a much
+     * stronger check than matching a mean and a variance, which any number of
+     * wrong distributions could also do.
+     */
+    function check_against_pmf({
+        label,
+        sample,
+        pmf,
+        trials = 100000,
+        allowedDeviation = 0.01,
+    }: {
+        label: string;
+        sample: () => number;
+        pmf: (k: number) => number;
+        trials?: number;
+        allowedDeviation?: number;
+    }) {
+        const observed = new Map<number, number>();
+        let brokenInvariant: string | null = null;
+
+        for (let i = 0; i < trials; i++) {
+            const value = sample();
+
+            // Checked with plain conditionals rather than expect() so the
+            // assertion machinery doesn't dominate a 100k-iteration loop.
+            if (
+                brokenInvariant === null &&
+                (!Number.isInteger(value) || !(pmf(value) > 0))
+            ) {
+                brokenInvariant = `${label} produced ${value}, which is outside its support`;
+            }
+
+            observed.set(value, (observed.get(value) ?? 0) + 1);
+        }
+
+        expect(brokenInvariant).eq(null);
+
+        let massObserved = 0;
+        let worstDeviation = 0;
+        for (const [value, count] of observed) {
+            const exact = pmf(value);
+            worstDeviation = Math.max(
+                worstDeviation,
+                Math.abs(count / trials - exact),
+            );
+            massObserved += exact;
+        }
+
+        expect(worstDeviation, `worst pmf deviation for ${label}`).lessThan(
+            allowedDeviation,
+        );
+        // Every outcome seen carries real probability (checked above) and together
+        // they account for essentially all of it, so no part of the support was
+        // systematically missed. Outcomes rarer than about 1e-5 can legitimately
+        // go unseen in 100k trials, hence the 1e-4 slack.
+        expect(
+            massObserved,
+            `probability mass covered by ${label}`,
+        ).greaterThan(1 - 1e-4);
+    }
+
+    // The first four cases cover every combination of the two symmetries the
+    // sampler uses to keep its loop short: drawing the items left behind instead
+    // of the items taken, and counting failures instead of successes. The last
+    // two pin down degenerate populations.
+    const hypergeometricCases: [number, number, number][] = [
+        [20, 7, 5], // few draws, few successes: no substitution
+        [20, 7, 16], // many draws: the left-behind items are drawn instead
+        [20, 15, 5], // many successes: failures are counted instead
+        [20, 15, 16], // both substitutions at once
+        [10, 0, 4], // a population with no successes
+        [1, 1, 1], // a population of one item
+    ];
+
+    for (const [numTotal, numSuccesses, numDraws] of hypergeometricCases) {
+        it(`hypergeometric pmf for numTotal=${numTotal}, numSuccesses=${numSuccesses}, numDraws=${numDraws}`, () => {
+            const rng = seedrandom.alea(
+                `hyper-${numTotal}-${numSuccesses}-${numDraws}`,
+            );
+            check_against_pmf({
+                label: `hypergeometric(${numTotal}, ${numSuccesses}, ${numDraws})`,
+                sample: () =>
+                    sampleHypergeometric({
+                        numTotal,
+                        numSuccesses,
+                        numDraws,
+                        rng,
+                    }),
+                pmf: hypergeometricPmf(numTotal, numSuccesses, numDraws),
+            });
+        });
+    }
+
+    const binomialCases: [number, number][] = [
+        [10, 0.3],
+        [1, 0.5], // a single fair trial, the default parameters
+        [5, 0.9], // heavily skewed toward success
+        [0, 0.5], // no trials at all
+    ];
+
+    for (const [numTrials, probability] of binomialCases) {
+        it(`binomial pmf for numTrials=${numTrials}, probability=${probability}`, () => {
+            const rng = seedrandom.alea(`binom-${numTrials}-${probability}`);
+            check_against_pmf({
+                label: `binomial(${numTrials}, ${probability})`,
+                sample: () => sampleBinomial({ numTrials, probability, rng }),
+                pmf: binomialPmf(numTrials, probability),
+            });
+        });
+    }
+
+    // named poissonMean rather than mean so as not to shadow the mathjs `mean`
+    for (const poissonMean of [4, 0.5, 0]) {
+        it(`poisson pmf for mean=${poissonMean}`, () => {
+            const rng = seedrandom.alea(`pois-${poissonMean}`);
+            check_against_pmf({
+                label: `poisson(${poissonMean})`,
+                sample: () => samplePoisson({ mean: poissonMean, rng }),
+                pmf: poissonPmf(poissonMean),
+            });
+        });
+    }
+
+    it("poisson stays centered for a mean too large for e^(-mean)", () => {
+        // e^(-1000) underflows to 0, so a sampler that multiplied uniforms until
+        // the product dropped below it would stall around 745 whatever the mean.
+        // Enumerating the pmf out here is impractical, so check the moments: the
+        // standard deviation is about 32, and over 5000 draws the sample mean has
+        // a standard error of about 0.45.
+        const rng = seedrandom.alea("pois-1000");
+        const values = Array.from({ length: 5000 }, () =>
+            samplePoisson({ mean: 1000, rng }),
+        );
+
+        expect(mean(values), "sample mean").closeTo(1000, 3);
+        expect(variance(values), "sample variance").closeTo(1000, 100);
+    });
+
+    it("hypergeometric, 5 draws from 20 items with 7 successes", async () => {
+        const doenetMLs = [
+            `<selectRandomNumbers name="s" type="hypergeometric" numTotal="20" numSuccesses="7" numDraws="5" numToSelect="20" />`,
+            `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="20" numSuccesses="7" numDraws="5" numSamples="20" />`,
+        ];
+
+        // mean = n*K/N; variance = n*(K/N)*((N-K)/N)*(N-n)/(N-1)
+        const expectedMean = (5 * 7) / 20;
+        const expectedVariance = (5 * (7 / 20) * (13 / 20) * 15) / 19;
+
+        for (let doenetML of doenetMLs) {
+            await test_combined_statistics({
+                doenetML,
+                name: "s",
+                numSamplesPerComponent: 20,
+                numRepetitions: 10,
+                validValues: [0, 1, 2, 3, 4, 5],
+                allowedMeanMid: expectedMean,
+                allowedMeanSpread: 0.1,
+                allowedVarianceMid: expectedVariance,
+                allowedVarianceSpread: 0.15,
+                expectedMean,
+                expectedVariance,
+            });
+        }
+    });
+
+    // The shape of this distribution is already pinned down exactly by the pmf
+    // tests above; what is checked here is that the component reports the right
+    // moments and stays inside the support when the population is lopsided.
+    it("hypergeometric, drawing most of a mostly-successful population", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="20" numSuccesses="15" numDraws="16" numSamples="20" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        expect(stateVariables[componentIdx].stateValues.mean).closeTo(
+            (16 * 15) / 20,
+            1e-10,
+        );
+        expect(stateVariables[componentIdx].stateValues.variance).closeTo(
+            (16 * (15 / 20) * (5 / 20) * 4) / 19,
+            1e-10,
+        );
+
+        // support is max(0, n - (N - K)) to min(n, K), i.e. 11 to 15
+        for (let value of await current_values(
+            core,
+            resolvePathToNodeIdx,
+            "s",
+        )) {
+            expect(value).gte(11);
+            expect(value).lte(15);
+        }
+    });
+
+    it("degenerate hypergeometric parameters", async () => {
+        // drawing the whole population always yields every success
+        expect(
+            await get_sampled_values(
+                `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="10" numSuccesses="4" numDraws="10" numSamples="5" />`,
+                "s",
+            ),
+        ).eqls([4, 4, 4, 4, 4]);
+
+        // drawing nothing always yields no successes
+        expect(
+            await get_sampled_values(
+                `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="10" numSuccesses="4" numDraws="0" numSamples="5" />`,
+                "s",
+            ),
+        ).eqls([0, 0, 0, 0, 0]);
+
+        // a population with no successes yields no successes
+        expect(
+            await get_sampled_values(
+                `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="10" numSuccesses="0" numDraws="4" numSamples="5" />`,
+                "s",
+            ),
+        ).eqls([0, 0, 0, 0, 0]);
+
+        // a population that is all successes yields all successes
+        expect(
+            await get_sampled_values(
+                `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="10" numSuccesses="10" numDraws="4" numSamples="5" />`,
+                "s",
+            ),
+        ).eqls([4, 4, 4, 4, 4]);
+    });
+
+    it("a one-item hypergeometric population has zero variance", async () => {
+        // the finite population correction divides by numTotal - 1, but with a
+        // single item the draw is determined, so the variance is 0 rather than NaN
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="1" numSuccesses="1" numDraws="1" numSamples="3" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        expect(stateVariables[componentIdx].stateValues.mean).closeTo(1, 1e-10);
+        expect(stateVariables[componentIdx].stateValues.variance).closeTo(
+            0,
+            1e-10,
+        );
+        expect(
+            stateVariables[componentIdx].stateValues.standardDeviation,
+        ).closeTo(0, 1e-10);
+
+        expect(await current_values(core, resolvePathToNodeIdx, "s")).eqls([
+            1, 1, 1,
+        ]);
+    });
+
+    it("invalid hypergeometric parameters give NaN", async () => {
+        const doenetMLs = [
+            // unspecified population
+            `<sampleRandomNumbers name="s" type="hypergeometric" numSamples="3" />`,
+            // more successes than items
+            `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="10" numSuccesses="11" numDraws="4" numSamples="3" />`,
+            // more draws than items
+            `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="10" numSuccesses="4" numDraws="11" numSamples="3" />`,
+            // negative count
+            `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="10" numSuccesses="-1" numDraws="4" numSamples="3" />`,
+            // non-integer count
+            `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="10.5" numSuccesses="4" numDraws="4" numSamples="3" />`,
+            // an empty population has no distribution to report
+            `<sampleRandomNumbers name="s" type="hypergeometric" numTotal="0" numSuccesses="0" numDraws="0" numSamples="3" />`,
+        ];
+
+        for (let doenetML of doenetMLs) {
+            await expect_nan_distribution(doenetML, 3);
+        }
+    });
+
+    it("binomial, 10 trials with probability 0.3", async () => {
+        const doenetMLs = [
+            `<selectRandomNumbers name="s" type="binomial" numTrials="10" probability="0.3" numToSelect="20" />`,
+            `<sampleRandomNumbers name="s" type="binomial" numTrials="10" probability="0.3" numSamples="20" />`,
+        ];
+
+        for (let doenetML of doenetMLs) {
+            await test_combined_statistics({
+                doenetML,
+                name: "s",
+                numSamplesPerComponent: 20,
+                numRepetitions: 10,
+                validValues: [0, 1, 2, 3, 4, 5, 6, 7, 8, 9, 10],
+                allowedMeanMid: 3,
+                allowedMeanSpread: 0.15,
+                allowedVarianceMid: 2.1,
+                allowedVarianceSpread: 0.3,
+                expectedMean: 3,
+                expectedVariance: 2.1,
+            });
+        }
+    });
+
+    it("binomial defaults to a single fair trial", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="binomial" numSamples="20" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        expect(stateVariables[componentIdx].stateValues.mean).closeTo(
+            0.5,
+            1e-10,
+        );
+        expect(stateVariables[componentIdx].stateValues.variance).closeTo(
+            0.25,
+            1e-10,
+        );
+
+        for (let replacement of stateVariables[componentIdx].replacements!) {
+            const value =
+                stateVariables[replacement.componentIdx].stateValues.value;
+            expect([0, 1].includes(value)).eq(true);
+        }
+    });
+
+    it("degenerate and invalid binomial parameters", async () => {
+        // probability 0 never succeeds, probability 1 always succeeds
+        expect(
+            await get_sampled_values(
+                `<sampleRandomNumbers name="s" type="binomial" numTrials="6" probability="0" numSamples="4" />`,
+                "s",
+            ),
+        ).eqls([0, 0, 0, 0]);
+
+        expect(
+            await get_sampled_values(
+                `<sampleRandomNumbers name="s" type="binomial" numTrials="6" probability="1" numSamples="4" />`,
+                "s",
+            ),
+        ).eqls([6, 6, 6, 6]);
+
+        expect(
+            await get_sampled_values(
+                `<sampleRandomNumbers name="s" type="binomial" numTrials="0" probability="0.5" numSamples="4" />`,
+                "s",
+            ),
+        ).eqls([0, 0, 0, 0]);
+
+        for (let doenetML of [
+            `<sampleRandomNumbers name="s" type="binomial" numTrials="6" probability="1.5" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="binomial" numTrials="6" probability="-0.5" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="binomial" numTrials="6.5" probability="0.5" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="binomial" numTrials="-1" probability="0.5" numSamples="3" />`,
+        ]) {
+            await expect_nan_distribution(doenetML, 3);
+        }
+    });
+
+    it("poisson with mean 4", async () => {
+        const doenetMLs = [
+            `<selectRandomNumbers name="s" type="poisson" mean="4" numToSelect="20" />`,
+            `<sampleRandomNumbers name="s" type="poisson" mean="4" numSamples="20" />`,
+        ];
+
+        // The support is unbounded, but with mean 4 the chance of exceeding 30
+        // is below 10^(-16), so this doubles as an integrality check.
+        const validValues = [...Array(31).keys()];
+
+        for (let doenetML of doenetMLs) {
+            await test_combined_statistics({
+                doenetML,
+                name: "s",
+                numSamplesPerComponent: 20,
+                numRepetitions: 10,
+                validValues,
+                allowedMeanMid: 4,
+                allowedMeanSpread: 0.2,
+                allowedVarianceMid: 4,
+                allowedVarianceSpread: 0.5,
+                expectedMean: 4,
+                expectedVariance: 4,
+            });
+        }
+    });
+
+    it("an unspecified mean takes the default of its own distribution", async () => {
+        // The `mean` attribute declares no default, because the two distributions
+        // that use it do not share one — declaring either would publish a wrong
+        // default to the editor and the reference docs for the other.
+        async function reported_mean(doenetML: string) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("s")].stateValues
+                .mean;
+        }
+
+        expect(
+            await reported_mean(
+                `<sampleRandomNumbers name="s" type="gaussian" numSamples="3" />`,
+            ),
+        ).closeTo(0, 1e-10);
+
+        expect(
+            await reported_mean(
+                `<sampleRandomNumbers name="s" type="poisson" numSamples="3" />`,
+            ),
+        ).closeTo(1, 1e-10);
+
+        // an explicit zero is still an explicit zero, not "unspecified" — a poisson
+        // written that way is degenerate, which is the author's business
+        expect(
+            await reported_mean(
+                `<sampleRandomNumbers name="s" type="poisson" mean="0" numSamples="3" />`,
+            ),
+        ).closeTo(0, 1e-10);
+
+        expect(
+            await reported_mean(
+                `<sampleRandomNumbers name="s" type="gaussian" mean="0" numSamples="3" />`,
+            ),
+        ).closeTo(0, 1e-10);
+    });
+
+    it("poisson mean defaults to 1, not to the shared default of 0", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="poisson" numSamples="20" />`,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        expect(stateVariables[componentIdx].stateValues.mean).closeTo(1, 1e-10);
+        expect(stateVariables[componentIdx].stateValues.variance).closeTo(
+            1,
+            1e-10,
+        );
+        expect(
+            stateVariables[componentIdx].stateValues.standardDeviation,
+        ).closeTo(1, 1e-10);
+    });
+
+    it("degenerate and invalid poisson parameters", async () => {
+        // a Poisson distribution with mean 0 is deterministic
+        expect(
+            await get_sampled_values(
+                `<sampleRandomNumbers name="s" type="poisson" mean="0" numSamples="4" />`,
+                "s",
+            ),
+        ).eqls([0, 0, 0, 0]);
+
+        await expect_nan_distribution(
+            `<sampleRandomNumbers name="s" type="poisson" mean="-1" numSamples="3" />`,
+            3,
+        );
+    });
+
+    it("resample the discrete distributions", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><sampleRandomNumbers name="hyper" type="hypergeometric" numTotal="50" numSuccesses="25" numDraws="20" numSamples="20" /></p>
+    <p><sampleRandomNumbers name="binom" type="binomial" numTrials="20" probability="0.5" numSamples="20" /></p>
+    <p><sampleRandomNumbers name="pois" type="poisson" mean="10" numSamples="20" /></p>
+
+    <callAction name="resampleHyper" target="$hyper" actionName="resample"><label>Resample</label></callAction>
+    <callAction name="resampleBinom" target="$binom" actionName="resample"><label>Resample</label></callAction>
+    <callAction name="resamplePois" target="$pois" actionName="resample"><label>Resample</label></callAction>
+    `,
+        });
+
+        for (let [name, button] of [
+            ["hyper", "resampleHyper"],
+            ["binom", "resampleBinom"],
+            ["pois", "resamplePois"],
+        ]) {
+            const before = await current_values(
+                core,
+                resolvePathToNodeIdx,
+                name,
+            );
+            expect(before.length).eq(20);
+
+            await callAction({
+                core,
+                componentIdx: await resolvePathToNodeIdx(button),
+            });
+
+            const after = await current_values(
+                core,
+                resolvePathToNodeIdx,
+                name,
+            );
+            expect(after.length).eq(20);
+            // 20 samples from these distributions repeating exactly is
+            // vanishingly unlikely, so the values must have changed
+            expect(after).not.eqls(before);
+            for (let value of after) {
+                expect(Number.isInteger(value)).eq(true);
+            }
+        }
+    });
+
+    it("same discrete samples for given variant if variantDeterminesSeed", async () => {
+        const doenetML = `
+    <sampleRandomNumbers name="hyper" type="hypergeometric" numTotal="50" numSuccesses="25" numDraws="20" numSamples="10" variantDeterminesSeed />
+    <sampleRandomNumbers name="binom" type="binomial" numTrials="20" probability="0.3" numSamples="10" variantDeterminesSeed />
+    <sampleRandomNumbers name="pois" type="poisson" mean="6" numSamples="10" variantDeterminesSeed />
+    `;
+
+        async function values_for_variant(requestedVariantIndex: number) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+                requestedVariantIndex,
+            });
+            const result: Record<string, number[]> = {};
+            for (let name of ["hyper", "binom", "pois"]) {
+                result[name] = await current_values(
+                    core,
+                    resolvePathToNodeIdx,
+                    name,
+                );
+            }
+            return result;
+        }
+
+        const first = await values_for_variant(1);
+        const firstAgain = await values_for_variant(1);
+        const second = await values_for_variant(2);
+
+        expect(firstAgain).eqls(first);
+        expect(second).not.eqls(first);
     });
 
     it("asList", async () => {

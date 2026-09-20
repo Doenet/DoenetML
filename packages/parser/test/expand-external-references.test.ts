@@ -19,6 +19,8 @@ const DoenetMLs = {
     ghijkl: `<p copy="doenet:abcdef" name="par2"> there</p>`,
     mnopqr: `<p copy="doenet:ghijkl" name="p1"><p copy="doenet:ghijkl" name="p2"> more</p> text</p>`,
     stuvwx: `<section name="s">$s.creditAchieved<number name="n"/><point name="P" y="$s.creditAchieved"/><math extend="$P[$n]" /></section>`,
+    yzabcd: `<number name="which">2</number>`,
+    efghij: `<number copy="doenet:yzabcd" />`,
 };
 
 /**
@@ -43,6 +45,41 @@ function fetchExternalDoenetML(sourceUri: string) {
 }
 
 describe("Expand external references", async () => {
+    it("fetches an external reference written inside index brackets", async () => {
+        // An element written between a reference's brackets is nobody's child,
+        // so the scan for `doenet:` attributes walks past it unless it is told
+        // to look in index values. Before that, this document simply never
+        // fetched, and the index had nothing to resolve to.
+        const dast = await expandExternalReferences(
+            lezerToDast(
+                `<numberList name="list">10 20 30</numberList><p>$list[<number copy="doenet:yzabcd" />]</p>`,
+            ),
+            fetchExternalDoenetML,
+        );
+        const paragraph = (dast.children[1] as any).children[0];
+        const fetchedIndex = paragraph.path[0].index[0].value[0];
+        expect(fetchedIndex.name).toBe("number");
+        // The fetched document's content came with it.
+        expect(fetchedIndex.children.length).toBeGreaterThan(0);
+        expect(extractDastErrors(dast)).toEqual([]);
+    });
+
+    it("fetches recursively from content itself fetched into an index", async () => {
+        const dast = await expandExternalReferences(
+            lezerToDast(
+                `<numberList name="list">10 20 30</numberList><p>$list[<number copy="doenet:efghij" />]</p>`,
+            ),
+            fetchExternalDoenetML,
+        );
+        // `efghij` copies `yzabcd`, so the second fetch has to happen from
+        // inside an index too.
+        expect(extractDastErrors(dast)).toEqual([]);
+        const paragraph = (dast.children[1] as any).children[0];
+        expect(
+            paragraph.path[0].index[0].value[0].children.length,
+        ).toBeGreaterThan(0);
+    });
+
     it("load in external content via copy", async () => {
         const source = `<p copy="doenet:abcdef" />`;
 

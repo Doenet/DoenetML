@@ -64,6 +64,12 @@ function resolveWorkerUrl(standaloneUrl: string): string | null {
  * resolves cross-origin (the CDN case), wrap it in a tiny same-origin
  * classic-worker bootstrap that `importScripts()` the real (CORS-served)
  * worker — the same technique as @doenet/doenetml's external-worker entry.
+ *
+ * As there, the bootstrap records the real script URL in
+ * `self.__doenetWorkerScriptUrl`: the worker fetches its WASM from beside its
+ * own script (see the loading ladder in @doenet/doenetml-worker's
+ * src/wasmLoading.ts), and a worker booted from a blob URL has only the blob to
+ * resolve against.
  */
 function workerCreationUrl(workerUrl: string): string {
     try {
@@ -73,7 +79,9 @@ function workerCreationUrl(workerUrl: string): string {
     } catch {
         // fall through to the bootstrap
     }
-    const bootstrap = `importScripts(${JSON.stringify(workerUrl)});`;
+    const bootstrap =
+        `self.__doenetWorkerScriptUrl = ${JSON.stringify(workerUrl)};` +
+        `importScripts(${JSON.stringify(workerUrl)});`;
     return URL.createObjectURL(
         new Blob([bootstrap], { type: "text/javascript" }),
     );

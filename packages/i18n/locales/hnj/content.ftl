@@ -30,15 +30,12 @@ color =
     .purple = paj yeeb
     .pink = liab qab zib
     .brown = av
-
 line-width =
     .thick = tuab
     .thin = nyias
-
 line-style =
     .dashed = tu ntu
     .dotted = ua teev
-
 # Noun phrases: they follow `nrog` and modify nothing.
 fill-style =
     .horizontal = kab pheej
@@ -47,7 +44,6 @@ fill-style =
     .backdiagonal = kab txiav rov qab
     .dots = teev
     .diamonds = lub duab plaub ceg
-
 noun =
     .line = kab
     .line-segment = ib ntu kab
@@ -67,7 +63,6 @@ noun =
     .diamond = duab plaub ceg tig
     .cross = duab ntoo cuam
     .plus = lub cim ntxiv
-
 # The noun is split: the head carries the adjectives and the complement closes
 # the phrase behind them.
 noun-regular-polygon =
@@ -75,9 +70,7 @@ noun-regular-polygon =
         [tail] uas muaj { $numSides } sab
        *[head] duab ntau ceg sib npaug
     }
-
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -91,22 +84,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its adjectives follow.
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $nounTail } { $description }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = ntim puv
-
 style-filled =
     { $parts ->
         [pattern] { $color } { $filled } nrog { $pattern }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $color } { $filled } nrog { $pattern }
@@ -114,7 +103,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $color } { $filled } nrog { $pattern }
        *[plain] { $noun } { $color } { $filled }
     }
-
 style-border-clause =
     { $parts ->
         [with-article] nrog ib npoo { $border }
@@ -122,35 +110,28 @@ style-border-clause =
         [and-article] thiab ib npoo { $border }
        *[with] nrog npoo { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } xim { $color }
        *[plain] { $color }
     }
-
 style-unfilled = tsis tau ntim
-
 style-text =
     { $parts ->
         [background] { $color } saum keeb { $background }
        *[plain] { $color }
     }
-
 style-background-none = tsis muaj
-
 
 ## Boolean words
 
 boolean-true = tseeb
 boolean-false = tsis tseeb
 
-
 ## Answer buttons
 
 answer-submit-label = Kuaj
 answer-submit-label-no-correctness = Xa cov lus teb
-
 
 ## Sectional blocks
 
@@ -175,7 +156,6 @@ section-name =
     .solution = Kev daws
     .task = Hauj lwm
     .theorem = Txoj cai lej
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -185,9 +165,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Lus taw qhia
-
 
 ## Tables and figures
 
@@ -198,7 +176,6 @@ table-name =
         [unnumbered-title] Rooj{ ": " }
        *[unnumbered] Rooj
     }
-
 figure-name =
     { $parts ->
         [numbered] Duab { $enumeration }
@@ -207,15 +184,12 @@ figure-name =
        *[unnumbered] Duab
     }
 
-
 ## Paginator controls
 
 paginator-previous = Yav tas
 paginator-next = Tom ntej
 paginator-page = Nplooj
-
 paginator-page-status = { $pageLabel } { $currentPage } ntawm { $numPages }
-
 
 ## Piecewise functions
 
@@ -223,10 +197,8 @@ piecewise-condition-or = los yog
 piecewise-condition-if = yog tias
 piecewise-condition-otherwise = yog tsis li
 
-
 ## Chemistry
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Lub cim tshuaj tsis raug
 chemistry-invalid-ionic-compound = Cov tshuaj ion tsis raug

@@ -214,6 +214,87 @@ describe("Prettier", async () => {
         expect(unknown).toEqual([]);
     });
 
+    it("Keeps a reference's parens, so formatting cannot change what a document means", async () => {
+        // The formatter prints each child on its own, so it never reached the
+        // rule `toXml` applies along a run of siblings. It dropped the parens
+        // from every one of these: `$(x)hi` came back as `$xhi`, a reference to
+        // a component the author never named, and `$(x)[1]` as an indexed
+        // `$x[1]`. Each of these is already canonically formatted, so formatting
+        // has to give it back unchanged.
+        const unchanged = [
+            // A path holding an element has no parenthesized spelling, so these
+            // must come back bare — wrapping one loses the reference entirely.
+            "<p>$a[<n />][</p>",
+            "<p>$a[<n />][2</p>",
+            "<p>$(x)hi</p>",
+            "<p>$(x)_0</p>",
+            "<p>$(x)[1]</p>",
+            "<p>$(x).y</p>",
+            "<p>$(x){z}</p>",
+            "<p>$$(f)[1]</p>",
+            "<p>$(a-b)</p>",
+            // An element between the brackets puts a warning node between the
+            // reference and the `[`, and the formatter prints a warning as
+            // nothing at all — so looking only at the immediately next sibling
+            // saw nothing following and dropped the parens. `$x[<n />]` is a
+            // reference *with* an element index; `$$f[<n />](y)` is that index
+            // being called. Both are documents the author did not write.
+            "<p>$(x)[<n />]</p>",
+            "<p>$$(f)[<n />](y)</p>",
+        ];
+        // ...and these have nothing following that a path could take, so they
+        // must not gain parentheses either.
+        const dropped = [
+            ["<p>$(x) hi</p>", "<p>$x hi</p>"],
+            ["<p>$(x).5</p>", "<p>$x.5</p>"],
+            ["<p>$(x)</p>", "<p>$x</p>"],
+        ];
+        // Both modes. The printer feeds mode-dependent output into the paren
+        // rule — the same index prints as `<n />`, as `&lt;` or as a raw `<`
+        // depending on `doenetSyntax` — and the language server formats with
+        // `doenetSyntax: true`. Two defects here survived four review cycles
+        // precisely because nothing in this file exercised that mode.
+        for (const doenetSyntax of [false, true]) {
+            for (const source of unchanged) {
+                for (const printWidth of [40, 80]) {
+                    expect(
+                        await prettyPrint(source, {
+                            doenetSyntax,
+                            printWidth,
+                        }),
+                        `${source} @${printWidth} doenetSyntax=${doenetSyntax}`,
+                    ).toEqual(source);
+                }
+            }
+            for (const [source, expected] of dropped) {
+                expect(
+                    await prettyPrint(source, {
+                        doenetSyntax,
+                        printWidth: 80,
+                    }),
+                    `${source} doenetSyntax=${doenetSyntax}`,
+                ).toEqual(expected);
+            }
+        }
+
+        // And the one whose answer differs by mode. In DoenetML syntax a `<`
+        // in a text index prints raw, so the parentheses are readable and are
+        // kept; in XML mode it escapes to `&lt;`, which `$( … )` cannot read
+        // back, so they are dropped and the reference survives bare.
+        expect(
+            await prettyPrint(`<p>$(a[x < y])[2]</p>`, {
+                doenetSyntax: true,
+                printWidth: 80,
+            }),
+        ).toEqual(`<p>$(a[x < y])[2]</p>`);
+        expect(
+            await prettyPrint(`<p>$(a[x < y])[2]</p>`, {
+                doenetSyntax: false,
+                printWidth: 80,
+            }),
+        ).toEqual(`<p>$a[x &lt; y][2]</p>`);
+    });
+
     it("Don't create new macro names when &dollar; entity appears in text", async () => {
         const cases = [
             {

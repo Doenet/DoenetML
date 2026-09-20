@@ -32,15 +32,12 @@ color =
     .purple = մանուշակագույն
     .pink = վարդագույն
     .brown = շագանակագույն
-
 line-width =
     .thick = հաստ
     .thin = բարակ
-
 line-style =
     .dashed = գծիկավոր
     .dotted = կետավոր
-
 fill-style =
     .horizontal = հորիզոնական գծերի
     .vertical = ուղղահայաց գծերի
@@ -48,7 +45,6 @@ fill-style =
     .backdiagonal = հակառակ անկյունագծային գծերի
     .dots = կետերի
     .diamonds = շեղանկյունների
-
 noun =
     .line = ուղիղ
     .line-segment = հատված
@@ -68,7 +64,6 @@ noun =
     .diamond = շեղանկյուն
     .cross = խաչ
     .plus = գումարած
-
 # Armenian builds the word from the side count itself, in front of the noun, so
 # the whole of it is one head and there is no tail.
 noun-regular-polygon =
@@ -76,12 +71,10 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] կանոնավոր { $numSides }-անկյուն
     }
-
 # Armenian has no grammatical gender, so every noun answers the same and the
 # answer goes unused — the same thing `locales/en` and `locales/tr` do. Nor is
 # there a case fork underneath it: the adjectives never move.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -95,15 +88,12 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = լցված
-
 # «զարդանախշով» — "with a pattern" — is instrumental, and the pattern word in
 # front of it is genitive, governed by «զարդանախշով» — which is why the
 # `fill-style` patterns are written in the genitive plural. Nothing is welded
@@ -113,7 +103,6 @@ style-filled =
         [pattern] { $pattern } զարդանախշով { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } զարդանախշով { $color } { $filled } { $noun }
@@ -121,7 +110,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } զարդանախշով { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «եզրագծով» is the instrumental of «եզրագիծ» and carries the "with" in its own
 # ending, so the clause opens on the border's adjectives. Armenian has no
 # indefinite article, so the two `-article` branches read like the two without.
@@ -132,15 +120,12 @@ style-border-clause =
         [and-article] և { $border } եզրագծով
        *[with] { $border } եզրագծով
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } զարդանախշով { $color } լցվածք
        *[plain] { $color } լցվածք
     }
-
 style-unfilled = չլցված
-
 # «ֆոնի վրա» — genitive plus postposition — and the colour in front of it does
 # not move, so the same word stands here and on its own.
 style-text =
@@ -148,21 +133,17 @@ style-text =
         [background] { $background } ֆոնի վրա { $color }
        *[plain] { $color }
     }
-
 style-background-none = չկա
-
 
 ## Boolean words
 
 boolean-true = ճշմարիտ
 boolean-false = կեղծ
 
-
 ## Answer buttons
 
 answer-submit-label = Ստուգել
 answer-submit-label-no-correctness = Ուղարկել պատասխանը
-
 
 ## Sectional blocks
 
@@ -187,7 +168,6 @@ section-name =
     .solution = Լուծում
     .task = Առաջադրանք
     .theorem = Թեորեմ
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -197,9 +177,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Հուշում
-
 
 ## Tables and figures
 
@@ -210,7 +188,6 @@ table-name =
         [unnumbered-title] Աղյուսակ{ ". " }
        *[unnumbered] Աղյուսակ
     }
-
 figure-name =
     { $parts ->
         [numbered] Նկար { $enumeration }
@@ -219,22 +196,18 @@ figure-name =
        *[unnumbered] Նկար
     }
 
-
 ## Paginator controls
 
 paginator-previous = Նախորդը
 paginator-next = Հաջորդը
 paginator-page = Էջ
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = կամ
 piecewise-condition-if = եթե
 piecewise-condition-otherwise = հակառակ դեպքում
-
 
 ## Chemistry
 
@@ -357,7 +330,6 @@ element-name =
     .lv = Լիվերմորիում
     .ts = Թենեսին
     .og = Օգանեսոն
-
 element-anion-name =
     .h = Հիդրիդ
     .c = Կարբիդ
@@ -371,8 +343,6 @@ element-anion-name =
     .i = Յոդիդ
     .at = Աստատիդ
     .ts = Թենեսիդ
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Անվավեր քիմիական նշան
 chemistry-invalid-ionic-compound = Անվավեր իոնային միացություն

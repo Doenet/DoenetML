@@ -2,7 +2,7 @@
     "name": "@doenet/doenetml",
     "type": "module",
     "description": "Semantic markup for building interactive web activities",
-    "version": "0.7.24",
+    "version": "0.7.27",
     "license": "AGPL-3.0-or-later",
     "homepage": "https://github.com/Doenet/DoenetML#readme",
     "private": true,
@@ -45,7 +45,8 @@
                 "dist-dev/**/*.map",
                 "dist-dev/**/*.css",
                 "dist-dev/**/*.d.ts",
-                "dist-dev/**/*.json"
+                "dist-dev/**/*.json",
+                "dist-dev/**/*.wasm*"
             ],
             "dependencies": [
                 "build"
@@ -68,6 +69,7 @@
                 "dist/**/*.d.ts",
                 "dist/**/*.css",
                 "dist/**/*.json",
+                "dist/**/*.wasm*",
                 "dist/fonts/**/*"
             ],
             "dependencies": [

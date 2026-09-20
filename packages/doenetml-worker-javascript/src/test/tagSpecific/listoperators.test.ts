@@ -1,0 +1,1711 @@
+import { describe, expect, it, vi } from "vitest";
+import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
+import { updateMathInputValue } from "../utils/actions";
+import { PublicDoenetMLCore } from "../../CoreWorker";
+import { getDiagnosticsByType } from "../utils/diagnostics";
+
+const Mock = vi.fn();
+vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
+
+describe("List operator tag tests @group4", async () => {
+    async function expectText({
+        core,
+        resolvePathToNodeIdx,
+        name,
+        text,
+    }: {
+        core: PublicDoenetMLCore;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
+        name: string;
+        text: string;
+    }) {
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues.text,
+        ).eq(text);
+    }
+
+    describe("cumulative scans", async () => {
+        it("cumulativeSum of numbers", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <p name="p"><cumulativeSum>30 45 12 60</cumulativeSum></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "30, 75, 87, 147",
+            });
+        });
+
+        it("cumulativeSum of a numberList reference", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="pop">30 45 12 60</numberList>
+    <p name="p"><cumulativeSum name="cum">$pop</cumulativeSum></p>
+    <p name="third">$cum[3]</p>
+    <p name="total"><sum>$cum[4]</sum></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "30, 75, 87, 147",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "third",
+                text: "87",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "total",
+                text: "147",
+            });
+        });
+
+        it("cumulativeSum is symbolic when its inputs are", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathList name="ml">x y z</mathList>
+    <p name="p"><cumulativeSum>$ml</cumulativeSum></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "x, x + y, x + y + z",
+            });
+        });
+
+        it("cumulativeProduct", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <p name="p"><cumulativeProduct>1 2 3 4 5</cumulativeProduct></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "1, 2, 6, 24, 120",
+            });
+        });
+
+        it("cumulativeMin and cumulativeMax", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="nl">3 1 4 1 5 9 2 6</numberList>
+    <p name="pMin"><cumulativeMin>$nl</cumulativeMin></p>
+    <p name="pMax"><cumulativeMax>$nl</cumulativeMax></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pMin",
+                text: "3, 1, 1, 1, 1, 1, 1, 1",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pMax",
+                text: "3, 3, 4, 4, 5, 9, 9, 9",
+            });
+        });
+
+        it("cumulativeMin, cumulativeMax and differences are symbolic when their inputs are", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathList name="ml">x y z</mathList>
+    <p name="pMin"><cumulativeMin>$ml</cumulativeMin></p>
+    <p name="pMax"><cumulativeMax>$ml</cumulativeMax></p>
+    <p name="pDiff"><differences>$ml</differences></p>
+    `,
+            });
+
+            // Each running extreme is a single min/max of the whole prefix
+            // rather than a nest of two-argument calls, and the first is the
+            // value itself rather than min(x).
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pMin",
+                text: "x, min( x, y ), min( x, y, z )",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pMax",
+                text: "x, max( x, y ), max( x, y, z )",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pDiff",
+                text: "y - x, z - y",
+            });
+        });
+
+        it("differences is one shorter than its input", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <p name="p"><differences>30 75 87 147</differences></p>
+    <p name="pCount"><count><differences>30 75 87 147</differences></count></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "45, 12, 60",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pCount",
+                text: "3",
+            });
+        });
+
+        it("differences undoes cumulativeSum", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="nl">5 3 8 1</numberList>
+    <p name="p"><differences><cumulativeSum>$nl</cumulativeSum></differences></p>
+    `,
+            });
+
+            // The first entry of the original list is lost, as with numpy diff
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "3, 8, 1",
+            });
+        });
+
+        it("empty and single-element inputs", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <p name="pOne"><cumulativeSum>7</cumulativeSum></p>
+    <p name="pDiffOne"><differences>7</differences></p>
+    <p name="pEmpty"><cumulativeSum></cumulativeSum></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pOne",
+                text: "7",
+            });
+            // differences of one value, and any scan of nothing, are empty
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pDiffOne",
+                text: "",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pEmpty",
+                text: "",
+            });
+        });
+
+        it("cumulativeSum updates when an input changes", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="mi" prefill="5" />
+    <p name="p"><cumulativeSum>1 $mi 2</cumulativeSum></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "1, 6, 8",
+            });
+
+            await updateMathInputValue({
+                latex: "10",
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "1, 11, 13",
+            });
+        });
+
+        it("cumulativeSum tracks a changing list length", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="n" prefill="4" />
+    <p name="p"><cumulativeSum><sequence from="1" to="$n" /></cumulativeSum></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "1, 3, 6, 10",
+            });
+
+            await updateMathInputValue({
+                latex: "6",
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "1, 3, 6, 10, 15, 21",
+            });
+
+            await updateMathInputValue({
+                latex: "2",
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "1, 3",
+            });
+        });
+
+        it("forceSymbolic and forceNumeric override the default choice", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <p name="pSymbolic"><cumulativeSum forceSymbolic>1 2 3</cumulativeSum></p>
+    <p name="pNumeric"><cumulativeSum forceNumeric>1 x 3</cumulativeSum></p>
+    `,
+            });
+
+            // Symbolic accumulation leaves the sums unevaluated.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pSymbolic",
+                text: "1, 1 + 2, 1 + 2 + 3",
+            });
+            // Numeric accumulation turns the non-numeric child into NaN.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pNumeric",
+                text: "1, NaN, NaN",
+            });
+        });
+
+        it("asList=false renders the results without separators", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <p name="p"><cumulativeSum asList="false">30 45 12</cumulativeSum></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "307587",
+            });
+        });
+
+        it("displayDigits is passed through to the results", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <p name="p"><cumulativeSum displayDigits="3">1.23456 2.34567</cumulativeSum></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "1.23, 3.58",
+            });
+        });
+    });
+
+    describe("diagnostics when no index can be reported", async () => {
+        async function messagesFor(doenetML: string) {
+            const { core } = await createTestCore({ doenetML });
+            await core.returnAllStateVariables(false, true);
+            const d = getDiagnosticsByType(core);
+            return {
+                warnings: d.warnings.map((w) => w.message),
+                infos: d.infos.map((i) => i.message),
+            };
+        }
+
+        it("omitting target is a warning, since no document can answer", async () => {
+            const idx = await messagesFor(`
+    <numberList name="nl">10 20 30</numberList>
+    <p><indexOf>$nl</indexOf></p>
+    `);
+            expect(
+                idx.warnings.some(
+                    (m) =>
+                        m.includes("indexOf") &&
+                        m.includes("has no `target` to look for"),
+                ),
+            ).eq(true);
+
+            const ss = await messagesFor(`
+    <numberList name="nl">10 20 30</numberList>
+    <p><searchSorted>$nl</searchSorted></p>
+    `);
+            expect(
+                ss.warnings.some(
+                    (m) =>
+                        m.includes("searchSorted") &&
+                        m.includes("has no `target` to look for"),
+                ),
+            ).eq(true);
+        });
+
+        it("a target that is absent is not reported at all", async () => {
+            // 0 for a target that is not in the list is what <indexOf> is for,
+            // not a mistake, so nothing is raised.
+            const { warnings, infos } = await messagesFor(`
+    <numberList name="nl">10 20 30</numberList>
+    <p><indexOf target="99">$nl</indexOf></p>
+    `);
+            expect(warnings).eqls([]);
+            expect(infos).eqls([]);
+        });
+
+        it("a target driven by an input accumulates no diagnostics", async () => {
+            // The diagnostics queue is append-only, so anything raised while a
+            // value is being typed would stay behind on a document that ends up
+            // perfectly correct — one entry per keystroke that missed.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="nl">10 20 30</numberList>
+    <mathInput name="mi" prefill="1" />
+    <p name="p"><indexOf target="$mi">$nl</indexOf></p>
+    `,
+            });
+            for (const latex of ["2", "20", "3", "30"]) {
+                await updateMathInputValue({
+                    latex,
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+                await core.returnAllStateVariables(false, true);
+            }
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "3",
+            });
+
+            const d = getDiagnosticsByType(core);
+            expect(d.warnings.map((w) => w.message)).eqls([]);
+            expect(d.infos.map((i) => i.message)).eqls([]);
+        });
+
+        it("having nothing to look through is info", async () => {
+            const argMin = await messagesFor(`<p><argMin></argMin></p>`);
+            expect(
+                argMin.infos.some(
+                    (m) =>
+                        m.includes("argMin") &&
+                        m.includes("has no values to look through"),
+                ),
+            ).eq(true);
+
+            // <searchSorted> otherwise always reports a position, so an empty
+            // list is the one case where it too comes back with 0.
+            const ss = await messagesFor(
+                `<p><searchSorted target="5"></searchSorted></p>`,
+            );
+            expect(
+                ss.infos.some(
+                    (m) =>
+                        m.includes("searchSorted") &&
+                        m.includes("has no values to look through"),
+                ),
+            ).eq(true);
+        });
+
+        it("many targets with nothing to look through report once", async () => {
+            // The reason is a property of the document, not of each target, so
+            // five targets say it once rather than five times.
+            const { infos } = await messagesFor(
+                `
+    <numberList name="targets">1 2 3 4 5</numberList>
+    <p><searchSorted target="$targets"></searchSorted></p>
+    `,
+            );
+            expect(
+                infos.filter((m) => m.includes("has no values to look through"))
+                    .length,
+            ).eq(1);
+        });
+
+        it("an empty list of targets is not reported", async () => {
+            // Unlike omitting `target`, which can never produce an answer, an
+            // empty list is a list: it asks about nothing and gets nothing, and
+            // a list driven by an input can legitimately be empty for a while.
+            const { warnings, infos } = await messagesFor(`
+    <numberList name="nl">10 20 30</numberList>
+    <numberList name="none" />
+    <p><indexOf target="$none">$nl</indexOf></p>
+    `);
+            const mine = (m: string) =>
+                m.includes("look for") || m.includes("look through");
+            expect(warnings.filter(mine)).eqls([]);
+            expect(infos.filter(mine)).eqls([]);
+        });
+
+        it("an operator that finds an index reports nothing", async () => {
+            const { warnings, infos } = await messagesFor(`
+    <numberList name="nl">10 20 30</numberList>
+    <p><indexOf target="20">$nl</indexOf></p>
+    <p><argMax>$nl</argMax></p>
+    <p><searchSorted target="25">$nl</searchSorted></p>
+    `);
+            const mine = (m: string) =>
+                m.includes("look for") || m.includes("look through");
+            expect(warnings.filter(mine)).eqls([]);
+            expect(infos.filter(mine)).eqls([]);
+        });
+    });
+
+    describe("searchSorted requires a list that is sorted", async () => {
+        async function resultsFor(doenetML: string, name = "p") {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const d = getDiagnosticsByType(core);
+            return {
+                text: stateVariables[await resolvePathToNodeIdx(name)]
+                    .stateValues.text,
+                warnings: d.warnings.map((w) => w.message),
+            };
+        }
+
+        const notSorted = (m: string) =>
+            m.includes("searchSorted") &&
+            m.includes("already in ascending order");
+
+        it("an unsorted list gets 0 rather than a plausible position", async () => {
+            // Counting the entries below the target would answer 2 here, which
+            // is a position in no meaningful sense: there is no arrangement of
+            // this list in which 25 belongs second.
+            const { text, warnings } = await resultsFor(`
+    <p name="p"><searchSorted target="25">10 30 20</searchSorted></p>
+    `);
+            expect(text).eq("0");
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+
+        it("a sorted list is not reported", async () => {
+            const { text, warnings } = await resultsFor(`
+    <p name="p"><searchSorted target="25">10 20 30</searchSorted></p>
+    `);
+            expect(text).eq("3");
+            expect(warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("equal neighbors are in order", async () => {
+            // A run of equal values is the whole subject of `side`, so it must
+            // not be what makes a list unsorted.
+            const { text, warnings } = await resultsFor(`
+    <p name="p"><searchSorted target="2" side="right">1 2 2 2 3</searchSorted></p>
+    `);
+            expect(text).eq("5");
+            expect(warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("a descending list is unsorted", async () => {
+            const { text, warnings } = await resultsFor(`
+    <p name="p"><searchSorted target="25">30 20 10</searchSorted></p>
+    `);
+            expect(text).eq("0");
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+
+        it("one entry out of place at the end is enough", async () => {
+            const { text, warnings } = await resultsFor(`
+    <p name="p"><searchSorted target="25">10 20 30 5</searchSorted></p>
+    `);
+            expect(text).eq("0");
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+
+        it("a one-entry list and an empty list are sorted", async () => {
+            const one = await resultsFor(`
+    <p name="p"><searchSorted target="25">10</searchSorted></p>
+    `);
+            expect(one.text).eq("2");
+            expect(one.warnings.filter(notSorted)).eqls([]);
+
+            // An empty list is already declined as having nothing to look
+            // through, which is info rather than a warning; it must not also
+            // be called unsorted.
+            const none = await resultsFor(`
+    <p name="p"><searchSorted target="25"></searchSorted></p>
+    `);
+            expect(none.text).eq("0");
+            expect(none.warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("text out of alphabetical order is unsorted", async () => {
+            const { text, warnings } = await resultsFor(`
+    <textList name="tl">apple pear fig</textList>
+    <p name="p"><searchSorted type="text" target="cherry">$tl</searchSorted></p>
+    `);
+            expect(text).eq("0");
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+
+        it("sortedness is judged by the comparison the search will use", async () => {
+            // Read as text, `2 10` is out of order even though it is in
+            // ascending numerical order — and a text target is what makes the
+            // comparison textual.
+            const { text, warnings } = await resultsFor(`
+    <p name="p"><searchSorted type="text" target="b">2 10</searchSorted></p>
+    `);
+            expect(text).eq("0");
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+
+        it("each target is judged by its own comparison", async () => {
+            // One operator, two comparisons: the numeric target compares
+            // numerically against a list that is in numerical order and gets a
+            // position, while the non-numeric one compares as text against a
+            // list that is not in text order and gets 0.
+            const { text, warnings } = await resultsFor(`
+    <p name="p"><searchSorted type="math" target="5 b">2 10</searchSorted></p>
+    `);
+            expect(text).eq("2, 0");
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+
+        it("many targets on an unsorted list report once", async () => {
+            // The list is one fact about the document however many targets ask
+            // about it, and the queue keeps every distinct message forever.
+            const { text, warnings } = await resultsFor(`
+    <numberList name="targets">1 2 3 4 5</numberList>
+    <p name="p"><searchSorted target="$targets">10 30 20</searchSorted></p>
+    `);
+            expect(text).eq("0, 0, 0, 0, 0");
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+
+        it("a value that is not a number neither confirms nor refutes sortedness", async () => {
+            // `x` compares neither above nor below anything, so there is no
+            // inversion to find and no warning to raise. Reporting one here
+            // would fire on every `<searchSorted>` near a number that does not
+            // parse, including while it is being typed.
+            const { text, warnings } = await resultsFor(`
+    <numberList name="nl">1 x 9</numberList>
+    <p name="p"><searchSorted target="4">$nl</searchSorted></p>
+    `);
+            expect(text).eq("2");
+            expect(warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("a value that is not a number does not hide the disorder around it", async () => {
+            // `1` and `9` are still compared with each other across the `x`
+            // between them. Comparing only neighbors would find no inversion
+            // — every comparison involving `x` is `NaN`, and `NaN > 0` is
+            // false — and answer 2, a position in no arrangement of this list.
+            const { text, warnings } = await resultsFor(`
+    <numberList name="nl">9 x 1</numberList>
+    <p name="p"><searchSorted target="4">$nl</searchSorted></p>
+    `);
+            expect(text).eq("0");
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+
+        it("a math that is not a real number takes no part in the ordering either", async () => {
+            // A list of `<math>` values is compared numerically, and `i` is a
+            // `<math>` like the others — but it evaluates to something that is
+            // not a number, so it compares with nothing, exactly as a number
+            // that does not parse does. The 9 and the 1 on either side of it
+            // are still compared with each other.
+            const { text, warnings } = await resultsFor(`
+    <mathList name="ml">9 i 1</mathList>
+    <p name="p"><searchSorted target="4">$ml</searchSorted></p>
+    `);
+            expect(text).eq("0");
+            expect(warnings.filter(notSorted).length).eq(1);
+
+            // And in order it is passed over rather than reported, as `x` is.
+            const inOrder = await resultsFor(`
+    <mathList name="ml">1 i 9</mathList>
+    <p name="p"><searchSorted target="4">$ml</searchSorted></p>
+    `);
+            expect(inOrder.text).eq("2");
+            expect(inOrder.warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("the position steps over a value that is not a number", async () => {
+            // 10 belongs after the 9, which is the last of four entries, so
+            // the only position that describes this list is 5. Counting the
+            // entries below the target answers 3, because the two `x`s ahead
+            // of them are not counted — and position 3 is where the 1 is.
+            const { text, warnings } = await resultsFor(`
+    <numberList name="nl">x x 1 9</numberList>
+    <p name="p"><searchSorted target="10">$nl</searchSorted></p>
+    `);
+            expect(text).eq("5");
+            expect(warnings.filter(notSorted)).eqls([]);
+
+            // And a target that belongs between the 1 and the 9 goes after
+            // the 1, at 4, not at 2 where the second `x` is.
+            const between = await resultsFor(`
+    <numberList name="nl">x x 1 9</numberList>
+    <p name="p"><searchSorted target="4">$nl</searchSorted></p>
+    `);
+            expect(between.text).eq("4");
+            expect(between.warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("sorting the values first restores the position", async () => {
+            // The remedy the warning names, and the shape of the reference
+            // page's example.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="scores">30 87 75 147</numberList>
+    <sort name="sorted">$scores</sort>
+    <p name="pRaw"><searchSorted target="80">$scores</searchSorted></p>
+    <p name="pSorted"><searchSorted target="80">$sorted</searchSorted></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pRaw",
+                text: "0",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pSorted",
+                text: "3",
+            });
+
+            // The page says the first one warns; the second must not add a
+            // second warning of its own.
+            const warnings = getDiagnosticsByType(core).warnings.map(
+                (w) => w.message,
+            );
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+
+        it("indexOf is unaffected by an unsorted list", async () => {
+            // `<indexOf>` asks whether a value is present, which needs no
+            // ordering at all.
+            const { text, warnings } = await resultsFor(`
+    <p name="p"><indexOf target="20">10 30 20</indexOf></p>
+    `);
+            expect(text).eq("3");
+            expect(warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("a list that goes out of order and back reports once and answers again", async () => {
+            // The queue is append-only, so a list that is unsorted only in
+            // passing keeps the message; what must not happen is a second
+            // entry for the second time it happens, and the operator must
+            // answer again once the order is restored.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="mi" prefill="5" />
+    <numberList name="nl">1 $mi 9</numberList>
+    <p name="p"><searchSorted target="4">$nl</searchSorted></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "2",
+            });
+
+            for (const latex of ["0", "5", "0", "5"]) {
+                await updateMathInputValue({
+                    latex,
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+                await core.returnAllStateVariables(false, true);
+            }
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "2",
+            });
+
+            const warnings = getDiagnosticsByType(core).warnings.map(
+                (w) => w.message,
+            );
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+    });
+
+    describe("index-returning operators", async () => {
+        it("argMin and argMax of numbers", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="nl">3 1 4 1 5 9 2 6</numberList>
+    <p name="pMin"><argMin>$nl</argMin></p>
+    <p name="pMax"><argMax>$nl</argMax></p>
+    `,
+            });
+
+            // ties resolve to the first occurrence
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pMin",
+                text: "2",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pMax",
+                text: "6",
+            });
+        });
+
+        it("argMax composes with dynamic indexing", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="scores">72 91 65 88</numberList>
+    <textList name="names">Ann Bob Cal Dee</textList>
+    <argMax name="best">$scores</argMax>
+    <p name="p">$names[$best]</p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "Bob",
+            });
+        });
+
+        it("argMin and argMax over a text list are lexicographic", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <textList name="tl">pear apple fig banana</textList>
+    <p name="pMin"><argMin>$tl</argMin></p>
+    <p name="pMax"><argMax>$tl</argMax></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pMin",
+                text: "2",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pMax",
+                text: "1",
+            });
+        });
+
+        it("argMin of an empty list is 0", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <p name="p"><argMin></argMin></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "0",
+            });
+        });
+
+        it("indexOf a number", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="nl">10 20 30 20</numberList>
+    <p name="pFound"><indexOf target="20">$nl</indexOf></p>
+    <p name="pMissing"><indexOf target="25">$nl</indexOf></p>
+    `,
+            });
+
+            // first occurrence
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pFound",
+                text: "2",
+            });
+            // absent values give 0
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pMissing",
+                text: "0",
+            });
+        });
+
+        it("splits a written-out target on whitespace, so a value with a space is referenced instead", async () => {
+            // Vectorizing `target` made it a list, and a list reads a bare
+            // string by splitting it: `target="New York"` is two targets, not
+            // one, so a city that is on the list is found at neither. The way
+            // to ask for a value containing a space is to build it outside and
+            // reference it -- which is also how the list itself is built, since
+            // a bare `<textList>` would split the same way.
+            //
+            // Untested when the vectorization landed, which is how the change
+            // reached `main` without anyone noticing it. Both reference pages
+            // now document it; this keeps the documented behavior honest.
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <textList name="cities">
+      <text>Boston</text><text>New York</text><text>Chicago</text>
+    </textList>
+    <text name="wanted">New York</text>
+    <p name="pSplit"><indexOf type="text" target="New York">$cities</indexOf></p>
+    <p name="pReferenced"><indexOf type="text" target="$wanted">$cities</indexOf></p>
+    `,
+            });
+
+            // Two targets, "New" and "York", neither of which is a city here.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pSplit",
+                text: "0, 0",
+            });
+            // One target, found where it actually sits.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pReferenced",
+                text: "2",
+            });
+        });
+
+        it("splits a written-out searchSorted target the same way", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <textList name="cities">
+      <text>Boston</text><text>Chicago</text><text>New York</text>
+    </textList>
+    <text name="wanted">New York</text>
+    <p name="pSplit"><searchSorted type="text" target="New York">$cities</searchSorted></p>
+    <p name="pReferenced"><searchSorted type="text" target="$wanted">$cities</searchSorted></p>
+    `,
+            });
+
+            // "New" belongs at 3 and "York" after everything, at 4.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pSplit",
+                text: "3, 4",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pReferenced",
+                text: "3",
+            });
+        });
+
+        it("indexOf a text", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <textList name="names">Ann Bob Cal Dee</textList>
+    <p name="pFound"><indexOf type="text" target="Cal">$names</indexOf></p>
+    <p name="pMissing"><indexOf type="text" target="Eve">$names</indexOf></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pFound",
+                text: "3",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pMissing",
+                text: "0",
+            });
+        });
+
+        it("searchSorted returns a 1-based insertion position", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="cum">30 75 87 147</numberList>
+    <p name="pBefore"><searchSorted target="1">$cum</searchSorted></p>
+    <p name="pExact"><searchSorted target="30">$cum</searchSorted></p>
+    <p name="pMid"><searchSorted target="31">$cum</searchSorted></p>
+    <p name="pLast"><searchSorted target="147">$cum</searchSorted></p>
+    <p name="pPastEnd"><searchSorted target="200">$cum</searchSorted></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pBefore",
+                text: "1",
+            });
+            // side="left" places the target before an equal entry, so an exact
+            // hit gives the index of that entry
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pExact",
+                text: "1",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pMid",
+                text: "2",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pLast",
+                text: "4",
+            });
+            // past the end is one past the last index
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pPastEnd",
+                text: "5",
+            });
+        });
+
+        it("searchSorted side left vs right", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="nl">1 2 2 2 3</numberList>
+    <p name="pLeft"><searchSorted target="2" side="left">$nl</searchSorted></p>
+    <p name="pRight"><searchSorted target="2" side="right">$nl</searchSorted></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pLeft",
+                text: "2",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pRight",
+                text: "5",
+            });
+        });
+
+        it("searchSorted over a sorted text list", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <textList name="tl">apple banana fig pear</textList>
+    <p name="p"><searchSorted type="text" target="cherry">$tl</searchSorted></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "3",
+            });
+        });
+
+        it("the weighted-sampling pattern", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="pop">30 45 12 60</numberList>
+    <cumulativeSum name="cum">$pop</cumulativeSum>
+    <p name="p1"><searchSorted target="1">$cum</searchSorted></p>
+    <p name="p30"><searchSorted target="30">$cum</searchSorted></p>
+    <p name="p31"><searchSorted target="31">$cum</searchSorted></p>
+    <p name="p88"><searchSorted target="88">$cum</searchSorted></p>
+    <p name="p147"><searchSorted target="147">$cum</searchSorted></p>
+    `,
+            });
+
+            // individuals 1-30 are in subpopulation 1, 31-75 in 2,
+            // 76-87 in 3, 88-147 in 4
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p1",
+                text: "1",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p30",
+                text: "1",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p31",
+                text: "2",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p88",
+                text: "4",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p147",
+                text: "4",
+            });
+        });
+
+        it("a list of targets gives one index per target", async () => {
+            // The whole point of vectorizing `target`: mapping M draws onto
+            // their subpopulations takes one search operator, not M. The M
+            // results are still M `<math>` replacements.
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="pop">30 45 12 60</numberList>
+    <cumulativeSum name="cum">$pop</cumulativeSum>
+    <numberList name="draws">1 30 31 88 147</numberList>
+    <searchSorted name="which" side="left" target="$draws">$cum</searchSorted>
+    <p name="pAll">$which</p>
+    <p name="pThird">$which[3]</p>
+    <p name="pSum"><sum>$which</sum></p>
+    <numberList name="asNumbers">$which</numberList>
+    `,
+            });
+
+            // individuals 1-30 are in subpopulation 1, 31-75 in 2,
+            // 76-87 in 3, 88-147 in 4
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pAll",
+                text: "1, 1, 2, 4, 4",
+            });
+
+            // The result is a composite, so it indexes and aggregates like any
+            // other list.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pThird",
+                text: "2",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pSum",
+                text: "12",
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("asNumbers")]
+                    .stateValues.numbers,
+            ).eqls([1, 1, 2, 4, 4]);
+        });
+
+        it("a single target still reads as one index", async () => {
+            // Returning a list made these composites, so the scalar reading —
+            // rendering inline, and indexing another list with the result —
+            // has to keep working.
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="pop">30 45 12 60</numberList>
+    <cumulativeSum name="cum">$pop</cumulativeSum>
+    <searchSorted name="i" side="left" target="31">$cum</searchSorted>
+    <p name="pIndex">$i</p>
+    <p name="pIndexed">$pop[$i]</p>
+    <p name="pInline">Individual 31 is in subpopulation $i.</p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pIndex",
+                text: "2",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pIndexed",
+                text: "45",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pInline",
+                text: "Individual 31 is in subpopulation 2.",
+            });
+        });
+
+        it("indexOf over a list of text targets", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <textList name="names">Ann Bob Cal Dee</textList>
+    <textList name="wanted">Cal Ann Eve</textList>
+    <p name="pFound"><indexOf type="text" target="$wanted">$names</indexOf></p>
+    `,
+            });
+
+            // Eve is not in the list, so her slot is 0 while the others keep
+            // their positions — one index per target, absences included.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pFound",
+                text: "3, 1, 0",
+            });
+        });
+
+        it("an empty list of targets gives no indices", async () => {
+            // Distinct from omitting `target` altogether, which gives a single
+            // 0 and a warning: an empty list is a list, and produces nothing.
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="nl">10 20 30</numberList>
+    <numberList name="none" />
+    <p name="pEmpty"><indexOf target="$none">$nl</indexOf></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pEmpty",
+                text: "",
+            });
+        });
+
+        it("changing the number of targets adds and removes indices", async () => {
+            // The replacements have to be recalculated, not just revalued,
+            // when the number of targets changes — and a list that empties has
+            // to give nothing back rather than a stale index or a 0.
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="cutoffs">10 20 30</numberList>
+    <mathInput name="n" prefill="2" />
+    <numberList name="targets">
+      <repeatForSequence from="1" to="$n" valueName="v"><number>$v * 12</number></repeatForSequence>
+    </numberList>
+    <p name="pWhich"><searchSorted target="$targets">$cutoffs</searchSorted></p>
+    `,
+            });
+
+            // 12 sorts after 10, 24 after 20
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pWhich",
+                text: "2, 3",
+            });
+
+            await updateMathInputValue({
+                latex: "4",
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+
+            // 36 is past every cutoff, so it would be inserted at position 4
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pWhich",
+                text: "2, 3, 4, 4",
+            });
+
+            // Emptying the list withholds every replacement: no targets, no
+            // positions — not a 0, which would claim to be an answer.
+            await updateMathInputValue({
+                latex: "0",
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pWhich",
+                text: "",
+            });
+
+            // and the withheld replacements come back when it refills
+            await updateMathInputValue({
+                latex: "3",
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pWhich",
+                text: "2, 3, 4",
+            });
+        });
+
+        it("indexOf and searchSorted with no target give 0", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="nl">10 20 30</numberList>
+    <p name="pIndexOf"><indexOf>$nl</indexOf></p>
+    <p name="pSearchSorted"><searchSorted>$nl</searchSorted></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pIndexOf",
+                text: "0",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pSearchSorted",
+                text: "0",
+            });
+        });
+
+        it("sortIndices of numbers", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="nl">30 10 20</numberList>
+    <p name="p"><sortIndices>$nl</sortIndices></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "2, 3, 1",
+            });
+        });
+
+        it("sortIndices of a text list", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <textList name="tl">pear apple fig</textList>
+    <p name="p"><sortIndices>$tl</sortIndices></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "2, 3, 1",
+            });
+        });
+
+        it("sortIndices sorts one list by another", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="scores">72 91 65 88</numberList>
+    <textList name="names">Ann Bob Cal Dee</textList>
+    <sortIndices name="perm">$scores</sortIndices>
+    <p name="p">$names[$perm[1]], $names[$perm[2]], $names[$perm[3]], $names[$perm[4]]</p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "Cal, Ann, Dee, Bob",
+            });
+        });
+
+        it("sortIndices honors sortByProp", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <point name="A">(5,1)</point>
+    <point name="B">(2,7)</point>
+    <point name="C">(9,3)</point>
+    <p name="p"><sortIndices sortByProp="x">$A $B $C</sortIndices></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "2, 1, 3",
+            });
+        });
+
+        it("bare strings need an explicit type, as with sort", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <p name="pArg"><argMin type="number">3 1 4</argMin></p>
+    <p name="pIdx"><indexOf type="number" target="4">3 1 4</indexOf></p>
+    <p name="pText"><argMax type="text">pear apple fig</argMax></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pArg",
+                text: "2",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pIdx",
+                text: "3",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pText",
+                text: "1",
+            });
+        });
+
+        it("boolean children are ordered false before true", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <p name="pArgMin"><argMin type="boolean">true false true</argMin></p>
+    <p name="pArgMax"><argMax type="boolean">false true false</argMax></p>
+    <p name="pIndexOf"><indexOf type="boolean" target="true">false true false</indexOf></p>
+    <p name="pIdx"><sortIndices type="boolean">true false true</sortIndices></p>
+    <p name="pSort"><sort type="boolean">true false true</sort></p>
+    `,
+            });
+
+            // `type="boolean"` is one of the types the shared string-splitting
+            // accepts, so booleans must be comparable rather than silently
+            // dropped from the list.
+            for (let [name, text] of [
+                ["pArgMin", "2"],
+                ["pArgMax", "2"],
+                ["pIndexOf", "2"],
+                ["pIdx", "2, 1, 3"],
+                ["pSort", "false, true, true"],
+            ] as [string, string][]) {
+                await expectText({ core, resolvePathToNodeIdx, name, text });
+            }
+        });
+
+        it("warnings name the component the author wrote", async () => {
+            let { core } = await createTestCore({
+                doenetML: `
+    <p name="p"><sortIndices type="bad">d a b</sortIndices></p>
+    `,
+            });
+
+            await core.returnAllStateVariables(false, true);
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(
+                diagnosticsByType.warnings.some((w) =>
+                    w.message.includes(
+                        "Invalid type bad for sortIndices component",
+                    ),
+                ),
+            ).eq(true);
+        });
+
+        it("a scan result feeds the index operators and a numberList", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="pop">30 45 12 60</numberList>
+    <numberList name="cum"><cumulativeSum>$pop</cumulativeSum></numberList>
+    <p name="pCum">$cum</p>
+    <argMax name="biggest">$pop</argMax>
+    <p name="pArgMax">$biggest</p>
+    <p name="pSize">$pop[$biggest]</p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pCum",
+                text: "30, 75, 87, 147",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pArgMax",
+                text: "4",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pSize",
+                text: "60",
+            });
+        });
+
+        it("sortIndices tracks a changing list length", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="n" prefill="4" />
+    <p name="p"><sortIndices><sequence from="$n" to="1" step="-1" /></sortIndices></p>
+    `,
+            });
+
+            // A descending sequence sorts into reverse order, so the indices
+            // are a genuine permutation and not just the identity.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "4, 3, 2, 1",
+            });
+
+            await updateMathInputValue({
+                latex: "6",
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "6, 5, 4, 3, 2, 1",
+            });
+
+            await updateMathInputValue({
+                latex: "2",
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "2, 1",
+            });
+        });
+
+        it("infinite values compare equal to themselves", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathList name="ml">1 Infinity 5</mathList>
+    <mathList name="dup">1 5 Infinity Infinity</mathList>
+    <mathList name="neg">-Infinity -Infinity 3</mathList>
+    <p name="pFind"><indexOf target="Infinity">$ml</indexOf></p>
+    <p name="pNeg"><indexOf target="-Infinity">$neg</indexOf></p>
+    <p name="pLeft"><searchSorted target="Infinity" side="left">$dup</searchSorted></p>
+    <p name="pRight"><searchSorted target="Infinity" side="right">$dup</searchSorted></p>
+    `,
+            });
+
+            // Subtracting equal infinities gives NaN rather than 0, so without
+            // an equality test first none of these would find their target.
+            // `dup` ends with its infinities because `<searchSorted>` asks for
+            // a sorted list, and nothing sorts above an infinity.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pFind",
+                text: "2",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pNeg",
+                text: "1",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pLeft",
+                text: "3",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pRight",
+                text: "5",
+            });
+        });
+
+        it("a referenced list mixed with bare strings keeps its items", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <textList name="names">Ann Bob</textList>
+    <numberList name="nums">30 10</numberList>
+    <p name="pMid"><indexOf type="text" target="Bob">$names Z</indexOf></p>
+    <p name="pLast"><indexOf type="text" target="Z">$names Z</indexOf></p>
+    <p name="pArg"><argMax type="text">$names Z</argMax></p>
+    <p name="pNum"><argMin type="number">$nums 5</argMin></p>
+    <p name="pPerm"><sortIndices type="number">$nums 5</sortIndices></p>
+    `,
+            });
+
+            // The `type` attribute converts bare strings; a reference already
+            // has a type, and wrapping it would fuse the whole list into one
+            // value, hiding every item but the joined string.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pMid",
+                text: "2",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pLast",
+                text: "3",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pArg",
+                text: "3",
+            });
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pNum",
+                text: "3",
+            });
+            // <sortIndices> inherits this from <sort>, so it sees three values
+            // too: 5 is smallest, then 10, then 30.
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "pPerm",
+                text: "3, 2, 1",
+            });
+        });
+
+        it("sortIndices updates when a value changes", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="mi" prefill="30" />
+    <p name="p"><sortIndices type="number">$mi 10 20</sortIndices></p>
+    `,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "2, 3, 1",
+            });
+
+            await updateMathInputValue({
+                latex: "15",
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+
+            await expectText({
+                core,
+                resolvePathToNodeIdx,
+                name: "p",
+                text: "2, 1, 3",
+            });
+        });
+    });
+
+    describe("renderers for values created later", async () => {
+        // The viewer settles on the renderers to load when the document loads,
+        // so an operator whose list is empty at that moment has to say what its
+        // results will be rendered as before it has any.
+
+        it("cumulativeSum declares the math renderer with no children", async () => {
+            let { core } = await createTestCore({
+                doenetML: `
+    <numberList name="nl" />
+    <cumulativeSum>$nl</cumulativeSum>
+    `,
+            });
+
+            expect(core.core!.rendererTypesInDocument).toContain("math");
+        });
+
+        it("sortIndices declares the number renderer with no children", async () => {
+            let { core } = await createTestCore({
+                doenetML: `
+    <textList name="tl" />
+    <sortIndices>$tl</sortIndices>
+    `,
+            });
+
+            expect(core.core!.rendererTypesInDocument).toContain("number");
+        });
+
+        it("searchSorted declares the math renderer with no targets", async () => {
+            // An operator that searches for a list of targets starts with no
+            // replacements whenever that list is empty, so it too has to
+            // declare what its results will be rendered as. Nothing else here
+            // is a math, so the renderer can only have come from the operator.
+            let { core } = await createTestCore({
+                doenetML: `
+    <numberList name="cutoffs">10 20 30</numberList>
+    <numberList name="none" />
+    <searchSorted target="$none">$cutoffs</searchSorted>
+    `,
+            });
+
+            expect(core.core!.rendererTypesInDocument).toContain("math");
+        });
+    });
+});

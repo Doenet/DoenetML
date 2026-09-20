@@ -171,7 +171,6 @@ color =
                    *[m] коричневий
                 }
         }
-
 line-width =
     .thick =
         { $role ->
@@ -197,7 +196,6 @@ line-width =
                    *[m] тонкий
                 }
         }
-
 line-style =
     .dashed =
         { $role ->
@@ -223,7 +221,6 @@ line-style =
                    *[m] пунктирний
                 }
         }
-
 # Noun phrases in the accusative plural, which is the case «у» takes when it
 # names a pattern — «у ромби», the way Ukrainian describes patterned cloth.
 # The accusative plural of an inanimate noun is spelled like the nominative,
@@ -235,7 +232,6 @@ fill-style =
     .backdiagonal = зворотні діагональні лінії
     .dots = крапки
     .diamonds = ромби
-
 noun =
     .line = пряма
     .line-segment = відрізок
@@ -255,7 +251,6 @@ noun =
     .diamond = ромб
     .cross = хрестик
     .plus = плюс
-
 # Ukrainian counts the sides after the noun, so the count closes the phrase
 # behind the adjectives: «товстий червоний правильний многокутник із 5
 # сторонами».
@@ -264,7 +259,6 @@ noun-regular-polygon =
         [tail] із { $numSides } сторонами
        *[head] правильний многокутник
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (многокутник, m) or
 # the head of a phrase the description never names: `border` (рамка, f), `fill`
 # (заливка, f), `text` (текст, m), `background` (тло, n).
@@ -284,7 +278,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -297,14 +290,12 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # Adjectives precede the noun, and the complement closes the phrase.
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # Only ever said of the shape itself, so it is standalone in every description
 # and takes no `$role` branch.
 style-filled-word =
@@ -313,13 +304,11 @@ style-filled-word =
         [n] заповнене
        *[m] заповнений
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } у { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } у { $pattern }
@@ -327,7 +316,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } у { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «з» governs the instrumental, which the `border-clause` branch of every
 # adjective supplies. Ukrainian has no article, so the `-article` branches read
 # the same as the ones without.
@@ -343,15 +331,12 @@ style-border-clause =
         [and-article] і з { $border } рамкою
        *[with] з { $border } рамкою
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = незаповнений
-
 # «на» governs the locative, which is what the `background-clause` branch of
 # every adjective supplies — «на чорному тлі».
 style-text =
@@ -359,21 +344,17 @@ style-text =
         [background] { $color } на { $background } тлі
        *[plain] { $color }
     }
-
 style-background-none = немає
-
 
 ## Boolean words
 
 boolean-true = істина
 boolean-false = хиба
 
-
 ## Answer buttons
 
 answer-submit-label = Перевірити
 answer-submit-label-no-correctness = Надіслати відповідь
-
 
 ## Sectional blocks
 
@@ -398,7 +379,6 @@ section-name =
     .solution = Розв'язання
     .task = Завдання
     .theorem = Теорема
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -408,9 +388,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Підказка
-
 
 ## Tables and figures
 
@@ -421,7 +399,6 @@ table-name =
         [unnumbered-title] Таблиця{ ": " }
        *[unnumbered] Таблиця
     }
-
 figure-name =
     { $parts ->
         [numbered] Рисунок { $enumeration }
@@ -430,22 +407,18 @@ figure-name =
        *[unnumbered] Рисунок
     }
 
-
 ## Paginator controls
 
 paginator-previous = Попередня
 paginator-next = Наступна
 paginator-page = Сторінка
-
 paginator-page-status = { $pageLabel } { $currentPage } з { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = або
 piecewise-condition-if = якщо
 piecewise-condition-otherwise = інакше
-
 
 ## Chemistry
 ##
@@ -574,7 +547,6 @@ element-name =
     .lv = Ліверморій
     .ts = Теннессін
     .og = Оганесон
-
 element-anion-name =
     .h = Гідрид
     .c = Карбід
@@ -588,8 +560,6 @@ element-anion-name =
     .i = Йодид
     .at = Астатид
     .ts = Теннессид
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Некоректний хімічний символ
 chemistry-invalid-ionic-compound = Некоректна йонна сполука

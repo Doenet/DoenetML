@@ -104,6 +104,63 @@ using the `<sort>{:dn}` component.
 
 ## Attribute Examples
 
+### Attribute Example: type
+
+
+Bare string children are read as what they look like: if every whitespace-separated piece
+names a number the list is numeric, and otherwise it is text. So `<sort>10 2 1</sort>{:dn}`
+sorts by value and `<sort>d a b</sort>{:dn}` sorts alphabetically with nothing declared
+either way, and most documents never need `type` at all. Write it for the cases where the
+look is misleading.
+
+
+**Numerals that are labels rather than quantities.** Zip codes, course numbers and
+rankings are written with digits but are not amounts.
+
+
+```doenet-editor-horiz
+<p>Read as numbers: <sort>02134 55455 07094</sort></p>
+<p>Read as text: <sort type="text">02134 55455 07094</sort></p>
+```
+
+
+The first line drops the leading zeros that make a zip code a zip code. `type="text"` is
+also what puts `10` before `9`, which is the order a list of labels usually wants.
+
+
+**Expressions that should be compared as maths.** Two spellings of one expression are two
+different values as text and a single value as maths.
+
+
+```doenet-editor-horiz
+<p>Read as text: <sort>2x 2*x x</sort></p>
+<p>Read as maths: <sort type="math">2x 2*x x</sort></p>
+```
+
+
+`type="math"` also keeps an expression in the form it was written while still ordering it
+by value: `<sort type="math">1/2 2^3 pi sqrt(4)</sort>{:dn}` puts the four expressions in
+order as they were typed, where without `type` the same four arrive as `0.5, 2, 3.14, 8`.
+
+
+**Booleans.** Without `type` these are just words, and alphabetical order happens to put
+`false` first — so it looks right until the capitalization varies.
+
+
+```doenet-editor-horiz
+<p>Read as text: <sort>True false TRUE</sort></p>
+<p>Read as booleans: <sort type="boolean">True false TRUE</sort></p>
+```
+
+
+There is no case for writing `type="number"`: a piece that names a number is already read
+as one, and one that does not becomes `NaN`. `type` applies only to bare strings — a
+referenced component carries a type of its own and keeps it.
+
+
+
+---
+
 ### Attribute Example: sortByComponent
 
 

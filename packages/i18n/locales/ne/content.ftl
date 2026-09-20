@@ -36,15 +36,12 @@ color =
     .purple = बैजनी
     .pink = गुलाबी
     .brown = खैरो
-
 line-width =
     .thick = बाक्लो
     .thin = पातलो
-
 line-style =
     .dashed = धर्के
     .dotted = थोप्ले
-
 # Plural nouns rather than adjectives: «प्रयोग गरी» ("using") takes them bare.
 fill-style =
     .horizontal = तेर्सा रेखा
@@ -53,7 +50,6 @@ fill-style =
     .backdiagonal = उल्टो विकर्ण रेखा
     .dots = थोप्ला
     .diamonds = समचतुर्भुज
-
 noun =
     .line = रेखा
     .line-segment = रेखाखण्ड
@@ -73,7 +69,6 @@ noun =
     .diamond = समचतुर्भुज
     .cross = क्रस
     .plus = जोड चिन्ह
-
 # The side count attaches to the noun that follows, so the whole phrase is one
 # head and there is no tail.
 noun-regular-polygon =
@@ -81,12 +76,10 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } भुजा भएको नियमित बहुभुज
     }
-
 # Nepali marks gender on an adjective only for an animate noun, and nothing
 # described here is one, so every noun answers the same and the answer goes
 # unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -100,15 +93,12 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = भरिएको
-
 # «प्रयोग गरी» ("using") is invariable and takes the pattern bare, so the
 # clause English appends comes to the front here.
 style-filled =
@@ -116,7 +106,6 @@ style-filled =
         [pattern] { $pattern } प्रयोग गरी { $filled } { $color }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } प्रयोग गरी { $filled } { $color } { $noun }
@@ -124,7 +113,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } प्रयोग गरी { $filled } { $color } { $noun } { $nounTail }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # -सहित follows किनारा, where English's `with` precedes its noun. Nepali has no
 # article, which leaves the `-article` branches reading like the others.
 style-border-clause =
@@ -134,15 +122,12 @@ style-border-clause =
         [and-article] र { $border } किनारासहित
        *[with] { $border } किनारासहित
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = नभरिएको
-
 # The locative -मा marks पृष्ठभूमि, and the colour word in front of it is
 # untouched by that.
 style-text =
@@ -150,21 +135,17 @@ style-text =
         [background] { $background } पृष्ठभूमिमा { $color }
        *[plain] { $color }
     }
-
 style-background-none = कुनै पनि छैन
-
 
 ## Boolean words
 
 boolean-true = सत्य
 boolean-false = असत्य
 
-
 ## Answer buttons
 
 answer-submit-label = जाँच्नुहोस्
 answer-submit-label-no-correctness = उत्तर पठाउनुहोस्
-
 
 ## Sectional blocks
 
@@ -189,7 +170,6 @@ section-name =
     .solution = समाधान
     .task = कार्य
     .theorem = प्रमेय
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -199,9 +179,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = संकेत
-
 
 ## Tables and figures
 
@@ -212,7 +190,6 @@ table-name =
         [unnumbered-title] तालिका{ ": " }
        *[unnumbered] तालिका
     }
-
 figure-name =
     { $parts ->
         [numbered] चित्र { $enumeration }
@@ -221,28 +198,23 @@ figure-name =
        *[unnumbered] चित्र
     }
 
-
 ## Paginator controls
 
 paginator-previous = अघिल्लो
 paginator-next = अर्को
 paginator-page = पृष्ठ
-
 # «X मध्ये Y» — "Y of X" — puts the total first, so the two counts change
 # places.
 paginator-page-status = { $numPages } मध्ये { $pageLabel } { $currentPage }
 
-
 ## Piecewise functions
 
 piecewise-condition-or = वा
-
 piecewise-condition-if = यदि
-
 piecewise-condition-otherwise = अन्यथा
 
-
 ## Chemistry
+
 
 # `element-name` and `element-anion-name` are deliberately omitted, and those
 # 130 keys fall back to English.
@@ -257,6 +229,5 @@ piecewise-condition-otherwise = अन्यथा
 # script this shares, do have such a set and supply it.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = अमान्य रासायनिक चिन्ह
 chemistry-invalid-ionic-compound = अमान्य आयनिक यौगिक

@@ -1,5 +1,9 @@
 export * from "./index";
-import { doenetGlobalConfig } from "./global-config";
+import { doenetGlobalConfig, hostProvidedWorkerUrl } from "./global-config";
+// Re-exported beside `setExternalCoreWorkerUrl` so `@doenet/standalone` can
+// make its worker re-point defer to a host-chosen URL the same way the
+// resolution at the bottom of this module does.
+export { hostProvidedWorkerUrl } from "./global-config";
 
 // Externalized-worker entry point (counterpart to `doenetml-inline-worker.ts`).
 //
@@ -70,13 +74,25 @@ export function setExternalCoreWorkerUrl(workerUrl: string) {
     // (CORS-served) worker. `importScripts` is allowed cross-origin in classic
     // workers — which is exactly what `createCoreWorker` (`utils/docUtils.ts`)
     // creates — so this realm holds only the ~100-byte bootstrap instead of the
-    // ~15 MB worker, which is fetched and parsed on the worker thread.
+    // multi-MB worker, which is fetched and parsed on the worker thread.
+    //
+    // The bootstrap also records the real script URL in
+    // `self.__doenetWorkerScriptUrl`: the worker fetches its WASM from beside
+    // its own script (see the loading ladder in @doenet/doenetml-worker's
+    // src/wasmLoading.ts), and a worker booted from this blob URL has only the
+    // blob to resolve against.
     const bootstrapUrl = isSameOrigin(workerUrl)
         ? null
         : URL.createObjectURL(
-              new Blob([`importScripts(${JSON.stringify(workerUrl)});`], {
-                  type: "text/javascript",
-              }),
+              new Blob(
+                  [
+                      `self.__doenetWorkerScriptUrl = ${JSON.stringify(workerUrl)};` +
+                          `importScripts(${JSON.stringify(workerUrl)});`,
+                  ],
+                  {
+                      type: "text/javascript",
+                  },
+              ),
           );
     if (ownedBootstrapUrl !== null) {
         URL.revokeObjectURL(ownedBootstrapUrl);
@@ -104,11 +120,15 @@ function isSameOrigin(url: string): boolean {
 }
 
 try {
-    const workerUrl = resolveWorkerUrl();
-    if (workerUrl !== null) {
-        setExternalCoreWorkerUrl(workerUrl);
+    // A worker URL the host set before this module evaluated is an explicit
+    // deployment choice; leave it in force rather than re-resolving.
+    if (!hostProvidedWorkerUrl) {
+        const workerUrl = resolveWorkerUrl();
+        if (workerUrl !== null) {
+            setExternalCoreWorkerUrl(workerUrl);
+        }
+        // workerUrl === null: keep the default from global-config.ts.
     }
-    // workerUrl === null: keep the default from global-config.ts.
 } catch (e) {
     // Never let worker-URL resolution break evaluation of the whole bundle —
     // the default from global-config.ts remains in effect.

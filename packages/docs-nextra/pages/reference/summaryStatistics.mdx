@@ -1,0 +1,172 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<summaryStatistics>{:dn}`
+
+<ComponentDisplay name='summaryStatistics'/>
+
+`<summaryStatistics>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types)
+component that renders a table of statistics — mean, standard deviation, median,
+quartiles and the rest — for the numbers it is given, whether written out or referenced
+with `$scores`. Every statistic in the table is also a property, so a sentence can quote
+the same number the table shows.
+
+<AttrPropDisplay name='summaryStatistics'/>
+
+## Examples
+
+### Example: statistics of a list
+
+
+```doenet-editor-horiz
+<numberList name="scores">72 91 65 88 79 91 84</numberList>
+
+<p>Scores: $scores</p>
+
+<summaryStatistics name="stats">$scores</summaryStatistics>
+
+<p>The mean is $stats.mean and the median is $stats.median.</p>
+```
+
+
+
+The table and the sentence read from the same component, so they cannot disagree.
+
+
+
+---
+
+### Example: values that are not numbers
+
+
+```doenet-editor-horiz
+<summaryStatistics name="s" statisticsToDisplay="count mean">
+  72 91 65 <text>absent</text>
+</summaryStatistics>
+
+<p>Four values given, $s.count counted.</p>
+```
+
+
+
+A value that is not a number counts as missing and is left out, which is why `count`
+reports how many values were usable rather than how many were given. If nothing usable
+is left, `count` is `0` and every other statistic has no value: its cell is blank, and a
+reference to it reads as `NaN`.
+
+
+
+---
+
+### Example: summarizing a simulation
+
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="pop">30 45 12 60</numberList>
+  <cumulativeSum name="cum">$pop</cumulativeSum>
+  <number name="total"><sum>$pop</sum></number>
+</setup>
+
+<sampleRandomNumbers name="draws" type="discreteUniform"
+  from="1" to="$total" numSamples="80" hide />
+<searchSorted name="which" target="$draws" hide>$cum</searchSorted>
+<tally name="counts" categories="1 2 3 4" hide>$which</tally>
+
+<p>Counts by subpopulation: $counts</p>
+
+<summaryStatistics statisticsToDisplay="count sum minimum maximum mean">
+  $counts
+</summaryStatistics>
+
+<callAction actionName="resample" target="$draws">
+  <label>Draw again</label>
+</callAction>
+```
+
+
+
+The statistics are of the four counts, not of the 80 draws — so `sum` is the sample size
+and `mean` is how many draws an average subpopulation received. Drawing again updates
+both the counts and the table.
+
+
+
+---
+
+## Attribute Examples
+
+### Attribute Example: statisticsToDisplay
+
+
+```doenet-editor-horiz
+<numberList name="scores">72 91 65 88 79 91 84</numberList>
+
+<summaryStatistics statisticsToDisplay="count mean stdev">$scores</summaryStatistics>
+
+<summaryStatistics statisticsToDisplay="default sum">$scores</summaryStatistics>
+
+<summaryStatistics statisticsToDisplay="fiveNumberSummary">$scores</summaryStatistics>
+```
+
+
+
+Omit it for a standard selection. `default`, `all` and `fiveNumberSummary` name a set
+rather than excluding what sits beside them, so `statisticsToDisplay="default sum"` shows
+the standard selection *and* the sum. Statistics appear in a fixed order whatever order
+they are asked for in, so two documents showing the same set read the same way.
+
+
+
+---
+
+### Attribute Example: displayDigits
+
+
+```doenet-editor-horiz
+<numberList name="scores">72 91 65 88 79 91 84</numberList>
+
+<summaryStatistics name="rounded" statisticsToDisplay="count mean" displayDigits="3">
+  $scores
+</summaryStatistics>
+
+<p>The property rounds with the table: $rounded.mean</p>
+```
+
+
+
+`displayDigits` shapes how the numbers are written, in the table and in a reference to a
+statistic alike — a reference carries the same setting, so `$rounded.mean` prints `81.4`
+here rather than the mean in full. `displayDecimals`, `displaySmallAsZero`, `padZeros`
+and `avoidScientificNotation` shape them the same way and follow the same rule.
+
+`count` is the exception. It is an exact tally, so it is never rounded: this table would
+still report 1234 observations as `1234`, where three significant digits would have made
+them `1230`.
+
+
+
+---
+
+## Property Examples
+
+### Property Example: mean, count, minimum, maximum, range
+
+
+```doenet-editor-horiz
+<numberList name="scores">72 91 65 88 79 91 84</numberList>
+
+<summaryStatistics name="s" statisticsToDisplay="count mean range">$scores</summaryStatistics>
+
+<p>The $s.count scores run from $s.minimum to $s.maximum, a range of $s.range,
+   and average $s.mean.</p>
+```
+
+
+
+Every statistic is readable this way, `stdev`, `variance`, `stderr`, the quartiles,
+`median` and `sum` included — and so are the ones the table was not asked to show:
+`statisticsToDisplay` chooses what is *displayed*, not what is computed, so `$s.minimum`
+and `$s.maximum` above are available from a table that lists neither.

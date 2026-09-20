@@ -226,3 +226,34 @@ export function copyLocaleCatalogsPlugin(): PluginOption {
         },
     };
 }
+
+/**
+ * Keep the dev server's file watcher out of the wireit build caches.
+ *
+ * Wireit stores a full copy of a package's `dist` per cache key under
+ * `packages/*\/.wireit/*\/cache/`, so a long-lived checkout accumulates
+ * hundreds of thousands of files there. Vite watches the whole project root
+ * and its default ignore list covers `node_modules` and `.git` but not
+ * `.wireit`, so the watcher descends into the caches and exhausts the system
+ * inotify budget — `npm run dev` then dies at startup with `ENOSPC: System
+ * limit for number of file watchers reached`, pointing at some `.d.ts.map`
+ * deep inside a cache directory. Raising `fs.inotify.max_user_watches` does
+ * not help for long; the cache grows past any limit.
+ *
+ * Nothing under `.wireit` is a source file a dev server should reload on, so
+ * ignoring it outright costs nothing. Vite merges this into its built-in
+ * ignore list rather than replacing it.
+ *
+ * This belongs in every config whose `dev` script starts Vite, which is why it
+ * is a plugin: it applies in serve mode only and needs no `server` block of
+ * its own at the call site.
+ */
+export function ignoreWireitCachesPlugin(): PluginOption {
+    return {
+        name: "doenet-ignore-wireit-caches",
+        apply: "serve",
+        config() {
+            return { server: { watch: { ignored: ["**/.wireit/**"] } } };
+        },
+    };
+}

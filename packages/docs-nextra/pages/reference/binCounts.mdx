@@ -1,0 +1,134 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<binCounts>{:dn}`
+
+<ComponentDisplay name='binCounts'/>
+
+`<binCounts>{:dn}` is a [Math Operator](../concepts/essentialConcepts#component-types)
+component that renders how many of its arguments fall into each interval between the cut
+points given by `bins`: a list of counts, one per interval. Where
+[`<tally>{:dn}`](tally) counts values that are *equal* to a category,
+`<binCounts>{:dn}` counts values that fall *between* two cut points, which is what a
+histogram of a continuous quantity needs.
+
+Values outside the outermost cut points are not counted, so the counts need not sum to
+the number of values.
+
+<AttrPropDisplay name='binCounts'/>
+
+## Examples
+
+### Example: binning a continuous sample
+
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="edges">-3 -2 -1 0 1 2 3</numberList>
+  <sampleRandomNumbers name="z" type="gaussian"
+    mean="0" variance="4" numSamples="200" />
+</setup>
+
+<p>Counts per unit interval: <binCounts name="h" bins="$edges">$z</binCounts></p>
+<p>Counted: <sum>$h</sum> of 200 — the rest fell outside ±3, where there is no bin.</p>
+
+<callAction actionName="resample" target="$z">
+  <label>Draw again</label>
+</callAction>
+```
+
+
+
+---
+
+### Example: counting a weighted population directly
+
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="pop">30 45 12 60</numberList>
+  <cumulativeSum name="cum">$pop</cumulativeSum>
+  <number name="total"><sum>$pop</sum></number>
+  <sampleRandomNumbers name="draws" type="discreteUniform"
+    from="1" to="$total" numSamples="60" />
+</setup>
+
+<p>Subpopulation sizes: $pop (total $total)</p>
+<p>Sampled counts: <binCounts bins="0 $cum" closed="right">$draws</binCounts></p>
+
+<callAction actionName="resample" target="$draws">
+  <label>Draw again</label>
+</callAction>
+```
+
+
+
+With cumulative subpopulation sizes as the cut points, right-closed bins *are* the
+subpopulations: individuals 1–30, 31–75, 76–87 and 88–147. This reaches the same counts
+as [`<searchSorted>{:dn}`](searchSorted) followed by [`<tally>{:dn}`](tally), without
+the intermediate list of subpopulation indices — use whichever you also want to show.
+
+## Attribute Examples
+
+### Attribute Example: bins
+
+
+```doenet-editor-horiz
+<p>Two bins: <binCounts bins="0 1 2">0 1/2 1 3/2 2</binCounts></p>
+<p>Four bins: <binCounts bins="0 0.5 1 1.5 2">0 1/2 1 3/2 2</binCounts></p>
+```
+
+
+
+`n + 1` cut points define `n` intervals. Bare numbers work as well as `<number>{:dn}`
+children, and are read the way [`<sum>{:dn}`](sum) reads them, so an expression such as
+`1/2` falls in a bin too.
+
+
+
+---
+
+### Attribute Example: closed
+
+
+```doenet-editor-horiz
+<numberList name="edges">0 1 2</numberList>
+<numberList name="v">0 0.5 1 1.5 2</numberList>
+
+<p>Values: $v</p>
+<p>Cut points: $edges</p>
+<p>closed="left": <binCounts bins="$edges">$v</binCounts></p>
+<p>closed="right": <binCounts bins="$edges" closed="right">$v</binCounts></p>
+```
+
+
+
+A value landing exactly on a cut point has to be counted on one side or the other.
+Left-closed, the bins are `[0, 1)` and `[1, 2]`, so 1 is counted in the second.
+Right-closed they are `[0, 1]` and `(1, 2]`, so 1 is counted in the first. Both include
+0 and 2, because the outermost cut points always belong to a bin.
+
+
+
+---
+
+## Property Examples
+
+### Property Example: binEdges
+
+
+```doenet-editor-horiz
+<numberList name="edges">-3 -1 1 3</numberList>
+<binCounts name="h" bins="$edges">-2 0 0.5 2 2.5</binCounts>
+
+<p>Cut points: $h.binEdges</p>
+<p>Counts: $h</p>
+<p>The first bin runs from $h.binEdges[1] to $h.binEdges[2] and holds $h[1].</p>
+```
+
+
+
+The cut points are readable back, so whatever displays the counts can say what interval
+each one covers.

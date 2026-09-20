@@ -16,7 +16,7 @@
  * So the pieces can skew. A browser that fetched the bundle after a release and
  * the worker before it holds a new bundle paired with the previous release's
  * core, which never completes the Comlink handshake — the viewer retries and
- * then shows "The document viewer could not be started" (see
+ * then shows "This document could not be started" (see
  * `Viewer/coreWorkerBoot.ts` in `@doenet/doenetml`). Only clearing the browser
  * cache fixes that, which no purge can reach. It is not hypothetical: 0.7.22
  * shipped a changed core worker under a tag whose worker URL that release did

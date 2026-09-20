@@ -1,6 +1,11 @@
 import React from "react";
 import { DoenetViewer } from "../../../src/doenetml-inline-worker";
 import { doenetGlobalConfig } from "../../../src/global-config";
+import {
+    concurrentHandshakesSnapshot,
+    joinHandshakeCensus,
+    refreshHandshakeCensusCount,
+} from "../../../src/utils/handshakeCensus";
 
 // Component coverage for the shared core-worker host (#1466): with
 // `doenetGlobalConfig.useSharedCoreWorker` set, viewers on a page multiplex
@@ -142,5 +147,172 @@ describe("DoenetViewer shared core-worker host (#1466)", () => {
                 "handshake was retried after the hung first attempt",
             ).to.be.greaterThan(1);
         });
+    });
+});
+
+// Harness for the contended-timeout test below: a healthy viewer that boots
+// first (so its core is live on the shared host before anything hangs), plus
+// a button that mounts a second viewer afterwards — after the test has set up
+// census pressure and a handshake hook the healthy boot must not see.
+function ContendedBootHarness() {
+    const [showContended, setShowContended] = React.useState(false);
+    return (
+        <div>
+            <button
+                data-test="add-contended"
+                onClick={() => setShowContended(true)}
+            >
+                add contended
+            </button>
+            <DoenetViewer
+                doenetML={`
+                    <number name="c">0</number>
+                    <updateValue name="bump" target="$c" newValue="$c+1">
+                        <label>bump healthy</label>
+                    </updateValue>
+                    <p>healthy is $c</p>
+                `}
+                addVirtualKeyboard={false}
+            />
+            {showContended ? (
+                <DoenetViewer
+                    doenetML="<p>contended viewer</p>"
+                    addVirtualKeyboard={false}
+                />
+            ) : null}
+        </div>
+    );
+}
+
+describe("DoenetViewer shared host under handshake contention (#1711)", () => {
+    // Census seats this test holds to create page-wide pressure; released
+    // after each test so later specs size their watchdogs against a clean
+    // count.
+    let censusSeats: { release: () => void }[] = [];
+    let realWorker: typeof Worker;
+
+    beforeEach(() => {
+        realWorker = window.Worker;
+    });
+
+    afterEach(() => {
+        window.Worker = realWorker;
+        delete doenetGlobalConfig.useSharedCoreWorker;
+        delete doenetGlobalConfig.__doenetTestCoreInitHook;
+        delete doenetGlobalConfig.coreHandshakeWatchdogMs;
+        delete doenetGlobalConfig.coreBootMaxAttempts;
+        cy.then(() => {
+            for (const seat of censusSeats) {
+                seat.release();
+            }
+            censusSeats = [];
+        });
+        // The cached snapshot is module-global and survives this spec, so put
+        // it back to the neutral "just me" the next boot expects to read.
+        cy.wrap(null, { timeout: 4000 }).should(() => {
+            refreshHandshakeCensusCount();
+            expect(concurrentHandshakesSnapshot()).to.equal(1);
+        });
+    });
+
+    it("a contended timeout leaves the shared host unquarantined and its healthy sibling running", () => {
+        // End-to-end wiring of `suspectWedge: false` (#1711): when a
+        // handshake times out while handshakes outnumber cores, the teardown
+        // withholds the wedge suspicion, so the shared host keeps its live
+        // sibling core AND keeps accepting new ones — the retry lands back on
+        // it instead of a cold replacement worker. Observables, mirroring the
+        // quarantine test above from the other side: no new host worker is
+        // constructed, the sibling stays interactive, and the failure is
+        // reported with the busy-page wording.
+        doenetGlobalConfig.useSharedCoreWorker = true;
+        // The override wins over the contention-scaled budget, keeping the
+        // injected hang's watchdog short while healthy handshakes still
+        // complete well within it.
+        doenetGlobalConfig.coreHandshakeWatchdogMs = 4000;
+        doenetGlobalConfig.coreBootMaxAttempts = 2;
+
+        let handshakeAttempts = 0;
+        let workerConstructions = 0;
+
+        cy.mount(<ContendedBootHarness />);
+
+        // The healthy viewer boots before any pressure or hook exists.
+        cy.contains("healthy is 0", { timeout: 15000 }).should("exist");
+
+        // Real census pressure: hold more seats than the machine has cores,
+        // so the boot below reads `concurrentHandshakes > cores` and
+        // attributes its timeout to contention.
+        // `DocViewer` reads the same hint and substitutes 1 when it is
+        // withheld, so this exceeds whatever core count the boot compares
+        // against.
+        const seatTarget = (navigator.hardwareConcurrency || 1) + 4;
+        cy.then(async () => {
+            const seats = await Promise.all(
+                Array.from({ length: seatTarget }, () => joinHandshakeCensus()),
+            );
+            censusSeats.push(...seats);
+        });
+        // Prime the cached snapshot before the contended boot starts: the
+        // boot reads the cache synchronously, and a refresh lands its count
+        // asynchronously, so the seats have to be visible in the cache — not
+        // just held — by the time the ladder's first attempt reads it.
+        cy.wrap(null, { timeout: 4000 }).should(() => {
+            refreshHandshakeCensusCount();
+            expect(concurrentHandshakesSnapshot()).to.be.at.least(seatTarget);
+        });
+
+        cy.then(() => {
+            // Count host-worker constructions from here on: the healthy
+            // viewer's host already exists, so any construction after this
+            // point is a retry being routed to a replacement host — which is
+            // exactly what a (false) quarantine would force.
+            class CountingWorker extends realWorker {
+                constructor(...args: ConstructorParameters<typeof Worker>) {
+                    super(...args);
+                    workerConstructions++;
+                }
+            }
+            window.Worker = CountingWorker as typeof Worker;
+            // Hang every handshake attempt of the viewer mounted next. The
+            // healthy viewer booted before this hook existed and never
+            // re-handshakes in this test.
+            doenetGlobalConfig.__doenetTestCoreInitHook = (phase, attempt) => {
+                if (phase === "handshake") {
+                    handshakeAttempts = Math.max(
+                        handshakeAttempts,
+                        attempt + 1,
+                    );
+                    return new Promise<void>(() => {
+                        /* never resolves */
+                    });
+                }
+            };
+        });
+
+        cy.get('[data-test="add-contended"]').click();
+
+        // The contended viewer exhausts its attempts (two 4 s watchdogs plus
+        // a backoff) and reports the failure with the busy-page wording —
+        // which is itself the `lastFailureWasContended` wiring observed
+        // end-to-end.
+        cy.contains("Several documents were starting at once", {
+            timeout: 15000,
+        }).should("exist");
+
+        cy.then(() => {
+            expect(
+                handshakeAttempts,
+                "the contended handshake was still retried",
+            ).to.equal(2);
+            expect(
+                workerConstructions,
+                "no replacement host worker was spawned — the shared host was not quarantined",
+            ).to.equal(0);
+        });
+
+        // The healthy sibling on the same host is undisturbed: its core still
+        // round-trips an action through the shared worker.
+        cy.contains("button", "bump healthy").click();
+        cy.contains("healthy is 1", { timeout: 4000 }).should("exist");
     });
 });

@@ -42,6 +42,7 @@ Sectional components are blocks of content that serve as containers for other co
     "cascadeMessage",
     "cell",
     "cellBlock",
+    "chart",
     "codeEditor",
     "column (in a table)",
     "conclusion",
@@ -173,7 +174,7 @@ Graphical components are any objects that can be placed on a `<graph>`. The foll
 ## Display Math components
 Display math components take arguments written in LaTeX. No computations or simplifications can be performed with these components, as they do not have access to the CAS.
 
-Additionaly, Evaluation Components (such as `<answer>`) and Input Components (such as `<mathInput>`) cannot be embedded or nested within Display Math Components.
+Additionally, Evaluation Components (such as `<answer>`) cannot be nested within Display Math Components. Input Components can be nested: a `<textInput/>`, a `<mathInput/>`, or an inline `<choiceInput/>` written inside one is drawn in place, inside the typeset expression.
 
 <ComponentTable components={["m", "md", "mdn", "me", "men", "mrow"]} />
 
@@ -198,6 +199,7 @@ Mathematical content can be defined and rendered with Math Components. These com
     "periodicSet",
     "rightHandSide",
     "row (in a matrix)",
+    "sampleMultivariateRandomNumber",
     "samplePrimeNumbers",
     "sampleRandomNumbers",
     "selectFromSequence",
@@ -216,11 +218,17 @@ Math Operator components perform computations or take actions on the math compon
 
 <ComponentTable components={[
     "abs",
+    "binCounts",
     "ceil",
     "clampFunction",
     "clampNumber",
     "convertSetToList",
     "count",
+    "cumulativeMax",
+    "cumulativeMin",
+    "cumulativeProduct",
+    "cumulativeSum",
+    "differences",
     "eigenDecomposition",
     "evaluate",
     "floor",
@@ -249,6 +257,8 @@ These components perform actions on Math components as well as other component t
 
 <ComponentTable components={[
     "animateFromSequence",
+    "argMax",
+    "argMin",
     "asList",
     "callAction",
     "case",
@@ -258,6 +268,7 @@ These components perform actions on Math components as well as other component t
     "extractMathOperator",
     "feedbackDefinition",
     "group",
+    "indexOf",
     "module",
     "moduleAttributes",
     "option",
@@ -266,12 +277,16 @@ These components perform actions on Math components as well as other component t
     "ref",
     "repeat",
     "repeatForSequence",
+    "searchSorted",
     "select",
     "shuffle",
     "sort",
+    "sortIndices",
     "split",
     "styleDefinition",
     "substitute",
+    "summaryStatistics",
+    "tally",
     "triggerSet",
     "updateValue",
     "variantControl",

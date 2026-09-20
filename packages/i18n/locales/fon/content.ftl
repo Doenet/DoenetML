@@ -61,20 +61,17 @@ color =
     .purple = violet
     .pink = rose
     .brown = marron
-
 # Both are Fon statives, but only one reduplicates: «gaga» doubles «gá» to be
 # big, while «kléwún» is derived from «klé» to be slender without doubling it.
 # That is why the table in the header gives it a row of its own.
 line-width =
     .thick = gaga
     .thin = kléwún
-
 # Written as «kpó …» phrases rather than as statives, so that they close the
 # description rather than sitting inside it. `style-stroke` puts them last.
 line-style =
     .dashed = kpó dlɛ̌n kpɛví lɛ́
     .dotted = kpó tɛ́n lɛ́
-
 fill-style =
     .horizontal = dlɛ̌n dòdó lɛ́
     .vertical = dlɛ̌n sítɛ́ lɛ́
@@ -82,7 +79,6 @@ fill-style =
     .backdiagonal = dlɛ̌n gbɔn ɖò alɔ ɖèvo lɛ́
     .dots = tɛ́n lɛ́
     .diamonds = diamant lɛ́
-
 noun =
     .line = dlɛ̌n
     .line-segment = dlɛ̌n kpɛví
@@ -102,7 +98,6 @@ noun =
     .diamond = diamant
     .cross = akluzu
     .plus = wlɛ́n plus
-
 # The side count follows the describing words and closes the noun phrase, so it
 # goes in the tail — the position Fon's own determiner would occupy.
 noun-regular-polygon =
@@ -110,11 +105,9 @@ noun-regular-polygon =
         [tail] kpó akpá { $numSides }
        *[head] polygone jɛ́jɛ́
     }
-
 # Fon has no noun class and no gender, so every noun answers the same and the
 # answer goes unused — the shape `locales/en` and `locales/ktu` have.
 noun-gender = ɖokpo
-
 
 ## Style composition
 
@@ -130,21 +123,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = gɔ́
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } kpó { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } kpó { $pattern }
@@ -152,7 +141,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } kpó { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «dogbó» is the border. Fon has no indefinite article and joins this clause
 # with the invariable «kpó», so all four branches read alike.
 style-border-clause =
@@ -162,35 +150,28 @@ style-border-clause =
         [and-article] kpó dogbó { $border }
        *[with] kpó dogbó { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = mǎ gɔ́ ǎ
-
 style-text =
     { $parts ->
         [background] { $color } kpó gudo { $background }
        *[plain] { $color }
     }
-
 style-background-none = nǔ ɖé ǎ
-
 
 ## Boolean words
 
 boolean-true = nugbó
 boolean-false = adingban
 
-
 ## Answer buttons
 
 answer-submit-label = Kpɔ́n Azɔ̌
 answer-submit-label-no-correctness = Sɛ́ Xósin Dó
-
 
 ## Sectional blocks
 
@@ -215,7 +196,6 @@ section-name =
     .solution = Ali
     .task = Azɔ̌
     .theorem = Théorème
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -225,9 +205,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Alɔdo
-
 
 ## Tables and figures
 
@@ -238,7 +216,6 @@ table-name =
         [unnumbered-title] Tableau{ ": " }
        *[unnumbered] Tableau
     }
-
 figure-name =
     { $parts ->
         [numbered] Ðiɖe { $enumeration }
@@ -247,25 +224,18 @@ figure-name =
        *[unnumbered] Ðiɖe
     }
 
-
 ## Paginator controls
 
 paginator-previous = Yɛ̌yǐ
 paginator-next = Bɔ̌dó
-
 paginator-page = Wexwɛ
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = alǒ
-
 piecewise-condition-if = énɛ́ ɔ́
-
 piecewise-condition-otherwise = ɖò ninɔmɛ ɖě lɛ́ bǐ mɛ
-
 
 ## Chemistry
 ##
@@ -279,6 +249,5 @@ piecewise-condition-otherwise = ɖò ninɔmɛ ɖě lɛ́ bǐ mɛ
 ## the Ghanaian and Togolese ministries.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Wlɛ́n Chimie Tɔ̀n E Má Nyɔ́ Ǎ
 chemistry-invalid-ionic-compound = Kplékplé Ion Tɔ̀n E Má Nyɔ́ Ǎ

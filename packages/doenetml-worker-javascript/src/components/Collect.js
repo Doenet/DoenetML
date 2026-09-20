@@ -12,7 +12,7 @@ export default class Collect extends CompositeComponent {
     };
     static takesIndex = true;
 
-    static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
+    static allowInSchemaAnywhere = true;
 
     static acceptAnyAttribute = true;
 
@@ -435,7 +435,6 @@ export default class Collect extends CompositeComponent {
         serializedReplacements = postProcessCopy({
             serializedComponents: serializedReplacements,
             componentIdx: component.componentIdx,
-            identifierPrefix: collectedNum + "|",
         });
 
         for (let repl of serializedReplacements) {

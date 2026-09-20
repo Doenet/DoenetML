@@ -43,16 +43,13 @@ color =
     .purple = बेगुनि
     .pink = गुलापि
     .brown = खैरा
-
 # Bodo names a stroke's width with its ordinary words for large and small.
 line-width =
     .thick = गिदिर
     .thin = फिसा
-
 line-style =
     .dashed = बोखावनाय
     .dotted = बिन्दुजों
-
 fill-style =
     .horizontal = आथिं सारि
     .vertical = गोजौ सारि
@@ -60,7 +57,6 @@ fill-style =
     .backdiagonal = उल्था खारसा सारि
     .dots = बिन्दु
     .diamonds = समचतुर्भुज
-
 noun =
     .line = सारि
     .line-segment = सारि खण्ड
@@ -80,7 +76,6 @@ noun =
     .diamond = समचतुर्भुज
     .cross = गुणन सिन
     .plus = जोड़ सिन
-
 # «-भुजनि» takes the count and stands in front of the noun, so nothing follows
 # the adjectives and the tail is empty. The ending has one shape whatever
 # number lands before it.
@@ -89,10 +84,8 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides }-भुजनि समबहुभुज
     }
-
 # Nothing selects on it: Bodo has no grammatical gender.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -106,15 +99,12 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = आबुं
-
 # «-जों» is the instrumental postposition and follows what it governs, so the
 # pattern moves to the front of the phrase where English appends it. It has one
 # shape whatever precedes it, so welding it onto a placeable is sound.
@@ -123,7 +113,6 @@ style-filled =
         [pattern] { $pattern }जों { $filled } { $color }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern }जों { $filled } { $color } { $noun }
@@ -131,7 +120,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern }जों { $filled } { $color } { $noun } { $nounTail }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # Bodo has no article, so the two `-article` branches read like their
 # neighbours; «आरो» is the conjunction and stands in front.
 style-border-clause =
@@ -141,36 +129,29 @@ style-border-clause =
         [and-article] आरो { $border } किनारजों
        *[with] { $border } किनारजों
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern }जों { $color } आबुंनाय
        *[plain] { $color } आबुंनाय
     }
-
 style-unfilled = आबुंआ
-
 # «-आव» is the locative postposition, and has one shape too.
 style-text =
     { $parts ->
         [background] { $background } फाइलआव { $color }
        *[plain] { $color }
     }
-
 style-background-none = जेबो गैया
-
 
 ## Boolean words
 
 boolean-true = थार
 boolean-false = फोसाब
 
-
 ## Answer buttons
 
 answer-submit-label = आनजाद खालाम
 answer-submit-label-no-correctness = फिन दैथाय
-
 
 ## Sectional blocks
 
@@ -195,7 +176,6 @@ section-name =
     .solution = सुस्रांथि
     .task = खामानि
     .theorem = प्रमेय
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -205,9 +185,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = सिनायथि
-
 
 ## Tables and figures
 
@@ -218,7 +196,6 @@ table-name =
         [unnumbered-title] सारनी{ ": " }
        *[unnumbered] सारनी
     }
-
 figure-name =
     { $parts ->
         [numbered] मुसुखा { $enumeration }
@@ -227,26 +204,20 @@ figure-name =
        *[unnumbered] मुसुखा
     }
 
-
 ## Paginator controls
 
 paginator-previous = आगोलनि
 paginator-next = उननि
 paginator-page = बिलाइ
-
 # «X-निफ्राय Y» — "Y out of X" — puts the total first, so the two counts change
 # places. The ablative «-निफ्राय» has one shape whatever precedes it.
 paginator-page-status = { $numPages }-निफ्राय { $pageLabel } { $currentPage }
 
-
 ## Piecewise functions
 
 piecewise-condition-or = एबा
-
 piecewise-condition-if = जुदि
-
 piecewise-condition-otherwise = एबा नङाब्ला
-
 
 ## Chemistry
 ##
@@ -263,6 +234,5 @@ piecewise-condition-otherwise = एबा नङाब्ला
 ## parallel text for whoever fills this in.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = गोरोन्थि रासायनिक सिन
 chemistry-invalid-ionic-compound = गोरोन्थि आयनिक यौगिक

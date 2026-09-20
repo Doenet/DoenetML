@@ -111,7 +111,6 @@ color =
     .purple = μοβ
     .pink = ροζ
     .brown = καφέ
-
 line-width =
     .thick =
         { $role ->
@@ -137,7 +136,6 @@ line-width =
                    *[m] λεπτός
                 }
         }
-
 line-style =
     .dashed =
         { $role ->
@@ -163,7 +161,6 @@ line-style =
                    *[m] διάστικτος
                 }
         }
-
 # These stand on their own in `style-fill` and follow «με» in `style-filled`,
 # which governs the accusative — so every one of them is a feminine or neuter
 # plural, where Greek spells the accusative like the nominative. That is why
@@ -176,7 +173,6 @@ fill-style =
     .backdiagonal = αντίστροφες διαγώνιες γραμμές
     .dots = κουκκίδες
     .diamonds = σχήματα ρόμβου
-
 noun =
     .line = ευθεία
     .line-segment = ευθύγραμμο τμήμα
@@ -196,7 +192,6 @@ noun =
     .diamond = ρόμβος
     .cross = σταυρός
     .plus = συν
-
 # Greek counts the sides after the noun and in the genitive, which keeps the
 # phrase clear of «με» — the preposition the border clause already uses:
 # «χοντρό κόκκινο κανονικό πολύγωνο 5 πλευρών».
@@ -205,7 +200,6 @@ noun-regular-polygon =
         [tail] { $numSides } πλευρών
        *[head] κανονικό πολύγωνο
     }
-
 # Neuter is the default because most of these shapes are neuter, including all
 # four heads a description names without listing: `border` (περίγραμμα),
 # `fill` (γέμισμα), `text` (κείμενο), `background` (φόντο), and
@@ -225,7 +219,6 @@ noun-gender =
        *[other] n
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -238,13 +231,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # Only ever said of the shape itself, so it is standalone in every description
 # and takes no `$role` branch.
 style-filled-word =
@@ -253,13 +244,11 @@ style-filled-word =
         [n] γεμάτο
        *[m] γεμάτος
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } με { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } με { $pattern }
@@ -267,7 +256,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } με { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # Greek drops the indefinite article, so all four branches read alike apart
 # from the conjunction.
 style-border-clause =
@@ -277,37 +265,30 @@ style-border-clause =
         [and-article] και { $border } περίγραμμα
        *[with] με { $border } περίγραμμα
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 # A phrase rather than an adjective, so that it agrees with nothing: the shape
 # it is said of can be any of the three genders.
 style-unfilled = χωρίς γέμισμα
-
 style-text =
     { $parts ->
         [background] { $color } σε { $background } φόντο
        *[plain] { $color }
     }
-
 style-background-none = κανένα
-
 
 ## Boolean words
 
 boolean-true = αληθές
 boolean-false = ψευδές
 
-
 ## Answer buttons
 
 answer-submit-label = Έλεγχος
 answer-submit-label-no-correctness = Υποβολή απάντησης
-
 
 ## Sectional blocks
 
@@ -332,7 +313,6 @@ section-name =
     .solution = Λύση
     .task = Εργασία
     .theorem = Θεώρημα
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -342,9 +322,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Υπόδειξη
-
 
 ## Tables and figures
 
@@ -355,7 +333,6 @@ table-name =
         [unnumbered-title] Πίνακας{ ": " }
        *[unnumbered] Πίνακας
     }
-
 figure-name =
     { $parts ->
         [numbered] Σχήμα { $enumeration }
@@ -364,22 +341,18 @@ figure-name =
        *[unnumbered] Σχήμα
     }
 
-
 ## Paginator controls
 
 paginator-previous = Προηγούμενη
 paginator-next = Επόμενη
 paginator-page = Σελίδα
-
 paginator-page-status = { $pageLabel } { $currentPage } από { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ή
 piecewise-condition-if = αν
 piecewise-condition-otherwise = αλλιώς
-
 
 ## Chemistry
 
@@ -502,7 +475,6 @@ element-name =
     .lv = Λιβερμόριο
     .ts = Τενέσιο
     .og = Ογκανέσιο
-
 element-anion-name =
     .h = Υδρίδιο
     .c = Καρβίδιο
@@ -516,8 +488,6 @@ element-anion-name =
     .i = Ιωδίδιο
     .at = Αστατίδιο
     .ts = Τενεσίδιο
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Μη έγκυρο χημικό σύμβολο
 chemistry-invalid-ionic-compound = Μη έγκυρη ιοντική ένωση

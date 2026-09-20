@@ -36,15 +36,12 @@ color =
     .purple = പർപ്പിൾ
     .pink = പിങ്ക്
     .brown = തവിട്ട്
-
 line-width =
     .thick = കട്ടിയുള്ള
     .thin = നേർത്ത
-
 line-style =
     .dashed = മുറിഞ്ഞ
     .dotted = കുത്തിട്ട
-
 # Noun phrases: they stand in front of the «സഹിതം» the composition messages
 # supply, and modify nothing.
 fill-style =
@@ -54,7 +51,6 @@ fill-style =
     .backdiagonal = എതിർ കോണോട്ടു വരകൾ
     .dots = കുത്തുകൾ
     .diamonds = വജ്രാകൃതികൾ
-
 noun =
     .line = നേർരേഖ
     .line-segment = രേഖാഖണ്ഡം
@@ -74,7 +70,6 @@ noun =
     .diamond = വജ്രാകൃതി
     .cross = കുരിശടയാളം
     .plus = സങ്കലനചിഹ്നം
-
 # The side count precedes the noun, as every modifier in Malayalam does, so it
 # folds into the head and there is no tail.
 noun-regular-polygon =
@@ -82,12 +77,10 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } വശങ്ങളുള്ള സമബഹുഭുജം
     }
-
 # Malayalam marks gender on nouns and pronouns, not on the adjectives in these
 # phrases, so every noun answers the same and the answer goes unused — as in
 # English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -101,21 +94,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = നിറച്ച
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } { $pattern } സഹിതം
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } { $pattern } സഹിതം
@@ -123,7 +112,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } { $pattern } സഹിതം
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «അതിര്» is a fixed word, so the comitative -ഓടെ is written onto it directly,
 # and «കൂടാതെ» opens the further clause where English opens it with "and".
 # Malayalam has no article, so the two `-article` branches read like the ones
@@ -135,15 +123,12 @@ style-border-clause =
         [and-article] കൂടാതെ { $border } അതിരോടെ
        *[with] { $border } അതിരോടെ
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = നിറയ്ക്കാത്ത
-
 # «പശ്ചാത്തലം» takes the locative -ത്തിൽ, so the background leads and the text
 # colour follows it.
 style-text =
@@ -151,21 +136,17 @@ style-text =
         [background] { $background } പശ്ചാത്തലത്തിൽ { $color }
        *[plain] { $color }
     }
-
 style-background-none = ഒന്നുമില്ല
-
 
 ## Boolean words
 
 boolean-true = സത്യം
 boolean-false = അസത്യം
 
-
 ## Answer buttons
 
 answer-submit-label = പരിശോധിക്കുക
 answer-submit-label-no-correctness = ഉത്തരം സമർപ്പിക്കുക
-
 
 ## Sectional blocks
 
@@ -190,7 +171,6 @@ section-name =
     .solution = നിർധാരണം
     .task = ദൗത്യം
     .theorem = സിദ്ധാന്തം
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -200,9 +180,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = സൂചന
-
 
 ## Tables and figures
 
@@ -213,7 +191,6 @@ table-name =
         [unnumbered-title] പട്ടിക{ ": " }
        *[unnumbered] പട്ടിക
     }
-
 figure-name =
     { $parts ->
         [numbered] ചിത്രം { $enumeration }
@@ -222,24 +199,20 @@ figure-name =
        *[unnumbered] ചിത്രം
     }
 
-
 ## Paginator controls
 
 paginator-previous = മുൻപത്തേത്
 paginator-next = അടുത്തത്
 paginator-page = പേജ്
-
 # The total leads, marked with the locative -ൽ, which is how Malayalam says
 # "3 of 5".
 paginator-page-status = { $numPages } ൽ { $pageLabel } { $currentPage }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = അഥവാ
 piecewise-condition-if = എങ്കിൽ
 piecewise-condition-otherwise = അല്ലെങ്കിൽ
-
 
 ## Chemistry
 
@@ -366,7 +339,6 @@ element-name =
     .lv = ലിവർമോറിയം
     .ts = ടെന്നസ്സിൻ
     .og = ഒഗനെസ്സൺ
-
 element-anion-name =
     .h = ഹൈഡ്രൈഡ്
     .c = കാർബൈഡ്
@@ -380,8 +352,6 @@ element-anion-name =
     .i = അയഡൈഡ്
     .at = അസ്റ്റാറ്റൈഡ്
     .ts = ടെന്നസ്സൈഡ്
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = അസാധുവായ രാസ ചിഹ്നം
 chemistry-invalid-ionic-compound = അസാധുവായ അയോണിക സംയുക്തം

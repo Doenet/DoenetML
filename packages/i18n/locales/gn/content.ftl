@@ -48,15 +48,12 @@ color =
     .purple = violéta
     .pink = pytãngy
     .brown = marrõ
-
 line-width =
     .thick = anambusu
     .thin = po'i
-
 line-style =
     .dashed = kytĩmby
     .dotted = kytã'i
-
 # Noun phrases, which is what the head of `style-fill` is. Guarani drops the
 # plural suffix here because nothing precedes them to say how many, and a bare
 # noun already reads as a kind rather than as one thing.
@@ -67,7 +64,6 @@ fill-style =
     .backdiagonal = tairũ karẽ jeguerujey
     .dots = kytã'i
     .diamonds = rombo
-
 noun =
     .line = tairũ
     .line-segment = tairũ pehẽ
@@ -87,17 +83,14 @@ noun =
     .diamond = rombo
     .cross = kurusu
     .plus = ñembojoapy ta'ãnga
-
 noun-regular-polygon =
     { $part ->
         [tail] { $numSides } hakuáva
        *[head] heta hakua joja
     }
-
 # One answer for every noun: Guarani has no grammatical gender, so nothing
 # downstream has anything to agree with.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -111,7 +104,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun first and the adjectives after it, which is the opposite of English.
 # The regular polygon's relative clause follows both.
 style-with-noun =
@@ -119,9 +111,7 @@ style-with-noun =
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = mbojehe'apyre
-
 # «ndive», "with", is a free postposition and follows what it governs, so the
 # pattern precedes it and no suffix lands on `$pattern`. That is the whole reason
 # this catalog needs none of `locales/qu`'s workaround for the same message.
@@ -130,7 +120,6 @@ style-filled =
         [pattern] { $filled } { $color }, { $pattern } ndive
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color }, { $pattern } ndive
@@ -138,7 +127,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $filled } { $color } { $nounTail }, { $pattern } ndive
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Guarani has no article, so English's four branches are two distinct strings.
 # All four are written out because they are four positions and a later correction
 # to one need not be a correction to the others.
@@ -149,7 +137,6 @@ style-border-clause =
         [and-article] ha ijyva { $border }
        *[with] ijyva { $border } ndive
     }
-
 # Here the pattern is the head noun — "blue diamonds" — and the colour follows
 # it, so nothing marks the relation at all.
 style-fill =
@@ -157,29 +144,23 @@ style-fill =
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = mbojehe'apy'ỹ
-
 style-text =
     { $parts ->
         [background] { $color }, { $background } tugua ári
        *[plain] { $color }
     }
-
 style-background-none = mavave
-
 
 ## Boolean words
 
 boolean-true = añete
 boolean-false = japu
 
-
 ## Answer buttons
 
 answer-submit-label = Ehecha pe tembiapo
 answer-submit-label-no-correctness = Emondo pe mbohovái
-
 
 ## Sectional blocks
 
@@ -206,7 +187,6 @@ section-name =
     .solution = Ñeñandu
     .task = Tembiaporã
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -216,9 +196,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Ñepytyvõ
-
 
 ## Tables and figures
 
@@ -229,7 +207,6 @@ table-name =
         [unnumbered-title] Tabla{ ": " }
        *[unnumbered] Tabla
     }
-
 figure-name =
     { $parts ->
         [numbered] Ta'ãnga { $enumeration }
@@ -238,24 +215,20 @@ figure-name =
        *[unnumbered] Ta'ãnga
     }
 
-
 ## Paginator controls
 
 paginator-previous = Mboyve
 paginator-next = Upéi
 paginator-page = Rogue
-
 # The ablative «-gui» lands on «rogue», which this catalog writes, so the total
 # precedes it: "of N pages, Page 3".
 paginator-page-status = { $numPages } roguégui { $pageLabel } { $currentPage }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = térã
 piecewise-condition-if = ramo
 piecewise-condition-otherwise = ambue jave
-
 
 ## Chemistry
 ##
@@ -267,6 +240,5 @@ piecewise-condition-otherwise = ambue jave
 ## There is no settled Guarani table for a seed to reproduce.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ta'ãnga kimiko naiporãiva
 chemistry-invalid-ionic-compound = Ñembojoaju ioniko naiporãiva

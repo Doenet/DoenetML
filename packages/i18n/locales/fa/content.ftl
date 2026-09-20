@@ -37,15 +37,12 @@ color =
     .purple = بنفش
     .pink = صورتی
     .brown = قهوه‌ای
-
 line-width =
     .thick = ضخیم
     .thin = نازک
-
 line-style =
     .dashed = خط‌چین
     .dotted = نقطه‌چین
-
 fill-style =
     .horizontal = خطوط افقی
     .vertical = خطوط عمودی
@@ -53,7 +50,6 @@ fill-style =
     .backdiagonal = خطوط مورب معکوس
     .dots = نقطه‌ها
     .diamonds = لوزی‌ها
-
 noun =
     .line = خط
     .line-segment = پاره‌خط
@@ -73,7 +69,6 @@ noun =
     .diamond = لوزی
     .cross = ضربدر
     .plus = به‌علاوه
-
 # The side count follows the adjectives rather than preceding the noun, so that
 # the adjectives stay against the word they describe: «چندضلعی منتظم قرمز ضخیم
 # با 5 ضلع». Persian counts with a singular noun, so there is nothing here for
@@ -83,12 +78,10 @@ noun-regular-polygon =
         [tail] با { $numSides } ضلع
        *[head] چندضلعی منتظم
     }
-
 # Persian has no grammatical gender. The token is defined anyway rather than
 # left to fall back, so that this catalog says so on purpose and none of the
 # adjectives above has to carry a branch nothing reads.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -105,23 +98,19 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 # «توپر» — solid — against «توخالی» below, which is how Persian says a shape is
 # filled rather than hollow.
 style-filled-word = توپر
-
 style-filled =
     { $parts ->
         [pattern] { $color } { $filled } با نقش { $pattern }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $color } { $filled } با نقش { $pattern }
@@ -129,7 +118,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $color } { $filled } { $nounTail } با نقش { $pattern }
        *[plain] { $noun } { $color } { $filled }
     }
-
 # Persian has no indefinite article, so the two `-article` branches say what
 # their plain counterparts do. They are kept apart because the distinction
 # belongs to the English message rather than to this one.
@@ -140,7 +128,6 @@ style-border-clause =
         [and-article] و حاشیهٔ { $border }
        *[with] با حاشیهٔ { $border }
     }
-
 # «به رنگ» — "in the color of" — rather than an adjective against the pattern:
 # the ezāfe linking a plural noun to its adjective is written, and it cannot be
 # written onto a placeable.
@@ -149,29 +136,23 @@ style-fill =
         [pattern] { $pattern } به رنگ { $color }
        *[plain] { $color }
     }
-
 style-unfilled = توخالی
-
 style-text =
     { $parts ->
         [background] { $color } با پس‌زمینهٔ { $background }
        *[plain] { $color }
     }
-
 style-background-none = هیچ
-
 
 ## Boolean words
 
 boolean-true = درست
 boolean-false = نادرست
 
-
 ## Answer buttons
 
 answer-submit-label = بررسی پاسخ
 answer-submit-label-no-correctness = ارسال پاسخ
-
 
 ## Sectional blocks
 
@@ -196,7 +177,6 @@ section-name =
     .solution = راه‌حل
     .task = تکلیف
     .theorem = قضیه
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -206,9 +186,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = راهنمایی
-
 
 ## Tables and figures
 
@@ -219,7 +197,6 @@ table-name =
         [unnumbered-title] جدول{ ": " }
        *[unnumbered] جدول
     }
-
 figure-name =
     { $parts ->
         [numbered] شکل { $enumeration }
@@ -228,24 +205,18 @@ figure-name =
        *[unnumbered] شکل
     }
 
-
 ## Paginator controls
 
 paginator-previous = قبلی
 paginator-next = بعدی
 paginator-page = صفحه
-
 paginator-page-status = { $pageLabel } { $currentPage } از { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = یا
-
 piecewise-condition-if = اگر
-
 piecewise-condition-otherwise = در غیر این صورت
-
 
 ## Chemistry
 
@@ -368,7 +339,6 @@ element-name =
     .lv = لیورموریم
     .ts = تنسین
     .og = اوگانسون
-
 element-anion-name =
     .h = هیدرید
     .c = کربید
@@ -382,8 +352,6 @@ element-anion-name =
     .i = یدید
     .at = آستاتید
     .ts = تنسید
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = نماد شیمیایی نامعتبر
 chemistry-invalid-ionic-compound = ترکیب یونی نامعتبر

@@ -12,10 +12,16 @@ import {
     toXml,
     visit,
 } from "@doenet/parser";
+import { VFile } from "vfile";
 import { renameAttrInPlace } from "./rename-attr-in-place";
+import { isV06True } from "./utils";
 import { reparseAttribute } from "./reparse-attribute";
+import { parseReferencePath } from "./assign-names/apply-renames";
 import { createCoreForLookup } from "./core-info/core";
-import { determinePropType } from "./core-info/determine-prop-type";
+import {
+    determinePropType,
+    isModuleComponentType,
+} from "./core-info/determine-prop-type";
 
 /**
  * Upgrade the type-less `<copy>` tag to have the same type as its referent.
@@ -46,93 +52,162 @@ export const upgradeCopySyntax: Plugin<[], DastRoot, DastRoot> = () => {
             return;
         }
 
-        const core = await createCoreForLookup({ dast: tree });
-
-        let referenced: {
-            node: DastElement;
-            referentType: Promise<string>;
-            referentName: string;
-        }[] = [];
-
-        visit(tree, (node) => {
-            if (!isDastElement(node) || node.name !== "copy") {
-                return;
-            }
-            let referentName = toXml(node.attributes["source"]?.children);
-            if (!referentName) {
-                // No source, nothing to do
-                return;
-            }
-            // There may be a `prop` attribute which specifies which prop from `source` to copy.
-            // In the new syntax, this is always accessed with a `.<prop name>` suffix.
-            if (node.attributes["prop"]) {
-                const propName = toXml(node.attributes["prop"].children).trim();
-                if (propName) {
-                    referentName += `.${propName}`;
-                }
-                // Remove the `prop` attribute, as it is no longer needed
-                delete node.attributes["prop"];
-            }
-
-            // If there is an `assignNames` attribute and no `name` attribute,
-            // then `assignNames` becomes `name`.
-            if (node.attributes["assignNames"]) {
-                if (node.attributes["name"]) {
-                    file.message(
-                        `The <copy> tag with source="${referentName}" has both "name" and "assignNames" attributes. "name" will be ignored.`,
-                        node.position?.start,
-                    );
-                    delete node.attributes["name"];
-                }
-                renameAttrInPlace(node, "assignNames", "name");
-            }
-
-            referenced.push({
-                node,
-                referentType: findReferentType(core, referentName),
-                referentName,
-            });
-        });
-
-        // Go through everything we've found and match the references up to their referent type
-        for (let {
-            node,
-            referentType: referentPromise,
-            referentName,
-        } of referenced) {
-            try {
-                const referentType = await referentPromise;
-
-                const targetTag =
-                    toXml(
-                        node.attributes["link"]?.children || [],
-                    ).toLowerCase() === "false"
-                        ? "copy"
-                        : "extend";
-                // If there is a `link` attribute, delete it as it is no longer needed
-                if (node.attributes["link"]) {
-                    delete node.attributes["link"];
-                }
-
-                // Rename the `copy` tag to the same type as the referent
-                renameAttrInPlace(node, "source", targetTag);
-                // Make sure that the `extend` attribute is prefixed with `$`
-                if (!referentName.startsWith("$")) {
-                    referentName = `$${referentName}`;
-                }
-                node.attributes[targetTag].children =
-                    reparseAttribute(referentName);
-                node.name = referentType;
-            } catch (e) {
-                file.message(
-                    `Could not resolve referent type for <copy> tag with source="${referentName}": ${e}`,
-                    node.position?.start,
-                );
-                continue;
-            }
+        let core: Awaited<ReturnType<typeof createCoreForLookup>>;
+        try {
+            core = await createCoreForLookup({ dast: tree });
+        } catch (e) {
+            // Resolving `<copy>` means loading the document for real, which fails on a
+            // document that is already broken (a circular reference, say). Everything
+            // else about the conversion is still worth keeping, so report it and leave
+            // the `<copy>` tags for the author rather than losing the whole document.
+            file.message(
+                `Could not load the document to work out what the <copy> tags refer to, so they were left as they are: ${e}`,
+                {
+                    ruleId: "copy/could-not-load-document",
+                    source: "v06-to-v07",
+                },
+            );
+            return;
+        }
+        try {
+            await resolveCopyTags(core, tree, file);
+        } finally {
+            await core.dispose();
         }
     };
 };
+
+/**
+ * Rename every `<copy source="...">` to the component type of its referent.
+ */
+async function resolveCopyTags(
+    core: Awaited<ReturnType<typeof createCoreForLookup>>,
+    tree: DastRoot,
+    file: VFile,
+) {
+    const referenced: {
+        node: DastElement;
+        referentType: Promise<string>;
+        referentName: string;
+        /** The `prop` attribute to drop, but only once the referent has resolved. */
+        propKey?: string;
+    }[] = [];
+
+    visit(tree, (node) => {
+        if (!isDastElement(node) || node.name !== "copy") {
+            return;
+        }
+        // A `uri` still on a `<copy>` means `upgradeCopyElements` declined to convert it
+        // and reported why. Its target is another document, so resolving a `source`
+        // against *this* one would rename the element and leave the `uri` behind on
+        // something the diagnostics say was left alone.
+        if (
+            Object.keys(node.attributes).some(
+                (key) => key.toLowerCase() === "uri",
+            )
+        ) {
+            return;
+        }
+        let referentName = toXml(node.attributes["source"]?.children).trim();
+        if (!referentName) {
+            // No source, nothing to do
+            return;
+        }
+        // There may be a `prop` attribute which specifies which prop from `source` to copy.
+        // In the new syntax, this is always accessed with a `.<prop name>` suffix.
+        // v0.6 attribute names were case-insensitive and nothing normalizes `prop`, so
+        // find it however it was written.
+        const propKey = Object.keys(node.attributes).find(
+            (key) => key.toLowerCase() === "prop",
+        );
+        if (propKey) {
+            const propName = toXml(node.attributes[propKey].children).trim();
+            if (propName) {
+                referentName += `.${propName}`;
+            }
+            // The attribute is noted but not removed yet: if the referent cannot be
+            // resolved the `<copy>` is left as it was, and dropping `prop` there would
+            // quietly widen what it copies while the diagnostic claims the tag was
+            // untouched.
+        }
+
+        // `assignNames` has already become a `name` in `upgradeCopyElements`, which runs
+        // early enough to register the renames this pass would be too late for.
+
+        referenced.push({
+            node,
+            referentType: findReferentType(core, referentName),
+            referentName,
+            propKey,
+        });
+    });
+
+    // Go through everything we've found and match the references up to their referent type
+    for (let {
+        node,
+        referentType: referentPromise,
+        referentName,
+        propKey,
+    } of referenced) {
+        try {
+            const referentType = await referentPromise;
+
+            // Now that the conversion is going through, `prop` is carried by the
+            // reference itself and the attribute is redundant.
+            if (propKey) {
+                delete node.attributes[propKey];
+            }
+
+            // v0.7 has no `link`: an `extend` attribute is always linked and a `copy`
+            // attribute never is, so the choice between them says it instead.
+            //
+            // With no `link` at all, v0.6 did not always link. Its default was "linked,
+            // unless this is a copy by cid/uri or the target is a module" (the `link`
+            // state variable in v0.6's `Copy.js`), and the referent type is what says
+            // whether the second case applies.
+            const linkKey = Object.keys(node.attributes).find(
+                (key) => key.toLowerCase() === "link",
+            );
+            const targetTag = linkKey
+                ? isV06True(node.attributes[linkKey])
+                    ? "extend"
+                    : "copy"
+                : isModuleComponentType(referentType)
+                  ? "copy"
+                  : "extend";
+            // If there is a `link` attribute, delete it as it is no longer needed
+            if (linkKey) {
+                delete node.attributes[linkKey];
+            }
+
+            // Rename the `copy` tag to the same type as the referent
+            renameAttrInPlace(node, "source", targetTag);
+            // Build the reference from its parsed path rather than from the string, so
+            // that a name needing `$(...)` — a hyphenated one — is printed that way.
+            const bareName = referentName.startsWith("$")
+                ? referentName.slice(1)
+                : referentName;
+            node.attributes[targetTag].children = [
+                {
+                    type: "macro",
+                    path: parseReferencePath(bareName),
+                    attributes: {},
+                },
+            ];
+            node.name = referentType;
+        } catch (e) {
+            file.message(
+                `Could not resolve referent type for <copy> tag with source="${referentName}": ${e}`,
+                {
+                    place: node.position,
+                    ruleId: "copy/unresolved-referent",
+                    source: "v06-to-v07",
+                },
+            );
+            continue;
+        }
+    }
+}
 
 /**
  * Find the type of the referent for a given path.
@@ -142,13 +217,15 @@ async function findReferentType(
     core: Awaited<ReturnType<typeof createCoreForLookup>>,
     referentName: string,
 ): Promise<string> {
-    // We need to parse `referentName` as a macro so we can pick apart its path.
-    if (!referentName.startsWith("$")) {
-        referentName = `$${referentName}`;
-    }
-    const reparsed = reparseAttribute(referentName);
-    const path = reparsed[0]?.type === "macro" ? reparsed[0].path : null;
-    if (!path) {
+    // We need to parse `referentName` as a macro so we can pick apart its path. A
+    // hyphenated name only parses inside `$(...)`, which `parseReferencePath` handles.
+    const bare = referentName.startsWith("$")
+        ? referentName.slice(1)
+        : referentName;
+    let path: DastMacroPathPart[];
+    try {
+        path = parseReferencePath(bare);
+    } catch (e) {
         throw new Error(`Could not parse referent name "${referentName}"`);
     }
 
@@ -157,18 +234,43 @@ async function findReferentType(
     let unresolvedIndex: DastMacroPathPart["index"] = [];
     let unresolvedProps: DastMacroPathPart[] = [];
     let referentType: string | undefined = undefined;
-    for (let i = path.length; i > 0; i--) {
+    search: for (let i = path.length; i > 0; i--) {
         const pathParts = path.slice(0, i);
-        const pathStr = printPathWithoutIndices(pathParts);
-        const referentIdx = await core.resolvePathToNodeIdx(pathStr);
-        if (referentIdx !== -1) {
-            referentType =
-                core.core.core?.components?.[referentIdx]?.componentType;
-            if (referentType) {
-                unresolvedIndex = pathParts[pathParts.length - 1].index;
-                unresolvedProps = path.slice(i);
-                break;
+        // Try the path with its indices first. `$s[1]` names one replacement of the
+        // composite `s`, and that replacement's type is the one we want; without the
+        // index we would only learn that `s` is a `<select>`. (Indices whose value is
+        // itself a macro cannot be resolved statically, so those fall through to the
+        // index-less attempt, which then reports them as unresolved.)
+        for (const keepIndices of [true, false]) {
+            if (keepIndices && !hasOnlyLiteralIndices(pathParts)) {
+                continue;
             }
+            const pathStr = keepIndices
+                ? printPath(pathParts)
+                : printPathWithoutIndices(pathParts);
+            const referentIdx = await core.resolvePathToNodeIdx(pathStr);
+            if (referentIdx === -1) {
+                continue;
+            }
+            const foundType =
+                core.core.core?.components?.[referentIdx]?.componentType;
+            // A leading underscore marks a component the author cannot write — `_error`
+            // above all, which is what a referent inside a broken part of the document
+            // resolves to. Emitting it as an element name would be worse than leaving
+            // the `<copy>` for a human.
+            if (!foundType || foundType.startsWith("_")) {
+                continue;
+            }
+            referentType = foundType;
+            // `printPathWithoutIndices` drops the indices from *every* part, not just
+            // the last, so all of them are unaccounted for. A dynamic index on an
+            // earlier segment (`g[$i].m`) has to count too: `g.m` may well resolve, but
+            // to a different component than the one the author indexed into.
+            unresolvedIndex = keepIndices
+                ? []
+                : pathParts.flatMap((part) => part.index);
+            unresolvedProps = path.slice(i);
+            break search;
         }
     }
 
@@ -195,6 +297,37 @@ async function findReferentType(
     }
 
     throw new Error(`Could not find referent type for "${referentName}"`);
+}
+
+/**
+ * Whether every index in `pathParts` is a plain number, so the path can be resolved
+ * without evaluating anything.
+ */
+function hasOnlyLiteralIndices(pathParts: DastMacroPathPart[]): boolean {
+    return pathParts.every((part) =>
+        part.index.every(
+            (index) =>
+                index.value.length === 1 &&
+                index.value[0].type === "text" &&
+                /^\d+$/.test(index.value[0].value.trim()),
+        ),
+    );
+}
+
+/**
+ * Print a sequence of path parts including their (literal) indices.
+ * E.g. `foo.bar[3]`.
+ */
+function printPath(pathParts: DastMacroPathPart[]): string {
+    return pathParts
+        .map(
+            (part) =>
+                part.name +
+                part.index
+                    .map((index) => `[${toXml(index.value).trim()}]`)
+                    .join(""),
+        )
+        .join(".");
 }
 
 /**

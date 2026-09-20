@@ -1,0 +1,34 @@
+<!doctype html>
+<!-- Loads @doenet/standalone the way a PreTeXt page loads it from jsDelivr:
+     a floating-tag module URL. The paths are served by standaloneCdnPathsPlugin
+     (vite.config.ts), which deliberately serves ONLY the entry under a
+     floating specifier — chunks and the worker exist solely under the exact
+     version, as on a CDN edge that has moved on to a newer release. The page
+     renders only if the bundle pins its own chunk URLs at load time; see
+     e2e/standalone/chunkUrlPinning.cy.js. -->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <link rel="stylesheet" href="/standalone/style.css" />
+        <script
+            onload="onLoad()"
+            type="module"
+            src="/npm/@doenet/standalone@latest/doenet-standalone.js"
+        ></script>
+        <script>
+            function onLoad() {
+                window.renderDoenetViewerToContainer(
+                    document.querySelector(".doenetml-applet"),
+                );
+            }
+        </script>
+    </head>
+    <body>
+        <div class="doenetml-applet">
+            <script type="text/doenetml">
+<p>Pinned chunks rendered: <textInput name="ti" /></p>
+<p>Typed: $ti.value</p>
+            </script>
+        </div>
+    </body>
+</html>

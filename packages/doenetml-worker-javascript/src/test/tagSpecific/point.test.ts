@@ -7079,4 +7079,133 @@ describe("Point tag tests @group4", async () => {
             "Circular dependency detected",
         );
     });
+
+    // A constrained point whose position is essential used to be unloadable
+    // once it had been dragged (#1939). Persistence strips the math-expression
+    // class from `unconstrainedXs` on the way out, so the position comes back
+    // as a bare number; the constraint machinery reads that variable directly
+    // and called a math-expression method on it, which threw during initial
+    // dependency resolution and so took the whole document with it. Because the
+    // bad value was already saved, every later load failed the same way and the
+    // reader could not recover.
+    //
+    // `movePoint` is the action the graph renderer dispatches on a drag, and
+    // the second core is given exactly the state the first one handed its host.
+    async function dragThenReload(doenetML: string) {
+        const first = await createTestCore({ doenetML });
+        const pIdx = await first.resolvePathToNodeIdx("P");
+        await movePoint({
+            componentIdx: pIdx,
+            x: 1.7,
+            y: 0.4,
+            core: first.core,
+        });
+
+        const movedTo = (await first.core.returnAllStateVariables(false, true))[
+            pIdx
+        ].stateValues.xs.map((x: any) => x.evaluate_to_constant());
+
+        await first.core.saveImmediately();
+        const savedState = first.scoreState.state as string;
+        expect(
+            savedState,
+            "nothing was saved, so the reload proves nothing",
+        ).toContain("unconstrainedXs");
+
+        const second = await createTestCore({
+            doenetML,
+            initialState: savedState,
+        });
+        const reloadedTo = (
+            await second.core.returnAllStateVariables(false, true)
+        )[await second.resolvePathToNodeIdx("P")].stateValues.xs.map((x: any) =>
+            x.evaluate_to_constant(),
+        );
+
+        return { movedTo, reloadedTo };
+    }
+
+    it("a dragged point constrained to a function survives a reload", async () => {
+        const { movedTo, reloadedTo } = await dragThenReload(`
+<graph>
+  <function name="f">-0.25*x^3+1.5*x+1</function>
+  <point name="P"><constrainTo>$f</constrainTo></point>
+</graph>
+`);
+
+        // Dragging to x=1.7 puts the point on the curve, not where the pointer
+        // went, and the reload has to land in the same place.
+        expect(movedTo[0]).closeTo(1.7, 1e-12);
+        expect(movedTo[1]).closeTo(2.32175, 1e-12);
+        expect(reloadedTo[0]).closeTo(movedTo[0], 1e-12);
+        expect(reloadedTo[1]).closeTo(movedTo[1], 1e-12);
+    });
+
+    it("a dragged point attracted to a function survives a reload", async () => {
+        // `attractTo` reaches the same nearest-point code by a different route,
+        // and unlike `constrainTo` it leaves the point where it was dragged.
+        const { movedTo, reloadedTo } = await dragThenReload(`
+<graph>
+  <function name="f">-0.25*x^3+1.5*x+1</function>
+  <point name="P"><attractTo>$f</attractTo></point>
+</graph>
+`);
+
+        // The drag is pinned to a literal as well as compared with the reload:
+        // `set` also runs on the ordinary drag path, so a hook that mangled the
+        // position on both paths alike would satisfy the comparison on its own.
+        expect(movedTo[0]).closeTo(1.7, 1e-12);
+        expect(movedTo[1]).closeTo(0.4, 1e-12);
+        expect(reloadedTo[0]).closeTo(movedTo[0], 1e-12);
+        expect(reloadedTo[1]).closeTo(movedTo[1], 1e-12);
+    });
+
+    it("a dragged endpoint constrained to a function survives a reload", async () => {
+        // `<endpoint>` extends `<point>`, so it inherits both the essential
+        // location variable and the fix.
+        const doenetML = `
+<graph>
+  <function name="f">-0.25*x^3+1.5*x+1</function>
+  <lineSegment name="ls">
+    <endpoint name="e1"><constrainTo>$f</constrainTo></endpoint>
+    <endpoint name="e2">(2,0)</endpoint>
+  </lineSegment>
+</graph>
+`;
+        const first = await createTestCore({ doenetML });
+        const e1 = await first.resolvePathToNodeIdx("e1");
+        await movePoint({ componentIdx: e1, x: 1.7, y: 0.4, core: first.core });
+        await first.core.saveImmediately();
+
+        const second = await createTestCore({
+            doenetML,
+            initialState: first.scoreState.state as string,
+        });
+        const reloaded = (
+            await second.core.returnAllStateVariables(false, true)
+        )[await second.resolvePathToNodeIdx("e1")].stateValues.xs.map(
+            (x: any) => x.evaluate_to_constant(),
+        );
+
+        expect(reloaded[0]).closeTo(1.7, 1e-12);
+        expect(reloaded[1]).closeTo(2.32175, 1e-12);
+    });
+
+    it("a dragged equilibriumPoint constrained to a function survives a reload", async () => {
+        // The other component that extends `<point>` and so reaches the same
+        // essential location variable. It is checked separately from
+        // `<endpoint>` because an author writes it on its own, not as part of
+        // another component.
+        const { movedTo, reloadedTo } = await dragThenReload(`
+<graph>
+  <function name="f">-0.25*x^3+1.5*x+1</function>
+  <equilibriumPoint name="P"><constrainTo>$f</constrainTo></equilibriumPoint>
+</graph>
+`);
+
+        expect(movedTo[0]).closeTo(1.7, 1e-12);
+        expect(movedTo[1]).closeTo(2.32175, 1e-12);
+        expect(reloadedTo[0]).closeTo(movedTo[0], 1e-12);
+        expect(reloadedTo[1]).closeTo(movedTo[1], 1e-12);
+    });
 });

@@ -135,7 +135,6 @@ color =
             [c12] ka buraawuni
            *[c9] ya buraawuni
         }
-
 # The adjective concord, which is not the particle the colours take.
 line-width =
     .thick =
@@ -154,13 +153,11 @@ line-width =
             [c12] kakye
            *[c9] ekye
         }
-
 # Written as an invariable «na …» phrase, so that it agrees with nothing and
 # can close the description; `style-stroke` puts it last for that reason.
 line-style =
     .dashed = na tubaraaza
     .dotted = na tudomo
-
 fill-style =
     .horizontal = emirongo eyegamiire
     .vertical = emirongo eyemereire
@@ -168,7 +165,6 @@ fill-style =
     .backdiagonal = emirongo eyeserekera oruhande orundi
     .dots = tudomo
     .diamonds = amadaimonde
-
 noun =
     .line = omurongo
     .line-segment = ekicweka ky'omurongo
@@ -188,7 +184,6 @@ noun =
     .diamond = edaimonde
     .cross = omusaraba
     .plus = ekimanyiso ky'okwongyeraho
-
 # The side count is a relative and closes the noun phrase behind the describing
 # words rather than opening it, so it goes in the tail.
 noun-regular-polygon =
@@ -196,7 +191,6 @@ noun-regular-polygon =
         [tail] ekiine empande { $numSides }
        *[head] ekishushani ekingana empande
     }
-
 # The noun class. `c9` is the default and the class a loanword joins, which is
 # what an author's own `markerStyleWord` is as far as this catalog is
 # concerned.
@@ -223,7 +217,6 @@ noun-gender =
        *[other] c9
     }
 
-
 ## Style composition
 
 # The dash pattern is a «na …» phrase and closes the description, so it moves
@@ -238,13 +231,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c3] ogwijwire
@@ -253,13 +244,11 @@ style-filled-word =
         [c12] akijwire
        *[c9] eyijwire
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } na { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } na { $pattern }
@@ -267,7 +256,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } na { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «omupaka» is class 3, as `locales/rn`'s «umupaka» and `locales/lua`'s
 # «mukalu» are, and it leads its own describing words, so they agree with it
 # rather than with the shape it surrounds. Runyankore has no article and joins
@@ -279,35 +267,28 @@ style-border-clause =
         [and-article] n'omupaka { $border }
        *[with] n'omupaka { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = tikyijwire
-
 style-text =
     { $parts ->
         [background] { $color } aha nyima { $background }
        *[plain] { $color }
     }
-
 style-background-none = tihariho
-
 
 ## Boolean words
 
 boolean-true = ni buzima
 boolean-false = ti buzima
 
-
 ## Answer buttons
 
 answer-submit-label = Cenderezamu Omurimo
 answer-submit-label-no-correctness = Ohereza Eky'okugarukamu
-
 
 ## Sectional blocks
 
@@ -332,7 +313,6 @@ section-name =
     .solution = Eky'okukiza
     .task = Omurimo
     .theorem = Tiyoremu
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -342,9 +322,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Akamanyiso
-
 
 ## Tables and figures
 
@@ -355,7 +333,6 @@ table-name =
         [unnumbered-title] Etaburo{ ": " }
        *[unnumbered] Etaburo
     }
-
 figure-name =
     { $parts ->
         [numbered] Ekishushani { $enumeration }
@@ -364,24 +341,18 @@ figure-name =
        *[unnumbered] Ekishushani
     }
 
-
 ## Paginator controls
 
 paginator-previous = Ekihweireho
 paginator-next = Ekirikukuratsya
 paginator-page = Orupapura
-
 paginator-page-status = { $pageLabel } { $currentPage } aha { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = nari
-
 piecewise-condition-if = ku
-
 piecewise-condition-otherwise = ahandi hoona
-
 
 ## Chemistry
 ##
@@ -393,6 +364,5 @@ piecewise-condition-otherwise = ahandi hoona
 ## curriculum — the same answer `locales/lg` gives from the same ministry.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ekimanyiso kya Kemistule Ekitari Kyo
 chemistry-invalid-ionic-compound = Enteeraniso y'Ayoni Etari Yo

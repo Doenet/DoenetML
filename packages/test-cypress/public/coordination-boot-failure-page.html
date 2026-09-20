@@ -1,0 +1,45 @@
+<!doctype html>
+<!-- Host page for the boot-failure e2e (#1709).
+
+     One boot slot, and the FIRST activity in the queue can never start its
+     core. The second activity can only render once that failure has given
+     the slot back, so it is the assertion: with the slot released on
+     failure it boots immediately; without, it would wait out
+     `bootWatchdogMs`, which this page sets well above the spec's timeout so
+     the two outcomes cannot be confused.
+
+     Both activities sit inside the visible margin so both are queued from
+     the start — the point is contention for the single slot, not lazy
+     loading (which coordination-page.html already covers). The live budget
+     is 3 so neither one parks mid-test. -->
+<html>
+    <head>
+        <meta charset="utf-8" />
+        <title>Coordinated activities with a failing boot</title>
+        <script
+            src="/standalone/coordinator.js"
+            data-max-live-viewers="3"
+            data-max-concurrent-boots="1"
+            data-park-delay-ms="100000"
+            data-visible-margin="2000px"
+            data-boot-watchdog-ms="45000"
+        ></script>
+    </head>
+    <body>
+        <h1>Coordinated activities with a failing boot</h1>
+        <iframe
+            id="actFails"
+            src="/coordination-activity-fails-if.html"
+            width="800"
+            height="300"
+            style="border: 1px solid gray"
+        ></iframe>
+        <iframe
+            id="actHealthy"
+            src="/coordination-activity-2-if.html"
+            width="800"
+            height="300"
+            style="border: 1px solid gray"
+        ></iframe>
+    </body>
+</html>

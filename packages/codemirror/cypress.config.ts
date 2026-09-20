@@ -10,8 +10,8 @@ export default defineConfig({
             viteConfig: {
                 plugins: [
                     {
-                        // The LSP IIFE bundle and the doenetml-worker bundle
-                        // (each multi-MB, with inlined WASM) trigger a parse
+                        // The LSP IIFE bundle (with inlined WASM) and the
+                        // multi-MB doenetml-worker bundle trigger a parse
                         // error in Vite's import-analysis when imported with
                         // `?raw`.  This plugin intercepts the load and
                         // returns a plain string export.

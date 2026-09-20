@@ -175,7 +175,6 @@ color =
                    *[m] rjav
                 }
         }
-
 line-width =
     .thick =
         { $role ->
@@ -201,7 +200,6 @@ line-width =
                    *[m] tanek
                 }
         }
-
 line-style =
     .dashed =
         { $role ->
@@ -227,7 +225,6 @@ line-style =
                    *[m] pikčast
                 }
         }
-
 # Instrumental plurals, each carrying the preposition that governs it — «s»
 # before a voiceless sound and «z» before a voiced one, which is a fact about
 # the following word and so is settled here rather than where the pattern is
@@ -239,7 +236,6 @@ fill-style =
     .backdiagonal = z obratnimi diagonalnimi črtami
     .dots = s pikami
     .diamonds = z rombi
-
 noun =
     .line = premica
     .line-segment = daljica
@@ -259,7 +255,6 @@ noun =
     .diamond = romb
     .cross = križ
     .plus = plus
-
 # Slovenian keeps the side count in front of the noun, so the whole of it is one
 # head and there is no tail.
 noun-regular-polygon =
@@ -267,7 +262,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] pravilni { $numSides }-kotnik
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (mnogokotnik, m) or
 # the head of a phrase the description never names: `border` (rob, m), `fill`
 # (polnilo, n), `text` (besedilo, n), `background` (ozadje, n).
@@ -288,7 +282,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -301,13 +294,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # Only ever said of the shape itself, so it is standalone in every description
 # and takes no `$role` branch.
 style-filled-word =
@@ -316,14 +307,12 @@ style-filled-word =
         [n] zapolnjeno
        *[m] zapolnjen
     }
-
 # `{ $pattern }` arrives with its own preposition, so none is written here.
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } { $pattern }
@@ -331,7 +320,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «rob» is masculine, so the border's adjectives agree with it and not with the
 # shape it surrounds. Slovenian has no article, so the two `-article` branches
 # read like the two without.
@@ -342,7 +330,6 @@ style-border-clause =
         [and-article] in { $border } robom
        *[with] z { $border } robom
     }
-
 # The fill-pattern words are instrumental plurals, so this message supplies a
 # noun for the colour to hang off — «polnilo», neuter, which is the gender
 # `noun-gender` already answers for `fill`.
@@ -351,29 +338,23 @@ style-fill =
         [pattern] { $color } polnilo { $pattern }
        *[plain] { $color } polnilo
     }
-
 style-unfilled = nezapolnjen
-
 style-text =
     { $parts ->
         [background] { $color } na { $background } ozadju
        *[plain] { $color }
     }
-
 style-background-none = brez
-
 
 ## Boolean words
 
 boolean-true = resnično
 boolean-false = neresnično
 
-
 ## Answer buttons
 
 answer-submit-label = Preveri
 answer-submit-label-no-correctness = Pošlji odgovor
-
 
 ## Sectional blocks
 
@@ -398,7 +379,6 @@ section-name =
     .solution = Rešitev
     .task = Naloga
     .theorem = Izrek
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -408,9 +388,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Namig
-
 
 ## Tables and figures
 
@@ -421,7 +399,6 @@ table-name =
         [unnumbered-title] Tabela{ ": " }
        *[unnumbered] Tabela
     }
-
 figure-name =
     { $parts ->
         [numbered] Slika { $enumeration }
@@ -430,22 +407,18 @@ figure-name =
        *[unnumbered] Slika
     }
 
-
 ## Paginator controls
 
 paginator-previous = Prejšnja
 paginator-next = Naslednja
 paginator-page = Stran
-
 paginator-page-status = { $pageLabel } { $currentPage } od { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ali
 piecewise-condition-if = če
 piecewise-condition-otherwise = sicer
-
 
 ## Chemistry
 
@@ -568,7 +541,6 @@ element-name =
     .lv = Livermorij
     .ts = Tenesin
     .og = Oganeson
-
 element-anion-name =
     .h = Hidrid
     .c = Karbid
@@ -582,8 +554,6 @@ element-anion-name =
     .i = Jodid
     .at = Astatid
     .ts = Tenesid
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Neveljaven kemijski simbol
 chemistry-invalid-ionic-compound = Neveljavna ionska spojina

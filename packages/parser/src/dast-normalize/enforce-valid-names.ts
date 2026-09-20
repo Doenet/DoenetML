@@ -1,7 +1,10 @@
 import { Plugin } from "unified";
 import { DastElement, DastError, DastRoot } from "../types";
 import { codedDastError } from "../coded-dast-error";
-import { visit } from "../pretty-printer/normalize/utils/visit";
+import {
+    SKIP,
+    visitIncludingPathIndices,
+} from "../pretty-printer/normalize/utils/visit";
 import { isDastElement } from "../types-util";
 import { toXml } from "..";
 
@@ -22,10 +25,29 @@ function containsInvalidNameCharacters(str: unknown): boolean {
  */
 export const pluginEnforceValidNames: Plugin<[], DastRoot, DastRoot> = () => {
     return (tree) => {
-        visit(tree, (node, info) => {
+        visitIncludingPathIndices(tree, (node, info) => {
             if (!isDastElement(node)) {
                 return;
             }
+
+            // Where an `_error` may be written, and whether this element may
+            // simply be replaced by one.
+            //
+            // An `_error` belongs in a `children` array, which is the only
+            // place the flattener will take one. An element written between a
+            // reference's index brackets lives in that index's `value`
+            // instead, and one written as a function reference's argument
+            // lives in that reference's `input` — and both of those admit only
+            // text, references and elements, so an `_error` left in either is
+            // not a diagnostic but a deserialization failure that takes the
+            // whole document down. In those two places the offending element
+            // is lifted out of where it was written and the error is reported
+            // from the nearest enclosing element instead.
+            const siblings = info.parents[0]?.children;
+            const replaceableInPlace =
+                info.index !== undefined &&
+                info.containingArray !== undefined &&
+                info.containingArray === siblings;
 
             // Ensure component names cannot start with `_`
             if (startsWithNonLetter(node.name) && node.name !== "_error") {
@@ -38,9 +60,30 @@ export const pluginEnforceValidNames: Plugin<[], DastRoot, DastRoot> = () => {
                     position: node.position,
                 });
 
-                // Replace this element with an `_error` element
-                if (info.index !== undefined && info.parents[0]) {
-                    info.parents[0].children.splice(info.index, 1, dastError);
+                // Replace this element with an `_error` element.
+                if (replaceableInPlace) {
+                    info.containingArray!.splice(info.index!, 1, dastError);
+                } else if (
+                    siblings &&
+                    info.index !== undefined &&
+                    info.containingArray
+                ) {
+                    // Not a `children` array. Drop the element from wherever it
+                    // was written — `info.index` counts along that array, so
+                    // `containingArray` is the one to splice — and report from
+                    // the nearest element.
+                    const removedAt = info.index;
+                    info.containingArray.splice(removedAt, 1);
+                    siblings.push(dastError);
+                    // Whatever followed has shifted into this slot, so hand the
+                    // index back: `visit` increments on its own and would step
+                    // straight over it, leaving a second invalid element in the
+                    // same index unchecked. `SKIP` because the element is gone
+                    // and its children have gone with it. `replace-node.ts`
+                    // returns an index after a deletion for the same reason.
+                    return [SKIP, removedAt];
+                } else if (siblings) {
+                    siblings.push(dastError);
                 } else {
                     // If for some reason we don't have an index, append the error to the root
                     console.warn(
@@ -76,12 +119,18 @@ export const pluginEnforceValidNames: Plugin<[], DastRoot, DastRoot> = () => {
                     // Remove the `name` attribute and insert an `_error` element right after this element
                     delete node.attributes.name;
 
-                    if (info.index !== undefined && info.parents[0]) {
-                        info.parents[0].children.splice(
-                            info.index + 1,
+                    if (replaceableInPlace) {
+                        info.containingArray!.splice(
+                            info.index! + 1,
                             0,
                             dastError,
                         );
+                    } else if (siblings) {
+                        // The element itself stays where it was written — only
+                        // its `name` was invalid, and that has just been
+                        // removed — so the error is simply reported from the
+                        // nearest element.
+                        siblings.push(dastError);
                     } else {
                         // If for some reason we don't have an index, append the error to the root
                         console.warn(

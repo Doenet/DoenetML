@@ -42,15 +42,12 @@ color =
     .purple = vyolèt
     .pink = woz
     .brown = mawon
-
 line-width =
     .thick = epè
     .thin = fen
-
 line-style =
     .dashed = an tirè
     .dotted = an pwentiye
-
 # Noun phrases. «liy» is the same word for one line and for many, so these are
 # not plurals of anything — they are what the language says in both places.
 fill-style =
@@ -60,7 +57,6 @@ fill-style =
     .backdiagonal = liy dyagonal envès
     .dots = pwen
     .diamonds = dyaman
-
 noun =
     .line = liy
     .line-segment = segman
@@ -80,17 +76,14 @@ noun =
     .diamond = dyaman
     .cross = kwa
     .plus = plis
-
 noun-regular-polygon =
     { $part ->
         [tail] ki gen { $numSides } kote
        *[head] poligòn regilye
     }
-
 # One answer for every noun: Creole has no grammatical gender, so nothing
 # downstream has anything to agree with.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -104,7 +97,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun first and the adjectives after it, which is the opposite of English.
 # The regular polygon's complement follows both.
 style-with-noun =
@@ -112,15 +104,12 @@ style-with-noun =
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = ranpli
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } ak { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } ak { $pattern }
@@ -128,7 +117,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $filled } { $color } { $nounTail } ak { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 style-border-clause =
     { $parts ->
         [with-article] ak yon bòdi { $border }
@@ -136,7 +124,6 @@ style-border-clause =
         [and-article] epi yon bòdi { $border }
        *[with] ak bòdi { $border }
     }
-
 # The pattern words are postposed straight onto the colour — «dyaman ble» —
 # because there is no agreement for a head noun to carry. That is the one place
 # this catalog is shorter than a Romance one rather than merely different.
@@ -145,29 +132,23 @@ style-fill =
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = san ranpli
-
 style-text =
     { $parts ->
         [background] { $color } ak yon fon { $background }
        *[plain] { $color }
     }
-
 style-background-none = anyen
-
 
 ## Boolean words
 
 boolean-true = vre
 boolean-false = fo
 
-
 ## Answer buttons
 
 answer-submit-label = Tcheke travay la
 answer-submit-label-no-correctness = Voye repons la
-
 
 ## Sectional blocks
 
@@ -196,7 +177,6 @@ section-name =
     .solution = Solisyon
     .task = Travay
     .theorem = Teyorèm
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -206,9 +186,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Endikasyon
-
 
 ## Tables and figures
 
@@ -219,7 +197,6 @@ table-name =
         [unnumbered-title] Tablo{ ": " }
        *[unnumbered] Tablo
     }
-
 figure-name =
     { $parts ->
         [numbered] Figi { $enumeration }
@@ -228,22 +205,18 @@ figure-name =
        *[unnumbered] Figi
     }
 
-
 ## Paginator controls
 
 paginator-previous = Anvan
 paginator-next = Apre
 paginator-page = Paj
-
 paginator-page-status = { $pageLabel } { $currentPage } sou { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = oswa
 piecewise-condition-if = si
 piecewise-condition-otherwise = sinon
-
 
 ## Chemistry
 ##
@@ -255,6 +228,5 @@ piecewise-condition-otherwise = sinon
 ## Creole table for a seed to reproduce.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Senbòl chimik ki pa valab
 chemistry-invalid-ionic-compound = Konpoze yonik ki pa valab

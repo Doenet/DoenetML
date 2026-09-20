@@ -40,15 +40,12 @@ color =
     .purple = күлгін
     .pink = қызғылт
     .brown = қоңыр
-
 line-width =
     .thick = қалың
     .thin = жіңішке
-
 line-style =
     .dashed = үзік
     .dotted = нүктелі
-
 # Noun phrases: they stand in front of «өрнекті» and modify nothing.
 fill-style =
     .horizontal = көлденең сызық
@@ -57,7 +54,6 @@ fill-style =
     .backdiagonal = кері диагональ сызық
     .dots = нүкте
     .diamonds = ромб
-
 noun =
     .line = түзу
     .line-segment = кесінді
@@ -77,7 +73,6 @@ noun =
     .diamond = ромб
     .cross = айқыш
     .plus = плюс
-
 # Kazakh builds the word from the side count in front of the noun, so the whole
 # of it is one head and there is no tail.
 noun-regular-polygon =
@@ -85,11 +80,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] дұрыс { $numSides }-бұрыш
     }
-
 # Kazakh has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English and Turkish.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -103,21 +96,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = боялған
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } өрнекті { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } өрнекті { $color } { $filled } { $noun }
@@ -125,7 +114,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } өрнекті { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «жиекті» — "bordered" — carries the "with a border" sense in its own suffix,
 # so neither a preposition nor an article is wanted, and all four branches read
 # alike except for the connective English needs and Kazakh does not.
@@ -136,15 +124,12 @@ style-border-clause =
         [and-article] және { $border } жиекті
        *[with] { $border } жиекті
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } өрнекті { $color } бояу
        *[plain] { $color } бояу
     }
-
 style-unfilled = боялмаған
-
 # «фонда» is the locative of «фон» and says "on the background" by itself, so
 # nothing stands between the two colours.
 style-text =
@@ -152,21 +137,17 @@ style-text =
         [background] { $background } фонда { $color }
        *[plain] { $color }
     }
-
 style-background-none = жоқ
-
 
 ## Boolean words
 
 boolean-true = ақиқат
 boolean-false = жалған
 
-
 ## Answer buttons
 
 answer-submit-label = Тексеру
 answer-submit-label-no-correctness = Жауапты жіберу
-
 
 ## Sectional blocks
 
@@ -191,7 +172,6 @@ section-name =
     .solution = Шешуі
     .task = Тапсырма
     .theorem = Теорема
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -201,9 +181,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Кеңес
-
 
 ## Tables and figures
 
@@ -214,7 +192,6 @@ table-name =
         [unnumbered-title] Кесте{ ". " }
        *[unnumbered] Кесте
     }
-
 figure-name =
     { $parts ->
         [numbered] { $enumeration }-сурет
@@ -223,22 +200,18 @@ figure-name =
        *[unnumbered] Сурет
     }
 
-
 ## Paginator controls
 
 paginator-previous = Алдыңғы
 paginator-next = Келесі
 paginator-page = Бет
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = немесе
 piecewise-condition-if = егер
 piecewise-condition-otherwise = әйтпесе
-
 
 ## Chemistry
 
@@ -361,7 +334,6 @@ element-name =
     .lv = Ливерморий
     .ts = Теннессин
     .og = Оганесон
-
 element-anion-name =
     .h = Гидрид
     .c = Карбид
@@ -375,8 +347,6 @@ element-anion-name =
     .i = Йодид
     .at = Астатид
     .ts = Теннессид
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Жарамсыз химиялық таңба
 chemistry-invalid-ionic-compound = Жарамсыз иондық қосылыс

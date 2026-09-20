@@ -1,3 +1,11 @@
+import {
+    groupCompositeRanges,
+    isBlankGroup,
+    joinListText,
+    type CompositeGroup,
+    type CompositeRange,
+} from "@doenet/utils";
+
 export function textFromComponent(component: any): string {
     if (typeof component !== "object") {
         return component.toString();
@@ -10,172 +18,57 @@ export function textFromComponent(component: any): string {
     }
 }
 
-// Concatenate the text from children into one string.
-// Add commas between the components that are all from one composite
-// if that composite has asList set to true
+function isBlankString(child: any) {
+    return typeof child === "string" && child.trim() === "";
+}
+
+/**
+ * Concatenate the text from `children` into one string, putting commas between
+ * the replacements of a composite that asks to be shown as a list.
+ *
+ * The grouping — which children came from which composite, which of those
+ * composites are lists, and where the commas go — is shared with the renderers
+ * through `@doenet/utils`, so both decide the commas the same way.
+ */
 export function textFromChildren(
     children: any,
     textFromComponentConverter = textFromComponent,
 ) {
-    let result = textFromChildrenSub({
-        compositeReplacementRange: children.compositeReplacementRange,
+    const groups = groupCompositeRanges<any>({
         children,
-        startInd: 0,
-        endInd: children.length - 1,
-        textFromComponentConverter,
+        ranges: children.compositeReplacementRange as
+            CompositeRange[] | undefined,
+        isBlank: isBlankString,
+        // A hidden composite contributes nothing, not even its children's text.
+        skipRange: (range) => Boolean(range.hidden),
     });
 
-    return result.newChildren.map(textFromComponentConverter).join("");
+    return groups
+        .map((group) => textFromGroup(group, textFromComponentConverter))
+        .join("");
 }
 
-function textFromChildrenSub({
-    compositeReplacementRange,
-    children,
-    startInd,
-    endInd,
-    textFromComponentConverter,
-    potentialListComponents,
-}: {
-    compositeReplacementRange: {
-        firstInd: number;
-        lastInd: number;
-        asList: boolean;
-        hidden: boolean;
-        potentialListComponents: boolean[];
-    }[];
-    children: any;
-    startInd: number;
-    endInd: number;
-    textFromComponentConverter: (
-        value: any,
-        index: number,
-        array: any[],
-    ) => string;
-    potentialListComponents?: boolean[];
-}) {
-    let newChildren: any[] = [];
-    let newPotentialListComponents: boolean[] = [];
-    let lastChildInd = startInd - 1;
-    let lastChildIndIncludingEmptyComposites = lastChildInd;
-
-    for (
-        let rangeInd = 0;
-        rangeInd < compositeReplacementRange.length;
-        rangeInd++
-    ) {
-        let range = compositeReplacementRange[rangeInd];
-
-        let rangeFirstInd = range.firstInd;
-        let rangeLastInd = range.lastInd;
-
-        if (rangeFirstInd > lastChildInd && rangeLastInd <= endInd) {
-            if (lastChildInd + 1 < rangeFirstInd) {
-                // don't process these children, so just add them back to newChildren
-                newChildren.push(
-                    ...children.slice(lastChildInd + 1, rangeFirstInd),
-                );
-                if (potentialListComponents) {
-                    // Since we didn't change the components,
-                    // their status of being a potential list component is not changed
-                    newPotentialListComponents.push(
-                        ...potentialListComponents.slice(
-                            lastChildInd - startInd + 1,
-                            rangeFirstInd - startInd,
-                        ),
-                    );
-                }
-            }
-
-            if (!range.hidden) {
-                // If a composite produced composites that produced children,
-                // then this outer composite is first in the array of replacement ranges.
-                // We first process the children corresponding to any of these replacement composites,
-                // which will concatenate the replacements of each composite into a single text,
-                // which may be be turned into a list according to the settings of that composite.
-
-                // We remove the replacement range of the current composite (any all earlier ones)
-                let subReplacementRange = compositeReplacementRange.slice(
-                    rangeInd + 1,
-                );
-
-                let {
-                    newChildren: childrenInRange,
-                    newPotentialListComponents: potentialListComponentsInRange,
-                } = textFromChildrenSub({
-                    compositeReplacementRange: subReplacementRange,
-                    children,
-                    startInd: rangeFirstInd,
-                    endInd: rangeLastInd,
-                    textFromComponentConverter,
-                    potentialListComponents: range.potentialListComponents,
-                });
-
-                let allAreListComponents = potentialListComponentsInRange.every(
-                    (x) => x,
-                );
-
-                if (
-                    range.asList &&
-                    allAreListComponents &&
-                    childrenInRange.length > 1
-                ) {
-                    // add commas between all children from a single composite
-                    // (after converting them into strings)
-                    // trimming any white space to the right of all but the last child
-                    // so that there is not a space before each comma
-
-                    newChildren.push(
-                        childrenInRange
-                            .map(textFromComponentConverter)
-                            .filter((v) => v !== "")
-                            .map((v, i, a) =>
-                                i === a.length - 1 ? v : v.trimEnd(),
-                            )
-                            .join(", "),
-                    );
-                } else {
-                    // We are not turning the children in a list,
-                    // so just convert the children into strings and concatenate
-                    newChildren.push(
-                        childrenInRange
-                            .map(textFromComponentConverter)
-                            .join(""),
-                    );
-                }
-
-                if (potentialListComponents) {
-                    // record whether the result from the composite (a single string now)
-                    // should be considered a list component for any outer composite
-                    newPotentialListComponents.push(allAreListComponents);
-                }
-            }
-            lastChildInd = rangeLastInd;
-            // If we had an empty composite, then rangeLastInd = rangeFirstInd -1.
-            // In this case, we still don't want to add the composite back to `potentialListComponents`
-            // so we make sure `lastChildIndIncludingEmptyComposites` is after that composite
-            lastChildIndIncludingEmptyComposites = Math.max(
-                rangeFirstInd,
-                rangeLastInd,
-            );
-        }
+/** The text of one child, or of everything one composite produced. */
+function textFromGroup(
+    group: CompositeGroup<any>,
+    convert: (value: any) => string,
+): string {
+    if (group.kind === "child") {
+        return convert(group.value);
     }
-
-    if (lastChildInd < endInd) {
-        // don't process these children, so just add them back to newChildren
-        newChildren.push(...children.slice(lastChildInd + 1, endInd + 1));
-        if (potentialListComponents) {
-            // Since we didn't change the components,
-            // their status of being a potential list component is not changed
-            newPotentialListComponents.push(
-                ...potentialListComponents.slice(
-                    lastChildIndIncludingEmptyComposites - startInd + 1,
-                    endInd - startInd + 1,
-                ),
-            );
-        }
+    const parts = group.items.map((item) => textFromGroup(item, convert));
+    if (!group.asList) {
+        return parts.join("");
     }
-
-    return { newChildren, newPotentialListComponents };
+    // A part that came out empty — a hidden child, say — is no more an item of
+    // the list than whitespace is.
+    return joinListText(
+        parts,
+        group.items.map(
+            (item, ind) =>
+                parts[ind] === "" || isBlankGroup(item, isBlankString),
+        ),
+    );
 }
 
 export function returnTextPieceStateVariableDefinitions() {

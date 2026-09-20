@@ -31,15 +31,12 @@ color =
     .purple = aláwọ̀ àlùkò
     .pink = aláwọ̀ pìǹkì
     .brown = aláwọ̀ aró
-
 line-width =
     .thick = nípọn
     .thin = tínrín
-
 line-style =
     .dashed = onípínyà
     .dotted = oníààmì
-
 # Noun phrases: they follow «pẹ̀lú» and modify nothing.
 fill-style =
     .horizontal = àwọn ìlà ìbú
@@ -48,7 +45,6 @@ fill-style =
     .backdiagonal = àwọn ìlà ìkọjá ẹ̀yìn
     .dots = àwọn ààmì
     .diamonds = àwọn dáyámọ́ǹdì
-
 noun =
     .line = ìlà
     .line-segment = apá ìlà
@@ -68,7 +64,6 @@ noun =
     .diamond = dáyámọ́ǹdì
     .cross = àgbélébùú
     .plus = àmì àfikún
-
 # The side count goes in the tail, behind the adjectives: «oníhà dọ́gba pupa
 # oníhà 5». Putting it in the head would separate «oníhà» from the number
 # counting it only to reunite them at the far end of the phrase.
@@ -77,11 +72,9 @@ noun-regular-polygon =
         [tail] oníhà { $numSides }
        *[head] oníhà dọ́gba
     }
-
 # Yoruba has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -95,22 +88,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its adjectives follow: «ìlà nípọn onípínyà pupa».
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = kíkún
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } pẹ̀lú { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } pẹ̀lú { $pattern }
@@ -118,7 +107,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } pẹ̀lú { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «ìlà ẹ̀gbẹ́» leads its own adjectives, the same way every noun here does.
 style-border-clause =
     { $parts ->
@@ -127,35 +115,28 @@ style-border-clause =
         [and-article] àti ìlà ẹ̀gbẹ́ { $border }
        *[with] pẹ̀lú ìlà ẹ̀gbẹ́ { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = àìkún
-
 style-text =
     { $parts ->
         [background] { $color } lórí ẹ̀yìn { $background }
        *[plain] { $color }
     }
-
 style-background-none = kò sí
-
 
 ## Boolean words
 
 boolean-true = òótọ́
 boolean-false = irọ́
 
-
 ## Answer buttons
 
 answer-submit-label = Ṣàyẹ̀wò Iṣẹ́
 answer-submit-label-no-correctness = Fi Ìdáhùn Ránṣẹ́
-
 
 ## Sectional blocks
 
@@ -180,7 +161,6 @@ section-name =
     .solution = Ìdáhùn Kíkún
     .task = Iṣẹ́
     .theorem = Ìlànà
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -190,9 +170,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Ìtọ́ka
-
 
 ## Tables and figures
 
@@ -203,7 +181,6 @@ table-name =
         [unnumbered-title] Tábìlì{ ": " }
        *[unnumbered] Tábìlì
     }
-
 figure-name =
     { $parts ->
         [numbered] Àwòrán { $enumeration }
@@ -212,15 +189,12 @@ figure-name =
        *[unnumbered] Àwòrán
     }
 
-
 ## Paginator controls
 
 paginator-previous = Tẹ́lẹ̀
 paginator-next = Tókàn
 paginator-page = Ojú-ìwé
-
 paginator-page-status = { $pageLabel } { $currentPage } nínú { $numPages }
-
 
 ## Piecewise functions
 
@@ -228,8 +202,8 @@ piecewise-condition-or = tàbí
 piecewise-condition-if = bí
 piecewise-condition-otherwise = bí bẹ́ẹ̀ kọ́
 
-
 ## Chemistry
+
 
 # Yoruba is one of the catalogs that leaves `element-name` and
 # `element-anion-name` out, so those 130 keys fall back to English. Nigerian
@@ -239,6 +213,5 @@ piecewise-condition-otherwise = bí bẹ́ẹ̀ kọ́
 # prints.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Àmì Kẹ́mìkà Tí Kò Tọ́
 chemistry-invalid-ionic-compound = Àdàpọ̀ Áyọ́nì Tí Kò Tọ́

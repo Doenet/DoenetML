@@ -46,15 +46,12 @@ color =
     .purple = kulli
     .pink = panti
     .brown = ch'umphi
-
 line-width =
     .thick = lanqu
     .thin = juch'usa
-
 line-style =
     .dashed = t'aqata
     .dotted = chhiqchhi
-
 # Noun phrases, which is what the head of `style-fill` is. «-naka» is written
 # here because nothing precedes them to say how many.
 fill-style =
@@ -64,7 +61,6 @@ fill-style =
     .backdiagonal = kutt'ata k'umu siqinaka
     .dots = chhiqchhinaka
     .diamonds = rombonaka
-
 noun =
     .line = siqi
     .line-segment = siqi t'aqa
@@ -84,7 +80,6 @@ noun =
     .diamond = rombo
     .cross = chakana
     .plus = yapa chimpu
-
 # The side count is a prenominal modifier, so it stays in the head and the tail
 # is empty. «-ni», "having", lands on «jarpha», the side, which this catalog
 # writes.
@@ -93,11 +88,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } jarphini pachpa walja k'uchu
     }
-
 # One answer for every noun: Aymara has no grammatical gender, so nothing
 # downstream has anything to agree with.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -111,7 +104,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The adjectives precede the noun, so this is English's order. The `[noun-tail]`
 # branch is unreachable from Aymara's own `noun-regular-polygon`; it is kept
 # because it is what a partly-corrected catalog falls back to, and dropping it
@@ -121,9 +113,7 @@ style-with-noun =
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = phuqata
-
 # The instrumental «-mpi» cannot be welded to `$pattern`, so the pattern is named
 # rather than marked: «saltanakapa { $pattern }», "its woven figures: diamonds".
 style-filled =
@@ -131,7 +121,6 @@ style-filled =
         [pattern] { $filled } { $color }, saltanakapa { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun }, saltanakapa { $pattern }
@@ -139,7 +128,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail }, saltanakapa { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «-ni», "having", lands on «jarpha» again — the same word `noun-regular-polygon`
 # counts, since Aymara's word for a polygon's side is its word for an edge — and
 # the adjectives precede it.
@@ -152,7 +140,6 @@ style-border-clause =
         [and-article] ukhamaraki { $border } jarphini
        *[with] { $border } jarphini
     }
-
 # Here the pattern is the head noun — "blue diamonds" — so it needs no suffix at
 # all and the colour simply precedes it. The same value that had to be named in
 # `style-filled` needs nothing here.
@@ -161,29 +148,23 @@ style-fill =
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = jan phuqata
-
 style-text =
     { $parts ->
         [background] { $background } laphimpi { $color }
        *[plain] { $color }
     }
-
 style-background-none = janiwa utjkiti
-
 
 ## Boolean words
 
 boolean-true = chiqa
 boolean-false = k'ari
 
-
 ## Answer buttons
 
 answer-submit-label = Luräwi uñakipaña
 answer-submit-label-no-correctness = Jaysäwi apayaña
-
 
 ## Sectional blocks
 
@@ -208,7 +189,6 @@ section-name =
     .solution = Askichawi
     .task = Luranawi
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -218,9 +198,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Yanapa
-
 
 ## Tables and figures
 
@@ -231,7 +209,6 @@ table-name =
         [unnumbered-title] Tabla{ ": " }
        *[unnumbered] Tabla
     }
-
 figure-name =
     { $parts ->
         [numbered] Uñacha { $enumeration }
@@ -240,24 +217,20 @@ figure-name =
        *[unnumbered] Uñacha
     }
 
-
 ## Paginator controls
 
 paginator-previous = Nayra
 paginator-next = Qhipa
 paginator-page = Laphi
-
 # The ablative «-ta» lands on «laphi», which this catalog writes, so the total
 # precedes it: "of N pages, Page 3".
 paginator-page-status = { $numPages } laphinakata { $pageLabel } { $currentPage }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = jan ukaxa
 piecewise-condition-if = ukhamäspa
 piecewise-condition-otherwise = jan ukhamäspa
-
 
 ## Chemistry
 ##
@@ -268,6 +241,5 @@ piecewise-condition-otherwise = jan ukhamäspa
 ## is no settled Aymara table for a seed to reproduce.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Jan aski chimpu kimiku
 chemistry-invalid-ionic-compound = Jan aski mayacha ioniku

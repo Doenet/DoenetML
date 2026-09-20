@@ -48,10 +48,16 @@ Options are read from the script tag's `data-` attributes:
     data-visible-margin="1000px"
     data-park-delay-ms="2000"
     data-flush-timeout-ms="5000"
+    data-boot-watchdog-ms="90000"
     data-shared-core-workers="true"
     data-iframe-selector="iframe[src$='-if.html']"
 ></script>
 ```
+
+`data-boot-watchdog-ms` (default 90000) is the backstop for an activity that
+never reports either outcome of its boot — an ancient bundle, or a realm that
+died outright. Activities running a current bundle report both success and
+failure, so the watchdog rarely fires.
 
 For programmatic control, set `data-doenet-manual-init` on the script tag
 and call `window.initializeDoenetCoordinator({ maxLiveViewers: 3, … })`
@@ -74,9 +80,31 @@ yourself (same option names, camelCase).
   etc.) if state must survive navigation; the coordinator's flushes ride
   the normal `SPLICE.reportScoreAndState` channel such a backend already
   consumes.
+- On such a page the warehouse and the backend both answer a restoring
+  activity's `SPLICE.getState`. The **first answer carrying state wins**:
+  the warehouse answers at once and holds the reader's most recent work, so
+  the backend's later answer — a round trip to storage, and possibly behind
+  what the reader has just done — is ignored. On a fresh page load the
+  warehouse is empty and stays silent, leaving the backend's answer the
+  only one, and it restores as usual. An answer with no state does not
+  count as the winner, so a backend with nothing saved cannot shut out an
+  answer still in flight. The rule is purely about order, so a backend
+  that answered **synchronously** out of an in-memory cache would win
+  instead — return the reader's saved state from storage rather than from
+  a page-lifetime cache, and the warehouse's fresher answer keeps its
+  place.
 - Activities running a standalone bundle older than the coordinator
-  protocol boot normally but are managed conservatively (a 90 s watchdog
+  protocol boot normally but are managed conservatively (the boot watchdog
   stands in for their missing boot-complete signal, and their state cannot
   be warehoused; they still lazy-load).
+- An activity whose core cannot start reports that too, so its boot slot is
+  freed at once rather than at the watchdog. It is then held in a `failed`
+  state: still counted against `maxLiveViewers` (its document is committed
+  and holding memory) and still parkable, but parking skips the state flush,
+  since it has no core to answer one (what it last reported, if anything, is
+  already warehoused). A later attempt in the same realm that *does* start a
+  core clears the mark, so an activity that recovers flushes its state like
+  any other. Scrolling away from a failed activity and back reboots it, which
+  doubles as a retry.
 - The coordinator manages iframes present at initialization
   (DOMContentLoaded); dynamically inserted activities are not yet managed.

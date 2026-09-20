@@ -79,7 +79,6 @@ color =
             [f] frown
            *[m] brown
         }
-
 line-width =
     .thick =
         { $gender ->
@@ -91,7 +90,6 @@ line-width =
             [f] denau
            *[m] tenau
         }
-
 line-style =
     .dashed =
         { $gender ->
@@ -103,7 +101,6 @@ line-style =
             [f] ddotiog
            *[m] dotiog
         }
-
 # Noun phrases standing behind «â», which takes the aspirate mutation. None of
 # these words begins with `c`, `p` or `t`, so none of them shows it.
 fill-style =
@@ -113,7 +110,6 @@ fill-style =
     .backdiagonal = llinellau croeslinol gwrthdro
     .dots = dotiau
     .diamonds = diemwntau
-
 noun =
     .line = llinell
     .line-segment = segment llinell
@@ -133,7 +129,6 @@ noun =
     .diamond = diemwnt
     .cross = croes
     .plus = plws
-
 # The side count follows the style adjectives, so the head and the tail split
 # around them.
 #
@@ -146,7 +141,6 @@ noun-regular-polygon =
         [tail] { $numSides } ochr
        *[head] polygon rheolaidd
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (polygon, m) or the
 # head of a phrase the description never names: `border` (ffin, f), `fill`
 # (llenwad, m), `text` (testun, m), `background` (cefndir, m).
@@ -159,7 +153,6 @@ noun-gender =
         [border] f
        *[other] m
     }
-
 
 ## Style composition
 
@@ -181,13 +174,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 # The infixed pronoun in this phrase agrees with what is filled: the masculine
 # «ei» softens «llenwi» to «lenwi» and the feminine leaves it alone. So this
 # selects on `$gender` like the adjectives, even though it is a
@@ -197,13 +188,11 @@ style-filled-word =
         [f] wedi'i llenwi
        *[m] wedi'i lenwi
     }
-
 style-filled =
     { $parts ->
         [pattern] { $color } { $filled } â { $pattern }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $color } { $filled } â { $pattern }
@@ -211,7 +200,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $color } { $filled } { $nounTail } â { $pattern }
        *[plain] { $noun } { $color } { $filled }
     }
-
 # «ffin» is feminine, so the border's adjectives soften after it whatever the
 # shape around it is. Welsh has no indefinite article, so the two `-article`
 # branches read like the two without; what changes between the pairs is the
@@ -224,19 +212,16 @@ style-border-clause =
         [and-article] ac â ffin { $border }
        *[with] â ffin { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] llenwad { $color } â { $pattern }
        *[plain] { $color }
     }
-
 # This one is given no `$gender`, so it cannot agree with the shape it
 # describes. «heb lenwad» — "without a fill" — reads the same whatever that
 # shape turns out to be, where «heb ei lenwi» would have committed to a
 # masculine pronoun.
 style-unfilled = heb lenwad
-
 # «â» takes the aspirate mutation, and «cefndir» begins with `c`, so it is
 # «â chefndir» here and «cefndir» anywhere else. The colour after it is
 # masculine and unmutated.
@@ -245,21 +230,17 @@ style-text =
         [background] { $color } â chefndir { $background }
        *[plain] { $color }
     }
-
 style-background-none = dim
-
 
 ## Boolean words
 
 boolean-true = gwir
 boolean-false = gau
 
-
 ## Answer buttons
 
 answer-submit-label = Gwirio
 answer-submit-label-no-correctness = Cyflwyno'r ymateb
-
 
 ## Sectional blocks
 
@@ -284,7 +265,6 @@ section-name =
     .solution = Datrysiad
     .task = Tasg
     .theorem = Theorem
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -294,9 +274,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Awgrym
-
 
 ## Tables and figures
 
@@ -307,7 +285,6 @@ table-name =
         [unnumbered-title] Tabl{ ": " }
        *[unnumbered] Tabl
     }
-
 figure-name =
     { $parts ->
         [numbered] Ffigur { $enumeration }
@@ -316,22 +293,18 @@ figure-name =
        *[unnumbered] Ffigur
     }
 
-
 ## Paginator controls
 
 paginator-previous = Blaenorol
 paginator-next = Nesaf
 paginator-page = Tudalen
-
 paginator-page-status = { $pageLabel } { $currentPage } o { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = neu
 piecewise-condition-if = os
 piecewise-condition-otherwise = fel arall
-
 
 ## Chemistry
 
@@ -454,7 +427,6 @@ element-name =
     .lv = Livermoriwm
     .ts = Tenesin
     .og = Oganeson
-
 element-anion-name =
     .h = Hydrid
     .c = Carbid
@@ -468,8 +440,6 @@ element-anion-name =
     .i = Ïodid
     .at = Astatid
     .ts = Tenesid
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Symbol cemegol annilys
 chemistry-invalid-ionic-compound = Cyfansoddyn ïonig annilys

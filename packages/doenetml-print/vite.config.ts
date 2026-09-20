@@ -7,6 +7,7 @@ import arraybuffer from "vite-plugin-arraybuffer";
 import { dirname, join } from "node:path";
 import { fileURLToPath } from "node:url";
 import { PluginOption } from "vite";
+import { ignoreWireitCachesPlugin } from "../../scripts/vite-plugins";
 
 const EXTERNAL_DEPS = ["react", "react-dom"];
 
@@ -60,6 +61,7 @@ export default defineConfig(({ mode }) => {
     return {
         base: "./",
         plugins: [
+            ignoreWireitCachesPlugin(),
             dts({ rollupTypes: true }),
             viteStaticCopyPyodide(),
             vitePluginPrefigure(),

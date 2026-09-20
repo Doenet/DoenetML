@@ -1,0 +1,202 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<searchSorted>{:dn}`
+
+<ComponentDisplay name='searchSorted'/>
+
+`<searchSorted>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types)
+component that locates values within an **already sorted** list: it renders the position at
+which each `target` would have to be inserted for the list to stay sorted. Unlike
+[`<indexOf>{:dn}`](indexOf), the target need not appear in the list — this answers "where
+does it belong?", not "is it there?".
+
+The list has to be in ascending order, and `<searchSorted>{:dn}` checks that it is. Given
+values that are not in order it reports 0 instead of a position — the same "no position" it
+gives when `target` is missing — and warns, rather than returning a number that looks like
+a position but is not one. Equal neighbors are in order; that run is what `side` is about.
+
+<AttrPropDisplay name='searchSorted'/>
+
+## Examples
+
+### Example: where a value belongs
+
+
+```doenet-editor-horiz
+<numberList name="cutoffs">30 75 87 147</numberList>
+
+<p>Sorted values: $cutoffs</p>
+<p>1 belongs at position <searchSorted target="1">$cutoffs</searchSorted></p>
+<p>31 belongs at position <searchSorted target="31">$cutoffs</searchSorted></p>
+<p>200 belongs at position <searchSorted target="200">$cutoffs</searchSorted></p>
+```
+
+
+
+A target smaller than everything gives 1; a target larger than everything gives 5, one
+past the last index.
+
+
+
+---
+
+### Example: the list has to be sorted
+
+
+```doenet-editor-horiz
+<numberList name="scores">30 87 75 147</numberList>
+
+<p>As written: <searchSorted target="80">$scores</searchSorted></p>
+
+<sort name="sorted">$scores</sort>
+<p>Sorted first: $sorted</p>
+<p>Position in the sorted list: <searchSorted target="80">$sorted</searchSorted></p>
+```
+
+
+
+The first `<searchSorted>{:dn}` gets 0 and a warning: 87 comes before 75, so no single
+position describes where 80 belongs. Sorting the values first — with
+[`<sort>{:dn}`](sort) here, though a list that is already built in order, such as a
+[`<cumulativeSum>{:dn}`](cumulativeSum) of positive numbers, needs nothing — gives a
+position again.
+
+This matters most when the values change as the activity runs. A list assembled from
+inputs can be out of order while it is being filled in, and `<searchSorted>{:dn}` answers
+0 for exactly as long as it is.
+
+
+
+---
+
+### Example: sampling from a weighted population
+
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="pop">30 45 12 60</numberList>
+  <cumulativeSum name="cum">$pop</cumulativeSum>
+  <number name="total"><sum>$pop</sum></number>
+</setup>
+
+<sampleRandomNumbers name="u" type="discreteUniform"
+  from="1" to="$total" numSamples="1" />
+
+<searchSorted name="which" target="$u">$cum</searchSorted>
+
+<p>Subpopulation sizes: $pop (total $total)</p>
+<p>Individual number $u was drawn.</p>
+<p>That individual belongs to subpopulation $which, which has $pop[$which] members.</p>
+```
+
+
+
+This is the standard way to sample from a discrete distribution: accumulate the weights
+with [`<cumulativeSum>{:dn}`](cumulativeSum), draw uniformly from the total, then use
+`<searchSorted>{:dn}` to find which bucket the draw landed in. Because every individual
+in the population is equally likely to be drawn, each subpopulation is selected in
+proportion to its size.
+
+
+
+---
+
+### Example: many draws at once
+
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="pop">30 45 12 60</numberList>
+  <cumulativeSum name="cum">$pop</cumulativeSum>
+  <number name="total"><sum>$pop</sum></number>
+  <sampleRandomNumbers name="draws" type="discreteUniform"
+    from="1" to="$total" numSamples="20" />
+  <searchSorted name="which" target="$draws">$cum</searchSorted>
+</setup>
+
+<p>Individuals drawn: $draws</p>
+<p>Their subpopulations: $which</p>
+
+<callAction actionName="resample" target="$draws">
+  <label>Draw again</label>
+</callAction>
+```
+
+
+
+Raising `numSamples` here does not add searches: `target` takes the whole list of draws
+and one `<searchSorted>{:dn}` reports a subpopulation for each. Every result is still a
+component of its own, so the results grow with the sample — but wrapping the draws in a
+`<repeat>{:dn}` to search them one at a time would build a whole operator for every draw
+on top of that, which stops being practical long before the sample is large enough to be
+interesting.
+
+
+
+---
+
+### Example: `side` and repeated values
+
+
+```doenet-editor-horiz
+<numberList name="nl">1 2 2 2 3</numberList>
+
+<p>Values: $nl</p>
+<p>side="left": <searchSorted target="2" side="left">$nl</searchSorted></p>
+<p>side="right": <searchSorted target="2" side="right">$nl</searchSorted></p>
+```
+
+
+
+When the target equals several entries, `side` chooses which end of that run to report:
+`left` gives the first of them, `right` gives the position just after the last.
+
+
+
+---
+
+### Example: a sorted list of words
+
+
+```doenet-editor-horiz
+<textList name="words">apple banana fig pear</textList>
+
+<p>Words: $words</p>
+<p>"cherry" would be inserted at position
+   <searchSorted type="text" target="cherry">$words</searchSorted>.</p>
+```
+
+
+
+Only an ordering is needed, not arithmetic, so a sorted text list works the same way.
+
+
+
+---
+
+## Attribute Examples
+
+### Attribute Example: target
+
+
+```doenet-editor-horiz
+<textList name="cities">
+  <text>Boston</text><text>Chicago</text><text>New York</text>
+</textList>
+
+<text name="wanted">New York</text>
+
+<p>Written out: <searchSorted type="text" target="New York">$cities</searchSorted></p>
+<p>Referenced: <searchSorted type="text" target="$wanted">$cities</searchSorted></p>
+```
+
+
+
+`target` is read the way bare children are: whitespace separates one target from the
+next, so `target="New York"` asks where two separate words belong and gets two answers.
+A value with a space in it is written as a `<text>{:dn}` of its own and referenced —
+which is also how the sorted list is built, since
+`<textList>Boston Chicago New York</textList>{:dn}` is four entries and not three.

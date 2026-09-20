@@ -687,6 +687,15 @@ export default class Point extends GraphicalComponent {
             entryPrefixes: ["unconstrainedX"],
             defaultValueByArrayKey: () => me.fromAst(0),
             hasEssential: true,
+            // Restored saved state arrives as a bare tree, not a math
+            // expression: persistence strips the class on the way out, to keep
+            // the saved state small, and nothing on the way back in puts it
+            // back. `set` is the declared place to coerce a value that came
+            // from outside, and without it a reloaded point holds a raw number
+            // here. `xs` converts before publishing a value, so the raw number
+            // is invisible until the constraint machinery reads this variable
+            // directly and calls a math-expression method on it (#1939).
+            set: convertValueToMathExpression,
             returnArraySizeDependencies: () => ({
                 numDimensions: {
                     dependencyType: "stateVariable",

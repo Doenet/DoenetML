@@ -38,15 +38,12 @@ color =
     .purple = waiporoporo
     .pink = māwhero
     .brown = parauri
-
 line-width =
     .thick = mātotoru
     .thin = angiangi
-
 line-style =
     .dashed = motumotu
     .dotted = ira
-
 # Noun phrases: they follow «me» and modify nothing.
 fill-style =
     .horizontal = rārangi whakapae
@@ -55,7 +52,6 @@ fill-style =
     .backdiagonal = rārangi hauroki whakamuri
     .dots = ira
     .diamonds = taimana
-
 noun =
     .line = rārangi
     .line-segment = wāhanga rārangi
@@ -75,7 +71,6 @@ noun =
     .diamond = taimana
     .cross = ripeka
     .plus = tohu tāpiri
-
 # The side count follows the noun and precedes its adjectives, so it folds into
 # the head and there is no tail: «tapamaha ōrite { $numSides } taha».
 noun-regular-polygon =
@@ -83,11 +78,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] tapamaha ōrite { $numSides } taha
     }
-
 # Māori has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -101,22 +94,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its adjectives follow: «rārangi mātotoru motumotu whero».
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = kī
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } me { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } me { $pattern }
@@ -124,7 +113,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } me { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 style-border-clause =
     { $parts ->
         [with-article] me te tapa { $border }
@@ -132,36 +120,29 @@ style-border-clause =
         [and-article] me te tapa { $border }
        *[with] me te tapa { $border }
     }
-
 # The pattern is a noun and the colour follows it, as everywhere else.
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = kore kī
-
 style-text =
     { $parts ->
         [background] { $color } i runga i te papamuri { $background }
        *[plain] { $color }
     }
-
 style-background-none = kāore
-
 
 ## Boolean words
 
 boolean-true = pono
 boolean-false = hē
 
-
 ## Answer buttons
 
 answer-submit-label = Tirohia te mahi
 answer-submit-label-no-correctness = Tukuna te whakautu
-
 
 ## Sectional blocks
 
@@ -186,7 +167,6 @@ section-name =
     .solution = Otinga
     .task = Mahi
     .theorem = Kaupapa
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -196,9 +176,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Tohutohu
-
 
 ## Tables and figures
 
@@ -209,7 +187,6 @@ table-name =
         [unnumbered-title] Ripanga{ ": " }
        *[unnumbered] Ripanga
     }
-
 figure-name =
     { $parts ->
         [numbered] Whakaahua { $enumeration }
@@ -218,15 +195,12 @@ figure-name =
        *[unnumbered] Whakaahua
     }
 
-
 ## Paginator controls
 
 paginator-previous = Mua
 paginator-next = Muri
 paginator-page = Whārangi
-
 paginator-page-status = { $pageLabel } { $currentPage } o { $numPages }
-
 
 ## Piecewise functions
 
@@ -238,7 +212,6 @@ paginator-page-status = { $pageLabel } { $currentPage } o { $numPages }
 piecewise-condition-or = rānei
 piecewise-condition-if = mēnā
 piecewise-condition-otherwise = ki te kore
-
 
 ## Chemistry
 ##
@@ -252,6 +225,5 @@ piecewise-condition-otherwise = ki te kore
 ## should add here, and adding it needs no permission.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Tohu matū muhu
 chemistry-invalid-ionic-compound = Pūhui iona muhu

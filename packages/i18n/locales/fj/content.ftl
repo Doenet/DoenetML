@@ -43,15 +43,12 @@ color =
     .purple = vaiolete
     .pink = pingi
     .brown = buraunu
-
 line-width =
     .thick = levu
     .thin = lailai
-
 line-style =
     .dashed = musumusu
     .dotted = tokitoki
-
 # Noun phrases. Fijian marks no plural on the noun, so «laini» is the word for
 # one line and for many alike.
 fill-style =
@@ -61,7 +58,6 @@ fill-style =
     .backdiagonal = laini sivia vakasosomi
     .dots = toki
     .diamonds = daimani
-
 noun =
     .line = laini
     .line-segment = iwase ni laini
@@ -81,7 +77,6 @@ noun =
     .diamond = daimani
     .cross = kurusi
     .plus = purasi
-
 # The side count follows the adjectives as a complement, so that they stay
 # beside the noun they describe.
 noun-regular-polygon =
@@ -89,10 +84,8 @@ noun-regular-polygon =
         [tail] e { $numSides } na yasana
        *[head] poligani veitautauvata
     }
-
 # One answer for every noun: Fijian has no grammatical gender.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -106,22 +99,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun first and the adjectives behind it, which is the opposite of English.
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = sinai
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } kei na { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } kei na { $pattern }
@@ -129,7 +118,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $filled } { $color } { $nounTail } kei na { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Fijian's «na» is the common article and is not what English's "a" is doing
 # here, so all four branches read alike but for the connective: «kei na» opens
 # the first clause and «kei na tale ga» a further one.
@@ -140,35 +128,28 @@ style-border-clause =
         [and-article] kei na tale ga na bati { $border }
        *[with] kei na bati { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = sega ni sinai
-
 style-text =
     { $parts ->
         [background] { $color } kei na tuvaki { $background }
        *[plain] { $color }
     }
-
 style-background-none = sega
-
 
 ## Boolean words
 
 boolean-true = dina
 boolean-false = lasu
 
-
 ## Answer buttons
 
 answer-submit-label = Vakadikeva na cakacaka
 answer-submit-label-no-correctness = Vakauta na isau
-
 
 ## Sectional blocks
 
@@ -195,7 +176,6 @@ section-name =
     .solution = Isolisoli ni leqa
     .task = Itavi
     .theorem = Tioreme
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -205,9 +185,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Idusidusi
-
 
 ## Tables and figures
 
@@ -218,7 +196,6 @@ table-name =
         [unnumbered-title] Teveli{ ": " }
        *[unnumbered] Teveli
     }
-
 figure-name =
     { $parts ->
         [numbered] Iyaloyalo { $enumeration }
@@ -227,22 +204,18 @@ figure-name =
        *[unnumbered] Iyaloyalo
     }
 
-
 ## Paginator controls
 
 paginator-previous = Liu
 paginator-next = Tarava
 paginator-page = Tabana
-
 paginator-page-status = { $pageLabel } { $currentPage } mai na { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = se
 piecewise-condition-if = kevaka
 piecewise-condition-otherwise = kevaka e sega
-
 
 ## Chemistry
 ##
@@ -252,6 +225,5 @@ piecewise-condition-otherwise = kevaka e sega
 ## the same reason.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ivakatakilakila ni kemikali e sega ni dodonu
 chemistry-invalid-ionic-compound = Iwiliwili ni aioni e sega ni dodonu

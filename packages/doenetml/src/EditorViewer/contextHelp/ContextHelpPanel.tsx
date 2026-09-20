@@ -1,11 +1,16 @@
 import React from "react";
 import { MathJax } from "better-react-mathjax";
 import { parseInlineMarkdown } from "@doenet/utils/markdown/parseInlineMarkdown";
-import { isMathDefaultValue } from "@doenet/static-assets/schema";
+import {
+    formatComponentSize,
+    isComponentSizeValue,
+    isMathDefaultValue,
+} from "@doenet/static-assets/schema";
 import { isMacPlatform } from "@doenet/utils";
 import type {
     FunctionNamesBreakdownPayload,
     HelpContent,
+    SizeSyntaxPayload,
 } from "@doenet/lsp-tools";
 import type { Translator } from "@doenet/i18n";
 import { useT } from "../../utils/i18n";
@@ -439,6 +444,7 @@ export function ContextHelpPanel({
                 activeDefault,
                 styleBreakdown,
                 functionNamesBreakdown,
+                sizeSyntax,
             } = content;
             return (
                 <div className="help-panel">
@@ -506,6 +512,7 @@ export function ContextHelpPanel({
                     {styleBreakdown && renderStyleBreakdown(t, styleBreakdown)}
                     {functionNamesBreakdown &&
                         renderFunctionNamesBreakdown(t, functionNamesBreakdown)}
+                    {sizeSyntax && renderSizeSyntax(t, sizeSyntax)}
                     {allowedValues && allowedValues.length > 0 && (
                         <div className="help-detail help-allowed-values">
                             <span className="help-detail-label">
@@ -780,9 +787,9 @@ function renderStyleBreakdown(
 }
 
 /**
- * Render a label + chip-list pair used by the function-names breakdown
- * section. Each chip is a `help-value-item` pill and the chips wrap via
- * the parent `help-values-list` flex row.
+ * Render a label + chip-list pair, used by the function-names breakdown and
+ * accepted-sizes sections. Each chip is a `help-value-item` pill and the chips
+ * wrap via the parent `help-values-list` flex row.
  */
 function renderLabeledChipList(
     label: string,
@@ -799,6 +806,88 @@ function renderLabeledChipList(
                 ))}
             </div>
         </>
+    );
+}
+
+/**
+ * "Accepted sizes" section surfaced for any attribute whose value is a
+ * `componentSize`. The attribute description says what the dimension means
+ * but never that a plain number is pixels, that `6in` and
+ * `15cm` are read, or that a percentage is allowed — so the forms are listed
+ * as chips, with a note naming the unit a bare number carries.
+ *
+ * `examples` already carries only the forms the attribute honors (a height
+ * gets no percentage; a side-by-side width gets nothing but the percentage),
+ * so the note is chosen from what is in the list rather than from the
+ * attribute's identity: raising a form only to rule it out reads worse than
+ * never raising it.
+ */
+function renderSizeSyntax(
+    t: Translator,
+    sizeSyntax: SizeSyntaxPayload,
+): React.ReactNode {
+    return (
+        <div className="help-detail help-size-syntax">
+            {renderLabeledChipList(
+                t("help-accepted-sizes", undefined, "Accepted sizes:"),
+                sizeSyntax.examples.map(({ value }) => value),
+            )}
+            <span className="help-detail-annotation">
+                {sizeUnitsNote(t, sizeSyntax)}
+            </span>
+            {sizeSyntax.snapsToSizePreset && (
+                <span className="help-detail-annotation">
+                    {t(
+                        "help-size-snaps-to-preset",
+                        // `size` names the sibling attribute, so it is an
+                        // argument rather than a word in the sentence.
+                        { size: "size" },
+                        "This width picks the nearest size preset rather than being used exactly.",
+                    )}
+                </span>
+            )}
+        </div>
+    );
+}
+
+/**
+ * The sentence under the "Accepted sizes" chips, naming the unit each listed
+ * form carries. One key per combination the payload can produce, so no
+ * translation has to assemble a sentence out of clauses.
+ */
+function sizeUnitsNote(t: Translator, sizeSyntax: SizeSyntaxPayload): string {
+    const hasAbsolute = sizeSyntax.examples.some((e) => e.kind === "absolute");
+    const hasRelative = sizeSyntax.examples.some((e) => e.kind === "relative");
+
+    if (!hasAbsolute) {
+        return t(
+            "help-size-units-relative",
+            undefined,
+            "A percentage is a share of the width around the component.",
+        );
+    }
+    if (!hasRelative) {
+        return t(
+            "help-size-units-absolute",
+            undefined,
+            "A bare number is pixels.",
+        );
+    }
+    if (sizeSyntax.snapsToSizePreset) {
+        // A percentage here is not a share of the surrounding width — it is a
+        // share of the widest any component may be, which is then rounded to a
+        // preset. Saying "a share of the width around the component" would
+        // contradict the preset note the panel prints directly beneath this.
+        return t(
+            "help-size-units-preset",
+            undefined,
+            "A bare number is pixels, and a percentage is a share of the widest a component can be.",
+        );
+    }
+    return t(
+        "help-size-units",
+        undefined,
+        "A bare number is pixels. A percentage is a share of the width around the component.",
     );
 }
 
@@ -903,6 +992,12 @@ function formatValue(val: unknown): React.ReactNode {
                 {formatValue(v)}
             </React.Fragment>
         ));
+    }
+    if (isComponentSizeValue(val)) {
+        // The schema carries a size as the runtime's `{ size, isAbsolute }`
+        // pair. Printing that raw would show the author a shape they cannot
+        // type back into the attribute.
+        return formatComponentSize(val);
     }
     if (typeof val === "string") {
         return resolveCssVariables(val);

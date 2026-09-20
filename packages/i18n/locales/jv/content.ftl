@@ -32,15 +32,12 @@ color =
     .purple = ungu
     .pink = jambon
     .brown = soklat
-
 line-width =
     .thick = kandel
     .thin = tipis
-
 line-style =
     .dashed = pedhot-pedhot
     .dotted = titik-titik
-
 # Noun phrases: they follow «karo» and modify nothing.
 fill-style =
     .horizontal = garis mendhatar
@@ -49,7 +46,6 @@ fill-style =
     .backdiagonal = garis miring walikan
     .dots = titik
     .diamonds = wajik
-
 noun =
     .line = garis
     .line-segment = ruas garis
@@ -69,7 +65,6 @@ noun =
     .diamond = wajik
     .cross = tandha silang
     .plus = tandha tambah
-
 # The side count follows the noun and precedes its adjectives, so it folds into
 # the head and there is no tail.
 noun-regular-polygon =
@@ -77,11 +72,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] poligon ajeg sisi { $numSides }
     }
-
 # Javanese has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -95,22 +88,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its adjectives follow: «garis kandel pedhot-pedhot abang».
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = kebak
-
 style-filled =
     { $parts ->
         [pattern] { $color } { $filled } karo { $pattern }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $color } { $filled } karo { $pattern }
@@ -118,7 +107,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $color } { $filled } karo { $pattern }
        *[plain] { $noun } { $color } { $filled }
     }
-
 # Javanese needs no article, so the `-article` branches read like the ones
 # without.
 style-border-clause =
@@ -128,36 +116,29 @@ style-border-clause =
         [and-article] lan pinggiran { $border }
        *[with] karo pinggiran { $border }
     }
-
 # The pattern is a noun and the colour follows it, as everywhere else.
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = ora kebak
-
 style-text =
     { $parts ->
         [background] { $color } karo latar { $background }
        *[plain] { $color }
     }
-
 style-background-none = ora ana
-
 
 ## Boolean words
 
 boolean-true = bener
 boolean-false = salah
 
-
 ## Answer buttons
 
 answer-submit-label = Priksa Garapan
 answer-submit-label-no-correctness = Kirim Wangsulan
-
 
 ## Sectional blocks
 
@@ -182,7 +163,6 @@ section-name =
     .solution = Pamecahan
     .task = Tugas
     .theorem = Tèoréma
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -192,9 +172,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Pituduh
-
 
 ## Tables and figures
 
@@ -205,7 +183,6 @@ table-name =
         [unnumbered-title] Tabèl{ ": " }
        *[unnumbered] Tabèl
     }
-
 figure-name =
     { $parts ->
         [numbered] Gambar { $enumeration }
@@ -214,22 +191,18 @@ figure-name =
        *[unnumbered] Gambar
     }
 
-
 ## Paginator controls
 
 paginator-previous = Sadurungé
 paginator-next = Sabanjuré
 paginator-page = Kaca
-
 paginator-page-status = { $pageLabel } { $currentPage } saka { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = utawa
 piecewise-condition-if = yèn
 piecewise-condition-otherwise = liyané
-
 
 ## Chemistry
 ##
@@ -363,7 +336,6 @@ element-name =
     .lv = Livermorium
     .ts = Tenesin
     .og = Oganeson
-
 element-anion-name =
     .h = Hidrida
     .c = Karbida
@@ -377,8 +349,6 @@ element-anion-name =
     .i = Iodida
     .at = Astatida
     .ts = Tenesida
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Simbol Kimia Ora Bener
 chemistry-invalid-ionic-compound = Senyawa Ionik Ora Bener

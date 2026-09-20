@@ -41,15 +41,12 @@ color =
     .purple = хӗрхӗлтӗм
     .pink = шупка хӗрлӗ
     .brown = хӑмӑр
-
 line-width =
     .thick = хулӑн
     .thin = ҫӳхе
-
 line-style =
     .dashed = татӑклӑ
     .dotted = пӑнчӑллӑ
-
 # Noun phrases: they stand in front of «эрешлӗ» and modify nothing.
 fill-style =
     .horizontal = горизонталь йӗр
@@ -58,7 +55,6 @@ fill-style =
     .backdiagonal = хирӗҫ диагональ йӗр
     .dots = пӑнчӑ
     .diamonds = ромб
-
 noun =
     .line = тӳрӗ йӗр
     .line-segment = касӑк
@@ -78,7 +74,6 @@ noun =
     .diamond = ромб
     .cross = хӗрес
     .plus = плюс
-
 # Chuvash builds the word from the side count in front of the noun, so the
 # whole of it is one head and there is no tail.
 noun-regular-polygon =
@@ -86,11 +81,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] тӗрӗс { $numSides } кӗтеслӗх
     }
-
 # Chuvash has no grammatical gender, so every noun answers the same and the
 # answer goes unused.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -104,21 +97,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = сӑрланӑ
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } эрешлӗ { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } эрешлӗ { $color } { $filled } { $noun }
@@ -126,7 +115,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } эрешлӗ { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «хӗрриллӗ» — "having an edge" — carries the "with a border" sense in its own
 # suffix, so neither a preposition nor an article is wanted.
 style-border-clause =
@@ -136,15 +124,12 @@ style-border-clause =
         [and-article] тата { $border } хӗрриллӗ
        *[with] { $border } хӗрриллӗ
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } эрешлӗ { $color } сӑр
        *[plain] { $color } сӑр
     }
-
 style-unfilled = сӑрламан
-
 # «ҫинче» — "on" — is a postposition, so it follows the background colour
 # rather than standing between the two words the way English's "with a" does.
 style-text =
@@ -152,21 +137,17 @@ style-text =
         [background] { $background } фон ҫинче { $color }
        *[plain] { $color }
     }
-
 style-background-none = ҫук
-
 
 ## Boolean words
 
 boolean-true = тӗрӗс
 boolean-false = йӑнӑш
 
-
 ## Answer buttons
 
 answer-submit-label = Тӗрӗслесе пӑхас
 answer-submit-label-no-correctness = Хурава ярас
-
 
 ## Sectional blocks
 
@@ -191,7 +172,6 @@ section-name =
     .solution = Татӑлӑхӗ
     .task = Ӗҫ хушни
     .theorem = Теорема
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -201,9 +181,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Канаш
-
 
 ## Tables and figures
 
@@ -214,7 +192,6 @@ table-name =
         [unnumbered-title] Таблица{ ". " }
        *[unnumbered] Таблица
     }
-
 figure-name =
     { $parts ->
         [numbered] Ӳкерчӗк { $enumeration }
@@ -223,22 +200,18 @@ figure-name =
        *[unnumbered] Ӳкерчӗк
     }
 
-
 ## Paginator controls
 
 paginator-previous = Малтанхи
 paginator-next = Тепӗр
 paginator-page = Страница
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = е
 piecewise-condition-if = енчен
 piecewise-condition-otherwise = урӑх чухне
-
 
 ## Chemistry
 ##
@@ -252,6 +225,5 @@ piecewise-condition-otherwise = урӑх чухне
 ## fact about a curriculum rather than about a language.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Тӗрӗс мар хими палли
 chemistry-invalid-ionic-compound = Тӗрӗс мар ион пӗрлешӗвӗ

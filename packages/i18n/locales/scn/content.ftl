@@ -57,7 +57,6 @@ color =
     .purple = viola
     .pink = rosa
     .brown = marruni
-
 line-width =
     .thick =
         { $gender ->
@@ -65,7 +64,6 @@ line-width =
            *[m] grossu
         }
     .thin = suttili
-
 line-style =
     .dashed =
         { $gender ->
@@ -77,7 +75,6 @@ line-style =
             [f] puntiata
            *[m] puntiatu
         }
-
 # Plural noun phrases, which is what follows «cu» in `style-filled`. They agree
 # with nothing.
 fill-style =
@@ -87,7 +84,6 @@ fill-style =
     .backdiagonal = linii diagunali 'nvirsi
     .dots = punti
     .diamonds = rummi
-
 noun =
     .line = retta
     .line-segment = sigmentu
@@ -107,13 +103,11 @@ noun =
     .diamond = rummu
     .cross = cruci
     .plus = chiù
-
 noun-regular-polygon =
     { $part ->
         [tail] di { $numSides } lati
        *[head] pulìgunu rigulari
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (pulìgunu, m) or
 # the head of a phrase the description never names: `border` (orlu, m), `fill`
 # (jinchimentu, m), `text` (testu, m), `background` (sfunnu, m).
@@ -130,7 +124,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -143,7 +136,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun comes first and the adjectives after it, which is the opposite of
 # English. A noun that splits — the regular polygon — puts its complement after
 # the adjectives that agree with its head.
@@ -152,19 +144,16 @@ style-with-noun =
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [f] jinchiuta
        *[m] jinchiutu
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } cu { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } cu { $pattern }
@@ -172,7 +161,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $filled } { $color } { $nounTail } cu { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «orlu» is masculine, so the border's adjectives agree with it rather than
 # with the shape it surrounds.
 style-border-clause =
@@ -182,7 +170,6 @@ style-border-clause =
         [and-article] e n'orlu { $border }
        *[with] cu orlu { $border }
     }
-
 # The fill-pattern words are plural nouns, because their other use is the
 # «cu { $pattern }» clause in `style-filled`. So this message supplies a noun
 # for them to hang off — «jinchimentu», masculine, which is the gender
@@ -192,29 +179,23 @@ style-fill =
         [pattern] jinchimentu { $color } cu { $pattern }
        *[plain] jinchimentu { $color }
     }
-
 style-unfilled = nun jinchiutu
-
 style-text =
     { $parts ->
         [background] { $color } supra un sfunnu { $background }
        *[plain] { $color }
     }
-
 style-background-none = nuddu
-
 
 ## Boolean words
 
 boolean-true = veru
 boolean-false = fausu
 
-
 ## Answer buttons
 
 answer-submit-label = Cuntrolla
 answer-submit-label-no-correctness = Manna a risposta
-
 
 ## Sectional blocks
 
@@ -239,7 +220,6 @@ section-name =
     .solution = Suluzzioni
     .task = Còmpitu
     .theorem = Tiurema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -249,9 +229,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Suggerimentu
-
 
 ## Tables and figures
 
@@ -262,7 +240,6 @@ table-name =
         [unnumbered-title] Tabbella{ ". " }
        *[unnumbered] Tabbella
     }
-
 figure-name =
     { $parts ->
         [numbered] Figura { $enumeration }
@@ -271,22 +248,18 @@ figure-name =
        *[unnumbered] Figura
     }
 
-
 ## Paginator controls
 
 paginator-previous = Precedenti
 paginator-next = Successivu
 paginator-page = Pàggina
-
 paginator-page-status = { $pageLabel } { $currentPage } di { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = o
 piecewise-condition-if = si
 piecewise-condition-otherwise = sinnò
-
 
 ## Chemistry
 ##
@@ -297,6 +270,5 @@ piecewise-condition-otherwise = sinnò
 ## reproduce.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Sìmmulu chìmicu non vàlidu
 chemistry-invalid-ionic-compound = Cumpostu iònicu non vàlidu

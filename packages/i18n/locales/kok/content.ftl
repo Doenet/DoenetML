@@ -138,12 +138,10 @@ color =
         }
     .pink = गुलाबी
     .brown = तपकिरी
-
 # Neither ends in -ो, so neither inflects.
 line-width =
     .thick = जाड
     .thin = बारीक
-
 # «तुटक» is invariable; «टिंबांचो» is a genitive adjective and inflects like
 # any other word in -ो.
 line-style =
@@ -160,7 +158,6 @@ line-style =
                    *[m] टिंबांचो
                 }
         }
-
 # Plural nouns rather than adjectives, with genders of their own. «वापरून»
 # ("using") is invariable and takes them bare, which is what lets both
 # `style-filled` and `style-fill` set them beside a colour that agrees with
@@ -172,7 +169,6 @@ fill-style =
     .backdiagonal = उरफाट्यो तिरप्यो रेघो
     .dots = टिंबां
     .diamonds = समभुज चौकोन
-
 noun =
     .line = रेघ
     .line-segment = रेघखंड
@@ -192,7 +188,6 @@ noun =
     .diamond = समभुज चौकोन
     .cross = फुली
     .plus = अधिक चिन्न
-
 # «भुजांचो» agrees with «बहुभुज», which is masculine, so the count attaches to
 # the noun that follows and there is no tail.
 noun-regular-polygon =
@@ -200,7 +195,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } भुजांचो नेमकीचो बहुभुज
     }
-
 # Besides the nouns above, `$noun` may be «regular-polygon» (बहुभुज, m) or the
 # head of a phrase the description does not name: «border» (कड, f), «fill»
 # (भरण, n), «text» (मजकूर, m), «background» (फांटभूंय, f).
@@ -218,7 +212,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -231,13 +224,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # Only ever said of the shape itself, so it is standalone in every description
 # and takes no `$role` branch.
 style-filled-word =
@@ -246,7 +237,6 @@ style-filled-word =
         [n] भरिल्लें
        *[m] भरिल्लो
     }
-
 # «वापरून» ("using") is invariable and takes the pattern bare, so the clause
 # English appends comes to the front here.
 style-filled =
@@ -254,7 +244,6 @@ style-filled =
         [pattern] { $pattern } वापरून { $filled } { $color }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } वापरून { $filled } { $color } { $noun }
@@ -262,7 +251,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } वापरून { $filled } { $color } { $noun } { $nounTail }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # -सयत is a postposition, so «कड» goes oblique to «कडे-» and the adjectives in
 # front of it take the oblique -या that `border-clause` supplies. Konkani has
 # no article, which leaves the `-article` branches reading like the others.
@@ -273,7 +261,6 @@ style-border-clause =
         [and-article] आनी { $border } कडेसयत
        *[with] { $border } कडेसयत
     }
-
 # The colour arrives agreeing with «भरण», which is neuter, so it needs that
 # noun beside it.
 style-fill =
@@ -281,9 +268,7 @@ style-fill =
         [pattern] { $pattern } वापरून { $color } भरण
        *[plain] { $color } भरण
     }
-
 style-unfilled = भरणाविणें
-
 # -एर is a postposition too, so the background's colour is oblique; the text's
 # own colour, which follows, agrees with «मजकूर» and is direct masculine.
 style-text =
@@ -291,21 +276,17 @@ style-text =
         [background] { $background } फांटभुंयेर { $color }
        *[plain] { $color }
     }
-
 style-background-none = कांयच ना
-
 
 ## Boolean words
 
 boolean-true = खरें
 boolean-false = फट
 
-
 ## Answer buttons
 
 answer-submit-label = तपासात
 answer-submit-label-no-correctness = जाप धाडात
-
 
 ## Sectional blocks
 
@@ -330,7 +311,6 @@ section-name =
     .solution = सोडवण
     .task = काम
     .theorem = प्रमेय
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -340,9 +320,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = सुचोवणी
-
 
 ## Tables and figures
 
@@ -353,7 +331,6 @@ table-name =
         [unnumbered-title] कोश्टक{ ": " }
        *[unnumbered] कोश्टक
     }
-
 figure-name =
     { $parts ->
         [numbered] आकृती { $enumeration }
@@ -362,27 +339,21 @@ figure-name =
        *[unnumbered] आकृती
     }
 
-
 ## Paginator controls
 
 paginator-previous = फाटलें
 paginator-next = फुडलें
 paginator-page = पान
-
 # «X पैकीं Y» — "Y out of X" — puts the total first, so the two counts change
 # places. «पैकीं» is the partitive, Marathi's «पैकी»; «भितर» would read
 # "inside".
 paginator-page-status = { $numPages } पैकीं { $pageLabel } { $currentPage }
 
-
 ## Piecewise functions
 
 piecewise-condition-or = वा
-
 piecewise-condition-if = जर
-
 piecewise-condition-otherwise = ना जाल्यार
-
 
 ## Chemistry
 ##
@@ -397,6 +368,5 @@ piecewise-condition-otherwise = ना जाल्यार
 ## which other language does the teaching.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = अवैध रसायनीक चिन्न
 chemistry-invalid-ionic-compound = अवैध आयनीक संयुग

@@ -6,11 +6,13 @@ import peg from "peggy";
 import * as esbuild from "esbuild";
 import { visualizer } from "rollup-plugin-visualizer";
 import arraybuffer from "vite-plugin-arraybuffer";
+import { ignoreWireitCachesPlugin } from "../../scripts/vite-plugins";
 
 // https://vitejs.dev/config/
 export default defineConfig({
     base: "./",
     plugins: [
+        ignoreWireitCachesPlugin(),
         arraybuffer(),
         dts(),
         //{ rollupTypes: true }
@@ -28,6 +30,16 @@ export default defineConfig({
                 "index-v06": "./src/index-v06.ts",
             },
             formats: ["es"],
+        },
+        rollupOptions: {
+            // Leave `@doenet/static-assets` (the component schema the
+            // pretty-printer's layout table reads, and the entity map) to the
+            // consuming build, the same way `@doenet/lsp-tools` and
+            // `@doenet/codemirror` do. Every consumer bundles this package
+            // together with other users of the schema, so resolving it there
+            // means one shared copy of the ~230 KB compressed schema literal
+            // instead of a private copy baked into `pretty-printer.js`.
+            external: [/@doenet\/static-assets/],
         },
     },
 });
@@ -54,6 +66,18 @@ export function pegjsLoader(options = {}) {
                 format: "bare",
                 ...options,
             };
+            // The v0.7 macro grammar has a second entry point, `MacroTail`,
+            // which `gobblePropIndices` uses to carry a reference's path past an
+            // element index. Naming any start rules replaces the default, so
+            // `top` has to stay listed. The match is on the directory because
+            // the v0.6 grammar is also called `macros.peggy` and has no such
+            // rule — and it accepts either separator, because `path.relative`
+            // gives back backslashes on Windows, where a slash-only pattern
+            // would silently leave the grammar with only its default entry
+            // point and fail every tail parse.
+            if (filename.match(/macros[\\/]macros\.(pegjs|peggy)$/)) {
+                defaultOptions.allowedStartRules = ["top", "MacroTail"];
+            }
             if (filename.match(/latex\.(pegjs|peggy)$/)) {
                 defaultOptions.allowedStartRules = ["document", "math"];
             }

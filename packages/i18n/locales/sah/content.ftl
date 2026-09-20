@@ -40,15 +40,12 @@ color =
     .purple = фиолетовай
     .pink = розовай
     .brown = кугас
-
 line-width =
     .thick = халыҥ
     .thin = синньигэс
-
 line-style =
     .dashed = быстах-быстах
     .dotted = туочукалаах
-
 # Noun phrases: they stand in front of «оҥоһуулаах» and modify nothing.
 fill-style =
     .horizontal = горизонтальнай сурааһын
@@ -57,7 +54,6 @@ fill-style =
     .backdiagonal = утары диагональ сурааһын
     .dots = туочука
     .diamonds = ромб
-
 noun =
     .line = көнө сурааһын
     .line-segment = кэрчик
@@ -77,7 +73,6 @@ noun =
     .diamond = ромб
     .cross = кириэс
     .plus = плюс
-
 # Sakha builds the word from the side count in front of the noun, so the whole
 # of it is one head and there is no tail.
 noun-regular-polygon =
@@ -85,11 +80,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] тэҥ { $numSides } муннуктаах
     }
-
 # Sakha has no grammatical gender, so every noun answers the same and the
 # answer goes unused.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -103,21 +96,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = кырааскалаах
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } оҥоһуулаах { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } оҥоһуулаах { $color } { $filled } { $noun }
@@ -125,7 +114,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } оҥоһуулаах { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «кыраныыстаах» — "having an edge" — carries the "with a border" sense in its
 # own suffix, so neither a preposition nor an article is wanted.
 style-border-clause =
@@ -135,15 +123,12 @@ style-border-clause =
         [and-article] уонна { $border } кыраныыстаах
        *[with] { $border } кыраныыстаах
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } оҥоһуулаах { $color } кырааска
        *[plain] { $color } кырааска
     }
-
 style-unfilled = кырааската суох
-
 # «үрдүгэр» — "on top of" — is a postposition and follows the background
 # colour, so nothing stands between the two words the way English's "with a"
 # does.
@@ -152,21 +137,17 @@ style-text =
         [background] { $background } фон үрдүгэр { $color }
        *[plain] { $color }
     }
-
 style-background-none = суох
-
 
 ## Boolean words
 
 boolean-true = сөп
 boolean-false = сыыһа
 
-
 ## Answer buttons
 
 answer-submit-label = Бэрэбиэркэлээ
 answer-submit-label-no-correctness = Хоруйу ыыт
-
 
 ## Sectional blocks
 
@@ -191,7 +172,6 @@ section-name =
     .solution = Быһаарыы
     .task = Үлэ
     .theorem = Теорема
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -201,9 +181,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Сүбэ
-
 
 ## Tables and figures
 
@@ -214,7 +192,6 @@ table-name =
         [unnumbered-title] Таблица{ ". " }
        *[unnumbered] Таблица
     }
-
 figure-name =
     { $parts ->
         [numbered] Ойуу { $enumeration }
@@ -223,15 +200,12 @@ figure-name =
        *[unnumbered] Ойуу
     }
 
-
 ## Paginator controls
 
 paginator-previous = Иннинээҕи
 paginator-next = Аныгыскы
 paginator-page = Сирэй
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 ##
@@ -248,7 +222,6 @@ piecewise-condition-or = эбэтэр
 piecewise-condition-if = буоллаҕына
 piecewise-condition-otherwise = атын түгэннэргэ
 
-
 ## Chemistry
 ##
 ## `element-name` and `element-anion-name` are deliberately left out, so their
@@ -261,6 +234,5 @@ piecewise-condition-otherwise = атын түгэннэргэ
 ## inferred: what is missing is a settled list of all 118, not the schooling.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Сыыһа хиимийэ бэлиэтэ
 chemistry-invalid-ionic-compound = Сыыһа ион холбоһуга

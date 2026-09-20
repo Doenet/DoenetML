@@ -91,7 +91,6 @@ color =
                    *[m] भूरा
                 }
         }
-
 line-width =
     .thick =
         { $role ->
@@ -115,12 +114,10 @@ line-width =
                    *[m] पतला
                 }
         }
-
 # Both are unmarked, so neither inflects.
 line-style =
     .dashed = खंडित
     .dotted = बिंदुदार
-
 # Noun phrases in the oblique plural, because their other use is in front of
 # «वाला» — a postposition that governs the oblique and inflects like a marked
 # adjective itself. They agree with nothing, so `style-fill` has to give them
@@ -133,7 +130,6 @@ fill-style =
     .backdiagonal = विपरीत विकर्ण रेखाओं
     .dots = बिंदुओं
     .diamonds = समचतुर्भुजों
-
 noun =
     .line = रेखा
     .line-segment = रेखाखंड
@@ -153,7 +149,6 @@ noun =
     .diamond = समचतुर्भुज
     .cross = क्रॉस
     .plus = धन चिह्न
-
 # Hindi keeps the side count in front of the noun, so the whole thing is one
 # head and there is no tail.
 noun-regular-polygon =
@@ -161,7 +156,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } भुजाओं वाला सम बहुभुज
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (बहुभुज, m) or the
 # head of a phrase the description never names: `border` (किनारा, m), `fill`
 # (भराव, m), `text` (पाठ, m), `background` (पृष्ठभूमि, f).
@@ -173,7 +167,6 @@ noun-gender =
         [background] f
        *[other] m
     }
-
 
 ## Style composition
 
@@ -187,14 +180,12 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # Adjectives precede the noun, as in English.
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # Only ever said of the shape itself, so it is standalone in every
 # description and takes no `$role` branch.
 style-filled-word =
@@ -202,7 +193,6 @@ style-filled-word =
         [f] भरी हुई
        *[m] भरा हुआ
     }
-
 # «वाला» is a marked adjective itself, and it agrees with the shape rather than
 # with the pattern in front of it: «बिंदुओं वाली रेखा», «बिंदुओं वाला वर्ग». It
 # is always said of the shape, so the direct form is the only one needed here —
@@ -210,27 +200,28 @@ style-filled-word =
 # there is «भराव», which is always masculine.
 style-filled =
     { $parts ->
-        [pattern] { $pattern } { $gender ->
-            [f] वाली
-           *[m] वाला
-        } { $color } { $filled }
+        [pattern]
+            { $pattern } { $gender ->
+                [f] वाली
+               *[m] वाला
+            } { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
-        [pattern] { $pattern } { $gender ->
-            [f] वाली
-           *[m] वाला
-        } { $color } { $filled } { $noun }
+        [pattern]
+            { $pattern } { $gender ->
+                [f] वाली
+               *[m] वाला
+            } { $color } { $filled } { $noun }
         [plain-tail] { $color } { $filled } { $noun } { $nounTail }
-        [pattern-tail] { $pattern } { $gender ->
-            [f] वाली
-           *[m] वाला
-        } { $color } { $filled } { $noun } { $nounTail }
+        [pattern-tail]
+            { $pattern } { $gender ->
+                [f] वाली
+               *[m] वाला
+            } { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «के साथ» is a postposition, so «किनारा» takes the oblique «किनारे» and so do
 # its adjectives — which is what the `border-clause` branch supplies. Hindi has
 # no article, so the `-article` branches read the same as the ones without.
@@ -241,7 +232,6 @@ style-border-clause =
         [and-article] और { $border } किनारे के साथ
        *[with] { $border } किनारे के साथ
     }
-
 # The fill-pattern words are oblique plurals, because their other use is the
 # «{ $pattern } वाला» clause in `style-filled`. So this message supplies a noun
 # for them to hang off — «भराव», masculine, which is the gender `noun-gender`
@@ -251,9 +241,7 @@ style-fill =
         [pattern] { $pattern } वाला { $color } भराव
        *[plain] { $color } भराव
     }
-
 style-unfilled = बिना भराव
-
 # «पर» is a postposition too, but «पृष्ठभूमि» is feminine, and a marked
 # adjective spells its feminine the same in the direct and the oblique — so the
 # `background-clause` branch coincides with the standalone feminine.
@@ -262,21 +250,17 @@ style-text =
         [background] { $background } पृष्ठभूमि पर { $color }
        *[plain] { $color }
     }
-
 style-background-none = कोई नहीं
-
 
 ## Boolean words
 
 boolean-true = सत्य
 boolean-false = असत्य
 
-
 ## Answer buttons
 
 answer-submit-label = जाँचें
 answer-submit-label-no-correctness = उत्तर भेजें
-
 
 ## Sectional blocks
 
@@ -301,7 +285,6 @@ section-name =
     .solution = हल
     .task = कार्य
     .theorem = प्रमेय
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -311,9 +294,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = संकेत
-
 
 ## Tables and figures
 
@@ -324,7 +305,6 @@ table-name =
         [unnumbered-title] सारणी{ ": " }
        *[unnumbered] सारणी
     }
-
 figure-name =
     { $parts ->
         [numbered] चित्र { $enumeration }
@@ -333,22 +313,18 @@ figure-name =
        *[unnumbered] चित्र
     }
 
-
 ## Paginator controls
 
 paginator-previous = पिछला
 paginator-next = अगला
 paginator-page = पृष्ठ
-
 paginator-page-status = { $numPages } में से { $pageLabel } { $currentPage }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = या
 piecewise-condition-if = यदि
 piecewise-condition-otherwise = अन्यथा
-
 
 ## Chemistry
 
@@ -471,7 +447,6 @@ element-name =
     .lv = लिवरमोरियम
     .ts = टेनेसीन
     .og = ओगेनेसन
-
 element-anion-name =
     .h = हाइड्राइड
     .c = कार्बाइड
@@ -485,8 +460,6 @@ element-anion-name =
     .i = आयोडाइड
     .at = ऐस्टैटाइड
     .ts = टेनेसाइड
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = अमान्य रासायनिक संकेत
 chemistry-invalid-ionic-compound = अमान्य आयनिक यौगिक

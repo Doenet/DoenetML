@@ -12,7 +12,14 @@ import {
     toXml,
     visit,
 } from "@doenet/parser";
+import { VFile } from "vfile";
 import { reparseAttribute } from "./reparse-attribute";
+import { convertAssignNames } from "./upgrade-copy-elements";
+import {
+    AssignNamesContext,
+    namespaceChainOf,
+    readAssignNames,
+} from "./assign-names/context";
 
 /**
  * Upgrade references with attribute syntax.
@@ -26,9 +33,13 @@ import { reparseAttribute } from "./reparse-attribute";
  * This must happen **before** the `upgradeCopySyntax` plugin resolves all the copy
  * elements.
  */
-export const upgradeAttributeSyntax: Plugin<[], DastRoot, DastRoot> = () => {
+export const upgradeAttributeSyntax: Plugin<
+    [AssignNamesContext],
+    DastRoot,
+    DastRoot
+> = (context) => {
     return async (tree, file) => {
-        visit(tree, (node) => {
+        visit(tree, (node, info) => {
             if (node.type !== "macro") {
                 return;
             }
@@ -58,6 +69,23 @@ export const upgradeAttributeSyntax: Plugin<[], DastRoot, DastRoot> = () => {
                 }
             });
             Object.assign(node, copy);
+
+            // `assignNames` written inside the attributes — `$x{assignNames="a"}` — is
+            // an assignment that did not exist as an element when the shared pass ran,
+            // so it has to be converted here or it would survive into the output, which
+            // v0.7 rejects.
+            const assigned = readAssignNames(node as unknown as DastElement);
+            convertAssignNames(
+                node as unknown as DastElement,
+                namespaceChainOf(info.parents as DastElement[], context),
+                context,
+                file,
+            );
+            warnIfNameCouldNotBeKept(
+                node as unknown as DastElement,
+                assigned,
+                file,
+            );
         });
 
         // If macros with attributes appear in an element's attribute,
@@ -175,3 +203,34 @@ export const upgradeAttributeSyntax: Plugin<[], DastRoot, DastRoot> = () => {
         documentElement.children.unshift(setupTag);
     };
 };
+
+/**
+ * Report an assigned name that the generated copy could not take.
+ *
+ * References are rewritten before this plugin runs, so a name kept as-is needs no
+ * rewriting and everything resolves — but one that had to give way to a generated name
+ * has no such luck, and the references to it are already final.
+ */
+function warnIfNameCouldNotBeKept(
+    node: DastElement,
+    assigned: string | undefined,
+    file: VFile,
+) {
+    if (!assigned) {
+        return;
+    }
+    const name = toXml(node.attributes["name"]?.children ?? []).trim();
+    if (name === assigned.trim()) {
+        return;
+    }
+    file.message(
+        `A reference wrote assignNames="${assigned}" in its attributes, and that name could not be kept${
+            name ? ` (the element is now named "${name}")` : ""
+        }. References to "${assigned}" need fixing by hand.`,
+        {
+            place: node.position,
+            ruleId: "assign-names/late-attribute-assignment",
+            source: "v06-to-v07",
+        },
+    );
+}

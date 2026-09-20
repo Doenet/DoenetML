@@ -9,7 +9,8 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 `<selectRandomNumbers/>{:dn}` is a [Math](../concepts/essentialConcepts#component-types)
 component that generates document variants by selecting random numbers from a specified range of 
-values or within a normal distribution around a specified mean.
+values, from a normal distribution around a specified mean, or from one of the discrete count 
+distributions (hypergeometric, binomial, and Poisson).
 
 <AttrPropDisplay name='selectRandomNumbers'/>
 
@@ -284,3 +285,114 @@ editor to see different variants of the document.
 
 
 
+
+
+---
+
+### Attribute Example: type = "hypergeometric"
+
+
+```doenet-editor-horiz
+<p>An urn holds 20 marbles, 7 of which are red. 
+  Draw 5 marbles without replacement and count the red ones:
+  <selectRandomNumbers 
+    name="x" 
+    type="hypergeometric" 
+    numTotal="20" 
+    numSuccesses="7" 
+    numDraws="5" 
+    numToSelect="10"/>
+</p>
+
+<p>The third selection is <c>x[3]</c> = $x[3]</p>
+```
+
+
+
+The `hypergeometric` type counts the successes obtained when drawing `numDraws` 
+items *without replacement* from a population of `numTotal` items containing 
+`numSuccesses` successes. It is the without-replacement counterpart of the 
+`binomial` type.
+
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+
+---
+
+### Attribute Example: type = "binomial"
+
+
+```doenet-editor-horiz
+<p>Flip a biased coin 10 times and count the heads:
+  <selectRandomNumbers 
+    name="x" 
+    type="binomial" 
+    numTrials="10" 
+    probability="0.3" 
+    numToSelect="10"/>
+</p>
+
+<p>The third selection is <c>x[3]</c> = $x[3]</p>
+```
+
+
+
+The `binomial` type counts the successes in `numTrials` independent trials that 
+each succeed with the given `probability`. If unspecified, `numTrials` is 1 and 
+`probability` is 0.5.
+
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+
+---
+
+### Attribute Example: type = "poisson"
+
+
+```doenet-editor-horiz
+<p>Number of calls arriving each hour, averaging 4 per hour:
+  <selectRandomNumbers 
+    name="x" 
+    type="poisson" 
+    mean="4" 
+    numToSelect="10"/>
+</p>
+
+<p>The third selection is <c>x[3]</c> = $x[3]</p>
+```
+
+
+
+The `poisson` type is determined entirely by its `mean`, which also equals its 
+variance. Unlike the `gaussian` type, whose `mean` defaults to 0, the `mean` of a 
+`poisson` distribution defaults to 1, since a Poisson distribution with mean 0 
+always returns 0.
+
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+
+## Limits on the discrete distributions
+
+The three discrete distributions &mdash; `hypergeometric`, `binomial`, and `poisson` 
+&mdash; draw their values one item, trial, or event at a time, so very large 
+parameters would take a long time and leave the page unresponsive while they ran. 
+Parameters that would need more than ten million draws for a single value are 
+therefore treated as unusable, giving `NaN` values and statistics along with a 
+warning explaining what to change. The limit is far above the populations, trial 
+counts, and rates that arise in practice; it is there so that mistyping an extra 
+digit reports a problem instead of freezing the activity. An order of magnitude 
+below that, from a million draws per value, the values are still selected as asked, 
+but a warning notes that selection may be slow. Note that both figures apply to 
+each value individually &mdash; a large `numToSelect` still takes proportionally 
+longer.
+
+`hypergeometric` also has no defaults to fall back on. If any of `numTotal`, 
+`numSuccesses`, or `numDraws` is omitted, or they do not describe a population, 
+every value is `NaN`, as are the reported `mean`, `variance`, and 
+`standardDeviation`.

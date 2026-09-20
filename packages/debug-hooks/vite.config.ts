@@ -1,10 +1,11 @@
 import { defineConfig } from "vite";
 import dts from "vite-plugin-dts";
+import { ignoreWireitCachesPlugin } from "../../scripts/vite-plugins";
 
 // https://vitejs.dev/config/
 export default defineConfig({
     base: "./",
-    plugins: [dts({ rollupTypes: true })],
+    plugins: [ignoreWireitCachesPlugin(), dts({ rollupTypes: true })],
     build: {
         minify: false,
         sourcemap: true,

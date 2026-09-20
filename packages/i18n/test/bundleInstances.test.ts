@@ -4,6 +4,8 @@ import path from "node:path";
 import { afterAll, describe, expect, it } from "vitest";
 
 import {
+    SINGLE_INSTANCE_CHUNKS_PREFIX,
+    SINGLE_INSTANCE_INLINE_SCRIPT,
     SINGLE_INSTANCE_SCRIPT,
     collectDistScripts,
     countInstances,
@@ -191,5 +193,61 @@ describe("instanceProblems", () => {
         expect(
             instanceProblems(scanned({ "packages/doenetml/dist/index.js": 1 })),
         ).toEqual([]);
+    });
+
+    it("accepts the copy living in a chunk of the code-split bundle", () => {
+        // The entry is a re-export facade; the module bodies — the loader
+        // registry among them — live in the eagerly imported chunk beside it.
+        expect(
+            instanceProblems(
+                scanned({
+                    [SINGLE_INSTANCE_SCRIPT]: 0,
+                    [`${SINGLE_INSTANCE_CHUNKS_PREFIX}index-DEADBEEF.js`]: 1,
+                    [`${SINGLE_INSTANCE_CHUNKS_PREFIX}EditorViewer-abc.js`]: 0,
+                }),
+            ),
+        ).toEqual([]);
+    });
+
+    it("reports a copy split across two chunks of one bundle", () => {
+        // One copy per file, so the per-file rule sees nothing — but a realm
+        // that loads both chunks ends up with two registries all the same.
+        const problems = instanceProblems(
+            scanned({
+                [SINGLE_INSTANCE_SCRIPT]: 0,
+                [`${SINGLE_INSTANCE_CHUNKS_PREFIX}index-DEADBEEF.js`]: 1,
+                [`${SINGLE_INSTANCE_CHUNKS_PREFIX}EditorViewer-abc.js`]: 1,
+            }),
+        );
+        expect(problems).toHaveLength(1);
+        expect(problems[0]).toContain("together hold 2 copies");
+    });
+
+    it("reports a bundle whose entry and chunks together hold none", () => {
+        const problems = instanceProblems(
+            scanned({
+                [SINGLE_INSTANCE_SCRIPT]: 0,
+                [`${SINGLE_INSTANCE_CHUNKS_PREFIX}index-DEADBEEF.js`]: 0,
+            }),
+        );
+        expect(problems).toHaveLength(1);
+        expect(problems[0]).toContain("no copy of @doenet/i18n at all");
+    });
+
+    it("holds the single-file inline variant to exactly one on its own", () => {
+        expect(
+            instanceProblems(
+                scanned({
+                    [SINGLE_INSTANCE_SCRIPT]: 0,
+                    [`${SINGLE_INSTANCE_CHUNKS_PREFIX}index-DEADBEEF.js`]: 1,
+                    [SINGLE_INSTANCE_INLINE_SCRIPT]: 1,
+                }),
+            ),
+        ).toEqual([]);
+        const problems = instanceProblems(
+            scanned({ [SINGLE_INSTANCE_INLINE_SCRIPT]: 0 }),
+        );
+        expect(problems).toHaveLength(1);
+        expect(problems[0]).toContain(SINGLE_INSTANCE_INLINE_SCRIPT);
     });
 });

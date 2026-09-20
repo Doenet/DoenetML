@@ -200,13 +200,30 @@ function resolveDoenetMLSource(root: Element): string {
 // `window.renderDoenetViewerToContainer` being defined and throw
 // silently inside the iframe.
 async function waitForStandaloneBundle(timeoutMs: number): Promise<boolean> {
-    if (typeof window.renderDoenetViewerToContainer === "function") {
+    // A code-split bundle's entry facade installs a queueing *stub* at this
+    // global before the bundle's eager chunk has evaluated, marked with
+    // `__doenetPendingRenderStub` (see `facadeRenderQueue.ts` in
+    // `@doenet/standalone`, which names this property as part of the bundle's
+    // surface). Waiting the stub out keeps the `iframeReady` handshake — and
+    // the style palettes reported with it — tied to the fully evaluated
+    // bundle.
+    function bundleReady(): boolean {
+        const render = window.renderDoenetViewerToContainer as
+            | (((...args: unknown[]) => unknown) & {
+                  __doenetPendingRenderStub?: boolean;
+              })
+            | undefined;
+        return (
+            typeof render === "function" && !render.__doenetPendingRenderStub
+        );
+    }
+    if (bundleReady()) {
         return true;
     }
     const deadline = Date.now() + timeoutMs;
     while (Date.now() < deadline) {
         await new Promise((resolve) => setTimeout(resolve, 50));
-        if (typeof window.renderDoenetViewerToContainer === "function") {
+        if (bundleReady()) {
             return true;
         }
     }
@@ -339,8 +356,9 @@ function renderWithLastAugmentedProps() {
  * creation stays synchronous here. `destroy` notifies the parent to release
  * the core (forwarding wedge suspicion for host quarantine).
  *
- * Must run after the standalone bundle has evaluated — the bundle replaces
- * `window.doenetGlobalConfig` — and before anything renders a viewer.
+ * Must run after the standalone bundle has evaluated — so that
+ * `window.doenetGlobalConfig` exists (the bundle creates or adopts it) —
+ * and before anything renders a viewer.
  */
 function installSharedCorePortProvider() {
     let coreCounter = 0;

@@ -25,12 +25,19 @@ export type NegotiateLocalesOptions = {
  * absent: Nynorsk is a written standard of its own, and answering it with
  * Bokmål would be a substitution rather than a canonicalization.
  *
+ * `locales/nn` now exists, and that changes nothing here. What it changes is
+ * only that `nn` reaches a catalog of its own instead of falling to English;
+ * `no` still maps to `nb`, because a reader who says `no` has not said which
+ * standard they read and Bokmål is what CLDR fills a bare `no` in as. Pointing
+ * `no` at `nn` now that there is an `nn` to point it at would be the same
+ * substitution in the other direction. `negotiate.test.ts` holds both halves.
+ *
  * `tw` is the retired ISO 639-1 code for Twi, and `ak` — Akan, which Twi is a
  * variety of — is the catalog it should reach. `Intl.getCanonicalLocales`
  * leaves `tw` alone, so without this entry a hand-typed `<document lang="tw">`
  * falls to English. `fat` is deliberately absent: Fante is a written standard
  * of its own and `locales/ak` is written in Asante Twi, so answering Fante
- * with it would be the substitution `nn` is kept out for.
+ * with it would be the substitution `no`-to-`nn` is kept out for.
  *
  * `man` is the ISO 639-3 macrolanguage over the Manding varieties, and it is
  * the first one this repository has catalogs for *members* of rather than for
@@ -50,6 +57,25 @@ const LANGUAGE_ALIASES: Record<string, string> = {
     no: "nb",
     tw: "ak",
     man: "mnk",
+    // Three macrolanguages this repository names a catalog after a *member* of,
+    // and the reason each needs an entry here rather than in
+    // {@link MACROLANGUAGE_MEMBERS}: ICU canonicalizes the member's own tag
+    // back onto the macrolanguage. `new Intl.Locale("kmr").toString()` is
+    // `"ku"`, `"kpv"` is `"kv"` and `"mhr"` is `"chm"`, so `normalizeLocaleTag`
+    // has already rewritten a hand-typed `<document lang="kmr">` before
+    // negotiation sees it. Without these three rows the directories they name
+    // would be unreachable under *either* tag — the hazard `koi` and `mrj`
+    // escaped by leaving `MACROLANGUAGE_MEMBERS`, met here from the opposite
+    // direction.
+    //
+    // The catalogs were renamed off the macrolanguage codes because each is
+    // written in one specific member variety while a *different* member ships
+    // beside it: `locales/ckb` beside Kurmanji, `locales/koi` beside Zyrian,
+    // `locales/mrj` beside Meadow Mari. A tag that names the whole
+    // macrolanguage claims to cover the sibling it cannot serve.
+    ku: "kmr",
+    kv: "kpv",
+    chm: "mhr",
 };
 
 /**
@@ -68,25 +94,39 @@ const LANGUAGE_ALIASES: Record<string, string> = {
  * The rule is published membership rather than a judgement about how close two
  * varieties are, which is what makes it checkable and what distinguishes it from
  * the `nn` and `fat` cases in {@link LANGUAGE_ALIASES}: neither of those is a
- * member of `nb` or `ak`, and both are deliberately left to miss. Thirteen of
- * the sixteen keys — `qu`, `ay`, `gn`, `oj`, `bik`, `kok`, `doi`, `ff`, `kr`,
- * `kg`, `bua`, `kv`, `chm` — are ISO 639-3 macrolanguages and list their
- * macrolanguage members; `nah` is an ISO 639-3 **collection** code rather than a
+ * member of `nb` or `ak`, and neither is folded onto its neighbour. `nn` now
+ * has a catalog of its own and so no longer *misses* — what it still does not
+ * do is answer `no`, which stays on `nb`. `fat` misses outright. Eleven of
+ * the fifteen keys — `qu`, `ay`, `gn`, `oj`, `bik`, `kok`, `doi`, `ff`, `kr`,
+ * `kg`, `bua` — are ISO 639-3 macrolanguages and list their macrolanguage
+ * members; `nah` is an ISO 639-3 **collection** code rather than a
  * macrolanguage, so it lists the individual Nahuan languages ISO 639-5 groups
- * under it; and `mnk` and `dje` are neither, being *members* — of `man` and
- * `son` respectively — that this repository happens to name catalogs after.
- * Those two are the shape {@link LANGUAGE_ALIASES}'s `man` entry explains, and
- * it is why the members listed under `mnk` exclude `bam` and `dyu`: those two
- * have catalogs of their own, and folding them here would serve a Bambara
- * reader Mandinka.
+ * under it; and `mnk`, `dje` and `kmr` are neither, being *members* — of
+ * `man`, `son` and `ku` respectively — that this repository names catalogs
+ * after.
  *
- * The two member cases part company over their macrolanguage, and the reason
- * is CLDR rather than a preference: `man` is aliased onto `mnk` because
+ * Those three are the shape {@link LANGUAGE_ALIASES}'s `man` and `ku` entries
+ * explain, and it is why the members listed under `mnk` exclude
+ * `bam` and `dyu`: those two have catalogs of their own, and folding them here
+ * would serve a Bambara reader Mandinka. `kmr` excludes `ckb` for the same
+ * reason. There is a rule behind all of it — **name a catalog after the
+ * individual language whenever a sibling member also has one**, because a
+ * macrolanguage tag otherwise claims to cover a reader it cannot serve — and
+ * the three renames that produced `kmr`, `kpv` and `mhr` are that rule applied
+ * to catalogs first written under `ku`, `kv` and `chm`. `kpv` and `mhr` need
+ * no entry here at all: each of those lists had already shrunk to the single
+ * member the catalog is now named after.
+ *
+ * The member cases part company over their macrolanguage, and the reason is
+ * CLDR rather than a preference: `man` is aliased onto `mnk` because
  * `Intl.Locale#maximize` gives it a region and so decides which member it
- * means, while `son` is left to miss because it maximizes to nothing.
+ * means, while `son` is left to miss because it maximizes to nothing. `ku`,
+ * `kv` and `chm` are aliased for a third reason again — ICU canonicalizes
+ * their members' tags back onto them, so the alias is what makes the renamed
+ * directories reachable under either name.
  *
  * The one member CLDR already folds is included anyway — `quz`, `ojg`, `gug`,
- * `ayr`, `bcl`, `gom`, `dgo`, `fuc`, `knc`, `bxr`, `kpv`, `mhr` — so that each
+ * `ayr`, `bcl`, `gom`, `dgo`, `fuc`, `knc`, `bxr` — so that each
  * list reads as the whole of a group rather than as the leftovers of one, and
  * so that a change in ICU data cannot silently drop a code out of coverage.
  * `mnk`'s list carries `emk` for the same reason, though what ICU folds `emk`
@@ -277,16 +317,147 @@ const MACROLANGUAGE_MEMBERS: Record<string, readonly string[]> = {
     // `tda`, and the answer to it is a second catalog rather than a change
     // here.
     bua: ["bxm", "bxr", "bxu"],
-    // Komi. The catalog is Komi-Zyrian, which is what ICU folds `kpv` onto;
-    // `koi` (Komi-Permyak) is the member it does not, and it is a written
-    // standard of its own, so serving it Zyrian is the compromise every entry
-    // in this map makes and `locales/kv`'s header records.
-    kv: ["koi", "kpv"],
-    // Mari. The catalog is Meadow Mari, which is what ICU folds `mhr` onto;
-    // `mrj` (Hill Mari) is the member it does not, and, like `koi` above, it is
-    // a written standard with an orthography of its own rather than a spelling
-    // of this one.
-    chm: ["mhr", "mrj"],
+    // Zaza. The catalog is the Vate written standard, which leans Northern
+    // (Kirmanckî) where the two varieties diverge. `diq` (Southern Zazaki,
+    // Dimli) is the member `Intl.getCanonicalLocales` already rewrites to
+    // `zza`, and it is listed for the reason the other already-folded codes
+    // above are; `kiu` (Northern Zazaki, Kirmanckî) is the one ICU leaves
+    // unresolvable, and it reaches `locales/zza` only because this list
+    // exists — which is the sharper half, since `kiu` names the very variety
+    // the catalog is written in.
+    zza: ["diq", "kiu"],
+    // Balochi. The catalog is Southern Balochi as written in Pakistan, on the
+    // Urdu letter inventory. `bcc` is that variety's own code and the one ICU
+    // already folds onto `bal`; `bgn` (Western Balochi, written in Iran) and
+    // `bgp` (Eastern Balochi) are the two it does not. These three are the
+    // whole of the macrolanguage.
+    //
+    // `bgn` is the compromise worth naming: the Iranian Balochi orthography is
+    // a different convention rather than a spelling variant, and
+    // `locales/bal`'s own headers say so, so a Western Balochi reader is
+    // served a spelling they must adjust to. That is still the trade
+    // region-stripping makes everywhere else — a language they can read rather
+    // than English — and the answer to it is a second catalog rather than a
+    // change here.
+    bal: ["bcc", "bgn", "bgp"],
+    // Malay, and the second-largest entry in this map — only Quechua's
+    // forty-three members are more, with Nahuatl's thirty just behind.
+    // `locales/ms`
+    // is Standard Malay, which is `zsm` — the member `Intl.getCanonicalLocales`
+    // already rewrites to `ms`, listed here for the reason the other
+    // already-folded codes above are. The other thirty-two reach a catalog
+    // only because this list exists.
+    //
+    // The entry is owed by this repository's own roster rather than by
+    // anything ICU does. Three members have catalogs of their own — `ind`
+    // (`locales/id`), `min` (`locales/min`) and now `bjn` (`locales/bjn`) —
+    // and each is deliberately absent, which is the `bam`/`dyu` shape under
+    // `mnk`: a member this repository answers for itself must not be folded
+    // onto a sibling. `ind` would be inert here anyway, since ICU rewrites it
+    // to `id` before negotiation is consulted; `min` and `bjn` would not, and
+    // listing either would take a Minangkabau or Banjar reader off the catalog
+    // written for them and put them on Standard Malay.
+    //
+    // Two costs are worth naming rather than discovering. `mfa` (Pattani
+    // Malay) maximizes to `mfa-Arab-TH`, so a reader most likely arriving in
+    // Jawi is served Rumi — `locales/kr`'s asymmetry with `kby` and
+    // `locales/dje`'s with `tda`, and the answer to it is a second catalog
+    // rather than a change here. And `max` (North Moluccan Malay) and `xmm`
+    // (Manado Malay) are Malay-lexifier *trade creoles* rather than varieties
+    // of Malay; they are listed all the same, because unlike `ktu` under `kg`
+    // ISO 639-3 puts them inside the macrolanguage, and this map follows
+    // membership rather than second-guessing it.
+    ms: [
+        "btj",
+        "bve",
+        "bvu",
+        "coa",
+        "dup",
+        "hji",
+        "jak",
+        "jax",
+        "kvb",
+        "kvr",
+        "kxd",
+        "lce",
+        "lcf",
+        "liw",
+        "max",
+        "meo",
+        "mfa",
+        "mfb",
+        "mqg",
+        "msi",
+        "mui",
+        "orn",
+        "ors",
+        "pel",
+        "pse",
+        "tmw",
+        "urk",
+        "vkk",
+        "vkt",
+        "xmm",
+        "zlm",
+        "zmi",
+        "zsm",
+    ],
+    // Komi and Mari have no entry here at all, and that is the whole of what
+    // renaming their catalogs cost. Each list had shrunk to a single member —
+    // `kv: ["kpv"]`, `chm: ["mhr"]` — once `koi` and `mrj` left it in the
+    // Uralic north batch, and that sole member is now the catalog's own name.
+    // A one-member list folding a tag onto itself is not a fold, so both rows
+    // became {@link LANGUAGE_ALIASES} entries pointing the macrolanguage at the
+    // member instead.
+    //
+    // Kurdish. `locales/kmr` is Northern Kurdish (Kurmanji) in the Hawar Latin
+    // alphabet, which is what a bare `ku` maximizes to (`ku-Latn-TR`). ISO
+    // 639-3 gives the macrolanguage three members — `ckb`, `kmr`, `sdh` — and
+    // this key is one of them rather than the macrolanguage: `ku` reaches it
+    // through {@link LANGUAGE_ALIASES}, and what this list adds is the third
+    // member, which has no catalog.
+    //
+    // `ckb` (Central Kurdish, Sorani) is deliberately absent: it has a catalog
+    // of its own, and folding it here would serve a Sorani reader Kurmanji in
+    // a script they do not read. That is `locales/mnk` excluding `bam` and
+    // `dyu` — a member this repository names a catalog after, declining to
+    // answer for a sibling member it cannot serve.
+    //
+    // `sdh` (Southern Kurdish) maximizes to `sdh-Arab-IR`, so a reader CLDR
+    // expects in the Perso-Arabic script is served the Latin catalog. That is
+    // this batch's script debt and the same one `locales/kr` owes `kby` in
+    // Ajami, `locales/dje` owes `tda` in Tifinagh and `locales/bua` owes `bxu`
+    // in Mongolian script; the answer to it is a second catalog rather than a
+    // change here, and routing `sdh` to `locales/ckb` on script alone would be
+    // exactly the judgement this map exists to avoid.
+    //
+    // `lki` (Laki) is left to miss. It is often described as Southern Kurdish
+    // and is written in the same script, but ISO 639-3's macrolanguage mapping
+    // gives it a code outside `kur`, so folding it would be a judgement about
+    // how close two varieties are rather than a published fact — `kbl` under
+    // `kr` and `alq` under `oj` land the same way.
+    kmr: ["sdh"],
+    // Inuktitut. `locales/iu` is written in Canadian Aboriginal syllabics, the
+    // script Nunavut legislates and schools in, and ISO 639-3 gives the
+    // macrolanguage exactly two members: `ike` (Eastern Canadian Inuktitut)
+    // and `ikt` (Inuinnaqtun). Only `ike` is listed, and it is listed for the
+    // reason the already-folded codes above are — `Intl.getCanonicalLocales`
+    // rewrites it to `iu` before negotiation is consulted, so naming it keeps
+    // this a statement of membership rather than a list of leftovers.
+    //
+    // **`ikt` is deliberately absent, and the reason is the script rather than
+    // the language.** Inuinnaqtun is written in roman letters, and
+    // `locales/iu` contains no roman-letter Inuktitut word anywhere — its
+    // roman is DoenetML identifiers and a few declared English loans, not
+    // prose — so folding `ikt` here would answer a reader who arrived in one
+    // script with a catalog whose every sentence is in another. That is a worse answer than the
+    // English fallback, which at least uses letters the reader has. It is the
+    // exclusion `kbl` and `alq` illustrate met from a new direction: those two
+    // are excluded because membership does not say they belong, while `ikt`
+    // is a published member excluded because the catalog cannot serve it. The
+    // answer to it is a second catalog in roman letters, which is what
+    // `locales/ha` and `locales/kr` say about their own script asymmetries.
+    iu: ["ike"],
 };
 
 /** Flattened once at module load rather than searched per request. */
@@ -317,6 +488,40 @@ function applyLanguageAlias(tag: string): string {
 }
 
 /**
+ * The tag as asked for, then the tag an alias rewrites it to.
+ *
+ * Aliasing *adds* a fallback rather than replacing one, because `available` is
+ * not only this repository's roster: a host passes its own catalogs in as
+ * `localeResources`, and the contract those have is that they win. Rewriting
+ * `ku` to `kmr` before matching would step over a host that had supplied a
+ * catalog under `ku` — its key would never be compared against anything — and
+ * hand its reader English instead. Keeping the original in front means the
+ * host's own catalog is preferred and the aliased tag still reaches the bundled
+ * one when no host catalog answers.
+ *
+ * This is what makes an alias safe to add to a tag that already worked. Three
+ * were added when `locales/ku`, `locales/kv` and `locales/chm` took their
+ * members' names, and every one of those is a tag a host may already be
+ * keying a catalog on.
+ *
+ * **What it cannot do is tell the two apart.** By the time a request reaches
+ * here, `normalizeLocaleTag` has folded `kmr` to `ku` — that is ICU's
+ * canonicalization, the same one this file's aliases exist to work around —
+ * so an author who writes `<document lang="kmr">` and one who writes `ku`
+ * arrive identically. A host supplying catalogs under *both* keys therefore
+ * gets the macrolanguage one for either request, because the member identity
+ * was destroyed upstream rather than discarded here. Recovering it would mean
+ * `normalizeLocaleTag` declining to canonicalize these three subtags, which is
+ * a change to what a normalized tag means everywhere rather than a change to
+ * negotiation; it predates these aliases, since `kmr` folded to `ku` before
+ * this repository had a `locales/kmr` at all.
+ */
+function aliasChain(tag: string): string[] {
+    const aliased = applyLanguageAlias(tag);
+    return aliased === tag ? [tag] : [tag, aliased];
+}
+
+/**
  * Build a fallback chain from what the host asked for and what actually
  * exists.
  *
@@ -326,8 +531,9 @@ function applyLanguageAlias(tag: string): string {
  * somewhere a lookup could fall off.
  *
  * @param requested BCP-47 tags in the host's order of preference. A tag whose
- *   language subtag is one no catalog is named after is rewritten first; see
- *   {@link LANGUAGE_ALIASES}.
+ *   language subtag is one no catalog is named after gains the alias as a
+ *   fallback behind it, so a host catalog keyed on the original still wins;
+ *   see {@link LANGUAGE_ALIASES} and {@link aliasChain}.
  * @param available Locales with catalogs on hand.
  */
 export function negotiateLocales(
@@ -344,7 +550,7 @@ export function negotiateLocales(
         : [...available, defaultLocale];
 
     return negotiateLanguages(
-        requested.map(applyLanguageAlias),
+        requested.flatMap(aliasChain),
         availableWithDefault,
         {
             strategy: "filtering",

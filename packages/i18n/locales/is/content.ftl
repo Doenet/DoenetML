@@ -168,7 +168,6 @@ color =
                    *[m] brúnn
                 }
         }
-
 line-width =
     .thick =
         { $role ->
@@ -190,7 +189,6 @@ line-width =
                    *[m] þunnur
                 }
         }
-
 line-style =
     .dashed =
         { $role ->
@@ -212,7 +210,6 @@ line-style =
                    *[m] punktaður
                 }
         }
-
 # Noun phrases in the dative plural, which is the case «með» takes. They agree
 # with nothing.
 fill-style =
@@ -222,7 +219,6 @@ fill-style =
     .backdiagonal = öfugum skálínum
     .dots = punktum
     .diamonds = tíglum
-
 noun =
     .line = lína
     .line-segment = línustrik
@@ -242,7 +238,6 @@ noun =
     .diamond = tígull
     .cross = kross
     .plus = plús
-
 # Icelandic builds the side count into the noun in front of it, so the whole of
 # it is one head and there is no tail.
 noun-regular-polygon =
@@ -250,7 +245,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] reglulegur { $numSides }-hyrningur
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (marghyrningur, m)
 # or the head of a phrase the description never names: `border` (jaðar, m),
 # `fill` (fylling, f), `text` (texti, m), `background` (bakgrunnur, m).
@@ -265,7 +259,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -278,13 +271,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # Only ever said of the shape itself, so it is standalone in every description
 # and takes no `$role` branch.
 style-filled-word =
@@ -293,13 +284,11 @@ style-filled-word =
         [n] fyllt
        *[m] fylltur
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } með { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } með { $pattern }
@@ -307,7 +296,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } með { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «jaðar» is masculine and stands in the dative after «með», so the border's
 # adjectives agree with it and not with the shape it surrounds. Icelandic has
 # no indefinite article, so the two `-article` branches read like the two
@@ -319,7 +307,6 @@ style-border-clause =
         [and-article] og { $border } jaðri
        *[with] með { $border } jaðri
     }
-
 # The fill-pattern words are dative plurals, because their other use is the
 # «með { $pattern }» clause above. So this message supplies a noun for them to
 # hang off — «fylling», feminine, which is the gender `noun-gender` already
@@ -329,29 +316,23 @@ style-fill =
         [pattern] { $color } fylling með { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = ófyllt
-
 style-text =
     { $parts ->
         [background] { $color } á { $background } bakgrunni
        *[plain] { $color }
     }
-
 style-background-none = enginn
-
 
 ## Boolean words
 
 boolean-true = satt
 boolean-false = ósatt
 
-
 ## Answer buttons
 
 answer-submit-label = Athuga svar
 answer-submit-label-no-correctness = Senda svar
-
 
 ## Sectional blocks
 
@@ -380,7 +361,6 @@ section-name =
     .solution = Lausn
     .task = Viðfangsefni
     .theorem = Setning
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -390,9 +370,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Vísbending
-
 
 ## Tables and figures
 
@@ -403,7 +381,6 @@ table-name =
         [unnumbered-title] Tafla{ ": " }
        *[unnumbered] Tafla
     }
-
 figure-name =
     { $parts ->
         [numbered] Mynd { $enumeration }
@@ -412,22 +389,18 @@ figure-name =
        *[unnumbered] Mynd
     }
 
-
 ## Paginator controls
 
 paginator-previous = Fyrri
 paginator-next = Næsta
 paginator-page = Síða
-
 paginator-page-status = { $pageLabel } { $currentPage } af { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = eða
 piecewise-condition-if = ef
 piecewise-condition-otherwise = annars
-
 
 ## Chemistry
 
@@ -550,7 +523,6 @@ element-name =
     .lv = Livermorín
     .ts = Tenness
     .og = Óganesson
-
 element-anion-name =
     .h = Hýdríð
     .c = Karbíð
@@ -564,8 +536,6 @@ element-anion-name =
     .i = Joðíð
     .at = Astatíð
     .ts = Tennessíð
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ógilt efnatákn
 chemistry-invalid-ionic-compound = Ógilt jónaefnasamband

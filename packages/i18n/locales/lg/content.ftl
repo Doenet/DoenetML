@@ -90,7 +90,6 @@ color =
     .purple = kakobe
     .pink = pinki
     .brown = kikanvu
-
 line-width =
     .thick =
         { $gender ->
@@ -110,14 +109,12 @@ line-width =
             [c12] akatono
            *[c9] entono
         }
-
 # Written as invariable «olwa …» phrases rather than as adjectives, so that
 # they agree with nothing and can close the description. `style-stroke` puts
 # them last for that reason.
 line-style =
     .dashed = olw'obutundutundu
     .dotted = olw'obutonnyeze
-
 fill-style =
     .horizontal = ennyiriri ezigalamidde
     .vertical = ennyiriri eziyimiridde
@@ -125,7 +122,6 @@ fill-style =
     .backdiagonal = ennyiriri ezisenzeeko emabega
     .dots = obutonnyeze
     .diamonds = daayimondi
-
 noun =
     .line = olunyiriri
     .line-segment = ekitundu ky'olunyiriri
@@ -145,7 +141,6 @@ noun =
     .diamond = daayimondi
     .cross = omusaalaba
     .plus = akabonero k'okugatta
-
 # The side count goes in the tail, behind the adjectives, because «erina
 # enjuyi 5» is a relative clause and Luganda closes a noun phrase with one
 # rather than opening one.
@@ -154,7 +149,6 @@ noun-regular-polygon =
         [tail] erina enjuyi { $numSides }
        *[head] poligoni enkanyi
     }
-
 noun-gender =
     { $noun ->
         [line] c11
@@ -174,7 +168,6 @@ noun-gender =
        *[other] c9
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -187,13 +180,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c3] omujjuvu
@@ -203,13 +194,11 @@ style-filled-word =
         [c12] akajjuvu
        *[c9] enjjuvu
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } n'{ $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } n'{ $pattern }
@@ -217,7 +206,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } n'{ $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «olukugiro» is class 11 and leads its own adjectives, so the border's words
 # agree with it and not with the shape it surrounds. Luganda has no article, so
 # the two `-article` branches read like the two without, and the complement is
@@ -231,35 +219,28 @@ style-border-clause =
         [and-article] n'olukugiro { $border }
        *[with] n'olukugiro { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = tejjuzibbwa
-
 style-text =
     { $parts ->
         [background] { $color } ku mabega { $background }
        *[plain] { $color }
     }
-
 style-background-none = tewali
-
 
 ## Boolean words
 
 boolean-true = kituufu
 boolean-false = bulimba
 
-
 ## Answer buttons
 
 answer-submit-label = Kebera Omulimu
 answer-submit-label-no-correctness = Weereza Eky'okuddamu
-
 
 ## Sectional blocks
 
@@ -284,7 +265,6 @@ section-name =
     .solution = Eky'okugonjoola
     .task = Omulimu
     .theorem = Tiyoremu
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -294,9 +274,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Amagezi
-
 
 ## Tables and figures
 
@@ -307,7 +285,6 @@ table-name =
         [unnumbered-title] Ttebulo{ ": " }
        *[unnumbered] Ttebulo
     }
-
 figure-name =
     { $parts ->
         [numbered] Ekifaananyi { $enumeration }
@@ -316,22 +293,18 @@ figure-name =
        *[unnumbered] Ekifaananyi
     }
 
-
 ## Paginator controls
 
 paginator-previous = Ekiyise
 paginator-next = Ekiddako
 paginator-page = Olupapula
-
 paginator-page-status = { $pageLabel } { $currentPage } ku { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = oba
 piecewise-condition-if = singa
 piecewise-condition-otherwise = bwe kitaba bwe kityo
-
 
 ## Chemistry
 
@@ -341,6 +314,5 @@ piecewise-condition-otherwise = bwe kitaba bwe kityo
 # already, and the seed has no settled Luganda list to reproduce. A speaker
 # adding one should add it here.
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Akabonero ka Kemikaali Akatatuufu
 chemistry-invalid-ionic-compound = Ekitabuliddwa kya Ayoni Ekitatuufu

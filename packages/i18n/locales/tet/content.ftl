@@ -43,15 +43,12 @@ color =
     .purple = roxu
     .pink = rosa
     .brown = kastañu
-
 line-width =
     .thick = grosu
     .thin = finu
-
 line-style =
     .dashed = traku-traku
     .dotted = pontu-pontu
-
 # Noun phrases. Tetum marks no plural on the noun, so «liña» is the word for one
 # line and for many alike.
 fill-style =
@@ -61,7 +58,6 @@ fill-style =
     .backdiagonal = liña diagonál kotuk
     .dots = pontu
     .diamonds = losangu
-
 noun =
     .line = liña
     .line-segment = segmentu liña
@@ -81,7 +77,6 @@ noun =
     .diamond = losangu
     .cross = kruz
     .plus = plus
-
 # The side count follows the adjectives as a complement, so that they stay
 # beside the noun they describe.
 noun-regular-polygon =
@@ -89,11 +84,9 @@ noun-regular-polygon =
         [tail] ho sorin { $numSides }
        *[head] polígonu regulár
     }
-
 # One answer for every noun: Tetum has no grammatical gender, and its borrowed
 # adjectives do not agree either.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -107,22 +100,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun first and the adjectives behind it, which is the opposite of English.
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = nakonu
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } ho { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } ho { $pattern }
@@ -130,7 +119,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $filled } { $color } { $nounTail } ho { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Tetum has no article, so the two `-article` branches say what the other two
 # say. They are kept apart because English's distinction is between a first
 # clause and a further one, which this file does mark: «ho» against «no».
@@ -141,35 +129,28 @@ style-border-clause =
         [and-article] no sorin-lalais { $border }
        *[with] ho sorin-lalais { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = la nakonu
-
 style-text =
     { $parts ->
         [background] { $color } ho fundu { $background }
        *[plain] { $color }
     }
-
 style-background-none = laiha
-
 
 ## Boolean words
 
 boolean-true = loos
 boolean-false = sala
 
-
 ## Answer buttons
 
 answer-submit-label = Verifika serbisu
 answer-submit-label-no-correctness = Haruka resposta
-
 
 ## Sectional blocks
 
@@ -196,7 +177,6 @@ section-name =
     .solution = Solusaun
     .task = Tarefa
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -206,9 +186,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Matadalan
-
 
 ## Tables and figures
 
@@ -219,7 +197,6 @@ table-name =
         [unnumbered-title] Tabela{ ": " }
        *[unnumbered] Tabela
     }
-
 figure-name =
     { $parts ->
         [numbered] Figura { $enumeration }
@@ -228,22 +205,18 @@ figure-name =
        *[unnumbered] Figura
     }
 
-
 ## Paginator controls
 
 paginator-previous = Uluk
 paginator-next = Tuirmai
 paginator-page = Pájina
-
 paginator-page-status = { $pageLabel } { $currentPage } husi { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ka
 piecewise-condition-if = se
 piecewise-condition-otherwise = se lae
-
 
 ## Chemistry
 ##
@@ -256,6 +229,5 @@ piecewise-condition-otherwise = se lae
 ## over.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Símbolu kímiku la válidu
 chemistry-invalid-ionic-compound = Kompostu ióniku la válidu

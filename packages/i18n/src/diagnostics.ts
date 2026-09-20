@@ -86,6 +86,10 @@ export const DIAGNOSTIC_CODES = {
     "doenet-i0033": "variant-math-exclude-not-implemented",
     "doenet-i0034": "variant-non-constant-exclude-not-implemented",
     "doenet-i0048": "attribute-value-invalid-using-default",
+    "doenet-i0049": "index-operator-no-values",
+    "doenet-i0050": "tally-values-outside-categories",
+    "doenet-i0051": "attribute-value-invalid-ignoring",
+    "doenet-i0052": "chart-histogram-values-outside-bins",
 
     "doenet-w0001": "line-points-undetermined-dimensions",
     "doenet-w0002": "line-points-too-few-dimensions",
@@ -209,6 +213,46 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0122": "field-function-wrong-num-outputs",
     "doenet-w0123": "field-function-attribute-ignored-with-child",
     "doenet-w0124": "field-variables-ignored",
+    "doenet-w0125": "math-embedded-input-shape-unsuitable",
+    "doenet-w0126": "sample-gaussian-parameters-invalid",
+    "doenet-w0127": "sample-hypergeometric-parameters-invalid",
+    "doenet-w0128": "sample-hypergeometric-draws-too-many",
+    "doenet-w0129": "sample-binomial-parameters-invalid",
+    "doenet-w0130": "sample-binomial-trials-too-many",
+    "doenet-w0131": "sample-poisson-mean-invalid",
+    "doenet-w0132": "sample-poisson-mean-too-large",
+    "doenet-w0133": "sample-distribution-slow",
+    "doenet-w0134": "index-operator-missing-target",
+    "doenet-w0135": "sample-multivariate-parameters-invalid",
+    "doenet-w0136": "sample-multivariate-draws-too-many",
+    "doenet-w0137": "sample-multivariate-type-not-specified",
+    "doenet-w0138": "bin-counts-missing-bins",
+    "doenet-w0139": "bin-counts-too-few-cut-points",
+    "doenet-w0140": "bin-counts-values-not-numeric",
+    "doenet-w0141": "bin-counts-cut-points-decreasing",
+    "doenet-w0142": "tally-repeated-category",
+    "doenet-w0143": "bar-chart-bar-width-invalid",
+    "doenet-w0144": "bar-chart-values-not-drawable",
+    "doenet-w0145": "invalid-type-ignored",
+    "doenet-w0146": "chart-type-not-specified",
+    "doenet-w0147": "chart-values-outside-series",
+    "doenet-w0148": "chart-points-not-drawable",
+    "doenet-w0149": "chart-pie-values-not-drawable",
+    "doenet-w0150": "chart-pie-negative-values",
+    "doenet-w0151": "chart-pie-total-not-positive",
+    "doenet-w0152": "chart-pie-one-series",
+    "doenet-w0153": "chart-pie-axis-name-ignored",
+    "doenet-w0154": "chart-box-values-not-drawable",
+    "doenet-w0155": "chart-box-categories-ignored",
+    "doenet-w0156": "chart-histogram-values-not-drawable",
+    "doenet-w0157": "chart-histogram-one-series",
+    "doenet-w0158": "chart-histogram-bin-count-invalid",
+    "doenet-w0159": "chart-histogram-cut-points-invalid",
+    "doenet-w0160": "chart-histogram-categories-ignored",
+    "doenet-w0161": "chart-histogram-bar-width-ignored",
+    "doenet-w0162": "index-element-not-used-as-index",
+    "doenet-w0163": "reference-index-not-a-number",
+    "doenet-w0164": "index-operator-values-not-sorted",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",
@@ -298,7 +342,15 @@ export type DiagnosticCode = keyof typeof DIAGNOSTIC_CODES;
  * stopped arising.
  */
 export const RETIRED_DIAGNOSTIC_CODES: ReadonlySet<DiagnosticCode> =
-    new Set<DiagnosticCode>(["doenet-w0123"]);
+    new Set<DiagnosticCode>([
+        "doenet-w0123",
+        // Both named a remedy that no longer happens. Bare strings are read as
+        // the type their content implies when none is written, so there is no
+        // longer a reading to demand (`w0013`) nor a `math` to fall back to
+        // (`w0014`, replaced by `w0145`, which says the value was ignored).
+        "doenet-w0013",
+        "doenet-w0014",
+    ]);
 
 /**
  * The shape every code has to match: `doenet-` + severity letter + 4 digits.

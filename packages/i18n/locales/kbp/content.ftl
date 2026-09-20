@@ -94,7 +94,6 @@ color =
     .purple = violɛɛ
     .pink = rozɩ
     .brown = maroŋ
-
 line-width =
     .thick =
         { $gender ->
@@ -112,14 +111,12 @@ line-width =
             [c5] pɩŋɩm
            *[c1] pɩŋʋ
         }
-
 # Written as «nɛ …» phrases rather than as class-marked qualifiers, so that
 # they take no suffix and can close the description. `style-stroke` puts them
 # last.
 line-style =
     .dashed = nɛ hɔɔlɩŋ cikpeŋ
     .dotted = nɛ yʋsasɩ
-
 fill-style =
     .horizontal = ñɔsɩ nzɩ sɩhɩnɩ yɔ
     .vertical = ñɔsɩ nzɩ sɩsɩŋ yɔ
@@ -127,7 +124,6 @@ fill-style =
     .backdiagonal = ñɔsɩ nzɩ sɩlɩɣ hɔɔlʋʋ lɛɛkʋ yɔ
     .dots = yʋsasɩ
     .diamonds = diyamaanɩwaa
-
 noun =
     .line = ñɔʋ
     .line-segment = ñɔʋ hɔɔlʋʋ
@@ -147,7 +143,6 @@ noun =
     .diamond = diyamaanɩ
     .cross = sɩŋgɩyɛ
     .plus = plisɩ yʋsaɣ
-
 # The side count is a relative clause and closes the noun phrase behind the
 # describing words, so it goes in the tail — which is also what keeps a class
 # suffix from ever needing to land on `{ $numSides }`.
@@ -156,7 +151,6 @@ noun-regular-polygon =
         [tail] ŋgʋ kɩwɛnɩ hɔɔlɩŋ { $numSides } yɔ
        *[head] poligɔnɩ kɩmaɣzaɣ
     }
-
 # The noun class. `c1` is the default and the class a French loan joins, which
 # is what an author's own `markerStyleWord` is as far as this catalog is
 # concerned. `border` is listed explicitly even though it answers the default,
@@ -182,7 +176,6 @@ noun-gender =
        *[other] c1
     }
 
-
 ## Style composition
 
 # The dash pattern is a «nɛ …» phrase and closes the description, so it moves
@@ -197,13 +190,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c2] sʋʋtʋ
@@ -212,13 +203,11 @@ style-filled-word =
         [c5] sʋʋm
        *[c1] sʋʋʋ
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } nɛ { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } nɛ { $pattern }
@@ -226,7 +215,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } nɛ { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «kamaɣ» is the border and leads its own describing words, so they agree with
 # it rather than with the shape it surrounds — which is why `border` answers
 # `c1` in `noun-gender`. Kabiyè has no article and joins this clause with the
@@ -238,35 +226,28 @@ style-border-clause =
         [and-article] nɛ kamaɣ { $border }
        *[with] nɛ kamaɣ { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = ɛtɩsʋʋ
-
 style-text =
     { $parts ->
         [background] { $color } nɛ wayɩ { $background }
        *[plain] { $color }
     }
-
 style-background-none = pʋyʋ nabʋyʋ fɛyɩ
-
 
 ## Boolean words
 
 boolean-true = toovenim
 boolean-false = cɛtɩm
 
-
 ## Answer buttons
 
 answer-submit-label = Maɣzɩ Tʋmɩyɛ
 answer-submit-label-no-correctness = Tiyi Cosuu
-
 
 ## Sectional blocks
 
@@ -291,7 +272,6 @@ section-name =
     .solution = Nʋmɔʋ kɩbaŋʋ
     .task = Tʋmɩyɛ
     .theorem = Teyorɛm
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -301,9 +281,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Sɩnʋʋ
-
 
 ## Tables and figures
 
@@ -314,7 +292,6 @@ table-name =
         [unnumbered-title] Tablo{ ": " }
        *[unnumbered] Tablo
     }
-
 figure-name =
     { $parts ->
         [numbered] Kɩlɛmʋʋ { $enumeration }
@@ -323,25 +300,18 @@ figure-name =
        *[unnumbered] Kɩlɛmʋʋ
     }
 
-
 ## Paginator controls
 
 paginator-previous = Ŋgʋ kɩɖɛwa yɔ
 paginator-next = Ŋgʋ kɩkɔŋ yɔ
-
 paginator-page = Hɔɔlʋʋ
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = yaa
-
 piecewise-condition-if = ye
-
 piecewise-condition-otherwise = alɩwaatʋ lɛɛtʋ tɩŋa taa
-
 
 ## Chemistry
 ##
@@ -354,6 +324,5 @@ piecewise-condition-otherwise = alɩwaatʋ lɛɛtʋ tɩŋa taa
 ## same reason.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Siimii Yʋsaɣ Kɩdɛkɛdɩɣ
 chemistry-invalid-ionic-compound = Iyɔŋ Kpɛndʋʋ Kɩdɛkɛdɩɣ

@@ -1,6 +1,6 @@
 import React from "react";
 import { DoenetViewer } from "../../../src/doenetml-inline-worker";
-import { doenetGlobalConfig } from "../../../src/global-config";
+import { trackCoreWorkers } from "./utils/coreWorkers";
 
 // A viewer mounted with `render={false}` primes a core worker so its host can
 // be told the document's structure, and then stays on that path: nothing
@@ -49,12 +49,9 @@ function RerenderHarness() {
  *
  * It also counts the document structures reported, which is what priming the
  * worker produces. Waiting on that count is how the tests below act on a
- * settled worker: `initializeCoreWorker` sets the source and then initializes
- * from it in separate round trips, so a second one started while the first is
- * still in flight can find the source gone and fail the handshake, which
- * discards the worker and boots a replacement. That is a pre-existing race
- * these tests are not about, and it has nothing to do with which worker the
- * priming window hands on.
+ * settled worker, which keeps them about which worker the priming window
+ * hands on. Leaving the window while the priming is still in flight is
+ * `DoenetViewer.overlappingInitialization.cy.tsx`'s case (#1533).
  */
 function RenderLaterHarness() {
     const [rendering, setRendering] = React.useState(false);
@@ -85,28 +82,7 @@ function RenderLaterHarness() {
 }
 
 describe("a viewer that is not rendering yet", () => {
-    let coreWorkersCreated = 0;
-    let RealWorker: typeof Worker;
-
-    beforeEach(() => {
-        coreWorkersCreated = 0;
-        RealWorker = window.Worker;
-        window.Worker = class extends RealWorker {
-            constructor(scriptUrl: string | URL, options?: WorkerOptions) {
-                // Only this page's core worker. MathJax starts one of its own,
-                // and a count that included it would answer a different
-                // question on every run.
-                if (String(scriptUrl) === doenetGlobalConfig.doenetWorkerUrl) {
-                    coreWorkersCreated++;
-                }
-                super(scriptUrl, options);
-            }
-        } as typeof Worker;
-    });
-
-    afterEach(() => {
-        window.Worker = RealWorker;
-    });
+    const workers = trackCoreWorkers();
 
     it("primes one core worker, however often it re-renders", () => {
         cy.mount(<RerenderHarness />);
@@ -118,7 +94,7 @@ describe("a viewer that is not rendering yet", () => {
             "1",
         );
         cy.then(() => {
-            expect(coreWorkersCreated, "core workers after mount").to.equal(1);
+            expect(workers.created(), "core workers after mount").to.equal(1);
         });
 
         cy.get('[data-test="rerender"]').click().click().click();
@@ -126,7 +102,7 @@ describe("a viewer that is not rendering yet", () => {
 
         cy.then(() => {
             expect(
-                coreWorkersCreated,
+                workers.created(),
                 "core workers after three re-renders",
             ).to.equal(1);
         });
@@ -147,7 +123,7 @@ describe("a viewer that is not rendering yet", () => {
         cy.then(() => {
             // The primed worker has no core yet, so starting one reuses it
             // rather than booting a replacement.
-            expect(coreWorkersCreated, "core workers after rendering").to.equal(
+            expect(workers.created(), "core workers after rendering").to.equal(
                 1,
             );
         });
@@ -177,7 +153,7 @@ describe("a viewer that is not rendering yet", () => {
         cy.contains("first source").should("not.exist");
         cy.then(() => {
             expect(
-                coreWorkersCreated,
+                workers.created(),
                 "core workers after an edit and a render",
             ).to.equal(1);
         });

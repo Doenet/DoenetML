@@ -79,7 +79,6 @@ color =
     .purple = roxu
     .pink = rosa
     .brown = kastanyu
-
 line-width =
     .thick =
         { $gender ->
@@ -95,13 +94,11 @@ line-width =
             [c10] vitito
            *[c7] citito
         }
-
 # Written as «lo …» phrases rather than as prefixed qualifiers, so that they
 # take no concord and can close the description. `style-stroke` puts them last.
 line-style =
     .dashed = lo olongoli vitito
     .dotted = lo olondimbu
-
 fill-style =
     .horizontal = olongoli vi kasi vokati
     .vertical = olongoli vi kasi voku talama
@@ -109,7 +106,6 @@ fill-style =
     .backdiagonal = olongoli vi kasi voku pita konele yikwavo
     .dots = olondimbu
     .diamonds = olodiamanti
-
 noun =
     .line = ongoli
     .line-segment = ocinepa congoli
@@ -129,7 +125,6 @@ noun =
     .diamond = odiamanti
     .cross = ekulusu
     .plus = ondimbukiso yoku vokiya
-
 # The side count is a complement and closes the noun phrase behind the
 # describing words, so it goes in the tail.
 #
@@ -142,7 +137,6 @@ noun-regular-polygon =
         [tail] lo olonele { $numSides }
        *[head] poligonu cisokisa
     }
-
 # The noun class. `c7` is the default, which is what an author's own
 # `markerStyleWord` is as far as this catalog is concerned. Every noun with an
 # overt `oci-` — «ocilinganya», «ocitumãlo», «ocinepa» — falls to it unlisted,
@@ -164,7 +158,6 @@ noun-gender =
        *[other] c7
     }
 
-
 ## Style composition
 
 # The dash pattern is a «lo …» phrase and closes the description, so it moves
@@ -179,13 +172,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c5] liyukisiwa
@@ -193,13 +184,11 @@ style-filled-word =
         [c10] viyukisiwa
        *[c7] ciyukisiwa
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } lo { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } lo { $pattern }
@@ -207,7 +196,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } lo { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «onele» is the border and leads its own describing words, so they agree with
 # it rather than with the shape it surrounds — which is why `border` answers
 # `c9` in `noun-gender`. Umbundu has no article and joins this clause with the
@@ -219,35 +207,28 @@ style-border-clause =
         [and-article] lo onele { $border }
        *[with] lo onele { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = ka ciyukisiwa
-
 style-text =
     { $parts ->
         [background] { $color } lo konyima { $background }
        *[plain] { $color }
     }
-
 style-background-none = kalimwe
-
 
 ## Boolean words
 
 boolean-true = ocili
 boolean-false = uhembi
 
-
 ## Answer buttons
 
 answer-submit-label = Konomboloya Upange
 answer-submit-label-no-correctness = Tuma Etambululo
-
 
 ## Sectional blocks
 
@@ -272,7 +253,6 @@ section-name =
     .solution = Etetulwilo
     .task = Upange
     .theorem = Teoremu
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -282,9 +262,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Ekwatiso
-
 
 ## Tables and figures
 
@@ -295,7 +273,6 @@ table-name =
         [unnumbered-title] Otabela{ ": " }
        *[unnumbered] Otabela
     }
-
 figure-name =
     { $parts ->
         [numbered] Ocifwa { $enumeration }
@@ -304,25 +281,18 @@ figure-name =
        *[unnumbered] Ocifwa
     }
 
-
 ## Paginator controls
 
 paginator-previous = Yipita
 paginator-next = Yikwãma
-
 paginator-page = Etapa
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ale
-
 piecewise-condition-if = nda
-
 piecewise-condition-otherwise = kovina vikwavo viosi
-
 
 ## Chemistry
 ##
@@ -345,6 +315,5 @@ piecewise-condition-otherwise = kovina vikwavo viosi
 ## is recorded here so #1521 can find it.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ondimbukiso ya Kimika ka Yisungulukile
 chemistry-invalid-ionic-compound = Elikongelo lya Ioni ka Lyasungulukile

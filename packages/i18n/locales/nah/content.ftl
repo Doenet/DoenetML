@@ -51,15 +51,12 @@ color =
     .purple = camohpaltic
     .pink = tlāztalēhualtic
     .brown = cuappaltic
-
 line-width =
     .thick = tomāhuac
     .thin = canāhuac
-
 line-style =
     .dashed = tlacotōctic
     .dotted = tlacuihcuiltic
-
 # Noun phrases, which is what the head of `style-fill` is. Nahuatl does not
 # pluralize these, so they are the same words for one and for many.
 fill-style =
@@ -69,7 +66,6 @@ fill-style =
     .backdiagonal = tlīlli tlanacaztic tlacuepcāyōtl
     .dots = tlīltzintli
     .diamonds = rombo
-
 noun =
     .line = tlīlli
     .line-segment = tlīlcotōnalli
@@ -89,7 +85,6 @@ noun =
     .diamond = rombo
     .cross = cuauhnepanōlli
     .plus = nepanōlli machiyōtl
-
 # The side count is a prenominal modifier, so it stays in the head and the tail
 # is empty — English's shape, reached by a different road.
 noun-regular-polygon =
@@ -97,11 +92,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } nacaztic tlaneneuhcāyōtl
     }
-
 # One answer for every noun: Nahuatl has no grammatical gender, so nothing
 # downstream has anything to agree with.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -115,7 +108,6 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The adjectives precede the noun, so this is English's order. The `[noun-tail]`
 # branch is unreachable from Nahuatl's own `noun-regular-polygon`; it is kept
 # because it is what a partly-corrected catalog falls back to.
@@ -124,9 +116,7 @@ style-with-noun =
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = tlatēmītilli
-
 # «īca», "with", is a free word and precedes what it governs, so nothing is
 # welded to `$pattern` — the absolutive stays on it and the phrase is apposition.
 style-filled =
@@ -134,7 +124,6 @@ style-filled =
         [pattern] { $filled } { $color } īca { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } īca { $pattern }
@@ -142,7 +131,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } īca { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «tenāmitl», the border, is written as its own word rather than compounded onto
 # the description, for the absolutive reason in this file's header. Nahuatl has no
 # article, so English's four branches are two distinct strings; all four are
@@ -154,7 +142,6 @@ style-border-clause =
         [and-article] īhuān cē { $border } tenāmitl
        *[with] īca { $border } tenāmitl
     }
-
 # Here the pattern is the head noun — "blue diamonds" — and the colour precedes
 # it, so the phrase needs nothing at all.
 style-fill =
@@ -162,29 +149,23 @@ style-fill =
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = ahmo tlatēmītilli
-
 style-text =
     { $parts ->
         [background] { $color } īca cē { $background } tlacuitlapampa
        *[plain] { $color }
     }
-
 style-background-none = ahtlein
-
 
 ## Boolean words
 
 boolean-true = nelli
 boolean-false = ahnelli
 
-
 ## Answer buttons
 
 answer-submit-label = Xictta in tlachīhualli
 answer-submit-label-no-correctness = Xictitlani in tlanānquilīlli
-
 
 ## Sectional blocks
 
@@ -211,7 +192,6 @@ section-name =
     .solution = Tlanāmictīlli
     .task = Tlatequipanōlli
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -221,9 +201,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Tlapalēhuīlli
-
 
 ## Tables and figures
 
@@ -234,7 +212,6 @@ table-name =
         [unnumbered-title] Tlapōhualpechtli{ ": " }
        *[unnumbered] Tlapōhualpechtli
     }
-
 figure-name =
     { $parts ->
         [numbered] Tlaīxiptlayōtl { $enumeration }
@@ -243,22 +220,18 @@ figure-name =
        *[unnumbered] Tlaīxiptlayōtl
     }
 
-
 ## Paginator controls
 
 paginator-previous = Yehuā
 paginator-next = Niman
 paginator-page = Āmoxpechtli
-
 paginator-page-status = { $pageLabel } { $currentPage } īhuīc { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ahnōzo
 piecewise-condition-if = intlā
 piecewise-condition-otherwise = ahnōzo cē
-
 
 ## Chemistry
 ##
@@ -270,6 +243,5 @@ piecewise-condition-otherwise = ahnōzo cē
 ## than the English a student can check against their own book.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Machiyōtl kimiko ahmo cualli
 chemistry-invalid-ionic-compound = Tlanechicōlli ioniko ahmo cualli

@@ -44,7 +44,14 @@
                             : URL.createObjectURL(
                                   new Blob(
                                       [
-                                          `importScripts(${JSON.stringify(workerUrl)});`,
+                                          // Record the real script URL before
+                                          // importScripts, as the production
+                                          // bootstraps do: the worker runs from
+                                          // this blob's URL, and the WASM
+                                          // loading ladder derives the sibling
+                                          // .wasm from the recorded URL.
+                                          `self.__doenetWorkerScriptUrl = ${JSON.stringify(workerUrl)};\n` +
+                                              `importScripts(${JSON.stringify(workerUrl)});`,
                                       ],
                                       { type: "text/javascript" },
                                   ),

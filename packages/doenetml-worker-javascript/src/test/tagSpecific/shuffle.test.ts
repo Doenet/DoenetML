@@ -11,6 +11,31 @@ vi.mock("hyperformula");
 describe("Shuffle tag tests @group1", async () => {
     type VariantKey = `${number},${number}`;
 
+    it("shuffle a referenced list with an explicit type", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <textList name="names">Ann Cal Bob</textList>
+  <p name="pList"><shuffle name="sh" type="text">$names Zoe</shuffle></p>
+  `,
+        });
+
+        // `type` converts the bare string; the reference is passed through
+        // rather than wrapped, so there are four things to shuffle rather than
+        // the fused value "Ann, Cal, Bob" plus "Zoe".
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const shuffled = stateVariables[await resolvePathToNodeIdx("pList")];
+
+        expect(shuffled.activeChildren.length).eq(4);
+        expect(
+            shuffled.activeChildren
+                .map(
+                    (child) =>
+                        stateVariables[child.componentIdx].stateValues.value,
+                )
+                .sort(),
+        ).eqls(["Ann", "Bob", "Cal", "Zoe"]);
+    });
+
     it("consistent order for n elements for given variant", async () => {
         const doenetML = `
   <p>m: <mathInput prefill="1" name="m" /></p>
@@ -671,7 +696,8 @@ describe("Shuffle tag tests @group1", async () => {
         expect(result.sort()).eqls(options.sort());
     });
 
-    it("string children without type emit warning", async () => {
+    it("string children with no type are read as what they look like", async () => {
+        // These used to warn and shuffle nothing at all.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pList"><shuffle name="sh">d a b</shuffle></p>
@@ -679,27 +705,15 @@ describe("Shuffle tag tests @group1", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        let diagnosticsByType = getDiagnosticsByType(core);
-        expect(diagnosticsByType.warnings.length).gte(1);
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
         expect(
-            diagnosticsByType.warnings.some((w) =>
-                w.message.includes("a `type` attribute must be specified"),
-            ),
-        ).eq(true);
-        expect(
-            diagnosticsByType.warnings.some((w) =>
-                w.message.includes(
-                    'String "d a b" is not a valid component to shuffle.',
-                ),
-            ),
-        ).eq(true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("pList")].stateValues
-                .text,
-        ).eq("");
+            stateVariables[await resolvePathToNodeIdx("pList")].stateValues.text
+                .split(", ")
+                .sort(),
+        ).eqls(["a", "b", "d"]);
     });
 
-    it("sugar with invalid type specified defaults to math type with warning", async () => {
+    it("sugar with invalid type reports it and reads the children anyway", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="pList"><shuffle name="sh" type="bad">d a b</shuffle></p>
@@ -713,7 +727,7 @@ describe("Shuffle tag tests @group1", async () => {
             resolvePathToNodeIdx,
             options,
             must_be_reordered: [],
-            replacements_all_of_type: "math",
+            replacements_all_of_type: "text",
         });
 
         let diagnosticsByType = getDiagnosticsByType(core);
@@ -722,7 +736,7 @@ describe("Shuffle tag tests @group1", async () => {
             "Invalid type bad for shuffle component",
         );
         expect(diagnosticsByType.warnings[0].message).contain(
-            "Defaulting to math",
+            "reading the values as though no type had been given",
         );
     });
 

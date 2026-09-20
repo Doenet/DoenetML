@@ -1,0 +1,203 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+
+# `<sampleMultivariateRandomNumber/>{:dn}`
+
+
+<ComponentDisplay name='sampleMultivariateRandomNumber'/>
+
+`<sampleMultivariateRandomNumber/>{:dn}` draws a single *vector-valued* random number, 
+producing one [Number](../concepts/essentialConcepts#component-types) per category. 
+It differs from `<sampleRandomNumbers/>{:dn}`, where each sample is a single number drawn 
+independently of the others: here the numbers within one sample are drawn together and are 
+*not* independent of each other, since they describe how one set of draws was divided 
+among the categories.
+
+
+<AttrPropDisplay name='sampleMultivariateRandomNumber'/>
+
+
+## Examples
+
+### Example: Basic use
+
+
+```doenet-editor-horiz
+<p>An urn holds 5 red, 3 blue, and 2 green marbles. 
+  Draw 4 of them without replacement:</p>
+
+<p><sampleMultivariateRandomNumber name="draw" 
+  type="hypergeometric"
+  numInCategories="5 3 2" 
+  numDraws="4" 
+/></p>
+
+<p>Red: $draw[1], blue: $draw[2], green: $draw[3]</p>
+```
+
+
+
+The three numbers are the counts of each category among the drawn items, so they always 
+sum to `numDraws`. The number of categories &mdash; and therefore how many numbers are 
+produced &mdash; comes from the length of `numInCategories`.
+
+`type`, `numInCategories`, and `numDraws` are all required, and the latter two must 
+describe a population that can actually be drawn from: `numInCategories` a list of 
+non-negative whole numbers and `numDraws` a non-negative whole number no larger than 
+their sum. Anything else samples `NaN` for every category, as do the `means` and 
+`variances` properties below.
+
+
+
+---
+
+### Example: Using a re-sampling button
+
+
+```doenet-editor-horiz
+<p><sampleMultivariateRandomNumber name="draw" 
+  type="hypergeometric"
+  numInCategories="5 3 2" 
+  numDraws="4" 
+/></p>
+
+<callAction actionName="resample" target="$draw">
+  <label>Draw Again</label>
+</callAction>
+```
+
+
+
+The `<callAction>{:dn}` button draws a fresh set of items from the same population.
+
+
+
+## Attribute Examples
+
+### Attribute Example: numInCategories
+
+
+```doenet-example
+<p>A committee of 3 is chosen from 4 seniors, 5 juniors, 
+  6 sophomores, and 2 first-years:</p>
+
+<p><sampleMultivariateRandomNumber name="committee" 
+  type="hypergeometric"
+  numInCategories="4 5 6 2" 
+  numDraws="3" 
+/></p>
+
+<callAction actionName="resample" target="$committee">
+  <label>Choose Again</label>
+</callAction>
+```
+
+
+
+The `numInCategories` attribute gives the number of items of each category in the 
+population. Its length determines how many numbers are sampled, so this example 
+produces four numbers.
+
+
+
+---
+
+### Attribute Example: numDraws
+
+
+```doenet-example
+<p>Draw 8 of the 10 marbles:</p>
+
+<p><sampleMultivariateRandomNumber name="draw" 
+  type="hypergeometric"
+  numInCategories="5 3 2" 
+  numDraws="8" 
+/></p>
+
+<callAction actionName="resample" target="$draw">
+  <label>Draw Again</label>
+</callAction>
+```
+
+
+
+The `numDraws` attribute sets how many items are drawn, without replacement, from the 
+whole population. Drawing all of them would always return `numInCategories` itself.
+
+
+
+## Property Examples
+
+### Property Example: means, variances
+
+
+```doenet-example
+<p><sampleMultivariateRandomNumber name="draw" 
+  type="hypergeometric"
+  numInCategories="5 3 2" 
+  numDraws="4" 
+/></p>
+
+<callAction actionName="resample" target="$draw">
+  <label>Draw Again</label>
+</callAction>
+
+<p>Expected counts: $draw.means</p>
+<p>Variances: $draw.variances</p>
+<p>Population size: $draw.numTotal, in $draw.numCategories categories</p>
+```
+
+
+
+Each category's count on its own follows a hypergeometric distribution, so `means` 
+reports $n K_i / N$ and `variances` reports 
+$n \frac{K_i}{N}\left(1 - \frac{K_i}{N}\right)\frac{N-n}{N-1}$, where $N$ is `numTotal`, 
+$K_i$ is the size of category $i$, and $n$ is `numDraws`. Individual entries are 
+available as `means[1]`, `variances[1]`, and so on.
+
+Two populations are small enough that those formulas divide by zero, and both are 
+reported as the zero they describe rather than as `NaN`. A population with nothing in 
+it ($N = 0$) has every count, mean, and variance equal to zero, since there is nothing 
+to draw. A population holding a single item ($N = 1$) has zero variance, because the 
+one draw available always finds that item in the same category.
+
+
+## Limits on the sample
+
+Each category is drawn in turn, so a very large draw would take a long time and leave 
+the page unresponsive while it ran. Parameters that could need more than ten million 
+random draws for a single sample &mdash; counting each category at the most its draw 
+could cost &mdash; are therefore treated as unusable, giving `NaN` counts and 
+statistics along with a warning explaining what to change. The limit is far above the 
+populations that arise in practice; it is there so that mistyping an extra digit 
+reports a problem instead of freezing the activity. An order of magnitude below that, 
+from a million draws for a single sample, the sample is still drawn as asked, but a 
+warning notes that sampling may be slow. The two figures are the same ones 
+`<sampleRandomNumbers/>{:dn}` applies to its discrete distributions, and the estimate 
+they are compared against counts each category at the most its draw could cost, so a 
+sample that turns out cheaper than feared can still be the one warned about.
+
+Counts must also stay exact. Each category, the population they add up to, and 
+`numDraws` must all be below about nine quadrillion, past which neighboring whole 
+numbers can no longer be told apart; a larger population is treated as unusable in 
+the same way.
+
+`type` and `numDraws` have no defaults to fall back on. If either is omitted, if `type` 
+names a distribution that does not exist, or if the population is not one that can be 
+drawn from &mdash; a category that is not a whole number, or more draws than there are 
+items &mdash; every count is `NaN`, as are the reported `means` and `variances`.
+
+Omitting `numInCategories` behaves differently, because the length of that list is what 
+decides how many numbers there are to report. With no categories given there is nothing 
+to sample and nothing to sample it from, so the component produces no numbers at all and 
+`means` and `variances` are both empty &mdash; not a list of `NaN`. A warning still 
+explains that the population is missing.
+
+`type` is required rather than defaulting to `hypergeometric` on purpose. It is the 
+only multivariate distribution available so far, but it is unlikely to remain the most 
+natural default &mdash; a joint normal distribution is the more usual multivariate one. 
+Naming the distribution in every document means adding others later cannot change what 
+an existing document does.

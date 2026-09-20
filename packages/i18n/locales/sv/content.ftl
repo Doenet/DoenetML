@@ -67,7 +67,6 @@ color =
             [neuter] brunt
            *[common] brun
         }
-
 line-width =
     .thick =
         { $gender ->
@@ -79,7 +78,6 @@ line-width =
             [neuter] tunt
            *[common] tunn
         }
-
 line-style =
     .dashed =
         { $gender ->
@@ -91,7 +89,6 @@ line-style =
             [neuter] prickat
            *[common] prickad
         }
-
 fill-style =
     .horizontal = vågräta linjer
     .vertical = lodräta linjer
@@ -99,7 +96,6 @@ fill-style =
     .backdiagonal = omvända diagonala linjer
     .dots = prickar
     .diamonds = romber
-
 noun =
     .line = linje
     .line-segment = sträcka
@@ -119,7 +115,6 @@ noun =
     .diamond = romb
     .cross = kryss
     .plus = plus
-
 # Swedish names a regular polygon by its side count in one word — «regelbunden
 # 5-hörning» — so the count stays in the head and there is no tail.
 noun-regular-polygon =
@@ -127,7 +122,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] regelbunden { $numSides }-hörning
     }
-
 # Common gender is the default because most of these are common, including the
 # three heads a description names without listing: `border` (ram), `fill`
 # (fyllning), `text` (text) and `background` (bakgrund) — and
@@ -139,7 +133,6 @@ noun-gender =
         [plus] neuter
        *[other] common
     }
-
 
 ## Style composition
 
@@ -153,25 +146,21 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word =
     { $gender ->
         [neuter] fyllt
        *[common] fylld
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } med { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } med { $pattern }
@@ -179,7 +168,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } med { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «ram» is common, so the indefinite article is «en» — a word of its own, which
 # is why the distinction English draws between the `-article` branches and the
 # others survives here.
@@ -190,35 +178,28 @@ style-border-clause =
         [and-article] och en { $border } ram
        *[with] med { $border } ram
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = ofylld
-
 style-text =
     { $parts ->
         [background] { $color } på { $background } bakgrund
        *[plain] { $color }
     }
-
 style-background-none = ingen
-
 
 ## Boolean words
 
 boolean-true = sant
 boolean-false = falskt
 
-
 ## Answer buttons
 
 answer-submit-label = Kontrollera
 answer-submit-label-no-correctness = Skicka svar
-
 
 ## Sectional blocks
 
@@ -243,7 +224,6 @@ section-name =
     .solution = Lösning
     .task = Uppgift
     .theorem = Sats
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -253,9 +233,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Ledtråd
-
 
 ## Tables and figures
 
@@ -266,7 +244,6 @@ table-name =
         [unnumbered-title] Tabell{ ": " }
        *[unnumbered] Tabell
     }
-
 figure-name =
     { $parts ->
         [numbered] Figur { $enumeration }
@@ -275,22 +252,18 @@ figure-name =
        *[unnumbered] Figur
     }
 
-
 ## Paginator controls
 
 paginator-previous = Föregående
 paginator-next = Nästa
 paginator-page = Sida
-
 paginator-page-status = { $pageLabel } { $currentPage } av { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = eller
 piecewise-condition-if = om
 piecewise-condition-otherwise = annars
-
 
 ## Chemistry
 
@@ -413,7 +386,6 @@ element-name =
     .lv = Livermorium
     .ts = Tenness
     .og = Oganesson
-
 element-anion-name =
     .h = Hydrid
     .c = Karbid
@@ -427,8 +399,6 @@ element-anion-name =
     .i = Jodid
     .at = Astatid
     .ts = Tennessid
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ogiltig kemisk beteckning
 chemistry-invalid-ionic-compound = Ogiltig jonförening

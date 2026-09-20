@@ -3,7 +3,10 @@ import dts from "vite-plugin-dts";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import { createPackageJsonTransformer } from "../../scripts/transform-package-json";
 import { version } from "./package.json";
-import { suppressLogPlugin } from "../../scripts/vite-plugins";
+import {
+    ignoreWireitCachesPlugin,
+    suppressLogPlugin,
+} from "../../scripts/vite-plugins";
 import { serveDoenetmlWorkerPlugin } from "./serve-doenetml-worker-plugin";
 
 /**
@@ -28,6 +31,7 @@ function isExternal(id: string): boolean {
 export default defineConfig({
     base: "./",
     plugins: [
+        ignoreWireitCachesPlugin(),
         dts({ rollupTypes: true }),
         viteStaticCopy({
             targets: [

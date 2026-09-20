@@ -20,6 +20,7 @@ import type { DiagnosticRecord, ReaderStyleOverrides } from "@doenet/utils";
 import * as Comlink from "comlink";
 
 import { MdError } from "react-icons/md";
+import { UiButton } from "@doenet/ui-components";
 import { get as idb_get } from "idb-keyval";
 import { createCoreWorker, initializeCoreWorker } from "../utils/docUtils";
 import {
@@ -43,12 +44,28 @@ import {
 import { renderersLoadComponent } from "./renderersLoadComponent";
 import { doenetGlobalConfig } from "../global-config";
 import {
+    concurrentHandshakesSnapshot,
+    type HandshakeCensusSeat,
+    joinHandshakeCensus,
+    refreshHandshakeCensusCount,
+    reportedCores,
+} from "../utils/handshakeCensus";
+import {
     withTimeout,
     disposeCoreWorker,
     DEFAULT_CORE_BOOT_MAX_ATTEMPTS,
-    DEFAULT_CORE_HANDSHAKE_WATCHDOG_MS,
-    CORE_BOOT_RETRY_DELAY_MS,
+    handshakeWatchdogMsFor,
+    isHandshakeTimeout,
+    isDocumentBuildFailure,
+    timeoutLooksLikeContention,
+    retryDelayMs,
     CORE_START_FAILED_MESSAGE,
+    CORE_START_FAILED_BUSY_MESSAGE,
+    CORE_START_FAILED_RETRY_MESSAGE,
+    CORE_START_FAILED_BUSY_RETRY_MESSAGE,
+    CORE_START_FAILED_DOCUMENT_MESSAGE,
+    CORE_START_RETRY_MESSAGE,
+    SAVED_STATE_UNAVAILABLE_MESSAGE,
 } from "./coreWorkerBoot";
 import type { ResolvedTheme } from "../utils/theme";
 import {
@@ -74,6 +91,21 @@ export type SourcePosition = {
     end: { line: number; column: number; offset: number };
 };
 
+/**
+ * One score/state report on its way to whoever persists it, carrying the
+ * identity of the document it describes. The ids travel *with* the report
+ * rather than being read at delivery time, because a report can be buffered
+ * (see `pendingStateReport`) and handed over later, by which point the props
+ * may name a successor document — and state saved under the wrong
+ * `activityId`/`docId` is worse than state not saved at all.
+ */
+export type StateReport = {
+    score: number;
+    state: unknown;
+    activityId: string;
+    docId: string;
+};
+
 /** Whether `inner`'s source range lies entirely within `outer`'s. */
 function containsRange(outer: SourcePosition, inner: SourcePosition): boolean {
     return (
@@ -81,6 +113,49 @@ function containsRange(outer: SourcePosition, inner: SourcePosition): boolean {
         inner.end.offset <= outer.end.offset
     );
 }
+
+/**
+ * Error codes that mean "the page around this viewer does not speak SPLICE",
+ * not "your saved work could not be loaded" (Doenet/DoenetML#1795).
+ *
+ * This is an LTI platform's postMessage vocabulary for a message it will not
+ * act on, and an embedded viewer meets it without anyone arranging for it to.
+ * Canvas listens for `message` on every page it serves, and answers any
+ * subject outside its own allow-list with `{ subject: "<subject>.response",
+ * message_id, error: { code: "unsupported_subject" } }` — quoting the id it
+ * was sent, so the reply is addressed to this viewer's open request, and
+ * carrying no `message`, since Canvas omits that field when it has no text
+ * for it. Embed a Doenet activity in a Canvas page and every
+ * `SPLICE.getState` comes back as one of these. Reported at
+ * community.doenet.org/t/305.
+ *
+ * `unsupported_subject` is the only one of these that a `SPLICE` subject
+ * draws out of Canvas itself: the other three answer a subject Canvas does
+ * recognize but refuses (wrong target origin, a malformed payload, a tool
+ * without the scope), which `SPLICE` never is. They are listed alongside it
+ * for a platform that shares the vocabulary and checks in a different order,
+ * and because a host with a real load failure to report has no reason to
+ * reach for a platform's words for refusing one.
+ *
+ * Read as a host failure, that reply told a reader their saved work was
+ * unavailable — on an embed that has no host, no saved work, and nothing
+ * wrong with it. So these are logged and dropped: they say a request went
+ * unanswered, which is the same thing as no answer, and the request stays
+ * open for a host that does speak SPLICE.
+ *
+ * Matched by code alone, and only against this documented set. The code is
+ * the whole test in both directions: one of these is dropped even carrying a
+ * `message`, so a platform that starts sending text is still recognized; and
+ * any other code reaches the reader on the strength of its `message`, so a
+ * genuine SPLICE host — free to report a load failure under any code it
+ * likes — keeps its say.
+ */
+const NON_SPLICE_PLATFORM_ERROR_CODES = new Set([
+    "unsupported_subject",
+    "unauthorized",
+    "wrong_origin",
+    "bad_request",
+]);
 
 export const DocContext = createContext<{
     doenetViewerUrl?: string;
@@ -111,6 +186,81 @@ export const DocContext = createContext<{
     reportGraphElementUp?: (domId: string | null, graphDomId?: string) => void;
 }>({});
 
+/**
+ * The live region a failed state load is reported in, beside a document that
+ * is on screen and working (#1741).
+ *
+ * Mounts empty and takes its text on a later commit, never the one it
+ * appears in: a live region a screen reader first meets with text already in
+ * it is unreliably announced, and this notice's whole purpose is reaching a
+ * reader who is working somewhere else in the document.
+ *
+ * The deferral lives here rather than in a region hoisted above `DocViewer`'s
+ * early returns because the region does not exist until the document does —
+ * a viewer still booting returns before ever rendering its container — so a
+ * host that answers `SPLICE.getState` with an error before the first render
+ * would otherwise put region and text on the page in the same commit. That
+ * host is ordinary: the coordinator's in-page warehouse answers from memory.
+ * Deferring the text holds the guarantee whenever the region mounts, rather
+ * than only when it happens to predate the answer.
+ *
+ * Built like `errorOverview` in `DocViewer`, but bordered in `--mainYellow`
+ * rather than the red that pane and overview share: red is what the viewer
+ * says a document is broken in, and this one is not. The theme sheet gives
+ * the token a dark amber on the light canvas and a light one on the dark, so
+ * the border keeps its contrast either way. `role="status"` rather than
+ * `role="alert"`: nothing here interrupts what the reader is doing. It
+ * shares the screen with `initializingPane`'s own `role="status"` while a
+ * core is being created — that pane is rendered beside the container as
+ * `noCoreWarning`, not only returned in place of it — which costs nothing:
+ * an empty region has nothing to announce, and each region announces only
+ * its own text.
+ */
+function StateLoadNoticeRegion({
+    message,
+    leadIn,
+    uiLocale,
+    documentDirection,
+}: {
+    message: string | null;
+    leadIn: string;
+    uiLocale: string;
+    documentDirection: "ltr" | "rtl";
+}) {
+    // Whether this region has been through a commit of its own yet. A
+    // passive effect, so the empty region is painted before the text is
+    // handed to it.
+    const [regionOnPage, setRegionOnPage] = useState(false);
+    useEffect(() => {
+        setRegionOnPage(true);
+    }, []);
+
+    return (
+        <div role="status">
+            {regionOnPage && message !== null ? (
+                <div
+                    style={{
+                        backgroundColor: "var(--canvas)",
+                        color: "var(--canvasText)",
+                        borderWidth: 2,
+                        borderStyle: "solid",
+                        borderColor: "var(--mainYellow)",
+                        padding: "0.25em 0.5em",
+                    }}
+                    // Addressed to whoever is looking at the screen, so it is
+                    // in `uiLocale` — except for the host's own words, which
+                    // arrive in whatever language the host wrote them.
+                    // Re-declared only where the two directions disagree, for
+                    // the reason `errorOverview` gives.
+                    {...chromeLangDir(uiLocale, documentDirection)}
+                >
+                    <b>{leadIn}</b> {message}
+                </div>
+            ) : null}
+        </div>
+    );
+}
+
 export function DocViewer({
     doenetML,
     userId,
@@ -131,6 +281,7 @@ export function DocViewer({
     reportScoreAndStateCallback: specifiedReportScoreAndStateCallback,
     documentStructureCallback,
     initializedCallback,
+    coreStartFailedCallback,
     setIsInErrorState,
     prefixForIds = "",
     doenetViewerUrl,
@@ -168,14 +319,23 @@ export function DocViewer({
         diagnostics: DiagnosticRecord[],
         source: string,
     ) => void;
-    reportScoreAndStateCallback?: (data: {
-        score: number;
-        state: unknown;
-        activityId: string;
-        docId: string;
-    }) => void;
+    reportScoreAndStateCallback?: (data: StateReport) => void;
     documentStructureCallback?: Function;
     initializedCallback?: Function;
+    /**
+     * The failure counterpart of `initializedCallback` (#1709): called once
+     * when the core cannot be started and the viewer enters its visible error
+     * state — its handshake retries exhausted, or the boot derailed some other
+     * way (a rejected `generateDast`, a failed state load).
+     *
+     * Hosts that cap boot concurrency release a boot slot on
+     * `initializedCallback`; without this signal a failed boot holds its slot
+     * until their watchdog expires (30–90 s), starving the queue precisely
+     * when a page is already struggling. Called at most once per core-start
+     * attempt, and never for a document that merely reports errors — those
+     * booted fine.
+     */
+    coreStartFailedCallback?: Function;
     setIsInErrorState?: Function;
     prefixForIds?: string;
     doenetViewerUrl?: string;
@@ -465,7 +625,25 @@ export function DocViewer({
         };
     });
 
+    // What the failure pane is showing.
+    //
+    // The pane replaces the document, so only a failure that means there is
+    // no document may write here: a core that never started, saved state that
+    // could not be processed (which stops the core from being started at
+    // all), or a document the core could not build. What the host says about
+    // state it *cannot produce* is a different fact — the document boots
+    // without the reader's saved work — and goes to `stateLoadNotice` below
+    // instead. Splitting the two is what took the last-writer-wins away from
+    // a pane two unlike failures used to share (#1741); see
+    // `showFailureMessage` for the rule the pane follows now.
     const [errMsg, setErrMsg] = useState<string | null>(null);
+    // The host's own words for why it could not produce this document's saved
+    // state, shown as a notice beside the document rather than in place of it
+    // (#1741). Retired only by a rebuild or by an answer that does carry
+    // usable state: a document that started without the reader's saved work
+    // goes on being a document that started without it, and a successful boot
+    // does not make that untrue the way it makes "no core" untrue.
+    const [stateLoadNotice, setStateLoadNotice] = useState<string | null>(null);
 
     const cid = useRef<string | null>(null);
     const lastDoenetML = useRef<string | null>(null);
@@ -513,6 +691,32 @@ export function DocViewer({
     const loadedInitialRendererState = useRef(false);
     const coreCreated = useRef(false);
     const coreCreationInProgress = useRef(false);
+    // The `coreId` whose core-start attempt has already been reported to
+    // `coreStartFailedCallback` (#1709). `coreId` is re-rolled for every
+    // rebuild of the document, so keying on it gives the callback exactly the
+    // granularity it promises ("once per core-start attempt") and needs no
+    // separate reset. See `reportCoreStartFailed`.
+    const coreStartFailureReportedFor = useRef<string | null>(null);
+    // Set by the unmount cleanup below. `startCore` waits several times over
+    // — on the saved-state load, on each handshake, between retries (#1711) —
+    // and the teardown that runs on unmount cannot cancel those waits, so
+    // their other side checks this (`bootAbandoned`) rather than going on
+    // booting a worker for a viewer that is gone.
+    const viewerUnmounted = useRef(false);
+    // The `coreId` whose boot ladder is running, or null between ladders. One
+    // of `startCoreSafely`'s three callers is render-phase code that re-runs
+    // on every re-render until the ladder moves `stage` off
+    // `"readyToCreateCore"` — so a re-render during a boot launches a second
+    // ladder for the same document. `bootAbandoned` cannot see that one: the
+    // `coreId`s match, so neither twin stands aside, and both go through
+    // `reinitializeCoreAndTerminateAnimations`, which owns the single
+    // `coreWorker` ref — each disposing the other's worker. The window is
+    // wide enough to catch an ordinary re-render: a boot spans a saved-state
+    // load, a worker handshake, a backoff between attempts (#1711), and the
+    // document evaluation that follows. A *rebuild* re-rolls `coreId`, so the
+    // successor ladder it launches is never the one blocked here — that
+    // supersession is `bootAbandoned`'s job, not this latch's.
+    const bootLadderCoreId = useRef<string | null>(null);
     const coreId = useRef<string>("");
     const diagnostics = useRef<DiagnosticRecord[]>([]);
     // The same records as they arrived from the core, before their messages
@@ -521,6 +725,45 @@ export function DocViewer({
     // carries describe the message, not the English already substituted in.
     const rawDiagnostics = useRef<DiagnosticRecord[]>([]);
     const [hasInitialError, setHasInitialError] = useState(false);
+
+    // A core start the reader asked to try again (#1712).
+    //
+    //  - "offered" — a failure is on screen and still has a retry to give.
+    //    Raised by `failCoreStart` for a first failure, and retired by
+    //    `showFailureMessage` for any later message; see there for why the
+    //    offer must not outlive the message it was raised with.
+    //  - "running" — a retry is booting. A viewer at stage `"wait"` renders
+    //    nothing, so without this a click would blank the pane for as long as
+    //    the boot takes, which reads as the error getting worse. Set by the
+    //    rebuild rather than by the click — see the rebuild below.
+    const [coreStartRetry, setCoreStartRetry] = useState<
+        "none" | "offered" | "running"
+    >("none");
+    // Bumped by the retry button, and compared below like any other rebuild
+    // input. Nothing about the document changes on a retry, so the counter is
+    // the whole trigger: it routes the retry through the same rebuild
+    // sequence a changed `doenetML` takes — re-roll `coreId`, drop the old
+    // renderer, re-load saved state, run a fresh boot ladder — rather than
+    // adding a second way to start a core. Held in state (not a ref) because
+    // the click has to re-render for the comparison to run;
+    // `lastRetryGeneration` is its render-phase mirror, compared the way
+    // `lastDoenetML` is compared against `doenetML`.
+    const [retryGeneration, setRetryGeneration] = useState(0);
+    const lastRetryGeneration = useRef(0);
+    // Whether the reader has already spent their retry on the document now on
+    // screen. A ref because `failCoreStart` runs from async boot code whose
+    // closure predates the click.
+    //
+    // Every rebuild the reader did not ask for clears it (see the rebuild
+    // below) — with one deliberate exception, which is why the rebuild the
+    // `SPLICE.getState` listener runs clears `errMsg` without touching this.
+    // That rebuild adopts an answer to the request THIS document has open,
+    // and after a retry the open request is the one the retry itself posted —
+    // the reader's own state load landing late, not a document handed to the
+    // viewer from outside. Restoring the retry there would hand a fresh
+    // button to every failure on any host that answers with saved state,
+    // which is most of them, and the bound would stop bounding anything.
+    const retrySpent = useRef(false);
 
     type DeferredCoreAction = {
         actionName: string;
@@ -708,6 +951,54 @@ export function DocViewer({
         }
     }, [formatDiagnostic]);
 
+    // The most recent state payload the core's 60-second database throttle is
+    // holding back, mirrored here by `StatePersistence` as a report marked
+    // `pending` (#1726). A page can go away without the viewer unmounting —
+    // the tab is closed, a new URL is typed, an external link is followed, a
+    // backgrounded mobile tab is discarded — and a React effect cleanup runs
+    // for none of those. Keeping the payload in this realm is what lets
+    // `flushPendingStateReport` hand it to the host without a round-trip into
+    // the worker, which `pagehide` has no budget for. It is also what the
+    // unmount cleanup delivers, the core's own teardown report being
+    // suppressed by then — see that cleanup below.
+    const pendingStateReport = useRef<StateReport | null>(null);
+
+    // Report whatever the throttle is holding back, right now. Safe to call
+    // repeatedly and safe to interleave with the core's own reports: the
+    // buffer is taken before it is reported, so a given payload goes out at
+    // most once from here, and the worst a race with a real report can produce
+    // is a second copy of state the host already has. Must stay synchronous
+    // throughout — see `deliverStateReport`.
+    function flushPendingStateReport() {
+        const pending = pendingStateReport.current;
+        if (!pending) {
+            return;
+        }
+        pendingStateReport.current = null;
+        try {
+            deliverStateReport(pending, { synchronous: true });
+        } catch (err) {
+            // Delivery runs host code — `reportScoreAndStateCallback` is a
+            // plain synchronous call — and one of the callers is the unmount
+            // cleanup, where a throw would skip the core-worker teardown that
+            // follows and leak the worker. The buffer has already been taken
+            // and there is nothing left to retry, so report the failure and
+            // let the caller carry on.
+            console.warn(
+                "DocViewer: could not deliver the pending state report",
+                err,
+            );
+        }
+    }
+
+    // Latest identity of the flush, for the mount-once listeners below to call
+    // through — it closes over props (the host's own report callback among
+    // them) whose identity can change between renders.
+    const flushPendingStateReportRef = useRef(flushPendingStateReport);
+    useEffect(() => {
+        flushPendingStateReportRef.current = flushPendingStateReport;
+    });
+
     const coreWorker = useRef<Remote<CoreWorker> | null>(null);
     // Kill switch for the same core `coreWorker` wraps, kept so a wedged
     // core can be force-released even when its Comlink `terminate()` would
@@ -733,12 +1024,31 @@ export function DocViewer({
     // core that's being terminated is never reachable mid-teardown; the
     // returned promise settles once `disposeCoreWorker` has finished, for
     // callers that need to await the teardown before swapping in a replacement.
-    function teardownCurrentCoreWorker({ graceful }: { graceful: boolean }) {
+    function teardownCurrentCoreWorker({
+        graceful,
+        suspectWedge,
+    }: {
+        graceful: boolean;
+        /**
+         * Passed through to `disposeCoreWorker`, which otherwise infers the
+         * suspicion from `graceful`. A handshake teardown states it outright
+         * when the timeout that prompted it is better explained by page-wide
+         * CPU contention than by a wedged worker (#1711).
+         */
+        suspectWedge?: boolean;
+    }) {
         const remote = coreWorker.current;
         const kill = coreWorkerKill.current;
         coreWorker.current = null;
         coreWorkerKill.current = null;
-        return disposeCoreWorker(remote, kill, { graceful });
+        // Drop the throttled payload along with the core that produced it
+        // (#1726). A rebuild replaces the document the payload belongs to, so
+        // reporting it after the successor has reported would put stale state,
+        // under a stale `cid`, over the host's newer record. The other caller
+        // is the unmount cleanup below, which delivers the payload first —
+        // there being no successor to overwrite.
+        pendingStateReport.current = null;
+        return disposeCoreWorker(remote, kill, { graceful, suspectWedge });
     }
 
     function clearDeferredCoreActions() {
@@ -763,7 +1073,21 @@ export function DocViewer({
     };
 
     useEffect(() => {
+        // Reset on (re)mount as well as set on unmount: under StrictMode the
+        // same instance is mounted, torn down, and mounted again, and a
+        // one-way flag would leave the second life marked as unmounted.
+        viewerUnmounted.current = false;
         return () => {
+            viewerUnmounted.current = true;
+            // Hand the host whatever the throttle was holding back before the
+            // teardown below drops it (#1726). The core's own teardown flush
+            // does not cover this: `Core.terminate()` does report, but that
+            // report arrives through `speakingFor`, which suppresses every
+            // delivery once `viewerUnmounted` is set — so on an in-app
+            // navigation the last minute of work reached nobody. The buffered
+            // payload is up to one save-debounce older than what the core
+            // would have built, and it is what actually gets out.
+            flushPendingStateReportRef.current();
             // Best-effort graceful terminate, but always guarantee a native
             // kill so a wedged worker (whose Comlink terminate would hang) is
             // still released on unmount (Doenet/DoenetApps#2957).
@@ -790,15 +1114,91 @@ export function DocViewer({
                 return;
             }
             if (e.data.subject === "SPLICE.getState.response") {
-                if (messageIdFromGetState.current === e.data.message_id) {
-                    if (e.data.state && e.data.state.cid === cid.current) {
+                // The request this viewer is waiting on, or null when it is
+                // waiting on none: either none was ever made (a viewer handed
+                // `initialState`, or one not allowed to load state at all) or
+                // an answer has already been adopted below.
+                const openRequestId = messageIdFromGetState.current;
+                // A reply quoting the open request's id is this viewer's,
+                // whatever it carries. A reply quoting a DIFFERENT id is not:
+                // that id belongs to another request — one some rebuild has
+                // replaced, or a second viewer's in the same window.
+                const quotesOpenRequest =
+                    openRequestId !== null &&
+                    e.data.message_id === openRequestId;
+                // An error may quote no id at all, and `message_id: null`
+                // spells that absence out. It is the shape the protocol
+                // originally specified, so hosts written against it send
+                // exactly that and it has to keep working; the docs now
+                // accept either and ask for the id where a host can send it
+                // (see `SPLICE.getState` in `packages/standalone/README.md`).
+                // An unaddressed reply addresses whatever request is open,
+                // which is what this viewer's is.
+                //
+                // Only an error is read that way. Host replies are broadcast
+                // to every viewer in the window, and `cid` cannot tell them
+                // apart — it hashes the DoenetML text alone, so a second
+                // attempt at the same document, or the same document opened
+                // twice on a page, carries the identical `cid` under a
+                // different `activity_id`/`doc_id`/`attempt_number`. An
+                // unaddressed answer carrying STATE would be restored by all
+                // of them, putting one reader's saved work into another's
+                // document. An unaddressed error costs a notice beside the
+                // document that the next usable answer clears.
+                const isUnaddressedError =
+                    openRequestId !== null &&
+                    (e.data.message_id === undefined ||
+                        e.data.message_id === null) &&
+                    Boolean(e.data.error);
+                if (quotesOpenRequest || isUnaddressedError) {
+                    if (
+                        quotesOpenRequest &&
+                        e.data.state &&
+                        e.data.state.cid === cid.current
+                    ) {
+                        // One request, one answer. A page can hold several
+                        // listeners willing to answer: under the standalone
+                        // coordinator the in-page warehouse answers a restored
+                        // activity, while a persistence host (Runestone, a
+                        // SCORM package) answers the same request out of
+                        // durable storage. Processing every answer rebuilt the
+                        // document from whichever landed LAST — and the
+                        // durable one, a round trip to storage, lands second
+                        // while possibly carrying older work than the reader
+                        // has just done. Consuming the request here makes the
+                        // first usable answer the one that counts.
+                        //
+                        // Only a usable answer consumes it: one carrying no
+                        // state (a host with nothing saved for this activity)
+                        // or state for a different `cid` must not shut out a
+                        // better one still to come.
+                        //
+                        // A rebuild that then fails below keeps the request
+                        // consumed on purpose: the failure is reported to the
+                        // host (`reportCoreStartFailed`), so a later answer
+                        // must not quietly start a core after that.
+                        messageIdFromGetState.current = null;
+
                         // Reset error messages, core.
                         // Then process loaded state and initialize
 
-                        if (errMsg !== null) {
-                            setErrMsg(null);
-                            setIsInErrorState?.(false);
-                        }
+                        // Clear unconditionally rather than when `errMsg` is
+                        // set: this listener is installed once, with an empty
+                        // dependency array, so the `errMsg` it closes over is
+                        // forever the initial `null` and a guard reading it
+                        // could never fire. That mattered once a page could
+                        // hold more than one answerer — an error leaves the
+                        // request open, so a listener reporting one before
+                        // another returned usable state left the restored
+                        // document behind a pane it could not clear.
+                        // Both setters are idempotent.
+                        setErrMsg(null);
+                        setIsInErrorState?.(false);
+                        // An answerer that does have the saved work retires
+                        // an earlier answerer's report that it could not be
+                        // had: the document about to be rebuilt is being
+                        // restored, so nothing was lost after all.
+                        setStateLoadNotice(null);
 
                         coreId.current = nanoid();
                         initialCoreData.current = null;
@@ -808,29 +1208,122 @@ export function DocViewer({
                         coreCreationInProgress.current = false;
                         loadedInitialRendererState.current = false;
 
-                        processLoadedDocState(e.data.state);
+                        try {
+                            processLoadedDocState(e.data.state);
+                        } catch (err: any) {
+                            // Malformed host-persisted state. Everything from
+                            // the `coreId` re-roll above to here is
+                            // synchronous, so this handler still owns the
+                            // attempt it is failing. The core will never be
+                            // started, so a host holding a boot slot for this
+                            // document has to hear about it (#1709). Report
+                            // just the failure signal, keeping the specific
+                            // message below on screen: `failCoreStart` would
+                            // raise the generic one over it, and offer a retry
+                            // that would put the same state to the same
+                            // parser.
+                            let message = "";
+                            if ("message" in err) {
+                                message = err.message;
+                            }
+                            showFailureMessage(
+                                `Error loading doc state: ${message}`,
+                            );
+                            reportCoreStartFailed();
+                            return;
+                        }
 
                         if (render) {
                             startCoreSafely();
                         } else {
                             setStage("readyToCreateCore");
                         }
+                    } else if (e.data.error) {
+                        // A host that cannot produce this document's saved
+                        // state, saying why — or a page that is not a host at
+                        // all, of which more below. When it is a host, its
+                        // message is a notice beside the document, never in
+                        // place of it (#1741): the boot does not wait for
+                        // this answer and the request is left open (see
+                        // above), so an error can land at any point in a
+                        // perfectly healthy document's life — including
+                        // minutes in, on a reader who is working in it. What
+                        // it reports is that the document started without the
+                        // reader's saved work, which is worth saying and is
+                        // not a reason to take the document away.
+                        //
+                        // Reached only after the state test above, so a reply
+                        // carrying both is read as state: a host that produced
+                        // usable state has answered, whatever else it also
+                        // reported.
+                        //
+                        // Only a string `message` is shown. It is stored and
+                        // later rendered as a React child, so anything else
+                        // throws there: beside the document that throw would
+                        // reach the error boundary and replace exactly the
+                        // document this branch exists to keep, and beneath
+                        // the failure pane, which is returned above that
+                        // boundary, nothing would catch it at all. Outside
+                        // the platform set the `code` only labels the console
+                        // line, and is not required — a reply carrying only
+                        // text still has text to show.
+                        //
+                        // No shape test guards the two reads: this branch is
+                        // gated on `error` being truthy, which is all it
+                        // takes for reading a field off it to be safe. An
+                        // `error` that is a bare string or number has
+                        // neither field and falls to the unreadable case
+                        // below, exactly as an object missing them does.
+                        const error = e.data.error;
+                        const code = error.code;
+                        const message =
+                            typeof error.message === "string"
+                                ? error.message
+                                : undefined;
+
+                        if (
+                            typeof code === "string" &&
+                            NON_SPLICE_PLATFORM_ERROR_CODES.has(code)
+                        ) {
+                            // Not a host: a platform saying it will not act
+                            // on what was asked of it. Nothing to tell the
+                            // reader — see
+                            // `NON_SPLICE_PLATFORM_ERROR_CODES`. The whole
+                            // error goes to the console, so a host that
+                            // reached for one of these codes for a real load
+                            // failure can see its own message being dropped.
+                            console.log(
+                                `ignoring "${code}" answer to SPLICE.getState from a page that does not speak SPLICE`,
+                                error,
+                            );
+                        } else if (message !== undefined) {
+                            console.log(
+                                code === undefined
+                                    ? `error getting state: ${message}`
+                                    : `error ${code} getting state: ${message}`,
+                            );
+                            setStateLoadNotice(message);
+                        } else {
+                            // An error the viewer cannot put on screen. The
+                            // host is told what is wrong with it, and the
+                            // reader is told nothing: the only text available
+                            // to show would be the viewer's own, and
+                            // "Invalid response to getState" — which is what
+                            // used to appear here — describes the host's bug
+                            // to someone who cannot act on it, over a
+                            // document that is working. A host with a load
+                            // failure worth reporting reports it as the
+                            // documented `{ code, message }`.
+                            console.warn(
+                                "Ignoring an unreadable error in a SPLICE.getState response; a reportable failure needs a string `message`:",
+                                error,
+                            );
+                        }
                     }
-                } else if (e.data.error) {
-                    const error = e.data.error;
-                    setIsInErrorState?.(true);
-                    if (
-                        typeof error === "object" &&
-                        "code" in error &&
-                        "message" in error
-                    ) {
-                        console.log(
-                            `error ${error.code} getting state: ${error.message}`,
-                        );
-                        setErrMsg(error.message);
-                    } else {
-                        setErrMsg("Invalid response to getState");
-                    }
+                    // A reply with neither usable state nor an error is a host
+                    // saying it has nothing saved for this document: nothing
+                    // to show, and the request left open for an answerer that
+                    // does have something.
                 }
             } else if (
                 e.data.subject === "SPLICE.requestSolutionView.response"
@@ -978,6 +1471,44 @@ export function DocViewer({
         };
     }, []);
 
+    // Hand the host whatever the core's database throttle is holding back
+    // before this document can be discarded (#1726).
+    //
+    // `pagehide` covers a real teardown — tab closed, URL typed, external link
+    // followed. `visibilitychange` → hidden covers what that misses: a
+    // backgrounded tab can be discarded without firing anything else. The two
+    // overlap on an ordinary unload, which costs nothing — the buffer is taken
+    // by whichever fires first, so the second finds it empty.
+    //
+    // Neither event tears anything down, so a bfcache `pagehide`
+    // (`persisted: true`) needs no special case — the core stays alive, the
+    // page can come back, and the reader's work simply reached the host early.
+    //
+    // Deliberately separate from the visibility-measuring listener below,
+    // which is keyed to the core's lifetime: flushing has to be armed from
+    // mount, before (and after) there is a core to talk to.
+    useEffect(() => {
+        function flush() {
+            flushPendingStateReportRef.current();
+        }
+        function visibilityFlushListener() {
+            if (document.visibilityState === "hidden") {
+                flush();
+            }
+        }
+
+        window.addEventListener("pagehide", flush);
+        document.addEventListener("visibilitychange", visibilityFlushListener);
+
+        return () => {
+            window.removeEventListener("pagehide", flush);
+            document.removeEventListener(
+                "visibilitychange",
+                visibilityFlushListener,
+            );
+        };
+    }, []);
+
     useEffect(() => {
         if (!coreWorker.current) {
             return;
@@ -1045,7 +1576,24 @@ export function DocViewer({
      * overrides the prop), so it isn't known until the source has been parsed
      * — which `initializeCoreWorker` does anyway.
      */
-    async function initializeCoreWorkerForDoc(worker: Remote<CoreWorker>) {
+    async function initializeCoreWorkerForDoc(
+        worker: Remote<CoreWorker>,
+        ownerCoreId = coreId.current,
+        onQueueTurn?: () => void,
+    ) {
+        // `ownerCoreId` is the document this initialization speaks for. A
+        // rebuild re-rolls `coreId` while these round trips are in flight and
+        // starts its own initialization, so a completion arriving afterwards
+        // must not announce the superseded document's structure or locale —
+        // the successor announces its own. Callers launched before the
+        // re-roll (a boot ladder) pass the id they captured; the default
+        // serves call sites that hold ownership when they call.
+        //
+        // `onQueueTurn` goes through to `initializeCoreWorker`, which calls it
+        // when this initialization's turn on the worker comes (#1533); the
+        // boot ladder re-bases its watchdog on it. The same ownership answers
+        // `abandoned`: an initialization whose document has moved on steps
+        // aside instead of running, and resolves to `null`.
         const result = await initializeCoreWorker({
             coreWorker: worker,
             doenetML,
@@ -1054,16 +1602,29 @@ export function DocViewer({
             docId,
             requestedVariantIndex,
             attemptNumber,
-            documentStructureCallback,
+            documentStructureCallback: documentStructureCallback
+                ? (structure: unknown) => {
+                      if (stillSpeaksForDocument(ownerCoreId)) {
+                          documentStructureCallback(structure);
+                      }
+                  }
+                : undefined,
             fetchExternalDoenetML,
             documentLocale,
             localeResources: availableCatalogs,
+            onQueueTurn,
+            abandoned: () => !stillSpeaksForDocument(ownerCoreId),
         });
-        setEffectiveDocumentLocale(result.resolvedDocumentLocale);
+        if (result && stillSpeaksForDocument(ownerCoreId)) {
+            setEffectiveDocumentLocale(result.resolvedDocumentLocale);
+        }
         return result;
     }
 
-    async function reinitializeCoreAndTerminateAnimations() {
+    async function reinitializeCoreAndTerminateAnimations(
+        ownerCoreId = coreId.current,
+        onQueueTurn?: () => void,
+    ) {
         if (coreWorker.current !== null) {
             preventMoreAnimations.current = true;
             // Bounded graceful terminate + guaranteed native kill, so swapping
@@ -1082,7 +1643,7 @@ export function DocViewer({
         coreCreated.current = false;
         coreCreationInProgress.current = false;
 
-        await initializeCoreWorkerForDoc(remote);
+        await initializeCoreWorkerForDoc(remote, ownerCoreId, onQueueTurn);
 
         return remote;
     }
@@ -1347,7 +1908,10 @@ export function DocViewer({
         }
     }
 
-    function initializeRenderers(args: Record<string, any>) {
+    function initializeRenderers(
+        args: Record<string, any>,
+        ownerCoreId = coreId.current,
+    ) {
         if (args.rendererState) {
             if (
                 forceDisable ||
@@ -1420,6 +1984,15 @@ export function DocViewer({
         renderersLoadComponent(rendererLoaders, rendererClassNames)
             .then(
                 ({ rendererClasses: newRendererClasses, failedRenderers }) => {
+                    // The chunk imports above are the longest wait in here; a
+                    // rebuild can land while they resolve, and this
+                    // continuation would then commit the superseded
+                    // document's renderer tree keyed by `coreId.current` —
+                    // by now the successor's id — over the document that
+                    // replaced it.
+                    if (!stillSpeaksForDocument(ownerCoreId)) {
+                        return;
+                    }
                     if (failedRenderers.length > 0) {
                         // Some renderer chunks ultimately failed to load even
                         // after retries; their placeholders are in
@@ -1564,41 +2137,170 @@ export function DocViewer({
     function reportScoreAndStateCallback({
         score,
         state,
+        pending = false,
     }: {
         score: number;
         state: unknown;
+        /**
+         * Set by the core's `StatePersistence` (#1726): this is a mirror of
+         * the payload the core's 60-second database throttle is holding back,
+         * not a report the host should save yet. Buffer it here in the main
+         * realm so `flushPendingStateReport` can hand it over synchronously
+         * when the page hides — by then there is no budget for the Comlink
+         * round-trip that would otherwise be needed to fetch it.
+         */
+        pending?: boolean;
     }) {
-        if (specifiedReportScoreAndStateCallback) {
-            specifiedReportScoreAndStateCallback({
-                score,
-                state,
-                activityId,
-                docId,
-            });
-        } else {
-            let messageId = nanoid();
-            const message = {
-                score,
-                state,
-                subject: "SPLICE.reportScoreAndState",
-                activity_id: activityId,
-                doc_id: docId,
-                message_id: messageId,
-            };
+        // The ids come from this closure, which the core was handed at
+        // initialization, so they are the ids of the document that produced
+        // the report — not whatever the props name by the time it goes out.
+        const report: StateReport = { score, state, activityId, docId };
 
-            if (flags.messageParent && window.parent) {
-                window.parent.postMessage(message);
-            } else {
-                window.postMessage(message);
-            }
+        if (pending) {
+            pendingStateReport.current = report;
+            return;
         }
+
+        // A real report carries the same or newer state than anything the
+        // core was holding back, so it supersedes the buffer — but only once
+        // it has actually reached the host, and on the message channel
+        // `deliverStateReport` merely queues a task. Hold the report in the
+        // buffer until that task has had its turn: a hide landing in between
+        // then still hands the work over synchronously, rather than finding
+        // an empty buffer while the queued report dies with the document.
+        pendingStateReport.current = report;
+        deliverStateReport(report);
+        retireDeliveredStateReport(report);
     }
 
-    async function loadStateAndInitialize() {
-        const coreIdWhenCalled = coreId.current;
+    /**
+     * Drop `report` from the buffer once the task `deliverStateReport` queued
+     * has had its turn, leaving anything newer alone.
+     *
+     * A timer is a heuristic, not a guarantee: posted messages and timer
+     * callbacks are separate task sources, so nothing promises the report is
+     * delivered first. It is the safe direction to be wrong in — clearing
+     * early is exactly what this viewer did before, and clearing late costs at
+     * most one duplicate report of state the host already has. What it buys is
+     * that the ordinary case, where the report is delivered on the very next
+     * turn, no longer has a window in which the buffer is empty and the
+     * report is still in flight.
+     */
+    function retireDeliveredStateReport(report: StateReport) {
+        setTimeout(() => {
+            if (pendingStateReport.current === report) {
+                pendingStateReport.current = null;
+            }
+        }, 0);
+    }
+
+    /**
+     * Hand a state report to whoever is listening for one: the host's
+     * `reportScoreAndStateCallback` when it passed one, otherwise the
+     * `SPLICE.reportScoreAndState` message channel (to the parent window when
+     * `flags.messageParent` is set, else to this one).
+     *
+     * `synchronous` is for the page-hide flush (#1726), and only affects the
+     * message channel — a host callback is a plain call and always was.
+     * `postMessage` merely queues a task, and a document being unloaded is
+     * torn down without its task queue ever being drained, so a report posted
+     * from `pagehide` is silently dropped — precisely the loss this exists to
+     * prevent. Dispatching the same `message` event by hand runs the host's
+     * listeners inline instead. The host sees the message a `postMessage`
+     * would have delivered: same `data`, same `origin`, same `source` — the
+     * last of which has to hold, since the standalone coordinator identifies
+     * the reporting viewer by `event.source`. What differs is the timing,
+     * `isTrusted` (nothing on this channel reads it), and that `data` is
+     * passed by reference rather than structured-cloned (hosts consume it
+     * where they receive it).
+     *
+     * Synchronous delivery only buys time if what receives it is synchronous
+     * too. Two known places where it is not, both documented as gaps on
+     * Doenet/DoenetML#1726: a host whose `message` listener persists by
+     * deferring (a `fetch`, a `setTimeout`) rather than by `sendBeacon` or
+     * synchronous storage, and a viewer running inside `@doenet/doenetml-iframe`
+     * whose host passed `reportScoreAndStateCallback` — that callback is a
+     * Comlink proxy across the iframe boundary, so calling it only posts.
+     */
+    function deliverStateReport(
+        report: StateReport,
+        { synchronous = false }: { synchronous?: boolean } = {},
+    ) {
+        if (specifiedReportScoreAndStateCallback) {
+            specifiedReportScoreAndStateCallback(report);
+            return;
+        }
+
+        const target =
+            flags.messageParent && window.parent ? window.parent : window;
+        const message = {
+            score: report.score,
+            state: report.state,
+            subject: "SPLICE.reportScoreAndState",
+            activity_id: report.activityId,
+            doc_id: report.docId,
+            message_id: nanoid(),
+        };
+
+        if (synchronous) {
+            try {
+                target.dispatchEvent(
+                    new MessageEvent("message", {
+                        data: message,
+                        origin: window.origin,
+                        source: window,
+                    }),
+                );
+                return;
+            } catch (err) {
+                // A cross-origin parent is the expected way to land here: such
+                // a window exposes `postMessage` and little else. That embed
+                // was never served by this channel anyway — the post below has
+                // no `targetOrigin`, which defaults to same-origin — so the
+                // fallback preserves existing behavior rather than rescuing
+                // it. Warn so the silence is at least visible.
+                console.warn(
+                    "DocViewer: could not deliver the state report synchronously; falling back to postMessage",
+                    err,
+                );
+            }
+        }
+
+        target.postMessage(message);
+    }
+
+    /**
+     * Prepare the document's starting state — its content hash, and whatever
+     * saved renderer/core state can be recovered for it — then hand off to the
+     * boot ladder (or park at `"readyToCreateCore"` for a viewer that is not
+     * rendering yet).
+     *
+     * `coreIdWhenCalled` is the `coreId` this load was launched for, taken as
+     * a parameter the way `startCore` takes it so the launch site and the load
+     * judge staleness against one value rather than each reading the ref.
+     * Everything written below a wait is written only while that id is still
+     * the document's — see `stillSpeaksForDocument`.
+     */
+    async function loadStateAndInitialize(coreIdWhenCalled: string) {
         let loadedState = false;
 
-        cid.current = await cidFromText(doenetML);
+        // [#1714] Test seam — hold the load open (or fail it) across a
+        // rebuild, which is what makes the load's staleness guards — the ones
+        // below, and the safety net at its launch site — reachable
+        // deterministically. Inert in production.
+        if (doenetGlobalConfig.__doenetTestCoreInitHook) {
+            await doenetGlobalConfig.__doenetTestCoreInitHook("stateLoad", 0);
+        }
+
+        const documentCid = await cidFromText(doenetML);
+        if (!stillSpeaksForDocument(coreIdWhenCalled)) {
+            // Superseded (or unmounted) while hashing. Nothing below is this
+            // load's to write any more: `cid` and `initialCoreData` are what
+            // the successor's own core is started from, and its load has
+            // already reset them.
+            return;
+        }
+        cid.current = documentCid;
 
         if (flags.allowLocalState) {
             let localInfo;
@@ -1613,6 +2315,14 @@ export function DocViewer({
                 }
             } catch (e) {
                 // ignore error
+            }
+
+            if (!stillSpeaksForDocument(coreIdWhenCalled)) {
+                // Same rule after the IndexedDB read, which is the longest
+                // wait here: handing the successor's core the state saved for
+                // the document it replaced would start it from the wrong
+                // renderer state entirely.
+                return;
             }
 
             if (localInfo) {
@@ -1634,10 +2344,13 @@ export function DocViewer({
                 // Record whether or not we loaded the renderer state before starting core
                 loadedInitialRendererState.current = Boolean(rendererState);
 
-                initializeRenderers({
-                    rendererState,
-                    coreInfo,
-                });
+                initializeRenderers(
+                    {
+                        rendererState,
+                        coreInfo,
+                    },
+                    coreIdWhenCalled,
+                );
 
                 initialCoreData.current = {
                     coreState,
@@ -1667,20 +2380,32 @@ export function DocViewer({
                         });
                     }
                 } catch (e: any) {
-                    setIsInErrorState?.(true);
-
+                    if (!stillSpeaksForDocument(coreIdWhenCalled)) {
+                        // This load belongs to a document that has since been
+                        // rebuilt, or to a viewer that has gone away, so the
+                        // failure is not its to report — the same rule the
+                        // boot ladder follows.
+                        return;
+                    }
                     let message = "";
                     if ("message" in e) {
                         message = e.message;
                     }
-                    setErrMsg(`Error loading doc state: ${message}`);
+                    showFailureMessage(`Error loading doc state: ${message}`);
+                    // The core will never be started, so a host holding a boot
+                    // slot for this document has to hear about it (#1709).
+                    // Report just the failure signal, keeping the specific
+                    // message above on screen: `failCoreStart` would raise the
+                    // generic one over it, and offer a retry that would put
+                    // the same state to the same parser.
+                    reportCoreStartFailed();
                     return;
                 }
             }
         }
 
         //Guard against the possibility that parameters changed while waiting
-        if (coreIdWhenCalled === coreId.current) {
+        if (stillSpeaksForDocument(coreIdWhenCalled)) {
             if (render) {
                 startCoreSafely();
             } else {
@@ -1749,20 +2474,212 @@ export function DocViewer({
         initializeCounters.current = data.initializeCounters;
     }
 
+    /**
+     * Put `message` on the viewer's failure pane, in place of whatever the
+     * document was showing. The single way a failure that leaves no document
+     * reaches the reader, so that the pane's two pieces cannot drift apart:
+     * `offerRetry` says whether this message comes with the **Try again**
+     * button (#1712), and every message that does not clears an offer a
+     * previous one made.
+     *
+     * The rule the pane follows, which is what #1741 asked for, is a rule
+     * about *what may write here* rather than about which writer wins. The
+     * pane is reserved for the failures that leave no document at all — no
+     * core started, saved state that could not be processed, a document the
+     * core could not build — and every one of those ends this document's
+     * boot: each returns without starting a core (or, for a failed
+     * evaluation, is the ladder's own last word), and the pane's early return
+     * in the render below stops another ladder from launching behind it. So
+     * there is one pane message per `coreId`, and a rebuild — which re-rolls
+     * `coreId` — clears it before the next one can be raised.
+     *
+     * The failure that used to fight this pane for the reader's attention is
+     * no longer on it. A host reporting that it cannot produce the saved
+     * state can land anywhere in a document's life, because the boot does not
+     * wait for that answer and the request stays open; it now writes
+     * `stateLoadNotice`, which renders *beneath* whatever the pane is saying
+     * rather than in place of it. Both facts reach the reader, in either
+     * arrival order, and **Try again** stays with the core-start failure it
+     * addresses.
+     *
+     * A writer added to this pane later has to keep the reservation above —
+     * in particular, a failure state rendered in place of the early return
+     * would let a second ladder launch behind the pane, and with it a second
+     * message.
+     */
+    function showFailureMessage(
+        message: string,
+        { offerRetry = false }: { offerRetry?: boolean } = {},
+    ) {
+        setIsInErrorState?.(true);
+        setErrMsg(message);
+        setCoreStartRetry(offerRetry ? "offered" : "none");
+    }
+
+    /**
+     * Take down a failure pane raised while this document was still starting,
+     * now that it has started.
+     *
+     * The pane covers the document rather than sitting beside it, so a message
+     * that outlives what it described hides a working document — and a
+     * `SPLICE.getState` answer keeps its own schedule: the boot posts the
+     * request and does not wait for it (see `requestStateViaSplice`), so a
+     * host reporting that it cannot produce the saved state can land anywhere
+     * in a perfectly healthy boot, including inside a retry the reader asked
+     * for. What that message described — a document with no core — stopped
+     * being true here; what the core has to say about itself (its diagnostics,
+     * its error banner) speaks for the document from now on.
+     *
+     * Only what a boot can supersede is cleared. `stateLoadNotice` is not:
+     * a host that could not produce the reader's saved work still could not,
+     * and the document now on screen is the one that started without it.
+     */
+    function clearFailureMessage() {
+        setIsInErrorState?.(false);
+        setErrMsg(null);
+        setCoreStartRetry("none");
+    }
+
     // Put the viewer into a visible "core failed to start" error state rather
     // than leaving it blank at stage "wait" forever (Doenet/DoenetApps#2957).
     // Shared by every core-start failure path.
-    function failCoreStart() {
+    function failCoreStart({
+        contended = false,
+        documentCause,
+    }: { contended?: boolean; documentCause?: string } = {}) {
         coreCreationInProgress.current = false;
-        setIsInErrorState?.(true);
-        setErrMsg(
-            translate(
-                "core-start-failed",
+
+        // A document that could not be built is not a transient failure, so it
+        // gets neither the retry nor the reload advice -- both re-run the same
+        // source through the same code. It gets the cause instead, which until
+        // now only ever reached `console.error` (#1920).
+        if (documentCause !== undefined) {
+            const message = translate(
+                "core-start-failed-document",
                 undefined,
-                CORE_START_FAILED_MESSAGE,
-            ),
-        );
+                CORE_START_FAILED_DOCUMENT_MESSAGE,
+            );
+            showFailureMessage(
+                documentCause ? `${message} ${documentCause}` : message,
+                { offerRetry: false },
+            );
+            setHasInitialError(true);
+            reportCoreStartFailed();
+            return;
+        }
+
+        // The first failure offers the reader a button, beside a message with
+        // no reload advice in it; a failure that has already been retried is
+        // terminal and gets the message that advises the reload — which is
+        // also what keeps that message, and its translations, in use (#1712).
+        //
+        // The four messages are spelled out as four literal `translate` calls
+        // because a computed key is invisible to `lint:i18n`, which reads
+        // string literals only (see `collectCallSites` in `@doenet/i18n`).
+        const offerRetry = !retrySpent.current;
+        let message: string;
+        if (offerRetry) {
+            message = contended
+                ? translate(
+                      "core-start-failed-busy-retry",
+                      undefined,
+                      CORE_START_FAILED_BUSY_RETRY_MESSAGE,
+                  )
+                : translate(
+                      "core-start-failed-retry",
+                      undefined,
+                      CORE_START_FAILED_RETRY_MESSAGE,
+                  );
+        } else {
+            message = contended
+                ? translate(
+                      "core-start-failed-busy",
+                      undefined,
+                      CORE_START_FAILED_BUSY_MESSAGE,
+                  )
+                : translate(
+                      "core-start-failed",
+                      undefined,
+                      CORE_START_FAILED_MESSAGE,
+                  );
+        }
+        showFailureMessage(message, { offerRetry });
         setHasInitialError(true);
+        reportCoreStartFailed();
+    }
+
+    /**
+     * Start this document over at the reader's request (#1712), without
+     * reloading the page. Bumping the counter is the whole of it: the render
+     * below reads the bump as a rebuild input and runs the rebuild from
+     * there.
+     *
+     * Stacking is not possible by construction: the button lives in the
+     * failure pane, and the rebuild this schedules clears `errMsg` in the
+     * very next render, so a second click has nothing to land on. Two clicks
+     * inside one React batch collapse into a single rebuild, since it is the
+     * *change* in `retryGeneration` that triggers one.
+     *
+     * Nothing here asks a boot-scheduling host for a slot: the gates that
+     * exist (`coordinator.ts`, `viewer-lifecycle-manager`) live in the parent
+     * realm, gate mounting rather than re-booting, and accept no such request
+     * from a child. What bounds a retry instead is the contention-scaled
+     * handshake watchdog (#1711), which counts its handshake in the page-wide
+     * census like any other.
+     */
+    function retryCoreStart() {
+        setRetryGeneration((generation) => generation + 1);
+    }
+
+    /**
+     * What a document shows while it has nothing to render yet. Used both
+     * where a booting core has produced no renderer and while a
+     * reader-initiated retry is running (#1712).
+     */
+    function initializingPane() {
+        return (
+            <div
+                // Announced, because this pane can be an *answer*: the retry
+                // button removes itself when clicked (#1712), taking the
+                // reader's focus with it, so a reader who cannot see the pane
+                // that replaced it would otherwise be told nothing at all
+                // about what their click did. Polite rather than assertive —
+                // it reports progress, and the outcome that follows is what
+                // interrupts (see the failure pane's `role="alert"`).
+                role="status"
+                style={{
+                    backgroundColor: "var(--canvas)",
+                    color: "var(--canvasText)",
+                }}
+            >
+                <p>
+                    {translate(
+                        "viewer-initializing",
+                        undefined,
+                        "Initializing...",
+                    )}
+                </p>
+            </div>
+        );
+    }
+
+    /**
+     * Tell a boot-scheduling host that this document's core-start attempt is
+     * over and failed (#1709), so it can free the slot it is holding rather
+     * than wait out its own watchdog.
+     *
+     * At most once per attempt: several paths can conclude the same one —
+     * `startCore` reports the failure and returns, and `startCoreSafely`
+     * reports again if that same call also throws — and a host that released
+     * a slot per notification would over-release. A rebuild re-rolls `coreId`,
+     * which is what makes the next attempt reportable again.
+     */
+    function reportCoreStartFailed() {
+        if (coreStartFailureReportedFor.current === coreId.current) {
+            return;
+        }
+        coreStartFailureReportedFor.current = coreId.current;
+        coreStartFailedCallback?.({ activityId, docId });
     }
 
     // The core-worker *handshake*: (re)create the worker and run the cheap,
@@ -1770,7 +2687,11 @@ export function DocViewer({
     // the JS core). This is the phase a Doenet/DoenetApps#2957 stall lives in,
     // so `startCore` wraps it in a watchdog. The expensive `generateDast` step
     // happens AFTER this returns and is deliberately NOT watchdogged.
-    async function handshakeCore(attempt: number): Promise<Remote<CoreWorker>> {
+    async function handshakeCore(
+        attempt: number,
+        ownerCoreId: string,
+        onQueueTurn?: () => void,
+    ): Promise<Remote<CoreWorker>> {
         let thisCoreWorker = coreWorker.current;
 
         if (attempt > 0 || coreCreated.current || !thisCoreWorker) {
@@ -1783,7 +2704,10 @@ export function DocViewer({
             //  - attempt > 0 — a retry, whose predecessor worker may be wedged.
             // reinitializeCoreAndTerminateAnimations tears down any existing
             // worker and boots + initializes a new one.
-            thisCoreWorker = await reinitializeCoreAndTerminateAnimations();
+            thisCoreWorker = await reinitializeCoreAndTerminateAnimations(
+                ownerCoreId,
+                onQueueTurn,
+            );
         } else {
             // attempt 0, a worker already exists, and its core isn't created —
             // reuse that worker (skipping a fresh boot + WASM init) and just
@@ -1791,7 +2715,11 @@ export function DocViewer({
             // the initial-pass `!render` branch pre-created a worker to report
             // document structure, or a document/parameter change reset
             // `coreCreated` while keeping the existing worker.
-            await initializeCoreWorkerForDoc(thisCoreWorker);
+            await initializeCoreWorkerForDoc(
+                thisCoreWorker,
+                ownerCoreId,
+                onQueueTurn,
+            );
         }
 
         // [Doenet/DoenetApps#2957] Test seam — simulate a handshake-phase
@@ -1807,60 +2735,346 @@ export function DocViewer({
         return thisCoreWorker;
     }
 
-    async function startCore() {
+    /**
+     * Does the work launched for `launchedFor` — a boot ladder, or the state
+     * load that precedes one — still speak for this document?
+     *
+     * `coreId` is re-rolled whenever the document is rebuilt, and each rebuild
+     * launches its own load and ladder, so a `coreId` that has moved on means
+     * the outcome is the successor's; an unmounted viewer means it is nobody's.
+     * Either way the older work must not act. Two ladders in flight tear down
+     * each other's worker (both go through
+     * `reinitializeCoreAndTerminateAnimations`, which owns the single
+     * `coreWorker` ref) and fail a document that is booting fine; a stale
+     * conclusion of either kind puts its message over what the successor has
+     * on screen, and spends the successor's single `reportCoreStartFailed`,
+     * which latches on the CURRENT `coreId`.
+     *
+     * The waits on both paths make that window wide: a load awaits a cid and
+     * then IndexedDB, and a boot awaits a handshake per attempt, backs off
+     * between attempts (#1711), and then evaluates. (The `SPLICE.getState`
+     * round trip a load may start is not one of them: the load never awaits
+     * it. It posts the request and hands straight off to the boot, and the
+     * response is picked up later by the message listener above, matched
+     * against the message id and `cid` current *then* — so it acts for
+     * whatever document the viewer is showing by then, re-rolling `coreId`
+     * and launching a ladder of its own, which is what stands the running one
+     * aside.)
+     *
+     * Consulted everywhere a losing operation could speak for the document:
+     * the staleness checks inside `loadStateAndInitialize` and at its launch
+     * site, the `bootAbandoned` checks inside `startCore`, and the
+     * unexpected-throw handler in `startCoreSafely`.
+     */
+    function stillSpeaksForDocument(launchedFor: string) {
+        return !viewerUnmounted.current && coreId.current === launchedFor;
+    }
+
+    async function startCore(coreIdWhenCalled: string) {
         setHasInitialError(false);
+
+        /** Has this ladder been superseded, or the viewer torn down? */
+        function bootAbandoned() {
+            return !stillSpeaksForDocument(coreIdWhenCalled);
+        }
+        /**
+         * Wind up a ladder that no longer owns the document, disposing
+         * whatever it created — which is nothing when a NEWER ladder took
+         * over: that ladder's `reinitializeCoreAndTerminateAnimations` has
+         * already disposed this one's worker and put its own on the shared
+         * `coreWorker` ref, so tearing that down here would fail the document
+         * that is booting fine. After an unmount there is no successor and the
+         * unmount teardown has already run, so this is the only thing left
+         * that can release a worker this ladder created afterwards.
+         *
+         * Every `bootAbandoned()` exit below goes through here, so the rule
+         * holds wherever the ladder happens to notice it has been abandoned.
+         */
+        async function standDown() {
+            if (viewerUnmounted.current) {
+                await teardownCurrentCoreWorker({ graceful: true });
+            }
+        }
 
         const maxAttempts = Math.max(
             1,
             doenetGlobalConfig.coreBootMaxAttempts ??
                 DEFAULT_CORE_BOOT_MAX_ATTEMPTS,
         );
-        const handshakeWatchdogMs =
-            doenetGlobalConfig.coreHandshakeWatchdogMs ??
-            DEFAULT_CORE_HANDSHAKE_WATCHDOG_MS;
+        // An explicit host override is a statement about that deployment —
+        // notably one using `fetchExternalDoenetML`, whose network expansion
+        // runs inside the handshake — so it wins outright over the
+        // contention-scaled budget below (#1711).
+        const handshakeWatchdogOverride =
+            doenetGlobalConfig.coreHandshakeWatchdogMs;
+        // Absent the hint, assume a single core: a browser that will not say
+        // how many it has is not evidence of a fast machine.
+        const cores = reportedCores() || 1;
+        /**
+         * The watchdog budget for a given contention reading. One place, so
+         * that the override's precedence holds identically for the reading an
+         * attempt opens with and for the one its census seat brings back —
+         * and monotonic in that reading (both `handshakeWatchdogMsFor` and a
+         * fixed override are), so re-deriving a budget from a count that has
+         * since risen can only ever give a wider one.
+         */
+        function budgetMsFor(concurrentHandshakes: number): number {
+            return (
+                handshakeWatchdogOverride ??
+                handshakeWatchdogMsFor({
+                    concurrentHandshakes,
+                    hardwareConcurrency: cores,
+                })
+            );
+        }
 
         // --- Phase 1: handshake — watchdogged and retried ---
         // Only this cheap, size-independent phase is time-boxed. A stall here
         // means a hung/wedged worker (Doenet/DoenetApps#2957), not slow work.
         let thisCoreWorker: Remote<CoreWorker> | null = null;
         let handshakeSucceeded = false;
+        // Whether the attempt that gave up did so on a page contended enough
+        // that the failure is better explained by pressure than by a broken
+        // document (#1711) — which is what `failCoreStart` below turns into
+        // the busy-page wording.
+        let lastFailureWasContended = false;
 
-        for (let attempt = 0; attempt < maxAttempts; attempt++) {
-            try {
-                thisCoreWorker = await withTimeout(
-                    () => handshakeCore(attempt),
-                    handshakeWatchdogMs,
-                    `core worker handshake (attempt ${attempt + 1}/${maxAttempts})`,
-                );
-                handshakeSucceeded = true;
-                break;
-            } catch (err) {
-                console.warn(
-                    `DocViewer: core worker handshake attempt ${attempt + 1} ` +
-                        `of ${maxAttempts} failed` +
-                        (attempt + 1 < maxAttempts
-                            ? "; retrying with a fresh worker."
-                            : "; giving up."),
-                    err,
-                );
-                // The worker may be wedged (a hung round-trip leaves its
-                // serialization queue — and its own terminate() — stuck), so
-                // force-kill it natively and drop the refs; the next attempt
-                // starts from a brand-new Worker.
-                await teardownCurrentCoreWorker({ graceful: false });
-                coreCreated.current = false;
-                coreCreationInProgress.current = false;
-                if (attempt + 1 < maxAttempts) {
-                    await new Promise((resolve) =>
-                        setTimeout(resolve, CORE_BOOT_RETRY_DELAY_MS),
+        // From here a census seat is held, so every exit — the abandonment
+        // returns below included — runs through the `finally` that frees it.
+        let censusHandle: Promise<HandshakeCensusSeat> | null = null;
+        try {
+            // Join the page-wide handshake count for as long as this ladder is
+            // handshaking, so sibling realms sizing their own watchdogs can
+            // see it (#1711). Released by the `finally` below — at the end of
+            // the handshake phase, not of the ladder, since what the count
+            // measures is handshakes in flight and the evaluation that follows
+            // is not one. Purely observational — shared mode, so it never
+            // blocks.
+            // NOT awaited: joining is bookkeeping, and an await here is a
+            // suspension point in the middle of a boot. See
+            // `concurrentHandshakesSnapshot` for what that cost. The count
+            // the seat carries is consumed by the first attempt below (#1718).
+            // The seat deliberately spans the whole ladder, retry backoff
+            // included: a ladder in backoff is pressure about to return, so
+            // siblings sizing watchdogs against it err long — the safe
+            // direction — and a seat taken and released per attempt would put
+            // extra lock operations next to every handshake for a count that
+            // is already, by documented contract, one refresh behind.
+            censusHandle = joinHandshakeCensus();
+            for (let attempt = 0; attempt < maxAttempts; attempt++) {
+                if (bootAbandoned()) {
+                    // Re-checked before each attempt, because a retry waits
+                    // too: creating a worker for a viewer that is gone leaks
+                    // it, and racing a newer ladder breaks the document that
+                    // one is booting.
+                    await standDown();
+                    return;
+                }
+                // Refresh again each attempt: a page of activities drains as
+                // they finish, so a retry is judged against the pressure it
+                // actually faces rather than the pressure at entry. The
+                // reading taken next is the one the PREVIOUS refresh produced
+                // — the backoff between attempts is what it lands in.
+                refreshHandshakeCensusCount();
+                // The contention this attempt is judged against — its budget
+                // and, if it fails, its wording. Mutable, because attempt 0's
+                // own census seat can raise it while the attempt is running
+                // (below); since `budgetMsFor` is monotonic in it, re-deriving
+                // a budget from it gives whichever one is in force by then.
+                let concurrentHandshakes = concurrentHandshakesSnapshot();
+                const openingWatchdogMs = budgetMsFor(concurrentHandshakes);
+                // A realm's first attempt reads a cache no boot has refreshed
+                // yet, so it sizes — and attributes — itself as the only boot
+                // on the page; a fresh PreTeXt iframe, the very case #1711
+                // exists for, is exactly that boot (#1718). The seat this
+                // ladder is already taking counted the page from inside its
+                // grant, so that is where the first attempt's reading comes
+                // from instead.
+                //
+                // Never awaited, and consumed wherever it lands: the count
+                // arrives a lock grant and a query after the handshake
+                // started — far inside even the base budget — so it widens a
+                // deadline already running, and `startCore` gains neither a
+                // suspension point nor a lock operation of its own. Both of
+                // those constraints are real and separate:
+                // `concurrentHandshakesSnapshot` records what an await here
+                // cost, and `joinHandshakeCensus` why a query must not sit
+                // immediately ahead of a lock request (#1713).
+                //
+                // Attempt 0 only. A later attempt is answered by the refresh
+                // above from the attempt before it, which describes the page
+                // the retry actually faces, whereas the seat's reading is
+                // only ever the pressure at the ladder's entry.
+                //
+                // It can only ever grant more time: `withTimeout` ignores a
+                // later budget below the one in force, so a seat that saw a
+                // quieter page than the cache leaves the deadline alone. And
+                // where a host override fixes the budget, `budgetMsFor`
+                // returns it unchanged — the seat then moves only the count
+                // the failure wording reads.
+                const seatWidenedWatchdogMs =
+                    attempt === 0
+                        ? censusHandle.then(async (seat) => {
+                              concurrentHandshakes = Math.max(
+                                  concurrentHandshakes,
+                                  await seat.count,
+                              );
+                              return budgetMsFor(concurrentHandshakes);
+                          })
+                        : null;
+                // When this attempt's initialization gets its turn on the
+                // worker. A boot restarted mid-handshake queues behind the
+                // initialization already in flight on the worker it found
+                // (#1533), and that wait must not come out of the budget the
+                // attempt's own round trips were given: on a slow machine,
+                // two healthy handshakes back to back would overrun one
+                // budget and discard a worker that was working. So the
+                // deadline is re-based at the turn. The wait itself stays
+                // bounded, by the budget running while it lasted — an
+                // initialization hung on a wedged worker never yields a turn,
+                // and the watchdog still catches that.
+                let signalQueueTurn = () => {};
+                const queueTurn = new Promise<void>((resolve) => {
+                    signalQueueTurn = resolve;
+                });
+                try {
+                    thisCoreWorker = await withTimeout(
+                        () =>
+                            handshakeCore(
+                                attempt,
+                                coreIdWhenCalled,
+                                signalQueueTurn,
+                            ),
+                        openingWatchdogMs,
+                        `core worker handshake (attempt ${attempt + 1}/${maxAttempts})`,
+                        {
+                            widenedMs: seatWidenedWatchdogMs,
+                            restartAt: queueTurn,
+                        },
                     );
+                    handshakeSucceeded = true;
+                    break;
+                } catch (err) {
+                    if (bootAbandoned()) {
+                        // Superseded or unmounted while this attempt was in
+                        // flight — often *because* of it: a rebuild disposes
+                        // the worker through
+                        // `reinitializeCoreAndTerminateAnimations`, which is
+                        // what made the attempt fail. So neither the failure
+                        // nor the worker ref is this ladder's any more: it
+                        // must not report an error over a document that is
+                        // booting fine, and must not tear down the successor's
+                        // worker.
+                        console.warn(
+                            "DocViewer: abandoning a superseded core worker handshake",
+                            err,
+                        );
+                        await standDown();
+                        return;
+                    }
+                    // A document that cannot be built fails the same way on
+                    // every attempt, so retrying with a fresh worker spends
+                    // attempts on something that cannot succeed and ends by
+                    // blaming the page for the document's problem. Report the
+                    // cause and stop (#1920).
+                    if (isDocumentBuildFailure(err)) {
+                        // Gracefully: the worker is healthy, it is the
+                        // document it was handed that is not, so this is not
+                        // evidence of a wedge.
+                        await teardownCurrentCoreWorker({ graceful: true });
+                        // The teardown awaits, and a rebuild can change
+                        // `coreId` and attach its successor's worker while it
+                        // does. Everything after it commits to shared state --
+                        // `coreCreated`, the failure pane, a
+                        // `coreStartFailedCallback` that frees a host's boot
+                        // slot -- so a ladder that lost the document in the
+                        // meantime must hand off instead, exactly as every
+                        // other exit from this function does.
+                        if (bootAbandoned()) {
+                            await standDown();
+                            return;
+                        }
+                        coreCreated.current = false;
+                        failCoreStart({
+                            documentCause:
+                                err instanceof Error ? err.message : "",
+                        });
+                        return;
+                    }
+                    // Only a watchdog expiry can be blamed on the page; see
+                    // `isHandshakeTimeout` for why an outright rejection must
+                    // not be.
+                    const contended =
+                        isHandshakeTimeout(err) &&
+                        timeoutLooksLikeContention({
+                            concurrentHandshakes,
+                            hardwareConcurrency: cores,
+                        });
+                    // Remembered for the failure wording (#1712): if the last
+                    // attempt timed out under pressure, say so rather than
+                    // presenting an unexplained error.
+                    lastFailureWasContended = contended;
+                    // The budget is logged as context, not as elapsed time:
+                    // only a watchdog expiry takes the whole budget, while an
+                    // outright rejection (a worker script that 404s) fails as
+                    // fast as the error arrives. The `err` printed alongside
+                    // says which of the two happened. Re-derived rather than
+                    // read from `openingWatchdogMs`, so a seat that widened
+                    // this attempt is reported as having done so.
+                    console.warn(
+                        `DocViewer: core worker handshake attempt ${attempt + 1} ` +
+                            `of ${maxAttempts} failed (watchdog ${budgetMsFor(concurrentHandshakes)}ms; ` +
+                            `${concurrentHandshakes} handshake(s) in flight on ${cores} core(s))` +
+                            (attempt + 1 < maxAttempts
+                                ? "; retrying with a fresh worker."
+                                : "; giving up."),
+                        err,
+                    );
+                    // The worker may be wedged (a hung round-trip leaves its
+                    // serialization queue — and its own terminate() — stuck), so
+                    // force-kill it natively and drop the refs; the next attempt
+                    // starts from a brand-new Worker. On a demonstrably
+                    // contended page the wedge suspicion is withheld — see
+                    // `timeoutLooksLikeContention` for what a false one costs.
+                    await teardownCurrentCoreWorker({
+                        graceful: false,
+                        suspectWedge: !contended,
+                    });
+                    coreCreated.current = false;
+                    coreCreationInProgress.current = false;
+                    if (attempt + 1 < maxAttempts) {
+                        await new Promise((resolve) =>
+                            setTimeout(resolve, retryDelayMs(attempt)),
+                        );
+                    }
                 }
             }
+        } finally {
+            censusHandle
+                ?.then((seat) => seat.release())
+                .catch(() => {
+                    // `joinHandshakeCensus` swallows its own failures and
+                    // resolves to a no-op seat, so there is nothing to handle
+                    // here; the handler only satisfies "no fire-and-forget
+                    // promises".
+                });
+        }
+
+        if (bootAbandoned()) {
+            // The ladder is done, but for a document that has since been
+            // rebuilt or a viewer that has gone away. Neither outcome is
+            // still this ladder's to deliver: evaluating a won handshake
+            // would render the superseded document over the new one's boot
+            // (and fire `initializedCallback` for it), and reporting a lost
+            // one would put the give-up screen over a document that is
+            // booting fine.
+            await standDown();
+            return;
         }
 
         if (!handshakeSucceeded || thisCoreWorker === null) {
             // Every handshake attempt failed.
-            failCoreStart();
+            failCoreStart({ contended: lastFailureWasContended });
             return;
         }
 
@@ -1871,6 +3085,33 @@ export function DocViewer({
         // core finishes), so we let it run to completion however long it takes.
         onActionCallbacks.current.clear();
         coreCreationInProgress.current = true;
+
+        // The worker keeps the proxies below for the life of its core and
+        // calls them mid-evaluation, before the RPC resolves — and a
+        // superseded worker stays alive through a bounded graceful teardown,
+        // so its deliveries can arrive after `coreId` has moved on. Ownership
+        // is therefore checked at delivery: `updateRenderers` and friends
+        // stamp `coreId.current`, which by then is the successor's id, so an
+        // unguarded delivery would write the superseded document's renderer
+        // state, score, clipboard text, or host events under the document
+        // that replaced it. The animation-frame proxies stay unguarded: a
+        // rebuild already stops animations via `preventMoreAnimations` and
+        // cancels everything in `animationInfo`.
+        const speakingFor = <Args extends unknown[], Result>(
+            callback: (...args: Args) => Result,
+        ) => {
+            return (...args: Args): Result | undefined =>
+                stillSpeaksForDocument(coreIdWhenCalled)
+                    ? callback(...args)
+                    : undefined;
+        };
+        // `requestSolutionView`'s answer is awaited in the worker, so its
+        // suppressed form refuses instead of resolving to nothing the worker
+        // would then read `allowView` off of.
+        const requestSolutionViewIfCurrent = (componentIdx: number) =>
+            stillSpeaksForDocument(coreIdWhenCalled)
+                ? requestSolutionView(componentIdx)
+                : Promise.resolve({ allowView: false });
 
         let dastResult: Awaited<
             ReturnType<Remote<CoreWorker>["generateJavascriptDast"]>
@@ -1902,25 +3143,68 @@ export function DocViewer({
                         : undefined,
                     initializeCounters: initializeCounters.current,
                 },
-                Comlink.proxy(updateRenderers),
-                Comlink.proxy(reportScoreAndStateCallback),
+                Comlink.proxy(speakingFor(updateRenderers)),
+                Comlink.proxy(speakingFor(reportScoreAndStateCallback)),
                 Comlink.proxy(requestAnimationFrame),
                 Comlink.proxy(cancelAnimationFrame),
-                Comlink.proxy(copyToClipboard),
-                Comlink.proxy(sendEvent),
-                Comlink.proxy(requestSolutionView),
+                Comlink.proxy(speakingFor(copyToClipboard)),
+                Comlink.proxy(speakingFor(sendEvent)),
+                Comlink.proxy(requestSolutionViewIfCurrent),
             );
         } catch (err) {
+            if (bootAbandoned()) {
+                // Not a failure of this document: a rebuild's
+                // `reinitializeCoreAndTerminateAnimations` disposed the worker
+                // this ladder was driving, so the rejection is the teardown
+                // being observed from the losing side (#1714). Reporting it
+                // would put the give-up screen — and a
+                // `coreStartFailedCallback`, which frees a host's boot slot —
+                // over a document the successor is booting fine.
+                await standDown();
+                return;
+            }
             // generateDast normally reports core problems via
             // `{ success: false }` (handled below); a *rejection* here is an
             // unexpected failure (e.g. the worker died mid-evaluation). Surface
             // it rather than stalling.
             console.warn("DocViewer: generateJavascriptDast failed", err);
+            if (isDocumentBuildFailure(err)) {
+                // Terminal: no retry is offered, so nothing will come back for
+                // this worker. Without the teardown it -- and the wasm core and
+                // the callbacks it holds -- stay alive until a rebuild or an
+                // unmount that may never come. Gracefully, as in the handshake
+                // branch above: the worker is healthy, the document it was
+                // handed is not.
+                await teardownCurrentCoreWorker({ graceful: true });
+                // Same ownership re-check as the handshake branch: the teardown
+                // awaits, and a rebuild can take the document over while it
+                // does.
+                if (bootAbandoned()) {
+                    await standDown();
+                    return;
+                }
+                coreCreated.current = false;
+                failCoreStart({
+                    documentCause: err instanceof Error ? err.message : "",
+                });
+                return;
+            }
             failCoreStart();
             return;
         }
 
+        if (bootAbandoned()) {
+            // Superseded while evaluating (#1714). Everything below commits a
+            // result to the viewer — renderers, diagnostics, the stage, the
+            // initialized callback — and this ladder's result belongs to a
+            // document that is no longer on screen. The evaluation itself is
+            // finished either way; only its delivery is withheld.
+            await standDown();
+            return;
+        }
+
         if (dastResult.success) {
+            clearFailureMessage();
             if (
                 coreInfo.current &&
                 JSON.stringify(coreInfo.current) ===
@@ -1931,7 +3215,10 @@ export function DocViewer({
                 // we already initialized renderers before core was created and no errors were encountered
                 // so don't initialize them again when core sends the initializeRenderers message
             } else {
-                initializeRenderers({ coreInfo: dastResult.coreInfo });
+                initializeRenderers(
+                    { coreInfo: dastResult.coreInfo },
+                    coreIdWhenCalled,
+                );
                 if (errorInsideRenderers.current) {
                     setIgnoreRendererError(true);
                     setIsInErrorState?.(false);
@@ -1949,8 +3236,7 @@ export function DocViewer({
                 }
             }
         } else {
-            setIsInErrorState?.(true);
-            setErrMsg(dastResult.errMsg);
+            showFailureMessage(dastResult.errMsg);
             setHasInitialError(true);
         }
 
@@ -1977,11 +3263,48 @@ export function DocViewer({
     // boot failures itself, but an *unexpected* throw must still become a
     // visible error rather than an unhandled rejection
     // (Doenet/DoenetApps#2957, and AGENTS.md "no fire-and-forget promises").
+    //
+    // Also the single-flight gate: at most one ladder per document may be in
+    // flight, since two of them would fight over the shared `coreWorker` ref.
+    // See `bootLadderCoreId`.
     function startCoreSafely() {
-        startCore().catch((e) => {
+        const launchedFor = coreId.current;
+        if (bootLadderCoreId.current === launchedFor) {
+            return;
+        }
+        bootLadderCoreId.current = launchedFor;
+        runBootLadder(launchedFor).catch((e) => {
             console.warn("DocViewer: startCore failed unexpectedly", e);
+            // Only a ladder that still owns the document and has not already
+            // delivered it may raise the give-up screen (and with it a
+            // `coreStartFailedCallback`, which frees a host's boot slot).
+            // A superseded ladder's throw is no more its to report than its
+            // ordinary outcome is — the same rule `standDown` follows — and
+            // the ladder's very last step is `initializedCallback`, a host
+            // handler running after the document is already on screen.
+            if (!stillSpeaksForDocument(launchedFor) || coreCreated.current) {
+                return;
+            }
             failCoreStart();
         });
+    }
+
+    /**
+     * Run one boot ladder, releasing the single-flight latch when it ends —
+     * however it ends, including the abandonment exits inside `startCore`.
+     * The latch is only dropped if it is still this ladder's: a rebuild that
+     * re-rolled `coreId` mid-ladder has already claimed it for its successor,
+     * and clearing it there would let a re-render launch a third ladder
+     * alongside that one.
+     */
+    async function runBootLadder(launchedFor: string) {
+        try {
+            await startCore(launchedFor);
+        } finally {
+            if (bootLadderCoreId.current === launchedFor) {
+                bootLadderCoreId.current = null;
+            }
+        }
     }
 
     function requestAnimationFrame({
@@ -2194,6 +3517,13 @@ export function DocViewer({
         return null;
     }
 
+    let retriedByReader = false;
+    if (lastRetryGeneration.current !== retryGeneration) {
+        lastRetryGeneration.current = retryGeneration;
+        retriedByReader = true;
+        changedState = true;
+    }
+
     if (lastDoenetML.current !== doenetML) {
         lastDoenetML.current = doenetML;
         changedState = true;
@@ -2252,8 +3582,33 @@ export function DocViewer({
             setErrMsg(null);
             setIsInErrorState?.(false);
         }
+        // A different document — or the same one started over — has not yet
+        // asked any host for state, so nothing is known to be missing from
+        // it. Cleared unconditionally: the setter is idempotent, and the
+        // notice is retired here for the retry rebuild too, whose fresh
+        // `SPLICE.getState` request raises it again if the host answers the
+        // same way.
+        setStateLoadNotice(null);
+        // One retry per document: the reader spends theirs on the rebuild
+        // they asked for, and gets a fresh one with a document they didn't.
+        retrySpent.current = retriedByReader;
+        // And only the rebuild they asked for shows that it is working; every
+        // other one goes back to rendering nothing while it runs. Set here
+        // rather than in the click handler so the flag describes the rebuild
+        // actually in flight, retiring a "running" that a later rebuild
+        // superseded.
+        setCoreStartRetry(retriedByReader ? "running" : "none");
 
         coreId.current = nanoid();
+        // A request the previous document made is not this one's to have
+        // answered. Nothing else retires it: `requestStateViaSplice` replaces
+        // the id only after the load's awaits, and a successor restoring from
+        // local state or handed `initialState` never asks at all, so the old
+        // id would stay current indefinitely — long enough for a late reply
+        // to it to be read as an answer to this document, putting an error
+        // over a document it never described, or state that was saved for
+        // another attempt at the same source into this one.
+        messageIdFromGetState.current = null;
         initialCoreData.current = null;
         coreInfo.current = null;
         setDocumentRenderer(null);
@@ -2268,17 +3623,45 @@ export function DocViewer({
 
         setStage("wait");
 
-        loadStateAndInitialize().catch((e) => {
+        const loadingFor = coreId.current;
+        loadStateAndInitialize(loadingFor).catch((e) => {
             console.warn("DocViewer: loadStateAndInitialize failed", e);
-            failCoreStart();
+            // The load reports its own expected failures; an unexpected throw
+            // (an unreadable saved record, a `cidFromText` that rejects) still
+            // has to become a visible error rather than an unhandled
+            // rejection. Only while the load still speaks for the document,
+            // though: it waits on a cid and on IndexedDB, so a rebuild can
+            // supersede it, and a stale give-up screen would both cover what
+            // the successor is showing and spend its single
+            // `reportCoreStartFailed` — see `stillSpeaksForDocument`.
+            if (stillSpeaksForDocument(loadingFor)) {
+                failCoreStart();
+            }
         });
 
         return null;
     }
 
+    // The lead-in of the "started without your saved work" notice, in the
+    // reader's language, with the host's own words following it. Written
+    // once for the two places that notice can appear — beneath a failure
+    // pane's message, and beside a working document — and as a literal
+    // `translate` call, the only form `lint:i18n` can see.
+    const savedStateUnavailableLeadIn = translate(
+        "saved-state-unavailable",
+        undefined,
+        SAVED_STATE_UNAVAILABLE_MESSAGE,
+    );
+
     if (errMsg !== null) {
         return (
             <div
+                // The failure of a document is worth interrupting for, the
+                // same way `RendererLoadFailed` is: this pane replaces the
+                // document (or, after a retry, the pane that said the retry
+                // was working), and nothing else says so to a reader who
+                // cannot see it.
+                role="alert"
                 style={{
                     backgroundColor: "var(--lightRed)",
                     color: "var(--canvasText)",
@@ -2291,19 +3674,82 @@ export function DocViewer({
                     padding: "0.5em",
                 }}
             >
-                <MdError color="red" fontSize={"24pt"} /> {errMsg}
+                {/* Decorative: the message beside it says the same
+                    thing, and the alert above carries it. */}
+                <MdError aria-hidden="true" color="red" fontSize={"24pt"} />{" "}
+                {errMsg}
+                {/* What the host said about the saved state it could not
+                    produce, beneath the pane's own message rather than
+                    instead of it (#1741). Both are true and neither implies
+                    the other — a state error does not stop a core from
+                    starting, it only starts it without the reader's saved
+                    work — where they used to share this pane and erase each
+                    other in arrival order; see `showFailureMessage` for the
+                    rule that separated them.
+
+                    Inside the pane it is part of the pane's `role="alert"`,
+                    so one landing on a pane already up is announced with it.
+                    That is the right weight here and only here: the reader is
+                    looking at a document that failed, not working in one. The
+                    same message beside a working document gets the
+                    `role="status"` region built below. */}
+                {stateLoadNotice !== null ? (
+                    <div style={{ marginTop: "0.5em", fontSize: "0.8em" }}>
+                        {savedStateUnavailableLeadIn} {stateLoadNotice}
+                    </div>
+                ) : null}
+                {/* The failure pane is shown whether or not this viewer is
+                    rendering its document — a host that has set `render`
+                    false still wants to hear that the document failed — but
+                    the button is offered only to one that is: a viewer at
+                    `render={false}` never starts a core (see the launch site
+                    below), so a retry there would trade the message for a
+                    rebuild that boots nothing. Gated here rather than where
+                    the offer is made, so the button appears if the host later
+                    asks for the document. */}
+                {coreStartRetry === "offered" && render ? (
+                    <div style={{ marginTop: "0.5em" }}>
+                        <UiButton onClick={retryCoreStart}>
+                            {translate(
+                                "core-start-retry",
+                                undefined,
+                                CORE_START_RETRY_MESSAGE,
+                            )}
+                        </UiButton>
+                    </div>
+                ) : null}
             </div>
         );
     }
 
     if (stage === "wait") {
-        return null;
+        // A rebuild is under way and there is nothing to show for it yet.
+        // Blank is right for one the reader did not ask for — an editor
+        // recompile, a locale switch — but a retry they clicked has to show
+        // that it is working, or the failure pane just vanishes (#1712).
+        // Gated on `render` for the same reason the button above is.
+        return coreStartRetry === "running" && render
+            ? initializingPane()
+            : null;
     }
 
     if (stage === "readyToCreateCore" && render) {
+        // A document prepared while it was not being rendered — the stage
+        // `loadStateAndInitialize` and the `SPLICE.getState` handler leave
+        // behind when `render` is false — is now wanted, so boot it. The
+        // ladder does not move `stage` off `"readyToCreateCore"` until it
+        // finishes, so this runs again on every re-render in between;
+        // `startCoreSafely` is what keeps that from launching a second ladder.
+        //
+        // A ladder that *failed* leaves the stage here too, and drops the
+        // single-flight latch on its way out. What keeps that from relaunching
+        // one failing ladder after another is the `errMsg` return above: a
+        // give-up screen is rendered instead of ever reaching this line. A
+        // future failure state rendered in place rather than returning early
+        // has to gate this launch site itself.
         startCoreSafely();
-        // XXX: this state never occurs
     } else if (stage === "waitingOnCore" && !render && !coreCreated.current) {
+        // XXX: `"waitingOnCore"` is never set, so this branch never runs.
         // we've moved off this doc, but core is still being created
         // so reinitialize core
         reinitializeCoreAndTerminateAnimations();
@@ -2324,22 +3770,7 @@ export function DocViewer({
     };
     if (!coreCreated.current) {
         if (!documentRenderer) {
-            noCoreWarning = (
-                <div
-                    style={{
-                        backgroundColor: "var(--canvas)",
-                        color: "var(--canvasText)",
-                    }}
-                >
-                    <p>
-                        {translate(
-                            "viewer-initializing",
-                            undefined,
-                            "Initializing...",
-                        )}
-                    </p>
-                </div>
-            );
+            noCoreWarning = initializingPane();
         }
     }
 
@@ -2397,6 +3828,26 @@ export function DocViewer({
             domId.slice(0, -"-container".length),
         );
     }
+
+    // The notice for a document that is on screen and working, started
+    // without the saved work the host could not produce — beside the
+    // document, never in place of it (#1741). This answer keeps its own
+    // schedule and can land on a reader who has been working for minutes
+    // (see the `SPLICE.getState` error branch above for why the request is
+    // still open then), so putting it on the failure pane, which is what
+    // used to happen, took the reader's activity away over a fact that costs
+    // them a state restore they have already worked past.
+    //
+    // Its live region is a component of its own so that the text is always
+    // added to a region already on the page — see `StateLoadNoticeRegion`.
+    const stateNoticeBanner = (
+        <StateLoadNoticeRegion
+            message={stateLoadNotice}
+            leadIn={savedStateUnavailableLeadIn}
+            uiLocale={effectiveUiLocale}
+            documentDirection={documentDirection}
+        />
+    );
 
     let errorOverview = null;
     if (documentRenderer && hasInitialError) {
@@ -2456,6 +3907,7 @@ export function DocViewer({
                 dir={documentDirection}
                 ref={viewerContainerRef}
             >
+                {stateNoticeBanner}
                 {errorOverview}
                 <DocContext.Provider value={contextForRenderers}>
                     {/* Nested inside the provider `doenetml.tsx` mounts from

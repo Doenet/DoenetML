@@ -73,7 +73,6 @@ color =
     .purple = papulo
     .pink = pingi
     .brown = burauni
-
 line-width =
     .thick =
         { $gender ->
@@ -87,13 +86,11 @@ line-width =
             [c7] icinono
            *[c9] innono
         }
-
 # Written as an invariable «na …» phrase, so that it agrees with nothing and
 # can close the phrase. `style-stroke` puts it last for that reason.
 line-style =
     .dashed = na tuputule
     .dotted = na tundoti
-
 fill-style =
     .horizontal = imitalale iyalaala
     .vertical = imitalale iyaiminina
@@ -101,7 +98,6 @@ fill-style =
     .backdiagonal = imitalale iyaselemuka ku lubali lumbi
     .dots = tundoti
     .diamonds = tudayamondi
-
 noun =
     .line = umutalale
     .line-segment = icipande ca mutalale
@@ -121,7 +117,6 @@ noun =
     .diamond = dayamondi
     .cross = umusalaba
     .plus = icishibilo ca kulundapo
-
 # The side count is a relative complement and closes the noun phrase behind the
 # describing words rather than opening it, so it goes in the tail.
 noun-regular-polygon =
@@ -129,7 +124,6 @@ noun-regular-polygon =
         [tail] icakwata amabali { $numSides }
        *[head] icimo icalingana
     }
-
 # The noun class. `c9` is the default and the class of every loanword.
 noun-gender =
     { $noun ->
@@ -152,7 +146,6 @@ noun-gender =
        *[other] c9
     }
 
-
 ## Style composition
 
 # The dash pattern is a «na …» phrase and closes the description, so it moves
@@ -167,26 +160,22 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c3] uwaisula
         [c7] icaisula
        *[c9] iyaisula
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } na { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } na { $pattern }
@@ -194,7 +183,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } na { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «umupaka» is class 3 and leads its own describing words, so the border's
 # words agree with it rather than with the shape it surrounds. Bemba has no
 # article and joins this clause with the invariable «na», so all four branches
@@ -206,35 +194,28 @@ style-border-clause =
         [and-article] na umupaka { $border }
        *[with] na umupaka { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = tacaisula
-
 style-text =
     { $parts ->
         [background] { $color } pa cishinte { $background }
        *[plain] { $color }
     }
-
 style-background-none = takuli cintu
-
 
 ## Boolean words
 
 boolean-true = cine
 boolean-false = bufi
 
-
 ## Answer buttons
 
 answer-submit-label = Ceeceta Incito
 answer-submit-label-no-correctness = Tuma Icasuko
-
 
 ## Sectional blocks
 
@@ -259,7 +240,6 @@ section-name =
     .solution = Ukupwisha
     .task = Incito
     .theorem = Tiyoremu
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -269,9 +249,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Akalangililo
-
 
 ## Tables and figures
 
@@ -282,7 +260,6 @@ table-name =
         [unnumbered-title] Itebulo{ ": " }
        *[unnumbered] Itebulo
     }
-
 figure-name =
     { $parts ->
         [numbered] Icikope { $enumeration }
@@ -291,24 +268,18 @@ figure-name =
        *[unnumbered] Icikope
     }
 
-
 ## Paginator controls
 
 paginator-previous = Icapitapo
 paginator-next = Icakonkapo
 paginator-page = Ibula
-
 paginator-page-status = { $pageLabel } { $currentPage } muli { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = nangu
-
 piecewise-condition-if = nga
-
 piecewise-condition-otherwise = nga te fyo
-
 
 ## Chemistry
 ##
@@ -320,6 +291,5 @@ piecewise-condition-otherwise = nga te fyo
 ## curriculum.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Icishibilo ca Kemikolo Icabipa
 chemistry-invalid-ionic-compound = Ukusakanya kwa Ayoni Ukwabipa

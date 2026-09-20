@@ -31,15 +31,12 @@ color =
     .purple = шәмәхә
     .pink = алсу
     .brown = көрән
-
 line-width =
     .thick = юан
     .thin = нечкә
-
 line-style =
     .dashed = өзек
     .dotted = нокталы
-
 # Noun phrases: they stand in front of «бизәкле» and modify nothing.
 fill-style =
     .horizontal = горизонталь сызык
@@ -48,7 +45,6 @@ fill-style =
     .backdiagonal = кире диагональ сызык
     .dots = нокта
     .diamonds = ромб
-
 noun =
     .line = туры сызык
     .line-segment = кисемтә
@@ -68,7 +64,6 @@ noun =
     .diamond = ромб
     .cross = кисешү тамгасы
     .plus = плюс
-
 # Tatar builds the word from the side count in front of the noun, so the whole
 # of it is one head and there is no tail.
 noun-regular-polygon =
@@ -76,11 +71,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] дөрес { $numSides } мөйешлек
     }
-
 # Tatar has no grammatical gender, so every noun answers the same and the answer
 # goes unused — as in English and Turkish.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -94,21 +87,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = буялган
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } бизәкле { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } бизәкле { $color } { $filled } { $noun }
@@ -116,7 +105,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } бизәкле { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «кырыйлы» — "bordered" — carries the "with a border" sense in its own suffix,
 # so neither a preposition nor an article is wanted, and all four branches read
 # alike except for the connective English needs and Tatar does not.
@@ -127,15 +115,12 @@ style-border-clause =
         [and-article] һәм { $border } кырыйлы
        *[with] { $border } кырыйлы
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } бизәкле { $color } буяу
        *[plain] { $color } буяу
     }
-
 style-unfilled = буялмаган
-
 # «фонда» is the locative of «фон» and says "on the background" by itself, so
 # nothing stands between the two colours.
 style-text =
@@ -143,21 +128,17 @@ style-text =
         [background] { $background } фонда { $color }
        *[plain] { $color }
     }
-
 style-background-none = юк
-
 
 ## Boolean words
 
 boolean-true = дөрес
 boolean-false = ялгыш
 
-
 ## Answer buttons
 
 answer-submit-label = Тикшерү
 answer-submit-label-no-correctness = Җавапны җибәрү
-
 
 ## Sectional blocks
 
@@ -182,7 +163,6 @@ section-name =
     .solution = Чишелеш
     .task = Бирем
     .theorem = Теорема
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -192,9 +172,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Киңәш
-
 
 ## Tables and figures
 
@@ -205,7 +183,6 @@ table-name =
         [unnumbered-title] Таблица{ ". " }
        *[unnumbered] Таблица
     }
-
 figure-name =
     { $parts ->
         [numbered] Рәсем { $enumeration }
@@ -214,22 +191,18 @@ figure-name =
        *[unnumbered] Рәсем
     }
 
-
 ## Paginator controls
 
 paginator-previous = Алдагы
 paginator-next = Киләсе
 paginator-page = Бит
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = яки
 piecewise-condition-if = әгәр
 piecewise-condition-otherwise = юкса
-
 
 ## Chemistry
 
@@ -352,7 +325,6 @@ element-name =
     .lv = Ливерморий
     .ts = Теннессин
     .og = Оганесон
-
 element-anion-name =
     .h = Гидрид
     .c = Карбид
@@ -366,8 +338,6 @@ element-anion-name =
     .i = Йодид
     .at = Астатид
     .ts = Теннессид
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Дөрес булмаган химик билге
 chemistry-invalid-ionic-compound = Дөрес булмаган ион кушылмасы

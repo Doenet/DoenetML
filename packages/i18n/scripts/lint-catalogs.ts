@@ -3,7 +3,8 @@
  *
  * Checks, in order:
  *  1. every catalog parses as Fluent, none names a numbering system on a
- *     Fluent builtin, and no message renders a line break;
+ *     Fluent builtin, no message renders a line break, and no catalog names a
+ *     plural category its own locale cannot select;
  *  2. no key is defined twice within a locale (namespaces share one bundle);
  *  3. no translated locale defines a key English doesn't have (a typo'd key in
  *     a translation is invisible at runtime — it just never resolves);
@@ -36,6 +37,9 @@ import {
     catalogParseErrors,
     multilinePatterns,
     numberingSystemOverrides,
+    allowedPluralCategories,
+    hasOwnPluralData,
+    unselectablePluralCategories,
     collectCallSites,
     collectDiagnosticUsage,
     remainingLiteralDiagnostics,
@@ -91,6 +95,28 @@ for (const locale of locales) {
             problems.push(
                 `locales/${locale}/${namespace}.ftl: ${multiline} — keep each pattern and each variant on one line; a comment belongs above the message, never indented under it`,
             );
+        }
+        // 1d: no catalog names a plural category its own locale cannot
+        // select. Such a branch parses, lints and never renders — text that
+        // looks translated and is unreachable. `locales/km` was seeded with
+        // one: Khmer has only `other`, and its `[one]` branch was dead.
+        const unselectable = unselectablePluralCategories(locale, source);
+        if (unselectable.length > 0) {
+            const selectable = [...allowedPluralCategories(locale)]
+                .sort()
+                .join(", ");
+            // Which of the two cases the locale is in changes the advice, so
+            // the message says: CLDR either lists the categories itself, or
+            // has no data for the tag and the runtime's default locale picks
+            // the branch.
+            const because = hasOwnPluralData(locale)
+                ? `CLDR gives ${locale} only ${selectable}`
+                : `CLDR has no data for ${locale}, so its branches are selected by the runtime's default locale and only ${selectable} may be written`;
+            for (const category of unselectable) {
+                problems.push(
+                    `locales/${locale}/${namespace}.ftl: [${category}] is a plural category ${locale} cannot select, so the branch would never render — ${because}; fold the branch's text into the default variant beside it, or drop the select if the remaining branches are identical (see allowedPluralCategories in scripts/catalogUtils.ts)`,
+                );
+            }
         }
     }
 

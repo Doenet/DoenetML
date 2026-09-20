@@ -41,15 +41,12 @@ color =
     .purple = poni
     .pink = ʻākala
     .brown = palaunu
-
 line-width =
     .thick = mānoanoa
     .thin = lahilahi
-
 line-style =
     .dashed = mokumoku
     .dotted = kikokiko
-
 # Noun phrases: they follow «me» and modify nothing.
 fill-style =
     .horizontal = laina moe
@@ -58,7 +55,6 @@ fill-style =
     .backdiagonal = laina hio huli
     .dots = kiko
     .diamonds = kaimana
-
 noun =
     .line = laina
     .line-segment = ʻāpana laina
@@ -78,7 +74,6 @@ noun =
     .diamond = kaimana
     .cross = keʻa
     .plus = hōʻailona hoʻohui
-
 # The side count follows the noun and precedes its adjectives, so it folds into
 # the head and there is no tail: «huinalehulehu like { $numSides } ʻaoʻao».
 noun-regular-polygon =
@@ -86,11 +81,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] huinalehulehu like { $numSides } ʻaoʻao
     }
-
 # Hawaiian has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -104,22 +97,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its adjectives follow: «laina mānoanoa mokumoku ʻulaʻula».
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = piha
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } me { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } me { $pattern }
@@ -127,7 +116,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } me { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 style-border-clause =
     { $parts ->
         [with-article] me ka palena { $border }
@@ -135,36 +123,29 @@ style-border-clause =
         [and-article] a me ka palena { $border }
        *[with] me ka palena { $border }
     }
-
 # The pattern is a noun and the colour follows it, as everywhere else.
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = piha ʻole
-
 style-text =
     { $parts ->
         [background] { $color } ma luna o ke kua { $background }
        *[plain] { $color }
     }
-
 style-background-none = ʻaʻohe
-
 
 ## Boolean words
 
 boolean-true = ʻoiaʻiʻo
 boolean-false = wahaheʻe
 
-
 ## Answer buttons
 
 answer-submit-label = E nānā i ka hana
 answer-submit-label-no-correctness = E hoʻouna i ka pane
-
 
 ## Sectional blocks
 
@@ -189,7 +170,6 @@ section-name =
     .solution = Hopena
     .task = Hana
     .theorem = Kumumanaʻo
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -199,9 +179,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Kuhikuhi
-
 
 ## Tables and figures
 
@@ -212,7 +190,6 @@ table-name =
         [unnumbered-title] Papa{ ": " }
        *[unnumbered] Papa
     }
-
 figure-name =
     { $parts ->
         [numbered] Kiʻi { $enumeration }
@@ -221,22 +198,18 @@ figure-name =
        *[unnumbered] Kiʻi
     }
 
-
 ## Paginator controls
 
 paginator-previous = Mua
 paginator-next = Aʻe
 paginator-page = ʻAoʻao
-
 paginator-page-status = { $pageLabel } { $currentPage } o { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = a i ʻole
 piecewise-condition-if = inā
 piecewise-condition-otherwise = a i ʻole kēlā
-
 
 ## Chemistry
 ##
@@ -250,6 +223,5 @@ piecewise-condition-otherwise = a i ʻole kēlā
 ## a speaker should add here.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Hōʻailona kemikala kūpono ʻole
 chemistry-invalid-ionic-compound = Huikau ionika kūpono ʻole

@@ -99,6 +99,12 @@ string-children-need-type = For `<{ $component }>` to work with string children,
 # values and stay in English.
 invalid-type-defaulting-to-math = Invalid type { $type } for { $component } component. Must be one of math, text, number, or boolean. Defaulting to math.
 
+# Raised when `type` names something that is not one of the four readings. The
+# value is dropped rather than replaced by a guess, so the children are read as
+# though no type had been written. $type is what the author wrote.
+invalid-type-ignored =
+    Invalid type { $type } for { $component } component. Must be one of math, text, number, or boolean. Ignoring it and reading the values as though no type had been given.
+
 # $value is the string child that could not be used.
 string-not-valid-component-to-arrange = String "{ $value }" is not a valid component to { $component }. Ignoring.
 
@@ -640,6 +646,13 @@ reference-no-referent = No referent found for reference: `{ $reference }`
 
 reference-multiple-referents = Multiple referents found for reference: `{ $reference }`
 
+# Raised when what was written between a reference's index brackets did not come
+# out as a whole number — usually because that component reported an error of its
+# own, which is the diagnostic the author should act on. This one says why the
+# reference then found nothing, so the two read together rather than the reference
+# failing silently.
+reference-index-not-a-number = The index of `{ $reference }` did not work out to a number, so the reference found nothing.
+
 ## Children that do not match
 
 children-invalid-attribute-format = Invalid format for attribute { $attribute } of `<{ $componentType }>`.
@@ -649,7 +662,20 @@ children-invalid = Invalid children for `<{ $componentType }>`: Found invalid ch
 
 ## Falling back to a default
 
+# The attribute had a default to fall back to, and the message names it: the
+# component went on to behave as though the author had written that value, and
+# an author not told which one goes looking for the difference in the wrong
+# place.
 attribute-value-invalid-using-default = Invalid value `{ $value }` for attribute `{ $attribute }`, using value `{ $default }`
+
+# The same rejection where the attribute has no default to fall back to, so
+# nothing stood in for the value and the component behaves as though the
+# attribute had not been written. A separate message rather than the one above
+# with a blank in it: "using value `null`" would describe a substitution that
+# did not happen, and name a value no author could have typed. What follows is
+# usually a second message from the component itself, saying what it did
+# without the attribute.
+attribute-value-invalid-ignoring = Invalid value `{ $value }` for attribute `{ $attribute }`, ignoring it
 
 ## Loading a DoenetML version
 
@@ -723,6 +749,49 @@ parse-close-tag-mismatched = Invalid DoenetML: Mismatched closing tag. Expected 
 # translated like any other error. $node is the node's own name and stays as
 # it is.
 parser-node-unconvertible = Could not convert node { $node } to Dast node.
+
+## Reference indices
+
+# Raised when an element sits in brackets immediately after a reference but the
+# brackets cannot be read as an index. $name is the reference as the author wrote
+# it, including its leading `$` — one for a reference and two for a
+# function reference. $reason says why the brackets could not be read, as a key
+# rather than a phrase, so the whole sentence is translatable rather than
+# assembled from halves.
+#
+# The `braces` branch is about `$x{…}`, which v0.7 no longer gives any meaning:
+# it still parses, but the braces and whatever is in them are dropped. So the
+# remedy is to delete them, not to write the index somewhere else around them.
+#
+# The other four: `parens` and `parensFunction` are `$(x)[…]` and `$$(f)[…]`,
+# which differ only in how many dollars the remedy shows — following the `$(…)` one
+# for a function reference would turn it into an ordinary reference. `arguments`
+# is `$$f(1)[…]`, where the argument list ran past the path. `unclosed` is the
+# default because it states a fact rather than offering a remedy.
+#
+# There is deliberately no branch for an index on a function reference that is
+# then called. `$$fs[<n/>](3)` picks which of the functions in `fs` to call and
+# is taken like any other index on an open path.
+#
+# The `parens` branch is about `$(x)[…]`. The index does belong inside the
+# parentheses, but an element written in there is not read as an index either —
+# what is between `$(` and `)` is read as text — so the remedy is to name the
+# element first and reference it inside the parentheses.
+#
+# The `arguments` branch is about `$$f(1)[…]`. Neither place around the
+# arguments takes the index the author wrote: inside the parentheses it would
+# become one more argument, and before them it would choose which function is
+# called rather than part of what the call returns. So the message offers the
+# one spelling that does work, which is to name the result and index that.
+
+index-element-not-used-as-index =
+    The element in brackets after `{ $name }` was not read as an index. { $reason ->
+        [braces] `{"{…}"}` is not part of a reference, so `[…]` written after it is ordinary text. Remove the `{"{…}"}`.
+        [parens] `$(…)` ends a reference, so `[…]` written after it is ordinary text. Give the element a name and write the index inside the parentheses, as `$(x[$idx])`.
+        [parensFunction] `$$(…)` ends a function reference, so `[…]` written after it is ordinary text. Give the element a name and write the index inside the parentheses, as `$$(f[$idx])`.
+        [arguments] A function reference's arguments end it, so `[…]` written after them is ordinary text. An index written before the arguments would pick which function to call rather than part of what it returns; to index the result, give the result a name and index that.
+       *[unclosed] Its `[` is never closed.
+    }
 
 ## Names
 
@@ -925,3 +994,347 @@ select-prime-numbers-excluded-too-many-combinations = Excluded over 70% of combi
 select-random-combination-fluke = By extremely unlikely fluke, couldn't select combination of random values
 
 select-random-value-fluke = By extremely unlikely fluke, couldn't select random value
+
+## Inputs embedded in math
+
+# Translators: $component is the input's own DoenetML tag and stays in English,
+# as do the attribute names `inline`, `expanded` and `width`. An input written
+# inside `<m>` is drawn in the place it is written, inside the typeset
+# expression, which makes room for it as it grows. That needs a control small
+# enough to sit in a line of mathematics, with a width the expression can
+# measure, in an expression that is not drawn on a graph; $reason says which of
+# those this input fails. When it fails, the input is not shown at all, and the
+# expression is typeset with the input's value in its place — a text input's
+# text, a math input's mathematics — or with nothing there for a choice input.
+math-embedded-input-shape-unsuitable =
+    { $reason ->
+        [not-inline] This `<{ $component }>` is not shown because it is inside math and is not `inline`. Add `inline` so it becomes a drop-down list, which fits inside an expression.
+        [expanded] This `<{ $component }>` is not shown because it is inside math and is `expanded`. Remove `expanded`; a multi-line box does not fit inside an expression.
+        [on-graph] This `<{ $component }>` is not shown because it is inside math drawn on a graph, which has no room for an input.
+       *[relative-width] This `<{ $component }>` is not shown because it is inside math and has a relative width. Give the width in absolute units, such as `px`, instead.
+    }
+
+## `<sampleRandomNumbers>` and `<selectRandomNumbers>`
+##
+## Translators: `mean`, `standardDeviation`, `variance`, `numTotal`,
+## `numSuccesses`, `numDraws`, `numTrials`, `probability` and `numSamples` are
+## DoenetML attribute names. They are written into these messages as they stand
+## and must be left in English exactly as written. Each of these names the
+## attribute the author has to change, so a message that translated one would
+## point at an attribute that does not exist.
+
+# The spread reaches the sampler as a standard deviation however it was written,
+# so a negative `variance` arrives here as a `standardDeviation` of NaN and the
+# message has to name both for the author to know what to edit.
+sample-gaussian-parameters-invalid =
+    Invalid mean ({ $mean }) or standardDeviation ({ $standardDeviation }) for a gaussian random variable. The mean must be a finite number, and the standardDeviation (or the variance it is derived from) must be finite and non-negative. No numbers can be sampled.
+
+# These three attributes are the only ones with no default, so leaving one out is
+# the commonest way to reach this message. Each arrives either as the number the
+# author wrote or as `not-set` for an attribute they left off entirely; translate
+# the "not set" wording, but leave the `not-set` key that selects it untouched.
+sample-hypergeometric-parameters-invalid =
+    Invalid numTotal ({ $numTotal ->
+        [not-set] not set
+       *[other] { $numTotal }
+    }), numSuccesses ({ $numSuccesses ->
+        [not-set] not set
+       *[other] { $numSuccesses }
+    }), or numDraws ({ $numDraws ->
+        [not-set] not set
+       *[other] { $numDraws }
+    }) for a hypergeometric random variable. numTotal must be a positive whole number, and numSuccesses and numDraws must be non-negative whole numbers no larger than numTotal. All three must also stay below about nine quadrillion, past which whole numbers can no longer be counted exactly.
+
+# $maxDraws is the largest number of random draws allowed for a single sample.
+sample-hypergeometric-draws-too-many =
+    Drawing { $numDraws } items from a population of { $numTotal } would need more than { $maxDraws } random draws for each sample, which would stop the page from responding. Reduce numDraws, or bring it closer to numTotal.
+
+sample-binomial-parameters-invalid =
+    Invalid numTrials ({ $numTrials }) or probability ({ $probability }) for a binomial random variable. numTrials must be a non-negative whole number below about nine quadrillion, past which whole numbers can no longer be counted exactly, and probability must be between 0 and 1.
+
+# $maxDraws is the largest number of random draws allowed for a single sample.
+sample-binomial-trials-too-many =
+    Running { $numTrials } trials would need more than { $maxDraws } random draws for each sample, which would stop the page from responding. Reduce numTrials.
+
+sample-poisson-mean-invalid =
+    Invalid mean ({ $mean }) for a poisson random variable. The mean must be a finite, non-negative number.
+
+# $maxDraws is the largest number of random draws allowed for a single sample.
+sample-poisson-mean-too-large =
+    A poisson mean of { $mean } would need more than { $maxDraws } random draws for each sample, which would stop the page from responding. Reduce the mean.
+
+# $distribution names the distribution being sampled, e.g. "binomial" or
+# "multivariate hypergeometric"; $draws is roughly how many random draws each value
+# needs. Raised by `<sampleRandomNumbers>`, `<selectRandomNumbers>` and
+# `<sampleMultivariateRandomNumber>`, which count values with `numSamples`,
+# `numToSelect` and one vector respectively, so the wording names no attribute.
+sample-distribution-slow =
+    Each value from this { $distribution } distribution needs about { $draws } random draws, so sampling may be slow. Reduce the distribution's parameters, or ask for fewer values, if the page feels sluggish.
+
+## List index operators
+
+# Raised by the index-returning list operators (`<indexOf>`, `<searchSorted>`)
+# when no `target` was given. $component names the tag the author wrote.
+index-operator-missing-target =
+    `{ $component }` has no `target` to look for, so it cannot report a position and gives 0.
+
+# Raised when the operator had no values to look through — an empty list, or one
+# whose only children were references that produced nothing.
+index-operator-no-values =
+    `{ $component }` has no values to look through, so it gives 0, which is not the index of any item.
+
+# Raised by `<searchSorted>` when its values are not in ascending order, which is
+# the one thing it asks of them. Deliberately names no offending value or
+# position: a list can pass through many arrangements while it is being built or
+# edited, and a message that changed with the arrangement would leave one entry
+# behind for each. `<sort>` is a DoenetML tag name and stays in English.
+index-operator-values-not-sorted =
+    `{ $component }` reports where a target belongs among values that are already in ascending order, and these are not in that order, so it gives 0, which is not the index of any item. Order the values first, such as with `<sort>`.
+
+## `<sampleMultivariateRandomNumber>`
+##
+## Translators: `type`, `numInCategories` and `numDraws` are DoenetML attribute
+## names, and `hypergeometric` is one of the values `type` takes. They are written
+## into these messages as they stand and must be left in English exactly as
+## written. Each names the attribute the author has to change, so a message that
+## translated one would point at an attribute that does not exist.
+
+# Neither attribute has a default that names a population — numDraws has none at
+# all, and numInCategories falls back to a list with no categories in it — so
+# leaving one out is the commonest way to reach this message. Each arrives either
+# as the value the author wrote or as `not-set`: for numDraws when it is missing,
+# and for numInCategories when it names no categories, whether it was left off or
+# written empty. Translate the "not set" wording, but leave the `not-set` key that
+# selects it untouched.
+sample-multivariate-parameters-invalid =
+    Invalid numInCategories ({ $numInCategories ->
+        [not-set] not set
+       *[other] { $numInCategories }
+    }) or numDraws ({ $numDraws ->
+        [not-set] not set
+       *[other] { $numDraws }
+    }) for a multivariate hypergeometric random variable. numInCategories must list at least one category, each a non-negative whole number, and numDraws must be a non-negative whole number no larger than their total. Each category, that total, and numDraws must also stay below about nine quadrillion, past which whole numbers can no longer be counted exactly.
+
+# $maxDraws is the largest number of random draws allowed for a single sample.
+# Drawing nearly the whole population is as cheap as drawing almost none of it, so
+# raising numDraws is a fix as well as lowering it. "could need" rather than "would
+# need": each category is counted at the most its draw could cost, so the count
+# these parameters are refused on is an upper bound on the work they really take.
+sample-multivariate-draws-too-many =
+    Drawing { $numDraws } items from a population of { $numTotal } split into { $numCategories } categories could need more than { $maxDraws } random draws for each sample, which would stop the page from responding. Reduce numDraws, bring it closer to numTotal, or use fewer categories.
+
+# `type` has no default, so this is what leaving it off gets. A type the attribute
+# does not recognize falls back to no type at all and reaches this message too,
+# after a separate one naming the value that was rejected — hence "no distribution
+# was named" rather than wording that assumes the attribute is missing.
+sample-multivariate-type-not-specified =
+    No multivariate distribution was named for this random variable, so nothing was sampled. Give the type attribute the name of a distribution, such as `type="hypergeometric"`.
+
+## Counting operators
+
+# Raised by `<tally>` when the author named `categories` explicitly and some
+# values matched none of them, so those values were not counted anywhere. Info
+# rather than a warning: a list fed by an input legitimately holds
+# non-categories while a student is typing. It deliberately does not say how
+# many such values there were: the diagnostics queue is append-only and
+# deduplicates by message, so a count would leave one permanent entry behind
+# for every number of stray values the list passed through while being typed.
+tally-values-outside-categories =
+    Some values matched none of the declared categories, so they were not counted.
+
+# Raised by `<chart type="histogram">` when an observation falls outside the
+# outermost cut points. Only cut points an author wrote can leave any — bins the
+# chart chooses cover the data — so this says what a written `bins` left out.
+# Info rather than a warning, for the reason the message above is: leaving part
+# of a sample out of a picture is something an author may have meant, and a
+# column fed by an input passes through values outside the bins while a student
+# is typing. It deliberately does not say how many: the diagnostics queue is
+# append-only and deduplicates by message, so a count would leave one permanent
+# entry behind for every number the column passed through.
+chart-histogram-values-outside-bins =
+    Some observations fell outside the `bins` cut points, so they were not counted in any bar.
+
+# Raised by `<tally>` when `categories` names the same category more than once.
+# A warning rather than info: unlike a stray value, a repeated category is a
+# property of what the author wrote, so it stays true of a settled document. The
+# message says what the counts will be, since the behavior is defensible but not
+# what an author who repeated a category by accident expects.
+tally-repeated-category =
+    `categories` names the same category more than once. Each count reports the values equal to its own category, so the repeated ones all report the same number.
+
+# Raised by `<binCounts>` when no `bins` attribute was given, so there are no
+# intervals to count into. $component names the tag the author wrote.
+bin-counts-missing-bins =
+    `{ $component }` has no `bins` cut points, so there are no intervals to count into and it gives no counts.
+
+# Raised by `<binCounts>` when `bins` held fewer than the two cut points needed
+# to define a single interval. $count is how many were given, and can be 0 or 1,
+# so the sentence is worded to read for both without forking on the number.
+bin-counts-too-few-cut-points =
+    `bins` needs at least 2 cut points to define an interval, but received { $count }.
+
+# Raised by `<binCounts>` when its values are not all numeric, so they cannot be
+# placed between numeric cut points. $component names the tag the author wrote.
+bin-counts-values-not-numeric =
+    `{ $component }` can only count numeric values into bins, but not every value it was given is numeric. All counts are 0.
+
+# Raised by `<binCounts>` when the `bins` cut points do not climb: one is
+# smaller than the one before it, so a bin would run backwards and its count
+# would come out negative, or one is not a number at all, which has the same
+# effect. Equal adjacent cut points are accepted, so the message says "at least
+# as large as" rather than "increasing": what is rejected is a decrease, not a
+# failure to strictly increase. Between two interior cut points that names an
+# empty bin; at either end the outermost-edge rule can still put a value in it.
+bin-counts-cut-points-decreasing =
+    Each `bins` cut point must be a number at least as large as the one before it, but one is not a number or is smaller than its predecessor, so no counts were produced.
+
+## Charts
+
+# Raised by `<chart type="bar">` when a value is not a finite number, so it gets
+# no bar. The alternative reading of a missing bar is a value of zero, which the
+# author cannot distinguish by looking, so the absence is stated rather than left
+# to be inferred. No count: the queue is append-only and deduplicates by message,
+# and the number of such values changes as an input is typed into. (The message
+# key is `bar-chart-…` because a code names one situation forever and this one
+# was issued while the component was still spelled `<barChart>`.)
+bar-chart-values-not-drawable =
+    A bar chart draws no bar for a value that is not a finite number, so those places on the chart are empty rather than zero.
+
+# Raised by `<chart type="bar">` when `barWidth` is outside the (0, 1] range a
+# fraction of a bar's slot can take. $barWidth is what the author wrote.
+bar-chart-bar-width-invalid =
+    `barWidth` must be greater than 0 and at most 1, but { $barWidth } was given. Using 0.8 instead.
+
+# `type` has no default, so this is what `<chart>` on its own gets. A type the
+# attribute does not recognize falls back to no type at all and reaches this
+# message too, after a separate one naming the value that was rejected — hence
+# "no chart type was named" rather than wording that assumes the attribute is
+# missing.
+chart-type-not-specified =
+    No chart type was named, so nothing was drawn. Give the type attribute the name of a chart, such as `type="bar"`.
+
+# Raised by `<chart>` when values are written beside its `<series>` children.
+# A value outside every series belongs to no group of the data, so there is no
+# place on the chart to draw it; saying so matters because the alternative
+# reading of the missing bar is that the value was zero.
+chart-values-outside-series =
+    A chart with `<series>` children draws only the values inside them, so values written beside a series were not drawn. Move them into a series of their own.
+
+# Raised by `<chart type="line">` and `<chart type="scatter">` when a point
+# cannot be placed. Two situations reach it and the message covers both: a value
+# that is not a finite number, and a value with no `x` beside it — which is what
+# a series given fewer horizontal coordinates than values produces from the
+# position they run out. Neither is distinguishable by looking from having asked
+# for fewer points. No count: the queue deduplicates by message, and the number
+# changes as an input is typed into.
+chart-points-not-drawable =
+    A point needs a finite number for both coordinates, so values with no coordinate beside them, and coordinates with no value, were not drawn.
+
+# Raised by `<chart type="pie">` for a value that is not a finite number. The
+# bar chart's message says the place on the chart is empty rather than zero; a
+# pie has no places, so this says the slice is missing instead. No count, for
+# the reason the others give: the queue deduplicates by message.
+chart-pie-values-not-drawable =
+    A pie chart draws no slice for a value that is not a finite number, and leaves it out of the total.
+
+# Raised by `<chart type="pie">` for a negative value. Its own message rather
+# than the one above, because the reason is different in kind: a negative bar
+# hangs below the baseline it is measured from, and a pie has no baseline to
+# hang anything from, so a negative value is not merely undrawable but has no
+# reading as a share of a total. It is left out of the total as well, so the
+# slices that are drawn are shares of what was actually charted.
+chart-pie-negative-values =
+    A slice is a share of a total, so a pie chart draws no slice for a negative value and leaves it out of the total.
+
+# Raised by `<chart type="pie">` when the values that could be shares of a
+# total came to zero. Nothing is drawn: there is no share to take of zero, and
+# dividing by it would put `NaN` in every angle. Not raised for a pie with no
+# values at all, which is one being written rather than one that is wrong, nor
+# for one whose every value was rejected — those already have a message naming
+# the reason.
+chart-pie-total-not-positive =
+    The values of this pie chart total zero, so there are no shares to draw. A pie needs at least one value above zero.
+
+# Raised by `<chart type="pie">` holding more than one `<series>` that is not
+# hidden — a hidden one is dropped before the count, like any drawn child of a
+# container that is hidden on its own account. Concentric
+# rings are not a standard chart and a donut is a styling variant rather than a
+# second group, so there is nowhere on a pie for a second series to go.
+chart-pie-one-series =
+    A pie chart draws one series, so only the first was drawn. Chart the others separately, or use a type that draws several series at once.
+
+# Raised by `<chart type="pie">` whose `<xLabel>` or `<yLabel>` child has text
+# in it; a blank one asks for nothing and is not reported. A pie
+# has no axes for either to name, so the text is authored prose with nowhere on
+# the page to go — which is worth a message where an ignored *attribute* is not,
+# because what was dropped is something the author wrote for a reader to see.
+chart-pie-axis-name-ignored =
+    A pie chart has no axes, so an `<xLabel>` or `<yLabel>` was not drawn. Put the text in a `<title>` instead, or in prose beside the chart.
+
+# Raised by `<chart type="box">` for an observation that is not a finite
+# number. Left out of the summary rather than read as zero, which would move
+# every quartile of the box drawn from it. No count, for the reason the others
+# give: the queue deduplicates by message, and the number changes as an input is
+# typed into.
+chart-box-values-not-drawable =
+    A box plot summarizes finite numbers, so an observation that is not one was left out of its summary.
+
+# Raised by `<chart type="box">` carrying a `categories` attribute. A box chart
+# has no categories: each of its series is one position on the axis and is named
+# by its own `<label>`, so the names in `categories` are authored text with
+# nowhere on the page to go — which is worth a message where an ignored
+# *attribute* is not, because what was dropped is something the author wrote for
+# a reader to see.
+chart-box-categories-ignored =
+    A box plot names each of its boxes after the series it was drawn from, so `categories` was not used. Give each `<series>` a `<label>` instead.
+
+# Raised by `<chart type="histogram">` for an observation that is not a finite
+# number, which falls in no bin. Its own message rather than the box plot's,
+# because what is lost differs: there a quartile moves, here a bar is one
+# shorter. No count, for the reason the others give: the queue deduplicates by
+# message, and the number changes as an input is typed into.
+chart-histogram-values-not-drawable =
+    A histogram counts finite numbers, so an observation that is not one fell in no bin.
+
+# Raised by `<chart type="histogram">` holding more than one `<series>` that is
+# not hidden — a hidden one is dropped before the count, like any drawn child of
+# a container that is hidden on its own account. Two samples counted into the
+# same bars would have to be stacked or drawn through each other, and neither is
+# a reading a histogram can be given without being told which was meant.
+chart-histogram-one-series =
+    A histogram draws one series, so only the first was drawn. Chart the others separately, or compare them with `type="box"`.
+
+# Raised by `<chart type="histogram">` whose `bins` is a single number that is
+# not a number of bins: not a whole number, not positive, or more bins than a
+# picture can hold. $bins is what the author wrote and $maximum the most that
+# may be asked for. Two or more numbers are read as cut points instead, and are
+# reported by the message below.
+chart-histogram-bin-count-invalid =
+    `bins` must be a whole number of bins from 1 to { $maximum }, or two or more cut points, but { $bins } was given. Choosing bins from the data instead.
+
+# Raised by `<chart type="histogram">` whose `bins` holds two or more numbers
+# that do not describe bins to draw. `<binCounts>` has a message of its own for
+# the same list, and this one differs in what happens next: a chart has data to
+# choose bins from, so it draws those rather than drawing nothing.
+#
+# A cut point that is not finite is reported here too, where `<binCounts>`
+# counts into a bin with no far end quite happily — a bar with no far end is not
+# something a picture can hold.
+chart-histogram-cut-points-invalid =
+    Each `bins` cut point must be a finite number at least as large as the one before it. Choosing bins from the data instead.
+
+# Raised by `<chart type="histogram">` carrying a `categories` attribute. A
+# histogram has no categories: its positions are the bins it divided the scale
+# into, named by the numbers they run between, so the names in `categories` are
+# authored text with nowhere on the page to go — which is worth a message where
+# an ignored *attribute* is not, because what was dropped is something the
+# author wrote for a reader to see.
+chart-histogram-categories-ignored =
+    A histogram names its bars by the cut points they run between, so `categories` was not used. Give `bins` the cut points you want instead.
+
+# Raised by `<chart type="histogram">` carrying a `barWidth` attribute. The gap
+# a `barWidth` below 1 leaves is what says two bars stand for separate things,
+# and a histogram's bars are neighboring stretches of one continuous scale —
+# so there is no slot for a width to be a fraction of.
+chart-histogram-bar-width-ignored =
+    A histogram's bars are adjacent, with no gap between them, so `barWidth` was not used. Give `bins` fewer cut points to draw wider bars.

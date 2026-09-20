@@ -16,12 +16,29 @@ import { JXGObject } from "./jsxgraph-distrib/types";
 import {
     calculateValidationState,
     createCheckWorkComponent,
+    wantsFullCheckWorkButton,
 } from "./utils/checkWork";
 import "./textInput.css";
 import { DescriptionPopover } from "./utils/Description";
 import { addValidationStateToShortDescription } from "./utils/validationState";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { useContentT } from "../../utils/i18n";
+import { useInMathSlot, useMathSlotEditing } from "./utils/mathInputSlots";
+import { useMathJaxOutOfTabOrder } from "./utils/useMathJaxOutOfTabOrder";
+
+/**
+ * Horizontal margin, in pixels, on an expanded input's textarea. Named because
+ * the width cap has to subtract it: the margin sits outside the box, so a
+ * textarea capped at the full column width would still overhang by it.
+ */
+const EXPANDED_INPUT_MARGIN_X = 4;
+
+/**
+ * Width a text input falls back to on a graph when its own width is a
+ * percentage. Matches the word-sized default the worker gives an input that
+ * is not `expanded`. See `boardWidth`.
+ */
+const BOARD_INPUT_FALLBACK_WIDTH = "100px";
 
 interface TextInputSVs {
     [key: string]: any;
@@ -40,6 +57,7 @@ interface TextInputSVs {
     width: { size: string; isAbsolute: boolean };
     height?: { size: string; isAbsolute: boolean };
     forceFullCheckWorkButton: boolean;
+    forceSmallCheckWorkButton: boolean;
     justSubmitted: boolean;
     showCheckWork: boolean;
     colorCorrectness: boolean;
@@ -57,6 +75,14 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
     let width = sizeToCSS(SVs.width);
     let height = sizeToCSS(SVs.height); // only for TextArea
+
+    // JSXGraph draws every text input as a one-line field, so `expanded` means
+    // nothing on a graph — including the 100% width it defaults to. The field
+    // floats in a shrink-to-fit box above the graph, which gives a percentage
+    // no column to be a share of, so a relative width falls back to the
+    // word-sized default and an input on a graph is the same size either way.
+    const boardWidth =
+        SVs.width?.isAbsolute === false ? BOARD_INPUT_FALLBACK_WIDTH : width;
 
     // @ts-ignore
     TextInput.baseStateVariable = "immediateValue";
@@ -80,6 +106,26 @@ export default function TextInput(props: UseDoenetRendererProps) {
     let anchorRel = useRef<[string, string] | null>(null);
 
     const board = useContext(BoardContext);
+
+    // Inside an expression there is no room for anything but the field itself:
+    // a visible label drawn among the symbols would read as part of the math.
+    // The expression names the field instead, through its short description.
+    // Read here, with the other hooks, so it is read on every render whether
+    // or not the field goes on to draw anything.
+    const inMathSlot = useInMathSlot();
+
+    // A label that is itself math is typeset by MathJax, which gives it a tab
+    // stop. Inside a slot the label is out of sight, so that stop would land
+    // on nothing a keyboard user can see; the ref is attached only there.
+    const slotRootRef = useRef<HTMLSpanElement>(null);
+    useMathJaxOutOfTabOrder(slotRootRef);
+
+    // A field's own width is fixed, so an expression around it never has to
+    // make room for it; while the field is being edited the expression is
+    // still re-typeset in step with each keystroke, so a reference in it that
+    // follows what is typed does not land a beat behind. Outside a slot this
+    // is a no-op.
+    const slotEditing = useMathSlotEditing();
 
     let pointerAtDown = useRef<[number, number] | null>(null);
     let pointAtDown = useRef<[number, number, number] | null>(null);
@@ -136,7 +182,6 @@ export default function TextInput(props: UseDoenetRendererProps) {
                 action: actions.updateValue,
                 baseVariableValue: rendererValueRef.current,
             });
-
             if (
                 SVs.showCheckWork &&
                 !SVs.expanded &&
@@ -168,6 +213,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
     function onFocusChanged(isFocused: boolean) {
         focused.current = isFocused;
+        slotEditing.setEditing(isFocused);
         callAction({
             action: actions.focusChanged,
             args: { focused: isFocused },
@@ -301,7 +347,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
         newInputJXG.rendNodeInput.addEventListener("blur", handleBlur);
         newInputJXG.rendNodeInput.addEventListener("focus", handleFocus);
 
-        newInputJXG.rendNodeInput.style.width = width!;
+        newInputJXG.rendNodeInput.style.width = boardWidth!;
         newInputJXG.rendNodeInput.style.color = "var(--canvasText)";
         applyDisabledStyleJXG(newInputJXG.rendNodeInput, SVs.disabled);
 
@@ -545,7 +591,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
             inputJXG.current.setText(SVs.label);
 
-            inputJXG.current.rendNodeInput.style.width = width!;
+            inputJXG.current.rendNodeInput.style.width = boardWidth!;
 
             let visible = !SVs.hidden;
 
@@ -614,12 +660,17 @@ export default function TextInput(props: UseDoenetRendererProps) {
 
     const inputKey = id + "_input";
 
+    // An expanded input is a block of its own with room beneath it; a
+    // word-sized one flows in a sentence. Same rule a `<choiceInput>` applies
+    // to its non-inline and inline forms.
+    const fullCheckWork = wantsFullCheckWorkButton(SVs, SVs.expanded);
+
     const checkWorkComponent = createCheckWorkComponent(
         SVs,
         id,
         validationState,
         submitActionWithPending,
-        SVs.forceFullCheckWorkButton,
+        fullCheckWork,
         isPending,
         tContent,
     );
@@ -666,6 +717,18 @@ export default function TextInput(props: UseDoenetRendererProps) {
         );
     }
 
+    // An expanded input is a block of writing space rather than a word-sized
+    // field, so it is the one shape of text input a relative width makes sense
+    // for. A percentage on the textarea would otherwise resolve against the
+    // inline-flex input row, which shrink-wraps its content — a circular
+    // reference that yields an arbitrary width rather than the share of the
+    // text column the author asked for. Stretching the row to the full column
+    // when (and only when) the width is relative gives the percentage a
+    // definite containing block to measure against, without disturbing the
+    // shrink-to-fit row an absolute width still wants.
+    const expandedRelativeWidth =
+        SVs.expanded && SVs.width?.isAbsolute === false;
+
     if (SVs.expanded) {
         input = (
             <textarea
@@ -684,9 +747,20 @@ export default function TextInput(props: UseDoenetRendererProps) {
                 aria-description={hasLabel ? shortDescription : undefined}
                 aria-details={descriptionId}
                 style={{
-                    margin: "0px 4px 4px 4px",
+                    margin: `0px ${EXPANDED_INPUT_MARGIN_X}px 4px ${EXPANDED_INPUT_MARGIN_X}px`,
                     color: "var(--canvasText)",
                     background: "var(--canvas)",
+                    // The authored width is the width of the box an author
+                    // sees, border and padding included, so `width="600"` and
+                    // `maxWidth` below both measure the same edges.
+                    boxSizing: "border-box",
+                    width,
+                    height,
+                    // A window narrower than the authored width shrinks the
+                    // input rather than pushing it out of the text column.
+                    // The margins sit outside the box, so they come off the
+                    // cap or the input would overhang by exactly them.
+                    maxWidth: `calc(100% - ${2 * EXPANDED_INPUT_MARGIN_X}px)`,
                 }}
             />
         );
@@ -718,33 +792,68 @@ export default function TextInput(props: UseDoenetRendererProps) {
         );
     }
 
+    // The button and the description popover ride beside a word-sized input and
+    // beneath an expanded one, so they travel together either way.
+    const trailingControls =
+        checkWorkComponent || description ? (
+            <span style={{ display: "inline-flex", alignItems: "flex-start" }}>
+                {checkWorkComponent}
+                {description}
+            </span>
+        ) : null;
+
     const inputRow = (
         <span
             style={{
                 display: "inline-flex",
+                // An expanded input fills the width it is given, leaving a
+                // button beside it squeezed to nothing. Stacking puts the
+                // button on its own line under the input, as a non-inline
+                // `<choiceInput>` puts it under the choices. The row is capped
+                // at the text column as well, so an expanded input given a
+                // width the window cannot hold shrinks with it.
+                //
+                // A word-sized input keeps the plain shrink-to-fit row it has
+                // always had: it flows in a sentence, and capping that row
+                // would let flex shrink the field below the width it was
+                // given.
+                ...(SVs.expanded
+                    ? { flexDirection: "column" as const, maxWidth: "100%" }
+                    : {}),
                 alignItems: "flex-start",
                 // The input row flows as inline content (see the container
                 // comment). `vertical-align: baseline` aligns it with the text
                 // baseline of its line.
                 verticalAlign: "baseline",
+                // See `expandedRelativeWidth`: only a relative width needs the
+                // row stretched to the column to measure itself against.
+                ...(expandedRelativeWidth ? { width: "100%" } : {}),
             }}
         >
             {input}
-            {checkWorkComponent}
-            {description}
+            {trailingControls}
         </span>
     );
 
+    // Inside an expression the label is kept out of sight rather than left
+    // out, so `aria-labelledby` names the field from it exactly as it does
+    // elsewhere — a label that is itself math is then spoken as MathJax reads
+    // it, not as its LaTeX.
     const labelComponent = hasLabel ? (
         <label
             id={labelId}
             htmlFor={inputKey}
-            style={{
-                marginInlineEnd:
-                    SVs.labelPosition === "end" ? undefined : "2px",
-                marginInlineStart:
-                    SVs.labelPosition === "end" ? "2px" : undefined,
-            }}
+            className={inMathSlot ? "visually-hidden" : undefined}
+            style={
+                inMathSlot
+                    ? undefined
+                    : {
+                          marginInlineEnd:
+                              SVs.labelPosition === "end" ? undefined : "2px",
+                          marginInlineStart:
+                              SVs.labelPosition === "end" ? "2px" : undefined,
+                      }
+            }
         >
             {label}
         </label>
@@ -753,6 +862,7 @@ export default function TextInput(props: UseDoenetRendererProps) {
     return (
         <span
             id={id}
+            ref={inMathSlot ? slotRootRef : undefined}
             // `display: inline` so the label and input flow with the
             // surrounding paragraph text: text before and after the input wraps
             // together with it, and a wrapping label keeps the input after its

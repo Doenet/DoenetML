@@ -647,11 +647,11 @@ async function createReferenceShadowStateVariableDefinitions({
                         (targetVariableIsArray && targetVariable.length === 0)
                     ) {
                         // allow for case where we depend on array entry that does not yet exist
-                        return {
-                            useEssentialOrDefaultValue: {
-                                [primaryStateVariableForDefinition]: true,
-                            },
-                        };
+                        return missingTargetResult({
+                            core,
+                            stateDef,
+                            primaryStateVariableForDefinition,
+                        });
                     }
                     let valueFromTarget = stateDef.set(targetVariable);
                     if (setDefault && usedDefault.targetVariable) {
@@ -681,11 +681,11 @@ async function createReferenceShadowStateVariableDefinitions({
                         (targetVariableIsArray && targetVariable.length === 0)
                     ) {
                         // allow for case where we depend on array entry that does not yet exist
-                        return {
-                            useEssentialOrDefaultValue: {
-                                [primaryStateVariableForDefinition]: true,
-                            },
-                        };
+                        return missingTargetResult({
+                            core,
+                            stateDef,
+                            primaryStateVariableForDefinition,
+                        });
                     }
                     if (setDefault && usedDefault.targetVariable) {
                         return {
@@ -1335,6 +1335,141 @@ function _resolvePrimaryStateVariableForDefinition({
 }
 
 /**
+ * What a reference's primary state variable becomes when the target prop it
+ * shadows is not there — an array entry that does not exist, or does not
+ * exist *yet*.
+ *
+ * This is ordinary authoring, not a broken invariant. `$myList[$ci.selectedIndex]`
+ * on a `<choiceInput>` with nothing selected yet is the common case, and a list
+ * still being filled is another; both must render as nothing and resolve later
+ * if the entry appears.
+ *
+ * Most primaries carry `hasEssential`, and for those the essential-or-default
+ * request is right: it yields exactly what the component written empty would
+ * hold, which is the behavior to match (`<number extend="$P.x3" />` is `NaN`,
+ * the same as a bare `<number />`).
+ *
+ * Some primaries have neither an essential value nor a default, and for those
+ * the request cannot be honored: `StateVariableEvaluator` throws on
+ * `hasEssential` being unset, and supplying `hasEssential` alone only moves the
+ * throw to "Neither value nor default value specified" — the fallback has
+ * nothing to fall back to either way. The throw happens during initial
+ * dependency resolution, so it escapes document construction and blanks the
+ * page (#1938). `<integer>` is one such component, and index brackets always
+ * create an `<integer>`, so indexing is the usual way to reach it.
+ *
+ * For those, set the value directly instead, to the empty value
+ * `_emptyPrimaryValue` works out — which is asked of the class rather than
+ * guessed here.
+ */
+function missingTargetResult({
+    core,
+    stateDef,
+    primaryStateVariableForDefinition,
+}: {
+    core: Core;
+    stateDef: any;
+    primaryStateVariableForDefinition: string;
+}) {
+    if (stateDef.hasEssential) {
+        return {
+            useEssentialOrDefaultValue: {
+                [primaryStateVariableForDefinition]: true,
+            },
+        };
+    }
+
+    return {
+        setValue: {
+            [primaryStateVariableForDefinition]: _emptyPrimaryValue({
+                core,
+                stateDef,
+            }),
+        },
+    };
+}
+
+/**
+ * An empty value for a primary state variable that declares neither an
+ * essential value nor a default, and so cannot be asked for one.
+ *
+ * What it aims at is the value a bare component of the same type holds, since
+ * that is what the primaries that *do* declare an essential value fall back to.
+ * Both routes below ask a class for it rather than hard-coding a value per
+ * type, because the set of types that can reach here is wide — over sixty
+ * classes have a primary state variable without `hasEssential`.
+ *
+ * Returning a value of the wrong shape is not a safe failure: it is inherited
+ * by every state variable computed from the primary, and those are written
+ * expecting the class's own empty. `intComma`'s `numWords` calls `.trim()` on
+ * it, so handing that one `null` trades the crash in #1938 for a different
+ * crash a step later.
+ */
+function _emptyPrimaryValue({ core, stateDef }: { core: Core; stateDef: any }) {
+    // A class that defines `set` uses it to coerce incoming values, the absent
+    // one included -- `integer`'s maps `null` to `NaN`, which is exactly what a
+    // bare `<integer />` holds. Guarded because a `set` may be written only for
+    // values that are really there.
+    //
+    // No class needs the guard today -- of the seventeen whose primary defines
+    // `set`, only `integer` reaches here at all (the rest carry `hasEssential`
+    // and never get this far), and none of the seventeen throws on `null`,
+    // `undefined` or `[]`. It is not dead weight all the same: measured with
+    // `integer`'s `set` made to throw, the guard turns a blank page back into a
+    // rendered `NaN` from the walk below. A throw here escapes document
+    // construction, which is the #1938 failure this function exists to end.
+    if (stateDef.set) {
+        try {
+            return stateDef.set(null);
+        } catch (e) {
+            // Fall through and ask the type instead.
+        }
+    }
+
+    // Otherwise ask the component type that would be built to *hold* a value of
+    // this state variable's kind.
+    //
+    // `shadowingInstructions.createComponentOfType` is what a reference to this
+    // variable instantiates: `$myComponent.myStateVariable` creates a component
+    // of that type whose own primary state variable shadows this one to get its
+    // value. So that type's primary is, by construction, a holder for values of
+    // the kind this variable holds -- which makes its declared default a
+    // principled answer to "what is an empty one of these", rather than a value
+    // chosen here.
+    const createComponentOfType =
+        stateDef.shadowingInstructions?.createComponentOfType;
+    let shadowingClass = createComponentOfType
+        ? core.componentInfoObjects.allComponentClasses[createComponentOfType]
+        : undefined;
+
+    // Walking that class's prototype chain when it declares no default of its
+    // own, because a class in this state is almost always one that renamed its
+    // parent's primary out of the way and put a computed variable in its place:
+    // `integer` renames `number`'s `value` to `valuePreRound`, `intComma`
+    // renames `text`'s to `originalValue`. The essential value and the default
+    // went with the renamed variable, so the default lives one level up -- and
+    // it is still the right kind, which is what a bare component of the
+    // subclass ends up holding. `intComma` also names *itself* as its
+    // `createComponentOfType`, so without the walk the lookup arrives straight
+    // back at the class that has no default.
+    while (shadowingClass?.returnNormalizedStateVariableDefinitions) {
+        const { normalized } = getClassStateVariableDefinitions(
+            core,
+            shadowingClass,
+        );
+        const primary =
+            shadowingClass.primaryStateVariableForDefinition ?? "value";
+        const defaultValue = normalized[primary]?.defaultValue;
+        if (defaultValue !== undefined) {
+            return defaultValue;
+        }
+        shadowingClass = Object.getPrototypeOf(shadowingClass);
+    }
+
+    return null;
+}
+
+/**
  * Mark `stateVarDef` as public and populate
  * `shadowingInstructions.createComponentOfType` from
  * `attributeSpecification`. Maps `createPrimitiveOfType` codes
@@ -1713,16 +1848,37 @@ function validateAttributeValue({
                     );
                 }
             }
+            // Two messages, because there are two outcomes and the author
+            // can act on only one of them. An attribute with a real default
+            // is *replaced*, and naming the replacement is the whole point of
+            // saying anything — `displayMode="sideways"` draws as `block`,
+            // and an author who is not told that goes looking for a bug in
+            // the wrong place. An attribute whose default is `null` is
+            // *dropped* instead: nothing stood in for the value, and the
+            // component behaves as though the attribute had not been written.
+            // Reporting that as "using value `null`" describes a fallback
+            // that did not happen, and names a value no author could have
+            // typed. (`null` is the only nothing that reaches here — an
+            // undefined default threw above.)
             diagnostics.push(
-                codedDiagnostic({
-                    type: "info",
-                    code: "doenet-i0048",
-                    args: {
-                        value: String(valueOrig),
-                        attribute,
-                        default: String(defaultValue),
-                    },
-                }),
+                defaultValue === null
+                    ? codedDiagnostic({
+                          type: "info",
+                          code: "doenet-i0051",
+                          args: {
+                              value: String(valueOrig),
+                              attribute,
+                          },
+                      })
+                    : codedDiagnostic({
+                          type: "info",
+                          code: "doenet-i0048",
+                          args: {
+                              value: String(valueOrig),
+                              attribute,
+                              default: String(defaultValue),
+                          },
+                      }),
             );
             value = defaultValue;
         }

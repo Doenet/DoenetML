@@ -33,15 +33,12 @@ color =
     .purple = шәмәхә
     .pink = алһыу
     .brown = көрән
-
 line-width =
     .thick = ҡалын
     .thin = нәҙек
-
 line-style =
     .dashed = өҙөклө
     .dotted = нөктәле
-
 # Noun phrases: they stand in front of «биҙәкле» and modify nothing.
 fill-style =
     .horizontal = горизонталь һыҙыҡ
@@ -50,7 +47,6 @@ fill-style =
     .backdiagonal = кире диагональ һыҙыҡ
     .dots = нөктә
     .diamonds = ромб
-
 noun =
     .line = тура һыҙыҡ
     .line-segment = киҫек
@@ -70,7 +66,6 @@ noun =
     .diamond = ромб
     .cross = крест
     .plus = плюс
-
 # Bashkir builds the word from the side count in front of the noun, so the
 # whole of it is one head and there is no tail.
 noun-regular-polygon =
@@ -78,11 +73,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] дөрөҫ { $numSides } мөйөш
     }
-
 # Bashkir has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English, Turkish and Tatar.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -96,21 +89,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = буялған
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } биҙәкле { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } биҙәкле { $color } { $filled } { $noun }
@@ -118,7 +107,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } биҙәкле { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «ситле» — "having an edge" — carries the "with a border" sense in its own
 # suffix, so neither a preposition nor an article is wanted, and all four
 # branches read alike except for the connective English needs and Bashkir does
@@ -130,15 +118,12 @@ style-border-clause =
         [and-article] һәм { $border } ситле
        *[with] { $border } ситле
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } биҙәкле { $color } буяу
        *[plain] { $color } буяу
     }
-
 style-unfilled = буялмаған
-
 # «фонда» is the locative of «фон» and says "on the background" by itself, so
 # nothing stands between the two colours.
 style-text =
@@ -146,21 +131,17 @@ style-text =
         [background] { $background } фонда { $color }
        *[plain] { $color }
     }
-
 style-background-none = юҡ
-
 
 ## Boolean words
 
 boolean-true = дөрөҫ
 boolean-false = яңылыш
 
-
 ## Answer buttons
 
 answer-submit-label = Тикшереү
 answer-submit-label-no-correctness = Яуапты ебәреү
-
 
 ## Sectional blocks
 
@@ -185,7 +166,6 @@ section-name =
     .solution = Сиселеш
     .task = Бирем
     .theorem = Теорема
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -195,9 +175,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Кәңәш
-
 
 ## Tables and figures
 
@@ -208,7 +186,6 @@ table-name =
         [unnumbered-title] Таблица{ ". " }
        *[unnumbered] Таблица
     }
-
 figure-name =
     { $parts ->
         [numbered] Рәсем { $enumeration }
@@ -217,22 +194,18 @@ figure-name =
        *[unnumbered] Рәсем
     }
 
-
 ## Paginator controls
 
 paginator-previous = Алдағы
 paginator-next = Киләһе
 paginator-page = Бит
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = йәки
 piecewise-condition-if = әгәр
 piecewise-condition-otherwise = юғиһә
-
 
 ## Chemistry
 ##
@@ -247,6 +220,5 @@ piecewise-condition-otherwise = юғиһә
 ## one, and nothing about the two languages predicts the difference.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Дөрөҫ булмаған химик билдә
 chemistry-invalid-ionic-compound = Дөрөҫ булмаған ион ҡушылмаһы

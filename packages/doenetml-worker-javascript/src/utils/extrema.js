@@ -104,9 +104,17 @@ function derivativeInfoFor(formula, varString) {
     }
 
     let plainFormula = formula.subscripts_to_strings();
-    let derivative_formula = plainFormula.derivative(varString);
+    // `derivative` throws on a formula it cannot differentiate symbolically --
+    // a tuple raises "Operator tuple not implemented for conversion to mathjs"
+    // -- and it is reachable from ordinary markup, e.g.
+    // `<function><math>1</math><numberList>3 1 2</numberList></function>`,
+    // whose sugar folds both children into one formula. Inside the `try` with
+    // `f()`, so a formula with no symbolic derivative means no extrema rather
+    // than no document (#1876).
+    let derivative_formula;
     let derivative_f;
     try {
+        derivative_formula = plainFormula.derivative(varString);
         derivative_f = derivative_formula.f();
     } catch (e) {
         return NO_DERIVATIVE;

@@ -7,7 +7,9 @@ export default class PostponeRenderContainer extends Group {
         summary: "Internal container that postpones rendering of its children.",
     };
     static inSchemaOnlyInheritAs = [];
-    static allowInSchemaAsComponent = undefined;
+    // Shed `<group>`'s schema mark: this container is not something an author
+    // writes, so it should not be offered as a child anywhere.
+    static allowInSchemaAnywhere = false;
 
     static renderedDefault = false;
 

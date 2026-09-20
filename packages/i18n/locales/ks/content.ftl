@@ -49,15 +49,12 @@ color =
     .purple = بٲنٛگٕنی
     .pink = گُلٲبی
     .brown = بوٚر
-
 line-width =
     .thick = تھۆل
     .thin = پتلٕ
-
 line-style =
     .dashed = ٹوٗٹِتھ
     .dotted = نُختٕدار
-
 fill-style =
     .horizontal = سیودٕ ریکھہ
     .vertical = کھڈٕ ریکھہ
@@ -65,7 +62,6 @@ fill-style =
     .backdiagonal = اُلٹہ تِرچھہِ ریکھہ
     .dots = نُختہٕ
     .diamonds = سمچتُربھُج
-
 noun =
     .line = ریکھہ
     .line-segment = ریکھہ کھنٛڈ
@@ -85,7 +81,6 @@ noun =
     .diamond = سمچتُربھُج
     .cross = ضَربُک نِشان
     .plus = جمٕعُک نِشان
-
 # «-بھُجٕچ» is welded onto the count and has one shape whatever number lands in
 # front of it, so the weld is sound in the way the affix rule allows. The
 # adjectives precede the noun, so there is no tail.
@@ -94,7 +89,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides }-بھُجٕچ باقاعدٕ بہُبھُج
     }
-
 # Filled in for the sake of the `$gender` fork this catalog does not yet write;
 # see the header. `$noun` may also be «regular-polygon» (بہُبھُج, m) or the head
 # of a phrase the description does not name: «border» (کِنار, m), «fill»
@@ -109,7 +103,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -122,15 +115,12 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = بھرِتھ
-
 # «سٟتؠ» ("with") is a postposition and follows what it governs, so the pattern
 # moves to the front of the phrase where English appends it.
 style-filled =
@@ -138,7 +128,6 @@ style-filled =
         [pattern] { $pattern } سٟتؠ { $filled } { $color }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } سٟتؠ { $filled } { $color } { $noun }
@@ -146,7 +135,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } سٟتؠ { $filled } { $color } { $noun } { $nounTail }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # Kashmiri has no article, so the two `-article` branches read like their
 # neighbours; «تہٕ» is the conjunction and stands in front.
 style-border-clause =
@@ -156,35 +144,28 @@ style-border-clause =
         [and-article] تہٕ { $border } کِنار سٟتؠ
        *[with] { $border } کِنار سٟتؠ
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } سٟتؠ { $color } بھرَن
        *[plain] { $color } بھرَن
     }
-
 style-unfilled = ناہ بھرِتھ
-
 style-text =
     { $parts ->
         [background] { $background } پؠٹھ بوٗنس پؠٹھ { $color }
        *[plain] { $color }
     }
-
 style-background-none = کہٕنٛہہ نہٕ
-
 
 ## Boolean words
 
 boolean-true = سٔتؠ
 boolean-false = ٲپُز
 
-
 ## Answer buttons
 
 answer-submit-label = پرٛژھِو
 answer-submit-label-no-correctness = جواب بیٖجِو
-
 
 ## Sectional blocks
 
@@ -209,7 +190,6 @@ section-name =
     .solution = حَل
     .task = کٲم
     .theorem = مسٕلہٕ
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -219,9 +199,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = اِشارٕ
-
 
 ## Tables and figures
 
@@ -232,7 +210,6 @@ table-name =
         [unnumbered-title] جدول{ ": " }
        *[unnumbered] جدول
     }
-
 figure-name =
     { $parts ->
         [numbered] شکل { $enumeration }
@@ -241,26 +218,20 @@ figure-name =
        *[unnumbered] شکل
     }
 
-
 ## Paginator controls
 
 paginator-previous = پَتٕم
 paginator-next = بۆنٕم
 paginator-page = صفحہٕ
-
 # «X منٛز Y» — "Y of X" — puts the total first, so the two counts change
 # places.
 paginator-page-status = { $numPages } منٛز { $pageLabel } { $currentPage }
 
-
 ## Piecewise functions
 
 piecewise-condition-or = یا
-
 piecewise-condition-if = اگر
-
 piecewise-condition-otherwise = نتہٕ
-
 
 ## Chemistry
 ##
@@ -276,6 +247,5 @@ piecewise-condition-otherwise = نتہٕ
 ## substances known long before the elements were.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = غلط کیمیٲوی نِشان
 chemistry-invalid-ionic-compound = غلط آیٕنِک مُرکب

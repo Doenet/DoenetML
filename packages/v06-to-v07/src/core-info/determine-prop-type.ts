@@ -152,3 +152,18 @@ function componentTypeFromWrapping(
 
     return { foundComponentType: false as const };
 }
+
+/**
+ * Whether `componentType` is a `<module>` or something derived from one.
+ *
+ * v0.6 used this to decide the default of `<copy>`'s `link`: with no `link` attribute it
+ * linked everything *except* a copy by cid/uri and a copy of a module (see the `link`
+ * state variable in v0.6's `Copy.js`). v0.7 says linked/unlinked by choosing between the
+ * `extend` and `copy` attributes, so the same question has to be asked here.
+ */
+export function isModuleComponentType(componentType: string): boolean {
+    return componentInfoObjects.isInheritedComponentType({
+        inheritedComponentType: componentType,
+        baseComponentType: "module",
+    });
+}

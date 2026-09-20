@@ -41,15 +41,12 @@ color =
     .purple = volomparasy
     .pink = mavokely
     .brown = volontany
-
 line-width =
     .thick = matevina
     .thin = manify
-
 line-style =
     .dashed = tapatapaka
     .dotted = teboteboka
-
 # Noun phrases: they follow «miaraka amin'ny» and modify nothing.
 fill-style =
     .horizontal = tsipika mandry
@@ -58,7 +55,6 @@ fill-style =
     .backdiagonal = tsipika mihilana mifamadika
     .dots = teboka
     .diamonds = diamondra
-
 noun =
     .line = tsipika
     .line-segment = sombin-tsipika
@@ -78,7 +74,6 @@ noun =
     .diamond = diamondra
     .cross = lakroa
     .plus = marika plus
-
 # The side count follows the noun and precedes its adjectives, so it folds into
 # the head and there is no tail: «polygonina ara-dalàna { $numSides } lafiny».
 noun-regular-polygon =
@@ -86,11 +81,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] polygonina ara-dalàna { $numSides } lafiny
     }
-
 # Malagasy has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -104,22 +97,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun leads and its adjectives follow: «tsipika matevina tapatapaka mena».
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = feno
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } miaraka amin'ny { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } miaraka amin'ny { $pattern }
@@ -127,7 +116,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } miaraka amin'ny { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 style-border-clause =
     { $parts ->
         [with-article] miaraka amin'ny sisiny { $border }
@@ -135,36 +123,29 @@ style-border-clause =
         [and-article] ary sisiny { $border }
        *[with] miaraka amin'ny sisiny { $border }
     }
-
 # The pattern is a noun and the colour follows it, as everywhere else.
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = tsy feno
-
 style-text =
     { $parts ->
         [background] { $color } amin'ny fotony { $background }
        *[plain] { $color }
     }
-
 style-background-none = tsy misy
-
 
 ## Boolean words
 
 boolean-true = marina
 boolean-false = diso
 
-
 ## Answer buttons
 
 answer-submit-label = Hamarino ny asa
 answer-submit-label-no-correctness = Alefaso ny valiny
-
 
 ## Sectional blocks
 
@@ -189,7 +170,6 @@ section-name =
     .solution = Vahaolana
     .task = Asa
     .theorem = Teôrema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -199,9 +179,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Toro-hevitra
-
 
 ## Tables and figures
 
@@ -212,7 +190,6 @@ table-name =
         [unnumbered-title] Tabilao{ ": " }
        *[unnumbered] Tabilao
     }
-
 figure-name =
     { $parts ->
         [numbered] Sary { $enumeration }
@@ -221,22 +198,18 @@ figure-name =
        *[unnumbered] Sary
     }
 
-
 ## Paginator controls
 
 paginator-previous = Teo aloha
 paginator-next = Manaraka
 paginator-page = Pejy
-
 paginator-page-status = { $pageLabel } { $currentPage } amin'ny { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = na
 piecewise-condition-if = raha
 piecewise-condition-otherwise = raha tsy izany
-
 
 ## Chemistry
 ##
@@ -249,6 +222,5 @@ piecewise-condition-otherwise = raha tsy izany
 ## it is a fact about a curriculum rather than about a language family.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Marika simika tsy mety
 chemistry-invalid-ionic-compound = Fitambarana ionika tsy mety

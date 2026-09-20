@@ -3,6 +3,7 @@ import dts from "vite-plugin-dts";
 import arraybuffer from "vite-plugin-arraybuffer";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import { createPackageJsonTransformer } from "../../scripts/transform-package-json";
+import { ignoreWireitCachesPlugin } from "../../scripts/vite-plugins";
 
 const EXTERNAL_DEPS = [];
 
@@ -10,6 +11,7 @@ const EXTERNAL_DEPS = [];
 export default defineConfig({
     base: "./",
     plugins: [
+        ignoreWireitCachesPlugin(),
         arraybuffer(),
         dts(),
         viteStaticCopy({

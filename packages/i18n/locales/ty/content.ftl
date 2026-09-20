@@ -41,15 +41,12 @@ color =
     .purple = vaiorete
     .pink = roze
     .brown = parauri
-
 line-width =
     .thick = mātotoru
     .thin = rairai
-
 line-style =
     .dashed = motumotu
     .dotted = tāpaʻo iti
-
 # Noun phrases. Tahitian marks no plural on the noun, so «reni» is the word for
 # one line and for many alike.
 fill-style =
@@ -59,7 +56,6 @@ fill-style =
     .backdiagonal = reni pīʻao huri
     .dots = tāpaʻo iti
     .diamonds = tiamane
-
 noun =
     .line = reni
     .line-segment = tuhaʻa reni
@@ -79,7 +75,6 @@ noun =
     .diamond = tiamane
     .cross = ʻafaʻifaʻi
     .plus = tāpiʻi
-
 # The side count follows the adjectives as a complement, so that they stay
 # beside the noun they describe.
 noun-regular-polygon =
@@ -87,10 +82,8 @@ noun-regular-polygon =
         [tail] e { $numSides } hiti tōna
        *[head] poligone ʻaifaito
     }
-
 # One answer for every noun: Tahitian has no grammatical gender.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -104,22 +97,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun first and the adjectives behind it, which is the opposite of English.
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = ʻī
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } e { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } e { $pattern }
@@ -127,7 +116,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $filled } { $color } { $nounTail } e { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Tahitian's «te» is the article and is not what English's "a" is doing here, so
 # all four branches read alike but for the connective: «e» opens the first
 # clause and «ʻe» a further one.
@@ -138,35 +126,28 @@ style-border-clause =
         [and-article] ʻe hiti { $border }
        *[with] e hiti { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = ʻī ʻore
-
 style-text =
     { $parts ->
         [background] { $color } e niʻa { $background }
        *[plain] { $color }
     }
-
 style-background-none = ʻaita
-
 
 ## Boolean words
 
 boolean-true = mau
 boolean-false = hape
 
-
 ## Answer buttons
 
 answer-submit-label = Hiʻopoʻa i te ʻohipa
 answer-submit-label-no-correctness = Hōpoi i te pāhonoraʻa
-
 
 ## Sectional blocks
 
@@ -193,7 +174,6 @@ section-name =
     .solution = Ravaʻi
     .task = ʻOhipa rave
     .theorem = Teoreme
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -203,9 +183,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Aratairaʻa
-
 
 ## Tables and figures
 
@@ -216,7 +194,6 @@ table-name =
         [unnumbered-title] Tāpura{ ": " }
        *[unnumbered] Tāpura
     }
-
 figure-name =
     { $parts ->
         [numbered] Hōhoʻa { $enumeration }
@@ -225,22 +202,18 @@ figure-name =
        *[unnumbered] Hōhoʻa
     }
 
-
 ## Paginator controls
 
 paginator-previous = I mua
 paginator-next = I muri
 paginator-page = ʻĀpī
-
 paginator-page-status = { $pageLabel } { $currentPage } nō roto i te { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = aore rā
 piecewise-condition-if = mai te mea
 piecewise-condition-otherwise = mai te mea ʻaita
-
 
 ## Chemistry
 ##
@@ -253,6 +226,5 @@ piecewise-condition-otherwise = mai te mea ʻaita
 ## of it.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Tāpaʻo tāʻiʻaʻi tano ʻore
 chemistry-invalid-ionic-compound = Faʻaʻamuraʻa ionika tano ʻore

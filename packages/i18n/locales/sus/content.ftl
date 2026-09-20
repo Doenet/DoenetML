@@ -51,18 +51,15 @@ color =
     .purple = volei
     .pink = rozii
     .brown = mawoni
-
 line-width =
     .thick = xungbei
     .thin = fisenyi
-
 # Written as invariable «nun …» (with …) phrases rather than as qualifiers, so
 # that they take no `-i` agreement and can close the description.
 # `style-stroke` puts them last.
 line-style =
     .dashed = nun tuten-tutenyi
     .dotted = nun tonbondiyie
-
 fill-style =
     .horizontal = sirandie naxee laariyaxi
     .vertical = sirandie naxee lookuxi
@@ -70,7 +67,6 @@ fill-style =
     .backdiagonal = sirandie naxee xungenxi fari doo ma
     .dots = tonbondiye
     .diamonds = diamanie
-
 noun =
     .line = sira
     .line-segment = sira kuntu
@@ -90,7 +86,6 @@ noun =
     .diamond = diamani
     .cross = kurusi
     .plus = lafan taamasenyi
-
 # The side count follows the qualifiers, behind «naxan sɔtɔ …», because Susu
 # closes a noun phrase with a relative rather than opening one — matching
 # `mnk`'s shape for this message.
@@ -99,12 +94,10 @@ noun-regular-polygon =
         [tail] naxan sɔtɔ kore { $numSides } ra
        *[head] poligoni tɛmɛxi
     }
-
 # No grammatical gender, so this answers one token for every noun and the
 # answer goes unused — the shape `locales/en`, `bm`, `dyu` and `mnk` all
 # share.
 noun-gender = kereni
-
 
 ## Style composition
 
@@ -118,21 +111,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = ki rafexi
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } nun { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } nun { $pattern }
@@ -140,7 +129,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } nun { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Susu has no article, and joins this clause with the invariable «nun»
 # whatever came before it, so all four branches read alike — the shape
 # `mnk`'s equivalent message uses with «niŋ».
@@ -151,35 +139,28 @@ style-border-clause =
         [and-article] nun naanewo { $border }
        *[with] nun naanewo { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = naxan mu rafexi
-
 style-text =
     { $parts ->
         [background] { $color } nun raxidi { $background }
        *[plain] { $color }
     }
-
 style-background-none = fɛn mu a ra
-
 
 ## Boolean words
 
 boolean-true = tonyi
 boolean-false = wafan
 
-
 ## Answer buttons
 
 answer-submit-label = Dɔxɔliyi Matoxin
 answer-submit-label-no-correctness = Yabi Rasa
-
 
 ## Sectional blocks
 
@@ -204,7 +185,6 @@ section-name =
     .solution = Yabi Nakusa
     .task = Dɔxɔliyi
     .theorem = Teoremi
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -214,9 +194,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Malaxidi
-
 
 ## Tables and figures
 
@@ -227,7 +205,6 @@ table-name =
         [unnumbered-title] Tabuli{ ": " }
        *[unnumbered] Tabuli
     }
-
 figure-name =
     { $parts ->
         [numbered] Natanmayi { $enumeration }
@@ -236,24 +213,18 @@ figure-name =
        *[unnumbered] Natanmayi
     }
 
-
 ## Paginator controls
 
 paginator-previous = Naxan tɛmɛn
 paginator-next = Naxan fa
 paginator-page = Karati
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = waraxa
-
 piecewise-condition-if = xa
-
 piecewise-condition-otherwise = dulaa dɔɔ bɛɛ ma
-
 
 ## Chemistry
 ##
@@ -269,6 +240,5 @@ piecewise-condition-otherwise = dulaa dɔɔ bɛɛ ma
 ## three-country, three-medium spread that `mnk`'s note documents.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Simi Taamasenyi Mu Tonyi Ra
 chemistry-invalid-ionic-compound = Iyɔn Rafexi Mu Tonyi Ra

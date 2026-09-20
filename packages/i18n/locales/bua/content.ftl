@@ -38,15 +38,12 @@ color =
     .purple = нил ягаан
     .pink = ягаан
     .brown = хүрин
-
 line-width =
     .thick = бүдүүн
     .thin = нимгэн
-
 line-style =
     .dashed = таһаршаһан
     .dotted = сэгтэй
-
 # Noun phrases: they stand in front of «хээтэй» and modify nothing.
 fill-style =
     .horizontal = хэбтээ зурлаа
@@ -55,7 +52,6 @@ fill-style =
     .backdiagonal = харша диагональ зурлаа
     .dots = сэг
     .diamonds = ромб
-
 noun =
     .line = сэхэ зурлаа
     .line-segment = хэрчим
@@ -75,7 +71,6 @@ noun =
     .diamond = ромб
     .cross = хэрээһэн
     .plus = плюс
-
 # Buryat builds the word from the side count in front of the noun, so the whole
 # of it is one head and there is no tail.
 noun-regular-polygon =
@@ -83,11 +78,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] тэгшэ { $numSides } талата
     }
-
 # Buryat has no grammatical gender, so every noun answers the same and the
 # answer goes unused.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -101,21 +94,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = будагдаһан
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } хээтэй { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } хээтэй { $color } { $filled } { $noun }
@@ -123,7 +112,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } хээтэй { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «хизаартай» — "having an edge" — carries the "with a border" sense in its own
 # suffix, so neither a preposition nor an article is wanted.
 style-border-clause =
@@ -133,15 +121,12 @@ style-border-clause =
         [and-article] ба { $border } хизаартай
        *[with] { $border } хизаартай
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } хээтэй { $color } будаг
        *[plain] { $color } будаг
     }
-
 style-unfilled = будагдаагүй
-
 # «дээрэ» — "on top of" — is a postposition and follows the background colour,
 # so nothing stands between the two words.
 style-text =
@@ -149,21 +134,17 @@ style-text =
         [background] { $background } дэбисхэр дээрэ { $color }
        *[plain] { $color }
     }
-
 style-background-none = үгы
-
 
 ## Boolean words
 
 boolean-true = үнэн
 boolean-false = худал
 
-
 ## Answer buttons
 
 answer-submit-label = Шалгаха
 answer-submit-label-no-correctness = Харюу эльгээхэ
-
 
 ## Sectional blocks
 
@@ -188,7 +169,6 @@ section-name =
     .solution = Шиидхэбэри
     .task = Даабари
     .theorem = Теорема
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -198,9 +178,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Заабари
-
 
 ## Tables and figures
 
@@ -211,7 +189,6 @@ table-name =
         [unnumbered-title] Хүснэгтэ{ ". " }
        *[unnumbered] Хүснэгтэ
     }
-
 figure-name =
     { $parts ->
         [numbered] Зураг { $enumeration }
@@ -220,15 +197,12 @@ figure-name =
        *[unnumbered] Зураг
     }
 
-
 ## Paginator controls
 
 paginator-previous = Урдахи
 paginator-next = Дараахи
 paginator-page = Нюур
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 ##
@@ -241,7 +215,6 @@ piecewise-condition-or = али
 piecewise-condition-if = хэрбээ
 piecewise-condition-otherwise = үгы һаа
 
-
 ## Chemistry
 ##
 ## `element-name` and `element-anion-name` are deliberately left out, so their
@@ -250,6 +223,5 @@ piecewise-condition-otherwise = үгы һаа
 ## ones — the school-system case this batch shares throughout.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Буруу химическэ тэмдэг
 chemistry-invalid-ionic-compound = Буруу ионой холбоо

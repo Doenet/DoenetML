@@ -6,7 +6,7 @@ export default class Split extends CompositeComponent {
     static componentDocs = {
         summary: "Splits a string or list into pieces",
     };
-    static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
+    static allowInSchemaAsComponent = ["text"];
 
     static stateVariableToEvaluateAfterReplacements =
         "readyToExpandWhenResolved";

@@ -3,6 +3,8 @@
         "Size ceilings in bytes for the built standalone bundles, enforced by",
         "`npm run check:size -w packages/standalone`. See",
         "`scripts/check-bundle-size.mjs` for what else that check does and why.",
+        "A key may use `*` to match one hashed path segment; each matching",
+        "script is held to the ceiling individually.",
         "",
         "Growth is fine; silent growth is not. Raising a `maxBytes` in the same",
         "commit that causes the growth is the point — it puts the increase in",
@@ -10,11 +12,17 @@
         "the same edit so the new headroom is visible: it records the size when",
         "`maxBytes` was chosen and is documentation only, enforced by nothing.",
         "",
-        "Budgets normally sit 7–8% above the observation. `doenet-standalone.js`",
-        "is the exception right now: its observation dropped when the math seam",
-        "was externalized out of the libraries it bundles, and lowering a ceiling",
-        "is a separate decision from raising one — it should be taken against a",
-        "CI build.",
+        "PROVISIONAL, and marked as such. Three entries below carry",
+        "`estimatedBytes` rather than `observedBytes`: the ceilings were chosen",
+        "for a build nobody has measured yet — the code-split layout from",
+        "#1438/#1465 now also carrying @doenet/math's inlined core. Each",
+        "estimate is the last observation of that script plus ~2.3 MiB for one",
+        "math core, with the usual headroom on top. Replace each with an",
+        "`observedBytes` from the first CI build of this merge, and retighten",
+        "`maxBytes` around it; until then these ceilings are loose and are",
+        "guarding less than they look like they are.",
+        "",
+        "Budgets normally sit 7–8% above the observation.",
         "",
         "Measure on CI, not locally, because the math core's size is not",
         "reproducible across machines. The submodule's `build-wasm.sh` runs an",
@@ -28,14 +36,24 @@
     ],
     "files": {
         "dist/doenet-standalone.js": {
-            "maxBytes": 15650000,
-            "observedBytes": 11967438,
-            "note": "Carries one inlined math core. The Rust *document* core belongs to the worker, not here."
+            "maxBytes": 50000,
+            "observedBytes": 2179,
+            "note": "A re-export facade: its one import is the chunks/index-*.js below, awaited through the version-pinning resolver, plus the render-global queueing stubs (scripts/pin-chunk-urls-plugin.ts). Carries no math core — it holds no math. Megabytes here mean code splitting got switched off."
+        },
+        "dist/chunks/index-*.js": {
+            "maxBytes": 7520000,
+            "estimatedBytes": 6997000,
+            "note": "The eagerly-parsed payload every embed pays (the facade's static import). Carries one inlined @doenet/math core: the main-thread renderers reach for math. The editor stack, the worker, and the lazy renderers must stay out of it. The glob also catches a few small shared chunks named index-*."
+        },
+        "dist/doenet-standalone-inline.js": {
+            "maxBytes": 14880000,
+            "estimatedBytes": 13848000,
+            "note": "The single-file variant for Blob/srcdoc hosts: every chunk inlined, math core included. Doubles as the total-weight ceiling for the code-split build."
         },
         "dist/doenetml-worker/index.js": {
-            "maxBytes": 17250000,
-            "observedBytes": 15974410,
-            "note": "Carries the Rust document core as an inlined base64 wasm blob (~8.3 MiB) plus one inlined math core (~2.2 MiB)."
+            "maxBytes": 9215000,
+            "estimatedBytes": 8571000,
+            "note": "Carries one inlined math core. The Rust *document* core is not inlined here: it is served as the sibling lib_doenetml_worker_bg.wasm, which the worker fetches at run time."
         }
     }
 }

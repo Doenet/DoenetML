@@ -131,11 +131,18 @@ orbital-row-label = Label for row { $row }
 # Labels the answer column of a pretzel exercise's grid.
 pretzel-answer = Answer
 
-# Caption above the table a `<summaryStatistics>` renders. `$column` is the
-# authored name of the data column being summarized and is never translated.
-# The table's own headings (`mean`, `stdev`, `quartile1`, …) are the statistic
-# ids an author references, not prose, and stay in place.
-summary-statistics-caption = Summary statistics of { $column }
+# Caption above the table a `<summaryStatistics>` renders. It used to name the
+# data column being summarized; the statistics now come from values written in
+# the document, so there is no column to name and the message takes no
+# placeable. The table's own headings (`mean`, `stdev`, `quartile1`, …) are the
+# statistic ids an author references, not prose, and stay in place.
+#
+# Every translation of the old message named the column inside the sentence —
+# «Resumen estadístico de { $column }» — so none of them survives the placeable
+# being dropped, and the key was removed from the other catalogs rather than
+# truncated to whatever precedes the connector. Those locales fall back to
+# English here until the caption is translated again.
+summary-statistics-caption = Summary statistics
 
 
 ## Math input
@@ -200,4 +207,41 @@ renderer-load-failed = a renderer failed to load. Please reload the page.
 
 # Shown in place of the document when the core worker could not be started
 # after retries, rather than leaving the pane blank.
-core-start-failed = The document viewer could not be started. Please reload the page.
+core-start-failed = This document could not be started. Please reload the page.
+
+# Replaces `core-start-failed` when several documents were starting at the
+# same time — counted across every same-origin tab, so not necessarily all on
+# the page the reader sees. Naming the contention keeps the reader from
+# concluding the service is broken.
+core-start-failed-busy = This document could not be started. Several documents were starting at once, which can take longer on a slower device. Reloading the page may help once the other documents have finished.
+
+# Shown for a core-start failure the reader can still retry, next to the
+# button that does it (`core-start-retry`). It leaves out the advice to
+# reload that the messages above carry: the button is the cheaper action,
+# and a reader told to reload will reload the whole page — restarting every
+# other document on it, which is what produced the failure in the first
+# place on a page that was already busy.
+core-start-failed-retry = This document could not be started.
+
+# The contended variant of `core-start-failed-retry`, named for the same
+# reason `core-start-failed-busy` is: a reader who is told that several
+# documents were starting at once has a reason to try again in a moment
+# rather than concluding the service is broken.
+core-start-failed-busy-retry = This document could not be started. Several documents were starting at once, which can take longer on a slower device.
+
+# Shown when the document itself could not be built, rather than the core
+# failing to start for a transient reason. No retry is offered and no reload
+# is advised, because the failure is deterministic: the same source through
+# the same code fails the same way. The cause follows this sentence.
+core-start-failed-document = This document could not be built. There is a problem in the document itself, so reloading will not help.
+
+# Label of the button that starts a failed document over without reloading
+# the page. Offered once per document; a retry that fails too falls back to
+# `core-start-failed` / `core-start-failed-busy`, which advise the reload.
+core-start-retry = Try again
+
+# Shown beside a document that is on screen and working, when the host
+# answered `SPLICE.getState` with an error and so the document started
+# without the reader's saved work (#1741). The host's own wording follows
+# this lead-in, so it says what was lost rather than why.
+saved-state-unavailable = Your saved work could not be loaded.

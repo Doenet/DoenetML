@@ -47,15 +47,12 @@ color =
     .purple = बैंगनी
     .pink = गुलाबी
     .brown = खैरा
-
 line-width =
     .thick = मोट
     .thin = पातर
-
 line-style =
     .dashed = टूटल
     .dotted = बिंदुदार
-
 fill-style =
     .horizontal = आड़ी रेखा
     .vertical = खड़ी रेखा
@@ -63,7 +60,6 @@ fill-style =
     .backdiagonal = उलटी तिरछी रेखा
     .dots = बिंदु
     .diamonds = समचतुर्भुज
-
 noun =
     .line = रेखा
     .line-segment = रेखाखंड
@@ -83,7 +79,6 @@ noun =
     .diamond = समचतुर्भुज
     .cross = गुना के चिन्ह
     .plus = जोड़ के चिन्ह
-
 # «-भुजा वाला» takes the count and stands in front of the noun, so nothing
 # follows the adjectives and the tail is empty.
 noun-regular-polygon =
@@ -91,9 +86,7 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides }-भुजा वाला समबहुभुज
     }
-
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -107,15 +100,12 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = भरल
-
 # «से» is a postposition and follows what it governs, so the pattern moves to
 # the front of the phrase where English appends it.
 style-filled =
@@ -123,7 +113,6 @@ style-filled =
         [pattern] { $pattern } से { $filled } { $color }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } से { $filled } { $color } { $noun }
@@ -131,7 +120,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } से { $filled } { $color } { $noun } { $nounTail }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # Bhojpuri has no article, so the two `-article` branches read like their
 # neighbours.
 style-border-clause =
@@ -141,35 +129,28 @@ style-border-clause =
         [and-article] आ { $border } किनारी सहित
        *[with] { $border } किनारी सहित
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } से { $color } भराई
        *[plain] { $color } भराई
     }
-
 style-unfilled = बिना भरल
-
 style-text =
     { $parts ->
         [background] { $background } पृष्ठभूमि पर { $color }
        *[plain] { $color }
     }
-
 style-background-none = कुछ ना
-
 
 ## Boolean words
 
 boolean-true = सही
 boolean-false = गलत
 
-
 ## Answer buttons
 
 answer-submit-label = जाँचीं
 answer-submit-label-no-correctness = जवाब भेजीं
-
 
 ## Sectional blocks
 
@@ -194,7 +175,6 @@ section-name =
     .solution = हल
     .task = काम
     .theorem = प्रमेय
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -204,9 +184,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = संकेत
-
 
 ## Tables and figures
 
@@ -217,7 +195,6 @@ table-name =
         [unnumbered-title] सारणी{ ": " }
        *[unnumbered] सारणी
     }
-
 figure-name =
     { $parts ->
         [numbered] चित्र { $enumeration }
@@ -226,26 +203,20 @@ figure-name =
        *[unnumbered] चित्र
     }
 
-
 ## Paginator controls
 
 paginator-previous = पहिले वाला
 paginator-next = अगिला
 paginator-page = पन्ना
-
 # «X में से Y» — "Y out of X" — puts the total first, so the two counts change
 # places.
 paginator-page-status = { $numPages } में से { $pageLabel } { $currentPage }
 
-
 ## Piecewise functions
 
 piecewise-condition-or = भा
-
 piecewise-condition-if = अगर
-
 piecewise-condition-otherwise = ना त
-
 
 ## Chemistry
 ##
@@ -261,6 +232,5 @@ piecewise-condition-otherwise = ना त
 ## instance of it in this batch: nothing about the language is in question.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = अमान्य रासायनिक चिन्ह
 chemistry-invalid-ionic-compound = अमान्य आयनिक यौगिक

@@ -8,7 +8,6 @@ export function postProcessCopy({
     componentIdx,
     addShadowDependencies = true,
     markAsPrimaryShadow = false,
-    identifierPrefix = "",
     unlinkExternalCopies = false,
     copiesByRefIdx = {},
     componentIndicesFound = [],
@@ -82,54 +81,68 @@ export function postProcessCopy({
     // recurse after processing all components
     // so that first gather all active aliases
 
+    /** Recurse into components nested one level below this one. */
+    function recurse(nestedComponents) {
+        return postProcessCopy({
+            serializedComponents: nestedComponents,
+            componentIdx,
+            addShadowDependencies,
+            markAsPrimaryShadow,
+            unlinkExternalCopies,
+            copiesByRefIdx,
+            componentIndicesFound,
+            init: false,
+        });
+    }
+
+    /**
+     * The components inside a reference's path indices, such as the `$i` of
+     * `$m[$i]`, were copied along with the reference, so they shadow their
+     * originals just as a copied child does.
+     *
+     * Called for a reference in content — the component itself — and for each
+     * entry of an attribute's `references` (a reference in `target`, `from`,
+     * and the like). Only the indices are recursed into here: an attribute's
+     * reference resolves from its new location, and giving it a
+     * `referenceShadow` of its own would change index-free references that
+     * work today.
+     */
+    function recurseIntoPathIndices(component) {
+        if (!component.extending) {
+            return;
+        }
+        for (const pathPart of unwrapSource(component.extending).originalPath ??
+            []) {
+            for (const index of pathPart.index) {
+                recurse(index.value);
+            }
+        }
+    }
+
     for (let ind in serializedComponents) {
         let component = serializedComponents[ind];
         if (typeof component !== "object") {
             continue;
         }
 
-        postProcessCopy({
-            serializedComponents: component.children,
-            componentIdx,
-            addShadowDependencies,
-            markAsPrimaryShadow,
-            identifierPrefix,
-            unlinkExternalCopies,
-            copiesByRefIdx,
-            componentIndicesFound,
-            init: false,
-        });
+        recurse(component.children);
 
         for (let attrName in component.attributes) {
             let attribute = component.attributes[attrName];
             if (attribute.component) {
-                attribute.component = postProcessCopy({
-                    serializedComponents: [attribute.component],
-                    componentIdx,
-                    addShadowDependencies,
-                    markAsPrimaryShadow,
-                    identifierPrefix,
-                    unlinkExternalCopies,
-                    copiesByRefIdx,
-                    componentIndicesFound,
-                    init: false,
-                })[0];
+                attribute.component = recurse([attribute.component])[0];
+            } else if (attribute.references) {
+                for (const reference of attribute.references) {
+                    recurseIntoPathIndices(reference);
+                }
             }
         }
 
         if (component.replacements) {
-            postProcessCopy({
-                serializedComponents: component.replacements,
-                componentIdx,
-                addShadowDependencies,
-                markAsPrimaryShadow,
-                identifierPrefix,
-                unlinkExternalCopies,
-                copiesByRefIdx,
-                componentIndicesFound,
-                init: false,
-            });
+            recurse(component.replacements);
         }
+
+        recurseIntoPathIndices(component);
     }
 
     if (init && unlinkExternalCopies) {

@@ -1,7 +1,10 @@
 import { returnNumberDisplayStateVariableDefinitions } from "../../utils/numberDisplay";
 import MathComponent from "../Math";
 import me from "math-expressions";
-import { isNumericConstant } from "../../utils/math";
+import {
+    mathOperatorInputsFromChildren,
+    returnBreakStringsIntoMathsBySpacesSugarInstruction,
+} from "../../utils/mathOperatorChildren";
 
 export default class MathOperator extends MathComponent {
     static componentType = "_mathOperator";
@@ -39,50 +42,9 @@ export default class MathOperator extends MathComponent {
     static returnSugarInstructions() {
         let sugarInstructions = super.returnSugarInstructions();
 
-        let breakStringsIntoMathsBySpaces = function ({
-            matchedChildren,
-            nComponents,
-            stateIdInfo,
-        }) {
-            // break any string by white space and wrap pieces with math or number
-
-            let newChildren = matchedChildren.reduce(function (a, c) {
-                if (typeof c === "string") {
-                    return [
-                        ...a,
-                        ...c
-                            .split(/\s+/)
-                            .filter((s) => s)
-                            .map((s) => ({
-                                type: "serialized",
-                                componentType: Number.isFinite(Number(s))
-                                    ? "number"
-                                    : "math",
-                                componentIdx: nComponents++,
-                                stateId: stateIdInfo
-                                    ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
-                                    : undefined,
-                                children: [s],
-                                attributes: {},
-                                doenetAttributes: {},
-                                state: {},
-                            })),
-                    ];
-                } else {
-                    return [...a, c];
-                }
-            }, []);
-
-            return {
-                success: true,
-                newChildren: newChildren,
-                nComponents,
-            };
-        };
-
-        sugarInstructions.push({
-            replacementFunction: breakStringsIntoMathsBySpaces,
-        });
+        sugarInstructions.push(
+            returnBreakStringsIntoMathsBySpacesSugarInstruction(),
+        );
 
         return sugarInstructions;
     }
@@ -217,35 +179,15 @@ export default class MathOperator extends MathComponent {
                     return {
                         setValue: { unnormalizedValue: me.fromAst("\uff3f") },
                     };
-                } else if (dependencyValues.isNumericOperator) {
-                    let inputs = [];
-                    for (let child of dependencyValues.mathNumberChildren) {
-                        if (
-                            componentInfoObjects.isInheritedComponentType({
-                                inheritedComponentType: child.componentType,
-                                baseComponentType: "number",
-                            })
-                        ) {
-                            inputs.push(child.stateValues.value);
-                        } else {
-                            // math
-                            //
-                            // The numeric operators are mathjs functions, and
-                            // they accept `NaN` while rejecting anything that
-                            // is not a number: `median([1,4,5,null])` throws
-                            // "unexpected type of argument" and takes the whole
-                            // document with it, where `median([1,4,5,NaN])`
-                            // returns `NaN` and the operator degrades quietly.
-                            // `evaluate_to_constant()` used to answer `null`
-                            // for `x+1` in `<median>1 4 5 x+1</median>`; it
-                            // answers `NaN` now, and a `Complex` is the case
-                            // this guard still catches.
-                            let value =
-                                child.stateValues.value.evaluate_to_constant();
-                            inputs.push(isNumericConstant(value) ? value : NaN);
-                        }
-                    }
+                }
 
+                let inputs = mathOperatorInputsFromChildren({
+                    children: dependencyValues.mathNumberChildren,
+                    isNumeric: dependencyValues.isNumericOperator,
+                    componentInfoObjects,
+                });
+
+                if (dependencyValues.isNumericOperator) {
                     return {
                         setValue: {
                             unnormalizedValue: me.fromAst(
@@ -253,29 +195,14 @@ export default class MathOperator extends MathComponent {
                             ),
                         },
                     };
-                } else {
-                    let inputs = [];
-                    for (let child of dependencyValues.mathNumberChildren) {
-                        if (
-                            componentInfoObjects.isInheritedComponentType({
-                                inheritedComponentType: child.componentType,
-                                baseComponentType: "number",
-                            })
-                        ) {
-                            inputs.push(me.fromAst(child.stateValues.value));
-                        } else {
-                            // math
-                            inputs.push(child.stateValues.value);
-                        }
-                    }
-
-                    return {
-                        setValue: {
-                            unnormalizedValue:
-                                dependencyValues.mathOperator(inputs),
-                        },
-                    };
                 }
+
+                return {
+                    setValue: {
+                        unnormalizedValue:
+                            dependencyValues.mathOperator(inputs),
+                    },
+                };
             },
             inverseDefinition: function ({
                 desiredStateVariableValues,
@@ -305,20 +232,10 @@ export default class MathOperator extends MathComponent {
                                 );
                                 inputToChildIndex.push(childInd);
                             } else {
-                                // math — `NaN` for anything unevaluable, the
-                                // same coercion the forward definition above
-                                // applies and for the same reason. No
-                                // `inverseNumericOperator` reads `inputs`
-                                // today (`<min>` and `<max>`, the only two,
-                                // decide from `canBeModified` alone), so this
-                                // is what the contract says rather than a
-                                // defect repaired; a `null` here would be a
-                                // zero to the first one that did read it.
+                                // math
                                 let value =
                                     child.stateValues.value.evaluate_to_constant();
-                                inputs.push(
-                                    isNumericConstant(value) ? value : NaN,
-                                );
+                                inputs.push(value);
                                 canBeModified.push(
                                     child.stateValues.canBeModified,
                                 );
@@ -326,11 +243,6 @@ export default class MathOperator extends MathComponent {
                             }
                         }
                         let results = dependencyValues.inverseNumericOperator({
-                            // Left raw: a value with no numeric reading —
-                            // `NaN` now, `null` while the sentinel was one, or
-                            // a `Complex` — is caught by the `Number.isFinite`
-                            // test in both implementations, which falls back
-                            // to `desiredMathValue`.
                             desiredValue:
                                 desiredStateVariableValues.unnormalizedValue.evaluate_to_constant(),
                             inputs,

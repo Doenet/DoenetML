@@ -38,15 +38,12 @@ color =
     .purple = lila
     .pink = rosåda
     .brown = kulot chukulåti
-
 line-width =
     .thick = damo'
     .thin = dilikåo
-
 line-style =
     .dashed = ma'ipe'-ipe'
     .dotted = tuntos-tuntos
-
 # Noun phrases. Chamorro marks no plural on the noun, so «liña» is the word for
 # one line and for many alike.
 fill-style =
@@ -56,7 +53,6 @@ fill-style =
     .backdiagonal = liña diagonåt ma'atrasa
     .dots = tuntos
     .diamonds = diamånti
-
 noun =
     .line = liña
     .line-segment = pidåson liña
@@ -76,7 +72,6 @@ noun =
     .diamond = diamånti
     .cross = kilu'us
     .plus = mås
-
 # The side count follows the adjectives as a complement, so that they stay
 # beside the noun they describe.
 noun-regular-polygon =
@@ -84,11 +79,9 @@ noun-regular-polygon =
         [tail] ni guaha { $numSides } na kanton
        *[head] poligono regulåt
     }
-
 # One answer for every noun: Chamorro has no grammatical gender, and its Spanish
 # loans do not carry Spanish agreement either.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -102,22 +95,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # The noun first and the adjectives behind it, which is the opposite of English.
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = bula
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } yan { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } yan { $pattern }
@@ -125,7 +114,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $filled } { $color } { $nounTail } yan { $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Chamorro's «i» is the definite article and is not what English's "a" is doing
 # here, so all four branches read alike but for the connective: «yan» opens the
 # first clause and «yan lokkue'» a further one.
@@ -136,35 +124,28 @@ style-border-clause =
         [and-article] yan lokkue' kanton { $border }
        *[with] yan kanton { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = ti bula
-
 style-text =
     { $parts ->
         [background] { $color } yan i tatte { $background }
        *[plain] { $color }
     }
-
 style-background-none = taya'
-
 
 ## Boolean words
 
 boolean-true = magåhet
 boolean-false = dinagi
 
-
 ## Answer buttons
 
 answer-submit-label = Cheki i che'cho'
 answer-submit-label-no-correctness = Na'hålom i ineppe'
-
 
 ## Sectional blocks
 
@@ -191,7 +172,6 @@ section-name =
     .solution = Solusion
     .task = Cho'cho'
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -201,9 +181,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Hinasso
-
 
 ## Tables and figures
 
@@ -214,7 +192,6 @@ table-name =
         [unnumbered-title] Låmasa{ ": " }
        *[unnumbered] Låmasa
     }
-
 figure-name =
     { $parts ->
         [numbered] Litråtu { $enumeration }
@@ -223,22 +200,18 @@ figure-name =
        *[unnumbered] Litråtu
     }
 
-
 ## Paginator controls
 
 paginator-previous = Antes
 paginator-next = Sigiente
 paginator-page = Påhina
-
 paginator-page-status = { $pageLabel } { $currentPage } gi { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = pat
 piecewise-condition-if = yanggen
 piecewise-condition-otherwise = yanggen ti
-
 
 ## Chemistry
 ##
@@ -250,6 +223,5 @@ piecewise-condition-otherwise = yanggen ti
 ## there is neither a Chamorro table nor a Spanish one behind it.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ti maolek na simbolon kimika
 chemistry-invalid-ionic-compound = Ti maolek na kompuesto ioniko

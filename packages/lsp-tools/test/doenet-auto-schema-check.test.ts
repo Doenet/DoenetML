@@ -1055,3 +1055,211 @@ describe("AutoCompleter", () => {
         });
     });
 });
+
+describe("Content-transparent composites in typed containers", () => {
+    // A composite whose replacements are copies of whatever the author put
+    // inside it can legitimately appear wherever its content can. Marking
+    // those `allowInSchemaAnywhere` is what stops the LSP warning about
+    // authoring that core accepts — `<math>1 + <group>2 3</group></math>`
+    // evaluates to `1 + 2 * 3`, and `<numberList><sort>3 1 2</sort></numberList>`
+    // to `1,2,3`. `<setup>` carries the same mark for the opposite reason: it
+    // produces no replacements, so it is legal wherever anything is.
+    const transparentComposites = [
+        ["group", `<math><group><math>1</math></group></math>`],
+        ["repeat", `<math><repeat for="1 2" valueName="v">$v</repeat></math>`],
+        [
+            "repeatForSequence",
+            `<math><repeatForSequence to="2" valueName="v">$v</repeatForSequence></math>`,
+        ],
+        [
+            "select",
+            `<math><select><option><math>1</math></option></select></math>`,
+        ],
+        ["module", `<math><module><math>1</math></module></math>`],
+        ["collect", `<math><collect from="$g" componentType="point" /></math>`],
+        ["shuffle", `<numberList><shuffle>1 2 3</shuffle></numberList>`],
+        ["sort", `<numberList><sort>3 1 2</sort></numberList>`],
+        ["setup", `<math>1+<setup><number name="n">5</number></setup>2</math>`],
+    ] as const;
+
+    for (const [name, source] of transparentComposites) {
+        it(`Accepts <${name}> inside a container that takes one concrete type`, async () => {
+            const ac = new AutoCompleter(source, doenetSchema.elements);
+            const messages = (await ac.getSchemaViolations()).map(
+                (d) => d.message,
+            );
+            expect(
+                messages.filter((m) => m.includes("not allowed inside")),
+            ).toEqual([]);
+        });
+    }
+
+    it("Still rejects a composite with a fixed replacement type in the wrong container", async () => {
+        // `<booleanList>` expands to `boolean`, which `<math>` doesn't take.
+        // Widening the transparent composites must leave these checks intact.
+        const source = `<math><booleanList>true false</booleanList></math>`;
+        const ac = new AutoCompleter(source, doenetSchema.elements);
+        const messages = (await ac.getSchemaViolations()).map((d) => d.message);
+        expect(messages).toContain(
+            "Element `<booleanList>` is not allowed inside of `<math>`.",
+        );
+    });
+
+    it("Rejects <split> in a graphical container now that it expands to `text`", async () => {
+        // `<split>` produces `text` replacements, so the old
+        // `_inline`/`_block`/`_graphical` mark let it into containers that
+        // take only graphical objects. `["text"]` takes it back out.
+        const source = `<graph><point name="P">(1,2)<constrainTo><split>a b</split></constrainTo></point></graph>`;
+        const ac = new AutoCompleter(source, doenetSchema.elements);
+        const messages = (await ac.getSchemaViolations()).map((d) => d.message);
+        expect(messages).toEqual([
+            "Element `<split>` is not allowed inside of `<constrainTo>`.",
+        ]);
+    });
+
+    it("Doesn't let <sortIndices> inherit <sort>'s anywhere mark", async () => {
+        // `<sortIndices>` extends `<sort>` and would pick up its
+        // `allowInSchemaAnywhere` static by inheritance, but it expands to
+        // `number` rather than to copies of its children, so it belongs only
+        // where a number belongs.
+        const inImage = new AutoCompleter(
+            `<image source="doenet:x"><sortIndices>3 1 2</sortIndices></image>`,
+            doenetSchema.elements,
+        );
+        expect(
+            (await inImage.getSchemaViolations()).map((d) => d.message),
+        ).toEqual([
+            "Element `<sortIndices>` is not allowed inside of `<image>`.",
+        ]);
+
+        // `<sort>` itself, being content-transparent, is fine there.
+        const sortInImage = new AutoCompleter(
+            `<image source="doenet:x"><sort>3 1 2</sort></image>`,
+            doenetSchema.elements,
+        );
+        expect(
+            (await sortInImage.getSchemaViolations()).map((d) => d.message),
+        ).toEqual([]);
+
+        const inNumberList = new AutoCompleter(
+            `<numberList><sortIndices>3 1 2</sortIndices></numberList>`,
+            doenetSchema.elements,
+        );
+        expect(
+            (await inNumberList.getSchemaViolations()).map((d) => d.message),
+        ).toEqual([]);
+    });
+
+    it("Doesn't offer a composite as a child of a childless element", async () => {
+        // `allowInSchemaAnywhere` only expands declared child groups, so
+        // `<br>` and friends stay empty.
+        const br = doenetSchema.elements.find((e) => e.name === "br");
+        expect(br?.children).toEqual([]);
+    });
+
+    it("Accepts a narrowed child inside a transparent composite", async () => {
+        // The other direction of the same argument. A component narrowed by
+        // `inSchemaOnlyInheritAs` — `<series>`, `<shortDescription>` — no
+        // longer reaches the `_base` that a composite's child groups are
+        // written in terms of, so without the matching widening it is reported
+        // in the wrong place merely for being wrapped. Building one series per
+        // group of the data is exactly what a `<repeat>` is for.
+        const inRepeat = new AutoCompleter(
+            `<chart type="bar"><repeat for="1 2" valueName="v"><series>$v</series></repeat></chart>`,
+            doenetSchema.elements,
+        );
+        expect(
+            (await inRepeat.getSchemaViolations()).map((d) => d.message),
+        ).toEqual([]);
+
+        const descriptionInGroup = new AutoCompleter(
+            `<chart type="bar"><group><shortDescription>counts</shortDescription></group>4 9</chart>`,
+            doenetSchema.elements,
+        );
+        expect(
+            (await descriptionInGroup.getSchemaViolations()).map(
+                (d) => d.message,
+            ),
+        ).toEqual([]);
+    });
+
+    it("Does not see a chart-only child hidden inside a wrapper", async () => {
+        // The limit of a context-free schema plus an immediate-parent check.
+        // `<section>` accepts `<group>`, `<group>` accepts anything its
+        // container would have, and the violation checker compares a node only
+        // with its own parent — so a `<series>` one level down is invisible,
+        // even though the same tag written directly under `<section>` is
+        // caught.
+        //
+        // Pinned rather than fixed: closing it means resolving a node through
+        // the content-transparent composites to the first container that
+        // really constrains it, which needs the schema to say which composites
+        // those are. Tracked in #1886. Asserted here so that it is a known
+        // gap with a shape, and so that a future fix has something to flip.
+        const wrapped = new AutoCompleter(
+            `<section><group><series>4</series></group></section>`,
+            doenetSchema.elements,
+        );
+        expect(
+            (await wrapped.getSchemaViolations()).map((d) => d.message),
+        ).toEqual([]);
+
+        // Directly under the same parent, it is caught.
+        const direct = new AutoCompleter(
+            `<section><series>4</series></section>`,
+            doenetSchema.elements,
+        );
+        expect(
+            (await direct.getSchemaViolations()).map((d) => d.message),
+        ).toContain("Element `<series>` is not allowed inside of `<section>`.");
+    });
+
+    it("Reports a chart-only child written outside a chart", async () => {
+        // What the narrowing buys: `<series>` means nothing outside a
+        // `<chart>`, and a chart is the only element whose child groups name
+        // it. Without `inSchemaOnlyInheritAs` it would inherit from `_base`
+        // and so be accepted at the root of a document, in a `<section>` and
+        // in every other container that takes arbitrary content — where it
+        // would be built, drawn by nothing, and never mentioned.
+        const atRoot = new AutoCompleter(
+            `<series>4 9</series>`,
+            doenetSchema.elements,
+        );
+        expect(
+            (await atRoot.getSchemaViolations()).map((d) => d.message),
+        ).toContain(
+            "Element `<series>` is not allowed at the root of the document.",
+        );
+
+        const inSection = new AutoCompleter(
+            `<section><series>4 9</series></section>`,
+            doenetSchema.elements,
+        );
+        expect(
+            (await inSection.getSchemaViolations()).map((d) => d.message),
+        ).toContain("Element `<series>` is not allowed inside of `<section>`.");
+    });
+
+    it("Doesn't widen a composite that takes named children", async () => {
+        // `allowInSchemaAnywhere` describes where a composite may be written,
+        // not what may be written inside it. `<select>` takes only `<option>`
+        // and `<collect>` takes no children at all, and core rejects anything
+        // else as an invalid child — so the widening above must not reach
+        // them, or the editor would accept what core then refuses.
+        const inSelect = new AutoCompleter(
+            `<select numToSelect="1"><p>a</p></select>`,
+            doenetSchema.elements,
+        );
+        expect(
+            (await inSelect.getSchemaViolations()).map((d) => d.message),
+        ).toEqual(["Element `<p>` is not allowed inside of `<select>`."]);
+
+        const inCollect = new AutoCompleter(
+            `<graph name="g" /><collect from="$g" componentType="point"><p>a</p></collect>`,
+            doenetSchema.elements,
+        );
+        expect(
+            (await inCollect.getSchemaViolations()).map((d) => d.message),
+        ).toEqual(["Element `<p>` is not allowed inside of `<collect>`."]);
+    });
+});

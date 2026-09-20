@@ -7,6 +7,7 @@ import { returnStyleDefinitionStateVariables } from "@doenet/utils";
 import { SUPPORTED_LOCALES, resolveDocumentLocale } from "@doenet/i18n";
 import { returnFeedbackDefinitionStateVariables } from "../utils/feedback";
 import {
+    returnCheckWorkCreditStateVariableDefinition,
     returnScoredSectionAttributes,
     returnScoredSectionStateVariableDefinition,
     submitAllAnswers,
@@ -150,6 +151,12 @@ export default class Document extends BaseComponent {
         // the scores of its children, so it drops the opt-in `aggregateScores`
         // state variable.
         delete stateVariableDefinitions.aggregateScores;
+
+        // `creditAchievedForProgress` exists so a `<cascade>` can ask whether a
+        // step is complete. A document is never a step of one, and the shared
+        // definition is written against the `aggregateScores` just deleted, so
+        // it goes too rather than being overridden the way `creditAchieved` is.
+        delete stateVariableDefinitions.creditAchievedForProgress;
 
         // The shared submit labels read the *enclosing* document's language,
         // which is right for everything inside a document and wrong for the
@@ -581,6 +588,15 @@ export default class Document extends BaseComponent {
                 return { setValue: { creditAchieved, percentCreditAchieved } };
             },
         };
+
+        // Overrides the shared `creditAchievedForCheckWork` for the same reason
+        // as `creditAchieved` above: the document always aggregates, rather
+        // than only when `aggregateScores` is enabled. The rule is unchanged,
+        // so it still comes from the shared definition.
+        stateVariableDefinitions.creditAchievedForCheckWork =
+            returnCheckWorkCreditStateVariableDefinition({
+                alwaysAggregate: true,
+            });
 
         // Overrides the shared `creditAchievedIfSubmit` for the same reason as
         // `creditAchieved` above: the document always aggregates, rather than

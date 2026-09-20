@@ -107,8 +107,14 @@ with a `<callAction>{:dn}` employing the `submitAnswer` action.
 
 
 
-The `width` attribute specifies the absolute width of the video. Doenet determines 
-the `size` category that corresponds to that width and sizes the video accordingly.
+The `width` attribute specifies the width of the video. Doenet determines 
+the `size` category that corresponds to that width and sizes the video accordingly,
+so the player is not drawn at exactly the width given: `width="400px"` and
+`width="50%"` both produce a `medium` video, 425 pixels wide. A width may be
+written as a number of pixels, as a physical measurement (`6in`), or as a
+percentage — but of the 850-pixel maximum a component may take, not of the
+space around the player, so `50%` picks `medium` however narrow the surrounding
+column is. See [Sizes](../concepts/essentialConcepts#sizes).
 
 
 

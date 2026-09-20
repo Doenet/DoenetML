@@ -88,7 +88,12 @@ const DEFAULTS = {
 // "parked" is also the initial state: a discovered iframe is detached to
 // about:blank and awaits its first boot slot exactly as a re-parked one does
 // (so coming into view unparks it through the same path).
-type ActivityState = "booting" | "live" | "parking" | "parked";
+//
+// "failed" is a booted realm whose core could not start (#1709). Its document
+// is committed and holding memory, so it still occupies the live budget and is
+// still parkable — but it has no core, so parking skips the state flush, and
+// the unpark that follows a scroll-back doubles as a retry.
+type ActivityState = "booting" | "live" | "failed" | "parking" | "parked";
 
 type ActivityRecord = {
     iframe: HTMLIFrameElement;
@@ -246,7 +251,21 @@ export function initializeDoenetCoordinator(
     // ---- park / restore ----
 
     function beginPark(record: ActivityRecord) {
-        if (record.state !== "live" || !record.iframe.contentWindow) {
+        if (
+            (record.state !== "live" && record.state !== "failed") ||
+            !record.iframe.contentWindow
+        ) {
+            return;
+        }
+        if (record.state === "failed") {
+            // The realm has no core — either none ever started, or a rebuild
+            // that failed took the previous one down with it — so nothing
+            // would answer a flush request. Whatever the activity did report
+            // before that is already in the warehouse, so detach straight away
+            // instead of waiting out `flushTimeoutMs`. (`evaluateBudget` only
+            // offers off-screen records, so there is no scrolled-back case to
+            // reconsider the way the flush path has.)
+            detachRealm(record);
             return;
         }
         record.state = "parking";
@@ -287,9 +306,17 @@ export function initializeDoenetCoordinator(
             scheduleEvaluate(0);
             return;
         }
-        // Detach the realm. The iframe element (and the page layout) stays;
-        // the browser discards the document, its worker(s), and its shared
-        // cores — release the latter from the pool.
+        detachRealm(record);
+    }
+
+    /**
+     * Discard the activity's document. The iframe element (and the page
+     * layout) stays; the browser drops the document, its worker(s), and its
+     * shared cores — release the latter from the pool. The record lands in
+     * "parked", so coming back into view boots it again through the normal
+     * slot path.
+     */
+    function detachRealm(record: ActivityRecord) {
         destroySharedCoresForViewer(record.poolViewerId);
         releaseBootSlot(record);
         record.iframe.src = "about:blank";
@@ -318,13 +345,19 @@ export function initializeDoenetCoordinator(
 
     function evaluateBudget() {
         const now = Date.now();
-        // Count only what still occupies the live budget: booting and live
-        // realms. A "parking" realm is already committed to being shed, so
-        // counting it would let a second evaluateBudget firing during its
-        // flush window shed an *additional* viewer the budget never needed.
+        // Count only what still occupies the live budget: booting, live, and
+        // failed realms (a failed one has a committed document holding
+        // memory, so it costs the page just as a live one does). A "parking"
+        // realm is already committed to being shed, so counting it would let a
+        // second evaluateBudget firing during its flush window shed an
+        // *additional* viewer the budget never needed.
         let active = 0;
         for (const record of records.values()) {
-            if (record.state === "booting" || record.state === "live") {
+            if (
+                record.state === "booting" ||
+                record.state === "live" ||
+                record.state === "failed"
+            ) {
                 active++;
             }
         }
@@ -335,7 +368,10 @@ export function initializeDoenetCoordinator(
         const candidates: ActivityRecord[] = [];
         let nextExpiry = Infinity;
         for (const record of records.values()) {
-            if (record.state !== "live" || record.visible) {
+            if (
+                (record.state !== "live" && record.state !== "failed") ||
+                record.visible
+            ) {
                 continue;
             }
             const eligibleAt = record.invisibleSince + opts.parkDelayMs;
@@ -376,8 +412,46 @@ export function initializeDoenetCoordinator(
             }
             const inner = data.data;
             if (inner.type === "bootComplete") {
-                if (record.state === "booting") {
+                // "failed" is also a valid state to arrive in: a realm that
+                // gave up on one core-start attempt can succeed on a later
+                // one (a rebuild — a locale switch, say — starts a fresh
+                // ladder). It has a core again, so it must lose the label
+                // that would otherwise make parking skip its state flush.
+                if (record.state === "booting" || record.state === "failed") {
                     record.state = "live";
+                }
+                releaseBootSlot(record);
+                evaluateBudget();
+                return;
+            }
+            if (inner.type === "bootFailed") {
+                // The realm gave up starting its core (#1709). Free the slot
+                // now rather than at `bootWatchdogMs`: on a page where several
+                // activities are failing, holding slots for 90 s each starves
+                // the very queue that keeps the page from overloading.
+                //
+                // "live" is also a valid state to arrive in: the boot watchdog
+                // promotes a silent boot to live, and the failure can land
+                // after that. A "parked" realm keeps its state — its document
+                // is already gone, so there is nothing left to describe.
+                if (record.state === "booting" || record.state === "live") {
+                    record.state = "failed";
+                } else if (record.state === "parking") {
+                    // The flush in flight will never be answered: the realm
+                    // just reported it has no core. Without this, the park
+                    // would wait out `flushTimeoutMs` for nothing — and a
+                    // reader who scrolled back mid-flush would land the
+                    // record in "live", losing the failure and making every
+                    // later park of this realm wait out that same silence.
+                    record.parkFlushCleanup?.();
+                    record.parkFlushId = null;
+                    if (record.visible) {
+                        // The `evaluateBudget` below re-checks the budget now
+                        // that this record rejoins it as "failed".
+                        record.state = "failed";
+                    } else {
+                        detachRealm(record);
+                    }
                 }
                 releaseBootSlot(record);
                 evaluateBudget();
@@ -556,6 +630,9 @@ if (!scriptElement?.dataset.doenetManualInit) {
     }
     if (dataset.flushTimeoutMs) {
         datasetOptions.flushTimeoutMs = parseInt(dataset.flushTimeoutMs, 10);
+    }
+    if (dataset.bootWatchdogMs) {
+        datasetOptions.bootWatchdogMs = parseInt(dataset.bootWatchdogMs, 10);
     }
     if (dataset.sharedCoreWorkers) {
         datasetOptions.sharedCoreWorkers =

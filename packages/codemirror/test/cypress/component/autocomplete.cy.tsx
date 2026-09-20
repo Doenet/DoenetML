@@ -1,13 +1,36 @@
 import React, { useRef } from "react";
 import { CodeMirror } from "../../../src/CodeMirror";
-// @ts-ignore — ?raw loads the pre-built inline core worker as a string so we
-// can create a blob: URL Worker.  The LSP spawns this worker behind the scenes
+// @ts-ignore — ?raw loads the pre-built core worker as a string so we can
+// create a blob: URL Worker.  The LSP spawns this worker behind the scenes
 // to power $ref / member completions; without a URL the LSP marks the rust
 // resolver "unavailable" and every ref test in this spec would fail.
 import coreWorkerSource from "@doenet/doenetml-worker/index.js?raw";
+// The worker locates its WASM at run time; a blob-URL worker cannot, so
+// supply it up front via `self.__doenetWorkerWasmUrl` (see the loading
+// ladder in @doenet/doenetml-worker's src/wasmLoading.ts). Fetched ONCE here and
+// re-shared as a blob: URL: this spec boots a fresh core sub-worker per
+// mounted document, and having every one of those pull its own multi-MB
+// copy from the component dev server makes the later tests miss their
+// timeouts. One shared Blob costs one fetch and one copy in memory.
+// @ts-ignore
+import coreWasmUrl from "@doenet/doenetml-worker/lib_doenetml_worker_bg.wasm?url";
+
+const coreWasmBlobUrl: string = coreWasmUrl.startsWith("data:")
+    ? coreWasmUrl
+    : URL.createObjectURL(
+          await (
+              await fetch(new URL(coreWasmUrl, window.location.href))
+          ).blob(),
+      );
 
 const doenetWorkerUrl = URL.createObjectURL(
-    new Blob([coreWorkerSource], { type: "application/javascript" }),
+    new Blob(
+        [
+            `self.__doenetWorkerWasmUrl = ${JSON.stringify(coreWasmBlobUrl)};\n`,
+            coreWorkerSource,
+        ],
+        { type: "application/javascript" },
+    ),
 );
 
 type LspInstance =
@@ -212,6 +235,40 @@ describe("CodeMirror LSP Autocomplete Plugin", () => {
         cy.get(".cm-content")
             .invoke("text")
             .should("not.contain", 'name="mcq"');
+    });
+
+    it("keeps element snippets listed across the hyphens of their names (#1780)", () => {
+        // Nine of the ten snippets have hyphenated names, so typing one
+        // straight through is the obvious way to reach it. The menu used to
+        // empty on the hyphen — the tag name was read as the text that
+        // followed it rather than as a name being typed — so the snippet
+        // could only be accepted by stopping short of the hyphen.
+        cy.mount(
+            <div style={{ height: "400px", width: "600px" }}>
+                <CodeMirror value="" doenetWorkerUrl={doenetWorkerUrl} />
+            </div>,
+        );
+
+        cy.get(".cm-content").click().type("<answer", { force: true });
+        cy.get(".cm-tooltip-autocomplete li").should(
+            "have.length.greaterThan",
+            1,
+        );
+
+        // `answer-labeled` is the only name that continues past the hyphen, so
+        // the menu narrowing to it alone is also how we know the list shown is
+        // the one queried after the hyphen rather than the one before it.
+        cy.get(".cm-content").type("-", { force: true });
+        cy.get(".cm-tooltip-autocomplete li").should("have.length", 1);
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").should(
+            "have.text",
+            "answer-labeled",
+        );
+
+        // Accepting it replaces everything typed, hyphen included.
+        cy.get(".cm-tooltip-autocomplete .cm-completionLabel").click();
+        cy.get(".cm-content").invoke("text").should("contain", "<label>");
+        cy.get(".cm-content").invoke("text").should("not.contain", "answer-");
     });
 
     it("completes attribute names", () => {

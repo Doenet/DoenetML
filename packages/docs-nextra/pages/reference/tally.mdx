@@ -1,0 +1,174 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<tally>{:dn}`
+
+<ComponentDisplay name='tally'/>
+
+`<tally>{:dn}` is a [General Operator](../concepts/essentialConcepts#component-types)
+component that renders how many times each category appears among its arguments: a list
+of counts, one per category. Where [`<count>{:dn}`](count) reports how many values there
+are in total, `<tally>{:dn}` reports how many there are of each kind.
+
+<AttrPropDisplay name='tally'/>
+
+## Examples
+
+### Example: counting the values that are there
+
+
+```doenet-editor-horiz
+<setup>
+  <textList name="fruit">apple fig apple pear fig apple</textList>
+  <tally name="t">$fruit</tally>
+</setup>
+
+<p>Fruit: $fruit</p>
+<p>Categories: $t.categories</p>
+<p>Counts: $t</p>
+```
+
+
+
+With no `categories` attribute, the categories are whatever distinct values turned up,
+in sorted order.
+
+
+
+---
+
+### Example: counting a simulation
+
+
+```doenet-editor-horiz
+<setup>
+  <numberList name="pop">30 45 12 60</numberList>
+  <textList name="labels">North South East West</textList>
+  <cumulativeSum name="cum">$pop</cumulativeSum>
+  <number name="total"><sum>$pop</sum></number>
+</setup>
+
+<setup>
+  <sampleRandomNumbers name="draws" type="discreteUniform"
+    from="1" to="$total" numSamples="60" />
+  <searchSorted name="which" target="$draws">$cum</searchSorted>
+  <tally name="counts" categories="1 2 3 4">$which</tally>
+</setup>
+
+<p>Subpopulation sizes: $pop (total $total)</p>
+<p>Regions: $labels</p>
+<p>Sampled counts: $counts</p>
+<p>Total sampled: <sum>$counts</sum></p>
+
+<callAction actionName="resample" target="$draws">
+  <label>Draw again</label>
+</callAction>
+```
+
+
+
+Three tags do the whole simulation:
+[`<cumulativeSum>{:dn}`](cumulativeSum) accumulates the subpopulation sizes,
+[`<searchSorted>{:dn}`](searchSorted) maps every draw onto the subpopulation it landed
+in, and `<tally>{:dn}` counts them. Because every draw lands in exactly one
+subpopulation, the counts always sum to the number of samples.
+
+
+
+---
+
+### Example: values outside the declared categories
+
+
+```doenet-editor-horiz
+<numberList name="scores">1 2 9 9</numberList>
+
+<p>Counts: <tally categories="1 2">$scores</tally></p>
+```
+
+
+
+A value matching none of the declared categories is not counted anywhere, so the counts
+do not sum to the number of values. This occurrence is reported as an informational
+message.
+
+
+## Attribute Examples
+
+### Attribute Example: categories
+
+
+```doenet-editor-horiz
+<numberList name="rolls">3 1 6 3 3 5 1</numberList>
+
+<p>Rolls: $rolls</p>
+<p>Counts: <tally categories="1 2 3 4 5 6">$rolls</tally></p>
+```
+
+
+
+Declaring the categories keeps a slot for the ones nothing matched — 2 and 4 here — so
+the counts stay lined up with the faces they are counts of. Left to infer its own
+categories, `<tally>{:dn}` would report only the four values that actually appeared.
+
+
+
+---
+
+### Attribute Example: type
+
+
+```doenet-editor-horiz
+<tally name="inferred">007 008 007</tally>
+<p>Inferred: $inferred.categories</p>
+
+<tally name="asText" type="text">007 008 007</tally>
+<p>With <c>type="text"</c>: $asText.categories</p>
+
+<tally name="inferredMath">2x 2*x 2x</tally>
+<p>Inferred: $inferredMath.categories — $inferredMath</p>
+
+<tally name="asMath" type="math">2x 2*x 2x</tally>
+<p>With <c>type="math"</c>: $asMath.categories — $asMath</p>
+```
+
+
+
+Bare strings are read as what they look like, so `007` and `008` count as the numbers 7
+and 8, and the leading zeros are gone from the categories. `type="text"` keeps a numeral
+that is a label rather than a quantity — a jersey number, a ZIP code, a room number —
+whole.
+
+`type="math"` is for the other direction. Neither `2x` nor `2*x` is a number, so both are
+read as text and compared letter by letter, which makes them two categories. Read as
+maths they are the same expression, and the three values are one category counted three
+times.
+
+
+
+---
+
+## Property Examples
+
+### Property Example: categories
+
+
+```doenet-editor-horiz
+<textList name="fruit">apple fig apple pear fig apple</textList>
+<tally name="t">$fruit</tally>
+
+<p>Categories: $t.categories</p>
+<p>Counts: $t</p>
+
+<chart type="bar" categories="$t.categories" size="small">
+  <shortDescription>How many of each fruit</shortDescription>
+  $t
+</chart>
+```
+
+
+
+The categories a `<tally>{:dn}` inferred are readable back, so a chart or a table is
+driven off the same component that did the counting.

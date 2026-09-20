@@ -2687,12 +2687,11 @@ export class DependencyHandler {
             );
         }
 
-        let neededForItem = this.peekNeededToResolve({
-            componentIdx,
-            type,
-            stateVariable,
-            dependency,
-        });
+        // The four fields that identify this item, passed as a unit to
+        // everything below that addresses it.
+        const item = { componentIdx, type, stateVariable, dependency };
+
+        let neededForItem = this.peekNeededToResolve(item);
 
         // first resolve determine dependencies, if it exists
 
@@ -2734,123 +2733,80 @@ export class DependencyHandler {
             }
         }
 
-        // first try without forcing
-        // i.e., without passing force on to resolveItem
-        // that way, if force===true, we'll first iterate
-        // to possibly reveal other items needed resolve
-        // that are picked up from the failures
+        // `currentlyResolving` has to be cleared on every exit, including the
+        // early returns below for a blocker we couldn't resolve. A flag left set
+        // makes `DetermineDependenciesDependency.markStale` skip re-blocking this
+        // variable from then on, so it keeps the dependencies it built from a
+        // since-superseded value of a variable that determines them.
+        try {
+            // first try without forcing
+            // i.e., without passing force on to resolveItem
+            // that way, if force===true, we'll first iterate
+            // to possibly reveal other items needed resolve
+            // that are picked up from the failures
 
-        let previousNFailures = Infinity;
-        let nFailures = Infinity;
-        while (Object.keys(neededForItem).length > 0 || nFailures > 0) {
-            if (Number.isFinite(nFailures) && nFailures >= previousNFailures) {
-                break;
-            }
-            if (nFailures > 0) {
-                neededForItem = this.peekNeededToResolve({
-                    componentIdx,
-                    type,
-                    stateVariable,
-                    dependency,
-                });
-            }
-            previousNFailures = nFailures;
-            nFailures = 0;
-
-            for (let blockerType in neededForItem) {
-                if (blockerType === "determineDependencies") {
-                    throw Error(
-                        `Shouldn't have determine dependencies blocker after determining dependencies: ${componentIdx}, ${type}, ${stateVariable}, ${dependency}`,
-                    );
+            let previousNFailures = Infinity;
+            let nFailures = Infinity;
+            while (Object.keys(neededForItem).length > 0 || nFailures > 0) {
+                if (
+                    Number.isFinite(nFailures) &&
+                    nFailures >= previousNFailures
+                ) {
+                    break;
                 }
+                if (nFailures > 0) {
+                    neededForItem = this.peekNeededToResolve(item);
+                }
+                previousNFailures = nFailures;
 
-                // shallow copy, as items may be deleted as resolve items
-                for (let code of [...neededForItem[blockerType]]) {
-                    let [
-                        blockerComponentIdx,
-                        blockerStateVariable,
-                        blockerDependency,
-                    ] = typeof code === "string" ? code.split("|") : [code];
+                let passResult = await this._resolveBlockersOfItem({
+                    neededForItem,
+                    item,
+                    forceBlockers: false,
+                    tolerateFailures: force,
+                    expandComposites,
+                });
 
-                    let result: any = await this.resolveItem({
-                        componentIdx: blockerComponentIdx,
-                        type: blockerType,
-                        stateVariable: blockerStateVariable,
-                        dependency: blockerDependency,
-                        //force, //recurseUpstream
+                if (passResult.failure) {
+                    // console.log(`${" ".repeat(this.resolveLevels - 1)}couldn't resolve ${componentIdx}, ${type}, ${stateVariable}, ${dependency}`)
+                    // this.resolveLevels--;
+                    return passResult.failure;
+                }
+                nFailures = passResult.nFailures;
+            }
+
+            if (nFailures > 0) {
+                // if had failures and made it to here,
+                // it means we are forcing.
+                // Try one more time while passing force to resolveItem
+
+                neededForItem = this.peekNeededToResolve(item);
+
+                while (Object.keys(neededForItem).length > 0) {
+                    let passResult = await this._resolveBlockersOfItem({
+                        neededForItem,
+                        item,
+                        forceBlockers: force,
+                        tolerateFailures: false,
                         expandComposites,
                     });
 
-                    if (!result.success) {
-                        if (force) {
-                            nFailures++;
-                        } else {
-                            // console.log(`${" ".repeat(this.resolveLevels - 1)}couldn't resolve ${componentIdx}, ${type}, ${stateVariable}, ${dependency}`)
-                            // this.resolveLevels--;
-                            return result;
-                        }
+                    if (passResult.failure) {
+                        // console.log(`${" ".repeat(this.resolveLevels - 1)}couldn't resolve ${componentIdx}, ${type}, ${stateVariable}, ${dependency}`)
+                        // this.resolveLevels--;
+                        return passResult.failure;
                     }
                 }
             }
-        }
-
-        if (nFailures > 0) {
-            // if had failures and made it to here,
-            // it means we are forcing.
-            // Try one more time while passing force to resolveItem
-
-            neededForItem = this.peekNeededToResolve({
-                componentIdx,
-                type,
-                stateVariable,
-                dependency,
-            });
-
-            while (Object.keys(neededForItem).length > 0) {
-                for (let blockerType in neededForItem) {
-                    if (blockerType === "determineDependencies") {
-                        throw Error(
-                            `Shouldn't have determine dependencies blocker after determining dependencies: ${componentIdx}, ${type}, ${stateVariable}, ${dependency}`,
-                        );
-                    }
-
-                    // shallow copy, as items may be deleted as resolve items
-                    for (let code of [...neededForItem[blockerType]]) {
-                        let [
-                            blockerComponentIdx,
-                            blockerStateVariable,
-                            blockerDependency,
-                        ] = typeof code === "string" ? code.split("|") : [code];
-
-                        let result: any = await this.resolveItem({
-                            componentIdx: blockerComponentIdx,
-                            type: blockerType,
-                            stateVariable: blockerStateVariable,
-                            dependency: blockerDependency,
-                            force, //recurseUpstream
-                            expandComposites,
-                        });
-
-                        if (!result.success) {
-                            // console.log(`${" ".repeat(this.resolveLevels - 1)}couldn't resolve ${componentIdx}, ${type}, ${stateVariable}, ${dependency}`)
-                            // this.resolveLevels--;
-                            return result;
-                        }
-                    }
-                }
+        } finally {
+            if (stateVarObj) {
+                stateVarObj.currentlyResolving = false;
             }
-        }
-
-        if (stateVarObj) {
-            stateVarObj.currentlyResolving = false;
         }
 
         // item is resolved
         let finalResult = await this.resolveIfReady({
-            componentIdx,
-            type,
-            stateVariable,
-            dependency,
+            ...item,
             force,
             recurseUpstream,
             expandComposites,
@@ -2859,12 +2815,7 @@ export class DependencyHandler {
         if (!finalResult.success) {
             // after removing all blockers, we still can't resolve
 
-            let stillNeededForItem = this.peekNeededToResolve({
-                componentIdx,
-                type,
-                stateVariable,
-                dependency,
-            });
+            let stillNeededForItem = this.peekNeededToResolve(item);
 
             let numNeeded = Object.keys(stillNeededForItem).length;
 
@@ -2877,10 +2828,7 @@ export class DependencyHandler {
                     // then we can try again
 
                     finalResult = await this.resolveItem({
-                        componentIdx,
-                        type,
-                        stateVariable,
-                        dependency,
+                        ...item,
                         force,
                         recurseUpstream,
                         expandComposites,
@@ -2894,6 +2842,79 @@ export class DependencyHandler {
         // this.resolveLevels--;
 
         return finalResult;
+    }
+
+    /**
+     * Make one pass over `neededForItem`, the live record of what is still
+     * blocking `item`, resolving each blocker in turn. Entries drop out of the
+     * record as their blockers resolve, so the caller can loop until it is
+     * empty.
+     *
+     * `forceBlockers` is passed on to each blocker's own `resolveItem`.
+     * `tolerateFailures` decides what an unresolved blocker means: when false,
+     * the pass stops and hands back that blocker's result as `failure` for the
+     * caller to propagate; when true, the pass continues and reports how many
+     * blockers failed as `nFailures`.
+     *
+     * A `determineDependencies` blocker reaching here is a bug, so it throws:
+     * `resolveItem` resolves those before it sets `currentlyResolving`, and
+     * that flag is what stops a new one from being added while it works.
+     */
+    async _resolveBlockersOfItem({
+        neededForItem,
+        item,
+        forceBlockers,
+        tolerateFailures,
+        expandComposites,
+    }: {
+        neededForItem: Record<string, any>;
+        item: {
+            componentIdx: any;
+            type: string;
+            stateVariable?: string;
+            dependency?: string;
+        };
+        forceBlockers: boolean;
+        tolerateFailures: boolean;
+        expandComposites: boolean;
+    }): Promise<{ failure?: any; nFailures: number }> {
+        let nFailures = 0;
+
+        for (let blockerType in neededForItem) {
+            if (blockerType === "determineDependencies") {
+                throw Error(
+                    `Shouldn't have determine dependencies blocker after determining dependencies: ${item.componentIdx}, ${item.type}, ${item.stateVariable}, ${item.dependency}`,
+                );
+            }
+
+            // shallow copy, as items may be deleted as resolve items
+            for (let code of [...neededForItem[blockerType]]) {
+                let [
+                    blockerComponentIdx,
+                    blockerStateVariable,
+                    blockerDependency,
+                ] = typeof code === "string" ? code.split("|") : [code];
+
+                let result: any = await this.resolveItem({
+                    componentIdx: blockerComponentIdx,
+                    type: blockerType,
+                    stateVariable: blockerStateVariable,
+                    dependency: blockerDependency,
+                    force: forceBlockers,
+                    expandComposites,
+                });
+
+                if (!result.success) {
+                    if (tolerateFailures) {
+                        nFailures++;
+                    } else {
+                        return { failure: result, nFailures };
+                    }
+                }
+            }
+        }
+
+        return { nFailures };
     }
 
     checkForCircularResolveBlocker({

@@ -58,7 +58,6 @@ color =
     .purple = porpra
     .pink = rosa
     .brown = marró
-
 line-width =
     .thick =
         { $gender ->
@@ -70,7 +69,6 @@ line-width =
             [f] prima
            *[m] prim
         }
-
 line-style =
     .dashed =
         { $gender ->
@@ -82,7 +80,6 @@ line-style =
             [f] puntejada
            *[m] puntejat
         }
-
 # Noun phrases standing behind «amb». They modify nothing and take no gender.
 fill-style =
     .horizontal = línies horitzontals
@@ -91,7 +88,6 @@ fill-style =
     .backdiagonal = línies diagonals inverses
     .dots = punts
     .diamonds = rombes
-
 noun =
     .line = línia
     .line-segment = segment
@@ -111,7 +107,6 @@ noun =
     .diamond = rombe
     .cross = creu
     .plus = signe més
-
 # The side count follows the style adjectives so that they stay beside the noun
 # they agree with, which is the split `noun-regular-polygon` exists for.
 noun-regular-polygon =
@@ -119,7 +114,6 @@ noun-regular-polygon =
         [tail] de { $numSides } costats
        *[head] polígon regular
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (polígon, m) or the
 # head of a phrase the description never names: `border` (vora, f), `fill`
 # (emplenat, m), `text` (text, m), `background` (fons, m).
@@ -137,7 +131,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 # The adjectives follow their noun, and the colour closes the run: «línia
@@ -152,25 +145,21 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [f] plena
        *[m] ple
     }
-
 style-filled =
     { $parts ->
         [pattern] { $color } { $filled } amb { $pattern }
        *[plain] { $color } { $filled }
     }
-
 # The complement sits against the noun rather than at the end, unlike
 # `style-with-noun`: «ple de …» reads as «full of …», so «ple de 5 costats»
 # would say something else. «Polígon regular de 5 costats blau ple».
@@ -181,7 +170,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $color } { $filled } amb { $pattern }
        *[plain] { $noun } { $color } { $filled }
     }
-
 # «vora» is feminine, so the border's adjectives agree with it and not with the
 # shape it surrounds. Catalan does have an indefinite article, so the two
 # `-article` branches are the two that write «una».
@@ -192,7 +180,6 @@ style-border-clause =
         [and-article] i una vora { $border }
        *[with] amb vora { $border }
     }
-
 # «de color» avoids having to agree the colour with a plural pattern noun
 # («línies horitzontals de color vermell»).
 style-fill =
@@ -200,29 +187,23 @@ style-fill =
         [pattern] { $pattern } de color { $color }
        *[plain] { $color }
     }
-
 style-unfilled = sense emplenar
-
 style-text =
     { $parts ->
         [background] { $color } amb un fons { $background }
        *[plain] { $color }
     }
-
 style-background-none = cap
-
 
 ## Boolean words
 
 boolean-true = cert
 boolean-false = fals
 
-
 ## Answer buttons
 
 answer-submit-label = Comprova
 answer-submit-label-no-correctness = Envia la resposta
-
 
 ## Sectional blocks
 
@@ -247,7 +228,6 @@ section-name =
     .solution = Solució
     .task = Tasca
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -257,9 +237,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Pista
-
 
 ## Tables and figures
 
@@ -270,7 +248,6 @@ table-name =
         [unnumbered-title] Taula{ ": " }
        *[unnumbered] Taula
     }
-
 figure-name =
     { $parts ->
         [numbered] Figura { $enumeration }
@@ -279,22 +256,18 @@ figure-name =
        *[unnumbered] Figura
     }
 
-
 ## Paginator controls
 
 paginator-previous = Anterior
 paginator-next = Següent
 paginator-page = Pàgina
-
 paginator-page-status = { $pageLabel } { $currentPage } de { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = o
 piecewise-condition-if = si
 piecewise-condition-otherwise = altrament
-
 
 ## Chemistry
 
@@ -417,7 +390,6 @@ element-name =
     .lv = Livermori
     .ts = Tennes
     .og = Oganessó
-
 element-anion-name =
     .h = Hidrur
     .c = Carbur
@@ -431,8 +403,6 @@ element-anion-name =
     .i = Iodur
     .at = Astatur
     .ts = Tennesur
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Símbol químic no vàlid
 chemistry-invalid-ionic-compound = Compost iònic no vàlid

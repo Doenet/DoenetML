@@ -36,15 +36,12 @@ color =
     .purple = кызгылт көк
     .pink = ачык кызгылт
     .brown = күрөң
-
 line-width =
     .thick = калың
     .thin = ичке
-
 line-style =
     .dashed = үзүк
     .dotted = чекиттүү
-
 # Noun phrases: they stand in front of «оюмдуу» and modify nothing.
 fill-style =
     .horizontal = туурасынан сызык
@@ -53,7 +50,6 @@ fill-style =
     .backdiagonal = карама-каршы диагоналдык сызык
     .dots = чекит
     .diamonds = ромб
-
 noun =
     .line = түз сызык
     .line-segment = кесинди
@@ -73,7 +69,6 @@ noun =
     .diamond = ромб
     .cross = крест
     .plus = плюс
-
 # Kyrgyz builds the word from the side count in front of the noun, so the whole
 # of it is one head and there is no tail.
 noun-regular-polygon =
@@ -81,11 +76,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] туура { $numSides }-бурчтук
     }
-
 # Kyrgyz has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English and Turkish.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -99,21 +92,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = боёлгон
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } оюмдуу { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } оюмдуу { $color } { $filled } { $noun }
@@ -121,7 +110,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } оюмдуу { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «жээктүү» — "bordered" — carries the "with a border" sense in its own suffix,
 # so neither a preposition nor an article is wanted, and all four branches read
 # alike except for the connective English needs and Kyrgyz does not.
@@ -132,15 +120,12 @@ style-border-clause =
         [and-article] жана { $border } жээктүү
        *[with] { $border } жээктүү
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } оюмдуу { $color } боёк
        *[plain] { $color } боёк
     }
-
 style-unfilled = боёлбогон
-
 # «фондо» is the locative of «фон» and says "on the background" by itself, so
 # nothing stands between the two colours.
 style-text =
@@ -148,21 +133,17 @@ style-text =
         [background] { $background } фондо { $color }
        *[plain] { $color }
     }
-
 style-background-none = жок
-
 
 ## Boolean words
 
 boolean-true = чын
 boolean-false = жалган
 
-
 ## Answer buttons
 
 answer-submit-label = Текшерүү
 answer-submit-label-no-correctness = Жоопту жөнөтүү
-
 
 ## Sectional blocks
 
@@ -187,7 +168,6 @@ section-name =
     .solution = Чыгарылышы
     .task = Тапшырма
     .theorem = Теорема
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -197,9 +177,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Кеңеш
-
 
 ## Tables and figures
 
@@ -210,7 +188,6 @@ table-name =
         [unnumbered-title] Таблица{ ". " }
        *[unnumbered] Таблица
     }
-
 figure-name =
     { $parts ->
         [numbered] { $enumeration }-сүрөт
@@ -219,22 +196,18 @@ figure-name =
        *[unnumbered] Сүрөт
     }
 
-
 ## Paginator controls
 
 paginator-previous = Мурунку
 paginator-next = Кийинки
 paginator-page = Бет
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = же
 piecewise-condition-if = эгер
 piecewise-condition-otherwise = болбосо
-
 
 ## Chemistry
 
@@ -357,7 +330,6 @@ element-name =
     .lv = Ливерморий
     .ts = Теннессин
     .og = Оганесон
-
 element-anion-name =
     .h = Гидрид
     .c = Карбид
@@ -371,8 +343,6 @@ element-anion-name =
     .i = Йодид
     .at = Астатид
     .ts = Теннессид
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Жараксыз химиялык белги
 chemistry-invalid-ionic-compound = Жараксыз иондук кошулма

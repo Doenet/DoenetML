@@ -7,8 +7,11 @@ import React, { useRef } from "react";
 import ReactDOM from "react-dom/client";
 import { DoenetViewer, DoenetEditor, type DoenetEditorHandle } from "./index";
 
+// The single-file inline variant: the regular `doenet-standalone.js` is
+// code-split, and a bundle evaluated from a Blob URL has no base to resolve
+// its relative chunk imports against.
 // @ts-ignore
-import STANDALONE_SOURCE from "@doenet/standalone/doenet-standalone.js?raw";
+import STANDALONE_SOURCE from "@doenet/standalone/doenet-standalone-inline.js?raw";
 // @ts-ignore
 import STANDALONE_CSS from "@doenet/standalone/style.css?raw";
 // @ts-ignore

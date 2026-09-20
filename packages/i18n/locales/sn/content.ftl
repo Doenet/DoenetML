@@ -78,7 +78,6 @@ color =
     .purple = pepuru
     .pink = pingi
     .brown = bhurauni
-
 line-width =
     .thick =
         { $gender ->
@@ -94,14 +93,12 @@ line-width =
             [c7] chitete
            *[c9] tete
         }
-
 # Written as invariable «ane …» phrases rather than as adjectives, so that they
 # agree with nothing and can close the description. `style-stroke` puts them
 # last for that reason.
 line-style =
     .dashed = ane zvidimbu
     .dotted = ane madotsi
-
 fill-style =
     .horizontal = mitsara yakarara
     .vertical = mitsara yakamira
@@ -109,7 +106,6 @@ fill-style =
     .backdiagonal = mitsara yakatsveyama kumashure
     .dots = madotsi
     .diamonds = madhaimondi
-
 noun =
     .line = mutsara
     .line-segment = chidimbu chemutsara
@@ -129,7 +125,6 @@ noun =
     .diamond = dhaimondi
     .cross = muchinjikwa
     .plus = chiratidzo chekuwedzera
-
 # The side count goes in the tail, behind the adjectives, because «ine mativi
 # 5» is a relative phrase and Shona closes a noun phrase with it rather than
 # opening one.
@@ -138,7 +133,6 @@ noun-regular-polygon =
         [tail] ine mativi { $numSides }
        *[head] poligoni yakaenzana
     }
-
 noun-gender =
     { $noun ->
         [line] c3
@@ -153,7 +147,6 @@ noun-gender =
        *[other] c9
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -166,13 +159,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [c3] wakazadzwa
@@ -180,13 +171,11 @@ style-filled-word =
         [c7] chakazadzwa
        *[c9] yakazadzwa
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } ne{ $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } ne{ $pattern }
@@ -194,7 +183,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $nounTail } { $filled } { $color } ne{ $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «muganhu» is class 3 and leads its own adjectives, so the border's words
 # agree with it and not with the shape it surrounds. Shona has no article, so
 # the two `-article` branches read like the two without, and «une» — a relative
@@ -207,23 +195,18 @@ style-border-clause =
         [and-article] une muganhu { $border }
        *[with] une muganhu { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } { $color }
        *[plain] { $color }
     }
-
 style-unfilled = isina kuzadzwa
-
 style-text =
     { $parts ->
         [background] { $color } pamusoro pechigadziko { $background }
        *[plain] { $color }
     }
-
 style-background-none = hapana
-
 
 ## Boolean words
 
@@ -232,12 +215,10 @@ boolean-true = chokwadi
 # word for a falsehood here is «manyepo», which is not.
 boolean-false = manyepo
 
-
 ## Answer buttons
 
 answer-submit-label = Ongorora Basa
 answer-submit-label-no-correctness = Tumira Mhinduro
-
 
 ## Sectional blocks
 
@@ -262,7 +243,6 @@ section-name =
     .solution = Gadziriso
     .task = Basa
     .theorem = Tiyoremu
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -272,9 +252,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Zano
-
 
 ## Tables and figures
 
@@ -285,7 +263,6 @@ table-name =
         [unnumbered-title] Tafura{ ": " }
        *[unnumbered] Tafura
     }
-
 figure-name =
     { $parts ->
         [numbered] Mufananidzo { $enumeration }
@@ -294,15 +271,12 @@ figure-name =
        *[unnumbered] Mufananidzo
     }
 
-
 ## Paginator controls
 
 paginator-previous = Yapfuura
 paginator-next = Inotevera
 paginator-page = Peji
-
 paginator-page-status = { $pageLabel } { $currentPage } pa{ $numPages }
-
 
 ## Piecewise functions
 
@@ -312,7 +286,6 @@ piecewise-condition-or = kana kuti
 piecewise-condition-if = kana
 piecewise-condition-otherwise = kana zvisina kudaro
 
-
 ## Chemistry
 
 # The 118 element names and the 12 anion names are left out, so those keys fall
@@ -321,6 +294,5 @@ piecewise-condition-otherwise = kana zvisina kudaro
 # already, and the seed has no settled Shona list to reproduce. A speaker
 # adding one should add it here.
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Chiratidzo cheKemisitiri Chisiri Icho
 chemistry-invalid-ionic-compound = Musanganiswa weIoni Usiri Iwo

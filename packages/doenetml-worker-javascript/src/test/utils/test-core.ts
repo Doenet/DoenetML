@@ -178,10 +178,28 @@ export async function createTestCore({
         state: "",
     };
 
+    /**
+     * The payloads of `pending` reports, in arrival order — mirrors of what
+     * the 60-second database throttle is holding back (Doenet/DoenetML#1726).
+     * A real host never saves one (`DocViewer` buffers them for the page-hide
+     * flush), so `scoreState` deliberately does not see them; they are
+     * collected here for tests that assert what the throttle is withholding.
+     */
+    const pendingReports: { score: number; state: unknown }[] = [];
+
     function reportScoreAndStateCallback(data: {
         score: number;
         state: unknown;
+        pending?: boolean;
     }) {
+        if (data.pending) {
+            // A mirror of what the 60-second throttle is holding back
+            // (Doenet/DoenetML#1726), not a report for a host to save. Real
+            // hosts never see these — `DocViewer` buffers them for the
+            // page-hide flush — so this stand-in host ignores them too.
+            pendingReports.push({ score: data.score, state: data.state });
+            return;
+        }
         scoreState.score = data.score;
 
         if (
@@ -225,7 +243,7 @@ export async function createTestCore({
         return resolvePathImmediatelyToNodeIdx(name, rustCore, core, origin);
     }
 
-    return { core, rustCore, resolvePathToNodeIdx, scoreState };
+    return { core, rustCore, resolvePathToNodeIdx, scoreState, pendingReports };
 }
 
 const LOCALES_DIR = path.resolve(__dirname, "../../../../i18n/locales");

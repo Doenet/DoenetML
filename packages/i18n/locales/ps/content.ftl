@@ -122,7 +122,6 @@ color =
     .purple = بنفشي
     .pink = ګلابي
     .brown = نسواري
-
 line-width =
     .thick =
         { $role ->
@@ -150,12 +149,10 @@ line-width =
                    *[m] نری
                 }
         }
-
 # Both are reduplicated phrases rather than adjectives, so neither inflects.
 line-style =
     .dashed = ټوټه ټوټه
     .dotted = ټکي ټکي
-
 # Noun phrases rather than adjectives; they agree with nothing, so `style-fill`
 # gives them a noun to hang off rather than printing them bare.
 fill-style =
@@ -165,7 +162,6 @@ fill-style =
     .backdiagonal = مخالفې کږې کرښې
     .dots = ټکي
     .diamonds = لوزنګونه
-
 noun =
     .line = کرښه
     .line-segment = د کرښې ټوټه
@@ -185,7 +181,6 @@ noun =
     .diamond = لوزنګ
     .cross = کراس
     .plus = د جمعې نښه
-
 # Pashto keeps the side count in front of the noun, so the whole thing is one
 # head and there is no tail.
 noun-regular-polygon =
@@ -193,7 +188,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides } ضلعې لرونکی منظم څو ضلعي
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (څو ضلعي, m) or the
 # head of a phrase the description never names: `border` (څنډه, f), `fill`
 # (ډکاو, m), `text` (متن, m), `background` (شاليد, m).
@@ -211,7 +205,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -224,47 +217,45 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 # Adjectives precede the noun, as in English.
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word =
     { $gender ->
         [f] ډکه
        *[m] ډک
     }
-
 # «لرونکی» inflects like any adjective in ی, and it agrees with the shape
 # rather than with the pattern in front of it: «ټکي لرونکې کرښه», «ټکي لرونکی
 # مربع». `style-fill` writes it with no branch at all, because the noun it
 # agrees with there is «ډکاو», which is always masculine.
 style-filled =
     { $parts ->
-        [pattern] { $pattern } { $gender ->
-            [f] لرونکې
-           *[m] لرونکی
-        } { $color } { $filled }
+        [pattern]
+            { $pattern } { $gender ->
+                [f] لرونکې
+               *[m] لرونکی
+            } { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
-        [pattern] { $pattern } { $gender ->
-            [f] لرونکې
-           *[m] لرونکی
-        } { $color } { $filled } { $noun }
+        [pattern]
+            { $pattern } { $gender ->
+                [f] لرونکې
+               *[m] لرونکی
+            } { $color } { $filled } { $noun }
         [plain-tail] { $color } { $filled } { $noun } { $nounTail }
-        [pattern-tail] { $pattern } { $gender ->
-            [f] لرونکې
-           *[m] لرونکی
-        } { $color } { $filled } { $noun } { $nounTail }
+        [pattern-tail]
+            { $pattern } { $gender ->
+                [f] لرونکې
+               *[m] لرونکی
+            } { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «سره» is a postposition, so the border phrase closes with it. Pashto has no
 # indefinite article, so the two `-article` branches say what their plain
 # counterparts do.
@@ -275,7 +266,6 @@ style-border-clause =
         [and-article] او له { $border } څنډې سره
        *[with] له { $border } څنډې سره
     }
-
 # The pattern words agree with nothing, so this message supplies «ډکاو» —
 # masculine, the gender `noun-gender` already answers for `fill` — for the
 # colour to agree with in both variants.
@@ -284,29 +274,23 @@ style-fill =
         [pattern] { $pattern } لرونکی { $color } ډکاو
        *[plain] { $color } ډکاو
     }
-
 style-unfilled = بې ډکاوه
-
 style-text =
     { $parts ->
         [background] په { $background } شاليد کې { $color }
        *[plain] { $color }
     }
-
 style-background-none = هیڅ
-
 
 ## Boolean words
 
 boolean-true = سم
 boolean-false = ناسم
 
-
 ## Answer buttons
 
 answer-submit-label = ځواب وګورئ
 answer-submit-label-no-correctness = ځواب واستوئ
-
 
 ## Sectional blocks
 
@@ -331,7 +315,6 @@ section-name =
     .solution = حل
     .task = دنده
     .theorem = تیورم
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -341,9 +324,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = اشاره
-
 
 ## Tables and figures
 
@@ -354,7 +335,6 @@ table-name =
         [unnumbered-title] جدول{ ": " }
        *[unnumbered] جدول
     }
-
 figure-name =
     { $parts ->
         [numbered] انځور { $enumeration }
@@ -363,28 +343,21 @@ figure-name =
        *[unnumbered] انځور
     }
 
-
 ## Paginator controls
 
 paginator-previous = پخوانی
 paginator-next = راتلونکی
 paginator-page = مخ
-
 paginator-page-status = { $pageLabel } { $currentPage } له { $numPages } څخه
-
 
 ## Piecewise functions
 
 piecewise-condition-or = یا
-
 piecewise-condition-if = که
-
 piecewise-condition-otherwise = په بل صورت کې
-
 
 ## Chemistry
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = ناسمه کیمیاوي نښه
 chemistry-invalid-ionic-compound = ناسم آیوني ترکیب

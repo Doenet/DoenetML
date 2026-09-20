@@ -9,7 +9,7 @@ export default class Group extends CompositeComponent {
     static componentDocs = {
         summary: "A logical grouping of components",
     };
-    static allowInSchemaAsComponent = ["_inline", "_block", "_graphical"];
+    static allowInSchemaAnywhere = true;
 
     static treatAsComponentForRecursiveReplacements = true;
     static includeBlankStringChildren = true;
@@ -406,19 +406,9 @@ export default class Group extends CompositeComponent {
         });
     }
 
-    get allPotentialRendererTypes() {
-        let allPotentialRendererTypes = super.allPotentialRendererTypes;
+    addOwnPotentialRendererTypes(rendererTypes, visited) {
+        super.addOwnPotentialRendererTypes(rendererTypes, visited);
 
-        let additionalRendererTypes =
-            this.potentialRendererTypesFromSerializedComponents(
-                this.serializedChildren,
-            );
-        for (let rendererType of additionalRendererTypes) {
-            if (!allPotentialRendererTypes.includes(rendererType)) {
-                allPotentialRendererTypes.push(rendererType);
-            }
-        }
-
-        return allPotentialRendererTypes;
+        this.addPotentialRendererTypesFromSerializedChildren(rendererTypes);
     }
 }

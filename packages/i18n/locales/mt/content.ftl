@@ -72,7 +72,6 @@ color =
     .purple = vjola
     .pink = roża
     .brown = kannella
-
 line-width =
     .thick =
         { $gender ->
@@ -84,7 +83,6 @@ line-width =
             [f] rqiqa
            *[m] irqiq
         }
-
 line-style =
     .dashed =
         { $gender ->
@@ -96,7 +94,6 @@ line-style =
             [f] ittikkjata
            *[m] ittikkjat
         }
-
 # Noun phrases standing behind «b'». They modify nothing and take no gender.
 fill-style =
     .horizontal = linji orizzontali
@@ -105,7 +102,6 @@ fill-style =
     .backdiagonal = linji djagonali maqluba
     .dots = tikek
     .diamonds = rombi
-
 noun =
     .line = linja
     .line-segment = segment
@@ -125,7 +121,6 @@ noun =
     .diamond = rombu
     .cross = salib
     .plus = plus
-
 # The side count follows the style adjectives so that they stay beside the noun
 # they agree with.
 noun-regular-polygon =
@@ -133,7 +128,6 @@ noun-regular-polygon =
         [tail] ta' { $numSides } naħat
        *[head] poligonu regolari
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (poligonu, m) or
 # the head of a phrase the description never names: `border` (bordura, f),
 # `fill` (mili, m), `text` (test, m), `background` (sfond, m).
@@ -147,7 +141,6 @@ noun-gender =
         [border] f
        *[other] m
     }
-
 
 ## Style composition
 
@@ -163,25 +156,21 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word =
     { $gender ->
         [f] mimlija
        *[m] mimli
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } b'{ $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } b'{ $pattern }
@@ -189,7 +178,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $filled } { $color } { $nounTail } b'{ $pattern }
        *[plain] { $noun } { $filled } { $color }
     }
-
 # «bordura» is feminine, so the border's adjectives agree with it and not with
 # the shape it surrounds.
 style-border-clause =
@@ -199,35 +187,28 @@ style-border-clause =
         [and-article] u bordura { $border }
        *[with] bi bordura { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] mili { $color } b'{ $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = mhux mimli
-
 style-text =
     { $parts ->
         [background] { $color } fuq sfond { $background }
        *[plain] { $color }
     }
-
 style-background-none = xejn
-
 
 ## Boolean words
 
 boolean-true = veru
 boolean-false = falz
 
-
 ## Answer buttons
 
 answer-submit-label = Iċċekkja
 answer-submit-label-no-correctness = Ibgħat it-tweġiba
-
 
 ## Sectional blocks
 
@@ -252,7 +233,6 @@ section-name =
     .solution = Soluzzjoni
     .task = Kompitu
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -262,9 +242,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Ħjiel
-
 
 ## Tables and figures
 
@@ -275,7 +253,6 @@ table-name =
         [unnumbered-title] Tabella{ ": " }
        *[unnumbered] Tabella
     }
-
 figure-name =
     { $parts ->
         [numbered] Figura { $enumeration }
@@ -284,22 +261,18 @@ figure-name =
        *[unnumbered] Figura
     }
 
-
 ## Paginator controls
 
 paginator-previous = Ta' qabel
 paginator-next = Li jmiss
 paginator-page = Paġna
-
 paginator-page-status = { $pageLabel } { $currentPage } minn { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = jew
 piecewise-condition-if = jekk
 piecewise-condition-otherwise = inkella
-
 
 ## Chemistry
 
@@ -422,7 +395,6 @@ element-name =
     .lv = Livermorju
     .ts = Tenessin
     .og = Oganesson
-
 element-anion-name =
     .h = Idrur
     .c = Karbur
@@ -436,8 +408,6 @@ element-anion-name =
     .i = Jodur
     .at = Astatur
     .ts = Tenessur
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Simbolu kimiku invalidu
 chemistry-invalid-ionic-compound = Kompost joniku invalidu

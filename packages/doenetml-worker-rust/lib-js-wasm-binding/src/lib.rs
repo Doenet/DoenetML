@@ -73,6 +73,30 @@ const _TYPE_EXPORTS: () = {
     }
 };
 
+/// The message of the most recent panic on this thread, if there has been one,
+/// cleared by the read. The store is thread-local rather than per core -- there
+/// is one core per worker, so the two coincide in practice.
+///
+/// A panic reaches JavaScript as `RuntimeError: unreachable`, which tells the
+/// reader nothing. The boundary calls this after a failure so the screen can
+/// name what actually broke rather than advising a reload that cannot help
+/// (#1920).
+///
+/// A free function, not a method on `PublicDoenetMLCore`, and that is the whole
+/// point of it. The only situation it is called in is just after a trap, and
+/// every build entry point that can trap takes `&mut self` -- whose generated
+/// glue holds a `WasmRefCell::borrow_mut()` that the trap aborts out of without
+/// dropping. A `&self` method called next lands in wasm-bindgen's `borrow_fail`
+/// and throws "recursive use of an object detected", so the method form could
+/// never read the message it had just recorded. Measured: as a method it threw
+/// on every trap and the reader still saw `unreachable`. With no receiver there
+/// is no borrow, and the thread-local the hook wrote is plain Rust state the
+/// trap left untouched.
+#[wasm_bindgen]
+pub fn take_last_panic_message() -> Option<String> {
+    utils::take_last_panic_message()
+}
+
 #[wasm_bindgen]
 impl PublicDoenetMLCore {
     #[allow(clippy::new_without_default)]

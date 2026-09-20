@@ -30,6 +30,12 @@ export default class Choiceinput extends Input {
 
     static variableForImplicitProp = "selectedValues";
 
+    // The inline (select) form sizes itself to its widest choice and keeps that
+    // width whatever is selected, so an embedded one does not resize as it is
+    // used. Only `inline` choice inputs are embedded; a block of radio buttons
+    // has no place inside an expression.
+    static canBeEmbeddedInMath = true;
+
     static createsVariants = true;
 
     static createAttributesObject() {

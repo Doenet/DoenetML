@@ -68,15 +68,12 @@ color =
     .purple = бунафш
     .pink = гулгун
     .brown = қаҳваранг
-
 line-width =
     .thick = ғафс
     .thin = борик
-
 line-style =
     .dashed = хат-хат
     .dotted = нуқтадор
-
 fill-style =
     .horizontal = хатҳои уфуқӣ
     .vertical = хатҳои амудӣ
@@ -84,7 +81,6 @@ fill-style =
     .backdiagonal = хатҳои диагоналии баръакс
     .dots = нуқтаҳо
     .diamonds = ромбҳо
-
 noun =
     .line = хат
     .line-segment = порча
@@ -104,7 +100,6 @@ noun =
     .diamond = ромб
     .cross = чорхат
     .plus = плюс
-
 # The side count follows the adjectives rather than standing in front of the
 # noun, so this splits in two the way Spanish's does: the head is the word the
 # adjectives attach to and the tail is the complement after them.
@@ -113,11 +108,9 @@ noun-regular-polygon =
         [tail] бо { $numSides } тараф
        *[head] бисёркунҷаи мунтазам
     }
-
 # Tajik has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in Persian.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -143,21 +136,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun }и { $description } { $nounTail }
        *[noun] { $noun }и { $description }
     }
-
 style-filled-word = пуршуда
-
 style-filled =
     { $parts ->
         [pattern] { $filled }и { $color } бо нақши { $pattern }
        *[plain] { $filled }и { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun }и { $filled }и { $color } бо нақши { $pattern }
@@ -165,7 +154,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun }и { $filled }и { $color } { $nounTail } бо нақши { $pattern }
        *[plain] { $noun }и { $filled }и { $color }
     }
-
 # «бо ҳошияи» — "with a border of" — the izafat here sits on a word this
 # catalog writes. Tajik has no indefinite article, so the two `-article`
 # branches read like the two without.
@@ -176,35 +164,28 @@ style-border-clause =
         [and-article] ва бо ҳошияи { $border }
        *[with] бо ҳошияи { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] пуркунии { $color } бо нақши { $pattern }
        *[plain] пуркунии { $color }
     }
-
 style-unfilled = холӣ
-
 style-text =
     { $parts ->
         [background] { $color } дар заминаи { $background }
        *[plain] { $color }
     }
-
 style-background-none = нест
-
 
 ## Boolean words
 
 boolean-true = дуруст
 boolean-false = нодуруст
 
-
 ## Answer buttons
 
 answer-submit-label = Санҷидан
 answer-submit-label-no-correctness = Ҷавобро фиристодан
-
 
 ## Sectional blocks
 
@@ -229,7 +210,6 @@ section-name =
     .solution = Ҳал
     .task = Супориш
     .theorem = Теорема
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -239,9 +219,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Маслиҳат
-
 
 ## Tables and figures
 
@@ -252,7 +230,6 @@ table-name =
         [unnumbered-title] Ҷадвал{ ". " }
        *[unnumbered] Ҷадвал
     }
-
 figure-name =
     { $parts ->
         [numbered] Расми { $enumeration }
@@ -261,22 +238,18 @@ figure-name =
        *[unnumbered] Расм
     }
 
-
 ## Paginator controls
 
 paginator-previous = Қаблӣ
 paginator-next = Навбатӣ
 paginator-page = Саҳифа
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ё
 piecewise-condition-if = агар
 piecewise-condition-otherwise = вагарна
-
 
 ## Chemistry
 
@@ -399,7 +372,6 @@ element-name =
     .lv = Ливерморий
     .ts = Теннессин
     .og = Оганесон
-
 element-anion-name =
     .h = Ҳидрид
     .c = Карбид
@@ -413,8 +385,6 @@ element-anion-name =
     .i = Йодид
     .at = Астатид
     .ts = Теннессид
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Аломати химиявии нодуруст
 chemistry-invalid-ionic-compound = Пайвастагии ионии нодуруст

@@ -258,6 +258,112 @@ describe("DoenetSourceObject", () => {
         expect(node).toMatchObject({ type: "element", name: "booleanInput" });
     });
 
+    it("Finds an element written between a reference's index brackets", () => {
+        // #1909 moved such an element out of the enclosing element's children
+        // and into `path[i].index[j].value`, where no DAST walk reached it. The
+        // editor then reported the enclosing `<p>` and a `body` cursor, so
+        // attribute completion and hover stopped working inside the element.
+        const source = `<p>$myList[<indexOf target="100">$myList</indexOf>]</p>`;
+        const sourceObj = new DoenetSourceObject(source);
+        const offset = source.indexOf("<indexOf") + "<indexOf ".length;
+        const { cursorPosition, node } =
+            sourceObj.elementAtOffsetWithContext(offset);
+        expect(cursorPosition).toEqual("attributeName");
+        expect(node).toMatchObject({ type: "element", name: "indexOf" });
+    });
+
+    it("Gives an index element the enclosing element as its parent", () => {
+        // Not the reference. A name written in an index resolves from the
+        // surrounding document, which is what the core's `ParentIterator` does
+        // by stepping over the reference, so the editor has to agree.
+        const source = `<p>$myList[<indexOf name="io">$myList</indexOf>]</p>`;
+        const sourceObj = new DoenetSourceObject(source);
+        const offset = source.indexOf("<indexOf") + 1;
+        const node = sourceObj.elementAtOffset(offset);
+        expect(node).toMatchObject({ type: "element", name: "indexOf" });
+        expect(sourceObj.getParent(node!)).toMatchObject({
+            type: "element",
+            name: "p",
+        });
+        // And its name is addressable from the document, as it is in the core.
+        expect(sourceObj.getAddressableNamesAtOffset(0)).toContainEqual(["io"]);
+    });
+
+    it("Numbers an index element like any other element", () => {
+        // `getNodeIndexAtOffset` answers "which element am I in", and an
+        // element in index brackets is a child of nothing, so the walk that
+        // numbers elements had to be widened to reach it as well. Without
+        // that, a cursor on its tag reports `null` — an offset inside the
+        // document that belongs to no element at all — and one in its body
+        // reports the root rather than the element it is written in.
+        const source = `<p>$myList[<indexOf name="io">$myList</indexOf>]</p><section><q/></section>`;
+        const sourceObj = new DoenetSourceObject(source);
+
+        const pIndex = sourceObj.getNodeIndexAtOffset(
+            source.indexOf("<p>") + 1,
+        );
+        const indexOfIndex = sourceObj.getNodeIndexAtOffset(
+            source.indexOf("<indexOf") + 1,
+        );
+        expect(indexOfIndex).not.toBeNull();
+        expect(indexOfIndex).not.toEqual(pIndex);
+
+        // A reference written inside it is in the index element, not the root.
+        expect(
+            sourceObj.getNodeIndexAtOffset(
+                source.indexOf("$myList</indexOf>") + 1,
+            ),
+        ).toEqual(indexOfIndex);
+
+        // The brackets are still the enclosing element's own text.
+        expect(sourceObj.getNodeIndexAtOffset(source.indexOf("]</p>"))).toEqual(
+            pIndex,
+        );
+
+        // And it takes its place in the depth-first numbering rather than
+        // being appended somewhere: an element written after the reference is
+        // numbered after it.
+        expect(
+            sourceObj.getNodeIndexAtOffset(source.indexOf("<q/>") + 1)!,
+        ).toBeGreaterThan(indexOfIndex!);
+    });
+
+    it("Treats everything a reference owns the same way", () => {
+        // An element between index brackets and an element written as a
+        // function reference's argument are the same shape: content a reference
+        // owns rather than content an element contains. Both are nobody's
+        // child, so the hand-rolled walkers that recurse on `children` reach
+        // neither without being told to. Measured against the ordinary-child
+        // spelling, which is what they should agree with.
+        const placements = [
+            `<p><indexOf name="io" target="2">$nums</indexOf></p>`,
+            `<p>$nums[<indexOf name="io" target="2">$nums</indexOf>]</p>`,
+            `<p>$$fs(<indexOf name="io" target="2">$nums</indexOf>)</p>`,
+            // And nested: an index element inside an argument.
+            `<p>$$g($nums[<indexOf name="io" target="2">$nums</indexOf>])</p>`,
+        ];
+
+        for (const source of placements) {
+            const sourceObj = new DoenetSourceObject(source);
+            const offset = source.indexOf("<indexOf") + 1;
+            const node = sourceObj.elementAtOffset(offset);
+
+            expect(node, source).toMatchObject({
+                type: "element",
+                name: "indexOf",
+            });
+            // The parent is the element the reference sits in, not the
+            // reference, matching what the core's `ParentIterator` walks to.
+            expect(
+                sourceObj.getParents(node!).map((p: any) => p.name ?? p.type),
+                source,
+            ).toEqual(["p", "root"]);
+            // And it has an index of its own — `null` here would be an offset
+            // inside the document belonging to no element at all.
+            expect(sourceObj.getNodeIndexAtOffset(offset), source).toBe(2);
+        }
+    });
+
     it("Can get cursor position when element contains macro", () => {
         let source: string;
         let sourceObj: DoenetSourceObject;
@@ -342,6 +448,130 @@ describe("DoenetSourceObject", () => {
                 sourceObj.elementAtOffsetWithContext(6);
             expect(cursorPosition).toEqual("body");
             expect(node).toMatchObject({ type: "element", name: "text" });
+        }
+    });
+
+    it("Reports openTagName when a tag-name terminator follows the cursor (#1767)", () => {
+        // Any character that cannot continue a tag name ends the half-typed
+        // tag, and error recovery then parses `<m` plus that character as a
+        // *complete* `<m>` element holding it as text. The cursor right after
+        // `<m` is still typing the open tag name. `}` is the one that shows up
+        // in practice, since the editor closes brackets as you type, so
+        // `<me>\frac{` is already `<me>\frac{|}` when the tag is typed. `/`
+        // ends the name the same way, through a self-closing tag whose `>` has
+        // yet to be typed. The trailing `>` is the well-formed control: it
+        // terminates the tag properly (no error recovery involved) and already
+        // reported `openTagName`, so the recovered shapes must agree with it.
+        for (const terminator of [
+            "}",
+            "{",
+            ")",
+            "]",
+            "$",
+            "&",
+            "%",
+            "\\",
+            "/",
+            ">",
+        ]) {
+            const source = `<p><m${terminator}</p>`;
+            const offset = source.indexOf("<m") + 2; // right after `<m`
+            const { cursorPosition, node } = new DoenetSourceObject(
+                source,
+            ).elementAtOffsetWithContext(offset);
+            expect({ terminator, cursorPosition, name: node?.name }).toEqual({
+                terminator,
+                cursorPosition: "openTagName",
+                name: "m",
+            });
+        }
+
+        // The shape that surfaced this: a tag typed inside a brace group of an
+        // `<me>`, with the auto-closed `}` sitting right after the cursor.
+        {
+            const source = `<me>\\frac{<m}</me>`;
+            const { cursorPosition, node } = new DoenetSourceObject(
+                source,
+            ).elementAtOffsetWithContext(source.indexOf("<m}") + 2);
+            expect(cursorPosition).toEqual("openTagName");
+            expect(node).toMatchObject({ type: "element", name: "m" });
+        }
+
+        // Regression guard: once the cursor moves past the terminator it is in
+        // the (recovered) element's body again, not in its tag name.
+        {
+            const source = `<p><m}</p>`;
+            const offset = source.indexOf("<m}") + 3; // right after the `}`
+            const { cursorPosition, node } = new DoenetSourceObject(
+                source,
+            ).elementAtOffsetWithContext(offset);
+            expect(cursorPosition).toEqual("body");
+            expect(node).toMatchObject({ type: "element", name: "m" });
+        }
+    });
+
+    it("Reports openTagName for a tag name ending in a non-word character (#1780)", () => {
+        // Lezer's `TagName` runs over much more than `\w` does: `-`, `.`, `:`,
+        // and — `\w` being ASCII-only — accented and non-Latin letters. So
+        // `<p><my-|</p>` is a cursor at the end of an open tag's name. Reading
+        // those endings as "not a word character, so look right" handed the
+        // position to whatever followed — the close tag, the recovered text
+        // content, or the `/` of a self-closing tag — and the element being
+        // named was never identified. The trailing `>` is the well-formed
+        // control: it needs no error recovery and already reported
+        // `openTagName` for a name ending in a word character.
+        for (const nameEnd of ["-", ".", ":", "ü"]) {
+            for (const after of ["", "}", "/", ">", " ", ' name="a"/>']) {
+                const source = `<p><my${nameEnd}${after}</p>`;
+                const offset = source.indexOf("<my") + 3 + nameEnd.length;
+                const { cursorPosition, node } = new DoenetSourceObject(
+                    source,
+                ).elementAtOffsetWithContext(offset);
+                expect({ source, cursorPosition, name: node?.name }).toEqual({
+                    source,
+                    cursorPosition: "openTagName",
+                    name: `my${nameEnd}`,
+                });
+            }
+        }
+
+        // Regression guard: `atOpenTagNameEnd` covers open tags only, so a
+        // half-typed *close* tag name ending the same way is not read as a
+        // name being opened — the cursor stays in the enclosing element's body.
+        for (const nameEnd of ["-", ".", ":", "ü"]) {
+            const source = `<p></my${nameEnd}</p>`;
+            const offset = source.indexOf("</my") + 4 + nameEnd.length;
+            const { cursorPosition, node } = new DoenetSourceObject(
+                source,
+            ).elementAtOffsetWithContext(offset);
+            expect({ source, cursorPosition, name: node?.name }).toEqual({
+                source,
+                cursorPosition: "body",
+                name: "p",
+            });
+        }
+
+        // Regression guard: a close tag name being typed is still
+        // `closeTagName`, as it always was.
+        {
+            const source = `<p>hello</p`;
+            const { cursorPosition, node } = new DoenetSourceObject(
+                source,
+            ).elementAtOffsetWithContext(source.length);
+            expect(cursorPosition).toEqual("closeTagName");
+            expect(node).toMatchObject({ type: "element", name: "p" });
+        }
+
+        // Regression guard: once whitespace separates the cursor from the tag
+        // name, the cursor is in the tag's attribute area rather than its name,
+        // hyphenated name or not.
+        {
+            const source = `<my- >`;
+            const { cursorPosition, node } = new DoenetSourceObject(
+                source,
+            ).elementAtOffsetWithContext(source.indexOf(">"));
+            expect(cursorPosition).toEqual("openTag");
+            expect(node).toMatchObject({ type: "element", name: "my-" });
         }
     });
 

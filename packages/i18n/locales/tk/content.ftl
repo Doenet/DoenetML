@@ -31,15 +31,12 @@ color =
     .purple = benewşe
     .pink = gülgüne
     .brown = goňur
-
 line-width =
     .thick = ýogyn
     .thin = inçe
-
 line-style =
     .dashed = kesik-kesik
     .dotted = nokatly
-
 # Noun phrases: they stand in front of «nagyşly» and modify nothing.
 fill-style =
     .horizontal = keseligine çyzyk
@@ -48,7 +45,6 @@ fill-style =
     .backdiagonal = ters diagonal çyzyk
     .dots = nokat
     .diamonds = romb
-
 noun =
     .line = göni çyzyk
     .line-segment = kesim
@@ -68,7 +64,6 @@ noun =
     .diamond = romb
     .cross = haç
     .plus = plýus
-
 # Turkmen builds the word from the side count in front of the noun, so the whole
 # of it is one head and there is no tail.
 noun-regular-polygon =
@@ -76,11 +71,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] dogry { $numSides }-burçluk
     }
-
 # Turkmen has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English and Turkish.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -94,21 +87,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = boýalan
-
 style-filled =
     { $parts ->
         [pattern] { $pattern } nagyşly { $color } { $filled }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $pattern } nagyşly { $color } { $filled } { $noun }
@@ -116,7 +105,6 @@ style-filled-with-noun =
         [pattern-tail] { $pattern } nagyşly { $color } { $filled } { $noun } { $nounTail }
        *[plain] { $color } { $filled } { $noun }
     }
-
 # «gyraly» — "bordered" — carries the "with a border" sense in its own suffix,
 # so neither a preposition nor an article is wanted, and all four branches read
 # alike except for the connective English needs and Turkmen does not.
@@ -127,15 +115,12 @@ style-border-clause =
         [and-article] we { $border } gyraly
        *[with] { $border } gyraly
     }
-
 style-fill =
     { $parts ->
         [pattern] { $pattern } nagyşly { $color } boýag
        *[plain] { $color } boýag
     }
-
 style-unfilled = boýalmadyk
-
 # «fonda» is the locative of «fon» and says "on the background" by itself, so
 # nothing stands between the two colours.
 style-text =
@@ -143,21 +128,17 @@ style-text =
         [background] { $background } fonda { $color }
        *[plain] { $color }
     }
-
 style-background-none = ýok
-
 
 ## Boolean words
 
 boolean-true = dogry
 boolean-false = ýalňyş
 
-
 ## Answer buttons
 
 answer-submit-label = Barla
 answer-submit-label-no-correctness = Jogaby iber
-
 
 ## Sectional blocks
 
@@ -182,7 +163,6 @@ section-name =
     .solution = Çözgüt
     .task = Ýumuş
     .theorem = Teorema
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -192,9 +172,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Maslahat
-
 
 ## Tables and figures
 
@@ -205,7 +183,6 @@ table-name =
         [unnumbered-title] Tablisa{ ". " }
        *[unnumbered] Tablisa
     }
-
 figure-name =
     { $parts ->
         [numbered] Surat { $enumeration }
@@ -214,22 +191,18 @@ figure-name =
        *[unnumbered] Surat
     }
 
-
 ## Paginator controls
 
 paginator-previous = Öňki
 paginator-next = Indiki
 paginator-page = Sahypa
-
 paginator-page-status = { $pageLabel } { $currentPage } / { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ýa-da
 piecewise-condition-if = eger
 piecewise-condition-otherwise = bolmasa
-
 
 ## Chemistry
 
@@ -352,7 +325,6 @@ element-name =
     .lv = Liwermoriý
     .ts = Tennessin
     .og = Oganeson
-
 element-anion-name =
     .h = Gidrid
     .c = Karbid
@@ -366,8 +338,6 @@ element-anion-name =
     .i = Ýodid
     .at = Astatid
     .ts = Tennessid
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Nädogry himiki belgi
 chemistry-invalid-ionic-compound = Nädogry ion birleşmesi

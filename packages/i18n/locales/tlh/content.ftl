@@ -163,20 +163,17 @@ color =
     .purple = Doq
     .pink = Doq
     .brown = Doq
-
 # «jeD» is «be thick, be dense» (KGT) and «lang» is «be thin, be narrow» (TKD)
 # — published verbs of quality, so «-bogh» welds onto them as onto any other.
 line-width =
     .thick = jeD
     .thin = lang
-
 # Both are verbs, so that «-bogh» can weld on: «pe'lu'» is «one cuts it», and
 # «nagHommey ngaS» is «it contains dots» — an object and its verb, which takes
 # the suffix on the verb exactly as a bare one does.
 line-style =
     .dashed = pe'lu'
     .dotted = nagHommey ngaS
-
 # Nouns, placed after the colour by `style-fill`. «yav» (ground) and «chal»
 # (sky) carry the horizontal/vertical contrast, and «nIH» (right) and «poS»
 # (left) which way a diagonal leans; all four are TKD entries, and the compounds
@@ -188,7 +185,6 @@ fill-style =
     .diagonal = nIH tlheghmey
     .backdiagonal = poS tlheghmey
     .dots = nagHommey
-
 # Fourteen of the eighteen, and all fourteen are Okrand's rather than this
 # file's — but they are not all Okrand's in the same way, so this table is where
 # the three classes in the header have to be read off word by word.
@@ -245,10 +241,8 @@ noun =
     .square = meyrI'
     .cross = me'cheD
     .plus = me'cheD
-
 # One answer for every noun; see the note on noun class in the header.
 noun-gender = neuter
-
 
 ## Style composition
 ##
@@ -269,16 +263,13 @@ style-stroke =
         [style] { $lineStyle }bogh
        *[color] { $color }bogh
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # «buy'» is «be full», the nearest canon verb to *filled*.
 style-filled-word = buy'
-
 # A pattern is a noun, so it joins the chain as «X ngaSbogh» — «which contains
 # X» — rather than as another quality verb.
 style-filled =
@@ -286,7 +277,6 @@ style-filled =
         [pattern] { $filled }bogh 'ej { $color }bogh 'ej { $pattern } ngaSbogh
        *[plain] { $filled }bogh 'ej { $color }bogh
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled }bogh 'ej { $color }bogh 'ej { $pattern } ngaSbogh { $noun }
@@ -294,7 +284,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled }bogh 'ej { $color }bogh 'ej { $pattern } ngaSbogh { $noun } { $nounTail }
        *[plain] { $filled }bogh 'ej { $color }bogh { $noun }
     }
-
 # «HeH» is «edge, border» and «je» is the noun conjunction, which follows what
 # it joins. Klingon has no article and «je» opens no clause, so all four
 # branches say the same thing — English's first-clause-against-further-clause
@@ -306,15 +295,12 @@ style-border-clause =
         [and-article] { $border } HeH je
        *[with] { $border } HeH je
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color }bogh { $pattern }
        *[plain] { $color }bogh
     }
-
 style-unfilled = buy'be'
-
 # «'em» is «the area behind», and «ghaj» is «have»: «{ $background }bogh 'em
 # ghajbogh» is «which has a background that is ⟨colour⟩», with the object in
 # front of its verb as Klingon puts it.
@@ -323,9 +309,7 @@ style-text =
         [background] { $color }bogh 'ej { $background }bogh 'em ghajbogh
        *[plain] { $color }bogh
     }
-
 style-background-none = pagh
-
 
 ## Boolean words
 
@@ -334,13 +318,11 @@ style-background-none = pagh
 boolean-true = teH
 boolean-false = teHbe'
 
-
 ## Answer buttons
 
 # «chov» is «evaluate», which is what checking work is; «ngeH» is «send».
 answer-submit-label = yIchov
 answer-submit-label-no-correctness = yIngeH
-
 
 ## Sectional blocks
 ##
@@ -357,7 +339,6 @@ section-name =
     .task = Qu'
     .objectives = ngoQmey
     .note = QIn
-
 # Klingon puts a number after what it counts, which is the order English uses
 # here too, so only the punctuation moves.
 section-title-prefix =
@@ -369,12 +350,10 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 # «boQ» is «assist, aid». `diagnostics.ftl` has no competing word for it, and
 # `feedback-heading` in `chrome.ftl` takes «qeS» (advice) so that the two stay
 # apart.
 hint-title = boQ
-
 
 ## Tables and figures
 ##
@@ -393,7 +372,6 @@ table-name =
        *[unnumbered] wa'chaw
     }
 
-
 ## Paginator controls
 
 # «veb» is «be next» (KGT) and «vorgh» is «be previous» (`qep'a'` 23); an
@@ -403,11 +381,9 @@ table-name =
 paginator-previous = vorgh
 paginator-next = veb
 paginator-page = tenwal
-
 # Klingon has no partitive «of». «Hoch» is «all», so the count of pages is named
 # as a whole beside the page being read rather than as a fraction of it.
 paginator-page-status = { $pageLabel } { $currentPage }, Hoch { $numPages }
-
 
 ## Piecewise functions
 
@@ -424,7 +400,6 @@ piecewise-condition-or = pagh
 piecewise-condition-if = qaSchugh
 piecewise-condition-otherwise = latlhDaq
 
-
 ## Chemistry
 ##
 ## The 118 element names, the 12 anion names and the two error messages are all
@@ -436,3 +411,4 @@ piecewise-condition-otherwise = latlhDaq
 ## own length, and the missing eighty-eight are exactly the coinage
 ## `locales/oj` refuses. Filling in the thirty is real work a corrector can do,
 ## and it is the largest single gap left in this catalog.
+

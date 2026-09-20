@@ -34,10 +34,11 @@ const PAGE_BUDGET_MS = 5000;
  * the leak fixed the same measurement is 1.9 GB and plateaus. The renderer ran
  * the runner out of memory and stopped servicing BiDi — the run that prompted
  * this note reported it as `Command network.continueRequest ... timed out`.
- * `DoenetMLToPretext.dispose` fixes that: capped at 6 GB with
- * `systemd-run -p MemoryMax=6G`, the leaking build never finished at all while
- * the fixed one passes in ~66 s. On CI the same file went from 166,595 ms with
- * two failures to ~52,000 ms with none.
+ * `sharedConverter` fixes that — one converter, and so one core worker, for
+ * the whole page: capped at 6 GB with `systemd-run -p MemoryMax=6G`, the
+ * leaking build never finished at all while the fixed one passes in ~66 s. On
+ * CI the same file went from 166,595 ms with two failures to ~52,000 ms with
+ * none.
  *
  * This budget stays as the net underneath, because a session that has stopped
  * answering must not be waited on: it does not fail, it hangs, and a hang
@@ -220,23 +221,14 @@ export class RunThroughCore {
                         );
                         try {
                             if (theJob.kind === "convertMultiple") {
-                                // @ts-ignore
-                                const converter = new DoenetMLToPretext();
-                                try {
-                                    resolve(
-                                        await converter.convertMultiple(
-                                            theJob.sources,
-                                        ),
-                                    );
-                                } finally {
-                                    // One core worker per converter, and this
-                                    // page outlives ~50 of them; see
-                                    // `DoenetMLToPretext.dispose`.
-                                    converter.dispose();
-                                }
+                                resolve(
+                                    await sharedConverter().convertMultiple(
+                                        theJob.sources,
+                                    ),
+                                );
                             } else {
                                 // @ts-ignore
-                                const dast = await doenetMLToPretext(
+                                const dast = await sharedConverter().convert(
                                     theJob.source,
                                     { fragment: theJob.fragment },
                                 );

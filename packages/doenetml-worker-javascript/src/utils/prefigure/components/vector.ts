@@ -8,6 +8,7 @@ import {
     getLabelForLine,
     lineLabelLocationValue,
     orientEndpointsForLineLabel,
+    THEME_AWARE_LABEL_COLOR_ATTR,
 } from "../label";
 import type { ConverterArgs, Point } from "../types";
 
@@ -84,7 +85,7 @@ export function convertVectorToPrefigure({
 
     // TODO: Map vector labelPosition to PreFigure label alignment once we have
     // parity requirements for vector-native label placement.
-    const labelXml = `<label p="${escapeXml(anchorText)}" alignment="north">${label}</label>`;
+    const labelXml = `<label p="${escapeXml(anchorText)}" alignment="north" ${THEME_AWARE_LABEL_COLOR_ATTR}>${label}</label>`;
 
     return `${vectorXml}${labelXml}`;
 }

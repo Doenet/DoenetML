@@ -1,5 +1,1780 @@
 ## v0.7.10
 
+## 0.7.27
+
+### Patch Changes
+
+- ef11eec: Add `<chart type="box">`.
+
+    ```xml
+    <chart type="box">
+      <shortDescription>Scores by section</shortDescription>
+      <yLabel>score</yLabel>
+      <series><label>9am</label>52 61 63 68 70 71 75 78 84 91</series>
+      <series><label>1pm</label>44 55 58 60 62 65 66 70 72 96</series>
+    </chart>
+    ```
+
+    A box plot per series, side by side. This is the first chart type whose `<series>` holds **raw observations** rather than one value per category, and that turns the axis around: a whole series is now one position on it, which is what every plotting package means by `aes(x = group, y = value)`. So a box chart has no categories — its positions are its series, named under each box by that series' own `<label>` — and writing `categories` on one is reported rather than dropped in silence, since the names are text an author wrote for a reader. `$chart.categories` reports nothing for a box plot for the same reason.
+
+    The box runs from the first quartile to the third with the median drawn across it; the whiskers reach the furthest observation within one and a half interquartile ranges of the box, with a cap across each end; and an observation beyond that is drawn as a point of its own. A whisker ends on a datum that is in the data rather than on the fence, and a side whose quartile is already the extreme gets no whisker, since the box's own edge is the mark. A series of one observation, or of one value repeated, draws as a line at that value — every one of the five numbers is there.
+
+    The vertical axis is the data's and is not anchored to zero, as a line or scatter chart's is not: a box plot's numbers are positions on a scale rather than lengths measured from a baseline. A box chart draws no legend whichever way `legend` is written, because the names are already under the boxes and a legend would spend width to repeat the axis; `$chart.showLegend` reports that.
+
+    Every `<series>` now reports its own summary — `minimum`, `quartile1`, `median`, `quartile3`, `maximum` and `outliers` — whatever chart was drawn from it, so a sentence or an `<answer>` beside the picture can say what the picture shows. These come from the same definition `<summaryStatistics>` uses, extracted so that a table of quartiles and a box plot of the same column cannot disagree on the page. They are interpolated percentiles, not Tukey's hinges, which differ on some sample sizes.
+
+    Each box carries its five-number summary as an annotation and each outlier its own, so a box plot is navigable by screen reader like every other chart. They are the first chart annotations that need words to be read at all — five numbers at one position have nothing but their naming to tell them apart — so the wording is a translatable message rather than English built in the worker.
+
+    An observation that is not a finite number is left out of the summary rather than read as zero, and the chart says so: a dropped observation moves every quartile of the box drawn from it and leaves nothing on the page to notice.
+
+    `<summaryStatistics>` reports the same median it always did on any column of ordinary numbers, and a different one at two edges of the range a number can hold. Its median is now computed by ordering the values and taking the middle one, or the midpoint of the two middle ones — the same value the 50th percentile interpolates to, and unchanged for every column whose values are ordinary. Two things change:
+
+    - A column near the top of the range no longer overflows before it halves. The median of a column of `1e308` and `1.5e308` was reported as infinite and is now reported as `1.25e308`.
+    - Values are ordered by size rather than by a comparison that reads values agreeing to twelve significant digits as equal, so a column of readings that close reports its middle value rather than whichever of them happened to be written first: the median of `1 1.0000000000001 1.00000000000005` was reported as `1` and is now reported as `1.00000000000005`. `quartile1` and `quartile3` still order such a column by that comparison and are as unreliable on it as they were before.
+
+    Closes #1880.
+
+- 2ac19a7: Add `<chart>`, a chart of values with named categories. `type` picks which chart is drawn; `bar` is the first.
+
+    ```xml
+    <chart type="bar" categories="North South East West" displayValues>
+      <shortDescription>Population by region</shortDescription>
+      <yLabel>people</yLabel>
+      <number>41</number><number>63</number><number>18</number><number>78</number>
+    </chart>
+    ```
+
+    One tag with a `type` rather than a tag per chart. A pie chart, a box plot and a scatter plot differ in how the same list of values is drawn rather than in what an author is doing, so the choice belongs in an attribute — where it can also be computed, letting a document chart the same data both ways without duplicating the tag around it.
+
+    `type` has **no default**. `<chart>` on its own draws nothing at all and warns that no chart type was named, and a type it does not recognize is reported and then treated the same way. Defaulting to `bar` would let documents come to rely on it, and `bar` is not the chart most authors reach for first.
+
+    A rejected attribute value now says which of the two things happened to it. Where the attribute has a default, the message still names the value used in its place — "Invalid value `sideways` for attribute `displayMode`, using value `block`". Where it has none, the attribute is dropped rather than replaced, and the message now says so: "Invalid value `pie` for attribute `type`, ignoring it", where it used to report a fallback to `null` — a value no author could have written. Seven attributes are in that second group, `<chart type>` among them.
+
+    Bare numbers are read as values, so `<chart type="bar">41 63 18</chart>` draws three bars without wrapping each in a `<number>`.
+
+    Categories are labels rather than values: the bars are evenly spaced whatever a category says, so `categories="1 5 6"` writes 1, 5, 6 under three equally spaced bars. They are read as text, so a number, a word, or a `<tally>`'s own `.categories` all name bars the same way — `<chart type="bar" categories="$counts.categories">$counts</chart>` charts a tally with nothing else to write.
+
+    A value that is not a finite number gets no bar, and that is reported as a warning. Its place on the axis is kept, so the remaining bars stay under their own categories rather than shifting along.
+
+    The vertical axis scales itself: one tick above the tallest bar so it never touches the frame, and labeled values a whole number of steps from zero, which is the baseline the bars are measured from. `yMin` and `yMax` override it, and may each be set on their own; bars are still measured from zero, so a bound that crosses them cuts them off at the frame and a bar lying entirely outside it does not appear. A value of zero keeps its slot and its category label, so a `<tally>` category nothing landed in does not drop out of the chart.
+
+    `size` and `width` and `aspectRatio` size a chart the way they size a `<graph>`, and `barWidth` is the fraction of its slot each category fills. `values`, `categories`, `yMin`, `yMax`, `barWidth` and `aspectRatio` all read back off the chart, and the last four report **what it was drawn with** — the axis an automatic chart chose for itself, and the fallback used in place of a width or a ratio the chart could not honor.
+
+    Every bar carries its category and value as an annotation, so the chart is navigable by screen reader rather than merely present, and a `<shortDescription>` becomes the description of the figure as a whole. The chart renders through PreFigure, whose runtime is fetched the first time a page draws through it. A `<chart>` with no type draws nothing, so it fetches nothing either.
+
+    Closes #1833.
+
+- f298e0f: Add `<chart type="histogram">`, the last of the six chart types.
+
+    ```xml
+    <chart type="histogram" bins="-4 -3 -2 -1 0 1 2 3 4">
+      <shortDescription>200 draws from a standard normal distribution</shortDescription>
+      <yLabel>count</yLabel>
+      $z
+    </chart>
+    ```
+
+    One bar per bin, adjacent with no gap, over a numeric axis of cut points. Like `type="box"`, the `<series>` holds **raw observations**; where a box plot summarizes them into five numbers on their own scale, a histogram **counts** them, so it is the one type whose bars are measured in something the data does not contain — each bar is as tall as the number of observations that fall in its bin. The bars are adjacent because a histogram's positions are neighboring stretches of one continuous scale, where a bar chart's are separate things.
+
+    The binning happens in the worker rather than in the drawing, which is the whole reason PreFigure's own `<histogram>` is not used: `$chart.binCounts` is one number per bar and `$chart.binEdges` the cut points in order, so a document can state the intervals, put the counts in a table, or ask about them in an `<answer>` beside the picture. The counting is shared with `<binCounts>`, extracted so that a table of counts and a histogram of the same column cannot disagree on the page, and `closed` is read the same way there and here: `left` by default, so a bin runs `[a, b)`, with each outermost cut point belonging to its own bin either way, so an observation sitting exactly on the first or the last of them is counted. (An observation _beyond_ the outermost cut points belongs to no bin; that is what the message below is for.)
+
+    `bins` takes either shape. One number is a number of equal-width bins and is used exactly — five bins are five bins, and `binCounts` reports five numbers. The one exception is a sample whose whole range is too narrow to divide, where the interpolated cut points would repeat: a column of two adjacent doubles asked for five bins gets the one bin those numbers support. Two or more are the cut points themselves, the same list `<binCounts>` takes. Written neither way, the cut points are chosen from the data: Sturges' rule sets a target number of bins, and the width is the span divided by that target, rounded _up_ onto the 1, 2, 5 ladder, starting at a multiple of itself. Rounding up keeps the count at or below the target — ten values spanning 7 get four bins of 2 where Sturges asked for five — and both roundings are what make the cut points numbers a reader recognizes and a document can state. The horizontal axis is then labeled at those cut points, every k-th one where there are many bins, rather than at a step of its own.
+
+    A histogram draws one series, and says so where there are more: two samples counted into the same bars would have to be stacked or drawn through each other, and neither is a reading a histogram can be given without being told which was meant. Compare two samples as box plots, or by counting them with `<binCounts>` and drawing grouped bars — both are now recipes in the "Charting a Simulation" guide.
+
+    Each bar carries the stretch it covers and its count as an annotation, so a histogram is navigable by screen reader like every other chart, and the count is named in words for the same reason a box plot's five numbers are: three bare numbers in a row say nothing about which of them is measured up which axis. A bin nothing fell in is still drawn and still annotated — an empty bin is part of the shape of a distribution.
+
+    Seven things are reported rather than passed over in silence:
+
+    - an observation that is not a finite number, which falls in no bin;
+    - a series past the first, which is not drawn;
+    - a `bins` of one number that is not a whole number of bins from 1 to 1000, naming the value it was given;
+    - cut points that do not climb, or that are not all finite — a bar with no far end is not one a picture can hold, which is where this parts company with `<binCounts>`;
+    - an observation outside an author's own cut points, which is information rather than a warning: bins an author wrote may deliberately leave data out, and bins the chart chose always cover the data;
+    - `categories`, which a histogram has no positions for — its bars are named by the cut points they run between;
+    - `barWidth`, which a histogram has no gap to widen into.
+
+    The reference page now has a section per chart type, each saying what a series holds for it, and every attribute section says which types it affects. Closes #1881, #1882 and #437 — the six chart types that issue set out are now all shipped.
+
+- 32af628: Add `<chart type="line">` and `<chart type="scatter">`, and a numeric horizontal axis for them.
+
+    ```xml
+    <chart type="scatter">
+      <xLabel>height</xLabel>
+      <yLabel>weight</yLabel>
+      <series x="1.5 1.6 1.7 1.8"><label>control</label>55 62 70 79</series>
+      <series x="1.5 1.6 1.7 1.8"><label>treated</label>58 66 72 84</series>
+    </chart>
+    ```
+
+    The two types go together because they need the same thing and nothing else does: a horizontal axis that carries numbers. A bar chart labels its axis with one tick mark per category, at 1, 2, 3 — a category is a label and the spacing between them means nothing. A scatter plot's `x` is a measurement, so the distance between two points is part of what the chart says.
+
+    `<series x="…">` gives a series its horizontal coordinates, read against the values position by position. A value with no `x` beside it cannot be placed and is reported rather than drawn, which is what a series given fewer coordinates than values produces. One series carrying an `x` settles the axis for every series in the chart, so a series that gives none alongside one that does has no coordinates for any of its values and is reported the same way — placing it at 1, 2, 3 instead would put it by position on an axis measured in something else.
+
+    `type="line"` reads either kind of axis. Without an `x` its points sit under `categories`, exactly where a bar chart's bars sit, so `<chart type="line" categories="Mon Tue Wed">12 19 15</chart>` needs no coordinates at all; with an `x` the axis carries numbers. That is what makes one type serve both a time series and a category-by-category comparison. A scatter falls back the same way when no series carries an `x` at all — its points take the same slots, and with nothing joining them the chart reads as a dot plot down the categories. Points are never re-ordered — a path that doubles back is drawn as one, because a path through time is a real chart and sorting it would quietly draw something else.
+
+    A line draws a marker at each point unless `markers="false"`. The default is not only about how a short series reads: a marker is an element, and an element is what an annotation can point at, so with markers off a screen reader can reach the line but not walk it point by point. `displayValues` prints each point's value above it on a line or scatter chart as it does above a bar, and does so whether or not the markers are drawn.
+
+    `xMin` and `xMax` bound the horizontal axis, mirroring `yMin`/`yMax`, and report what the chart was drawn with. They apply only where the axis carries numbers; a bar chart, and a line or scatter chart no series of which carries an `x`, ignore them and report nothing for them.
+
+    Neither axis of a line or scatter chart is anchored to zero. A point is not a length measured from a baseline, so there is nothing for the axis to be measured from — forcing zero into the axis of a scatter of adult heights would push every point into a corner. A bar chart still always includes zero, because its bars are measured from it.
+
+    Part of #437.
+
+- 3073c50: Add `<chart type="pie">`.
+
+    ```xml
+    <chart type="pie" categories="North South East West">
+      <shortDescription>Population by region</shortDescription>
+      41 63 18 78
+    </chart>
+    ```
+
+    One slice per value, each one that value's share of the total. The slices run clockwise from twelve o'clock in the order the values are given, rather than sorted by size, so a pie beside a bar chart of the same data reads as the same data. `categories` names them.
+
+    The shares are taken against the largest value rather than against the sum, which is the only way the ratios survive data at the top of the double range: a sum saturates there, and two values of `1e308` drawn as shares of a saturated total came out as a 200-degree slice beside a 160-degree one. Ordinary data is unaffected: the ratios are the same in exact arithmetic, and the angles agree to within the last of the twelve digits one is written to.
+
+    A pie is the one chart with no axes, so it reads neither `xMin`/`xMax` nor `yMin`/`yMax`, and `$chart.xMin` and the other three report nothing for one. An `<xLabel>` or `<yLabel>` has no axis to name either: it is not drawn, and the chart says so rather than dropping the text in silence — put it in a `<title>` instead. A pie is also the one chart that colors _within_ a series: its slices are what a reader tells apart, so each takes the next `styleNumber` in turn. The run starts at the drawn series' own number, so `<series styleNumber="4">` draws a pie's first slice in the style a bar chart of that same markup draws its bars in, and the slices after it continue from there.
+
+    The slice names go in the legend, and around the rim at each slice's middle when `legend="false"` leaves no legend to hold them — so they are always somewhere. `displayValues` prints each value beyond the rim, beside its slice's name where that is there too, which keeps a pie's text off its marks the way every other type already keeps it off theirs: a value inside a slice is unreadable against a dark fill, and against a patterned one there is no single color that would read. An `outsideRight` legend is then placed past those values where the chart is wide enough to hold both, and beside them where it is not; and a `<title>` is lifted clear of them only as far as the margin it was granted. That last part is shared with the other types, so a line or scatter chart drawn entirely at or below zero — where the horizontal axis and its numbers move to the top of the box — now places its title low enough to fit where before it could be drawn partly outside the picture.
+
+    Four things a pie can be asked to draw and cannot, each reported on its own because the fix for each is different: a value that is not a finite number, a negative value (a slice is a share of a total, and a pie has no baseline for one to hang from), values that total zero, and more than one `<series>` — a pie draws the first and says so. A value left out is left out of the total as well, so the remaining slices are shares of what was actually charted. A value of zero is a share of nothing and gets no slice, but keeps its place in the run of colors.
+
+    Every slice carries its name and value as an annotation, so a pie is navigable by screen reader like every other chart.
+
+    Closes #1879.
+
+- f1bb837: Give `<chart>` several series, a title and a legend.
+
+    ```xml
+    <chart type="bar" categories="North South East West" layout="grouped">
+      <title>Population by region</title>
+      <shortDescription>Population by region, 2024 against 2025</shortDescription>
+      <yLabel>people</yLabel>
+      <series><label>2024</label>41 63 18 78</series>
+      <series><label>2025</label>45 60 22 80</series>
+    </chart>
+    ```
+
+    `<series>` is one group of the data. Every standard statistical plotting package describes a chart the same way — data, a mark, and encodings that map the data onto position and color — and this is that shape in markup: `type` is the mark, a `<series>` is the group the color encoding splits on, and its children are the values. That is what lets the chart types still to come take the data each of them needs: one value per category for a bar or a line, a column of observations for a box plot or a histogram.
+
+    A chart written with bare values and no `<series>` has one unnamed series holding them all, so a simple chart stays as simple as it was.
+
+    A series carries its own `<label>`, which names it in the legend, and its own `styleNumber`. Series take consecutive style numbers unless one names its own, so several groups come out in different colors without being asked to; `<chart styleNumber="3">` starts its series at 3, and a chart of one series is drawn in exactly the style the chart asked for.
+
+    `layout` says how the series share a category's slot. `grouped`, the default, stands them side by side and divides `barWidth` between them, so the bars can be compared across categories and across series alike; `stacked` puts them one above another so each slot shows its total, with negative values stacking downward from the baseline rather than through the positive ones.
+
+    A `<title>` child is drawn above the chart, inside the picture rather than beside it, so it survives being printed or exported — and it becomes the caption of a tactile rendering, which no text placed around the chart could do.
+
+    The legend is drawn as soon as a series has a label, keyed off the bars themselves so its swatches cannot disagree with the colors they name. `legend="false"` suppresses it, and `legendPosition` says where it goes: **outside the plot to the right by default**, in a margin widened to hold it, which is where ggplot2 and Vega-Lite put one and is the only placement that cannot cover the data — a legend three series deep occupies the top third of the plot's right-hand edge, which any chart with tall bars on the right will reach. `outsideBottom` spends height instead of width. The four inside corners — the same names `<legend>` already uses inside a `<graph>` — spend neither and may overlap, which is the author's choice to make. `$chart.showLegend` reports whether a legend is drawn rather than whether one was asked for, so it is false for a chart whose series carry no labels and for one whose named series have no value that could be drawn.
+
+    A screen reader now walks the chart series by series and then bar by bar within a series, instead of meeting every bar of every group as one flat list.
+
+    `$chart.values` is every value in the chart, series by series; `$chart.numSeries` says how many groups there are, and a named `<series>` reports its own `values` on its own.
+
+    Values written beside a `<series>` belong to no group and are not drawn, which is now reported rather than left to be inferred from a missing bar.
+
+    `hide` works on a `<series>` and on a chart's `<title>`, which it previously did not. A hidden `<series>` is left out of the chart **entirely** — out of the drawing the way a hidden `<point>` is left out of a `<graph>`, and out of `values`, `numSeries` and the categories the axis is as long as. That last part is a deliberate choice rather than a precedent: `hide` elsewhere in DoenetML suppresses rendering without touching data, and a `<binCounts hide>` still feeds a chart. A series exists only to be drawn, so a chart's totals describe the chart a reader can see — `<sum>$c.values</sum>` beside a chart with a hidden series reports what is on the page rather than a number nothing accounts for. The series itself still reports its own `values` under its own name, and hiding one does not recolor the series after it. Hiding the **chart** is a different thing from hiding its series: `<chart hide>` takes the picture off the page without emptying it, so a `<sum>` of its values written beside it still totals what the chart holds.
+
+    A series the author did not label is announced to a screen reader as "series 2" rather than as a bare "2", which was indistinguishable from the categories and values announced on the levels either side of it. The phrase is localized, so it is not English generated in the worker.
+
+    A stacked chart whose segments total more than a double can hold is now drawn against the top of its frame, rather than coming back from PreFigure with the overflowing part of it missing, and `displayValues` labels are drawn over every bar rather than under the segment stacked above them.
+
+    The reference page is reorganized around this, and the sampling-simulation walkthroughs that were on it move to a new **Charting a Simulation** guide. `<chart>` also gains its first browser tests, covering the renderer hand-off, the build request, the framing, and screen-reader navigation of the series.
+
+    Part of #437.
+
+- 9415cc1: A reference to a list keeps the list's commas, and the whitespace an author writes around the items of a list no longer lands in front of a comma.
+
+    `$r[1]` and `$g` showed `1234` where the composite they name showed `1, 2, 3, 4`, in the rendered list and in `text` alike. A reference that lands on a composite copies its replacements, and did so recursively down to plain components — which is what makes `$mp[1]` reach the point inside a repeat item rather than the `<setup>` beside it — but recursing that far also flattened away every composite in between, and with it the `asList` that made the replacements a list. The recursion now stops at a composite that can be a list of its own, so the reference copies that composite and the list survives; composites that cannot be a list are still recursed through, so what a reference resolves to is unchanged.
+
+    Whitespace at the end of a list item no longer lands in front of the comma that follows it. `<group asList><group><number>1</number> </group><group><number>2</number> </group></group>` read `1 , 2` and now reads `1, 2`.
+
+    The whitespace an author puts between the items of a list group is where the commas go, in `text` as in the rendered list. `<group asList><number>1</number> <number>2</number></group>` had a `text` of `1, , 2`; it now reads `1, 2`, and an empty composite among the items, such as a sequence of length zero, changes nothing.
+
+    Underneath, the commas were being worked out four times over from the same data — once for the renderers, once for `text`, once for the string a `<math>` parses, and once for the FlatDast the prototype renderers read. Those four now share one implementation of the grouping, so where the commas go is decided once for all of them.
+
+- dcab96a: A component that builds other components reports its own failure rather than
+  taking the page with it.
+
+    - A `<repeat>` over a repeat whose body holds a `<setup>` now builds the
+      document. It blanked the page before, whatever the inner repeat was wrapped
+      in. The inner repeat still produces nothing from each iteration, which is a
+      separate question about what a reference to such an iteration means.
+    - Wherever a component that produces other components fails to record the names
+      of what it produced, an error now appears in its place and the rest of the
+      document renders, as it already did for some such failures.
+    - The same failure while the document is being used — while a component is
+      changing or hiding what it produces — is now reported too. It previously went
+      to the browser console only, so the change silently did not happen and nothing
+      on the page said why.
+
+- b01246e: Editor: stop warning about `<group>`, `<repeat>` and friends inside `<math>`, `<numberList>` and other containers that take one specific component type.
+
+    These composites expand to copies of whatever the author puts inside them, so the schema cannot predict what they become and must accept them wherever their content would be accepted. `<math>1 + <group>2 3</group></math>` and `<numberList><sort>3 1 2</sort></numberList>` both work, but the editor flagged them as invalid. This affects `<group>`, `<repeat>`, `<repeatForSequence>`, `<select>`, `<module>`, `<collect>`, `<shuffle>` and `<sort>`, plus `<setup>`, which produces no replacements at all and so is now allowed anywhere. The tag completion menu offers them in those containers too.
+
+    One known gap: the editor no longer flags `<setup>`, `<sort>` or `<collect>` alongside an `<option>` inside `<select>`, which still fails to build (#1875).
+
+    In the other direction, `<split>` and `<intersection>` do have predictable replacement types — `text` and `point` respectively — so they are now checked against those. That widens where they are accepted (a `<point>` is welcome in more places than "any graphical component" was) while correctly rejecting `<split>` inside graphical-only containers such as `<constrainTo>`. `<sortIndices>` keeps its own `number` replacement type rather than following `<sort>`, so it is still rejected where a number doesn't belong.
+
+- ac3b666: A point that has been dragged can be loaded again when it carries a constraint.
+
+    A `<point>` with no coordinates of its own, held to a curve, function or similar
+    object by a `<constrainTo>` or an `<attractTo>`, saved a position that the
+    document could not read back. The reader saw the problem go blank, and
+    because the position was already saved, it went blank on every later visit too —
+    there was nothing they could do on the page to recover, while a reader who had
+    not dragged the point was unaffected.
+    `<endpoint>` and `<equilibriumPoint>`, which are kinds of point, behaved the
+    same way.
+
+    Saved positions now come back as the kind of value the rest of the document
+    expects, so the point returns to where it was dragged.
+
+    Closes #1939.
+
+- baa6096: Add counting operators: `<tally>` and `<binCounts>`.
+
+    `<count>` reports how many values a list holds. These two answer the more ordinary question asked of data — _how many of each?_ — which is the second half of any sampling activity: with them, you can say not only which subpopulation every individual landed in but how many landed in each.
+
+    **`<tally>`** counts how many times each category appears. It is type-generic, comparing values exactly as `<sort>` does, so it counts a `<textList>` as readily as a `<numberList>`.
+
+    ```xml
+    <textList name="fruit">apple fig apple pear fig apple</textList>
+    <tally name="t">$fruit</tally>   <!-- 3, 2, 1 over apple, fig, pear -->
+    ```
+
+    Name the categories with `categories` to fix which are counted and in what order; omit it and the categories are the distinct values present, in sorted order — sorted rather than first-seen, so the same data reads the same way however it arrived. Either way they read back as `.categories`, so a table or a chart is driven off the same component that did the counting. Declaring them is also what keeps a slot for the categories nothing matched: `<tally categories="1 2 3 4">` over a sample that never produced a 3 still reports a 0 in third place, so the counts stay lined up with the categories they are counts of.
+
+    A category is read to match the values, so there is nothing to declare for it: `categories="apple fig"` counts words, `categories="true false"` counts booleans, and `categories="1/2 1"` counts halves, each still labeling its count as it was written. `type` is what bare string children are read as — `<tally type="text">apple fig apple</tally>` — and, written out, it also decides how `categories` is read.
+
+    **`<binCounts>`** counts how many values fall into each interval between the cut points given by `bins`, which is what a histogram of a continuous quantity needs. `n + 1` cut points define `n` intervals, and they read back as `.binEdges`, so whatever displays the counts can say what interval each covers. Bare numbers are read as values, the way `<sum>` reads them, so `<binCounts bins="0 1 2">0 1/2 1 3/2 2</binCounts>` counts five of them.
+
+    A value landing exactly on a cut point has to be counted on one side or the other, and there is no universal convention — NumPy, matplotlib and Julia close bins on the left; R, pandas and Excel close them on the right. `closed` chooses, and defaults to `"left"` (`[a, b)`), matching the class intervals of most statistics textbooks. Whichever way it points, **the outermost cut point is always included**, so neither the smallest nor the largest value is silently dropped. A value outside the outermost cut points falls in no bin, and so does a `<number>` whose content does not parse, so `<binCounts>` counts need not sum to the size of the sample. A value that is not numeric _by type_ is a different matter: a text or a boolean is something no pair of cut points could ever hold, so rather than dropping it and reporting counts that quietly mean less than they say, `<binCounts>` warns and reports 0 for every bin.
+
+    Both are composites that create their counts fresh as `<number>` components, so `$counts[2]`, `<sum>$counts</sum>` and `<numberList>$counts</numberList>` all work on the result, and a count reads as a number wherever one is expected, including as a path index. Bins that do not describe a set of intervals, values matching none of the declared categories, and a `categories` that names the same category twice are all reported rather than left silent.
+
+    Together with the operators already in place, a sampling simulation takes the same handful of tags whatever the size of the sample — no `<repeat>` over the draws, and one count per category however many were drawn:
+
+    ```xml
+    <numberList name="pop">30 45 12 60</numberList>
+    <cumulativeSum name="cum">$pop</cumulativeSum>
+    <number name="total"><sum>$pop</sum></number>
+
+    <sampleRandomNumbers name="draws" type="discreteUniform" from="1" to="$total" numSamples="500" />
+    <searchSorted name="which" target="$draws">$cum</searchSorted>
+    <tally name="counts" categories="1 2 3 4">$which</tally>
+    ```
+
+    The same answer is available in one step as `<binCounts bins="0 $cum" closed="right">$draws</binCounts>`, without the intermediate list of subpopulation indices — use whichever you also want to show.
+
+    Closes #1832.
+
+- 9331461: A mistake in one element no longer blanks the whole document.
+
+    - An index into a list that is empty or short right now renders as nothing and
+      fills in later, instead of stopping the page. `$myList[$myChoices.selectedIndex]`
+      before anything is selected is the common way to meet this.
+    - A `<function>` whose formula cannot be differentiated reports no extrema, and
+      `<derivative>` of one gives an empty derivative, rather than the document
+      failing to build. `<function><math>1</math><numberList>3 1 2</numberList></function>`
+      is one such formula.
+    - A `<select>` builds when a `<setup>`, `<sort>` or `<collect>` sits beside its
+      options. For a `<select>` of plain `<option>`s, which option a seeded activity shows
+      is unchanged. Where the extra child itself contains something that produces variants
+      — a `<select>` inside a `<setup>`, say — seeded selection used to give up and fall
+      back; it now works, so such an activity can show a different option than before.
+    - `<substitute>` reads its `type` the same way everywhere. `type="TEXT"` and
+      `type=" text "` are the `text` they look like, and a value the element cannot
+      use — misspelled, or empty — is reported once, saying what it was treated as,
+      instead of twice with two different answers and a blank page.
+
+    When a document genuinely cannot be built, the failure now says what broke
+    instead of offering a retry and a reload that cannot help.
+
+- e49a50d: A half-typed function call no longer stops the document building.
+
+    ```xml
+    $$g($$f(<math>3</math>)
+    ```
+
+    That is what `$$g($$f(<math>3</math>), 2)` looks like partway through being typed, and the editor
+    parses on every keystroke — so what the reader saw was not a message about the missing
+    parenthesis but a blank page. The only `)` in it belongs to the inner call, and the outer
+    reference was committing to being a call on the strength of it. It now declines and
+    leaves its text alone, as every other unfinished shape here does. A very long run of
+    brackets or parentheses in one span of prose used to fail to parse for an unrelated
+    reason, and no longer does either.
+
+    Formatting a document no longer changes what it means.
+
+    ```xml
+    <p>$(x)hi</p>
+    <p>$(x)[1]</p>
+    ```
+
+    Both came back rewritten: the first as `$xhi`, a reference to a component nobody named,
+    and the second as `$x[1]`, a reference _with an index_ where the author had written a
+    reference followed by the text `[1]`. `$(…)` ends a reference's path, so the parentheses
+    are now kept wherever dropping them would let what follows be read as part of the
+    reference — and still dropped where it could not be, so `$(x).5` and `$(x) hi` come back
+    as `$x.5` and `$x hi`.
+
+    A bad index no longer quietly stops a function reference being called.
+
+    ```xml
+    <p>$$F[$(x)[<math>3</math>]](3)</p>
+    ```
+
+    The inner brackets cannot be read as an index, which was reported. What was not reported
+    is that the `(3)` had stopped being a call and was rendering as text. The call is built
+    now, and the index still says what is wrong with it.
+
+    A diagnostic about markup written between index brackets is reported once, however deeply
+    nested — it used to double with each level — and no longer names components that are not
+    yours. An element in brackets that turns out to be in error drew a second warning about
+    invalid `<_copy>` children beside the real message; that warning is gone, and the real
+    one stayed.
+
+    Converting a v0.6 document now keeps `$(b/c).d` as a reference followed by the text `.d`.
+    v0.6 read it that way — a prop access went inside the parentheses, as `$(b/c.d)` — and the
+    conversion was turning it into a property access the author never wrote.
+
+- a9828c1: Add hypergeometric, binomial, and Poisson distributions to `<sampleRandomNumbers>` and `<selectRandomNumbers>`.
+
+    Until now the only distributions available were `uniform`, `discreteUniform`, and `gaussian`, so there was no way to sample count data without building it by hand.
+
+    `type="hypergeometric"` counts the successes obtained when drawing `numDraws` items _without replacement_ from a population of `numTotal` items containing `numSuccesses` successes. `type="binomial"` counts the successes in `numTrials` independent trials that each succeed with the given `probability`, defaulting to a single fair trial. `type="poisson"` is determined entirely by its `mean`, which defaults to 1 rather than the 0 that `gaussian` uses, since a Poisson distribution with mean 0 always returns 0.
+
+    The `mean`, `variance`, and `standardDeviation` properties report the exact values for each new distribution. Invalid parameters produce `NaN` for both the samples and those properties, along with a warning describing what is wrong. Those warnings are shown wherever the document's other warnings are, rather than only in the browser console; the long-standing warning about an invalid `gaussian` mean or standard deviation is now shown there too.
+
+    Because these distributions are drawn one item, trial, or event at a time, parameters that would need more than ten million draws for a single sample are refused the same way impossible ones are, rather than leaving the page unresponsive while they ran. The limit is far above any population, trial count, or rate that arises in practice; it is there so that mistyping an extra digit reports a problem instead of freezing the activity. Parameters an order of magnitude below it are still sampled as asked, with a warning that sampling may be slow.
+
+    A fractional `numSamples` now draws the same count from every distribution, rounding up as `uniform` always has. Alongside unusable parameters — a `gaussian` with a negative `variance`, say — a fractional count used to break the document instead of reporting `NaN`.
+
+    Counts must also be whole numbers small enough to stay exact — up to about nine quadrillion. Past that, neighboring whole numbers stop being distinguishable, so drawing from such a population would not do what it says; it is refused rather than sampled.
+
+    The new distributions draw with the generator's full precision rather than its default 32 bits, so a success rarer than about one in four billion — a large population with few successes, or a very small `probability` — happens as often as asked rather than being rounded up to that floor. The hypergeometric is exact for every population it accepts; a `binomial` `probability` below about one in nine quadrillion is smaller than any value a draw can take, so it occurs at that floor instead, which would take on the order of nine quadrillion samples to notice.
+
+    A `gaussian` whose spread or center describes no distribution now reports `NaN` for `mean`, `variance` and `standardDeviation`, as the other distributions already did, instead of reporting a plausible-looking spread beside `NaN` samples; an infinite spread is recognized as unusable rather than sampled. The explanation also survives a reload, and `<selectRandomNumbers>` holds its distribution parameters fixed alongside the selection they produced.
+
+- 93a28ab: A reference's path now carries on past an element written between its index brackets.
+
+    ```xml
+    <pointList name="pts">(1,2) (3,4)</pointList>
+
+    <p>$pts[<number>2</number>].x</p>
+    ```
+
+    renders `3`. Until now the path stopped at the bracket and the `.x` was left as literal
+    text beside the whole point. A property, a further index, or both may follow —
+    `$pts[<number>2</number>].xs[1]` works the same way — and what is claimed is exactly what
+    a written-out path would have claimed, so a space or a stray dot still ends the reference
+    where it always did.
+
+    Editor support inside the brackets has caught up. With the cursor in an element written
+    there, tag and attribute completion and the help panel work again, a reference written
+    there resolves, and a name given to that element can be referenced from the rest of the
+    document.
+
+    An invalid attribute on an element in an index now names the component as written. A lone
+    `<number>` between the brackets is converted to a whole number on the way through, and the
+    error reported that conversion's `<integer>` — a component the author never wrote.
+
+    A reference whose index cannot be worked out now reports instead of stopping the document.
+
+    ```xml
+    <numberList name="myList">100 300 200 50</numberList>
+    <indexOf name="io" tolerance="1e-6" target="100">$myList</indexOf>
+
+    <p>$myList[$io]</p>
+    ```
+
+    `tolerance` is not an attribute of `<indexOf>`, which was already reported — but the
+    reference then failed outright and the reader got a blank page with the explanation lost
+    along with it. The mistake is now shown, the rest of the document renders, and the
+    reference says why it came up empty. A computed index on a function reference that is then
+    called, as in `$$f[$k](3)`, stopped the document the same way and no longer does.
+
+    An element index on a function reference that is then called now works, where it was
+    previously left as literal text with a warning.
+
+    ```xml
+    <group name="fs">
+      <function variables="x">x^2</function>
+      <function variables="x">x^3</function>
+    </group>
+    <numberList name="powers">2 3</numberList>
+
+    <p>$$fs[<indexOf target="3">$powers</indexOf>](3)</p>
+    ```
+
+    renders `27`. An index written before a function reference's arguments picks which
+    function to call, so this asks the same question `$$fs[2](3)` does, with the position
+    worked out rather than written down. `$$fs[$i](3)` was what stopped the document before,
+    and it is what made this shape unsafe to accept.
+
+    A function reference written as another's argument is now called wherever it sits, not
+    only in the last position.
+
+    ```xml
+    <function name="f" variables="x">x^2</function>
+    <function name="g" variables="a b">a+b</function>
+
+    <p>$$g($$f(<math>3</math>), 1)</p>
+    ```
+
+    renders `10`. It rendered `3 x² + 1` before: an element written among a call's arguments
+    is what makes that call need reassembling after the fact, and only the final argument was
+    being reassembled, so the inner call never happened. Written last —
+    `$$g(1, $$f(<math>3</math>))` — the same call has always worked.
+
+    Two shapes gained a warning they should always have had. Brackets written after a function
+    reference's arguments cannot index, and `$$f(3)[<number>1</number>]` has said so for a
+    while — but `$$f(<math>3</math>)[<number>1</number>]` and
+    `$$fs[<number>2</number>](3)[<number>1</number>]` said nothing at all. All three now give
+    the same reason.
+
+- b98fe49: An element can now be written between a reference's index brackets.
+
+    ```xml
+    <numberList name="myList">100 300 200 50</numberList>
+
+    <p>$myList[<indexOf target="100">$myList</indexOf>]</p>
+    ```
+
+    renders `100`. Until now the element there was silently dropped as an index: the
+    reference expanded in full, the brackets survived as literal text, and the element
+    rendered its value between them — `100, 300, 200, 50[1]` — with nothing reported.
+
+    Any element works, not just `<indexOf>`, and the brackets may hold a mixture of text,
+    references and elements the way `$myList[$k + 1]` already could. What is written
+    between the brackets sees the rest of the document, so a reference in there resolves
+    as it would anywhere else — `$myList[<indexOf target="$wanted">$myList</indexOf>]`
+    finds `$wanted` — and the element is not rendered where it was written. Naming the
+    element and referencing it — `<indexOf name="io" …/>` then `$myList[$io]` — is still
+    the better form when the same position is wanted more than once, and is the way to
+    reach a property after the index, as below.
+
+    One more shape is left alone for a different reason: an index on a function reference
+    that is then called, as in `$$f[<number>1</number>](3)`. An index there picks which
+    function to call rather than part of what it returns, and a computed one is not
+    supported, so the brackets stay literal and warn rather than failing to build. To index
+    what a call returns, give the result a name and index that.
+
+    Two rough edges to know about. A reference's path stops at the index, so
+    `$pts[<number>2</number>].x` renders the point and a stray `.x` rather than the
+    x-coordinate; name the element and write `$pts[$i].x` for that. And editor support
+    inside the brackets lags: once the brackets balance, attribute and tag completion and
+    hover no longer see the element between them, though while they are still unbalanced —
+    which is most of typing — it is an ordinary child and the editor behaves as usual.
+
+    Three shapes still cannot take an index, because the reference has already ended before
+    the brackets: `$(x)[…]`, where the closing paren ended it, `$$f(1)[…]`, where the
+    argument list did, and `$x{z}[…]`, where a `{…}` block did. They still render the
+    element between literal brackets, as they always have, but each now warns and says what
+    to write instead — for `$(x)[…]` give the element a name and write the index inside the
+    parentheses, as `$(x[$idx])`, and for `$$f(1)[…]` give the result of the call a name and
+    index that.
+
+    For `$x{z}[…]` the remedy is to delete the braces, because **`{…}` written after a
+    reference is not v0.7 notation.** It is left over from v0.6. The parser still accepts
+    it, but nothing downstream reads it: whatever is written inside has no effect at all.
+
+    ```xml
+    <number name="x">7.123456789</number>
+
+    <p>$x{displayDigits="8"}</p>                     <!-- renders 7.12      -->
+    <p><number extend="$x" displayDigits="8" /></p>  <!-- renders 7.1234568 -->
+    ```
+
+    Attributes belong on an element, as the second line shows — which is what the v0.6 to
+    v0.7 converter already produces, so upgraded documents are unaffected and this is only
+    a trap for v0.7 written by hand. Note that only the index case says anything: a `{…}`
+    block on its own is still discarded silently, and the notation is expected to be
+    removed in a future version.
+
+    Writing an element as a function reference's argument — `$$f(<math>3</math>)` — no longer
+    stops the document. It parsed correctly, but registering the names in it hit a node
+    whose parent was the reference rather than an element, and the document failed to load.
+
+    A comment written among those arguments no longer renders. `$$f(<!-- c --><math>3</math>)`
+    showed `9 c²` — the comment's own words arrived as content and were read as maths — and
+    an XML instruction leaked the same way. Both are now removed before the document is
+    built, as they already were everywhere else, while still surviving a reformat.
+
+- c874e0d: Keep an index inside an attribute such as `target` pointing where it did when the content holding it is copied.
+
+    Copying content whose attribute references something by index, as in
+
+    ```xml
+    <numberList name="m">11 22 33 44</numberList>
+
+    <repeatForSequence from="2" to="3" valueName="i" name="items">
+      <updateValue target="$m[$i]" newValue="99" type="number" />
+    </repeatForSequence>
+
+    <repeat for="$items" valueName="v">$v</repeat>
+    ```
+
+    lost the index in the copy: the two buttons written by the `repeatForSequence` set `m[2]` and `m[3]` as intended, but the copies the `<repeat>` made rendered as buttons with no target and did nothing when pressed, warning "No referent found for reference: `$m[$i]`". Where the `<repeat>` also named its items `i`, evaluating such a copy raised "Something went wrong as path index is not an integer" instead.
+
+    An index inside a reference in content already followed its copy; one inside a reference in an attribute now does too, so each copied button changes the entry of `m` the button it was copied from changes. That holds however the content was copied — by a `<repeat>`, by a `<collect>`, by a `<shuffle>`, or by an `extend` of an enclosing section — and for the other attributes that take references: a copied `<ref to="$m[$i]">`, for one, now links to the entry the reference it was copied from links to.
+
+- 7ffbbf5: Recognize an index written inside a reference in two places that were quietly dropping it.
+
+    `referencesAreResponses` now records the input an index names when that index is itself a reference, or an expression written around one such as `$inputs[$i - 1]`:
+
+    ```xml
+    <setup><group name="inputs"><mathInput name="a" /><mathInput name="b" /></group></setup>
+    <repeat name="r" for="1 2" valueName="i">
+      <answer>
+        <award referencesAreResponses="$inputs[$i]"><when>$inputs[$i] = 1</when></award>
+      </answer>
+    </repeat>
+    ```
+
+    Written with a literal index — `$inputs[1]` — an award like this recorded the response all along. Written with `$i`, it graded correctly but stored nothing: `currentResponses` and `submittedResponses` came back empty, with no warning, so a question scored right and kept no answer. Inside a `<repeat>`, where the index is the iteration value, `$i` is the only thing there is to write.
+
+    The two writings of the index need not match letter for letter, only land in the same place: `referencesAreResponses="$inputs[$holder.i]"` matches a `<when>` that says `$inputs[$i]`.
+
+    An index that cannot be applied is now reported when it is written in a `target`. `<updateValue target="$p.styleDescription[1]" />` names an index on a property that is not a list, and said nothing at all; the same reference in `extend` or in ordinary text has always warned `Cannot reference index $p.styleDescription[1]`. The warning arrives when the target is read — on the press for `<updateValue>`, at once for a running `<animateFromSequence>` — which is where those components' other target warnings already arrive.
+
+    Closes #1845. `<callAction target="$p.styleDescription[1]" />` remains silent and #1565 stays open for it: it rejects any property in a `target` before an index is ever applied, so it needs a message about the property rather than this one about the index.
+
+- c5f39d5: Read a list operator's bare string children as what they look like, instead of refusing them.
+
+    `<sort>d a b</sort>` rendered nothing at all. So did `<tally>apple fig apple</tally>`, `<shuffle>d a b</shuffle>`, and every other component that reads its children as a list of comparable values. Each reported that a `type` attribute was required, ignored the string, and produced an empty result — for markup that says exactly what it means.
+
+    They are now read by their content: every whitespace-separated piece naming a number makes the list numeric, and anything else makes it text.
+
+    ```xml
+    <sort>10 2 1</sort>          <!-- 1, 2, 10   — ordered by value -->
+    <sort>d a b</sort>           <!-- a, b, d    — ordered alphabetically -->
+    <sort>10 2 x</sort>          <!-- 10, 2, x   — one word, so all text -->
+    <tally>apple fig apple</tally>
+    ```
+
+    This is the rule the values already followed when they arrived as components: `allAreNumeric` is true only when every value is numeric, and a single text among numbers sends the whole list to a text comparison. Applying it to bare strings means an author who writes `1 10 3` and an author who references a `<numberList>` get the same answer.
+
+    A piece names a number when Doenet's own math parser works one out of it, so `1/2`, `2^3`, `sqrt(4)`, `pi` and `min(1,2)` all count, and `x`, `2x`, `true` and `NaN` do not. JavaScript's numeric literals are not consulted, so `1e5` and `0x10` are words here: scientific notation has to be asked for and is spelled with a capital `E`, and hexadecimal is not DoenetML notation at all. An author who wants an exponent read writes `<mathList parseScientificNotation="true">1E3 2 5E2</mathList>` and references it.
+
+    `type` is now an override rather than a requirement, for when the look is misleading — `007 008` counts the numbers 7 and 8, and `type="text"` keeps the leading zeros. It still governs only bare strings; a referenced component keeps the type it already has.
+
+    A `type` naming something that is not one of the four is now reported and then **dropped**, so the string children are read exactly as they would be with no `type` at all. It used to be replaced with `math`, so `<tally type="txt">apple fig apple</tally>` read its three words as maths and reported its categories as `a p p l e` and `f i g`. This covers the string children only: `categories` and `target` resolve an invalid `type` separately and still replace it, so `<tally type="txt" categories="apple fig">` counts nothing either way.
+
+    Two diagnostics are retired in place and one is added: `doenet-w0013` asked for a type nothing needs any more, and `doenet-w0014` named a `math` fallback that no longer happens. `doenet-w0145` replaces the second and says what now occurs.
+
+    Affects `<sort>`, `<shuffle>`, `<sortIndices>`, `<tally>`, `<argMin>`, `<argMax>`, `<indexOf>` and `<searchSorted>`. Only `<sort>` and `<shuffle>` have shipped, and two existing documents change:
+
+    - One that mixes a reference with a bare string. `<sort>$mi 3</sort>` used to sort the reference alone and drop the `3`; it now sorts both.
+    - One with a `type` that is not one of the four. Those strings used to be read as maths, so `<sort type="txt">1/2 2 1</sort>` rendered `1/2, 1, 2` and now renders `0.5, 1, 2`, and `<sort type="letters">d a b</sort>` produces text rather than maths, so `.latex` on an item no longer resolves. Both already reported the type as invalid.
+
+- bb9c5a2: Fix two defects in the automatic commas placed between the replacements of a list composite.
+
+    A `<math>` containing a list next to a component froze the document. To decide whether the comma-separated list needs parentheses around it, the core looks at what sits on either side of it, walking past whitespace to find it — but that walk never advanced its index, so it never ended when the neighbor was a component rather than a string. `<math><number>3</number> <numberList>1 2</numberList></math>`, and the same with the list first, both hung.
+
+    Commas also appeared around a replacement that cannot be a list item, whenever the composite was not the first thing in its container. A composite holding something that can't be part of a list — a `<me>`, say — is shown without commas, but the record of which replacements are eligible was kept in step with the parent's children rather than with the composite's own, so the answer slid by however far the composite sat from the start. `<p><group asList><numberList>1 2</numberList><me>x</me></group></p>` was correct while `<p>lead <group asList><numberList>1 2</numberList><me>x</me></group></p>` was not.
+
+- d7b0338: Add list operators: cumulative scans and index-returning operators.
+
+    Ten new components in two families. Until now every math operator reduced a list to a single value — `<sum>`, `<min>`, `<mean>` — so nothing turned a list into another list, and nothing reported a _position_ within one.
+
+    **Cumulative scans** map a list to another of the same length: `<cumulativeSum>`, `<cumulativeProduct>`, `<cumulativeMin>`, `<cumulativeMax>`, and `<differences>`, which is one shorter and undoes `<cumulativeSum>` apart from its first value. They accumulate numerically when every input is a number and symbolically otherwise, so `<cumulativeSum>x y z</cumulativeSum>` gives `x, x+y, x+y+z`. The result is an ordinary list: `$cum[3]`, `<sum>$cum</sum>` and `<numberList>$cum</numberList>` all work on it, and rounding attributes pass through to each value.
+
+    **Index-returning operators** report a position rather than a value: `<argMin>`, `<argMax>`, `<indexOf>`, `<searchSorted>` and `<sortIndices>`. Indices are 1-based to match `$list[1]`, and `0` means "no such element". They order values exactly as `<sort>` does: numerically when every value is numeric, alphabetically otherwise. Because DoenetML already indexes by reference, a returned position composes with any list in the document: with `<argMax name="best">$scores</argMax>`, the top scorer is `$names[$best]`. `<sortIndices>` accepts everything `<sort>` accepts, including `sortByProp`, so `$names[$perm[1]]` orders one list by another list's ordering.
+
+    The `target` of `<indexOf>` and `<searchSorted>` is a _list_, and the result has one position per target. A single target still reads as a single index, so `$pop[$which]` works as before, but a thousand targets are searched by one operator rather than a thousand. That is what makes sampling from a weighted population three lines, where a `<repeat>` stops being practical long before the sample is interesting:
+
+    ```xml
+    <numberList name="pop">30 45 12 60</numberList>
+    <cumulativeSum name="cum">$pop</cumulativeSum>
+    <number name="total"><sum>$pop</sum></number>
+    <sampleRandomNumbers name="draws" type="discreteUniform" from="1" to="$total" numSamples="500" />
+    <searchSorted name="which" target="$draws">$cum</searchSorted>
+    ```
+
+    Two existing behaviors change. `<sort>` and `<shuffle>` no longer force an explicit `type` onto reference children, which used to fuse a referenced list into the single string it renders as: `<sort type="text">$names Zoe</sort>` now sorts four names rather than the two values `"Ann, Cal, Bob"` and `"Zoe"`. The one thing this removes is coercing a reference to a different type. And `<sort type="boolean">true false</sort>`, which silently rendered nothing at all, now orders booleans as text, putting `false` before `true`.
+
+    `<searchSorted>` requires the list it is given to be in ascending order, and checks that it is. Out of order, it reports `0` instead of a position and warns, rather than returning a number that looks like a position but describes no arrangement of the list. Equal neighbors are in order — a run of them is what `side` is about — and a value that compares with nothing, such as a number that does not parse, neither confirms nor refutes the order and is passed over — the position reported steps over such a value rather than dropping it, so it still comes after everything the target sorts above. `<indexOf>` asks only whether a value is present, so it searches any list at all.
+
+    Getting a `0` out of an index operator is reported when it means the question could not be answered: omitting `target` is a warning, unsorted values for `<searchSorted>` is a warning, and having no values to look through is an info message. A target simply absent from the list is not reported — that `0` is what `<indexOf>` is for.
+
+    The `type` attribute of `<sort>`, `<shuffle>` and the five index operators now declares the values it accepts — `number`, `math`, `text` and `boolean` — so the editor offers them and anything else is flagged as it is written. The set is unchanged; it was simply never declared. `<sort>`, `<shuffle>` and the sequence components (`<sequence>`, `<selectFromSequence>`, `<repeatForSequence>`, `<animateFromSequence>`) now highlight the few attributes that define what they do, so the editor and the reference pages lead with those.
+
+    Closes #1816. Closes #1817. Closes #1823. Closes #1831. Closes #1945.
+
+- 2813fcc: Keep the parentheses on a reference when a letter, digit or underscore follows it and
+  would otherwise be read as part of the name. Printing DoenetML no longer turns `$(x)_0`
+  into `$x_0`, which meant something different.
+- 0281713: Add `<sampleMultivariateRandomNumber>`, which draws a vector-valued random number.
+
+    Every existing sampling component produces numbers that are independent of one another. This one draws a single sample whose numbers are drawn _together_: `numInCategories` describes a population split into categories, `numDraws` items are drawn from it without replacement, and the component expands to one number per category giving how many of the drawn items came from each. The counts always sum to `numDraws`.
+
+    ```doenet
+    <p>An urn holds 5 red, 3 blue, and 2 green marbles. Draw 4 without replacement:</p>
+    <p><sampleMultivariateRandomNumber name="draw" type="hypergeometric" numInCategories="5 3 2" numDraws="4" /></p>
+    <p>Red: $draw[1], blue: $draw[2], green: $draw[3]</p>
+    ```
+
+    The `numCategories`, `numTotal`, `means`, and `variances` properties describe the distribution, and the `resample` action draws a fresh set.
+
+    `type` accepts only `hypergeometric` so far, and is required rather than defaulting to it. It is unlikely to remain the most natural default — a joint normal distribution is the more usual multivariate one — so naming the distribution in every document means adding others later cannot change what an existing document does.
+
+    Invalid parameters produce `NaN` for the samples and for `means` and `variances`, along with a warning describing what to change; `numCategories` and `numTotal` go on reporting the population the component read. Because each category is drawn in turn, parameters that could need more than ten million random draws for a single sample are refused the same way, instead of leaving the page unresponsive while they ran.
+
+    Counts must be whole numbers small enough to stay exact — each category, the population they add up to, and `numDraws` all up to about nine quadrillion. Past that, neighboring whole numbers stop being distinguishable, so drawing from such a population would not do what it says; it is refused rather than sampled.
+
+    Each category's count is drawn as a hypergeometric against the part of the population not yet accounted for, so the whole vector is drawn exactly, with no smallest probability it rounds away, for every population accepted.
+
+- 279b2b6: Stop two core traversals from taking exponential time when composites nest inside one another.
+
+    A repeat whose iterations refer to the previous iteration, as in
+
+    ```xml
+    <numberList name="vals"><sequence from="1" to="16" /></numberList>
+
+    <repeatForSequence from="1" to="16" valueName="i" name="cumSums">
+      <number><conditionalContent>
+        <case condition="$i=1">$vals[1]</case>
+        <else>$cumSums[$i-1] + $vals[$i]</else>
+      </conditionalContent></number>
+    </repeatForSequence>
+    ```
+
+    hung the document rather than loading it. At 8 iterations it took 4 seconds and at 10 it took 3 minutes, with each further iteration multiplying the cost by about four, so the 16 iterations above would have needed several days.
+
+    The cost was not in evaluating the recurrence. Components form a directed acyclic graph rather than a tree: a composite's replacements are spliced in as children of the composite's parent while the composite goes on pointing at them as replacements, so the same component is reachable along several paths. Each iteration of the repeat above adds a `<conditionalContent>` → `<group>` → copy chain, which makes the previous iteration reachable four ways, and two traversals walked every path separately:
+
+    - `allPotentialRendererTypes`, which collects the renderers a document may need to load, recursed into children and into replacements. It now walks each component once, which loses nothing because every path contributed to the same set of renderer types.
+    - `ancestorsIncludingComposites`, used when propagating dependency blockers, walked up both the parent chain and the chain of the composite a replacement came from — chains that converge on the same ancestors. It now remembers the ancestors it has already worked out for a component.
+
+    The renderer types collected are unchanged. The example above loads in a few seconds, and cost now grows with the number of components rather than exponentially.
+
+    Documents that nest composites only a few deep — the overwhelming majority — were never affected and are unchanged.
+
+- 232baf3: Upgrade the bundled PreFigure runtime from 0.6.7 to 0.7.6.
+
+    Nothing a Doenet author writes behaves differently. The upgrade was checked
+    against the parts of PreFigure the renderers actually depend on, and they are
+    unchanged: every element and attribute the graph and chart renderers emit is
+    still accepted, `alignment_displacement` — which fixes where a label or legend
+    sits relative to its anchor — is byte-identical, and the legend's geometry
+    (`outer_padding`, `vertical-skip`, the key width and the box width formula) is
+    the same. The `fill-pattern` vocabulary is unchanged, so patterned fills keep
+    their meaning.
+
+    What is new upstream is mostly elsewhere: circuit diagrams, an adapter schema,
+    and `hticks`/`vticks` for controlling tick marks, none of which Doenet emits
+    yet. Two changes are worth having. `annotations.py` now skips comments and
+    processing instructions rather than trying to annotate them, which is a class
+    of crash rather than a cosmetic fix. And the MathJax label extraction now
+    resolves its XPath in the XHTML namespace, which is how labels are found at
+    all when the label tree carries one.
+
+    Two schema definitions were also relaxed: `coordinates` and `group` moved from
+    an interleave of element groups to a free choice of them, which permits the
+    mixed ordering our diagrams already emit.
+
+    The chart and graph renderers reserve their margins from measurements taken
+    against a real PreFigure render — how wide a legend's key is drawn, how wide a
+    character is at 14px. Those measurements were taken at 0.6.7 and none of the
+    constants behind them moved in 0.7.6, so no margin needed recalibrating. The
+    opt-in live suites (`RUN_LIVE_PREFIGURE_VALIDATION=1`) measure the drawn
+    geometry rather than predicting it, and are the check to run against the build
+    service once it is upgraded to match.
+
+- c7803ee: Finish resolving a reference that indexes into a repeat nested inside another repeat.
+
+    With the repeats inside a `<p>` or any other element, a reference to an inner item written directly in the document dropped its last index. `$a[2][1][3]` and `$a[2].b[3]` returned the whole inner repeat — all three of its items rather than the third — and `<number extend="$a[2][1][3]" />` written that way came out as `NaN`, since it was extending three items rather than one. The same references written inside a `<p>` of their own, or as the content of a `<number>`, were already correct: those are resolved after the repeats have expanded, and so never passed through the intermediate state that got stuck.
+
+    A reference resolved before the repeat it indexes into exists gets a provisional answer, to be resolved again once that repeat expands. The second resolution did run and did find the right component, but the reference kept the component it had been paired with the first time: the flag marking it as mid-resolution was left set when an attempt gave up early, and while that flag is set the reference is never told to rebuild what it points at. The flag is now cleared however the attempt ends.
+
+- ae0b2c9: Stop warning that a repeat's `valueName` has no referent when a reference lifts it out of the repeat.
+
+    Referencing one iteration of a repeat, as in
+
+    ```xml
+    <repeatForSequence from="1" to="5" valueName="i" name="xiValues">
+      <number>$i</number>
+    </repeatForSequence>
+    <m>x_3 = $xiValues[3]</m>
+    ```
+
+    copies the iteration's `<number>` — and the `$i` inside it — to where the reference appears. The copy was then re-resolved from where it landed, and `i` lives inside the repeat, invisible from the `<m>`, so the document reported "No referent found for reference: `$i`" even though the reference had resolved and the value showed correctly. The warning went away if the reference or the `<number>` wrapper was removed, which is what made it look spurious.
+
+    Re-resolving from where a copy lands is what lets each iteration of a repeat bind `$i` to its own value, so that stays. A copy that lands somewhere the name is out of scope now falls back on resolving the reference where the component it shadows sits — which is where the reference came from and still points — and keeps falling back however many times the reference has been copied, so referencing the `<m>` above stays quiet too.
+
+    A reference that resolves nowhere still reports the same warning it always did, at the same place.
+
+    Closes #1424.
+
+- 6dd9fce: Stop a repeat's `valueName` from capturing a same-named reference inside an index of the items it repeats over.
+
+    Repeating over iterations that index something by the iteration value, as in
+
+    ```xml
+    <mathList name="popSizes">1163 1164 292 290</mathList>
+
+    <repeatForSequence from="1" to="4" valueName="i" name="countByPop">
+      <round>$popSizes[$i]</round>
+    </repeatForSequence>
+
+    <repeat for="$countByPop" valueName="i">$i</repeat>
+    ```
+
+    took the whole document down with "Something went wrong as path index is not an integer". A repeat names each item it creates after its `valueName`, so the `<round>` copies here are named `i`; the `$i` inside `$popSizes[$i]` that each copy carried then found the copy it sits inside rather than the iteration value it was written to mean. Indexing by the component the index belongs to is circular, so the index came out an error rather than an integer, which is a state the reference machinery treats as impossible.
+
+    A reference copied inside a path index now shadows the one it was copied from, the way a copied child does, and a reference that resolves onto a component containing it now prefers a candidate origin that resolves elsewhere. Together those keep the copied `$i` pointing at the iteration value it named in the original.
+
+    A reference that means its own container and has nowhere else to resolve from, such as the `$P` in `P`'s own label, still resolves the way it did.
+
+    An index written inside an attribute rather than inside the content — the `$i` of `<updateValue target="$m[$i]" />` — is not covered. Copying content that holds one still loses the index, as it did before.
+
+- b4334a5: Report the answers, not the weights, on a section-wide check-work button whose answers all carry `weight="0"`.
+
+    A container worth no points is credited in full — that is how a reader gets credit for a document that asks nothing of them, and how a section with no answers stops blocking a `<cascade>`. A section whose answers all carry `weight="0"` was falling under that rule, so its `sectionWideCheckWork` button turned green and read "Correct" however the answers had been filled in, and colored every answer under it green. The button and the coloring now weigh those answers equally: a wrong answer reads "Incorrect", one right of two reads "50% Correct". A zero-weight subsection inside a weighted one is read the same way, so its answers reach the enclosing button in place of its full marks.
+
+    Scores are unchanged. A section holding no answers is still credited in full, a zero-weight answer beside a weighted one still counts for nothing, and the credit reported for the section, for the document, and to a `<cascade>` deciding whether to advance is exactly what it was.
+
+- f1bb837: Editor: report a `<series>` written outside a `<chart>`, and stop reporting a narrowed child merely for being wrapped in a composite.
+
+    A `<series>` means nothing outside a `<chart>`, but the schema had it inheriting from `_base` and so accepted it at the root of a document, in a `<section>`, and in every other container that takes arbitrary content — where it would be built, drawn by nothing, and never mentioned. It is now narrowed to the one element whose child groups name it, so the editor says "Element `<series>` is not allowed inside of `<section>`" where the mistake was made, and tag completion stops offering it where it cannot go.
+
+    That narrowing is the mechanism `<shortDescription>` already used, and it had a matching gap: a component narrowed this way no longer reaches the `_base` that a content-transparent composite's child groups are written in terms of, so `<chart><repeat><series>…</series></repeat></chart>` was reported as a series in the wrong place — as `<chart><group><shortDescription>…</shortDescription></group></chart>` already was. A composite that takes arbitrary content and expands to copies of it is accepted wherever its container accepts children, and by the same argument it now accepts whatever its container would have. Building one series per group of the data is exactly what a `<repeat>` is for. A composite that takes named children instead — `<select>`, which takes `<option>`, and `<collect>`, which takes none — is left alone, so the editor still reports anything else written inside one.
+
+    Part of #437.
+
+- d28c0c3: A `<spreadsheet>` now shows which of its cells are header cells and which cannot be edited.
+
+    `header` on a `<row>` inside a `<spreadsheet>` draws that row's cells in bold — the
+    attribute already marked a header row inside a `<tabular>`, but a spreadsheet ignored it.
+    It is emphasis only: a header row is edited like any other, and it is left on the ordinary
+    cell background so that it is not confused with the grid's own `A`, `B`, `C` and `1`, `2`,
+    `3` labels.
+
+    ```xml
+    <spreadsheet minNumRows="3" minNumColumns="3">
+      <row header><cell>Name</cell><cell>Type</cell></row>
+      <row><cell>Gandalf</cell><cell>wizard</cell></row>
+    </spreadsheet>
+    ```
+
+    `fixed` on a `<cell>` now makes the grid refuse the edit rather than take it back. The cell
+    is greyed and clicking it opens no editor, though it can still be selected and copied. Until
+    now a fixed cell looked and behaved like any other until the user pressed enter, at which
+    point their typing reverted with nothing said. `fixed` on a `<row>` covers that row's cells,
+    and `fixed` on the `<spreadsheet>` itself makes the whole grid read-only, including the
+    positions no `<cell>` fills.
+
+    Marking up the text inside a cell — `<em>`, `<alert>` — still has no effect, since a cell
+    contributes only its text to the grid. `header` is how a row is set apart.
+
+    A header row is announced as a header, not only drawn as one: its cells carry the
+    `columnheader` role, which is what a `<tabular>` says by rendering a header cell as a `<th>`.
+    Handsontable draws every data cell as a `<td>`, so without it a screen reader met a header row
+    as ordinary data.
+
+    PreTeXt export marks an authored header row with `header="yes"`, alongside the generated
+    `A`, `B`, `C` row that already carried it — PreTeXt allows a `<tabular>` more than one header
+    row. It is necessarily coarser than the grid, since `header` belongs to the row: a header row
+    narrower than the grid marks its empty remainder too.
+
+- 7b93b42: `<summaryStatistics>` now summarizes values written in the document, and is available to authors.
+
+    It was excluded from the schema, autocomplete and the reference docs, with a comment saying it would stay that way "until the data-source story is implemented" — its only input was a column of a `<dataFrame>`, and a data frame could only load a CSV over a URL. So it could not see data that lives in the document, which is where a simulation's data lives.
+
+    The data-source story has a much smaller answer than a data-frame platform: **the data can just be in the document.**
+
+    ```xml
+    <numberList name="scores">72 91 65 88 79 91 84</numberList>
+
+    <summaryStatistics name="stats">$scores</summaryStatistics>
+
+    <p>The mean is $stats.mean and the median is $stats.median.</p>
+    ```
+
+    Every statistic is a readable property as well as a table cell, so a sentence and the table cannot disagree. Values that are not numbers count as missing and are left out, which is why `count` reports how many values were usable rather than how many were given.
+
+    Bare numbers work as children, so `<summaryStatistics>4 9 2</summaryStatistics>` summarizes three values without wrapping each in a `<number>`. They are read as `<sum>` reads them, so a bare `1/2` is half rather than nothing.
+
+    `statisticsToDisplay` chooses the columns. `default`, `all` and `fiveNumberSummary` name a set of statistics rather than excluding the ones written beside them, so `statisticsToDisplay="default sum"` shows the standard selection _and_ the sum; whatever order they are asked for in, the columns appear in a fixed order. `fiveNumberSummary` is the minimum, quartiles, median and maximum — the five values a box plot draws, named so a document can say what it means rather than list five statistics.
+
+    **The `source`/`column` data-frame path is removed rather than kept.** It could not have worked: `sourceName` depended on a `dependencyType` of `attributeTargetComponentNames`, declared through an attribute option `createTargetComponentNames`, and neither name exists anywhere else in the codebase — no dependency type is registered under it. Because `sourceName` was defined unconditionally, _every_ use of `<summaryStatistics>` threw while its dependencies were built, whether or not a `source` was given. The component has never run. Summarizing a data frame can come back with the data-frame story, written against dependency types that exist; `<dataFrame>` itself is untouched and still excluded.
+
+    Four further things that could only surface once the component ran at all:
+
+    - The statistics are plain numbers, but they were passed to `roundForDisplay`, which takes and returns math-expressions — it threw, and would have handed the renderer an `Expression` to put in a table cell. They are now lifted into an expression for rounding and rendered back to a string.
+    - `count` was rounded along with everything else, so `displayDigits="3"` would have reported 1234 observations as 1230. A count is an exact tally and is no longer rounded, while every other statistic rounds in the table and in a reference to it alike.
+    - An empty list reached `sum`, which reduces without an initial value, and `Math.min`, which answers `Infinity` for nothing. Reachable now that children supply the data — a `<repeat>` that produced nothing — so every statistic but `count` reports nothing rather than failing.
+    - `padZeros` and `avoidScientificNotation` were accepted as attributes but had nothing to act on: the rounded value went to the table with no display parameters written out with it, so `displayDecimals="3" padZeros` would have shown a mean of 1.5 as `1.5`, and `avoidScientificNotation` would have left a small mean in scientific notation. Both now apply, alongside `displayDigits`, `displayDecimals` and `displaySmallAsZero`.
+
+    The table itself is drawn for the first time, so it is drawn properly: its cells take the spacing `<tabular>` gives its own, a rule separates the headings from the values, and the caption is the table's `<caption>` — its accessible name — rather than a paragraph that happens to sit above it. It had declared a border color and a border radius that nothing could apply: `border-color` is not inherited, so a color declared on the `<table>` never reaches a cell, and a border radius does nothing on a table with collapsed borders. The rule under the headings now carries the theme color itself.
+
+    Also removed: `byCategoryColumn`, an attribute that was declared but never implemented; and the renderer's `width`/`height` styling, read from state variables the component does not define, so both were always `undefined`. The caption no longer names a column, since there is no longer a column to name. Every one of its 346 translations was written around that column name, so all of them are retired with it: a reader in another language sees the English caption until it is translated again.
+
+    The `statisticsToDisplay` values — `default`, `all`, `fiveNumberSummary`, and the twelve statistics — now reach autocomplete and the reference page, which the component's own comment noted they did not.
+
+    Closes #1834.
+
+## 0.7.26
+
+### Patch Changes
+
+- 5872790: A `handGraded` answer no longer stops a `<cascade>`, and no longer holds a
+  section's title banner gray.
+
+    A hand-graded answer keeps a credit of 0 until an instructor grades it, which
+    happens well after the reader is done with the document. A cascade step
+    containing one therefore never reached full credit, and the reader was left
+    there with no way forward however much they wrote.
+
+    Such an answer now counts as complete as soon as the reader submits a response
+    that is not blank; submitting an untouched input does not count, except for a
+    `<booleanInput>`, whose unchecked box is itself an answer. The same rule colors
+    the title banner of a `boxed` or `collapsible` section, so a section whose
+    questions have all been answered shows as completed rather than waiting for a
+    grade the reader cannot see.
+
+    The new `completedColorRequiresCredit` attribute opts a section's banner back
+    into waiting for the real credit, and is inherited by the sections within it.
+    It affects only the color, never when a cascade advances. Either way the
+    reported `creditAchieved` is unchanged — a hand-graded answer is still awaiting
+    its grade.
+
+- fd6ce8f: An attribute that refers back to the component it is on is reported as a
+  circular dependency instead of hanging the page.
+
+    `<selectFromSequence name="a" from="1" to="10" numToSelect="2" exclude="2$a[1]"/>`
+    asks for a selection that cannot be made until the exclusion is known, and an
+    exclusion that cannot be evaluated until the selection is made. The two chased
+    each other — no warning, no error, the tab growing until it ran out of memory —
+    and the same happened for any attribute written in terms of the component's own
+    values: `<sequence name="a" from="1" to="10" exclude="$a[1]"/>` among them, and
+    the matching shapes on `<select>`, `<repeat>`, and `<conditionalContent>`.
+
+    Doenet had recognized the cycle all along and raised its usual error naming the
+    components involved; the error was being dropped rather than reported, because
+    the step that raised it was started and never waited for. It is waited for now,
+    so the cycle is reported.
+
+    The report arrives as the document's failure, which is what a circular
+    reference has always done — `<math name="m">$m</math>` fails a document the
+    same way. Confining the report to the component at fault, as a composite that
+    reports a cycle in its own replacements manages to, is left for later.
+
+- b70a5c6: The context-sensitive help explains what a `width` or `height` accepts.
+
+    With the cursor on one of these attributes, the help panel now lists the forms its value
+    may take — `600`, `600px`, `6in`, `450pt`, `15cm`, and, for a width, `50%` —
+    along with a note naming the unit each carries. Each attribute is offered only
+    what it honors: a height gets the absolute forms, since a percentage there has
+    no page height to measure itself against, and a `<sideBySide>` width gets the
+    percentage, since it divides a row into shares. The `width` of a `<graph>`,
+    `<image>` or `<video>` is marked as choosing the nearest `size` preset rather
+    than being used exactly.
+
+    The panel keys off the attribute's type rather than its name, so every attribute
+    taking a single size is covered. A size default also reads as `120px` now,
+    instead of as the internal `{"size":120,"isAbsolute":true}` — in the reference
+    tables as well as the panel.
+
+- c39ee37: Offer a retry when a document's core cannot be started.
+
+    The failure pane advised reloading the page, which is the wrong advice on the page that produces most of these failures: a section that starts many documents at once on a slow device. Reloading restarts all of them, and the reader who tried it was worse off the second time.
+
+    A failed document now offers **Try again**, which starts that one document over — a fresh saved-state load and boot ladder, without reloading the page or re-parsing the bundle — and shows that it is working rather than leaving a blank pane while it boots. The message beside the button leaves out the reload advice, and still names contention when that is what the failure is attributable to.
+
+    The offer is made once per document. A retry that fails too is shown the previous message, whose advice to reload is by then the honest next step, and no further button — so the reader is never left clicking at a document that will not start. A viewer handed a different document — an editor recompile, a host moving on to the next activity — starts the count over.
+
+    Both panes are announced now, since a reader who cannot see them is otherwise told nothing about what their click did: the button removes itself when clicked, so the "Initializing…" pane that replaces it reports politely that the retry is working, and the failure pane interrupts the way a failed renderer already does.
+
+    A message raised while a document was still starting no longer outlives it: a host that reports it cannot produce the saved state puts its message where the document would be, and a document that then starts is no longer left behind it.
+
+    A boot-scheduling host needs no changes to keep up: a retry that succeeds reports `initializedCallback` as any boot does, which is what clears the `failed` mark the `@doenet/standalone` coordinator put on the activity, and a retry that fails reports `coreStartFailedCallback` again.
+
+- 59a59e0: Editor: keep offering element names when the character after the cursor cannot be part of a tag name.
+
+    Typing `<` opened the element menu, and typing the first letter of the tag name emptied it, whenever the character immediately following the cursor was one that ends a tag name, such as `}`, `{`, `)`, `]`, `$`, `&`, `%`, or `\`. The menu now stays open and filters by what has been typed, as it does when nothing follows the cursor.
+
+    The case that surfaces this is a tag typed inside a brace group of typeset math, such as an input in the bounds of an integral: because the editor closes brackets as you type, `<me>\int_{` is already `<me>\int_{|}` by the time you type `<`, so every tag written there hit this.
+
+    The context-help panel follows the same correction: while you type such a tag name it now describes the element being named, rather than listing the elements allowed inside it.
+
+    Closes #1767.
+
+- fc5cbf3: Render a `<textInput>` or an inline `<choiceInput>` in place inside typeset math.
+
+    An input written inside `<m>`, `<me>`, `<men>`, or an `<mrow>` of an `<md>` is now drawn where it is written, inside the typeset expression, instead of being flattened to its current value. The motivating case is an aligned `<md>` derivation where the reader fills in the missing step in the place that step belongs; the rows stay aligned around the input, because the space it needs is measured before the display is typeset.
+
+    Not every input can be embedded. A `<choiceInput>` that is not `inline` or an `expanded` `<textInput>` is too large to sit in a line of mathematics, a `<textInput>` with a relative `width` (`%` or `em`) has nothing to measure against, and math drawn on a graph is a single picture with no room for a control; each of those also renders as it did before, and now warns that the input is not being drawn inside the expression.
+
+    The public `latex`, `text`, and `math` properties still report a filled-in input's value — for a choice input, the choice it has selected, which previously contributed nothing — so `$m.latex` remains the static rendering of the expression, and an input left empty now leaves a blank there instead of nothing. Previously it contributed nothing at all, which did not leave a gap so much as delete a term: `<m>x = <textInput/> + 3</m>` produced `x =  + 3`, in which the `+` is no longer an operator but a sign. It now produces `x = \underline{\hspace{2em}} + 3`; `text` reads `x = ＿ + 3`, and `math` keeps its shape as `x = ＿ + 3` rather than collapsing to a bare placeholder.
+
+    A PreTeXt export writes those blanks out as `<fillin>`, the element PreTeXt's own content model provides for them, so an exported worksheet shows a gap where the reader is meant to write. An input the reader has already filled in exports its value instead.
+
+    An embedded input is described to a screen reader by the expression it sits in — `<m>x = <textInput/> + 3</m>` reads as "x equals blank plus 3" — unless the author names it with a `<shortDescription>`, a `<label>`, or a `<label for>`. Its visible label is not drawn, since there is nowhere inside an equation to put it; a `<label>`'s text becomes the input's accessible name instead, and a `<shortDescription>` given alongside it remains its description.
+
+- df46355: Render a `<mathInput>` in place inside typeset math.
+
+    A math input written inside `<m>`, `<me>`, `<men>`, or an `<mrow>` of an `<md>` is now drawn where it is written, alongside the text and choice inputs that could already be. The motivating case is an aligned `<md>` derivation in which the reader writes the missing step, as mathematics, on the line that step belongs to.
+
+    A math input is the one input that grows as the reader types — in both directions, with the caret inside it — which is why it could not be embedded before. The room reserved for the field follows it exactly, growing and shrinking with it, and the expression is re-typeset around it in the same frame as each keystroke when that is cheap enough — which it is for an expression of ordinary size — and a beat behind when it is not, so that a large display does not hold up the typing. A centered display recenters as the field grows, by half of each character; drawn in step with the keystroke, that reads as the expression breathing rather than jumping. The input keeps its caret while the expression is re-typeset around it. An author who places a reference such as `$mi.immediateValue` _before_ the input in its row should expect the input to move over as it is typed into.
+
+    `<mathInput>` gains a public `latex` property, the committed value written as LaTeX. This is what a field embedded in an expression contributes to that expression's `latex`, `text`, and `math` — so `<m>x = <mathInput/></m>` reports `x = \sqrt{2}` rather than the plain-text `x = sqrt(2)` it would otherwise have reported — and it is available to authors in its own right, as `<math>` has had it.
+
+    A field left empty leaves a blank in those properties, and a PreTeXt export writes it out as a `<fillin>`, exactly as an empty text input already did. Inside an expression the field's visible label is not drawn, since there is nowhere in an equation to put it; the expression names the field to a screen reader instead, unless the author names it with a `<shortDescription>`, a `<label>`, or a `<label for>`. The typeset preview, when an author asks for one, opens above the field rather than beside it, where the rest of the equation is.
+
+    Math drawn on a `<graph>` is a single picture with no room for a control, so a math input there renders as it did before, and now warns to say so.
+
+- b70a5c6: An expanded `<textInput>` carries its check-work button beneath it.
+
+    An expanded input fills the width it is given, so a button beside it was
+    squeezed against the right margin, its label wrapping onto a second line that
+    the button's fixed height then clipped. The button now sits under the input, as
+    it already does under the choices of a non-inline `<choiceInput>`, and it is the
+    full labelled button by default there — `forceFullCheckWorkButton` is no longer
+    needed to get one, and `forceSmallCheckWorkButton` asks for the compact one. A
+    word-sized input is unchanged: its small button still rides beside it on the
+    line. An expanded input's `<description>` popover moves under it too, travelling
+    with the button.
+
+    Every check-work button now grows to hold a label that wraps, rather than
+    clipping it, which a long translated label could run into anywhere.
+
+- b70a5c6: An expanded `<textInput>` is sized by its `width` and `height` again.
+
+    The textarea an expanded input renders had dropped both dimensions from its
+    style, so it fell back to the browser's default box — about twenty columns and
+    two rows — no matter what was authored, and `width` and `height` did nothing.
+
+    An expanded input now also takes a relative width: `width="50%"` is half the
+    column it sits in, where before a percentage resolved against the input's own
+    shrink-to-fit row and produced an arbitrary size. Its default width is now 100%
+    rather than 600 pixels, and it never grows wider than the column even when an
+    absolute width asks for more, so it shrinks to fit a narrow window. The width of
+    a word-sized (not `expanded`) input is unchanged.
+
+    On a `<graph>` a text input is drawn as a one-line field however it is written,
+    so `expanded` no longer changes its size there: it is the same width as any
+    other input on the graph. A percentage width has nothing to be a share of on a
+    graph, so an input given one falls back to the word-sized 100 pixels rather than
+    to the arbitrary size it used to get.
+
+    The reference table and the help panel now name the two defaults, and say that
+    `height` applies only to an expanded input.
+
+- fba4ff8: Export an `expanded` `<textInput>` as room to write on, rather than as a one-line blank.
+
+    An expanded text input is a text area for a long answer, so on paper it should be blank space, not the short `<fillin>` rule a one-line input exports as. This covers a hand-graded `<answer type="text" handGraded expanded />`, which sugars in such an input. PreTeXt writes that space as a `workspace` attribute on the block the space follows, and only leaves the space inside a printout division — so a document holding an expanded input is exported as a `<handout>`: either the section containing the input, or the whole document when it has no sections. The space is as tall as the input, so `<answer handGraded><textInput expanded height="3in" /></answer>` exports as `workspace="3in"`, and two expanded inputs in one paragraph get room for both.
+
+    The space is left where the reader is meant to write. An input written inside a paragraph puts the space after that paragraph; one written outside any paragraph — an `<answer>` on a line of its own — gets a paragraph of its own standing where it stood, so the space stays inside the problem or list item that asked the question rather than after it. Where that input was written among a run of text — as in `<li>Why? <answer type="text" handGraded expanded /></li>`, or beside an expression such as `<m>2+2=</m>` — the new paragraph takes in the run, since a list item holds either a run of text or blocks and never a mix. Only the input itself gives way to the space, so an answer's label still asks its question in front of it.
+
+    A document with no expanded input is exported exactly as before. Wrapping it in a printout would change how the page reads — a printout carries its own heading, a print-preview bar, and its own page geometry — so the wrapping only happens where the space is needed. No PreTeXt printout may hold a section, so where the space has nowhere to go — the input's section holds sections of its own, or the input sits outside every section of a document that has them — the input still exports as a `<fillin>`.
+
+    In the printed output, that space is now drawn: PreTeXt leaves the height of a workspace to the javascript behind its own print preview, which a printed DoenetML document does not load, so the height is written into the page instead. PreTeXt's print-preview controls, which need that same javascript, are dropped from the page along with the other on-screen navigation.
+
+- 87edd1f: Remove two unreachable plural branches from the Khmer catalog and stop any
+  catalog from gaining another.
+
+    Khmer has a single plural category, so the `[one]` branches in its
+    `attempts-remaining` and `answer-show-responses` could never be selected. Both
+    were byte-identical to the default beside them, so nothing rendered
+    differently; what changes is that the dead text is gone.
+
+    `lint:i18n` now fails on any catalog that names a plural category its own
+    locale cannot select — whether because CLDR gives the locale no such category,
+    or because CLDR has no data for the tag at all and the branch would be chosen
+    by the runtime's default language.
+
+- 412efd0: An activity embedded in a page that does not speak SPLICE no longer tells readers their saved work could not be loaded.
+
+    Canvas listens for messages on every page it serves and answers any it does not recognize with `error: { code: "unsupported_subject" }`, quoting the id it was sent. So a Doenet activity embedded in a Canvas page got that back for its `SPLICE.getState` request, from a page that is not a host at all — and the viewer read it as a host reporting a failure. Readers were told their saved work was unavailable on an activity that has no saved work and nothing wrong with it; before the notice moved beside the document, the same reply replaced the activity entirely.
+
+    The viewer now recognizes that platform vocabulary — `unsupported_subject`, `unauthorized`, `wrong_origin`, `bad_request` — as a page saying it will not act on what was asked of it, which is the same to the viewer as no answer at all: it is logged and dropped, and the request stays open for a host that does speak SPLICE. Those four codes are reserved for that; a host's own load failures reach the reader under any other code.
+
+    An error the viewer cannot put on screen — one with no string `message` — is now logged and dropped too, rather than shown as "Invalid response to getState". That named the host's bug to a reader who could do nothing about it, over a document that was working. An error carrying text but no `code` is now shown rather than discarded.
+
+    Closes #1795.
+
+- b489f95: Stop the virtual keyboard tray from leaving an unhandled promise rejection behind when it is torn down.
+
+    The tray is a React root of its own, shared by every viewer on the page and unmounted when the last of them goes away. Its keys are `<MathJax>` elements, and a typeset can still be in flight at that moment: unmounting clears the elements' refs, so the typeset reaches MathJax with a null element and rejects with `Typesetting failed: Cannot read properties of null (reading 'contains')`. Nothing is rendered wrong by it — the tray is on its way out — but the rejection is unhandled, so it reaches `window.onunhandledrejection` and any error reporting a host has wired up there. It became easier to hit now that focusing a math input on a touch device opens the tray by itself.
+
+    `MathJaxContext` now takes a `signal`, and the tray aborts it as it tears the tray down. A `<MathJax>` element reaches the engine in stages — waiting on the context promise, then on `startup.promise`, and only then reading the element it is to typeset — so each stage is gated on the signal: once aborted, none of them proceeds and no typeset starts against a tree that is going away. The rest of the engine is passed through untouched, since it is the page's one shared MathJax and cancelling the tray's view of it must not disturb anyone else's.
+
+- a092ce4: A host that cannot produce a document's saved state no longer takes the document away.
+
+    The viewer does not wait for the host's answer to `SPLICE.getState` — it boots and restores if state arrives — and the request stays open until an answer carries usable state. So an error could land on a document that had been on screen and worked in for minutes, and it replaced that document with a red box nothing but a page reload cleared.
+
+    What the host says is now a notice beside the document, in the reader's language and carrying the host's own words. The document, and the work in it, stay where they are, and the host is not told the document failed. A reader who cannot see the notice is told about it politely, without being interrupted in what they were doing.
+
+    The failure pane also follows a rule instead of an arrival order. It is reserved for failures that leave no document at all — a core that never started, saved state that could not be read — so a document that failed to start and a host that could not produce its saved work no longer overwrite each other: the pane says the core never started, and what the host said is shown beneath it. The **Try again** button stays with the failure it addresses, rather than following whichever message settled last.
+
+- 0912dfc: `<legend>` honors its `layer` attribute and can draw an opaque box behind itself.
+
+    A legend's swatches, and its box, are now drawn at the DoenetML `layer` the
+    legend asks for, offset the same way the rest of a graph's contents are.
+    `<legend layer="3">` therefore sits above a `layer="2"` rectangle, where before
+    it was painted underneath one. A legend now defaults to `layer="1"` rather than
+    `layer="0"`, so that it still sits above everything on the default layer, as its
+    marker swatches did before.
+
+    Its labels are a different matter, and the `layer` does less for them: they are
+    drawn as HTML overlaid on the board, so they paint above the graph's contents
+    whatever layer is asked for. Lowering a legend's layer sends its swatches behind
+    a curve but leaves its labels in front — the same asymmetry that made the
+    opaque-rectangle workaround look half-broken.
+
+    The new `boxed` attribute draws an opaque box behind the legend, so a curve
+    passing behind it is hidden rather than tangled up with the labels. The box
+    paints the graph's background color, or the `backgroundColor` of the legend's
+    `<styleDefinition>` when one is set, and is bordered so it reads as a panel in
+    both light and dark presentation.
+
+    Legend labels now follow the theme, and the legend's `<styleDefinition>`, rather
+    than being painted black whatever the theme was: they read white on a dark canvas
+    and take the style definition's `textColor` when one is set, so an author who
+    paints the box a color of their own can name the text color that reads against it.
+
+    A `<legend>` inside a `<graph>` also honors `hide` at last: it was drawn whether
+    or not it was hidden, which `boxed` would have made plain, since a hidden legend
+    would still have painted an opaque box over the graph.
+
+    Legend labels are also kept on one line. A label too long for the room beside
+    its swatch used to wrap, which made it taller than the single row the legend
+    gives each entry — overlapping the entry below it and overflowing the box drawn
+    around them. It now runs past the graph's edge instead.
+
+    Closes #1717.
+
+- 2d73ffa: A legend's swatches now follow the document's theme.
+
+    Every swatch was painted with the light-mode color of the object it stands for,
+    whatever the theme, so in dark mode a legend could disagree with the objects it
+    describes: a curve drawn in its dark-mode color beside a swatch drawn in its
+    light-mode one. A swatch is now painted with the color the current theme calls
+    for, and is repainted when the theme is switched, alongside the box and the
+    labels, which already were.
+
+- 5196324: A legend is now redrawn in place instead of being rebuilt from scratch.
+
+    Every change to a `<graph>`'s legend — a label whose text depends on something
+    the student changes, a style, the graph being panned or zoomed, the position or
+    the box — used to delete every swatch and label and create them again. With
+    MathJax labels that meant a fresh typesetting pass each time, and the legend
+    visibly flashed and shifted.
+
+    The legend now keeps its objects and updates them: a label whose text changed is
+    given the new text, a swatch takes the new colors, and everything moves to the
+    new geometry. What still has to be built or thrown away is only what cannot be
+    carried over — an entry the legend gains or loses, an entry that changes what
+    kind of swatch it draws, a label that gains or loses latex or moves to a new
+    layer, the backing box as `boxed` is switched on or off, and everything at once
+    when the legend is hidden. Switching the box on no longer takes the swatches and
+    labels with it, which is the difference.
+
+    Closes #402.
+
+- ea79074: Math can now be written with MathJax's `units` extension.
+
+    `\units` typesets a quantity beside its unit with the spacing a typesetter
+    would use, instead of leaving authors to approximate it with `\,` and
+    `\mathrm`. The same extension supplies `\unitfrac` and `\nicefrac`.
+
+    ```
+    <m>\units{9.8}{\text{m}/\text{s}^2}</m>
+    ```
+
+    Documents embedded in a page that provides its own MathJax now render the same
+    way they do on doenet.org. Doenet reuses such an engine rather than clobbering
+    it, which meant none of Doenet's configuration applied there — `\units` and
+    macros such as `\var` typeset as their own names. Doenet now teaches that engine
+    its macros and packages before rendering.
+
+- 6144b32: The `text` property of an `<md>` reads an aligned display whose rows use a
+  literal `&`.
+
+    `<md><mrow>q &amp;= \sin(x)</mrow></md>` and the same display written with
+    Doenet's `\amp` macro render identically, but only the macro spelling was
+    stripped before each row was parsed. A row aligned with `&` could not be read,
+    and `text` silently handed back the raw LaTeX — `\notag` and `\\` included —
+    instead of the plain-text expression.
+
+    Both spellings are stripped now, by one helper shared with the accessible name
+    of a math input embedded in an `<mrow>`. That name reads a marker opening a row
+    correctly too, rather than consuming the `\\` row break before it.
+
+- 2bf1527: Three message catalogs are now identified by the code of the language they are
+  actually written in rather than by the macrolanguage code above it: Northern
+  Kurdish is `kmr` (was `ku`), Komi-Zyrian is `kpv` (was `kv`) and Meadow Mari is
+  `mhr` (was `chm`). Each of the three shares its macrolanguage with a language
+  that has a separate catalog here — Central Kurdish, Komi-Permyak and Hill Mari
+  — so the old names claimed to cover readers they could not serve.
+
+    A host that supplies its own catalog for one of these languages through
+    `localeResources` keeps being served its own copy, whether it keys it on the
+    old code or the new one. Locale negotiation now treats an alias as an extra
+    fallback rather than a replacement, so a host catalog keyed on the old code is
+    still preferred over the bundled one — which also fixes the same latent problem
+    for `no`, `tw` and `man`.
+
+    Documents keep working unchanged. `<document lang="ku">`, `lang="kv"` and
+    `lang="chm"` still reach these catalogs, as do the new codes, and a browser
+    sending either form is served the same way it was before. `<document lang>`
+    autocomplete now offers the new codes, still under the English names CLDR gives
+    the macrolanguage — "Kurdish", "Komi", "Mari" — because ICU canonicalizes each
+    new code back onto it.
+
+    One deployment does need a change: a host that serves its own copy of the
+    catalog directory alongside the bundle and has hand-placed a translation in
+    `ku/`, `kv/` or `chm/` must move it to `kmr/`, `kpv/` or `mhr/`. The viewer now
+    fetches the new directory names, and a locale whose files 404 falls back to
+    English rather than failing the render. A copy the build takes from the package
+    picks up the new names on its own.
+
+- 7a33de5: Seed unreviewed message catalogs for fifteen more languages of the Americas:
+  Kalaallisut (`kl`), Inuktitut (`iu`), Yucatec Maya (`yua`), Qʼeqchiʼ (`kek`),
+  Garifuna (`cab`), Mískito (`miq`), Papiamentu (`pap`), Sranan Tongo (`srn`),
+  Jamaican Creole (`jam`), Guadeloupean Creole French (`gcf`), Saint Lucian
+  Creole French (`acf`), Guianese Creole French (`gcr`), Belize Kriol (`bzj`),
+  Aukan (`djk`) and Saramaccan (`srm`). A document declaring one of them now
+  renders its style descriptions, section headings, boolean words, answer
+  buttons, editor chrome and diagnostics in that language instead of falling
+  back to English.
+
+    Inuktitut is written in Canadian Aboriginal syllabics and has a dual, so a
+    count in it selects one of three forms rather than one of two. It also leaves
+    the geometry nouns to fall back to English rather than writing them in roman letters inside a syllabic sentence, so a
+    style description in Inuktitut is part English by design.
+
+    An Inuinnaqtun (`ikt`) reader is served English rather than the Inuktitut
+    catalog, because Inuinnaqtun is written in roman letters and that catalog is
+    written in syllabics. Nine of the fifteen are creoles and none of them is
+    reachable through its lexifier: `gcf` does not answer a request for French,
+    and French does not answer a request for `gcf`.
+
+    All fifteen leave the two chemistry tables to fall back to English, since
+    school science across these communities is taught in Dutch, Danish, Spanish,
+    French or English.
+
+- 1beb269: Seed unreviewed message catalogs for fifteen more languages of the Caucasus and
+  the Kurdish-speaking world: Abkhaz (`ab`), Adyghe (`ady`), Kabardian (`kbd`),
+  Avar (`av`), Lezgian (`lez`), Dargwa (`dar`), Lak (`lbe`), Tabasaran (`tab`),
+  Ingush (`inh`), Karachay-Balkar (`krc`), Kumyk (`kum`), Nogai (`nog`), Talysh
+  (`tly`), Kurmanji Kurdish (`ku`) and Central Kurdish (`ckb`). A document
+  declaring one of these languages now renders its style descriptions, section
+  headings, boolean words, answer buttons, editor chrome and diagnostics in it
+  instead of falling back to English. The chemistry element tables are
+  deliberately left out of all fifteen and still fall back to English.
+
+    Central Kurdish is written in the Perso-Arabic script and renders right to
+    left, the eleventh such catalog. Kurmanji beside it is Latin and renders left
+    to right, and a reader arriving under a Southern Kurdish code (`sdh`) or the
+    ISO 639-3 code for Kurmanji (`kmr`) now reaches it rather than English; a
+    Sorani reader keeps reaching the Sorani catalog rather than being folded onto
+    Kurmanji.
+
+    Two of the fifteen are locales CLDR has no name for, so Lak and Tabasaran now
+    supply their own names to `<document lang>`'s autocomplete instead of appearing
+    as bare codes.
+
+    Every string is machine-generated and has not been read by a speaker; each
+    catalog says so in its header. Three carry an additional confidence caveat
+    worth naming: `locales/tly` (Talysh) is the least certain of the fifteen,
+    `locales/dar` (Dargwa) records that seven of its colour words are still
+    Russian, and `locales/nog` (Nogai) records that its editor vocabulary is
+    largely coined. Correcting any of this needs no permission.
+
+- 3ee5557: Seed unreviewed message catalogs for two Bantu languages of Uganda: Chiga
+  (`cgg`, Rukiga) and Soga (`xog`, Olusoga). A document declaring either now
+  renders its style descriptions, section headings, boolean words, answer
+  buttons, editor chrome and diagnostics in that language instead of falling
+  back to English, and `<document lang>` autocompletes both from CLDR's own
+  names.
+
+    Both sit at 439/575 keys rather than the 445 recent batches reach. The two
+    chemistry element tables are left out for the school-system reason — Uganda
+    teaches science in English from upper primary, so the fallback is the language
+    the periodic table is actually taught in — and six further keys are left out
+    deliberately: the three remaining chemistry prose messages, so the chemistry
+    group falls back entire rather than appearing half in Rukiga and half in
+    English inside one sentence; `noun.slope-field` and `noun.vector-field`, where
+    neither language has a term and a phrase would have been the seed's invention
+    rather than a word; and `noun.rectangle`, where the descriptive phrase either
+    language would use means _four-sided figure_ and so names a quadrilateral, not
+    a rectangle.
+
+    Both are written in Latin script, left to right, with the initial vowel — the
+    augment — written as part of the word, so a line is «omurongo» and
+    «olunyiriri» rather than «murongo» and «lunyiriri». Both put a describing word
+    after its noun and agree it with the noun's class rather than with a gender,
+    so `$gender` carries a class token: five classes in Soga and five in Chiga.
+    Neither keeps English's order of the three style adjectives, because both
+    render the dash pattern as an associative phrase — «na tucweka», «n'obutundu»
+    — which cannot sit between two adjectives, so both read width, colour, then
+    pattern.
+
+    CLDR has plural rules for both, and the class prefix does the marking rather
+    than a suffix, so «ekirikuruga» and «ebirikuruga» differ at the front of the
+    word rather than the end. Not every noun does: a class 9/10 noun is spelt the
+    same in both numbers and the number shows on what agrees with it instead, and
+    where the counted noun is one that does not inflect at all — a Lusoga class-15
+    verbal noun — the two branches are the same string. Each header says which of
+    the three its counted selects are doing rather than coining a countable noun
+    to hide it.
+
+    This batch was assembled as **fifteen** languages of Kenya, Uganda and
+    Tanzania and thirteen were left out rather than shipped: Kamba, Gusii,
+    Kalenjin, Luyia, Masai, Meru, Samburu, Taita, Embu, Teso, Shambala, Vunjo and
+    Machame. Attempted honestly they came to between 0 and 91 keys of 575 — against
+    the 439 the two that ship reach — and they are recorded on #1655 with the
+    coverage each reached and the orthography each attempt settled. `lint:i18n`
+    does not report them at all, because no catalog for them exists to be partial;
+    a document declaring one of the thirteen renders in English exactly as it did
+    before.
+
+    These two are machine-generated seeds pending review by speakers (#1521), and
+    each file's header says so and names where it is weakest. Both name the loan
+    language they keep openly — English, not Swahili — and both name a near
+    relative already on this roster as the first thing a reviewer should hunt for:
+    Luganda intrusion in Soga, which is catchable because Lusoga writes `dh` where
+    Luganda writes `z` or `j`, and Ankole rather than Kigezi vocabulary in Chiga,
+    which is not catchable by a rule and so is stated as a question instead.
+
+    Numbers written into a message render in Latin digits in both, so a digit
+    inside a sentence matches the count formatted beside it.
+
+- 7272b46: Seed unreviewed message catalogs for fifteen more regional and minority
+  languages of Europe: Aragonese (`an`), Extremaduran (`ext`), Ladino (`lad`),
+  Mirandese (`mwl`), Walloon (`wa`), Arpitan (`frp`), Norman (`nrf`), Lombard
+  (`lmo`), Emilian (`egl`), Ladin (`lld`), Cornish (`kw`), Manx (`gv`), Bavarian
+  (`bar`), Northern Frisian (`frr`) and Romani (`rom`). A document declaring one
+  of them now renders its style descriptions, section headings, boolean words,
+  answer buttons, editor chrome and diagnostics in that language instead of
+  falling back to English.
+
+    All fifteen are written in the Latin script and lay out left to right — which
+    took a fix rather than nothing. CLDR maximizes `lad` to the Hebrew script
+    Judeo-Spanish was written in for four centuries, so a Ladino document would
+    have laid a Latin catalog out right to left; `directionOf` now follows the
+    script a catalog is actually written in for a bare tag, while a tag that names
+    its script, such as `lad-Hebr`, still gets that script's direction.
+
+    Twelve of the fifteen put a shape's adjectives behind its noun, so an Aragonese
+    document reads «linia gorda discontinua roya» where a Bavarian one reads «dicke
+    gstrichlte rode Linie». Fourteen agree those adjectives with the noun's gender:
+    twelve by an ending, and Cornish and Manx by an initial mutation instead —
+    «tew» before a masculine noun and «dew» before a feminine one. Northern Frisian
+    writes one invariant form, which is Mooring's grammar rather than a gap in the
+    seed.
+
+    Five of the fifteen have plural rules of their own in CLDR, ending a run of two
+    batches with none. Cornish reaches all six plural categories from ordinary
+    counts — the third language on the roster whose rules do, after Welsh and
+    Arabic — and its catalog writes four of them by name; Walloon's singular covers
+    zero as well as one; Manx and Ladin each declare a `many` no realistic count in
+    these messages reaches — Manx's belongs to counts written with a decimal
+    fraction, which none here are, and Ladin's only to exact whole millions — and
+    neither catalog writes a branch for it.
+
+    The other ten have no rules at all, so a category branch in one of them would be
+    chosen by whatever language the runtime fell back to. Two consequences show in
+    the messages themselves. `field-function-wrong-num-outputs` forks on how many
+    outputs a component needs rather than on a count's grammar, so all ten write the
+    exact-value branch `[1]` where English writes the category `[one]` — the same
+    mechanism `attempts-remaining`'s `[0]` uses — while the five with rules of their
+    own keep the category. And where a `[one]` would have read the same words as its
+    default, it is dropped rather than written twice, which is why Lombard and
+    Emilian have fewer count forks than the English they were seeded from.
+
+    The chemistry element tables are left out of all fifteen, so a document in one
+    of these languages still shows the element names in English. Thirteen are the
+    school-system case — chemistry is taught in Spanish, Portuguese, French,
+    Italian, German or English wherever these languages are spoken, and each
+    catalog's header names which. Ladino and Romani are the two whose speakers are
+    spread across several school systems, so there is no single language to point
+    at.
+
+    `<document lang>` autocompletes all fifteen. Norman and Ladin are offered from
+    hand-written entries, since CLDR gives neither tag an English name or an
+    endonym — though it does have plural rules for Ladin, and names for it in a
+    scattering of other languages, Italian and Czech among them.
+
+    These are machine-generated seeds pending review by speakers (#1521), and each
+    file's header says so and names where it is weakest. Ten of the fifteen are
+    Romance languages sitting beside a national Romance language whose words are
+    one respelling away, so every header names the written standard it follows —
+    the Academia de l'Aragonés proposal, OSCEC, Aki Yerushalayim, the Convenção
+    Ortográfica, _rifondou walon_, ORB, Jèrriais, classical Milanese, Bolognese,
+    Ladin Dolomitan, the Cornish Standard Written Form, traditional Manx
+    orthography, Central Bavarian, Mooring and the Romani Union alphabet — and says
+    what it borrowed and from where.
+
+    Numbers written into a message render in Latin digits in every one of the
+    fifteen, so a digit inside a sentence matches the count formatted beside it.
+
+- 19b00e5: Seed unreviewed message catalogs for fifteen more regional languages of
+  Europe, five Germanic, five Romance and five Slavic: Norwegian Nynorsk (`nn`),
+  Scots (`sco`), Swiss German (`gsw`), Colognian (`ksh`) and Limburgish (`li`);
+  Friulian (`fur`), Venetian (`vec`), Ligurian (`lij`), Piedmontese (`pms`) and
+  Neapolitan (`nap`); Upper Sorbian (`hsb`), Lower Sorbian (`dsb`), Kashubian
+  (`csb`), Silesian (`szl`) and Rusyn (`rue`). A document declaring one of them
+  now renders its style descriptions, section headings, boolean words, answer
+  buttons, editor chrome and diagnostics in that language instead of falling
+  back to English.
+
+    Norwegian Nynorsk is complete, the periodic table included. The other fourteen
+    leave the chemistry element tables out and still fall back to English for
+    them; each catalog's header says why in its own words.
+
+    `<document lang>` autocompletes all fifteen, and CLDR has a name for every one
+    of them, so no hand-written roster entry was needed.
+
+    No existing reader is sent anywhere new. `no` still resolves to Bokmål: a
+    reader who says only `no` has not said which written standard they read, and
+    pointing it at the new Nynorsk catalog would be a substitution rather than a
+    canonicalization.
+
+    Eight of the fifteen have CLDR plural data and use it; the other seven write
+    no category branch at all, because nothing could select one correctly. Upper
+    and Lower Sorbian write a living grammatical dual, and Colognian a `zero`, both
+    selected by their own CLDR rules.
+
+- 68d412e: Seed unreviewed message catalogs for eleven more languages of Oceania:
+  Marshallese (`mh`), Chuukese (`chk`), Pohnpeian (`pon`), Kosraean (`kos`),
+  Gilbertese (`gil`), Niuean (`niu`), Tokelauan (`tkl`), Tuvaluan (`tvl`),
+  Rarotongan (`rar`), Wallisian (`wls`) and Bislama (`bi`). A document declaring
+  one of them now renders its style descriptions, section headings, boolean
+  words, answer buttons, editor chrome and diagnostics in that language instead
+  of falling back to English. The chemistry element tables are deliberately left
+  out of all eleven and still fall back to English.
+
+    These are the first catalogs to carry the messages that name a blank inside
+    typeset math and the warning about an input that cannot be drawn there.
+
+    `<document lang>` autocompletes all eleven. Wallisian is offered as "Wallisian
+    (Fakaʻuvea)" from a hand-written entry, since CLDR has no name for the tag in
+    any language.
+
+    No existing reader is sent anywhere new: none of the eleven was previously
+    folded onto another catalog.
+
+    The catalogs are not equally complete, and each says in its own header where it
+    stands. Nine write their own vocabulary throughout, and two write the catalog's
+    frame in the language around English technical nouns. Nothing was invented to
+    fill a gap.
+
+- 3c4f5b8: Seed unreviewed message catalogs for fifteen more languages of the Silk Road:
+  Crimean Tatar (`crh`), Gagauz (`gag`), Karakalpak (`kaa`), Khakas (`kjh`),
+  Southern Altai (`alt`), Mazanderani (`mzn`), Gilaki (`glk`), Northern Luri
+  (`lrc`), Balochi (`bal`), Hazaragi (`haz`), Muslim Tat (`ttt`), Zazaki
+  (`zza`), Shughni (`sgh`), Dungan (`dng`) and Wakhi (`wbl`). A document
+  declaring one of them now renders its style descriptions, section headings,
+  boolean words, answer buttons, editor chrome and diagnostics in that language
+  instead of falling back to English.
+
+    Five of them — `mzn`, `glk`, `lrc`, `bal` and `haz` — are written in the
+    Perso-Arabic script, so a document declaring one lays out right to left. The
+    mathematics inside it does not: notation stays left-to-right, as it already
+    does in Arabic and Hebrew.
+
+    The chemistry element tables are left out of twelve of the fifteen and still
+    fall back to English. The exceptions are `mzn`, `glk` and `lrc`, which carry
+    the Persian table unchanged, because chemistry in Māzandarān, Gilan and
+    Lorestan is taught, examined and printed in Persian and that list is the one
+    those readers actually use. `locales/glk` and `locales/lrc` translate every
+    key, as `locales/nn` does. `locales/ttt` additionally leaves ten of the longest
+    diagnostics messages in English and says so in its own header.
+
+    `<document lang>` autocompletes all fifteen. Khakas, Wakhi, Dungan, Shughni
+    and Hazaragi are offered from hand-written entries, since CLDR has no name for
+    those tags in any language.
+
+    Two macrolanguages gain members, so some readers who reached English before
+    now reach a catalog: a Northern Zazaki (`kiu`) reader reaches `locales/zza`,
+    and Western (`bgn`) and Eastern (`bgp`) Balochi readers reach `locales/bal`.
+    Both catalogs' headers say which variety they are written in, so a reader
+    served through one of those entries may meet spellings they have to adjust to.
+    No reader is moved off a catalog they already reached.
+
+    The catalogs are not equally complete, and each says in its own header where it
+    stands — `locales/ttt` marks itself the least certain, `locales/sgh` records
+    that its diagnostics are a Tajik and Russian loan register with a Shughni
+    frame, and `locales/kjh` records that Khakas has almost no written technical
+    register to draw on. Nothing was invented to fill a gap.
+
+- b3856ea: Seed unreviewed message catalogs for fifteen more languages of South Asia and
+  its diaspora: Awadhi (`awa`), Chhattisgarhi (`hne`), Magahi (`mag`), Marwari
+  (`mwr`), Garhwali (`gbm`), Kumaoni (`kfy`), Newar (`new`), Sylheti (`syl`),
+  Tulu (`tcy`), Mizo (`lus`), Khasi (`kha`), Garo (`grt`), Saraiki (`skr`),
+  Brahui (`brh`) and Fiji Hindi (`hif`). A document declaring one of them now
+  renders its style descriptions, section headings, boolean words, answer
+  buttons, editor chrome and diagnostics in that language instead of falling
+  back to English.
+
+    Five scripts: Devanagari for the six Hindi-belt and Uttarakhand catalogs and
+    for Newar, the Bengali script for Sylheti, Kannada for Tulu, Latin for Mizo,
+    Khasi, Garo and Fiji Hindi, and Perso-Arabic for Saraiki and Brahui. **Saraiki
+    and Brahui lay out right to left**, which takes the roster's right-to-left
+    catalogs from sixteen to eighteen; the other thirteen lay out left to right.
+
+    Thirteen of the fifteen put a shape's adjectives in front of its noun, as
+    English does. Khasi and Mizo put them behind it, so a Khasi document reads
+    «lain bakhraw badash basaw» where a Garo one — the same state, the other
+    order — reads «dal·gipa dashgipa gitchak lain». Saraiki is the one catalog of
+    the fifteen that agrees its adjectives with the noun's gender; the other
+    fourteen write one invariant form, which is a fact about the language in eight
+    of them and a stated gap in the seed in six.
+
+    The chemistry element tables are left out of all fifteen, so a document in one
+    of these languages still shows the element names in English. Thirteen are the
+    school-system case — chemistry is taught in Hindi, Nepali, Bengali, Urdu or
+    English wherever these languages are spoken — and Marwari has no settled list
+    of all 118 in any case. Tulu is the one whose neighbour cannot help either:
+    a Tulu pupil meets the table in Kannada, and `locales/kn` omits it too. Each
+    catalog's header says which case it is in.
+
+    `<document lang>` autocompletes all fifteen. Chhattisgarhi, Garhwali, Kumaoni,
+    Sylheti, Garo and Saraiki are offered from hand-written entries, since CLDR
+    has no name for those tags in any language.
+
+    These are machine-generated seeds pending review by speakers (#1521), and each
+    file's header says so and names where it is weakest. In the nine Indo-Aryan
+    catalogs, and in Newar beside them, the technical vocabulary is largely
+    borrowed — Hindi in the six Hindi-belt and Uttarakhand catalogs, Nepali in
+    Newar, Bengali in Sylheti, Urdu in Saraiki — and
+    what is the language's own is the grammar around it and, more often than not,
+    the colour words. Every header declares that rather than leaving it to be
+    discovered.
+
+    Numbers written into a message render in Latin digits in every one of the
+    fifteen, so a digit inside a sentence matches the count formatted beside it.
+
+- 14d2009: Seed unreviewed message catalogs for fifteen languages of maritime and
+  mainland Southeast Asia: Buginese (`bug`), Makasar (`mak`), Banjar (`bjn`),
+  Gorontalo (`gor`), Nias (`nia`), Toba Batak (`bbc`), Iban (`iba`),
+  Kadazandusun (`dtp`), Pangasinan (`pag`), Chavacano (`cbk`), Tausug (`tsg`),
+  Maranao (`mrw`), Shan (`shn`), Mon (`mnw`) and S'gaw Karen (`ksw`). A document
+  declaring one of them now renders its style descriptions, section headings,
+  boolean words, answer buttons, editor chrome and diagnostics in that language
+  instead of falling back to English.
+
+    Twelve are written in the Latin script and three — Shan, Mon and S'gaw Karen —
+    in the Myanmar script. All fifteen lay out left to right, so nothing about
+    direction changes.
+
+    The chemistry element tables are left out of all fifteen, so a document in one
+    of these languages still shows the element names in English. None of the
+    fifteen is a language chemistry is taught in: secondary science in these
+    regions runs in Indonesian, Malay, English or Burmese, so there is no settled
+    list of element names in Buginese or Mon to write down, and an invented one
+    would be worse than the English. Readers in the English-medium systems get
+    their own school vocabulary; the rest get a second language rather than a
+    first. Each catalog's header says which case it is in.
+
+    `<document lang>` autocompletes all fifteen. Chavacano, Tausug, Maranao, Mon
+    and S'gaw Karen are offered from hand-written entries, since CLDR has no name
+    for those tags in any language; Chavacano is listed as "Chavacano (cbk)"
+    because both «Chavacano» and «Chabacano» are in live use for it and the
+    catalog does not choose between them. Two of the fifteen are offered under the
+    name CLDR gives them rather than the one their catalog writes — "Batak Toba"
+    for `bbc` and "Central Dusun" for `dtp` — because the autocomplete fills gaps
+    in CLDR and never overrides it.
+
+    Malay gains its members, so many readers who reached English before now reach
+    a catalog: Brunei Malay (`kxd`), Kedah Malay (`meo`), Pattani Malay (`mfa`),
+    Central Malay (`pse`), Sabah Malay (`msi`), North Moluccan Malay (`max`)
+    and Manado Malay (`xmm`) and twenty-five other varieties now reach
+    `locales/ms`. The list has thirty-three entries; the thirty-third is Standard
+    Malay (`zsm`) itself, which already reached that catalog because ICU rewrites
+    the tag. `locales/ms` is Standard Malay, so a reader served through one of the
+    thirty-two may meet spellings they have to adjust to. A Pattani reader who writes in Jawi is served Rumi.
+    Indonesian, Minangkabau and Banjar readers are deliberately left out of that
+    list, because each has a catalog of its own. Coastal Kadazan (`kzj`) readers
+    reach the new `locales/dtp`. No reader is moved off a catalog they already
+    reached.
+
+    Numbers written into a message render in Latin digits in every language,
+    including the three written in the Myanmar script, so a digit inside a sentence
+    matches the count formatted beside it and the mathematics around it.
+
+- a6e6d3e: Seed unreviewed message catalogs for fifteen more Uralic languages of northern
+  Europe and Siberia: Southern Sami (`sma`), Lule Sami (`smj`), Inari Sami
+  (`smn`), Skolt Sami (`sms`), Kildin Sami (`sjd`), Veps (`vep`), Livvi-Karelian
+  (`olo`), Karelian (`krl`), Võro (`vro`), Meänkieli (`fit`), Moksha (`mdf`),
+  Komi-Permyak (`koi`), Hill Mari (`mrj`), Khanty (`kca`) and Mansi (`mns`). A
+  document declaring one of these languages now renders its style descriptions,
+  section headings, boolean words, answer buttons, editor chrome and diagnostics
+  in it instead of falling back to English. The chemistry element tables are
+  deliberately left out of all fifteen and still fall back to English.
+
+    Two of the new catalogs change where an existing reader is sent. A
+    Komi-Permyak (`koi`) reader was previously served the Komi-Zyrian catalog and a
+    Hill Mari (`mrj`) reader the Meadow Mari one, because each is a member of a
+    macrolanguage the roster had a catalog for; both now reach their own catalog
+    instead. Readers arriving under the other members of those macrolanguages
+    (`kpv`, `mhr`) are unaffected, and a Moksha (`mdf`) reader who previously
+    reached English now reaches Moksha.
+
+    Two contrast warnings now reach the reader in the language they were written
+    for. `style-definition-insufficient-contrast` selects a branch by a symbolic
+    key the core passes in, and Meänkieli's catalog had translated two of those
+    keys along with the prose around them, so a text-on-background and a
+    text-on-canvas warning both fell through to the wrong branch; both select
+    correctly again. A Efik reader gets the same repair in
+    `variant-attribute-wrong-type-for-sequence`, whose catalog had dropped the
+    "a number" branch entirely and answered "an integer" for both — that one
+    predates this batch and is fixed here because the check that found it is new.
+
+    Four of the fifteen are locales CLDR has no name for, so Kildin Sami,
+    Livvi-Karelian, Khanty and Mansi now supply their own names to
+    `<document lang>`'s autocomplete instead of appearing as bare codes.
+
+    Every string is machine-generated and has not been read by a speaker; each
+    catalog says so in its header. Five carry an additional confidence caveat worth
+    naming: `locales/kca` (Khanty) and `locales/mns` (Mansi) record that much of
+    their editor and diagnostics vocabulary is coined rather than attested, and
+    that a further set of words — "error", "line", "page", "figure" and the
+    school-genre section names — is still unadapted Russian because the seed could
+    establish no Khanty or Mansi form,
+    `locales/sjd` (Kildin Sami) is the least certain of the five Sami catalogs,
+    `locales/vro` (Võro) records that two of its messages read with the wrong case
+    and that its word for a right-hand side is probably the word for "good", and
+    `locales/mdf` (Moksha) names the six Erzya residues it still carries — the
+    ablative ending, the abessive ending, the word for "equal", everything derived
+    from the word for "many", the demonstrative and the word for a part — where the
+    seed could not establish the Moksha form. Nine other catalogs now record, in
+    the same way, a word of their own that carries two concepts at once and that
+    the seed could not split.
+    Correcting any of this needs no permission.
+
+- ae70028: Keep the worker when a document's boot is restarted mid-handshake.
+
+    A boot restarted while the first one was still shaking hands with its core worker used to run a second initialization on the same worker, interleaved with the first. Three ordinary things restart a boot that way: a host answering `SPLICE.getState` at once, as doenet.org's assignment page does; a source edit, attempt change, locale switch or retry landing mid-boot; and `render` turning true on a viewer still priming its worker. The second initialization then initialized from a document DAST the first had already released, its handshake failed with a misleading `Cannot create normalized dast root before source is set`, and the boot ladder discarded the worker as wedged and booted a replacement — so the document rendered a worker and a WASM compile late, and on a page sharing one worker among documents the discard quarantined that worker for its siblings too.
+
+    Initializations are now serialized per worker: a boot that finds one in flight waits for it to settle, then runs whole on the worker it found — no failed handshake, no discarded worker, no replacement to boot. The second initialization still runs (skipping it when nothing has changed is #1800); what is gone is the failure and the second worker. They queue in the order they were asked for, so the worker ends up holding the document on screen even when an older initialization's external references were slow to fetch. A restarted boot's handshake watchdog counts from its turn on the worker, so the wait behind the initialization ahead of it does not come out of the time its own handshake was given; and an initialization the viewer has already moved on from steps aside instead of running — at its turn, or as soon as another is queued behind it — so that wait is for the one initialization already on the worker and no more. The worker itself now refuses to initialize twice from one source and says why, and a refused initialization no longer leaves the worker's call queue held.
+
+    Closes #1533.
+
+- 0b5a848: Editor: keep suggesting a hyphenated snippet name across its hyphens.
+
+    Nine of the ten completion snippets have hyphenated names, and the menu emptied on the hyphen: typing `<answer` offered `answer-labeled`, and typing the `-` that comes next offered nothing at all. The same happened to `<multiple-`, `<table-`, `<video-` and `<if-`. The suggestions now survive the hyphen, so a snippet can be reached by typing its name straight through.
+
+    More generally, a tag name is now recognized as one whatever character it ends on — `.`, `:` and accented letters behaved like `-` — so the context-help panel no longer describes the enclosing element while a name is being typed.
+
+    Closes #1780.
+
+## 0.7.25
+
+### Patch Changes
+
+- 2086cb3: Offer the values of `renderMode`, `marker`, and `grid` in autocomplete and context help, and check them when a document runs. `<odeSystem renderMode>` is deprecated in the process.
+
+    Each of these attributes accepted a fixed set of words that lived only in the
+    renderer's `if`/`else` chain, so the schema surfaced them as free text and an
+    author had no way to discover or check what to write.
+
+    - `<math renderMode>` now declares `inline` and `display` and matches them
+      case-insensitively; an unrecognized value falls back to `inline` with a
+      diagnostic instead of silently rendering inline. The renderer's other two
+      modes are deliberately not offered on `<math>`: `numbered` needs an equation
+      tag that only `<me>`, `<men>`, and `<odeSystem>` supply, and `align` needs `&`
+      markers that a `<math>` expression cannot carry — use `<md>` for that.
+    - `<odeSystem renderMode>` is deprecated and removed. `align` was always its
+      only workable value — the rendered LaTeX carries `&` markers and its own
+      `\tag`, which no other mode's delimiters can hold — so the mode is now fixed
+      by the component. The attribute is dropped during DAST normalization with a
+      deprecation warning, so existing documents keep working and render as before
+      rather than failing on an unknown attribute. (Since the mode is no longer an
+      attribute, `$theOdeSystem.renderMode` is no longer available as a public
+      reference.)
+    - `marker` is split per tag, since the two sets do not cross. `<ul>` declares
+      `disc`, `circle`, and `square` and enforces them: they are the complete set,
+      so they now match case-insensitively and an unusable value is reported
+      instead of silently reverting to the level default. `<ol>` offers `1`, `a`,
+      `A`, `i`, and `I` as suggestions only, because the renderer matches on the
+      first character and decorated forms like `1.` or `a)` are legitimate.
+    - `<graph grid>` lists its values as suggestions too, since it also accepts
+      two numbers for the spacing, and now offers `1 1` and `2 2` alongside the
+      named spacings so the numeric form stays discoverable.
+
+    `<summaryStatistics statisticsToDisplay>` gains the same list, but only as
+    runtime validation: the component is experimental and excluded from the schema,
+    so the values do not reach autocomplete yet. An unrecognized statistic is now
+    dropped with an info diagnostic instead of being ignored in silence.
+
+- fbb802c: Free a boot slot when a document's core fails to start.
+
+    Hosts that cap how many documents boot at once released a slot only from `initializedCallback`, so a failed boot held one until the manager's own watchdog expired: 90 s for the `@doenet/standalone` coordinator and for windowed `@doenet/doenetml-iframe` viewers, 30 s for the docs site's editors. The queue that exists to keep a page from overloading was starved by the failures themselves.
+
+    `DoenetViewer` and `DoenetEditor` gain **`coreStartFailedCallback`**, the failure counterpart of `initializedCallback`. It fires once per core-start attempt and covers every way a start can end without a core: handshake retries exhausted, a rejected evaluation, or a document-state load that failed. A windowed `@doenet/doenetml-iframe` viewer releases its slot on the signal whether or not the host passed a callback of its own, and the docs site's editors release theirs the same way.
+
+    The standalone bundle posts `bootFailed` to a parent-page coordinator, which frees the slot and marks the activity `failed` — still budgeted and still parkable, but parking skips the state flush, since a failed realm has no core to answer one and whatever it last reported is already warehoused. A later attempt in that realm that does start a core clears the mark, so an activity that recovers flushes its state like any other. A failure that lands while the activity is already parking is not lost either: the flush in flight will never be answered, so the coordinator stops waiting for it — detaching at once off-screen, and keeping the `failed` mark if the reader scrolled back mid-flush.
+
+    The coordinator script also accepts `data-boot-watchdog-ms`, the one option that had no data attribute.
+
+- ca59f06: Deliver a core boot's result only while it still owns the document.
+
+    Getting a document on screen is a chain of waits — hash the source, read any saved state from IndexedDB, hand shake with a fresh worker, evaluate — and a rebuild during any of them (a locale switch, an editor recompile, new source from the host) leaves the previous boot still running. Both boots drive the same core worker, so the older one's result is no longer its to deliver: whichever way its evaluation ends, it now stands aside rather than rendering a superseded document over the new one or putting the "could not be started" screen over a document that booted fine.
+
+    The rule covers what a boot delivers _while_ running, not only its final result: a superseded initialization no longer announces the old document's structure or resolved language, and a superseded core's mid-evaluation deliveries — renderer updates, diagnostics, score reports, clipboard writes, host events, solution-view requests, and the async renderer-chunk loads that commit the document's React tree — are dropped rather than written under the identity of the document that replaced it. Only a boot whose viewer has gone away disposes what it created; after a rebuild there is a successor that has already inherited it. The safety net that turns an unexpected throw during a boot into a visible error follows the same rule, and additionally stays quiet once the boot has already put its document on screen — the last thing a boot does is call `initializedCallback`, and a host handler that throws there must not replace the document it was told about. The state load that _precedes_ a boot obeys the same rule: a load that has been overtaken now stops, rather than seeding the successor's core with the state saved for the document it replaced or reporting its own failure as that document's.
+
+    At most one boot runs per document at a time. A viewer brought back after being prepared off-screen restarted its boot on every re-render until that boot finished, and the two then tore down each other's worker — on that path aborting the render outright and leaving the viewer dead.
+
+- fd13acc: Put a held-back cascade step's message on the same row as its number.
+
+    A `<problem>`/`<task>`/`<part>` that a `<cascade>` is holding back shows one thing — the `<cascadeMessage>` telling the reader what to finish first — and its number was drawn a line above that message rather than beside it. A list item lines its number up with the first child that renders something, and a held-back step was treated as rendering nothing at all, so the message led nothing: the item dropped out of the numbering layout it uses for every other item and the message kept the top margin that pushed it onto a second row.
+
+    This also qualifies the previous release's "a `<cascadeMessage>` no longer takes the lead", which was true only of a hidden one: while the step is held back the message is the one thing on screen, and it does take the lead there.
+
+    The message is now the child such a step lines its number up with, which is what it always was on the screen. Nothing changes once the step is revealed: the message is hidden then, and the content behind it leads as before. Nothing changes for a step with a title or a box of its own either — those draw their number in a heading, with the message below it, exactly as they did.
+
+- 5cee7e9: Make a `<codeEditor>` inside a dark-mode document use the dark editor theme.
+
+    The `<codeEditor>` renderer mounts the same `EditorViewer` the authoring editor
+    does, but never told it which theme to use, so it fell back to the light-mode
+    default. Inside a dark-mode document that left light syntax colors — chosen for
+    contrast on a white canvas — painted on the dark canvas, and plain text content
+    in particular came out nearly invisible. The renderer now reads the document's
+    resolved theme from context and passes it down, so the embedded editor's
+    canvas, gutters, and syntax highlighting follow the surrounding document.
+
+- 3b70595: Size the core-worker watchdog to the contention it actually faces.
+
+    An Active Calculus reader on a 2020 dual-core MacBook Air saw every Doenet activity in a Runestone section fail with "The document viewer could not be started". The handshake budget was a fixed 15 s, measured on developer hardware where the handshake "stays bounded under CPU pressure". On that machine it is not bounded: a page starting many documents at once pushes a perfectly healthy handshake past 15 s, and the watchdog then makes the document unloadable on exactly the contended machines the guard exists for.
+
+    The budget now scales with handshakes-per-core, read page-wide from a shared Web Lock that every realm mid-handshake holds, and is capped so a genuine hang is still recovered from. The census gates nothing and is independent of any boot scheduling, so it works on pages whose host schedules boots itself — which is where cores can share a worker thread and contention matters most. `doenetGlobalConfig.coreHandshakeWatchdogMs` still overrides the budget outright, for a deployment whose handshake is slow for reasons contention cannot explain (one using `fetchExternalDoenetML`, say).
+
+    Retries back off exponentially with jitter instead of re-piling a fresh multi-MB worker 250 ms after one just failed, which was positive feedback exactly when the machine could least afford it.
+
+    A timeout on a demonstrably contended page no longer reports the worker as wedged. In shared-core mode that suspicion quarantines the host worker: the suspected core is killed and retried, no new cores join the host, and the retried and new cores land on a replacement worker whose multi-MB bundle must spawn and compile under the very contention that produced the false alarm.
+
+    A failure attributable to contention now says so — that several documents were starting at once, and may take longer on a slower device — instead of presenting an unexplained error. The general failure message is reworded to match: "This document could not be started", where it said "The document viewer could not be started".
+
+- ced96e0: Let the contention-aware watchdog reach a document's first boot attempt.
+
+    The page-wide handshake count is cached and refreshed in the background, so every reading is answered by the refresh before it — and a realm's first handshake has none. Its first attempt therefore sized itself as though it were the only boot on the page, and the contention-scaled budget only took effect from the first retry. That inverts the intent: the widening exists for a page where many activities boot at once, and a fresh iframe on such a page is exactly the attempt it never reached.
+
+    The census seat a boot already takes now reports the count it was granted against, counted from inside the grant — the boot path gains no suspension point, and the count rides on a lock operation that was happening anyway. Taking a seat is as quick as it ever was; the figure follows a moment later and moves a deadline that is already running, so nothing waits for it. A later reading only ever grants more time, never less, and an explicit `doenetGlobalConfig.coreHandshakeWatchdogMs` still wins outright. A timeout on that first attempt is now attributed to the page it actually ran on, so it comes back with the busy-page wording rather than an unexplained error.
+
+- 5231472: Viewer: size the virtual keyboard's controls for a fingertip on touch devices.
+
+    Every control in the keyboard tray was built for a mouse pointer. On a phone or
+    tablet the tab that opens the tray was 48x24, the button that closes it 24x24,
+    the layout tabs (`123`, `f(x)`, `ABC`, `αβγ`, `$%∞`) 30x25, and the keys
+    themselves 39x40 — all under the 44px minimum a fingertip needs, which is the
+    figure in both Apple's HIG and WCAG 2.5.5. The tab that opens the tray was the
+    worst of them, since it is the only way in and had to be found before anything
+    else could be tapped.
+
+    On a device whose primary pointing device is coarse, those controls are now at
+    least 44px in the direction that was short: the open tab is 64x44, the close
+    button 44x44, and the layout tabs and keys are 44px tall. Key width is left to
+    the row layout, which shares the row out evenly — a phone cannot fit twelve
+    44px-wide keys across, and forcing it would only cause an overflow. What the
+    extra room buys on a tablet is wider keys: the keyboard may now spread to 48rem
+    rather than 42rem, so a key grows to 48px there instead of staying at 40px in
+    the middle of an empty row.
+
+    The tray also stops short of the height that would carry its own tab off the
+    top of the screen — floor as well as ceiling, so a window shorter than the
+    tray's usual 280px no longer pushes the tab out of reach either. It hangs the
+    tab exactly its own height above the tray, so a taller tab needs a taller gap;
+    on a phone held sideways, where the tray is tall enough to reach that limit,
+    the tab was being clipped.
+
+    Where the tray has no room for the whole keyboard — the same phone held
+    sideways, or any short window — the keyboard now scrolls inside the tray
+    instead of running off the bottom of the screen, so the rows that were cut off,
+    the number pad among them, can be reached. Taller keys would have cut off more.
+    The tab and the close button stay where they are while it scrolls, and the tray
+    opens onto the top of the keyboard however far it was scrolled last time, so the
+    layout tabs are in view whenever it opens.
+
+    Nothing else changes for a reader with a mouse, including on a narrow window:
+    the sizing is keyed on the primary pointer being coarse, which is the same test
+    the viewer already uses to decide whether to suppress the device's own
+    on-screen keyboard. The scrolling is the exception, and deliberately so — a
+    window too short for the keyboard cut it off whatever was pointing at it.
+
+    Closes #449.
+
+- 35acd91: Fix matrix, vector, and tuple arithmetic losing an entry whose value works out to one.
+
+    Subtracting a matrix that has an entry of `-1`, as in `<math simplify>$A + $B - $C</math>`, gave a wrong answer or no answer at all. Distributing the minus sign over the entries turned that entry into the product `(-1)(-1)`, which simplified to an empty product rather than to `1`, so the entry dropped out of the sum. Where the rest of that entry's sum was negative, the entry silently came out one too small; where it was positive, evaluating the expression failed outright and the document reported an internal error. Subtracting tuples and vectors with an entry of `-1` behaved the same way.
+
+- 10fea3d: Show one `<cascadeMessage>` at a time in a `<cascade>`.
+
+    A `<cascadeMessage>` nested inside a section was shown by every held-back
+    section at once, so a cascade of three problems displayed "finish problem 1"
+    and "finish problem 2" simultaneously — one of them describing a step the
+    learner cannot see the point of yet. A message now shows only while its section
+    is the _next_ one, the one that becomes visible as soon as the current section
+    is completed; sections further down show only their number and title, as a
+    held-back section with no message of its own already did.
+
+    Where an author has put messages in both places, the two placements now
+    negotiate rather than both appear: a section's own message is the more specific
+    of the two, so when the next section has one, it is shown and the `<cascade>`'s
+    own `<cascadeMessage>` children stay hidden for as long as it is. A cascade's
+    own message continues to serve every gap that the next section does not cover
+    itself.
+
+    A `<cascade>` nested inside another waits its turn the same way: its own
+    `<cascadeMessage>` children used to be shown while it was still several steps
+    away, so a cascade of cascades spoke from every level at once. Each cascade now
+    shows at most one message, and only once it is the next step.
+
+- 2155e94: Fix plain-text labels being invisible in dark mode on prefigure-rendered graphs.
+
+    Point, line/vector, and angle labels without LaTeX, along with graph axis
+    titles, are rendered by PreFigure as native SVG `<text>` elements. Without an
+    explicit color, PreFigure leaves these unstyled, which defaults to opaque
+    black and disappears against a dark canvas. Math/LaTeX labels were unaffected
+    since they render through MathJax, which already uses the page's text color.
+    Plain-text labels now carry an explicit color that follows the page's
+    light/dark theme.
+
+- 5c94445: Shrink the eagerly-parsed standalone bundle by lazy-loading the editor stack
+  (#1437). The `EditorViewer` behind both `DoenetEditor` and the `<codeEditor>`
+  renderer now loads through a `React.lazy` boundary (an editor chunk that
+  still fails to load after the retries renders the same inline
+  renderer-failed-to-load message the viewer renderers use, keeping the rest of
+  the page mounted), `@doenet/standalone` is
+  code-split (`doenet-standalone.js` plus lazy `chunks/` resolved relative to
+  the bundle URL). The split bundle pins its chunk URLs to its own version at
+  runtime when served from a floating CDN tag (`@latest`, a version range, or no
+  version), so an already-cached entry keeps loading its own release's chunks
+  across releases instead of 404ing on the next release's hashes; under any
+  other URL (self-hosted, exact-version) chunks resolve relative to the bundle
+  URL as before. The `onload` contract of PreTeXt-style pages is preserved:
+  `window.renderDoenetViewerToContainer` / `renderDoenetEditorToContainer`
+  exist at `load` (queueing until the bundle finishes evaluating), and
+  `window.doenetGlobalConfig` values a host sets at `load` are honored —
+  `@doenet/doenetml` now adopts a host-created config object instead of
+  replacing it, and a host-chosen `doenetWorkerUrl` stays in force (the
+  bundle's own worker-URL resolution and version pinning defer to it).
+  A second copy of the bundle loaded on the same page now stays fully inert
+  instead of taking over the render globals: its worker-URL write and its
+  `window.renderDoenet*ToContainer` / palette globals both defer to the first
+  copy's, so every document pairs one release's UI with that same release's
+  worker. When two copies load concurrently, render calls a host queued against
+  one copy's `onload` stubs replay through the first copy that finishes
+  loading — never stranded, even if the copy that installed the stubs fails to
+  finish loading — and editor handles captured from a stub keep working after
+  that hand-off.
+  Duplicate copies of the component schema are eliminated
+  (five down to two, none of them eagerly loaded). Hosts that evaluate the bundle from a Blob or `srcdoc` URL, where
+  relative chunk imports cannot resolve, can use the new single-file
+  `doenet-standalone-inline.js` published beside it. The `CodeMirror` component
+  is now exported from `@doenet/doenetml/codemirror.js` instead of the main
+  `@doenet/doenetml` entry, so importing the viewer no longer parses the editor
+  stack.
+- 37c99b6: Serve the core WASM as its own file beside the worker script instead of inlining it into the worker bundle as a base64 data URL. The worker fetches it at run time (from beside its own script, or from a jsDelivr URL pinned to the built release as a last resort) and hands the response to streaming compilation, so the browser's URL-keyed machine-code cache shares one compilation across all workers, iframes, and repeat page views — and the worker bundle shrinks from ~15 MB to ~6.3 MB. Single-file consumers (the inline-worker entry, the VS Code extension) still work with no network access: they bake the WASM in as a `data:` URL the worker decodes without fetching.
+
+    Closes #1438.
+
 ## 0.7.24
 
 ### Patch Changes

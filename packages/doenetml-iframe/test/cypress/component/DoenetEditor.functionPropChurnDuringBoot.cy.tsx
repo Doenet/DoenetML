@@ -12,7 +12,7 @@ import {
 // identity change made the iframe re-invoke `renderDoenetEditorToContainer`;
 // when that churn overlapped the core worker's multi-second boot window the
 // worker never finished and the editor showed DoenetML's give-up screen
-// ("The document viewer could not be started. Please reload the page.").
+// ("This document could not be started. Please reload the page.").
 //
 // What this test asserts — and why it's shaped this way:
 //

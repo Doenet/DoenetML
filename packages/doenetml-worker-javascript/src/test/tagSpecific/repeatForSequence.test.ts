@@ -8,6 +8,7 @@ import {
     updateValue,
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -153,6 +154,72 @@ describe("RepeatForSequence tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq(pText);
+    });
+
+    it("index into a nested repeatForSequence from outside a block", async () => {
+        // The `extend` of a component sitting directly in the document is
+        // resolved before the inner repeat has expanded, so its resolution has
+        // to be redone once that repeat supplies index resolutions. The same
+        // references written as child content, or inside a `<p>`, are resolved
+        // after the expansion and were already correct.
+        //
+        // The `<p>` around the repeats is load-bearing, so don't "simplify" it
+        // away: with the repeats at the top level of the document, every form
+        // below resolves correctly even with the bug present. Any element around
+        // them will do — `<section>` reproduces it too.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><repeatForSequence from="1" to="3" valueName="i" name="a">
+      <repeatForSequence from="1" to="3" valueName="j" name="b">
+        <number name="c">$i + 3$j</number>
+      </repeatForSequence>
+    </repeatForSequence></p>
+
+    <number name="n1" extend="$a[2][1][3]" />
+    <number name="n2" extend="$a[2].b[3]" />
+    <number name="n3" extend="$a[2][1][3].c" />
+    <number name="n4" extend="$a[2].b[3].c" />
+    <number name="n5">$a[2][1][3]</number>
+    <number name="n6">$a[2].b[3]</number>
+    <number name="n7">$a[2][1][3].c</number>
+    <number name="n8">$a[2].b[3].c</number>
+    <p name="p1">$a[2][1][3]</p>
+    <p name="p2">$a[2].b[3]</p>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+
+        // Collected into one object so a failure names every form that broke,
+        // not just the first.
+        let values: Record<string, unknown> = {};
+        for (let i = 1; i <= 8; i++) {
+            let name = `n${i}`;
+            values[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.value;
+        }
+        for (let name of ["p1", "p2"]) {
+            values[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.text;
+        }
+
+        // Every form names the same number: $i + 3$j at i=2, j=3.
+        expect(values).toEqual({
+            n1: 11,
+            n2: 11,
+            n3: 11,
+            n4: 11,
+            n5: 11,
+            n6: 11,
+            n7: 11,
+            n8: 11,
+            p1: "11",
+            p2: "11",
+        });
     });
 
     it("three nested repeatForSequences with graphs and copied", async () => {
@@ -2569,4 +2636,190 @@ describe("RepeatForSequence tag tests @group3", async () => {
 
         await check_items(2, 2);
     });
+
+    it("reference to an iteration keeps the referent of a reference nested inside it", async () => {
+        // The copy of `<number>$i</number>` that `$r[3]` creates lands in the `<m>`,
+        // where the repeat's `i` is out of scope. The copy still refers to the third
+        // iteration's `i`, so it resolves where the component it shadows sits rather
+        // than reporting no referent for `$i`.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><repeatForSequence from="1" to="5" valueName="i" name="r">
+      <number>$i</number>
+    </repeatForSequence></p>
+
+    <p name="p2"><m>x_3 = $r[3]</m></p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("x₃ = 3");
+
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
+    });
+
+    it("reference to a reference to an iteration keeps the nested referent", async () => {
+        // Referencing the `<m>` copies the copy of `$i` again, so the reference that has
+        // to be resolved is two shadows away from the iteration whose `i` it means. The
+        // whole `shadows` chain has to be walked, not just its first link.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><repeatForSequence from="1" to="5" valueName="i" name="r">
+      <number>$i</number>
+    </repeatForSequence></p>
+
+    <p><m name="m1">x_3 = $r[3]</m></p>
+    <p name="p3">$m1</p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq("x₃ = 3");
+
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
+    });
+
+    it("reference to an iteration still warns when the nested reference resolves nowhere", async () => {
+        // The counterpart of the two cases above: falling back to the origins up the
+        // `shadows` chain must not swallow a reference that has no referent anywhere.
+        //
+        // With the `<mathInput>` left blank, `$n` is not an index the resolver can use,
+        // so `$g[$n]` has no referent — not from inside the iteration where it was
+        // written, and not from the copy `$r[3]` lifts into the `<div>`. Every candidate
+        // origin therefore throws, and the diagnostic that follows the candidate loop is
+        // still raised: once (identical warnings are deduplicated by source position),
+        // reported against `$g[$n]` as the author wrote it rather than against `$r[3]`.
+        //
+        // The reference has to fail on an *index* to reach that loop at all: a name the
+        // Rust resolver cannot find is reported when the document is flattened, long
+        // before this dependency re-resolves anything. An index the resolver simply
+        // leaves unresolved (`$g[1]` against an empty group, say) does not reach it
+        // either — the resolution succeeds and the missing replacement is reported
+        // further down, at a site this change does not touch.
+        let { core } = await createTestCore({
+            doenetML: `
+    <mathInput name="n" />
+    <group name="g"><number>7</number></group>
+
+    <repeatForSequence from="1" to="5" valueName="i" name="r">
+      <p><number>$i</number> <number extend="$g[$n]" /></p>
+    </repeatForSequence>
+
+    <div name="d">$r[3]</div>
+    `,
+        });
+
+        const { warnings } = getDiagnosticsByType(core);
+        expect(warnings.length).eq(1);
+        expect(warnings[0].code).eq("doenet-w0104");
+        expect(warnings[0].args).eqls({ reference: "$g[$n]" });
+    });
+
+    it("reference to an iteration keeps the nested referent when the index changes", async () => {
+        // The cases above resolve once, while the document is being built. Changing the
+        // index makes the reference copy a *different* iteration and re-resolve, so this
+        // covers the fallback on the update path rather than only the initial one.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="n" prefill="3" />
+
+    <p><repeatForSequence from="1" to="5" valueName="i" name="r">
+      <number>$i</number>
+    </repeatForSequence></p>
+
+    <p name="p2"><m>x = $r[$n]</m></p>
+    `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("x = 3");
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
+
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("x = 5");
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
+    });
+
+    it("reference into nested repeats keeps both nested referents", async () => {
+        // Lifting an iteration out of two nested repeats carries references to two
+        // different `valueName`s, each out of scope at the landing site, and each has to
+        // fall back independently.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <repeatForSequence from="1" to="3" valueName="i" name="outer">
+      <repeatForSequence from="1" to="3" valueName="j" name="inner">
+        <group><number>$i</number> <number>$j</number></group>
+      </repeatForSequence>
+    </repeatForSequence>
+
+    <p name="p2">$outer[2].inner[3]</p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("2 3");
+
+        expect(getDiagnosticsByType(core).warnings).eqls([]);
+    });
+
+    it("iterations referring to the previous iteration stay tractable", async () => {
+        // Each iteration wraps the previous one in a conditionalContent -> group ->
+        // copy chain, so iteration `n` sits under `n` nested composites and is
+        // reachable along many paths at once. Traversals that followed every path
+        // separately took time exponential in the number of iterations, which turned
+        // a recurrence like this cumulative sum into a hung document; twelve
+        // iterations took roughly an hour, and reverting either half of the fix on
+        // its own still leaves this test running for many minutes.
+        //
+        // The blowup happens inside synchronous recursion, so vitest cannot preempt
+        // it: a regression shows up as this test never finishing rather than as a
+        // clean timeout failure. The timeout below is a backstop for a regression
+        // that does yield, and a record of the intended scale — this runs in about
+        // four seconds today, so CI jitter comes nowhere near it.
+        const numIterations = 12;
+
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <numberList name="vals"><sequence from="1" to="${numIterations}" /></numberList>
+    <p name="p"><repeatForSequence from="1" to="${numIterations}" valueName="i" name="cumSums">
+      <number><conditionalContent>
+        <case condition="$i=1">$vals[1]</case>
+        <else>$cumSums[$i-1] + $vals[$i]</else>
+      </conditionalContent></number>
+    </repeatForSequence></p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        // cumulative sums of 1..12
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("1, 3, 6, 10, 15, 21, 28, 36, 45, 55, 66, 78");
+
+        // Not asserting on warnings here: this document also draws spurious
+        // "No referent found" warnings for the references inside the repeat's
+        // template, which is a separate, pre-existing issue tracked as
+        // https://github.com/Doenet/DoenetML/issues/1822. Add a warning
+        // assertion here once that is fixed.
+    }, 60000);
 });

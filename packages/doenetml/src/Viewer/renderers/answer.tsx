@@ -7,6 +7,7 @@ import { AnswerResponseButton } from "./utils/AnswerResponseButton";
 import {
     calculateValidationState,
     createCheckWorkComponent,
+    wantsFullCheckWorkButton,
 } from "./utils/checkWork";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { DynamicMath } from "./utils/DynamicMath";
@@ -104,7 +105,10 @@ export default React.memo(function Answer(props: UseDoenetRendererProps) {
         id,
         validationState,
         submitActionWithPending,
-        SVs.forceFullCheckWorkButton || !SVs.forceSmallCheckWorkButton,
+        // An `<answer>` renders its own button only when it has no input
+        // field to hang one off, so it stands on a line of its own: the full
+        // labelled button is the default.
+        wantsFullCheckWorkButton(SVs, true),
         isPending,
         tContent,
     );

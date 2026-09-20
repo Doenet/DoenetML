@@ -64,7 +64,6 @@ color =
             [neuter] brunt
            *[common] brun
         }
-
 line-width =
     .thick =
         { $gender ->
@@ -76,11 +75,9 @@ line-width =
             [neuter] tynt
            *[common] tynn
         }
-
 line-style =
     .dashed = stiplet
     .dotted = prikket
-
 fill-style =
     .horizontal = vannrette linjer
     .vertical = loddrette linjer
@@ -88,7 +85,6 @@ fill-style =
     .backdiagonal = motsatte diagonale linjer
     .dots = prikker
     .diamonds = romber
-
 noun =
     .line = linje
     .line-segment = linjestykke
@@ -108,7 +104,6 @@ noun =
     .diamond = rombe
     .cross = kryss
     .plus = pluss
-
 # Norwegian names a regular polygon by its side count in one word —
 # «regelmessig 5-kant» — so the count stays in the head and there is no tail.
 # «-kant» is common, like «trekant».
@@ -117,7 +112,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] regelmessig { $numSides }-kant
     }
-
 # `$noun` can also be `regular-polygon` (kant, common) or a head the
 # description never names: `border` (kant, common), `fill` (fylling, common),
 # `text` (tekst, common), `background` (bakgrunn, common).
@@ -134,7 +128,6 @@ noun-gender =
        *[other] common
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -147,23 +140,19 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # «fylt» already ends in `-t`, so it does not inflect and takes no `$gender`
 # branch.
 style-filled-word = fylt
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } med { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } med { $pattern }
@@ -171,7 +160,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } med { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «kant» is common, so the indefinite article is «en» — a word of its own,
 # which is why the distinction English draws between the `-article` branches
 # and the others survives here.
@@ -182,35 +170,28 @@ style-border-clause =
         [and-article] og en { $border } kant
        *[with] med { $border } kant
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = ufylt
-
 style-text =
     { $parts ->
         [background] { $color } på { $background } bakgrunn
        *[plain] { $color }
     }
-
 style-background-none = ingen
-
 
 ## Boolean words
 
 boolean-true = sann
 boolean-false = usann
 
-
 ## Answer buttons
 
 answer-submit-label = Sjekk
 answer-submit-label-no-correctness = Send inn svar
-
 
 ## Sectional blocks
 
@@ -235,7 +216,6 @@ section-name =
     .solution = Løsning
     .task = Arbeidsoppgave
     .theorem = Setning
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -245,9 +225,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Hint
-
 
 ## Tables and figures
 
@@ -258,7 +236,6 @@ table-name =
         [unnumbered-title] Tabell{ ": " }
        *[unnumbered] Tabell
     }
-
 figure-name =
     { $parts ->
         [numbered] Figur { $enumeration }
@@ -267,22 +244,18 @@ figure-name =
        *[unnumbered] Figur
     }
 
-
 ## Paginator controls
 
 paginator-previous = Forrige
 paginator-next = Neste
 paginator-page = Side
-
 paginator-page-status = { $pageLabel } { $currentPage } av { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = eller
 piecewise-condition-if = hvis
 piecewise-condition-otherwise = ellers
-
 
 ## Chemistry
 
@@ -405,7 +378,6 @@ element-name =
     .lv = Livermorium
     .ts = Tenness
     .og = Oganesson
-
 element-anion-name =
     .h = Hydrid
     .c = Karbid
@@ -419,8 +391,6 @@ element-anion-name =
     .i = Jodid
     .at = Astatid
     .ts = Tennessid
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ugyldig kjemisk symbol
 chemistry-invalid-ionic-compound = Ugyldig ioneforbindelse

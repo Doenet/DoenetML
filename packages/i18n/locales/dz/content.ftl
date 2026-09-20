@@ -46,15 +46,12 @@ color =
     .purple = རྒྱ་སྨུག
     .pink = ཟིང་སྐྱ
     .brown = སྨུག་པོ
-
 line-width =
     .thick = སྦོམ
     .thin = ཕྲམ
-
 line-style =
     .dashed = ཆད་ལྷུག
     .dotted = ཚེག་ཅན
-
 fill-style =
     .horizontal = འཕྲང་ཐིག
     .vertical = ཐད་ཐིག
@@ -62,7 +59,6 @@ fill-style =
     .backdiagonal = ལོག་ཟུར་ཐིག
     .dots = ཚེག
     .diamonds = ཕ་ལམ་གཟུགས
-
 noun =
     .line = གྲལ་ཐིག
     .line-segment = ཐིག་དུམ
@@ -82,7 +78,6 @@ noun =
     .diamond = ཕ་ལམ་གཟུགས
     .cross = བསྒྱུར་རྟགས
     .plus = ཁ་སྐོང་རྟགས
-
 # The count is a complement that follows the whole phrase, so the head carries
 # the noun alone and the tail carries the count.
 noun-regular-polygon =
@@ -90,10 +85,8 @@ noun-regular-polygon =
         [tail] ཟུར་ { $numSides } ཡོདཔ
        *[head] ཚད་མཉམ་ཟུར་མང
     }
-
 # Nothing selects on it: Dzongkha has no grammatical gender.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -107,22 +100,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 style-filled-word = བཀངམ
-
 # «དང་» is invariant whatever precedes it.
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } { $pattern } དང་བཅསཔ
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $filled } { $color } { $pattern } དང་བཅསཔ
@@ -130,7 +119,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $filled } { $color } { $nounTail } { $pattern } དང་བཅསཔ
        *[plain] { $noun } { $filled } { $color }
     }
-
 # Dzongkha has no article, so the `-article` branches read like their
 # neighbours.
 style-border-clause =
@@ -140,36 +128,29 @@ style-border-clause =
         [and-article] ད་རུང་མཐའ་ { $border } དང་བཅསཔ
        *[with] མཐའ་ { $border } དང་བཅསཔ
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = མ་བཀངམ
-
 # «ལུ་», the Dzongkha dative, is invariant too.
 style-text =
     { $parts ->
         [background] རྒྱབ་གཞི་ { $background } ལུ་ { $color }
        *[plain] { $color }
     }
-
 style-background-none = ག་ནི་ཡང་མེད
-
 
 ## Boolean words
 
 boolean-true = བདེན་པ
 boolean-false = རྫུན་པ
 
-
 ## Answer buttons
 
 answer-submit-label = ཞིབ་དཔྱད
 answer-submit-label-no-correctness = ལན་བཏང
-
 
 ## Sectional blocks
 
@@ -194,7 +175,6 @@ section-name =
     .solution = ཐབས་ལམ
     .task = ལཱ
     .theorem = གཏན་ཚིག
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -204,9 +184,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = བརྡ་མཚོན
-
 
 ## Tables and figures
 
@@ -217,7 +195,6 @@ table-name =
         [unnumbered-title] ཐིག་ཁྲམ{ ": " }
        *[unnumbered] ཐིག་ཁྲམ
     }
-
 figure-name =
     { $parts ->
         [numbered] པར་རིས { $enumeration }
@@ -226,25 +203,19 @@ figure-name =
        *[unnumbered] པར་རིས
     }
 
-
 ## Paginator controls
 
 paginator-previous = ཧེ་མམ
 paginator-next = ཤུལ་མམ
 paginator-page = ཤོག་ལེབ
-
 # «X ནང་ Y» — "Y of X" — puts the total first; «ནང་» is invariant.
 paginator-page-status = { $numPages } ནང་ { $pageLabel } { $currentPage }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = ཡང་ན
-
 piecewise-condition-if = པ་ཅིན
-
 piecewise-condition-otherwise = དེ་མིན
-
 
 ## Chemistry
 ##
@@ -261,6 +232,5 @@ piecewise-condition-otherwise = དེ་མིན
 ## Two catalogs in one script, two different reasons for the same gap.
 
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = ནུས་རྫས་ཀྱི་བརྡ་རྟགས་ནོར་བ
 chemistry-invalid-ionic-compound = རླུང་རྡུལ་འདུས་རྫས་ནོར་བ

@@ -93,7 +93,6 @@ color =
             [n] кафяво
            *[m] кафяв
         }
-
 line-width =
     .thick =
         { $gender ->
@@ -107,7 +106,6 @@ line-width =
             [n] тънко
            *[m] тънък
         }
-
 line-style =
     .dashed =
         { $gender ->
@@ -121,7 +119,6 @@ line-style =
             [n] пунктирано
            *[m] пунктиран
         }
-
 # Bare plural noun phrases. They follow «с» in `style-filled`, and Bulgarian
 # puts nothing on a noun after a preposition, so the same words stand alone in
 # `style-fill`.
@@ -132,7 +129,6 @@ fill-style =
     .backdiagonal = обратни диагонални линии
     .dots = точки
     .diamonds = ромбове
-
 noun =
     .line = линия
     .line-segment = отсечка
@@ -152,7 +148,6 @@ noun =
     .diamond = ромб
     .cross = кръст
     .plus = плюс
-
 # Bulgarian keeps the side count in front of the noun, so the whole of it is
 # one head and there is no tail.
 noun-regular-polygon =
@@ -160,7 +155,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] правилен { $numSides }-ъгълник
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (многоъгълник, m)
 # or the head of a phrase the description never names: `border` (граница, f),
 # `fill` (запълване, n), `text` (текст, m), `background` (фон, m).
@@ -180,7 +174,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -193,26 +186,22 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word =
     { $gender ->
         [f] запълнена
         [n] запълнено
        *[m] запълнен
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } с { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } с { $pattern }
@@ -220,7 +209,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } с { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «граница» is feminine, so the border's adjectives agree with it rather than
 # with the shape it surrounds. Bulgarian has an article but attaches it as a
 # suffix and does not use it here, so the two `-article` branches read like the
@@ -232,7 +220,6 @@ style-border-clause =
         [and-article] и { $border } граница
        *[with] с { $border } граница
     }
-
 # The fill-pattern words need a noun to hang off when they stand on their own,
 # so this supplies «запълване» — neuter, which is the gender `noun-gender`
 # already answers for `fill`, so the colour agrees with it in both variants.
@@ -241,9 +228,7 @@ style-fill =
         [pattern] { $color } запълване с { $pattern }
        *[plain] { $color } запълване
     }
-
 style-unfilled = незапълнен
-
 # «текст» and «фон» are both masculine, and neither moves behind «на», so both
 # colours here are the plain masculine `noun-gender` supplies.
 style-text =
@@ -251,21 +236,17 @@ style-text =
         [background] { $color } на { $background } фон
        *[plain] { $color }
     }
-
 style-background-none = няма
-
 
 ## Boolean words
 
 boolean-true = истина
 boolean-false = лъжа
 
-
 ## Answer buttons
 
 answer-submit-label = Провери
 answer-submit-label-no-correctness = Изпрати отговора
-
 
 ## Sectional blocks
 
@@ -290,7 +271,6 @@ section-name =
     .solution = Решение
     .task = Задача
     .theorem = Теорема
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -300,9 +280,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Подсказка
-
 
 ## Tables and figures
 
@@ -313,7 +291,6 @@ table-name =
         [unnumbered-title] Таблица{ ". " }
        *[unnumbered] Таблица
     }
-
 figure-name =
     { $parts ->
         [numbered] Фигура { $enumeration }
@@ -322,22 +299,18 @@ figure-name =
        *[unnumbered] Фигура
     }
 
-
 ## Paginator controls
 
 paginator-previous = Назад
 paginator-next = Напред
 paginator-page = Страница
-
 paginator-page-status = { $pageLabel } { $currentPage } от { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = или
 piecewise-condition-if = ако
 piecewise-condition-otherwise = иначе
-
 
 ## Chemistry
 
@@ -460,7 +433,6 @@ element-name =
     .lv = Ливерморий
     .ts = Тенесин
     .og = Оганесон
-
 element-anion-name =
     .h = Хидрид
     .c = Карбид
@@ -474,8 +446,6 @@ element-anion-name =
     .i = Йодид
     .at = Астатид
     .ts = Тенесид
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Невалиден химичен символ
 chemistry-invalid-ionic-compound = Невалидно йонно съединение

@@ -1,5 +1,8 @@
 import { cesc } from "@doenet/utils";
-import { toMathJaxString } from "../../../src/util/mathDisplay";
+import {
+    normalizeMathTextForComparison,
+    toMathJaxString,
+} from "../../../src/util/mathDisplay";
 
 describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
     beforeEach(() => {
@@ -872,5 +875,35 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#bcancel").should("have.text", toMathJaxString("y"));
         cy.get("#bbox").should("have.text", toMathJaxString("R"));
         cy.get("#circle").should("have.text", toMathJaxString("1"));
+    });
+
+    it("mathjax has the units extension", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+
+    <m name="units">\\units{5}{\\text{m}/\\text{s}}</m>
+    <m name="unitfrac">\\unitfrac[5]{\\text{m}}{\\text{s}}</m>
+    <m name="nicefrac">\\nicefrac{1}{2}</m>
+    `,
+                },
+                "*",
+            );
+        });
+
+        // `units` is not one of the packages the combined MathJax component
+        // carries, nor one `autoload` knows about, so it renders only if our
+        // configuration actually asked for it. Without it, `noundefined` would
+        // typeset the macro names themselves — `\units5m/s` rather than `5m/s`.
+        cy.get("#units").should((el) => {
+            expect(normalizeMathTextForComparison(el.text())).eq("5m/s");
+        });
+        cy.get("#unitfrac").should((el) => {
+            expect(normalizeMathTextForComparison(el.text())).eq("5m/s");
+        });
+        cy.get("#nicefrac").should((el) => {
+            expect(normalizeMathTextForComparison(el.text())).eq("1/2");
+        });
     });
 });

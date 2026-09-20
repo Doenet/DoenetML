@@ -3,7 +3,6 @@ import {
     DastAttribute,
     DastElement,
     DastElementContent,
-    DastMacro,
     DastMacroPathPart,
     DastRoot,
     DastRootContent,
@@ -12,10 +11,21 @@ import {
     toXml,
     visit,
 } from "@doenet/parser";
+import { VFile } from "vfile";
 import { renameAttrInPlace } from "./rename-attr-in-place";
 import { reparseAttribute } from "./reparse-attribute";
-import { getUniqueName } from "./utils";
 import { determinePropType } from "./core-info/determine-prop-type";
+import {
+    AssignNamesContext,
+    namespaceChainOf,
+    deleteAssignNames,
+    readAssignNames,
+    setCompositeName,
+} from "./assign-names/context";
+import { registerCompositeAssignNames } from "./assign-names/register-composite";
+import { parseReferencePath } from "./assign-names/apply-renames";
+import { isValidReferenceableName } from "./assign-names/rename-registry";
+import { markAsPropAccess } from "./assign-names/prop-access-parts";
 
 /**
  * Upgrade the `<collect>` element to the new syntax.
@@ -29,12 +39,13 @@ import { determinePropType } from "./core-info/determine-prop-type";
  *   $points[3]
  * ```
  */
-export const upgradeCollectElement: Plugin<[], DastRoot, DastRoot> = () => {
+export const upgradeCollectElement: Plugin<
+    [AssignNamesContext],
+    DastRoot,
+    DastRoot
+> = (context) => {
     return (tree, file) => {
-        // If `assignNames` is present, we need to rename a bunch of references
-        const refsToRename: Record<string, DastMacro["path"]> = {};
-
-        visit(tree, (node) => {
+        visit(tree, (node, info) => {
             if (!isDastElement(node)) {
                 return;
             }
@@ -46,46 +57,37 @@ export const upgradeCollectElement: Plugin<[], DastRoot, DastRoot> = () => {
             if (node.attributes["componentTypes"]) {
                 renameAttrInPlace(node, "componentTypes", "componentType");
             }
-            // `source` is now `from`
-            if (node.attributes["source"]) {
-                renameAttrInPlace(node, "source", "from");
-                // Ensure the value starts with a dollar sign
-                const fromValue = toXml(node.attributes["from"].children);
-                if (!fromValue.startsWith("$")) {
-                    node.attributes["from"].children = reparseAttribute(
-                        `$${fromValue}`,
-                    );
+            // `source` — or `target`, which meant the same thing — is now `from`
+            for (const oldKey of ["source", "target"]) {
+                if (!node.attributes[oldKey]) {
+                    continue;
                 }
-            } else if (node.attributes["target"]) {
-                // `target` could also now be`from`
-                renameAttrInPlace(node, "target", "from");
-                // Ensure the value starts with a dollar sign
-                const fromValue = toXml(node.attributes["from"].children);
-                if (!fromValue.startsWith("$")) {
-                    node.attributes["from"].children = reparseAttribute(
-                        `$${fromValue}`,
-                    );
-                }
+                renameAttrInPlace(node, oldKey, "from");
+                makeFromAReference(node, file);
+                break;
             }
-            const assignNames = node.attributes["assignNames"];
-            if (!assignNames) {
+            const assignNamesValue = readAssignNames(node);
+            if (!assignNamesValue) {
+                deleteAssignNames(node);
                 return;
             }
-            delete node.attributes["assignNames"];
-            const assignedNames = toXml(assignNames.children)
-                .split(/\s+/)
-                .filter((n) => n);
-            assignedNames.forEach((name, index) => {
-                const strRepr = `$${toXml(node.attributes["name"].children)}[${index + 1}]`;
-                const attr = reparseAttribute(strRepr)?.[0];
-                // attr should contain a single macro
-                if (!attr || attr.type !== "macro") {
-                    throw new Error(
-                        `Expected attribute to be a single macro, got: ${JSON.stringify(attr)}`,
-                    );
-                }
-                refsToRename[name] = attr.path;
+            // Note: the name registered here must be the one an author references. When
+            // this `<collect>` has a `prop`, the hoisting step below moves this name onto
+            // the generated list element and renames the collect itself, so giving the
+            // collect a name *now* is what makes both paths agree.
+            const compositeName = registerCompositeAssignNames({
+                node,
+                assignNamesValue,
+                fallbackBase: "collect",
+                ancestorNames: namespaceChainOf(info.parents, context),
+                context,
+                file,
             });
+            if (compositeName === undefined) {
+                deleteAssignNames(node);
+                return;
+            }
+            setCompositeName(node, compositeName);
         });
 
         // If the `<collect>` has a `prop` attribute, it needs to be hoisted into a `<setup>` tag
@@ -106,12 +108,20 @@ export const upgradeCollectElement: Plugin<[], DastRoot, DastRoot> = () => {
                 return;
             }
 
-            const propAttr = node.attributes["prop"];
-            const propName = toXml(propAttr?.children).trim();
+            // v0.6 attribute names were case-insensitive and nothing normalizes `prop`,
+            // so find it however it was written — otherwise the hoist below never
+            // happens and the references point at the collected components rather than
+            // at the prop that was asked for.
+            const propKey = Object.keys(node.attributes).find(
+                (key) => key.toLowerCase() === "prop",
+            );
+            const propName = propKey
+                ? toXml(node.attributes[propKey].children).trim()
+                : "";
             if (!propName) {
                 return;
             }
-            delete node.attributes["prop"];
+            delete node.attributes[propKey!];
             // Create a new `<setup>` element
             const setup: DastElement = {
                 type: "element",
@@ -125,10 +135,23 @@ export const upgradeCollectElement: Plugin<[], DastRoot, DastRoot> = () => {
             // The `mathList` will have the name originally given to the `collect`
             // We need a new name for the collect.
 
-            const listName = node.attributes["name"]
-                ? toXml(node.attributes["name"].children)
-                : getUniqueName(tree, "list");
-            const collectName = getUniqueName(tree, `collect_${listName}`);
+            // Read the name the way every other pass does — trimmed — and generate one
+            // when there is nothing usable. An untrimmed or empty value would end up
+            // both as the list's `name` and inside the reference built below, where
+            // `$collect_ c .x` does not parse.
+            const authoredListName = node.attributes["name"]
+                ? toXml(node.attributes["name"].children).trim()
+                : "";
+            // `chooseCompositeName` has already registered the renames against this
+            // name, so a name it cannot use has to be rejected there rather than here;
+            // see the guard in `context.ts`. Reaching this point with an unusable one
+            // would mean the references point at a name nothing carries.
+
+            const listName =
+                authoredListName && isValidReferenceableName(authoredListName)
+                    ? authoredListName
+                    : context.uniqueName("list");
+            const collectName = context.uniqueName(`collect_${listName}`);
             node.attributes["name"] = {
                 type: "attribute",
                 name: "name",
@@ -138,7 +161,11 @@ export const upgradeCollectElement: Plugin<[], DastRoot, DastRoot> = () => {
             if (!listType) {
                 file.message(
                     `Could not determine type for prop "${propName}" of component type "${componentType}". Using "math" as default.`,
-                    { place: node.position },
+                    {
+                        place: node.position,
+                        ruleId: "collect/unknown-prop-type",
+                        source: "v06-to-v07",
+                    },
                 );
                 listType = "math";
             }
@@ -156,31 +183,87 @@ export const upgradeCollectElement: Plugin<[], DastRoot, DastRoot> = () => {
                     extend: {
                         type: "attribute",
                         name: "extend",
-                        children: reparseAttribute(
-                            `$${collectName}.${propName}`,
-                        ),
+                        children: [
+                            {
+                                type: "macro",
+                                path: [
+                                    ...parseReferencePath(collectName),
+                                    ...propPathParts(propName, node, file),
+                                ],
+                                attributes: {},
+                            },
+                        ],
                     },
                 },
                 children: [],
             };
             return [setup, list];
         });
-
-        // Now that we have collected all of the renames, we walk the tree again and
-        // apply them.
-        visit(tree, (node) => {
-            if (node.type !== "macro") {
-                return;
-            }
-            // See if there is part of the macro path that matches anything in `refsToRename`
-            if (!node.path.some((part) => refsToRename[part.name])) {
-                return;
-            }
-
-            // Splice in the new path parts at the location of the matching part
-            node.path = node.path.flatMap((part) => {
-                return refsToRename[part.name] || [part];
-            });
-        });
     };
 };
+
+/**
+ * Turn a `from` holding a bare component name into a real reference.
+ *
+ * Prefixing the text with a `$` is not enough: a hyphenated name only parses inside
+ * `$(...)`, and `$foo-bar` would be read as `$foo` minus `bar`.
+ */
+function makeFromAReference(node: DastElement, file: VFile) {
+    const attr = node.attributes["from"];
+    const value = toXml(attr.children).trim();
+    if (!value || value.startsWith("$")) {
+        return;
+    }
+    try {
+        attr.children = [
+            {
+                type: "macro",
+                path: parseReferencePath(value),
+                attributes: {},
+            },
+        ];
+    } catch {
+        file.message(
+            `Could not read "${value}" as the name of what <collect> collects from.`,
+            {
+                place: node.position,
+                ruleId: "collect/unparsable-from",
+                source: "v06-to-v07",
+            },
+        );
+    }
+}
+
+/**
+ * The path parts naming a prop, marked as such.
+ *
+ * `applyAssignNameRenames` runs after this plugin and rewrites any path part that matches
+ * an assigned name. Without the mark, a `<collect prop="y">` sitting in a document where
+ * something else assigned the name `y` would have its prop rewritten into that
+ * composite's index — `$collect_vals.y` becoming `$collect_vals.x[2]`.
+ */
+function propPathParts(
+    propName: string,
+    node: DastElement,
+    file: VFile,
+): DastMacroPathPart[] {
+    let parts: DastMacroPathPart[];
+    try {
+        parts = parseReferencePath(propName);
+    } catch {
+        // v0.6 accepted values a reference cannot express, such as `prop="x y"`. The
+        // caller has already decided to hoist, so emit something the author can see and
+        // repair rather than throwing out of the whole conversion.
+        file.message(
+            `<collect prop="${propName}"> could not be turned into a reference, so the generated list extends a path that needs fixing by hand.`,
+            {
+                place: node.position,
+                ruleId: "collect/unparsable-prop",
+                source: "v06-to-v07",
+            },
+        );
+        return [{ type: "pathPart", name: propName, index: [] }];
+    }
+    parts.forEach(markAsPropAccess);
+    return parts;
+}

@@ -172,7 +172,6 @@ color =
                    *[m] коричневый
                 }
         }
-
 line-width =
     .thick =
         { $role ->
@@ -198,7 +197,6 @@ line-width =
                    *[m] тонкий
                 }
         }
-
 line-style =
     .dashed =
         { $role ->
@@ -224,7 +222,6 @@ line-style =
                    *[m] пунктирный
                 }
         }
-
 # Noun phrases in the instrumental, which is the case «с» takes. They agree
 # with nothing.
 fill-style =
@@ -234,7 +231,6 @@ fill-style =
     .backdiagonal = обратными диагональными линиями
     .dots = точками
     .diamonds = ромбами
-
 noun =
     .line = прямая
     .line-segment = отрезок
@@ -254,7 +250,6 @@ noun =
     .diamond = ромб
     .cross = крест
     .plus = знак плюс
-
 # Russian keeps the side count in front of the noun, so the whole thing is one
 # head and there is no tail.
 noun-regular-polygon =
@@ -262,7 +257,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] правильный { $numSides }-угольник
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (многоугольник, m)
 # or the head of a phrase the description never names: `border` (граница, f),
 # `fill` (заливка, f), `text` (текст, m), `background` (фон, m).
@@ -289,7 +283,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -302,13 +295,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # Only ever said of the shape itself, so it is standalone in every
 # description and takes no `$role` branch.
 style-filled-word =
@@ -317,13 +308,11 @@ style-filled-word =
         [n] закрашенное
        *[m] закрашенный
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } с { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } с { $pattern }
@@ -331,7 +320,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } с { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «граница» is feminine, so the border's adjectives agree with it and not with
 # the shape it surrounds. Russian has no article, so the two article branches
 # read the same as the ones without.
@@ -342,7 +330,6 @@ style-border-clause =
         [and-article] и { $border } границей
        *[with] с { $border } границей
     }
-
 # The fill-pattern words are instrumental plurals, because their other use is
 # the «с { $pattern }» clause in `style-filled`. So this message supplies a
 # noun for them to hang off — «заливка», feminine, which is the gender
@@ -353,29 +340,23 @@ style-fill =
         [pattern] { $color } заливка с { $pattern }
        *[plain] { $color } заливка
     }
-
 style-unfilled = незакрашенный
-
 style-text =
     { $parts ->
         [background] { $color } на { $background } фоне
        *[plain] { $color }
     }
-
 style-background-none = нет
-
 
 ## Boolean words
 
 boolean-true = истина
 boolean-false = ложь
 
-
 ## Answer buttons
 
 answer-submit-label = Проверить
 answer-submit-label-no-correctness = Отправить ответ
-
 
 ## Sectional blocks
 
@@ -400,7 +381,6 @@ section-name =
     .solution = Решение
     .task = Задача
     .theorem = Теорема
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -410,9 +390,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ". " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Подсказка
-
 
 ## Tables and figures
 
@@ -423,7 +401,6 @@ table-name =
         [unnumbered-title] Таблица{ ". " }
        *[unnumbered] Таблица
     }
-
 figure-name =
     { $parts ->
         [numbered] Рисунок { $enumeration }
@@ -432,22 +409,18 @@ figure-name =
        *[unnumbered] Рисунок
     }
 
-
 ## Paginator controls
 
 paginator-previous = Назад
 paginator-next = Вперёд
 paginator-page = Страница
-
 paginator-page-status = { $pageLabel } { $currentPage } из { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = или
 piecewise-condition-if = если
 piecewise-condition-otherwise = иначе
-
 
 ## Chemistry
 
@@ -570,7 +543,6 @@ element-name =
     .lv = Ливерморий
     .ts = Теннессин
     .og = Оганесон
-
 element-anion-name =
     .h = Гидрид
     .c = Карбид
@@ -584,8 +556,6 @@ element-anion-name =
     .i = Иодид
     .at = Астатид
     .ts = Теннессид
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Недопустимый химический символ
 chemistry-invalid-ionic-compound = Недопустимое ионное соединение

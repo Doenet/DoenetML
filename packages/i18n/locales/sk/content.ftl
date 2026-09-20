@@ -175,7 +175,6 @@ color =
                    *[m] hnedý
                 }
         }
-
 line-width =
     .thick =
         { $role ->
@@ -201,7 +200,6 @@ line-width =
                    *[m] tenký
                 }
         }
-
 line-style =
     .dashed =
         { $role ->
@@ -227,7 +225,6 @@ line-style =
                    *[m] bodkovaný
                 }
         }
-
 # Noun phrases in the accusative plural, which is the case «v» takes when it
 # names a pattern — «v bodky», the way Slovak describes patterned cloth. The
 # accusative plural of an inanimate noun is spelled like the nominative, so the
@@ -239,7 +236,6 @@ fill-style =
     .backdiagonal = opačne šikmé čiary
     .dots = bodky
     .diamonds = kosoštvorce
-
 noun =
     .line = priamka
     .line-segment = úsečka
@@ -259,7 +255,6 @@ noun =
     .diamond = kosoštvorec
     .cross = krížik
     .plus = plus
-
 # Slovak names a regular polygon by its side count in one word — «pravidelný
 # 5-uholník» — so the count stays in the head and there is no tail, exactly as
 # in English. Czech next door splits it, which is the point of `$part` being a
@@ -269,7 +264,6 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] pravidelný { $numSides }-uholník
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (mnohouholník, m)
 # or the head of a phrase the description never names: `border` (okraj, m),
 # `fill` (výplň, f), `text` (text, m), `background` (pozadie, n).
@@ -290,7 +284,6 @@ noun-gender =
        *[other] m
     }
 
-
 ## Style composition
 
 style-stroke =
@@ -303,13 +296,11 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 # Only ever said of the shape itself, so it is standalone in every description
 # and takes no `$role` branch.
 style-filled-word =
@@ -318,13 +309,11 @@ style-filled-word =
         [n] vyplnené
        *[m] vyplnený
     }
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } v { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } v { $pattern }
@@ -332,7 +321,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } v { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 # «s» governs the instrumental, which the `border-clause` branch of every
 # adjective supplies. Slovak has no article, so the `-article` branches read
 # the same as the ones without.
@@ -343,15 +331,12 @@ style-border-clause =
         [and-article] a s { $border } okrajom
        *[with] s { $border } okrajom
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = nevyplnený
-
 # «na» governs the locative, which is what the `background-clause` branch of
 # every adjective supplies — «na čiernom pozadí».
 style-text =
@@ -359,21 +344,17 @@ style-text =
         [background] { $color } na { $background } pozadí
        *[plain] { $color }
     }
-
 style-background-none = žiadne
-
 
 ## Boolean words
 
 boolean-true = pravda
 boolean-false = nepravda
 
-
 ## Answer buttons
 
 answer-submit-label = Skontrolovať
 answer-submit-label-no-correctness = Odoslať odpoveď
-
 
 ## Sectional blocks
 
@@ -398,7 +379,6 @@ section-name =
     .solution = Riešenie
     .task = Zadanie
     .theorem = Veta
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -408,9 +388,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Pomôcka
-
 
 ## Tables and figures
 
@@ -421,7 +399,6 @@ table-name =
         [unnumbered-title] Tabuľka{ ": " }
        *[unnumbered] Tabuľka
     }
-
 figure-name =
     { $parts ->
         [numbered] Obrázok { $enumeration }
@@ -430,22 +407,18 @@ figure-name =
        *[unnumbered] Obrázok
     }
 
-
 ## Paginator controls
 
 paginator-previous = Predchádzajúca
 paginator-next = Ďalšia
 paginator-page = Strana
-
 paginator-page-status = { $pageLabel } { $currentPage } z { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = alebo
 piecewise-condition-if = ak
 piecewise-condition-otherwise = inak
-
 
 ## Chemistry
 
@@ -568,7 +541,6 @@ element-name =
     .lv = Livermorium
     .ts = Tennessín
     .og = Oganesson
-
 element-anion-name =
     .h = Hydrid
     .c = Karbid
@@ -582,8 +554,6 @@ element-anion-name =
     .i = Jodid
     .at = Astatid
     .ts = Tennessid
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Neplatná chemická značka
 chemistry-invalid-ionic-compound = Neplatná iónová zlúčenina

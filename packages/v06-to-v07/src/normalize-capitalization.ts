@@ -86,6 +86,23 @@ export const correctAttributeCapitalization: Plugin<
 };
 
 /**
+ * Elements that exist only in v0.6, so they are not in the v0.7 component list that
+ * `correctElementCapitalization` builds its map from. The rest of the conversion matches
+ * on these names, so they need normalizing too.
+ */
+const LEGACY_V06_ELEMENT_NAMES = [
+    "copy",
+    "map",
+    "template",
+    "sources",
+    "extract",
+    "customAttribute",
+    "constraints",
+    "styleDefinitions",
+    "feedbackDefinitions",
+];
+
+/**
  * Normalize the capitalization of all recognized DoenetML elements.
  */
 export const correctElementCapitalization: Plugin<
@@ -100,6 +117,9 @@ export const correctElementCapitalization: Plugin<
     const correctCapitalizationMap = Object.fromEntries(
         correctCapitalization.map((name) => [name.toLowerCase(), name]),
     );
+    for (const name of LEGACY_V06_ELEMENT_NAMES) {
+        correctCapitalizationMap[name.toLowerCase()] ??= name;
+    }
 
     return (tree) => {
         visit(tree, (node) => {

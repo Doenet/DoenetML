@@ -67,7 +67,6 @@ color =
             [f] vrun
            *[m] brun
         }
-
 line-width =
     .thick =
         { $gender ->
@@ -79,7 +78,6 @@ line-width =
             [f] voan
            *[m] moan
         }
-
 line-style =
     .dashed =
         { $gender ->
@@ -91,7 +89,6 @@ line-style =
             [f] bikennaouet
            *[m] pikennaouet
         }
-
 # Noun phrases standing behind «gant». They modify nothing and take no gender.
 fill-style =
     .horizontal = linennoù a-blaen
@@ -100,7 +97,6 @@ fill-style =
     .backdiagonal = linennoù a-veskell eus an tu all
     .dots = pikennoù
     .diamonds = diamantoù
-
 noun =
     .line = linenn
     .line-segment = tamm linenn
@@ -120,7 +116,6 @@ noun =
     .diamond = diamant
     .cross = kroaz
     .plus = plus
-
 # The side count follows the style adjectives, so the head and the tail split
 # around them.
 noun-regular-polygon =
@@ -128,7 +123,6 @@ noun-regular-polygon =
         [tail] gant { $numSides } tu
        *[head] liestueg reoliek
     }
-
 # Besides the nouns above, `$noun` can be `regular-polygon` (liestueg, m) or
 # the head of a phrase the description never names: `border` (bevenn, f),
 # `fill` (leunadur, m), `text` (testenn, f), `background` (drekleur, m).
@@ -143,7 +137,6 @@ noun-gender =
         [text] f
        *[other] m
     }
-
 
 ## Style composition
 
@@ -162,22 +155,18 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $noun } { $description } { $nounTail }
        *[noun] { $noun } { $description }
     }
-
 # A past participle, invariable in Breton, so it needs no branch.
 style-filled-word = leuniet
-
 style-filled =
     { $parts ->
         [pattern] { $color } { $filled } gant { $pattern }
        *[plain] { $color } { $filled }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $noun } { $color } { $filled } gant { $pattern }
@@ -185,7 +174,6 @@ style-filled-with-noun =
         [pattern-tail] { $noun } { $color } { $filled } { $nounTail } gant { $pattern }
        *[plain] { $noun } { $color } { $filled }
     }
-
 # «bevenn» is feminine, so its own adjectives soften after it — and «bevenn»
 # itself softens to «vevenn» after the article «ur», which is a mutation of the
 # noun rather than of anything the description supplies. Breton always writes
@@ -197,35 +185,28 @@ style-border-clause =
         [and-article] hag ur vevenn { $border }
        *[with] gant ur vevenn { $border }
     }
-
 style-fill =
     { $parts ->
         [pattern] leunadur { $color } gant { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = goullo
-
 style-text =
     { $parts ->
         [background] { $color } gant un drekleur { $background }
        *[plain] { $color }
     }
-
 style-background-none = hini ebet
-
 
 ## Boolean words
 
 boolean-true = gwir
 boolean-false = faos
 
-
 ## Answer buttons
 
 answer-submit-label = Gwiriañ
 answer-submit-label-no-correctness = Kas ar respont
-
 
 ## Sectional blocks
 
@@ -250,7 +231,6 @@ section-name =
     .solution = Diskoulm
     .task = Trevell
     .theorem = Teorem
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -260,9 +240,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Kuzul
-
 
 ## Tables and figures
 
@@ -273,7 +251,6 @@ table-name =
         [unnumbered-title] Taolenn{ ": " }
        *[unnumbered] Taolenn
     }
-
 figure-name =
     { $parts ->
         [numbered] Skeudenn { $enumeration }
@@ -282,22 +259,18 @@ figure-name =
        *[unnumbered] Skeudenn
     }
 
-
 ## Paginator controls
 
 paginator-previous = A-raok
 paginator-next = War-lerc'h
 paginator-page = Pajenn
-
 paginator-page-status = { $pageLabel } { $currentPage } war { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = pe
 piecewise-condition-if = ma
 piecewise-condition-otherwise = a-hend-all
-
 
 ## Chemistry
 
@@ -420,7 +393,6 @@ element-name =
     .lv = Livermoriom
     .ts = Tenesin
     .og = Oganeson
-
 element-anion-name =
     .h = Hidrur
     .c = Karbur
@@ -434,8 +406,6 @@ element-anion-name =
     .i = Iodur
     .at = Astatur
     .ts = Tenesur
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Arouez kimiek direizh
 chemistry-invalid-ionic-compound = Kevreadenn ionek direizh

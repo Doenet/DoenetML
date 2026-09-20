@@ -36,15 +36,12 @@ color =
     .purple = pers
     .pink = pienk
     .brown = bruin
-
 line-width =
     .thick = dik
     .thin = dun
-
 line-style =
     .dashed = gestreepte
     .dotted = gestippelde
-
 fill-style =
     .horizontal = horisontale lyne
     .vertical = vertikale lyne
@@ -52,7 +49,6 @@ fill-style =
     .backdiagonal = omgekeerde diagonale lyne
     .dots = kolletjies
     .diamonds = ruite
-
 noun =
     .line = lyn
     .line-segment = lynsegment
@@ -72,7 +68,6 @@ noun =
     .diamond = ruit
     .cross = kruis
     .plus = plusteken
-
 # The side count folds into the head, as English does: Afrikaans writes a
 # compound — «5-sydige reëlmatige veelhoek» — and there is nothing to put
 # after the adjectives.
@@ -81,11 +76,9 @@ noun-regular-polygon =
         [tail] { "" }
        *[head] { $numSides }-sydige reëlmatige veelhoek
     }
-
 # Afrikaans has no grammatical gender, so every noun answers the same and the
 # answer goes unused — as in English, and unlike Dutch.
 noun-gender = neuter
-
 
 ## Style composition
 
@@ -99,21 +92,17 @@ style-stroke =
         [style] { $lineStyle }
        *[color] { $color }
     }
-
 style-with-noun =
     { $parts ->
         [noun-tail] { $description } { $noun } { $nounTail }
        *[noun] { $description } { $noun }
     }
-
 style-filled-word = gevulde
-
 style-filled =
     { $parts ->
         [pattern] { $filled } { $color } met { $pattern }
        *[plain] { $filled } { $color }
     }
-
 style-filled-with-noun =
     { $parts ->
         [pattern] { $filled } { $color } { $noun } met { $pattern }
@@ -121,7 +110,6 @@ style-filled-with-noun =
         [pattern-tail] { $filled } { $color } { $noun } { $nounTail } met { $pattern }
        *[plain] { $filled } { $color } { $noun }
     }
-
 style-border-clause =
     { $parts ->
         [with-article] met 'n { $border } rand
@@ -129,35 +117,28 @@ style-border-clause =
         [and-article] en 'n { $border } rand
        *[with] met { $border } rand
     }
-
 style-fill =
     { $parts ->
         [pattern] { $color } { $pattern }
        *[plain] { $color }
     }
-
 style-unfilled = ongevuld
-
 style-text =
     { $parts ->
         [background] { $color } op 'n { $background } agtergrond
        *[plain] { $color }
     }
-
 style-background-none = geen
-
 
 ## Boolean words
 
 boolean-true = waar
 boolean-false = onwaar
 
-
 ## Answer buttons
 
 answer-submit-label = Kontroleer Werk
 answer-submit-label-no-correctness = Dien Antwoord In
-
 
 ## Sectional blocks
 
@@ -182,7 +163,6 @@ section-name =
     .solution = Oplossing
     .task = Taak
     .theorem = Stelling
-
 section-title-prefix =
     { $parts ->
         [name] { $sectionName }
@@ -192,9 +172,7 @@ section-title-prefix =
         [name-number-title] { $sectionName } { $sectionNumber }{ ": " }
        *[name-number] { $sectionName } { $sectionNumber }
     }
-
 hint-title = Wenk
-
 
 ## Tables and figures
 
@@ -205,7 +183,6 @@ table-name =
         [unnumbered-title] Tabel{ ": " }
        *[unnumbered] Tabel
     }
-
 figure-name =
     { $parts ->
         [numbered] Figuur { $enumeration }
@@ -214,22 +191,18 @@ figure-name =
        *[unnumbered] Figuur
     }
 
-
 ## Paginator controls
 
 paginator-previous = Vorige
 paginator-next = Volgende
 paginator-page = Bladsy
-
 paginator-page-status = { $pageLabel } { $currentPage } van { $numPages }
-
 
 ## Piecewise functions
 
 piecewise-condition-or = of
 piecewise-condition-if = as
 piecewise-condition-otherwise = andersins
-
 
 ## Chemistry
 
@@ -361,7 +334,6 @@ element-name =
     .lv = livermorium
     .ts = tennessien
     .og = oganesson
-
 element-anion-name =
     .h = hidried
     .c = karbied
@@ -375,8 +347,6 @@ element-anion-name =
     .i = jodied
     .at = astatied
     .ts = tennessied
-
 ion-name-oxidation-state = { $name } ({ $numeral })
-
 chemistry-invalid-symbol = Ongeldige Chemiese Simbool
 chemistry-invalid-ionic-compound = Ongeldige Ioniese Verbinding
