@@ -92,7 +92,7 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
     // precondition above: what the attribute then promises about the answer is
     // the subclass's to keep, in `locate`. `<indexOf>` searches any list at
     // all and has nothing to waive.
-    static supportsSort = false;
+    static supportsAllowUnsorted = false;
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -157,7 +157,7 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
         // `definition` it would not be.
         const componentType = this.componentType;
         const validateValues = this.validateValues;
-        const supportsSort = this.supportsSort;
+        const supportsAllowUnsorted = this.supportsAllowUnsorted;
 
         Object.assign(
             stateVariableDefinitions,
@@ -198,11 +198,11 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
                 },
                 // Declared only by a subclass that offers a `sort`
                 // attribute, since the rest have no such state variable.
-                ...(supportsSort
+                ...(supportsAllowUnsorted
                     ? {
-                          sort: {
+                          allowUnsorted: {
                               dependencyType: "stateVariable",
-                              variableName: "sort",
+                              variableName: "allowUnsorted",
                           },
                       }
                     : {}),
@@ -213,7 +213,7 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
                     targets: dependencyValues.comparableTargets,
                     numeric: dependencyValues.allAreNumeric,
                     locate: dependencyValues.locate,
-                    validateValues: dependencyValues.sort
+                    validateValues: dependencyValues.allowUnsorted
                         ? null
                         : validateValues,
                 });

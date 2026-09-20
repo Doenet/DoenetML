@@ -35320,7 +35320,7 @@
                     "type": "boolean"
                 },
                 {
-                    "name": "sort",
+                    "name": "allowUnsorted",
                     "description": "Report where each target belongs among the values in ascending order, whatever order they are written in.",
                     "highlighted": true,
                     "defaultValue": false,
@@ -35375,7 +35375,7 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "sort",
+                    "name": "allowUnsorted",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Report where each target belongs among the values in ascending order, whatever order they are written in.",

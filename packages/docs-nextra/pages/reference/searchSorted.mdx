@@ -18,7 +18,7 @@ values that are not in order it reports 0 instead of a position — the same "no
 gives when `target` is missing — and warns, rather than returning a number that looks like
 a position but is not one. Equal neighbors are in order; that run is what `side` is about.
 
-Write `sort` on the operator and it reports where each target belongs among the values in
+Write `allowUnsorted` on the operator and it reports where each target belongs among the values in
 ascending order, whatever order they are written in — so a list that is not sorted can be
 searched directly. The values themselves are left as they are.
 
@@ -59,7 +59,7 @@ past the last index.
 <p>Sorted first: $sorted</p>
 <p>Position in the sorted list: <searchSorted target="80">$sorted</searchSorted></p>
 
-<p>The same position in one step: <searchSorted sort target="80">$scores</searchSorted></p>
+<p>The same position in one step: <searchSorted allowUnsorted target="80">$scores</searchSorted></p>
 ```
 
 
@@ -68,11 +68,11 @@ The first `<searchSorted>{:dn}` gets 0 and a warning: 87 comes before 75, so no 
 position describes where 80 belongs. Sorting the values first — with
 [`<sort>{:dn}`](sort) here, though a list that is already built in order, such as a
 [`<cumulativeSum>{:dn}`](cumulativeSum) of positive numbers, needs nothing — gives a
-position again. The last line gets there directly: `sort` hands the ordering to the
+position again. The last line gets there directly: `allowUnsorted` hands the ordering to the
 operator, which reports where 80 belongs among these values in ascending order without
 rearranging them. `side` goes on meaning what it means.
 
-Prefer `sort` when the ordering is wanted only for the search. Keep a separate
+Prefer `allowUnsorted` when the ordering is wanted only for the search. Keep a separate
 [`<sort>{:dn}`](sort) when the sorted values are themselves worth showing or reusing, as
 `$sorted` is above.
 

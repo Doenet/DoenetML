@@ -150,7 +150,7 @@ function participatesInOrder(value, numeric) {
 export class SearchSorted extends ListIndexBaseListOperator {
     static componentType = "searchSorted";
 
-    static supportsSort = true;
+    static supportsAllowUnsorted = true;
 
     static componentDocs = {
         summary:
@@ -204,9 +204,9 @@ export class SearchSorted extends ListIndexBaseListOperator {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        attributes.sort = {
+        attributes.allowUnsorted = {
             createComponentOfType: "boolean",
-            createStateVariable: "sort",
+            createStateVariable: "allowUnsorted",
             defaultValue: false,
             public: true,
             highlighted: true,
@@ -268,12 +268,12 @@ export class SearchSorted extends ListIndexBaseListOperator {
                     // touch, dominates until lists reach the thousands with
                     // comparably many targets.
                     //
-                    // Under `sort` none of that holds, because the list is not
+                    // Under `allowUnsorted` none of that holds, because the list is not
                     // in order and the position of an entry says nothing about
                     // where the target belongs. Counting the entries below it
                     // does, whatever order they are in — which is the form
                     // this scan had before #1960 introduced the precondition,
-                    // and why nothing has to be sorted to honor `sort`.
+                    // and why nothing has to be sorted at all.
                     //
                     // The two disagree on a value that takes no part in the
                     // ordering. Counting leaves it out; the positional scan
@@ -282,7 +282,7 @@ export class SearchSorted extends ListIndexBaseListOperator {
                     // reading here: a value with no place in the order has no
                     // slot to keep once the operator is the one doing the
                     // ordering.
-                    if (dependencyValues.sort) {
+                    if (dependencyValues.allowUnsorted) {
                         let count = 0;
                         for (const value of values) {
                             const comparison = compareExtractedValues(
@@ -324,9 +324,9 @@ export class SearchSorted extends ListIndexBaseListOperator {
                         dependencyType: "stateVariable",
                         variableName: "side",
                     },
-                    sort: {
+                    allowUnsorted: {
                         dependencyType: "stateVariable",
-                        variableName: "sort",
+                        variableName: "allowUnsorted",
                     },
                 },
             ),
