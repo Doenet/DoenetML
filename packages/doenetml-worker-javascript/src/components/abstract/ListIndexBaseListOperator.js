@@ -214,7 +214,7 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
                     numeric: dependencyValues.allAreNumeric,
                     locate: dependencyValues.locate,
                     validateValues: dependencyValues.sort
-                        ? () => undefined
+                        ? null
                         : validateValues,
                 });
 
