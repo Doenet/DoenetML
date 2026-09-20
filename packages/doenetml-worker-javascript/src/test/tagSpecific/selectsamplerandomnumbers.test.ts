@@ -3,6 +3,7 @@ import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     callAction,
+    triggerActions,
     updateMathInputValue,
     updateTextInputValue,
     updateValue,
@@ -1905,6 +1906,44 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         expect(
             stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
         ).eq(2);
+    });
+
+    it("actions sharing a trigger with an unavailable resample still run", async () => {
+        // The throw used to abandon everything the same button was still
+        // going to do: the rest of a `<triggerSet>` and anything chained with
+        // `triggerWith` never ran. An unavailable action is now reported and
+        // stepped over, so the siblings are unaffected.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <selectRandomNumbers name="s" from="1" to="10" numToSelect="3" />
+    <number name="inSet">1</number>
+    <number name="chained">1</number>
+    <triggerSet name="ts"><label>Go</label>
+      <callAction name="again" target="$s" actionName="resample" />
+      <updateValue name="alongside" target="$inSet" newValue="5" />
+    </triggerSet>
+    <updateValue name="after" target="$chained" newValue="7" triggerWith="$again" />
+    `,
+        });
+
+        await triggerActions({
+            core,
+            componentIdx: await resolvePathToNodeIdx("ts"),
+        });
+
+        const warnings = getDiagnosticsByType(core).warnings;
+        expect(warnings.length).eq(1);
+        expect(warnings[0].message).contain("Cannot call resample");
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("inSet")].stateValues
+                .value,
+        ).eq(5);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("chained")].stateValues
+                .value,
+        ).eq(7);
     });
 
     it("same discrete samples for given variant if variantDeterminesSeed", async () => {
