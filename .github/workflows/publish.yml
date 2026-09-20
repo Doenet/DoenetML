@@ -12,7 +12,12 @@ name: Publish
 #     either rejected or has to claim a version it does not have.
 #   * Publishes under `0.7-stable` / `0.7-dev`, never `latest` / `dev`. The
 #     per-package `publish` scripts on this branch pin `--tag 0.7-stable`, so
-#     even a bare `npm run publish` by hand cannot move `latest`.
+#     even a bare `npm run publish` by hand cannot move `latest`. What the pin
+#     does not stop is someone naming a tag themselves: arguments to a
+#     *per-package* script (`npm run publish -w packages/doenetml -- --tag
+#     latest`) land in argv after the pin, and the last `--tag` wins, exactly
+#     as `npm publish` itself resolves it. The guarantee is that no invocation
+#     which does not name a tag can reach one.
 on:
     release:
         types: [published]
@@ -126,13 +131,13 @@ jobs:
             # wedged one from holding the runner.
             #
             # Gated on the publish having *run*, not on it having succeeded:
-            # `npm run publish` is four independent workspace publishes and npm
-            # does not stop at the first one that fails, so a failed step tells
-            # you nothing about whether @doenet/standalone went out. Skipping
-            # the purge on that signal would leave `dev` on the CDN a release
-            # behind for 12 hours because some unrelated package failed. The
-            # registry wait inside the script is the real gate: it refuses to
-            # purge until npm serves this version under the tag.
+            # `npm run publish:dev` is four independent workspace publishes and
+            # npm does not stop at the first one that fails, so a failed step
+            # tells you nothing about whether @doenet/standalone went out.
+            # Skipping the purge on that signal would leave `0.7-dev` on the CDN
+            # a release behind for 12 hours because some unrelated package
+            # failed. The registry wait inside the script is the real gate: it
+            # refuses to purge until npm serves this version under the tag.
             - name: Purge jsDelivr cache
               if: >-
                   !cancelled() &&
@@ -238,16 +243,17 @@ jobs:
             # processing the publish and then for jsDelivr to fetch it before it
             # fires, which takes minutes rather than seconds (see
             # `jsdelivr-purge-lib.sh`), and it now fails the job when the tag
-            # will not move. Neither should stand between a
-            # published npm release and the extension registries: those do not
-            # depend on the CDN, and a purge that has to be re-run should not
-            # take the Marketplace publish with it.
+            # will not move. On `main` that ordering also keeps it from standing
+            # between a published npm release and the extension registries;
+            # there are no such steps here, but nothing else wants to run after
+            # a half-hour of waiting either.
             #
             # The condition is what keeps that from cutting the other way. Being
             # last, this step would otherwise be skipped whenever a step above
-            # failed — leaving `latest` on the CDN a release behind for 12 hours
-            # because an extension registry was down. `!cancelled()` runs it
-            # anyway, and it is tied to the npm publish instead.
+            # failed — leaving `0.7-stable` on the CDN a release behind for 12
+            # hours because of something that has nothing to do with the CDN.
+            # `!cancelled()` runs it anyway, and it is tied to the npm publish
+            # instead.
             #
             # Tied to that step having *run*, though, not to it having
             # succeeded. `npm run publish` is four independent workspace
@@ -271,14 +277,16 @@ jobs:
             # runner, and a slow-but-succeeding second purge is not cut off
             # partway by the backstop meant for a wedged one.
             #
-            # Two floating URLs move on a production release, not one. `latest`
-            # is the dist-tag; the line range is what a host pins when it sets
-            # `doenetmlVersion="0.7"`, which jsDelivr resolves as an npm semver
-            # range and caches for 12 hours like any other floating URL. It has
-            # never been purged, so those hosts have been served the previous
-            # release for up to half a day after each one. The line is derived
-            # from the release rather than written down, so it follows the
-            # version without anyone having to remember to change it.
+            # Two floating URLs move on a production release, not one.
+            # `0.7-stable` is the dist-tag; the line range is what a host pins
+            # when it sets `doenetmlVersion="0.7"`, which jsDelivr resolves as
+            # an npm semver range and caches for 12 hours like any other
+            # floating URL. On this branch the line range is the one that
+            # matters most: `0.7` is what a host pinned to the maintenance line
+            # actually resolves through, while `0.7-stable` is a tag they have
+            # to opt into by name. The line is derived from the release rather
+            # than written down, so it follows the version without anyone
+            # having to remember to change it.
             - name: Purge jsDelivr cache
               if: >-
                   !cancelled() &&

@@ -37,7 +37,7 @@ following the instructions in `packages/prefigure/README.md`.
 
 Most `@doenet/*` packages are **internal**: their source is bundled into `@doenet/doenetml`, so a change to any of them rides out under `@doenet/doenetml`'s version. **Never list an internal package in a changeset** — not even when the files that changed are its own.
 
-Rather than enumerate them — the list grows — invert it. **Exactly six packages are published**, and every other `@doenet/*` package is internal:
+Rather than enumerate them — the list grows — invert it. **Exactly six packages are publishable**, and every other `@doenet/*` package is internal (on this branch only the first four are actually released — see below):
 
 - `@doenet/doenetml`
 - `@doenet/standalone`
@@ -79,6 +79,8 @@ Do **not** include a package just because the changed code imports from it. `@do
 
 Fixed-group members all version together regardless of whether they're listed, but listing controls which package's CHANGELOG the entry lands in — list a fixed-group member only when its users would care to read the entry. Editor/viewer changes typically skip `@doenet/v06-to-v07` for this reason, even though v06-to-v07 versions along with the group.
 
+**On this branch, leave `@doenet/vscode-extension` and `doenet-vscode-extension` out for the same reason**, however much of the editor a change touches. Both manifests still bump with the fixed group — `validate-tag-versions.mjs` requires it — but the extension is never published from the maintenance line, so an entry in its CHANGELOG would describe a version no Marketplace reader can install. `main`'s copy of this skill still lists them, which is correct there; drop the two lines when a backport brings a changeset across.
+
 ## Bump type
 
 On this branch `patch` is not a default but a requirement: `.github/scripts/check-changeset-bumps.mjs` runs in CI and fails any changeset here that is not `patch`. A `minor` would make `changeset version` compute `0.8.0` — a version that belongs to `main` — and two branches would then claim it.
@@ -94,8 +96,6 @@ Each changeset is a Markdown file in `.changeset/` with YAML frontmatter listing
 "@doenet/doenetml": patch
 "@doenet/standalone": patch
 "@doenet/doenetml-iframe": patch
-"@doenet/vscode-extension": patch
-"doenet-vscode-extension": patch
 ---
 
 Editor: <one-line summary of the user-visible change>.
