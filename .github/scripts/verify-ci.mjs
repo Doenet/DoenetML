@@ -122,42 +122,52 @@ async function fetchRuns() {
             },
         });
     } catch (error) {
-        console.warn(
-            `  could not query CI workflow runs: ${error.message ?? error}`,
+        return unreadable(
+            `could not query CI workflow runs: ${error.message ?? error}`,
         );
-        return null;
     }
 
     if (!response.ok) {
         const body = await response.text().catch(() => "");
-        console.warn(
-            `  could not query CI workflow runs: ${response.status} ${response.statusText}`,
+        const result = unreadable(
+            `could not query CI workflow runs: ${response.status} ${response.statusText}`,
         );
         if (body) {
             console.warn(`  ${body.slice(0, 500)}`);
         }
-        return null;
+        return result;
     }
 
     let data;
     try {
         data = await response.json();
     } catch (error) {
-        console.warn(
-            `  could not parse the CI workflow run listing: ${error.message ?? error}`,
+        return unreadable(
+            `could not parse the CI workflow run listing: ${error.message ?? error}`,
         );
-        return null;
     }
 
     const runs = data?.workflow_runs;
     if (!Array.isArray(runs)) {
-        console.warn(
-            "  CI workflow run listing had no workflow_runs array; treating it as unread.",
+        return unreadable(
+            "CI workflow run listing had no workflow_runs array; treating it as unread",
         );
-        return null;
     }
 
     return runs.filter((run) => run.head_sha === targetSha);
+}
+
+/**
+ * Report an unreadable response and remember why. The reason is repeated in
+ * the message that ends the job, so that message stands on its own: before
+ * this script waited, an unusable response failed the step immediately and the
+ * status was right there in the error. Now it is a warning from some poll
+ * several minutes earlier, which is exactly the line a reader would miss.
+ */
+function unreadable(reason) {
+    lastUnreadableReason = reason;
+    console.warn(`  ${reason}`);
+    return null;
 }
 
 function describe(run) {
@@ -168,6 +178,8 @@ function describe(run) {
 let sawRuns = false;
 /** When the current unbroken streak of unreadable responses began, if any. */
 let firstUnreadableAt = null;
+/** Why the most recent unreadable response could not be used. */
+let lastUnreadableReason = null;
 
 while (true) {
     const runs = await fetchRuns();
@@ -212,7 +224,15 @@ while (true) {
         sawRuns ||= runs.length > 0;
         const budget = sawRuns ? timeoutMs : missingGraceMs;
         if (Date.now() - startedAt >= budget) {
-            if (runs.length === 0) {
+            if (runs.length === 0 && sawRuns) {
+                // The latch means this is reachable, and "no run found" would
+                // be the wrong thing to say about it: a run *was* found, and
+                // then stopped being listed — a deleted run, or a listing
+                // that never recovered.
+                console.error(
+                    `CI workflow runs for commit ${targetSha} stopped being listed part-way through the wait and had not come back after ${elapsedSeconds()}s.`,
+                );
+            } else if (runs.length === 0) {
                 console.error(
                     `No CI workflow run with matching head_sha found for commit ${targetSha} after ${elapsedSeconds()}s.`,
                 );
@@ -234,6 +254,10 @@ while (true) {
             console.log(
                 `  waiting on ${describe(pending[0])} — ${elapsedSeconds()}s elapsed, ${budgetLeft}s of budget left`,
             );
+        } else if (sawRuns) {
+            console.log(
+                `  the CI run listed earlier for ${targetSha} is no longer being returned — ${elapsedSeconds()}s elapsed`,
+            );
         } else {
             console.log(
                 `  no CI run recorded for ${targetSha} yet — ${elapsedSeconds()}s elapsed`,
@@ -248,7 +272,7 @@ while (true) {
         const unreadableMs = Date.now() - firstUnreadableAt;
         if (unreadableMs >= missingGraceMs) {
             console.error(
-                `Could not read CI workflow runs for commit ${targetSha} for ${Math.round(unreadableMs / 1000)}s (${elapsedSeconds()}s into the wait).`,
+                `Could not read CI workflow runs for commit ${targetSha} for ${Math.round(unreadableMs / 1000)}s (${elapsedSeconds()}s into the wait). Last failure: ${lastUnreadableReason}.`,
             );
             process.exit(1);
         }
