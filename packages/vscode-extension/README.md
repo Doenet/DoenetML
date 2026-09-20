@@ -39,13 +39,26 @@ button for the currently running process.
 
 #### Packaging the extension
 
-Extension packaging and publishing is automated as part of the production release workflow. To manually package for testing:
+Extension packaging and publishing is automated as part of the production release workflow — though not on this branch, where the extension is neither built nor published by a release (see [Publishing the extension](#publishing-the-extension)). To manually package for testing:
 
 -   Make sure `npm run build` has been run to build all sources
 -   Run `npm run package` from the `packages/vscode-extension` directory
 -   You will have a new `doenet-vscode-extension-???.vsix` file that you can test locally
 
 #### Publishing the extension
+
+> **On the 0.7 maintenance branch, none of this runs and none of it should be run by hand.**
+> `publish.yml` here builds and publishes the four npm packages only; the Marketplace and
+> Open VSX steps are not on this branch. On both registries the stable channel is a single
+> ascending stream shared with `main` — the `0.7.10<run_number>` pre-releases run beside it
+> on their own numbers, which is why a stable upload can sit below them. So releasing an
+> 0.7.x extension from here would either be rejected as a downgrade, once `main` has shipped
+> an 0.8.x one, or — worse, before that — be accepted and put a maintenance-line build in
+> front of every stable user as the newest extension there is. The two manifests still version with
+> the fixed group because `validate-tag-versions.mjs` requires it; they are simply never
+> published from here. The `publish`, `publish:prerelease`, `publish:openvsx` and
+> `publish:openvsx:prerelease` scripts below still work if you run them with a token, which
+> is precisely why they should not be. The rest of this section describes `main`.
 
 The production release workflow automatically publishes to the VS Code Marketplace after npm packages are published, then publishes the same extension to the [Open VSX registry](https://open-vsx.org), where VS Code-compatible editors such as VSCodium find it. Open VSX publishing needs an `OVSX_PAT` repository secret; without it that step warns and the rest of the release proceeds. To publish it by hand, run `npm run publish:openvsx -w packages/vscode-extension` with `OVSX_PAT` set to an [open-vsx.org](https://open-vsx.org) access token for the `doenet` namespace.
 

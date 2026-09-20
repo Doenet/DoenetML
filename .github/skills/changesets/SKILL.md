@@ -7,7 +7,9 @@ description: Rules for creating and editing changeset files in .changeset/ — w
 
 Use this skill when **creating or editing files in `.changeset/`** (typically `.changeset/<some-name>.md`). It covers which `@doenet/*` packages a changeset should list, how version propagation works, and which packages must never appear.
 
-Configuration lives in `.changeset/config.json`. The version-packages PR (`changeset-release/main` branch) is maintained by `.github/workflows/changesets-version-pr.yml`; npm publication is handled separately by `.github/workflows/publish.yml`.
+Configuration lives in `.changeset/config.json`. The version-packages PR (`changeset-release/0.7` branch) is maintained by `.github/workflows/changesets-version-pr.yml`; npm publication is handled separately by `.github/workflows/publish.yml`.
+
+**This is the 0.7 maintenance branch.** `baseBranch` is `0.7`, releases publish under the `0.7-stable` / `0.7-dev` dist-tags rather than `latest` / `dev`, and every changeset here must be `patch` — see [Bump type](#bump-type).
 
 ## Fixed Group (synchronized versioning)
 
@@ -35,7 +37,7 @@ following the instructions in `packages/prefigure/README.md`.
 
 Most `@doenet/*` packages are **internal**: their source is bundled into `@doenet/doenetml`, so a change to any of them rides out under `@doenet/doenetml`'s version. **Never list an internal package in a changeset** — not even when the files that changed are its own.
 
-Rather than enumerate them — the list grows — invert it. **Exactly six packages are published**, and every other `@doenet/*` package is internal:
+Rather than enumerate them — the list grows — invert it. **Exactly six packages are publishable**, and every other `@doenet/*` package is internal (on this branch only the first four are actually released — see below):
 
 - `@doenet/doenetml`
 - `@doenet/standalone`
@@ -51,7 +53,9 @@ Don't infer "never published" from `"private": true` alone, and don't infer "pub
 **The two reliable signals**, either of which settles it:
 
 1. The package's `vite.config.ts` runs `scripts/transform-package-json.ts`. Internal packages have no such step.
-2. The package appears in the publish targets in `.github/workflows/publish.yml` (`npm run build -w packages/doenetml -w packages/standalone -w packages/doenetml-iframe -w packages/v06-to-v07`, plus `@doenet/vscode-extension`), or has a publish workflow of its own (`publish-prefigure.yml`).
+2. The package has a `publish` script in its own `package.json` that runs `.github/scripts/npm-publish-with-retry.mjs`, and the root `publish` script names its workspace. Internal packages have neither. Both signals are about npm, so neither one catches `@doenet/vscode-extension` or `doenet-vscode-extension`: the extension goes to the VS Code Marketplace via `vsce`, and both manifests are in the fixed group regardless — treat them as settled by the fixed-group list above rather than by these two.
+
+   On this branch that list is the four npm packages only: `@doenet/vscode-extension` still versions with the fixed group but is never published here (the Marketplace's stable channel is one ascending stream shared with `main`, so an 0.7.x extension released after 0.8.x is a downgrade there and cannot go out), and `@doenet/prefigure` is released from `main` alone — its `publish` script on this branch refuses to run, and `publish-prefigure.yml` is not on this branch at all.
 
 Check one of those before adding an unfamiliar package to a changeset — the enumeration above is a convenience, and new packages land as internal by default.
 
@@ -60,7 +64,7 @@ Check one of those before adding an unfamiliar package to a changeset — the en
 Propagation is **one-directional — forward to consumers that re-bundle or re-render the change, never back to dependencies of the changed package.** Include a package iff:
 
 1. Its own source changed in this branch (and the package is published), OR
-2. It bundles, re-exports, or embeds the changed source, and the change is something that package's users will notice. Example: a change in `packages/doenetml/src` is visible to `@doenet/standalone` (bundles `@doenet/doenetml`), `@doenet/doenetml-iframe` (bundles `@doenet/standalone`), and `@doenet/vscode-extension` / `doenet-vscode-extension` (embed the editor) — list those alongside `@doenet/doenetml`. Look at recent changesets in the same area for the conventional set.
+2. It bundles, re-exports, or embeds the changed source, and the change is something that package's users will notice. Example: a change in `packages/doenetml/src` is visible to `@doenet/standalone` (bundles `@doenet/doenetml`), `@doenet/doenetml-iframe` (bundles `@doenet/standalone`), and `@doenet/vscode-extension` / `doenet-vscode-extension` (embed the editor) — list those alongside `@doenet/doenetml`. **On this branch stop before the two extension manifests**; the note at the end of this section says why. Look at recent changesets in the same area for the conventional set.
 
 ### The doenetml → standalone → doenetml-iframe chain (always propagate)
 
@@ -75,9 +79,13 @@ Do **not** include a package just because the changed code imports from it. `@do
 
 Fixed-group members all version together regardless of whether they're listed, but listing controls which package's CHANGELOG the entry lands in — list a fixed-group member only when its users would care to read the entry. Editor/viewer changes typically skip `@doenet/v06-to-v07` for this reason, even though v06-to-v07 versions along with the group.
 
+**On this branch, leave `@doenet/vscode-extension` and `doenet-vscode-extension` out for the same reason**, however much of the editor a change touches. Both manifests still bump with the fixed group — `validate-tag-versions.mjs` requires it — but the extension is never published from the maintenance line, so an entry in its CHANGELOG would describe a version no Marketplace reader can install. `main`'s copy of this skill still lists them, which is correct there; drop the two lines when a backport brings a changeset across.
+
 ## Bump type
 
-While the repo is < 1.0, default to `patch` for every package in every changeset — even for new API or larger-feeling changes. Revisit this convention once the first 1.0 release is on the horizon.
+On this branch `patch` is not a default but a requirement: `.github/scripts/check-changeset-bumps.mjs` runs in CI and fails any changeset here that is not `patch`. A `minor` would make `changeset version` compute `0.8.0` — a version that belongs to `main` — and two branches would then claim it.
+
+Watch for this on a cherry-pick. A fix backported from `main` brings its changeset file with it, and the bump type is the one part of that file which stops being true on the way across; edit it to `patch` as part of the backport. If the change really needs a `minor`, it belongs on `main` and not in a backport.
 
 ## File format
 
@@ -88,8 +96,6 @@ Each changeset is a Markdown file in `.changeset/` with YAML frontmatter listing
 "@doenet/doenetml": patch
 "@doenet/standalone": patch
 "@doenet/doenetml-iframe": patch
-"@doenet/vscode-extension": patch
-"doenet-vscode-extension": patch
 ---
 
 Editor: <one-line summary of the user-visible change>.

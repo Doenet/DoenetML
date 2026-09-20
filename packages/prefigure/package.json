@@ -31,7 +31,7 @@
         "preview": "vite preview",
         "setup": "vite-node scripts/fetch-pyodide-packages.ts && vite-node scripts/fetch-liblouis.ts",
         "verify-wheel-sync": "vite-node --script scripts/verify-wheel-sync.ts",
-        "publish": "npm run build && npm run verify-wheel-sync && node ../../.github/scripts/npm-publish-with-retry.mjs dist"
+        "publish": "echo 'Refused: @doenet/prefigure is released from main only. It carries no line dist-tag, so a release from the 0.7 maintenance line would move @doenet/prefigure@latest -- the same reason publish-prefigure.yml is not on this branch. A 0.7 backport that needs a newer runtime bumps the pin in prefigureConfig.ts.' >&2 && exit 1"
     },
     "wireit": {
         "build": {
