@@ -24,14 +24,16 @@ name: Publish
 #     source manifest of every package this repo sends to npm is `private`,
 #     which npm refuses, while `transform-package-json.ts` writes each
 #     generated one `private: false`. A bare invocation there names no tag.
-#     Nothing here does that, and for the four line packages npm refuses it
-#     on its own once `main` is ahead -- it will not imply `latest` when a
-#     published version is already higher than the one being sent. The
-#     generated manifest that backstop does not cover is
-#     `packages/prefigure/dist`: prefigure is versioned on its own and this
-#     line never raises it, so nothing is ever ahead of it. Closing the
-#     script route is what prefigure's refusing `publish` script here is for;
-#     the `dist/` one stays open and is worth knowing about.
+#     Nothing here does that, and npm itself covers most of it: it refuses
+#     to publish over a version already on the registry, and it refuses to
+#     imply `latest` when a published version is higher than *or equal to*
+#     the one being sent. Equal counts, which is what decides the cases
+#     here. `packages/prefigure/dist` is covered permanently -- it carries
+#     the version already on npm, because this line never raises prefigure
+#     -- so the route left open is the four line packages, and only between
+#     the version PR bumping them past the newest published 0.7.x and `main`
+#     reaching 0.8.x. Prefigure's refusing `publish` script closes the
+#     script route to the same place; that one is not time-limited.
 on:
     release:
         types: [published]
