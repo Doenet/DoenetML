@@ -18,8 +18,13 @@ name: Publish
 #     does not stop is someone naming a tag themselves: arguments to a
 #     *per-package* script (`npm run publish -w packages/doenetml -- --tag
 #     latest`) land in argv after the pin, and the last `--tag` wins, exactly
-#     as `npm publish` itself resolves it. The guarantee is that no invocation
-#     which does not name a tag can reach one.
+#     as `npm publish` itself resolves it. The guarantee is about the scripts:
+#     no `npm run publish` / `publish:dev` that names no tag can reach one.
+#     `npm publish` typed straight into a built `dist/` is outside them --
+#     that generated manifest is the only one here that is not `private` --
+#     and it takes npm's default. npm blocks that route itself once `main` is
+#     ahead: it refuses to imply `latest` when a published version is already
+#     higher than the one being sent.
 on:
     release:
         types: [published]

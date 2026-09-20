@@ -53,7 +53,7 @@ Don't infer "never published" from `"private": true` alone, and don't infer "pub
 **The two reliable signals**, either of which settles it:
 
 1. The package's `vite.config.ts` runs `scripts/transform-package-json.ts`. Internal packages have no such step.
-2. The package has a `publish` script in its own `package.json` that runs `.github/scripts/npm-publish-with-retry.mjs`, and the root `publish` script names its workspace. Internal packages have neither. Both signals are about npm, so neither one catches `@doenet/vscode-extension`: it goes to the VS Code Marketplace via `vsce`, and it is in the fixed group regardless — treat it as settled by the fixed-group list above rather than by these two.
+2. The package has a `publish` script in its own `package.json` that runs `.github/scripts/npm-publish-with-retry.mjs`, and the root `publish` script names its workspace. Internal packages have neither. Both signals are about npm, so neither one catches `@doenet/vscode-extension` or `doenet-vscode-extension`: the extension goes to the VS Code Marketplace via `vsce`, and both manifests are in the fixed group regardless — treat them as settled by the fixed-group list above rather than by these two.
 
    On this branch that list is the four npm packages only: `@doenet/vscode-extension` still versions with the fixed group but is never published here (the Marketplace's stable channel is one ascending stream shared with `main`, so an 0.7.x extension released after 0.8.x is a downgrade there and cannot go out), and `@doenet/prefigure` is released from `main` alone — its `publish` script on this branch refuses to run, and `publish-prefigure.yml` is not on this branch at all.
 
