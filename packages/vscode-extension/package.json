@@ -4,7 +4,7 @@
     "description": "A language server for DoenetML",
     "author": "Jason Siefken",
     "license": "AGPL-3.0-or-later",
-    "version": "0.7.26",
+    "version": "0.7.27",
     "repository": {
         "type": "git",
         "url": "https://github.com/Doenet/DoenetML"
