@@ -12,10 +12,14 @@ import {
 
 // A component that copies another wholesale -- `<mathInput extend="$mi" />`, or
 // a composite's replacement of what it copies -- shadows it. Most of what such
-// a component records is not its own: a variable it shadows redirects its
-// inverse to the target, and the essential-value writer then mirrors the
-// target's write back down over `shadowedBy`, so every variable under the
-// shadow's id is recorded under its source's id too, with the same value --
+// a component records is not its own, by one of two routes. Where the variable
+// the reader acts on is a shadowed one, its inverse is redirected to the target
+// and the essential values the target's inverse sets are mirrored back down
+// over `shadowedBy`. Where it is not -- a dragged copy of a `<point>` has no
+// shadowed variables at all -- the write sets an essential value on the shadow,
+// and `EssentialValueWriter` walks up `shadows` to the base component and
+// records it there before mirroring back down. Either way every variable under
+// the shadow's id is recorded under its source's id too, with the same value --
 // often a subset of what is under the source's id rather than a copy of it.
 //
 // Saving the duplicate is worse than wasteful. The two entries are restored
@@ -111,10 +115,12 @@ describe("a shadow's state is its source's, and is not persisted twice @group4",
 
     it("restores the copy from the source's entry alone", async () => {
         // What the entry above has to be worth: the copy comes back with the
-        // value, and with the bookkeeping that says the reader changed it.
-        // Those last two are the copy's *own* essential variables rather than
-        // shadowed ones, so they are the ones a filter keyed on the component
-        // rather than on the variable could plausibly lose.
+        // value, with the raw text the renderer shows, and with the
+        // bookkeeping that says the reader changed it. `valueChanged` is the
+        // one of those three the copy records for itself -- `value` and
+        // `rawRendererValue` are `shadowVariable` on it and were never in its
+        // entry -- so it is the one a filter keyed on the component rather
+        // than on the variable could plausibly lose.
         const trip = await roundTrip(COPIED_INPUT, async (core, resolve) => {
             await updateMathInputValue({
                 latex: "5",
