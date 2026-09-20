@@ -799,9 +799,9 @@ describe("Matrix tag tests @group3", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("Adef")].stateValues.text,
-        ).eqls("[ [ x_＿, y_＿ ], [ a_＿, b_＿ ] ]");
+        ).eqls("[[x_＿, y_＿], [a_＿, b_＿]]");
         expect(
             stateVariables[await resolvePathToNodeIdx("Ah")].stateValues.text,
-        ).eqls("[ [ x_, y_ ], [ a_, b_ ] ]");
+        ).eqls("[[x_, y_], [a_, b_]]");
     });
 });

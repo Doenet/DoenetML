@@ -388,7 +388,7 @@ describe("Intersection tag tests @group1", async () => {
         ).eq("Intersection 1: ");
         expect(
             stateVariables[await resolvePathToNodeIdx("i2")].stateValues.text,
-        ).eq("Intersection 2: ( 3, 2 )");
+        ).eq("Intersection 2: (3, 2)");
 
         await updateBooleanInputValue({
             boolean: false,
@@ -403,7 +403,7 @@ describe("Intersection tag tests @group1", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("i1")].stateValues.text,
-        ).eq("Intersection 1: ( 3, 2 )");
+        ).eq("Intersection 1: (3, 2)");
         expect(
             stateVariables[await resolvePathToNodeIdx("i2")].stateValues.text,
         ).eq("Intersection 2: ");
@@ -478,7 +478,7 @@ describe("Intersection tag tests @group1", async () => {
         ).eq("Intersection 1: ");
         expect(
             stateVariables[await resolvePathToNodeIdx("i2")].stateValues.text,
-        ).eq("Intersection 2: ( 2, 3 )");
+        ).eq("Intersection 2: (2, 3)");
 
         await updateBooleanInputValue({
             boolean: false,
@@ -493,7 +493,7 @@ describe("Intersection tag tests @group1", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("i1")].stateValues.text,
-        ).eq("Intersection 1: ( 2, 3 )");
+        ).eq("Intersection 1: (2, 3)");
         expect(
             stateVariables[await resolvePathToNodeIdx("i2")].stateValues.text,
         ).eq("Intersection 2: ");
@@ -1412,10 +1412,10 @@ describe("Intersection tag tests @group1", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pDefault")].stateValues
                 .text,
-        ).eq("( 0, 1 ), ( 1, 0 )");
+        ).eq("(0, 1), (1, 0)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pNoList")].stateValues
                 .text,
-        ).eq("( 0, 1 )( 1, 0 )");
+        ).eq("(0, 1)(1, 0)");
     });
 });

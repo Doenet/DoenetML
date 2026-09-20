@@ -6,7 +6,7 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { DynamicMath } from "./utils/DynamicMath";
 import me from "math-expressions";
-import { textRendererStyle } from "@doenet/utils";
+import { textRendererStyle, toNumberOrNaN } from "@doenet/utils";
 import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { DocContext } from "../DocViewer";
 import { ChoiceInputInlineContext } from "./choiceInput";
@@ -118,8 +118,8 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
         try {
             let anchor = me.fromAst(SVs.anchor);
             let anchorCoords = [
-                anchor.get_component(0).evaluate_to_constant() ?? NaN,
-                anchor.get_component(1).evaluate_to_constant() ?? NaN,
+                toNumberOrNaN(anchor.get_component(0).evaluate_to_constant()),
+                toNumberOrNaN(anchor.get_component(1).evaluate_to_constant()),
             ];
 
             if (!Number.isFinite(anchorCoords[0])) {
@@ -202,8 +202,8 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
         try {
             let anchor = me.fromAst(SVs.anchor);
             anchorCoords = [
-                anchor.get_component(0).evaluate_to_constant() ?? NaN,
-                anchor.get_component(1).evaluate_to_constant() ?? NaN,
+                toNumberOrNaN(anchor.get_component(0).evaluate_to_constant()),
+                toNumberOrNaN(anchor.get_component(1).evaluate_to_constant()),
             ];
         } catch (e) {
             anchorCoords = [NaN, NaN];

@@ -675,4 +675,53 @@ describe("FunctionIterates tag tests @group2", async () => {
             `(40,36,0)`,
         );
     });
+    /**
+     * An initial value with a component that has no numeric value must not
+     * produce a *number*. While `evaluate_to_constant()` answered `null` for
+     * `(a,b)`, `null` was `0` to the numerical function, so the
+     * multi-dimensional branch reported the orbit of the **origin** as the
+     * student's answer with no sign that anything was wrong. `iterates` is
+     * public and feeds `<answer>`.
+     *
+     * The two branches spell "no value" differently and both spellings are
+     * pinned here: one dimension fills a blank `＿`, several fill `(NaN, …)`.
+     * (`change dimensions, numerical` above pins the multi-dimensional one
+     * too; this test is about the *initial value* being the thing with no
+     * numeric value.)
+     */
+    it("a symbolic initial value never yields the orbit of the origin", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <function name="f" simplify variables="x y">⟨2x, 3y⟩</function>
+  <functionIterates function="$f" initialValue="(a,b)" numIterates="2" name="fis" forceNumeric />
+  <mathList extend="$fis.iterates" name="iterates" />
+  <function name="g" variables="x">2x</function>
+  <functionIterates function="$g" initialValue="a" numIterates="2" name="gis" forceNumeric />
+  <mathList extend="$gis.iterates" name="giterates" />
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        const iterNames = stateVariables[
+            await resolvePathToNodeIdx("iterates")
+        ].replacements!.map((x) => x.componentIdx);
+        expect(iterNames.length).eq(2);
+        for (const n of iterNames) {
+            // `(NaN,NaN)`, and in particular not `(0,0)`.
+            expect(stateVariables[n].stateValues.value.tree).eqls([
+                "vector",
+                NaN,
+                NaN,
+            ]);
+        }
+
+        const gIterNames = stateVariables[
+            await resolvePathToNodeIdx("giterates")
+        ].replacements!.map((x) => x.componentIdx);
+        expect(gIterNames.length).eq(2);
+        for (const n of gIterNames) {
+            expect(stateVariables[n].stateValues.value.tree).eq("\uff3f");
+        }
+    });
 });

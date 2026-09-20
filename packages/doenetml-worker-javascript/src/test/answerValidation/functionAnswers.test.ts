@@ -135,12 +135,23 @@ describe("function answer validation tests @group4", async () => {
                             false,
                             true,
                         );
+                        // The engine evaluates the credit expression from an
+                        // exact pi and rounds once, where `partialCredit`
+                        // above goes through `Math.PI` and rounds at every
+                        // operation. Both are right; they differ by the
+                        // cosine argument's own ulp, which grows with the
+                        // argument. For the -252351.9 response the argument
+                        // is ~10^6, where an f64 carries no more than ~1e-10
+                        // of absolute accuracy, so 1e-12 is not agreement
+                        // anyone can have.
+                        const cosArgument =
+                            (2 * Math.PI * (response - offset)) / period;
                         expect(
                             stateVariables[await resolvePathToNodeIdx("ans")]
                                 .stateValues.creditAchieved,
                         ).closeTo(
                             partialCredit(offset, period, magnitude, response),
-                            1e-12,
+                            1e-12 + 1e-15 * Math.abs(cosArgument),
                         );
                     }
                 }

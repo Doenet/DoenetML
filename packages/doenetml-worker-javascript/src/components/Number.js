@@ -21,8 +21,48 @@ import {
     textToMathFactory,
     mathStateVariableFromNumberStateVariable,
     numberToMathExpression,
+    plainComplex,
     roundForDisplay,
 } from "../utils/math";
+
+/**
+ * The numeric value of an expression carrying a currency marker — `2$` is `2`.
+ *
+ * A well-formed `["unit", …]` node (`$5`, `25%`, `60 deg`) needs none of this:
+ * `evaluate_to_constant()` already answers `5`, `0.25` and `π/3`. What it
+ * cannot do is a *stray* `$`, which parses as a free factor — `2$` is
+ * `["*", 2, "$"]`, and a free factor makes the whole expression unevaluable.
+ * Asking `<number>` for a value is exactly the place where that marker should
+ * be dropped, so it is substituted with 1 here and nowhere else.
+ *
+ * The substitution is global, so a `$` that is not a factor is silently given
+ * the value 1 too: `$-5` parses as `["+", "$", -5]` and answers **-4**. That is
+ * a wrong number rather than a refusal, and it is the known cost of doing this
+ * with `substitute` instead of matching the marker where it sits.
+ *
+ * Returns `NaN` when the expression still has no numeric value after the
+ * marker is dropped — a free variable, say — which is what
+ * `evaluate_to_constant()` answers for it, so a caller can test the result the
+ * one way.
+ *
+ * A note for the record, because an earlier review pass wrote the opposite here
+ * and it was never true: `2$`, `-5$` and a bare `$` all answer `NaN`, not
+ * `null`, and did so even while `evaluate_to_constant` had a `null` sentinel —
+ * `$` is one of the unit names it excludes from "free variables", so those fell
+ * through to its `NaN` arm. The claim that the callers' `number === null` test
+ * was the half that reached this function was therefore backwards; it was
+ * always `Number.isNaN`. Measured both then and now.
+ */
+function valueIgnoringUnits(expr) {
+    try {
+        return expr
+            .remove_scaling_units()
+            .substitute({ $: 1 })
+            .evaluate_to_constant();
+    } catch (e) {
+        return NaN;
+    }
+}
 
 export default class NumberComponent extends InlineComponent {
     constructor(args) {
@@ -535,13 +575,15 @@ export default class NumberComponent extends InlineComponent {
                         );
                         if (Number.isNaN(number)) {
                             try {
-                                number = me
-                                    .fromAst(
-                                        textToAst.convert(
-                                            dependencyValues.stringChild[0],
-                                        ),
-                                    )
-                                    .evaluate_to_constant();
+                                const parsed = me.fromAst(
+                                    textToAst.convert(
+                                        dependencyValues.stringChild[0],
+                                    ),
+                                );
+                                number = parsed.evaluate_to_constant();
+                                if (Number.isNaN(number)) {
+                                    number = valueIgnoringUnits(parsed);
+                                }
 
                                 if (typeof number === "boolean") {
                                     if (dependencyValues.convertBoolean) {
@@ -549,6 +591,10 @@ export default class NumberComponent extends InlineComponent {
                                     } else {
                                         number = dependencyValues.valueOnNaN;
                                     }
+                                    // `NaN` is "no numeric value" — a blank
+                                    // `_`, a free variable, or an indeterminate
+                                    // form. `valueOnNaN` is the author-facing
+                                    // knob for what to show instead.
                                 } else if (Number.isNaN(number)) {
                                     if (dependencyValues.convertBoolean) {
                                         let parsedExpression =
@@ -602,7 +648,7 @@ export default class NumberComponent extends InlineComponent {
                                 number = dependencyValues.valueOnNaN;
                             }
                         }
-                        return { setValue: { value: number } };
+                        return { setValue: { value: plainComplex(number) } };
                     } else {
                         let number =
                             dependencyValues.numberChild.length === 1
@@ -613,7 +659,11 @@ export default class NumberComponent extends InlineComponent {
                         if (Number.isNaN(number)) {
                             number = dependencyValues.valueOnNaN;
                         }
-                        return { setValue: { value: number } };
+                        // `plainComplex` here too: `<text>`'s `.number` can be
+                        // a math.js `Complex` (`<number><text>3+4i</text></number>`),
+                        // and this was the one branch of this definition that
+                        // let the class instance reach the state variable.
+                        return { setValue: { value: plainComplex(number) } };
                     }
                 } else {
                     if (dependencyValues.parsedExpression === null) {
@@ -658,13 +708,15 @@ export default class NumberComponent extends InlineComponent {
                         let number;
 
                         try {
-                            number = me
-                                .fromAst(
-                                    replaceMath(
-                                        dependencyValues.parsedExpression.tree,
-                                    ),
-                                )
-                                .evaluate_to_constant();
+                            const parsed = me.fromAst(
+                                replaceMath(
+                                    dependencyValues.parsedExpression.tree,
+                                ),
+                            );
+                            number = parsed.evaluate_to_constant();
+                            if (Number.isNaN(number)) {
+                                number = valueIgnoringUnits(parsed);
+                            }
                         } catch (e) {
                             number = dependencyValues.valueOnNaN;
                         }
@@ -675,7 +727,9 @@ export default class NumberComponent extends InlineComponent {
                                 (typeof number?.re === "number" &&
                                     typeof number?.im === "number"))
                         ) {
-                            return { setValue: { value: number } };
+                            return {
+                                setValue: { value: plainComplex(number) },
+                            };
                         }
                     }
 
@@ -727,9 +781,17 @@ export default class NumberComponent extends InlineComponent {
                 let number = Number(value);
                 if (Number.isNaN(number)) {
                     try {
-                        number = me
-                            .fromAst(textToAst.convert(value))
-                            .evaluate_to_constant();
+                        // `?? NaN` is belt and braces: `plainComplex` passes
+                        // anything that is not a `Complex` straight through, and
+                        // `evaluate_to_constant()` used to hand it a `null` for
+                        // a free variable or a blank, which coerces to `0`. It
+                        // answers `NaN` for those now.
+                        number =
+                            plainComplex(
+                                me
+                                    .fromAst(textToAst.convert(value))
+                                    .evaluate_to_constant(),
+                            ) ?? NaN;
                     } catch (e) {
                         number = NaN;
                     }
@@ -748,7 +810,9 @@ export default class NumberComponent extends InlineComponent {
 
                 let desiredValue = desiredStateVariableValues.value;
                 if (desiredValue instanceof me.class) {
-                    desiredValue = desiredValue.evaluate_to_constant();
+                    desiredValue = plainComplex(
+                        desiredValue.evaluate_to_constant(),
+                    );
                     if (
                         Number.isNaN(desiredValue) ||
                         !(
@@ -804,9 +868,11 @@ export default class NumberComponent extends InlineComponent {
                         instructions = [
                             {
                                 setEssentialValue: "value",
-                                value: numberToMathExpression(
-                                    desiredValue,
-                                ).evaluate_to_constant(), // to normalize form
+                                value: plainComplex(
+                                    numberToMathExpression(
+                                        desiredValue,
+                                    ).evaluate_to_constant(),
+                                ), // to normalize form
                             },
                         ];
                     } else {
@@ -863,10 +929,12 @@ export default class NumberComponent extends InlineComponent {
             definition: function ({ dependencyValues }) {
                 // for display via latex and text, round any decimal numbers to the significant digits
                 // determined by displaydigits
-                let rounded = roundForDisplay({
-                    value: numberToMathExpression(dependencyValues.value),
-                    dependencyValues,
-                }).evaluate_to_constant();
+                let rounded = plainComplex(
+                    roundForDisplay({
+                        value: numberToMathExpression(dependencyValues.value),
+                        dependencyValues,
+                    }).evaluate_to_constant(),
+                );
 
                 return {
                     setValue: {

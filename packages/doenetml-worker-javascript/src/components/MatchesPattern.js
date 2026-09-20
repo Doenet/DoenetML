@@ -1,10 +1,8 @@
 import BooleanComponent from "./Boolean";
 import { numberToLetters } from "@doenet/utils";
 import { codedDiagnostic } from "../utils/diagnostics";
-import { isValidVariable } from "../utils/math";
+import { isValidVariable, treeContainsBlank, BLANK } from "../utils/math";
 import me from "math-expressions";
-
-const BLANK = "\uff3f";
 
 /**
  * A string key for `tree` when `tree` names a variable, and `undefined` when it
@@ -386,7 +384,7 @@ export default class MatchesPattern extends BooleanComponent {
                     dependencyValues.mathChildren[0].stateValues.value;
 
                 if (
-                    mathValue.variables().includes(BLANK) &&
+                    treeContainsBlank(mathValue.tree) &&
                     !dependencyValues.matchExpressionWithBlanks
                 ) {
                     // don't match a math value with a blank
@@ -395,23 +393,31 @@ export default class MatchesPattern extends BooleanComponent {
                     };
                 }
 
-                let variables = {};
+                // The kind each parameter is allowed to bind. These used to be
+                // JS predicates; the engine rejects one outright now
+                // ("Arbitrary per-parameter conditions are deprecated … declare
+                // a kind instead"), so passing one is a throw rather than the
+                // silent drop it was when this was written. "number" and
+                // "variable" are the same two tests, declared.
+                //
+                // The named constants are the boundary worth knowing, and the
+                // declared kinds put them where the predicates did: `pi`, `e`
+                // and `i` are all strings in the AST, so all three still bind
+                // under "variable", and `pi`/`e` bind under "number" because
+                // they evaluate to one. `i` is the single difference — it does
+                // not, so "number" rejects it where `!Number.isNaN(...)` over
+                // this engine's `evaluate_to_constant` would have taken it.
+                // Pinned in `matchespattern.test.ts`.
+                let kind = "any";
                 if (dependencyValues.requireNumericMatches) {
-                    let isNumeric = (m) =>
-                        !Number.isNaN(me.fromAst(m).evaluate_to_constant());
-                    dependencyValues.patternVariables.forEach(
-                        (v) => (variables[v] = isNumeric),
-                    );
+                    kind = "number";
                 } else if (dependencyValues.requireVariableMatches) {
-                    let isString = (m) => typeof m === "string";
-                    dependencyValues.patternVariables.forEach(
-                        (v) => (variables[v] = isString),
-                    );
-                } else {
-                    dependencyValues.patternVariables.forEach(
-                        (v) => (variables[v] = true),
-                    );
+                    kind = "variable";
                 }
+                let variables = {};
+                dependencyValues.patternVariables.forEach(
+                    (v) => (variables[v] = kind),
+                );
 
                 let params = {
                     variables,

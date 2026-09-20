@@ -10,6 +10,7 @@ import {
     returnSymbolicFunctionFromFormula,
     returnSymbolicFunctionFromReevaluatedFormula,
     returnTextStyleDescriptionDefinitions,
+    toNumberOrNaN,
     vectorOperators,
 } from "@doenet/utils";
 import {
@@ -29,7 +30,7 @@ import {
 import {
     returnNVariables,
     roundForDisplay,
-    mergeListsWithOtherContainers,
+    mergeListsIfNeeded,
     superSubscriptsToUnicode,
 } from "../utils/math";
 import { codedDiagnostic } from "../utils/diagnostics";
@@ -1547,8 +1548,30 @@ export default class Function extends InlineComponent {
                             });
                             symbolicfs[arrayKey] = function (x) {
                                 let val = x.evaluate_to_constant();
+                                // An interpolated function has no symbolic
+                                // form, so a symbolic input has no value here.
+                                // While `evaluate_to_constant` reported that as
+                                // `null`, and `null` is `0` to arithmetic,
+                                // `$$f(x)` with `x` unbound came back as *f(0)*
+                                // and became a constant in the caller's
+                                // formula, taking its extrema with it. The
+                                // engine answers `NaN` now; the `typeof` test
+                                // still catches the `Complex` arm, which
+                                // `numericalf` cannot take.
+                                if (typeof val !== "number") {
+                                    return me.fromAst(NaN);
+                                }
                                 return me.fromAst(numericalf(val));
                             };
+                            // This "symbolic" function is the numeric one with
+                            // an unwrap in front and a rewrap behind — an
+                            // interpolated function has no symbolic form to
+                            // preserve. Naming the function underneath lets a
+                            // caller that only wants a number call it directly
+                            // and skip both wrappings; the result is the same
+                            // float, not merely an equal one.
+                            symbolicfs[arrayKey].numericalCounterpart =
+                                numericalf;
                         } else {
                             symbolicfs[arrayKey] = (x) => me.fromAst("\uff3f");
                         }
@@ -1665,10 +1688,12 @@ export default class Function extends InlineComponent {
                                     );
                             }
 
-                            formulaExpressionWithCodes = me.fromAst(
-                                mergeListsWithOtherContainers(
-                                    formulaExpressionWithCodes.tree,
-                                ),
+                            // Rebuild only if there was actually a nested list
+                            // to flatten: `me.fromAst` goes through JSON, which
+                            // would turn an exact user-typed decimal into the
+                            // nearest f64.
+                            formulaExpressionWithCodes = mergeListsIfNeeded(
+                                formulaExpressionWithCodes,
                             );
 
                             // At this point, formulaExpressionWithCodes contains only those codes from
@@ -1812,7 +1837,18 @@ export default class Function extends InlineComponent {
                     for (let arrayKey of arrayKeys) {
                         if (arrayKey === "0") {
                             symbolicfs[arrayKey] = function (x) {
+                                // Same guard, and for the same reason, as the
+                                // interpolated branch above: a shadowed
+                                // *numerical* function has no symbolic form, so
+                                // a symbolic input has no value here. While
+                                // `evaluate_to_constant` reported that as
+                                // `null`, which is `0` to arithmetic,
+                                // `$$f(x)` with `x` unbound answered `f(0)` —
+                                // a plausible constant rather than a blank.
                                 let input = x.evaluate_to_constant();
+                                if (typeof input !== "number") {
+                                    return me.fromAst(NaN);
+                                }
                                 return me.fromAst(
                                     globalDependencyValues.numericalfShadow(
                                         input,
@@ -2055,19 +2091,23 @@ export default class Function extends InlineComponent {
                                     // In this case, we won't use the value state variable
                                     // but instead will reevaluate.
                                     // Create a data structure with the info we'll need to reevaluate on function evaluation
+                                    // Compiled numeric evaluators: numbers in,
+                                    // number out. They serve as both routes,
+                                    // and taking the numeric one keeps the
+                                    // whole sample out of the engine.
+                                    const inputFs =
+                                        mathGrandChild.stateValues.inputMaths.map(
+                                            (x) =>
+                                                x.subscripts_to_strings().f(),
+                                        );
                                     evaluateChildrenToReevaluate[
                                         codePre + ind
                                     ] = {
                                         fReevaluate:
                                             mathGrandChild.stateValues
                                                 .fReevaluate,
-                                        inputMathFs:
-                                            mathGrandChild.stateValues.inputMaths.map(
-                                                (x) =>
-                                                    x
-                                                        .subscripts_to_strings()
-                                                        .f(),
-                                            ),
+                                        inputMathFs: inputFs,
+                                        inputNumericFs: inputFs,
                                     };
                                     needToReevaluate = true;
                                 } else {
@@ -2101,10 +2141,12 @@ export default class Function extends InlineComponent {
                                     );
                             }
 
-                            formulaExpressionWithCodes = me.fromAst(
-                                mergeListsWithOtherContainers(
-                                    formulaExpressionWithCodes.tree,
-                                ),
+                            // Rebuild only if there was actually a nested list
+                            // to flatten: `me.fromAst` goes through JSON, which
+                            // would turn an exact user-typed decimal into the
+                            // nearest f64.
+                            formulaExpressionWithCodes = mergeListsIfNeeded(
+                                formulaExpressionWithCodes,
                             );
 
                             // At this point, formulaExpressionWithCodes contains only those codes from
@@ -2168,15 +2210,18 @@ export default class Function extends InlineComponent {
 
                             // We create the same data structure for the reevaluation, as above
 
+                            // As above: these are numeric evaluators, so the
+                            // numeric route applies.
+                            const inputFs =
+                                mathChild.stateValues.inputMaths.map((x) =>
+                                    x.subscripts_to_strings().f(),
+                                );
                             let evaluateChildrenToReevaluate = {
                                 code: {
                                     fReevaluate:
                                         mathChild.stateValues.fReevaluate,
-                                    inputMathFs:
-                                        mathChild.stateValues.inputMaths.map(
-                                            (x) =>
-                                                x.subscripts_to_strings().f(),
-                                        ),
+                                    inputMathFs: inputFs,
+                                    inputNumericFs: inputFs,
                                 },
                             };
 
@@ -2234,10 +2279,18 @@ export default class Function extends InlineComponent {
                     for (let arrayKey of arrayKeys) {
                         if (arrayKey === "0") {
                             numericalfs[arrayKey] = function (x) {
+                                // A `numericalf` must answer a number, and
+                                // every other branch of this definition answers
+                                // `NaN` when it has nothing. The engine used to
+                                // report `null` for a shadowed symbolic
+                                // function that did not reduce to a constant,
+                                // and `null` is `0` to whatever plots or
+                                // integrates it; it reports `NaN` now, and the
+                                // `Complex` arm still needs folding.
                                 let val = globalDependencyValues
                                     .symbolicfShadow(me.fromAst(x))
                                     .evaluate_to_constant();
-                                return val;
+                                return toNumberOrNaN(val);
                             };
                         } else {
                             numericalfs[arrayKey] = () => NaN;
@@ -2532,10 +2585,12 @@ export default class Function extends InlineComponent {
                                     );
                             }
 
-                            formulaExpressionWithCodes = me.fromAst(
-                                mergeListsWithOtherContainers(
-                                    formulaExpressionWithCodes.tree,
-                                ),
+                            // Rebuild only if there was actually a nested list
+                            // to flatten: `me.fromAst` goes through JSON, which
+                            // would turn an exact user-typed decimal into the
+                            // nearest f64.
+                            formulaExpressionWithCodes = mergeListsIfNeeded(
+                                formulaExpressionWithCodes,
                             );
 
                             // At this point, formulaExpressionWithCodes contains only those codes from

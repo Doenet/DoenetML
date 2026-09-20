@@ -124,8 +124,19 @@ export default class RegionBetweenCurveXAxis extends GraphicalComponent {
                 const f = dependencyValues.function;
 
                 let nearestPoint = function ({ variables }) {
-                    let x1 = variables.x1.evaluate_to_constant();
-                    let x2 = variables.x2.evaluate_to_constant();
+                    let x1 = variables.x1?.evaluate_to_constant();
+                    let x2 = variables.x2?.evaluate_to_constant();
+
+                    // A point with a non-numeric coordinate has no nearest
+                    // point; leave it where it is. See the note on
+                    // `<polygon>`'s `nearestPoint`: the clamping below read
+                    // the engine's old `null` as `0` and silently snapped the
+                    // point into the region instead of leaving it alone. The
+                    // engine answers `NaN` now; the guard stays for the
+                    // `Complex` arm.
+                    if (!(Number.isFinite(x1) && Number.isFinite(x2))) {
+                        return {};
+                    }
 
                     x1 = Math.max(minx, Math.min(maxx, x1));
 

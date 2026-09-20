@@ -235,6 +235,35 @@ export default class Polygon extends Polyline {
                             let x1 = variables.x1?.evaluate_to_constant();
                             let x2 = variables.x2?.evaluate_to_constant();
 
+                            // A point with a non-numeric coordinate has no
+                            // nearest point; leave it where it is. `NaN` fails
+                            // this test, which is the whole job.
+                            //
+                            // The guard was added when the engine answered
+                            // `null` rather than `NaN` here, and `null` is `0`
+                            // to the distance arithmetic below — so the point
+                            // silently snapped to whatever is nearest the
+                            // origin instead of staying put. The engine
+                            // answers `NaN` now (math-expressions#84), so the
+                            // guard is no longer the only thing standing
+                            // between a blank coordinate and a wrong snap.
+                            // Same guard as `<circle>`, `<line>`, `<parabola>`
+                            // and `<curve>`; it stays for the symmetry and
+                            // because it says what the definition requires.
+                            //
+                            // It is not, at this site, load-bearing for the
+                            // `Complex` arm, and the test below does not
+                            // pretend otherwise. `<constrainTo>` does deliver
+                            // a `Complex` here — measured, `x1` is
+                            // `{re: 0, im: 2}` for `x="sqrt(-4)"` — but every
+                            // candidate distance below is built with `-` and
+                            // `*`, which take a `Complex` to `NaN`, so no
+                            // candidate ever wins and the point is left alone
+                            // with the guard reverted too.
+                            if (!(Number.isFinite(x1) && Number.isFinite(x2))) {
+                                return {};
+                            }
+
                             let prevPtx, prevPty;
                             let nextPtx = numericalVertices[numVertices - 1][0];
                             let nextPty = numericalVertices[numVertices - 1][1];

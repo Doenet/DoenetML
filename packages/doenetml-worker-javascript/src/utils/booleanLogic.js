@@ -5,6 +5,7 @@ import {
     appliedFunctionSymbolsDefault,
     textToMathFactory,
     numberToMathExpression,
+    isNumericConstant,
 } from "./math";
 import { createInputStringFromChildren } from "./parseMath";
 
@@ -1185,7 +1186,7 @@ export function evaluateLogic({
     let numberOperands = mathOperands.map((x) =>
         x.simplify().evaluate_to_constant(),
     );
-    if (numberOperands.some((x) => Number.isNaN(x))) {
+    if (!numberOperands.every(isNumericConstant)) {
         return 0;
     }
 

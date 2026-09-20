@@ -8,6 +8,7 @@ import {
     returnNumberDisplayAttributes,
 } from "../utils/numberDisplay";
 import { postProcessCopy } from "../utils/copy";
+import { evaluateToNumber } from "../utils/math";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { returnUnorderedListStateVariableDefinitions } from "../utils/unorderedLists";
 export default class NumberList extends CompositeComponent {
@@ -355,14 +356,13 @@ export default class NumberList extends CompositeComponent {
                                 globalDependencyValues.childInfoByComponent[
                                     arrayKey
                                 ].component;
-                            numbers[arrayKey] = childValue
-                                .get_component(ind2)
-                                .evaluate_to_constant();
+                            numbers[arrayKey] = evaluateToNumber(
+                                childValue.get_component(ind2),
+                            );
                         } else if (
                             childValue.evaluate_to_constant !== undefined
                         ) {
-                            numbers[arrayKey] =
-                                childValue.evaluate_to_constant();
+                            numbers[arrayKey] = evaluateToNumber(childValue);
                         } else {
                             numbers[arrayKey] = childValue;
                         }

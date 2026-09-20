@@ -42,6 +42,9 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
     let lastPausedTime = useRef<number>(0);
     let lastPlayedTime = useRef<number | null>(null);
     let pollIntervalId = useRef<any>(null);
+    // The deferred pause of the cued-seek workaround below. Held in a ref so
+    // it can be cancelled when the player is torn down.
+    let cueSeekTimeoutId = useRef<any>(null);
     let lastSetTimeAction = useRef<number | null>(null);
 
     let lastSVsState = useRef<any>(null);
@@ -54,6 +57,24 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
     // rendering a YouTube video; non-YouTube sources must not trigger a
     // network request to youtube.com.
     const ytReady = useYouTubeApi(Boolean(SVs.youtube));
+
+    // Tell the core when the video itself is replaced, so it can drop the
+    // playback state belonging to the old one (see `recordVideoSourceChanged`).
+    // Declared before the player effect below so the reset is dispatched before
+    // a player for the new source can exist to be seeked.
+    const lastVideoSource = useRef<string | null | undefined>(undefined);
+    useEffect(() => {
+        const videoSource = SVs.youtube ?? SVs.source ?? null;
+        const previous = lastVideoSource.current;
+        lastVideoSource.current = videoSource;
+        // `undefined` is the first render for this component: whatever is in
+        // `time`/`segmentsWatched` came from saved state and describes the
+        // video about to be shown, so a reload still resumes where the viewer
+        // left off.
+        if (previous !== undefined && previous !== videoSource) {
+            callAction({ action: actions.recordVideoSourceChanged });
+        }
+    }, [SVs.youtube, SVs.source]);
 
     useEffect(() => {
         if (!SVs.youtube || !ytReady || !window.YT) {
@@ -78,6 +99,7 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
             // against a destroyed/null player.current.
             clearInterval(pollIntervalId.current);
             clearTimeout(pauseTimeoutId.current);
+            clearTimeout(cueSeekTimeoutId.current);
             player.current?.destroy();
             player.current = null;
             // Reset state tracked across the previous player's lifetime so it
@@ -464,7 +486,21 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
 
                     player.current.pauseVideo(); // doesn't seem to do anything!
                     player.current.seekTo(time, true);
-                    setTimeout(() => player.current.pauseVideo(), 200);
+                    clearTimeout(cueSeekTimeoutId.current);
+                    cueSeekTimeoutId.current = window.setTimeout(() => {
+                        // Only re-pause if nothing has asked the video to play
+                        // in the meantime. Without this guard the deferred
+                        // pause lands on top of a user's play and cancels it,
+                        // leaving the player stuck in UNSTARTED: it never
+                        // reaches PLAYING, so `onPlayerStateChange` never
+                        // starts the 200ms time poll or the watch telemetry.
+                        if (
+                            player.current &&
+                            lastSVsState.current !== "playing"
+                        ) {
+                            player.current.pauseVideo();
+                        }
+                    }, 200);
                 } else {
                     player.current.seekTo(time, true);
                 }

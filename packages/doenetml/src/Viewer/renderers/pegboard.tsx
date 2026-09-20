@@ -6,7 +6,9 @@ import useDoenetRenderer, {
 import { BASE_LAYER_OFFSET, BoardContext } from "./graph";
 import me from "math-expressions";
 import type { round as RoundType } from "mathjs";
-const { round } = me.math as { round: RoundType };
+// `RoundType` aliases the *value* `round`, so it needs a `typeof` to be
+// used as a type.
+const { round } = me.math as { round: typeof RoundType };
 import { JXGBoard, JXGPoint } from "./jsxgraph-distrib/types";
 import type { UnlabeledGraphicalSVs } from "./utils/graphicalSVs";
 

@@ -1,6 +1,5 @@
 import InlineComponent from "../abstract/InlineComponent";
-import me from "math-expressions";
-const { dopri } = me.math;
+import me, { dopri } from "math-expressions";
 import {
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,

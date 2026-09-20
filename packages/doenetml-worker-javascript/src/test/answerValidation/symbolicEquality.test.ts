@@ -608,8 +608,13 @@ describe("Symbolic equality tests @group3", async () => {
                     credits: { S: 1, N: 1 },
                 },
                 {
+                    // The target ends in sin(x)^2+cos(x)^2, so this response is
+                    // the same expression with the Pythagorean identity already
+                    // applied. Full simplification is meant to see through that,
+                    // and the current engine does; the previous one lacked the
+                    // identity and scored this 0.
                     responses: { resp: "(2x-3)(4-x) + 1" },
-                    credits: { S: 0, N: 1 },
+                    credits: { S: 1, N: 1 },
                 },
             ],
         });

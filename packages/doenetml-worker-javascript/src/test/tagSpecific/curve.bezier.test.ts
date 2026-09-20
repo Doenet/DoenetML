@@ -2220,16 +2220,16 @@ describe("Curve Tag Bezier Tests @group3", async () => {
 
         expect(
             stateVariables[await resolvePathToNodeIdx("pt")].stateValues.text,
-        ).eq("( 3, 4 )");
+        ).eq("(3, 4)");
         expect(
             stateVariables[await resolvePathToNodeIdx("px")].stateValues.text,
-        ).eq("( -4, 7 )");
+        ).eq("(-4, 7)");
         expect(
             stateVariables[await resolvePathToNodeIdx("py")].stateValues.text,
-        ).eq("( -2, 6 )");
+        ).eq("(-2, 6)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pc")].stateValues.text,
-        ).eq("( 4, 7 )");
+        ).eq("(4, 7)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1t")].stateValues.text,
         ).eq("2");
@@ -2265,16 +2265,16 @@ describe("Curve Tag Bezier Tests @group3", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("pt")].stateValues.text,
-        ).eq("( 1, 2 )");
+        ).eq("(1, 2)");
         expect(
             stateVariables[await resolvePathToNodeIdx("px")].stateValues.text,
-        ).eq("( 3, 4 )");
+        ).eq("(3, 4)");
         expect(
             stateVariables[await resolvePathToNodeIdx("py")].stateValues.text,
-        ).eq("( 1, 2 )");
+        ).eq("(1, 2)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pc")].stateValues.text,
-        ).eq("( -2, 6 )");
+        ).eq("(-2, 6)");
         expect(
             stateVariables[await resolvePathToNodeIdx("p1t")].stateValues.text,
         ).eq("1");
@@ -2355,13 +2355,13 @@ describe("Curve Tag Bezier Tests @group3", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("pt")].stateValues.text,
-        ).eq("( -4, 7 )");
+        ).eq("(-4, 7)");
         expect(
             stateVariables[await resolvePathToNodeIdx("px")].stateValues.text,
         ).eq("");
         expect(
             stateVariables[await resolvePathToNodeIdx("py")].stateValues.text,
-        ).eq("( 6, 5 )");
+        ).eq("(6, 5)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pc")].stateValues.text,
         ).eq("");
@@ -2484,7 +2484,7 @@ describe("Curve Tag Bezier Tests @group3", async () => {
                     .text,
             ).eq(
                 desiredControlVectors[m - 1]
-                    .map((v) => `( ${v.join(", ")} )`)
+                    .map((v) => `(${v.join(", ")})`)
                     .join(", "),
             );
             expect(
@@ -2492,7 +2492,7 @@ describe("Curve Tag Bezier Tests @group3", async () => {
                     .text,
             ).eq(
                 desiredControlPoints[m - 1]
-                    .map((v) => `( ${v.join(", ")} )`)
+                    .map((v) => `(${v.join(", ")})`)
                     .join(", "),
             );
 
@@ -2510,11 +2510,11 @@ describe("Curve Tag Bezier Tests @group3", async () => {
                 expect(
                     stateVariables[await resolvePathToNodeIdx("pV")].stateValues
                         .text,
-                ).eq(`( ${desiredControlVectors[m - 1][n - 1].join(", ")} )`);
+                ).eq(`(${desiredControlVectors[m - 1][n - 1].join(", ")})`);
                 expect(
                     stateVariables[await resolvePathToNodeIdx("pP")].stateValues
                         .text,
-                ).eq(`( ${desiredControlPoints[m - 1][n - 1].join(", ")} )`);
+                ).eq(`(${desiredControlPoints[m - 1][n - 1].join(", ")})`);
             }
         }
     });
@@ -2540,7 +2540,7 @@ describe("Curve Tag Bezier Tests @group3", async () => {
         let stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("pcv")].stateValues.text,
-        ).eq("( -1, 0 ), ( 1, 0 ), ( 0, -1 ), ( -1, 0 ), ( 1, 0 ), ( -1, 0 )");
+        ).eq("(-1, 0), (1, 0), (0, -1), (-1, 0), (1, 0), (-1, 0)");
 
         await moveControlVector({
             componentIdx: await resolvePathToNodeIdx("c"),
@@ -2570,9 +2570,7 @@ describe("Curve Tag Bezier Tests @group3", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(
             stateVariables[await resolvePathToNodeIdx("pcv")].stateValues.text,
-        ).eq(
-            "( -2, -1 ), ( 2, 1 ), ( 3, -5 ), ( 2, -4 ), ( -2, -6 ), ( 2, 6 )",
-        );
+        ).eq("(-2, -1), (2, 1), (3, -5), (2, -4), (-2, -6), (2, 6)");
     });
 
     it("sugared bezierControls from vector operations", async () => {
@@ -2821,5 +2819,145 @@ describe("Curve Tag Bezier Tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("t1")].stateValues.value,
         ).eq("a");
+    });
+
+    /**
+     * A through point with no numeric value must make the control data around
+     * it undefined, not shift it toward the origin.
+     *
+     * Both of a bezier curve's control state variables are computed by adding
+     * a control *vector* to a through *point* read through
+     * `evaluate_to_constant()`. While that answered `null` rather than `NaN`
+     * for a symbolic point, `null + 1` was `1`: `controlPoints` for the
+     * symbolic through point reported the bare control vector, exactly as if
+     * the point sat at `(0,0)`, and the numbers looked entirely plausible.
+     * Measured against the previous engine pin, `controlPoints[1]` was
+     * `[[1,1],[-1,-1]]` — the control vector itself.
+     *
+     * The first and third through points are the control: they are numeric and
+     * their control points must still be the real sums.
+     */
+    it("a through point with no numeric value gives undefined control points", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <curve name="c" through="(1,2) (a,b) (5,6)">
+        <bezierControls>(1,1) (1,1) (1,1)</bezierControls>
+      </curve>
+    </graph>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const controlPoints =
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                .controlPoints;
+
+        // The control: numeric through points still add normally.
+        expect(controlPoints[0].map((v: any[]) => v.map((x) => x.tree))).eqls([
+            [2, 3],
+            [0, 1],
+        ]);
+        expect(controlPoints[2].map((v: any[]) => v.map((x) => x.tree))).eqls([
+            [6, 7],
+            [4, 5],
+        ]);
+
+        // The symbolic one: `NaN`, and in particular not the bare control
+        // vector `[[1,1],[-1,-1]]`.
+        expect(controlPoints[1].map((v: any[]) => v.map((x) => x.tree))).eqls([
+            [NaN, NaN],
+            [NaN, NaN],
+        ]);
+    });
+
+    it("a through point with no real value gives undefined control points", async () => {
+        // The leg that measures the guard rather than the engine. `sqrt(-4)`
+        // *has* a value — `evaluate_to_constant()` answers a math.js
+        // `Complex` — so the engine does not report `NaN` for it and only
+        // `evaluateToNumber` does. It matters here more than at most guard
+        // sites because a control point is the through point *added* to the
+        // control vector, and `+` is the one operator that does not reduce a
+        // `Complex` to `NaN`: unguarded, the x coordinate of this control
+        // point is the string `"2i1"`, which is then stored in a math
+        // expression as a variable of that name.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <curve name="c" through="(1,2) (sqrt(-4),3) (5,6)">
+        <bezierControls>(1,1) (1,1) (1,1)</bezierControls>
+      </curve>
+    </graph>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const controlPoints =
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                .controlPoints;
+
+        // The control: the numeric through points either side are unaffected.
+        expect(controlPoints[0].map((v: any[]) => v.map((x) => x.tree))).eqls([
+            [2, 3],
+            [0, 1],
+        ]);
+        expect(controlPoints[2].map((v: any[]) => v.map((x) => x.tree))).eqls([
+            [6, 7],
+            [4, 5],
+        ]);
+
+        // The complex one: `NaN` in the coordinate that has no real value, and
+        // the real coordinate still added normally.
+        expect(controlPoints[1].map((v: any[]) => v.map((x) => x.tree))).eqls([
+            [NaN, 4],
+            [NaN, 2],
+        ]);
+    });
+
+    /**
+     * The same hazard on the *default* path, which is the one a curve takes
+     * with no `<bezierControls>` at all: `calculateControlVectorFromSpline`
+     * reads three consecutive through points and interpolates. With the old
+     * `null` sentinel a symbolic point read as `0` in that arithmetic, so
+     * `<curve through="(0,0) (a,b) (2,3)" />` produced finite, plausible
+     * control vectors for *every* point — measured, `[-0.267, -0.4]` at index
+     * 1 — describing a spline through the origin that nothing in the document
+     * asked for.
+     *
+     * The spline is not local, so one undefined point makes the whole set
+     * undefined; that is the intended answer, and it is loud.
+     */
+    it("a through point with no numeric value gives undefined spline control vectors", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <curve name="c" through="(0,0) (a,b) (2,3)" />
+      <curve name="cNumeric" through="(0,0) (1,1) (2,3)" />
+    </graph>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const treesOf = (name: number) =>
+            stateVariables[name].stateValues.controlVectors.map((v: any[]) =>
+                v.map((c: any[]) => c.map((x) => x.tree)),
+            );
+
+        // The control: an all-numeric curve gets real spline control vectors.
+        const numericVectors = treesOf(
+            await resolvePathToNodeIdx("cNumeric"),
+        ).flat(2);
+        expect(numericVectors.every((x: number) => Number.isFinite(x))).eq(
+            true,
+        );
+        expect(numericVectors.some((x: number) => x !== 0)).eq(true);
+
+        // The symbolic one: every control vector is `NaN`.
+        for (const point of treesOf(await resolvePathToNodeIdx("c"))) {
+            expect(point).eqls([
+                [NaN, NaN],
+                [NaN, NaN],
+            ]);
+        }
     });
 });

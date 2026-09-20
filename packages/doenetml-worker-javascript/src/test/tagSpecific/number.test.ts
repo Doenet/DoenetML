@@ -2597,6 +2597,20 @@ describe("Number tag tests @group3", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("c4")].stateValues.text,
         ).eq("0.9 + 0.7 i");
+        // `Infinity i` reads as complex NaN, and only because the compat layer
+        // says so. The Rust core treats it as the single infinity on the real
+        // axis: `evaluate_to_constant` answers `Infinity`, `evaluate_to_complex`
+        // answers `[Infinity, 0]`, and both `simplify` and `evaluate_numbers`
+        // print `∞`. `math-expressions.ts` then overrides that whenever a
+        // non-finite value comes from a tree mentioning `i`, which is what this
+        // component reads.
+        //
+        // That override is deliberate, and pinned upstream by
+        // `slow_simplify.spec.ts`: mathjs was not idempotent here — evaluating
+        // `Infinity*i` once gave `Infinity*i+Infinity` and again gave
+        // `NaN*i+NaN` — so it forces NaN to make repeated evaluation stable.
+        // The Rust core has no such instability (it answers `∞` every time), so
+        // the rule now outlives its reason; revisit if upstream drops it.
         expect(
             stateVariables[await resolvePathToNodeIdx("c5")].stateValues.text,
         ).eq("NaN + NaN i");
@@ -2850,22 +2864,15 @@ describe("Number tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("c4")].stateValues.value
                 .im,
         ).closeTo(0.7, 1e-14);
+        // Complex NaN rather than the real infinity the core computes — the
+        // stored value carries the same compat override as the rendered text,
+        // so both move together. See the note above.
         expect(
-            stateVariables[await resolvePathToNodeIdx("c5")].stateValues.value
-                .re,
-        ).eqls(NaN);
+            stateVariables[await resolvePathToNodeIdx("c5")].stateValues.value,
+        ).eqls({ re: NaN, im: NaN });
         expect(
-            stateVariables[await resolvePathToNodeIdx("c5")].stateValues.value
-                .im,
-        ).eqls(NaN);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("c6")].stateValues.value
-                .re,
-        ).eqls(NaN);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("c6")].stateValues.value
-                .im,
-        ).eqls(NaN);
+            stateVariables[await resolvePathToNodeIdx("c6")].stateValues.value,
+        ).eqls({ re: NaN, im: NaN });
         expect(
             stateVariables[await resolvePathToNodeIdx("c7")].stateValues.value,
         ).eq(5);

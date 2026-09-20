@@ -234,6 +234,54 @@ describe("buildSlopeFieldData", () => {
         expect(numMarks).toBe(0);
         expect(dataX).toHaveLength(0);
     });
+
+    it("returns nothing for a lattice that is not a lattice", () => {
+        // `dx`, `dy` and the offsets are `number` state variables, and a
+        // symbolic one — `dx="$q"`, or a `<mathInput>` left blank — arrives as
+        // NaN. NaN must draw *nothing*: a lattice spacing that silently read as
+        // zero or as the default would put marks somewhere the author did not
+        // ask for and give no sign that anything was wrong.
+        for (const badGrid of [
+            { ...grid, dx: NaN },
+            { ...grid, dy: NaN },
+            { ...grid, xoffset: NaN },
+            { ...grid, yoffset: NaN },
+        ]) {
+            const { numMarks, dataX } = buildSlopeFieldData({
+                f: () => 1,
+                ...opts,
+                grid: badGrid,
+            });
+            expect(numMarks).toBe(0);
+            expect(dataX).toHaveLength(0);
+        }
+    });
+
+    it("rejects an unbounded lattice instead of searching one", () => {
+        // The other way a lattice stops being one: a zero spacing, or a bound
+        // that is not finite, gives an index range of +/-Infinity rather than
+        // NaN. Nothing is drawn either way — every index the loop would visit
+        // comes out NaN — so the mark count alone cannot tell the two apart,
+        // and a check written on it would pass with the range check deleted.
+        // The *stride* is what shows the range was rejected: `strideFor`
+        // bisects between 1 and the width of the lattice, so handed an infinite
+        // one it answers Infinity, having searched an infinite interval to say
+        // nothing about an empty picture.
+        for (const [name, override] of [
+            ["dx = 0", { grid: { ...grid, dx: 0 } }],
+            ["dy = 0", { grid: { ...grid, dy: 0 } }],
+            ["xMin = -Infinity", { bounds: { ...bounds, xMin: -Infinity } }],
+        ] as const) {
+            const { numMarks, dataX, stride } = buildSlopeFieldData({
+                f: () => 1,
+                ...opts,
+                ...override,
+            });
+            expect(stride, name).toBe(1);
+            expect(numMarks, name).toBe(0);
+            expect(dataX, name).toHaveLength(0);
+        }
+    });
 });
 
 describe("buildVectorFieldData", () => {

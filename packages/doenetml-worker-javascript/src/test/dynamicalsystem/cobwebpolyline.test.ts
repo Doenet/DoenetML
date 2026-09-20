@@ -74,7 +74,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
 
         let latexResults = ["x_{ 0 } & = -1.5"];
         let submittedVertices: string[] = [];
-        let currentVertices = ["( -1.5, 0 )"];
+        let currentVertices = ["(-1.5, 0)"];
         let initialValCredit = 0;
         let cobwebCredit = 0;
         let cobwebJustSubmitted = false;
@@ -171,7 +171,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
         await check_items();
 
         // Move first point
-        currentVertices[0] = "( 1, 0 )";
+        currentVertices[0] = "(1, 0)";
         latexResults[0] = "x_{ 0 } & = 1";
         await movePolyline({
             componentIdx: await resolvePathToNodeIdx("graph1.cobweb"),
@@ -192,7 +192,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
         const graphCenterX = (-2 + 5) / 2;
         const graphCenterY = (-2.2 + 4.5) / 2;
         latexResults.push(`x_{ 1 } & = ${graphCenterY}`);
-        currentVertices.push(`( ${graphCenterX}, ${graphCenterY} )`);
+        currentVertices.push(`(${graphCenterX}, ${graphCenterY})`);
         cobwebJustSubmitted = false;
         await updateValue({
             componentIdx: await resolvePathToNodeIdx("addline"),
@@ -202,7 +202,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
 
         // Move second point to wrong location, submit
         latexResults[1] = "x_{ 1 } & = 4";
-        currentVertices[1] = "( 3, 4 )";
+        currentVertices[1] = "(3, 4)";
         submittedVertices = [...currentVertices];
         cobwebJustSubmitted = true;
         await movePolyline({
@@ -218,7 +218,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
 
         // Move second point to a different wrong location and make sure submit button reappears
         latexResults[1] = "x_{ 1 } & = 1";
-        currentVertices[1] = "( 1, 1 )";
+        currentVertices[1] = "(1, 1)";
         cobwebJustSubmitted = false;
         await movePolyline({
             componentIdx: await resolvePathToNodeIdx("graph1.cobweb"),
@@ -238,7 +238,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
 
         // Move second point to correct location, submit
         latexResults[1] = "x_{ 1 } & = 1.6667";
-        currentVertices[1] = "( 1, 1.6667 )";
+        currentVertices[1] = "(1, 1.6667)";
         submittedVertices = [...currentVertices];
         cobwebCredit = 0.2;
         await movePolyline({
@@ -253,7 +253,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
         await check_items();
 
         // Add third point but don't move it, should be at graph's center, submit
-        currentVertices.push(`( ${graphCenterX}, ${graphCenterY} )`);
+        currentVertices.push(`(${graphCenterX}, ${graphCenterY})`);
         submittedVertices = [...currentVertices];
         await updateValue({
             componentIdx: await resolvePathToNodeIdx("addline"),
@@ -266,7 +266,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
         await check_items();
 
         // Move third point to correct location, submit
-        currentVertices[2] = "( 1.6667, 1.6667 )";
+        currentVertices[2] = "(1.6667, 1.6667)";
         submittedVertices = [...currentVertices];
         cobwebCredit = 0.4;
         await movePolyline({
@@ -282,7 +282,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
 
         // Add fourth point and move to wrong location, submit
         latexResults.push("x_{ 2 } & = 2");
-        currentVertices.push(`( 1, 2 )`);
+        currentVertices.push(`(1, 2)`);
         submittedVertices = [...currentVertices];
         await updateValue({
             componentIdx: await resolvePathToNodeIdx("addline"),
@@ -301,7 +301,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
 
         // Move fourth point to correct location, submit
         latexResults[2] = "x_{ 2 } & = 2.4074";
-        currentVertices[3] = "( 1.6667, 2.4074 )";
+        currentVertices[3] = "(1.6667, 2.4074)";
         submittedVertices = [...currentVertices];
         cobwebCredit = 0.6;
         await movePolyline({
@@ -351,7 +351,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
         await check_items();
 
         // Add fifth point and move to correct location, submit
-        currentVertices.push(`( 2.4074, 2.4074 )`);
+        currentVertices.push(`(2.4074, 2.4074)`);
         submittedVertices = [...currentVertices];
         cobwebCredit = 0.8;
         await updateValue({
@@ -371,7 +371,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
 
         // Add sixth point and move to wrong location, submit
         latexResults.push("x_{ 3 } & = 3");
-        currentVertices.push(`( -1, 3 )`);
+        currentVertices.push(`(-1, 3)`);
         submittedVertices = [...currentVertices];
         await updateValue({
             componentIdx: await resolvePathToNodeIdx("addline"),
@@ -390,7 +390,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
 
         // Move sixth point to correct location, submit
         latexResults[3] = "x_{ 3 } & = 2.8829";
-        currentVertices[5] = "( 2.4074, 2.8829 )";
+        currentVertices[5] = "(2.4074, 2.8829)";
         submittedVertices = [...currentVertices];
         cobwebCredit = 1;
         await movePolyline({
@@ -405,7 +405,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
         await check_items();
 
         // Add seventh point and move to wrong location, submit
-        currentVertices.push(`( 3, 1 )`);
+        currentVertices.push(`(3, 1)`);
         submittedVertices = [...currentVertices];
         cobwebCredit = 5 / 6; // ~0.83
         await updateValue({
@@ -424,7 +424,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
         await check_items();
 
         // Move seventh point to correct location, submit
-        currentVertices[6] = "( 2.8829, 2.8829 )";
+        currentVertices[6] = "(2.8829, 2.8829)";
         submittedVertices = [...currentVertices];
         cobwebCredit = 1;
         await movePolyline({
@@ -440,7 +440,7 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
 
         // Add eighth point and move to correct location, submit
         latexResults[4] = "x_{ 4 } & = 2.9954";
-        currentVertices[7] = "( 2.8829, 2.9954 )";
+        currentVertices[7] = "(2.8829, 2.9954)";
         submittedVertices = [...currentVertices];
         await updateValue({
             componentIdx: await resolvePathToNodeIdx("addline"),
@@ -512,5 +512,55 @@ describe("cobwebPolyline Tag Tests @group2", async () => {
         expect(vertices[1][1].tree).closeTo(1.21, 1e-14);
         expect(vertices[50].map((v) => v.tree)).eqls([Infinity, Infinity]);
         expect(vertices[99].map((v) => v.tree)).eqls([Infinity, Infinity]);
+    });
+
+    /**
+     * A vertex is marked correct when its squared distance from the attractor
+     * falls inside `attractThreshold`, and both the vertex and the attractor
+     * are read out of math expressions. A vertex with no numeric value has no
+     * distance from anything, so it must never be marked correct.
+     *
+     * While `evaluate_to_constant()` answered `null` rather than `NaN` there,
+     * it was: `null - null` is `0`, so the distance came out exactly `0` and
+     * the vertex scored full marks. Measured against the previous engine pin,
+     * `correctVertices` for this document was `[false, true]` — the second
+     * entry being a vertex the student never placed. With `NaN` the distance
+     * is `NaN`, every comparison against the threshold is false, and it reads
+     * `[false, false]`.
+     *
+     * The numeric leg of the test is the control: a vertex actually on the
+     * attractor must still be marked correct.
+     */
+    it("a vertex with no numeric value is never marked correct", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <function name="f">3x(1-x)</function>
+  <graph>
+    <cobwebPolyline name="cw" function="$f" numPoints="3"
+        initialPoint="(0.5,0)" defaultPoint="(a,b)" attractThreshold="0.5" />
+  </graph>
+  `,
+        });
+
+        async function correctOf() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("cw")].stateValues
+                .correctVertices;
+        }
+
+        // Both unplaced vertices are `(a,b)`; neither has a distance from its
+        // attractor, so neither scores.
+        expect(await correctOf()).eqls([false, false]);
+
+        // The control: place the first one where it belongs and it scores.
+        await movePolyline({
+            componentIdx: await resolvePathToNodeIdx("cw"),
+            pointCoords: { 1: [0.5, 0.75] },
+            core,
+        });
+        expect(await correctOf()).eqls([true, false]);
     });
 });

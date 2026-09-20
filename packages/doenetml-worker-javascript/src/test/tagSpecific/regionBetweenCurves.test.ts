@@ -307,4 +307,55 @@ describe("RegionBetweenCurves tag tests @group2", async () => {
         expect(px).closeTo(-8, 1e-12);
         expect(py).closeTo(0.6, 1e-12);
     });
+
+    /**
+     * Both region components clamp the point's coordinates into the region
+     * (`Math.max(minx, Math.min(maxx, x1))`), and clamping reads `null` as
+     * `0`. While the engine evaluated a blank or symbolic coordinate to `null`
+     * rather than `NaN`, a point that should have been left alone was silently
+     * pulled inside the region — the same defect as `<polygon>`'s
+     * `nearestPoint`.
+     */
+    it("constraining to a region leaves a point with a non-numeric coordinate alone", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi" />
+    <graph>
+      <function name="f">4</function>
+      <regionBetweenCurveXAxis name="r" function="$f" boundaryValues="1 3" />
+      <point name="blank" x="$mi" y="9">
+        <constraints><constrainTo>$r</constrainTo></constraints>
+      </point>
+      <point name="symbolic" x="a" y="9">
+        <constraints><constrainTo>$r</constrainTo></constraints>
+      </point>
+      <point name="numeric" x="2" y="9">
+        <constraints><constrainTo>$r</constrainTo></constraints>
+      </point>
+    </graph>
+    `,
+        });
+
+        async function coordsOf(name: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[
+                await resolvePathToNodeIdx(name)
+            ].stateValues.xs.map((v: any) => v.tree);
+        }
+
+        // The control: a numeric point really is clamped into the region.
+        expect(await coordsOf("numeric")).eqls([2, 4]);
+        expect(await coordsOf("blank")).eqls(["\uff3f", 9]);
+        expect(await coordsOf("symbolic")).eqls(["a", 9]);
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await coordsOf("blank")).eqls([2, 4]);
+    });
 });

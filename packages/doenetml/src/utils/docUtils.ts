@@ -8,6 +8,7 @@ import {
     normalizeDocumentDast,
 } from "@doenet/parser";
 import { resolveDocumentLocale } from "@doenet/i18n";
+import { initMathEngine } from "./mathWasm";
 import { readDocumentLang } from "./documentLang";
 
 export type CoreWorkerHandle = {
@@ -362,6 +363,27 @@ export async function initializeCoreWorker({
      */
     abandoned?: () => boolean;
 }) {
+    // The renderers this document is about to mount reach for math on the main
+    // thread — tick labels, graph controls, the `<label>` of a point, a
+    // disabled input's styling. The engine refuses a synchronous compile of a
+    // binary that size off-worker, so nothing on this thread can use it until
+    // an async compile has finished. Before anything awaited one, every such
+    // path threw "the WASM core is not initialized yet" and the component
+    // silently failed to render. `./mathWasm` covers both the seam and a
+    // consumer's published `math-expressions`.
+    //
+    // Started here rather than awaited, so the compile overlaps this
+    // initialization's own work and its turn on the worker, and awaited before
+    // we return so that no renderer can exist before the engine is ready.
+    const mathWasmReady = initMathEngine();
+    // Registering a handler now, rather than relying on the `await` below,
+    // because the promise is held across several `await`s that can each throw.
+    // If one does, nothing ever awaits this one and the runtime reports an
+    // unhandled rejection that buries the real error. This does not swallow it:
+    // `.catch` returns a *new* promise, and the `await` below still sees the
+    // original reject. (AGENTS.md: no fire-and-forget promises.)
+    mathWasmReady.catch(() => {});
+
     /**
      * This initialization's own work: the parse, the expansion of external
      * references and the `lang` resolution. Main-thread work that never
@@ -440,6 +462,8 @@ export async function initializeCoreWorker({
             requestedVariantIndex,
             attemptNumber,
         });
+
+        await mathWasmReady;
 
         documentStructureCallback?.({
             activityId,

@@ -3,6 +3,7 @@ import MathBaseOperator from "./abstract/MathBaseOperator";
 import MathBaseOperatorOneInput from "./abstract/MathBaseOperatorOneInput";
 import me from "math-expressions";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { isNumericConstant } from "../utils/math";
 const { mod, median } = me.math;
 
 export class Sum extends MathBaseOperator {
@@ -164,6 +165,19 @@ function clamp({ value, lowerValue, upperValue }) {
     let numericValue = value;
     if (numericValue instanceof me.class) {
         numericValue = numericValue.evaluate_to_constant();
+    }
+    // There is nothing to clamp when the input has no numeric value — a free
+    // variable, a blank, a complex value — so the result is not a number. This
+    // is why `null` was the wrong marker for the engine to use: with it,
+    // `Math.max(lower, Math.min(upper, null))` was the lower bound when that
+    // was positive and **0** when it was negative, either way a real-looking
+    // answer for an input that has none.
+    //
+    // `±Infinity` is *not* in that class and must reach the clamp: bounding an
+    // unbounded value at the bound is exactly what a clamp is for, which is why
+    // the test is `isNumericConstant` and not `Number.isFinite`.
+    if (!isNumericConstant(numericValue)) {
+        return me.fromAst(NaN);
     }
     return me.fromAst(Math.max(lowerValue, Math.min(upperValue, numericValue)));
 }
@@ -331,7 +345,18 @@ export class Round extends MathBaseOperatorOneInput {
             definition: ({ dependencyValues }) => ({
                 setValue: {
                     mathOperator: function (value) {
-                        // first convert all numbers and constants (such as pi) to floating point numbers
+                        // First convert all numbers and constants (such as pi)
+                        // to floating point numbers. `max_digits: Infinity` is
+                        // what does that: it is the only setting under which an
+                        // exact rational floats, and rounding is the whole
+                        // point here — without it `<round numDecimals="3">1/3
+                        // </round>` answers `1/3`.
+                        //
+                        // The cost is that a decimal literal carrying more than
+                        // ~17 significant digits goes through an f64 on the way
+                        // in, so `35203423.02352343201` rounds to
+                        // `…523435` rather than the exact `…523432`. Accepted:
+                        // the alternative loses rounding for every fraction.
                         let valueWithNumbers = value.evaluate_numbers({
                             max_digits: Infinity,
                             evaluate_functions: true,

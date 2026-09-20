@@ -1,4 +1,4 @@
-import { roundForDisplay } from "../utils/math";
+import { roundForDisplay, isNumericConstant } from "../utils/math";
 import BaseComponent from "./abstract/BaseComponent";
 import me from "math-expressions";
 import {
@@ -849,7 +849,7 @@ async function invertSliderValue({ desiredStateVariableValues, stateValues }) {
     } else {
         if (preliminaryValue instanceof me.class) {
             preliminaryValue = preliminaryValue.evaluate_to_constant();
-            if (Number.isNaN(preliminaryValue)) {
+            if (!isNumericConstant(preliminaryValue)) {
                 return { success: false };
             }
         } else {

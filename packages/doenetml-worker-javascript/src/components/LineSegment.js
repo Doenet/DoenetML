@@ -23,6 +23,7 @@ import {
     getNumericEndpointPair,
     mergePointCoords,
 } from "../utils/lineSegment";
+import { evaluateToNumber, isNumericConstant } from "../utils/math";
 
 export default class LineSegment extends GraphicalComponent {
     constructor(args) {
@@ -1785,8 +1786,14 @@ export default class LineSegment extends GraphicalComponent {
                         ind < globalDependencyValues.numDimensions;
                         ind++
                     ) {
-                        let val = endpoint[ind].evaluate_to_constant();
-                        numericalP.push(val);
+                        // This array goes straight to the renderer, where
+                        // `Number(null)` is `0` — so while `evaluate_to_constant`
+                        // reported "no numeric value" as `null`, an undefined
+                        // endpoint was drawn at the origin rather than not
+                        // drawn. Map it to `NaN` explicitly, as `Point.js`'s
+                        // `numericalXs` does; that also folds the `Complex`
+                        // arm, which the renderer cannot hold either.
+                        numericalP.push(evaluateToNumber(endpoint[ind]));
                     }
                     numericalEndpoints[arrayKey] = numericalP;
                 }
@@ -1963,10 +1970,24 @@ export default class LineSegment extends GraphicalComponent {
                 }
 
                 let ep = dependencyValues.endpoints;
-                let A1 = ep[0][0].evaluate_to_constant();
-                let A2 = ep[0][1].evaluate_to_constant();
-                let B1 = ep[1][0].evaluate_to_constant();
-                let B2 = ep[1][1].evaluate_to_constant();
+                // `evaluateToNumber`, not a bare `evaluate_to_constant()`:
+                // while a blank or symbolic endpoint gave `null`, `null`
+                // subtracted as `0` and a segment with no slope reported one —
+                // `(3,4)` against a blank first endpoint answered `1`, and
+                // `slope` is public and reaches `<answer>` through `<when>`.
+                // The engine answers `NaN` there now, so this reading is
+                // the convention rather than the only thing holding the slope
+                // together: a `Complex` endpoint subtracts to `NaN` too
+                // (measured at the twenty-fourth pass — an earlier wording of
+                // this comment said it "subtracts without complaint", which is
+                // what `+` does, not `-`).
+                // Every other reader of these endpoints in this file already
+                // takes a number or refuses (`numericalEndpoints` above, the
+                // inverse definition below).
+                let A1 = evaluateToNumber(ep[0][0]);
+                let A2 = evaluateToNumber(ep[0][1]);
+                let B1 = evaluateToNumber(ep[1][0]);
+                let B2 = evaluateToNumber(ep[1][1]);
                 let slope = (B2 - A2) / (B1 - A1);
 
                 return { setValue: { slope } };
@@ -2005,7 +2026,7 @@ export default class LineSegment extends GraphicalComponent {
                 if (m instanceof me.class) {
                     m = m.evaluate_to_constant();
                 }
-                if (Number.isNaN(m)) {
+                if (!isNumericConstant(m)) {
                     return { success: false };
                 }
 

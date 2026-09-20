@@ -11,6 +11,8 @@ import {
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import me from "math-expressions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { evaluateToNumber, UNSPECIFIED_COMPONENT } from "../../utils/math";
+import DirectionComponent from "../../components/abstract/DirectionComponent";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -452,32 +454,34 @@ async function checkLineValues({
         expect(P1xs[i].evaluate_to_constant()).closeTo(points[0][i], 1e-12);
         expect(P2xs[i].evaluate_to_constant()).closeTo(points[1][i], 1e-12);
     }
+    // Read the numeric projections through `evaluateToNumber`, the same helper
+    // the components use. A line that is degenerate — both defining points on
+    // top of each other — has no equation, so its coefficients are the blank
+    // `＿` and these quantities have no numeric value at all. The engine
+    // briefly reported that as `null`, where the JS library said `NaN`;
+    // `Math.abs(null)` is `0`, which would read as a *finite* intercept.
+    // `evaluateToNumber` maps "no numeric value" to `NaN`, which is what these
+    // comparisons mean, and is now also what the engine answers directly.
     if (Number.isFinite(slope)) {
-        expect(lineSlope.evaluate_to_constant()).closeTo(slope, 1e-12);
+        expect(evaluateToNumber(lineSlope)).closeTo(slope, 1e-12);
     } else {
-        expect(lineSlope.evaluate_to_constant()).eqls(slope);
+        expect(evaluateToNumber(lineSlope)).eqls(slope);
     }
     if (Number.isFinite(xintercept)) {
-        expect(lineXintercept.evaluate_to_constant()).closeTo(
-            xintercept,
-            1e-12,
-        );
+        expect(evaluateToNumber(lineXintercept)).closeTo(xintercept, 1e-12);
     } else {
         // Note: x-intercept for horizontal lines can be Infinity or -Infinity
         // when it should really be NaN
-        expect(Math.abs(lineXintercept.evaluate_to_constant())).eqls(
+        expect(Math.abs(evaluateToNumber(lineXintercept))).eqls(
             Math.abs(xintercept),
         );
     }
     if (Number.isFinite(yintercept)) {
-        expect(lineYintercept.evaluate_to_constant()).closeTo(
-            yintercept,
-            1e-12,
-        );
+        expect(evaluateToNumber(lineYintercept)).closeTo(yintercept, 1e-12);
     } else {
         // Note: y-intercept for vertical lines can be Infinity or -Infinity
         // when it should really be NaN
-        expect(Math.abs(lineYintercept.evaluate_to_constant())).eqls(
+        expect(Math.abs(evaluateToNumber(lineYintercept))).eqls(
             Math.abs(yintercept),
         );
     }
@@ -1377,6 +1381,91 @@ describe("Line tag tests @group3", async () => {
         });
     });
 
+    it("line from an equation whose terms are all negative", async () => {
+        // `simplify` pulls a common minus sign out of an all-negative sum, so
+        // these equations reach the coefficient reader spelled `0 = -(5x+2y+3)`
+        // rather than as a flat sum. Reading them has to see through that: when
+        // it did not, all three coefficients came back blank and `slope` with
+        // them -- and the all-negative spelling is exactly what a vertical line
+        // built from two points produces.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <line name="oblique" equation="-5x-2y-3=0" />
+    <line name="vertical" equation="-5x-15=0" />
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        const oblique =
+            stateVariables[await resolvePathToNodeIdx("oblique")].stateValues;
+        expect(oblique.coeffvar1.evaluate_to_constant()).eq(-5);
+        expect(oblique.coeffvar2.evaluate_to_constant()).eq(-2);
+        expect(oblique.coeff0.evaluate_to_constant()).eq(-3);
+        expect(oblique.slope.evaluate_to_constant()).closeTo(-2.5, 1e-12);
+
+        const vertical =
+            stateVariables[await resolvePathToNodeIdx("vertical")].stateValues;
+        expect(vertical.coeffvar1.evaluate_to_constant()).eq(-5);
+        expect(vertical.coeffvar2.evaluate_to_constant()).eq(0);
+        expect(vertical.coeff0.evaluate_to_constant()).eq(-15);
+        expect(evaluateToNumber(vertical.slope)).eq(Infinity);
+    });
+
+    it("orients a line the same way however its equation is spelled", async () => {
+        // `calculatePointsFromCoeffs` builds two points on the line from its
+        // coefficients, and `(-b, a)` reverses when the whole equation is
+        // negated -- so `5x-2y=3` and `2y-5x=-3`, the same line, produced
+        // opposite rays. That is visible in the public `points` property and in
+        // what `<angle betweenLines>` draws, so the sign is canonicalized.
+        //
+        // The coefficients themselves are deliberately *not* canonicalized:
+        // they stay in the form the author's equation gives, which is what the
+        // first two assertions of each pair pin.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <line name="a" equation="5x-2y=3" />
+    <line name="b" equation="2y-5x=-3" />
+    <line name="c" equation="-5x+2y=-3" />
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const pointsOf = async (name: string) => {
+            const sv =
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            return {
+                coeffs: [
+                    sv.coeffvar1.evaluate_to_constant(),
+                    sv.coeffvar2.evaluate_to_constant(),
+                    sv.coeff0.evaluate_to_constant(),
+                ],
+                points: sv.points.map((p: any) =>
+                    p.map((c: any) => c.evaluate_to_constant()),
+                ),
+            };
+        };
+
+        const a = await pointsOf("a");
+        const b = await pointsOf("b");
+        const c = await pointsOf("c");
+
+        // Left-hand side minus right-hand side, as written, for every spelling.
+        expect(a.coeffs).eqls([5, -2, -3]);
+        expect(b.coeffs).eqls([-5, 2, 3]);
+        expect(c.coeffs).eqls([-5, 2, 3]);
+
+        // Same line, same direction, whichever way it was written.
+        const direction = ({ points }: { points: number[][] }) => [
+            points[1][0] - points[0][0],
+            points[1][1] - points[0][1],
+        ];
+        for (const other of [b, c]) {
+            expect(direction(other)[0]).closeTo(direction(a)[0], 1e-12);
+            expect(direction(other)[1]).closeTo(direction(a)[1], 1e-12);
+        }
+    });
+
     it("line from equation, strings and macros", async () => {
         const { core, resolvePathToNodeIdx } = await setupScene({
             lineProperties: `equation="$m - $n y = 3"`,
@@ -1683,6 +1772,10 @@ describe("Line tag tests @group3", async () => {
                 await resolvePathToNodeIdx("l6")
             ].stateValues.equation.equals(me.fromText("y=x^2")),
         ).eq(true);
+        // The coefficients of `y - x^2 = 0`: everything moved to the left of
+        // the equation as authored. (`y=x^2` is not a line, so `x^2` lands in
+        // the constant slot for want of anywhere better — but the sign is the
+        // author's.)
         expect(
             stateVariables[await resolvePathToNodeIdx("l6")].stateValues.coeff0
                 .tree,
@@ -1701,10 +1794,14 @@ describe("Line tag tests @group3", async () => {
                 await resolvePathToNodeIdx("l7")
             ].stateValues.equation.equals(me.fromText("1=2")),
         ).eq(true);
+        // `1 - 2`, again the author's own left-minus-right. The old `1` came
+        // from reading right-minus-left off the *simplified* equation, which
+        // agreed with the convention only for the spellings `simplify` happened
+        // to swap. A contradiction has no line, so either sign describes it.
         expect(
             stateVariables[await resolvePathToNodeIdx("l7")].stateValues.coeff0
                 .tree,
-        ).eq(1);
+        ).eq(-1);
         expect(
             stateVariables[await resolvePathToNodeIdx("l7")].stateValues
                 .coeffvar1.tree,
@@ -6229,5 +6326,100 @@ describe("Line tag tests @group3", async () => {
         expect(l1Latex).match(/10\^{-12}|10\^{21}/);
         expect(l2Latex).contain("0.000000000007");
         expect(l2Latex).contain("2000000000000000000000");
+    });
+
+    // `_directionComponent` is the adapter every `direction` attribute — i.e.
+    // `parallelTo` and `perpendicularTo` — is read through, and its inverse
+    // definition scales the desired unit direction back up by the magnitude of
+    // the direction it was given. `evaluate_to_constant()` used to report a
+    // component of a *symbolic* direction as `null`, and `null * null` is `0`,
+    // so that magnitude came out `0` and multiplied every desired component
+    // away: the direction became the zero vector and the line lost its second
+    // point. `NaN` is what the fallback below the sum tests for, so the
+    // components are mapped to it explicitly and the fallback magnitude of 1
+    // applies.
+    it("moving a line with a symbolic parallelTo sets a unit direction, not zero", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="m">(a,b)</math>
+    <graph>
+      <line name="l" through="(1,2)" parallelTo="$m" />
+    </graph>
+    <point name="p2" extend="$l.points[2]" />
+    `,
+        });
+
+        // A symbolic direction gives no second point to start with.
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
+        ).eqls(["tuple", "a", "b"]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("l")
+            ].stateValues.points[1].map((v) => v.tree),
+        ).eqls(["＿", "＿"]);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("p2"),
+            x: 4,
+            y: 6,
+            core,
+        });
+
+        // The displacement from (1,2) to (4,6) is (3,4), so the direction is
+        // the unit vector (0.6, 0.8) — magnitude 1, not 0.
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues.value
+                .tree,
+        ).eqls(["vector", 0.6, 0.8]);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("l")
+            ].stateValues.points.map((p) => p.map((v) => v.tree)),
+        ).eqls([
+            [1, 2],
+            [4, 6],
+        ]);
+    });
+
+    // The other half of the same fix. `_directionComponent`'s inverse builds a
+    // vector AST component by component and hands it to `fromAst`, so an
+    // instruction that sets only *some* components leaves holes, which
+    // `JSON.stringify` turns into `null` and `fromAst` rejects outright,
+    // aborting the whole update. Nothing in the DoenetML surface reaches this
+    // today — `Line` is the only component with `_directionComponent`
+    // attributes and both its `parallelTo` and `perpendicularTo` instructions
+    // set the full array (instrumenting the inverse over this file records 171
+    // invocations, every one of them complete) — so the definition is exercised
+    // directly here rather than through a document that cannot express it.
+    it("a partially specified direction is marked, not left as a hole", async () => {
+        const stateVariableDefinitions = (
+            DirectionComponent as any
+        ).returnStateVariableDefinitions();
+
+        const { instructions } =
+            stateVariableDefinitions.direction.inverseArrayDefinitionByKey({
+                // Only the first of the two components is set.
+                desiredStateVariableValues: {
+                    direction: { "0": me.fromAst(1) },
+                },
+                globalDependencyValues: {
+                    unnormalizedDirection: me.fromAst(["vector", 3, 4]),
+                },
+                arraySize: [2],
+            });
+
+        expect(instructions.length).eq(1);
+        expect(instructions[0].setDependency).eq("unnormalizedDirection");
+        // Scaled by the magnitude 5 of (3,4); the unset component survives as
+        // the marker `preprocessMathInverseDefinition` fills back in.
+        expect(instructions[0].desiredValue.tree).eqls([
+            "vector",
+            5,
+            UNSPECIFIED_COMPONENT,
+        ]);
     });
 });

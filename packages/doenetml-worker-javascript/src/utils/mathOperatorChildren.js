@@ -1,4 +1,5 @@
 import me from "math-expressions";
+import { isNumericConstant } from "./math";
 
 /**
  * Shared machinery for the two families of math operators: the ones that
@@ -75,9 +76,17 @@ export function mathOperatorInputsFromChildren({
         });
 
         if (isNumeric) {
-            return isNumberChild
-                ? child.stateValues.value
-                : child.stateValues.value.evaluate_to_constant();
+            if (isNumberChild) {
+                return child.stateValues.value;
+            }
+            // The numeric operators are mathjs functions, and they accept
+            // `NaN` while rejecting anything that is not a number:
+            // `median([1,4,5,null])` throws "unexpected type of argument" and
+            // takes the whole document with it, where `median([1,4,5,NaN])`
+            // returns `NaN` and the operator degrades quietly. A `Complex` is
+            // the case this guard catches.
+            const value = child.stateValues.value.evaluate_to_constant();
+            return isNumericConstant(value) ? value : NaN;
         }
 
         return isNumberChild

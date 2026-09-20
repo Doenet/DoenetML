@@ -5995,7 +5995,7 @@ $c7.radius
         ).eqls("2469.14");
         expect(
             stateVariables[await resolvePathToNodeIdx("c1c")].stateValues.text,
-        ).eqls("( 12.35, 0.123 )");
+        ).eqls("(12.35, 0.123)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("c1ar")].stateValues.text,
@@ -6005,16 +6005,16 @@ $c7.radius
         ).eqls("2469.1");
         expect(
             stateVariables[await resolvePathToNodeIdx("c1ac")].stateValues.text,
-        ).eqls("( 12.35, 0.1235 )");
+        ).eqls("(12.35, 0.1235)");
 
         expect(
             stateVariables[await resolvePathToNodeIdx("pc2tp")].stateValues
                 .text,
-        ).eqls("( 1234.57, 0.123 )");
+        ).eqls("(1234.57, 0.123)");
         expect(
             stateVariables[await resolvePathToNodeIdx("pc2atp")].stateValues
                 .text,
-        ).eqls("( 1234.6, 0.1235 )");
+        ).eqls("(1234.6, 0.1235)");
     });
 
     it("circle style descriptions", async () => {
@@ -6372,5 +6372,40 @@ $c7.radius
 
         await test_items("light");
         await test_items("dark");
+    });
+
+    it("a symbolic radius leaves numericalRadius NaN, not null", async () => {
+        // `numericalRadius` is `forRenderer`. The engine briefly reported an
+        // expression it cannot evaluate as `null`, where legacy — and the
+        // engine again now — reported `NaN`. Both keep the circle off the
+        // board (the renderer gates on `numericalRadius > 0`, which neither
+        // passes), but `null` is `0` to the arithmetic the renderer does with
+        // it afterwards, and it is not the `number` the renderer declares.
+        //
+        // This asserts the engine's answer, not the guard's: with the `NaN`
+        // sentinel `evaluateToNumber` is a pass-through here, and a
+        // `sqrt(-4)` radius does not reach it — measured at the
+        // twenty-third pass, which re-anchored `<math>`'s and `<vector>`'s
+        // twins of this test on the `Complex` arm and found this one has no
+        // such leg. Falsify it by simulating the old sentinel
+        // (`toNumberOrNaN` returning `0` for a value with no numeric
+        // reading), not by reverting the guard.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <graph><circle name="c" center="(0,0)" /></graph>
+  <mathInput name="mi" bindValueTo="$c.radius" />
+  `,
+        });
+
+        await updateMathInputValue({
+            latex: "a",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const circle = stateVariables[await resolvePathToNodeIdx("c")];
+        expect(circle.stateValues.radius.tree).eq("a");
+        expect(circle.stateValues.numericalRadius).eqls(NaN);
     });
 });

@@ -11,7 +11,11 @@ import {
     returnTextPieceStateVariableDefinitions,
     textFromChildren,
 } from "../utils/text";
-import { textToMathFactory, latexToMathFactory } from "../utils/math";
+import {
+    textToMathFactory,
+    latexToMathFactory,
+    plainComplex,
+} from "../utils/math";
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
 
@@ -340,7 +344,21 @@ export default class Text extends InlineComponent {
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        number: dependencyValues.math.evaluate_to_constant(),
+                        // `?? NaN` rather than `evaluateToNumber`: a
+                        // *complex* result has to survive here —
+                        // `<number><text>3+4i</text></number>` reads this
+                        // through `Number.js`, which keeps complex values —
+                        // and `evaluateToNumber` would flatten it. "No value"
+                        // is already `NaN`, so the `??` is now belt and braces
+                        // against a `null` from somewhere else entirely.
+                        //
+                        // `plainComplex` because this is `public` and
+                        // `forRenderer`: the math.js `Complex` it would
+                        // otherwise hold is structured-cloned to the main
+                        // thread, where its prototype does not survive.
+                        number: plainComplex(
+                            dependencyValues.math.evaluate_to_constant() ?? NaN,
+                        ),
                     },
                 };
             },

@@ -15,6 +15,17 @@ jobs:
     changes:
         name: Detect Changed Paths
         runs-on: ubuntu-latest
+        # `pull-requests: read` is what `paths-filter` needs, and only on a pull
+        # request: for a `push` it diffs with git, but for a PR it asks the API
+        # which files changed. Without the scope that call 403s and the job dies
+        # immediately after logging `Invoking listFiles(...)` — so this fails on
+        # every PR while `main` stays green, because `main` only ever runs the
+        # push path. `contents: read` is restated because naming `permissions`
+        # at all drops every scope not listed, including the one `checkout`
+        # needs.
+        permissions:
+            contents: read
+            pull-requests: read
         outputs:
             prefigure: ${{ steps.filter.outputs.prefigure }}
         steps:
@@ -51,6 +62,18 @@ jobs:
               # set the environmental variable WIREIT_CACHE="local" so that the wireit cache is saved in the .wireit directory.
               env:
                   WIREIT_CACHE: "local"
+
+            # Nothing else in CI runs `tsc`: `Lint Typescript Code` is Prettier
+            # plus a filename-collision check, and the packages built with
+            # `vite build` only *log* their vite-plugin-dts diagnostics before
+            # exiting 0. Twenty-two type errors sat in packages/doenetml that
+            # way. Run here rather than in the lint job because the root
+            # `paths` mapping resolves `@doenet/…` to a package's `dist`, so
+            # type-checking needs the build above. ~30s. The packages that do
+            # not type-check yet are listed, with their error counts, in
+            # scripts/typecheck.mjs.
+            - name: Type check
+              run: npm run typecheck
 
             # The standalone bundle has carried megabytes it should not have
             # before — the Rust core was inlined into it until #1465 — and
