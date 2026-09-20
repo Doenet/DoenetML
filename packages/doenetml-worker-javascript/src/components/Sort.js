@@ -397,7 +397,9 @@ export default class Sort extends CompositeComponent {
             };
         }
 
-        // The children themselves changed, so there is nothing to reuse.
+        // Either the children themselves changed, so there is nothing to
+        // reuse, or so few replacements would stay put that moving them costs
+        // more than building them again.
         let replacementResults = await this.createSerializedReplacements({
             component,
             components,

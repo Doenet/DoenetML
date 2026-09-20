@@ -1217,6 +1217,52 @@ describe("Sort tag tests @group4", async () => {
             expect(rearranged).not.eqls(after);
         });
 
+        it("exactly half the replacements staying put still rearranges", async () => {
+            // The cut point itself: `1 2 $m 4` with `m` at 3 is already
+            // sorted, and dropping `m` between 1 and 2 leaves the first and
+            // last of the four where they were — half of them.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="m" prefill="3" />
+    <sort name="s">1 2 $m 4</sort>
+    <p name="pList">$s</p>
+  `,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["1", "2", "3", "4"],
+            });
+
+            const before = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+
+            await updateMathInputValue({
+                latex: "1.5",
+                componentIdx: await resolvePathToNodeIdx("m"),
+                core,
+            });
+
+            await test_sort({
+                core,
+                resolvePathToNodeIdx,
+                sorted_result: ["1", "1.5", "2", "4"],
+            });
+
+            const after = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+
+            expect([...after].sort()).eqls([...before].sort());
+            expect(after).not.eqls(before);
+        });
+
         it("a repeated child is matched off in order", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
@@ -1309,7 +1355,7 @@ describe("Sort tag tests @group4", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <mathInput name="m" prefill="3" />
-    <sort name="s">5 $m 1</sort>
+    <sort name="s">5 $m 1 20 30</sort>
     <p name="pList">$s</p>
     <p name="pCopy">$s</p>
     <p name="pCopySecond">$s[2]</p>
@@ -1319,9 +1365,15 @@ describe("Sort tag tests @group4", async () => {
             await test_sort({
                 core,
                 resolvePathToNodeIdx,
-                sorted_result: ["1", "3", "5"],
+                sorted_result: ["1", "3", "5", "20", "30"],
                 pName: "pCopy",
             });
+
+            const before = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
 
             await updateMathInputValue({
                 latex: "9",
@@ -1332,9 +1384,19 @@ describe("Sort tag tests @group4", async () => {
             await test_sort({
                 core,
                 resolvePathToNodeIdx,
-                sorted_result: ["1", "5", "9"],
+                sorted_result: ["1", "5", "9", "20", "30"],
                 pName: "pCopy",
             });
+
+            // The sort rearranged rather than rebuilt, which is the case this
+            // test is about: the copy follows a rearrangement.
+            const after = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+            expect([...after].sort()).eqls([...before].sort());
+            expect(after).not.eqls(before);
 
             const stateVariables = await core.returnAllStateVariables(
                 false,
@@ -1353,8 +1415,10 @@ describe("Sort tag tests @group4", async () => {
       <point name="A">(5,0)</point>
       <point name="B">(2,0)</point>
       <point name="C">(9,0)</point>
+      <point name="D">(200,0)</point>
+      <point name="E">(300,0)</point>
     </graph>
-    <sort name="s">$A $B $C</sort>
+    <sort name="s">$A $B $C $D $E</sort>
     <p name="pList">$s</p>
     <p name="pProp">$s.x</p>
   `,
@@ -1374,9 +1438,21 @@ describe("Sort tag tests @group4", async () => {
             await test_sort({
                 core,
                 resolvePathToNodeIdx,
-                sorted_result: ["(2, 0)", "(5, 0)", "(9, 0)"],
+                sorted_result: [
+                    "(2, 0)",
+                    "(5, 0)",
+                    "(9, 0)",
+                    "(200, 0)",
+                    "(300, 0)",
+                ],
             });
-            await expectProp("2, 5, 9");
+            await expectProp("2, 5, 9, 200, 300");
+
+            const before = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
 
             await movePoint({
                 componentIdx: await resolvePathToNodeIdx("A"),
@@ -1388,9 +1464,25 @@ describe("Sort tag tests @group4", async () => {
             await test_sort({
                 core,
                 resolvePathToNodeIdx,
-                sorted_result: ["(2, 0)", "(9, 0)", "(100, 0)"],
+                sorted_result: [
+                    "(2, 0)",
+                    "(9, 0)",
+                    "(100, 0)",
+                    "(200, 0)",
+                    "(300, 0)",
+                ],
             });
-            await expectProp("2, 9, 100");
+            await expectProp("2, 9, 100, 200, 300");
+
+            // The prop reference is following a rearrangement rather than a
+            // rebuild.
+            const after = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+            expect([...after].sort()).eqls([...before].sort());
+            expect(after).not.eqls(before);
         });
 
         it("a list that empties and refills", async () => {
@@ -1473,8 +1565,9 @@ describe("Sort tag tests @group4", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <mathInput name="m" prefill="3" />
-    <setup><number name="five">5</number><math name="one">1</math></setup>
-    <sort name="s">$five $m $one</sort>
+    <setup><number name="five">5</number><math name="one">1</math
+        ><math name="twenty">20</math><number name="thirty">30</number></setup>
+    <sort name="s">$five $m $one $twenty $thirty</sort>
     <p name="pList">$s</p>
   `,
             });
@@ -1494,11 +1587,23 @@ describe("Sort tag tests @group4", async () => {
             await test_sort({
                 core,
                 resolvePathToNodeIdx,
-                sorted_result: ["1", "3", "5"],
+                sorted_result: ["1", "3", "5", "20", "30"],
             });
-            expect(await replacementTypes()).eqls(["math", "math", "number"]);
+            expect(await replacementTypes()).eqls([
+                "math",
+                "math",
+                "number",
+                "math",
+                "number",
+            ]);
 
-            // 3 becomes 9, so the number moves out of last place
+            const before = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+
+            // 3 becomes 9, so the number moves out of third place
             await updateMathInputValue({
                 latex: "9",
                 componentIdx: await resolvePathToNodeIdx("m"),
@@ -1508,9 +1613,26 @@ describe("Sort tag tests @group4", async () => {
             await test_sort({
                 core,
                 resolvePathToNodeIdx,
-                sorted_result: ["1", "5", "9"],
+                sorted_result: ["1", "5", "9", "20", "30"],
             });
-            expect(await replacementTypes()).eqls(["math", "number", "math"]);
+            expect(await replacementTypes()).eqls([
+                "math",
+                "number",
+                "math",
+                "math",
+                "number",
+            ]);
+
+            // The types travel with the components, so this has to be the
+            // rearranging path rather than a rebuild that would have made
+            // them afresh.
+            const after = await replacementIndices(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            );
+            expect([...after].sort()).eqls([...before].sort());
+            expect(after).not.eqls(before);
         });
 
         it("sorted points stay live after they reorder", async () => {
