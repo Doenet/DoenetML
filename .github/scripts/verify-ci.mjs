@@ -45,9 +45,10 @@
  * one poll — 65.5 minutes at the defaults, inside the callers'
  * `timeout-minutes: 70`. Reads need not fail promptly, though: a `fetch` that
  * hangs is bounded only by Node's own header/body timeouts, 300 s apiece, and
- * the grace is tested only when a read comes back — so a read that hangs just
- * under the grace lets a third one start, and a streak of hung reads can run
- * to nearly three times the grace, putting the worst case near 75 minutes.
+ * the grace is tested only when a read comes back — so a read that hangs for
+ * less than the grace minus one poll lets a third one start, and a streak of
+ * hung reads of differing lengths can run to just over three times the grace,
+ * putting the worst case near 76 minutes.
  * The backstop ends the step before then. That costs the specific message,
  * not the verdict, and it is why the backstop is not optional.
  */
