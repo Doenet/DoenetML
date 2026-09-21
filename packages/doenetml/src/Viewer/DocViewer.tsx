@@ -1066,13 +1066,34 @@ export function DocViewer({
         return disposeCoreWorker(remote, kill, { graceful, suspectWedge });
     }
 
+    /**
+     * Throw away the queued actions without sending them anywhere. They never
+     * reach core, so nothing will ever resolve them, and a value a renderer
+     * showed ahead of one would sit in `updatesToIgnore` with nothing left to
+     * settle it, suppressing later updates to that component. Drop those
+     * values here, the one exit from the queue that produces no answer.
+     */
     function clearDeferredCoreActions() {
+        for (const actionArgs of actionsBeforeCoreCreated.current) {
+            const actionId = actionArgs.args?.actionId;
+            if (actionId) {
+                clearPendingValuesForAction(
+                    updatesToIgnoreRef.current,
+                    actionId,
+                );
+            }
+        }
         actionsBeforeCoreCreated.current = [];
     }
 
+    /**
+     * Hand off the queued actions to be executed. Their pending values stay
+     * put: core is about to answer each one, and `resolveAction` clears them
+     * then.
+     */
     function takeDeferredCoreActions() {
         const pendingActions = actionsBeforeCoreCreated.current;
-        clearDeferredCoreActions();
+        actionsBeforeCoreCreated.current = [];
         return pendingActions;
     }
 
@@ -2157,7 +2178,7 @@ export function DocViewer({
             return;
         }
 
-        // Core is done with this action, so the value the renderer showed ahead
+        // This action is being settled, so the value the renderer showed ahead
         // of it is no longer waiting on an answer.
         clearPendingValuesForAction(updatesToIgnoreRef.current, actionId);
 
