@@ -1994,6 +1994,125 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             4,
             1e-10,
         );
+
+        // and the same for `exclude`, which narrows the set the moments are taken
+        // over rather than naming one of their terms. It was the one parameter not
+        // frozen here, so the moments described the new exclusion set while the
+        // numbers on the page came from the old one: a 5 was selected that the
+        // reported distribution excludes, beside a 3 it includes that was excluded
+        // when the selection was made.
+        {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="e" prefill="3" />
+    <selectRandomNumbers name="s" type="discreteUniform" from="1" to="5" exclude="$e" numToSelect="6" />
+    `,
+            });
+
+            await updateMathInputValue({
+                latex: "5",
+                componentIdx: await resolvePathToNodeIdx("e"),
+                core,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const componentIdx = await resolvePathToNodeIdx("s");
+
+            // the moments of {1, 2, 4, 5}, which is what excluding 3 leaves
+            expect(stateVariables[componentIdx].stateValues.mean).closeTo(
+                3,
+                1e-10,
+            );
+            expect(stateVariables[componentIdx].stateValues.variance).closeTo(
+                2.5,
+                1e-10,
+            );
+
+            for (const value of await current_values(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            )) {
+                expect([1, 2, 4, 5].includes(value), `sample ${value}`).eq(
+                    true,
+                );
+            }
+        }
+
+        // A change that alters how *many* values survive is the sharper case: the
+        // count the moments divide by is frozen, so an exclusion set that moved on
+        // without it gave a mean belonging to no set of values at all --- 1.75 here,
+        // being (1 + 2 + 4) / 4, where the two candidate sets have means 3 and 7/3.
+        {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="e" prefill="3" />
+    <selectRandomNumbers name="s" type="discreteUniform" from="1" to="5" exclude="3 $e" numToSelect="6" />
+    `,
+            });
+
+            await updateMathInputValue({
+                latex: "5",
+                componentIdx: await resolvePathToNodeIdx("e"),
+                core,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const componentIdx = await resolvePathToNodeIdx("s");
+
+            expect(stateVariables[componentIdx].stateValues.mean).closeTo(
+                3,
+                1e-10,
+            );
+            expect(stateVariables[componentIdx].stateValues.variance).closeTo(
+                2.5,
+                1e-10,
+            );
+        }
+    });
+
+    it("a sampled distribution's exclusions still follow a reference", async () => {
+        // The control for the freezing above: `<sampleRandomNumbers>` freezes
+        // nothing, so its moments and its values both move to the new exclusion set.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="e" prefill="3" />
+    <sampleRandomNumbers name="s" type="discreteUniform" from="1" to="5" exclude="$e" numSamples="6" />
+    `,
+        });
+
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("e"),
+            core,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+
+        // the moments of {1, 2, 3, 4}, which is what excluding 5 leaves
+        expect(stateVariables[componentIdx].stateValues.mean).closeTo(
+            2.5,
+            1e-10,
+        );
+        expect(stateVariables[componentIdx].stateValues.variance).closeTo(
+            1.25,
+            1e-10,
+        );
+
+        for (const value of await current_values(
+            core,
+            resolvePathToNodeIdx,
+            "s",
+        )) {
+            expect([1, 2, 3, 4].includes(value), `sample ${value}`).eq(true);
+        }
     });
 
     it("a selected log-normal freezes the parameters its values came from", async () => {
