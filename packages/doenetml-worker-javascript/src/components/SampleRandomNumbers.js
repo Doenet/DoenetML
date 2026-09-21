@@ -997,29 +997,44 @@ export default class SampleRandomNumbers extends CompositeComponent {
                         variance = NaN;
                     } else if (logVariance === 0) {
                         // A spread of zero is one value repeated, whose variance
-                        // is 0. The formula below would read it as 0 times the
-                        // Infinity a large enough center overflows to, and report
-                        // NaN for a distribution that is perfectly determined.
+                        // is 0, and saying so here is both cheaper and surer than
+                        // asking the formula below: its left factor is 0, whose
+                        // logarithm is -Infinity, which cancels against the
+                        // +Infinity a center past about 9e307 doubles to and
+                        // gives NaN for a distribution that is perfectly
+                        // determined.
                         variance = 0;
                     } else {
-                        // (1 - e^(-sigma^2)) e^(2 mu + 2 sigma^2), which is
-                        // (e^(sigma^2) - 1) e^(2 mu + sigma^2) with a factor of
-                        // e^(sigma^2) moved from the left factor to the right.
-                        // Written the usual way round, a spread past
-                        // sigma^2 = 710 overflows the left factor to Infinity
-                        // while a center far enough below it underflows the right
-                        // to zero, and their product is NaN for a variance a
-                        // number holds perfectly well: logMean="-1000"
-                        // logVariance="900" has one of e^-200. Moving the factor
-                        // across bounds the left one in (0, 1], so the only
-                        // Infinity left is the one the whole product earns.
-                        // `expm1` still keeps a small spread from losing its
-                        // precision to the 1 it is subtracted from.
-                        variance =
-                            -Math.expm1(-logVariance) *
-                            Math.exp(
-                                2 * dependencyValues.logMean + 2 * logVariance,
-                            );
+                        // (1 - e^(-sigma^2)) e^(2 mu + 2 sigma^2), which is the
+                        // textbook (e^(sigma^2) - 1) e^(2 mu + sigma^2) with a
+                        // factor of e^(sigma^2) moved from the left factor to
+                        // the right, evaluated as a single exponential so that
+                        // neither factor is formed on its own.
+                        //
+                        // Both factors overflow for parameters whose variance is
+                        // an ordinary number, in opposite directions, so a
+                        // product of the two is wrong at both ends. Written the
+                        // textbook way a spread past sigma^2 = 710 overflows the
+                        // left factor while a center far below it underflows the
+                        // right, and the product is NaN where the truth is
+                        // e^-200 (logMean="-1000" logVariance="900"). Written as
+                        // a product the other way round the left factor is
+                        // bounded in (0, 1], but a center large enough that the
+                        // *squares* of the values overflow while the values
+                        // themselves do not --- logMean between about 355 and
+                        // 709 --- overflows the right factor, and the product is
+                        // Infinity where the truth is 1.7e307 (logMean="356"
+                        // logStandardDeviation="0.1"). Adding the logarithm of
+                        // the left factor to the exponent instead leaves only
+                        // the Infinity the whole expression earns. `expm1` still
+                        // keeps a small spread from losing its precision to the
+                        // 1 it is subtracted from, and its result is strictly
+                        // positive here because the zero spread is handled above.
+                        variance = Math.exp(
+                            2 * dependencyValues.logMean +
+                                2 * logVariance +
+                                Math.log(-Math.expm1(-logVariance)),
+                        );
                     }
                 } else if (dependencyValues.type === "poisson") {
                     // the variance of a Poisson distribution equals its mean,

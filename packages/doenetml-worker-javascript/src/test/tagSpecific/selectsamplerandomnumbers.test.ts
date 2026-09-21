@@ -1079,14 +1079,18 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
     });
 
     it("a log-normal with no spread is a single value repeated", async () => {
-        // The variance formula reads (e^(sigma^2) - 1) times e^(2 mu + sigma^2), so
-        // a spread of zero beside a center large enough to overflow would compute
-        // 0 * Infinity and report NaN for a distribution that is perfectly
+        // A spread of zero is answered outright rather than by the variance
+        // formula, which for that spread has a zero factor whose logarithm is
+        // -Infinity: a center large enough that twice it is Infinity too would
+        // cancel the two and report NaN for a distribution that is perfectly
         // determined.
         for (const [logMean, expectedValue] of [
             [0, 1],
             [2, Math.exp(2)],
             [1000, Infinity],
+            // large enough that 2 * logMean overflows, which is where the
+            // formula would need answering for
+            [1e308, Infinity],
             // and at the other end, the only way a log-normal value can fail to
             // be strictly positive: a center far enough below the underflow
             // point that e^logMean rounds to 0. With no spread every value is
@@ -1184,6 +1188,69 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 "s",
             )) {
                 expect(Number.isNaN(value), doenetML).eq(false);
+            }
+            expect(getDiagnosticsByType(core).warnings.length, doenetML).eq(0);
+        }
+    });
+
+    it("a log-normal's variance survives a large center beside a small spread", async () => {
+        // The mirror of the case above. Between about e^355 and e^709 a value is
+        // an ordinary number but its square is not, so E[X^2] overflows while the
+        // variance --- which is a fraction of it --- is still a number a double
+        // holds. Evaluating (1 - e^(-sigma^2)) e^(2 mu + 2 sigma^2) as a product
+        // overflows the right factor and reports Infinity for it.
+        for (const [logMean, logStandardDeviation] of [
+            // 1.7e307, with every sample about 4e154
+            [356, 0.1],
+            // and the same at the far edge, where the variance is 1.4e308 and
+            // only just representable
+            [354, 1],
+        ] as [number, number][]) {
+            const logVariance = logStandardDeviation ** 2;
+
+            // (1 - e^(-sigma^2)) e^(2 mu + 2 sigma^2), bracketed so that the two
+            // halves of the exponential are taken separately and the small left
+            // factor is applied to the first of them. That overflows nowhere in
+            // this range and shares no `log` with the definition's own arithmetic.
+            const expectedVariance =
+                -Math.expm1(-logVariance) *
+                Math.exp(logMean) *
+                Math.exp(logMean + 2 * logVariance);
+            const expectedMean = Math.exp(logMean + logVariance / 2);
+
+            const doenetML = `<sampleRandomNumbers name="s" type="logNormal" logMean="${logMean}" logStandardDeviation="${logStandardDeviation}" numSamples="5" />`;
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const stateValues =
+                stateVariables[await resolvePathToNodeIdx("s")].stateValues;
+
+            expect(stateValues.variance, doenetML).closeTo(
+                expectedVariance,
+                expectedVariance * 1e-10,
+            );
+            expect(stateValues.standardDeviation, doenetML).closeTo(
+                Math.sqrt(expectedVariance),
+                Math.sqrt(expectedVariance) * 1e-10,
+            );
+            // as before, the mean is finite and the samples are ordinary
+            // numbers, so an infinite variance beside them would be the one
+            // moment contradicting the rest of what the component reports
+            expect(stateValues.mean, doenetML).closeTo(
+                expectedMean,
+                expectedMean * 1e-10,
+            );
+
+            for (const value of await current_values(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            )) {
+                expect(Number.isFinite(value), doenetML).eq(true);
             }
             expect(getDiagnosticsByType(core).warnings.length, doenetML).eq(0);
         }
