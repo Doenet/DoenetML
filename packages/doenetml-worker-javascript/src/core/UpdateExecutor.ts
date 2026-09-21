@@ -112,8 +112,27 @@ type PerformUpdateArgs = {
      *   (`<textInput>`, `<codeEditor>`) and `mathComponentInputUpdateRawValue`
      *   (math-input cells), which set it on every keystroke so that typing
      *   does not add a row to the database.
+     *
+     * Only the first kind wants the renderer split, so the second passes
+     * `deferDownstreamRenderers: false`. If you add a caller that sets
+     * `transient` for a reason other than a continuous pointer interaction,
+     * it very likely wants that too.
      */
     transient?: boolean;
+    /**
+     * Whether a `transient` update may let its downstream renderer updates
+     * settle after the interaction instead of during it. Ignored unless
+     * `transient`.
+     *
+     * True for a drag, where the downstream is a consequence of where the
+     * pointer is and can catch up once it stops. False for a keystroke, where
+     * the downstream carries feedback about what was typed and has to keep
+     * up: an `<answer>`'s check-work button must drop "Incorrect" on the
+     * first character of a correction, not 150 ms after the reader stops
+     * typing, and a `$input.immediateValue` echo would otherwise freeze for
+     * the length of a burst of typing.
+     */
+    deferDownstreamRenderers?: boolean;
     sourceInformation?: SourceInformation;
 };
 
@@ -318,6 +337,7 @@ export class UpdateExecutor {
         canSkipUpdatingRenderer = false,
         skipRendererUpdate = false,
         transient = false,
+        deferDownstreamRenderers = true,
         sourceInformation = {},
     }: PerformUpdateArgs) {
         if (diagnostics) {
@@ -444,7 +464,9 @@ export class UpdateExecutor {
             });
         }
 
-        if (transient && !skipRendererUpdate) {
+        const splitRendererUpdate = transient && deferDownstreamRenderers;
+
+        if (splitRendererUpdate && !skipRendererUpdate) {
             // Put the dragged component on screen before doing anything with
             // the (much larger) set of components its move invalidated.
             await this.core.updateRenderersForComponents(
@@ -459,7 +481,7 @@ export class UpdateExecutor {
         await this.core.processStateVariableTriggers();
 
         if (!skipRendererUpdate) {
-            if (transient) {
+            if (splitRendererUpdate) {
                 this.core.scheduleDeferredRendererUpdate(
                     sourceInformation,
                     actionId,

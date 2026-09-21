@@ -1241,6 +1241,13 @@ export default class MathInput extends Input {
                     },
                 ],
                 transient: true,
+                // A keystroke's consequences must keep up with it: an
+                // `<answer>`'s check-work button has to drop "Incorrect" on the
+                // first character of a correction, and a `$input.immediateValue`
+                // echo would otherwise freeze for the length of a typing burst.
+                // `transient` here is about not writing a database row per
+                // keystroke, not about a continuous pointer interaction.
+                deferDownstreamRenderers: false,
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

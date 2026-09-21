@@ -8,11 +8,12 @@ import { createTestCore } from "./test-core";
  * that motivated this, ~133 rendered components per drag step, all of which
  * the viewer then reconciles and typesets.
  *
- * So a transient update — a drag in progress, or a keystroke in an input that
- * commits on blur or enter — sends its own targets straight away and holds the
- * rest until the interaction goes quiet; the commit that ends it sends
- * everything. These tests pin that split, and pin that nothing is dropped on
- * the way.
+ * So a drag step sends its own targets straight away and holds the rest until
+ * the interaction goes quiet; the commit that ends the drag sends everything.
+ * These tests pin that split, and pin that nothing is dropped on the way.
+ *
+ * Typing is `transient` too, for an unrelated reason, and must NOT take the
+ * split — see `typingDoenetML` below.
  */
 
 /** Three points whose y stacks them by rank, so moving one moves the others. */
@@ -33,11 +34,22 @@ const doenetML = `
 `;
 
 /**
- * A drag is not the only transient interaction. The inputs that commit on
- * blur or enter mark every keystroke transient so it does not add a row to
- * the database (`MathInput.updateRawValue`, `inputUpdateImmediateValue` in
+ * A drag is not the only `transient` caller: the inputs that commit on blur or
+ * enter mark every keystroke transient so it does not add a row to the
+ * database (`MathInput.updateRawValue`, `inputUpdateImmediateValue` in
  * `utils/input.js`, `mathComponentInputUpdateRawValue` in
- * `utils/mathComponentInput.js`), so the same split applies while typing.
+ * `utils/mathComponentInput.js`).
+ *
+ * Those must not take the renderer split, so they pass
+ * `deferDownstreamRenderers: false`. A keystroke's downstream carries feedback
+ * about what was typed: an `<answer>`'s check-work button has to drop
+ * "Incorrect" on the first character of a correction, and an echo of
+ * `immediateValue` would otherwise freeze for the length of a typing burst.
+ * Deferring it also broke `prototype/textInput.cy.js`,
+ * `prototype/sectionTitleUpdate.cy.js`, `variants/specifysinglevariant.cy.js`
+ * and `tagSpecific/pretzel.cy.js` — on the prototype's flat action path the
+ * deferred batch is not merely late, it is dropped, because that path buffers
+ * only what arrives while the action is in flight.
  */
 const typingDoenetML = `
 <mathInput name="mi" />
@@ -384,14 +396,14 @@ describe("an interaction sends its own target ahead of the rest @group4", () => 
         ],
         ["textInput", "ti", "updateImmediateValue", { text: "hello" }, "tEcho"],
     ])(
-        "a keystroke in a %s sends the input first and defers what reads it",
+        "a keystroke in a %s sends what reads it in the same batch",
         async (_label, inputName, actionName, args, echoName) => {
-            // Typing is transient too, so it takes the same split: the input
-            // itself goes out at once and anything reading its in-progress
-            // value follows once the typing pauses.
+            // Typing is transient, but passes `deferDownstreamRenderers: false`,
+            // so it keeps the undeferred behavior: the echo goes out with the
+            // input, not 150 ms later, and nothing is left pending.
             vi.useFakeTimers();
             try {
-                const { core, resolvePathToNodeIdx, batches } =
+                const { core, innerCore, resolvePathToNodeIdx, batches } =
                     await setup(typingDoenetML);
                 const inputIdx = await resolvePathToNodeIdx(inputName);
                 const echoIdx = await resolvePathToNodeIdx(echoName);
@@ -404,13 +416,20 @@ describe("an interaction sends its own target ahead of the rest @group4", () => 
 
                 expect(batches).toHaveLength(1);
                 expect(batches[0].deferred).toBe(false);
-                expect(batches[0].componentIndices).toEqual([inputIdx]);
+                expect(batches[0].componentIndices).toContain(inputIdx);
+                expect(batches[0].componentIndices).toContain(echoIdx);
 
+                expect(
+                    innerCore.rendererInstructionBuilder
+                        ._deferredRendererTimeout,
+                ).toBe(null);
+                expect(
+                    innerCore.updateInfo.componentsToUpdateRenderers.size,
+                ).toBe(0);
+
+                // Nothing arrives later either.
                 await vi.advanceTimersByTimeAsync(500);
-
-                expect(batches).toHaveLength(2);
-                expect(batches[1].deferred).toBe(true);
-                expect(batches[1].componentIndices).toContain(echoIdx);
+                expect(batches).toHaveLength(1);
             } finally {
                 vi.useRealTimers();
             }
