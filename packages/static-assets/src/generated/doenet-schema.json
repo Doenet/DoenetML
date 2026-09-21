@@ -111314,6 +111314,7 @@
                         "discreteUniform",
                         "gaussian",
                         "logNormal",
+                        "normalMixture",
                         "hypergeometric",
                         "binomial",
                         "poisson"
@@ -111334,6 +111335,10 @@
                         {
                             "value": "logNormal",
                             "description": "Log-normal distribution: the exponential of a normal distribution with the specified `logMean` and `logStandardDeviation`."
+                        },
+                        {
+                            "value": "normalMixture",
+                            "description": "Mixture of normal distributions: each value comes from one of the distributions described by `means` and `standardDeviations`, chosen with probability in proportion to its entry in `weights`."
                         },
                         {
                             "value": "hypergeometric",
@@ -111391,6 +111396,40 @@
                     "groupName": "sampling-lognormal",
                     "defaultValue": 1,
                     "type": "number"
+                },
+                {
+                    "name": "means",
+                    "description": "Means of the normal distributions being mixed (normal mixture). How many are listed is how many components the mixture has.",
+                    "groupName": "sampling-mixture",
+                    "defaultValue": [],
+                    "type": "numberList"
+                },
+                {
+                    "name": "standardDeviations",
+                    "description": "Standard deviations of the normal distributions being mixed (normal mixture). A single value applies to every component.",
+                    "groupName": "sampling-mixture",
+                    "defaultValue": [
+                        1
+                    ],
+                    "type": "numberList"
+                },
+                {
+                    "name": "variances",
+                    "description": "Variances of the normal distributions being mixed (normal mixture). A single value applies to every component.",
+                    "groupName": "sampling-mixture",
+                    "defaultValue": [
+                        1
+                    ],
+                    "type": "numberList"
+                },
+                {
+                    "name": "weights",
+                    "description": "Relative weight of each normal distribution being mixed (normal mixture), which need not add up to 1. A single value applies to every component, weighting them equally.",
+                    "groupName": "sampling-mixture",
+                    "defaultValue": [
+                        1
+                    ],
+                    "type": "numberList"
                 },
                 {
                     "name": "from",
@@ -111618,6 +111657,34 @@
                     "isArray": false,
                     "description": "Variance of the underlying normal distribution (log-normal).",
                     "groupName": "sampling-lognormal"
+                },
+                {
+                    "name": "means",
+                    "type": "numberList",
+                    "isArray": false,
+                    "description": "Means of the normal distributions being mixed (normal mixture).",
+                    "groupName": "sampling-mixture"
+                },
+                {
+                    "name": "standardDeviations",
+                    "type": "numberList",
+                    "isArray": false,
+                    "description": "Standard deviations of the normal distributions being mixed (normal mixture).",
+                    "groupName": "sampling-mixture"
+                },
+                {
+                    "name": "variances",
+                    "type": "numberList",
+                    "isArray": false,
+                    "description": "Variances of the normal distributions being mixed (normal mixture).",
+                    "groupName": "sampling-mixture"
+                },
+                {
+                    "name": "weights",
+                    "type": "numberList",
+                    "isArray": false,
+                    "description": "Relative weight of each normal distribution being mixed (normal mixture), as written rather than scaled to add up to 1.",
+                    "groupName": "sampling-mixture"
                 },
                 {
                     "name": "mean",
@@ -111748,6 +111815,7 @@
                         "discreteUniform",
                         "gaussian",
                         "logNormal",
+                        "normalMixture",
                         "hypergeometric",
                         "binomial",
                         "poisson"
@@ -111768,6 +111836,10 @@
                         {
                             "value": "logNormal",
                             "description": "Log-normal distribution: the exponential of a normal distribution with the specified `logMean` and `logStandardDeviation`."
+                        },
+                        {
+                            "value": "normalMixture",
+                            "description": "Mixture of normal distributions: each value comes from one of the distributions described by `means` and `standardDeviations`, chosen with probability in proportion to its entry in `weights`."
                         },
                         {
                             "value": "hypergeometric",
@@ -111825,6 +111897,40 @@
                     "groupName": "sampling-lognormal",
                     "defaultValue": 1,
                     "type": "number"
+                },
+                {
+                    "name": "means",
+                    "description": "Means of the normal distributions being mixed (normal mixture). How many are listed is how many components the mixture has.",
+                    "groupName": "sampling-mixture",
+                    "defaultValue": [],
+                    "type": "numberList"
+                },
+                {
+                    "name": "standardDeviations",
+                    "description": "Standard deviations of the normal distributions being mixed (normal mixture). A single value applies to every component.",
+                    "groupName": "sampling-mixture",
+                    "defaultValue": [
+                        1
+                    ],
+                    "type": "numberList"
+                },
+                {
+                    "name": "variances",
+                    "description": "Variances of the normal distributions being mixed (normal mixture). A single value applies to every component.",
+                    "groupName": "sampling-mixture",
+                    "defaultValue": [
+                        1
+                    ],
+                    "type": "numberList"
+                },
+                {
+                    "name": "weights",
+                    "description": "Relative weight of each normal distribution being mixed (normal mixture), which need not add up to 1. A single value applies to every component, weighting them equally.",
+                    "groupName": "sampling-mixture",
+                    "defaultValue": [
+                        1
+                    ],
+                    "type": "numberList"
                 },
                 {
                     "name": "from",
@@ -112061,6 +112167,34 @@
                     "isArray": false,
                     "description": "Variance of the underlying normal distribution (log-normal).",
                     "groupName": "sampling-lognormal"
+                },
+                {
+                    "name": "means",
+                    "type": "numberList",
+                    "isArray": false,
+                    "description": "Means of the normal distributions being mixed (normal mixture).",
+                    "groupName": "sampling-mixture"
+                },
+                {
+                    "name": "standardDeviations",
+                    "type": "numberList",
+                    "isArray": false,
+                    "description": "Standard deviations of the normal distributions being mixed (normal mixture).",
+                    "groupName": "sampling-mixture"
+                },
+                {
+                    "name": "variances",
+                    "type": "numberList",
+                    "isArray": false,
+                    "description": "Variances of the normal distributions being mixed (normal mixture).",
+                    "groupName": "sampling-mixture"
+                },
+                {
+                    "name": "weights",
+                    "type": "numberList",
+                    "isArray": false,
+                    "description": "Relative weight of each normal distribution being mixed (normal mixture), as written rather than scaled to add up to 1.",
+                    "groupName": "sampling-mixture"
                 },
                 {
                     "name": "mean",

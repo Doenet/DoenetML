@@ -288,6 +288,171 @@ export function validLogNormalParameters({ logMean, logStandardDeviation }) {
     });
 }
 
+/**
+ * One per-component value for each of `numComponents` components, or `null` for a
+ * list that is neither that long nor a single value to repeat.
+ */
+function perComponent(list, numComponents) {
+    if (!Array.isArray(list)) {
+        return null;
+    }
+    if (list.length === numComponents) {
+        return list;
+    }
+    if (list.length === 1) {
+        return Array(numComponents).fill(list[0]);
+    }
+    return null;
+}
+
+/**
+ * The per-component parameters of a normal mixture --- a distribution whose values
+ * come from one of several normal distributions, each chosen with a fixed
+ * probability --- expanded to one value per component, with the weights turned into
+ * the proportions they stand for. `null` for parameters that describe no
+ * distribution.
+ *
+ * `means` is what says how many components there are: a mixture is a list of normal
+ * distributions and nothing else here supplies that count. The spreads and the
+ * weights are then given either one per component or as a single value standing for
+ * every one of them, which is what makes `standardDeviations="2"` beside three means
+ * mean what it looks like, and what lets the defaults --- a spread of 1, and equal
+ * weights --- be the one-element lists they are rather than something the caller has
+ * to size against `means` before it can pass them.
+ *
+ * Shared with the component, so that the reported moments are NaN for exactly the
+ * parameters whose samples are NaN --- the same guarantee the other distributions
+ * give.
+ */
+export function normalMixtureComponents({
+    means,
+    standardDeviations,
+    weights,
+}) {
+    if (
+        !Array.isArray(means) ||
+        means.length === 0 ||
+        !means.every((mean) => Number.isFinite(mean))
+    ) {
+        return null;
+    }
+
+    const spreads = perComponent(standardDeviations, means.length);
+    if (
+        spreads === null ||
+        !spreads.every((spread) => Number.isFinite(spread) && spread >= 0)
+    ) {
+        return null;
+    }
+
+    const mixingWeights = perComponent(weights, means.length);
+    if (
+        mixingWeights === null ||
+        !mixingWeights.every((weight) => Number.isFinite(weight) && weight >= 0)
+    ) {
+        return null;
+    }
+
+    // Weights are relative, so what matters is each one's share of the total --- and
+    // a total that overflows leaves every share 0, a mean of 0, and no component ever
+    // chosen, for a mixture whose parts may each be perfectly ordinary. Refusing it
+    // costs the author nothing, since the same distribution written with weights
+    // small enough to add up is accepted.
+    const total = sumOf(mixingWeights);
+    if (!Number.isFinite(total) || total <= 0) {
+        return null;
+    }
+
+    return {
+        means,
+        standardDeviations: spreads,
+        // the share of the values that comes from each component, which is what the
+        // weights say and the form both the sampler and the moments want
+        proportions: mixingWeights.map((weight) => weight / total),
+    };
+}
+
+/**
+ * Whether `means`, `standardDeviations` and `weights` describe a normal mixture that
+ * can be sampled from. Shared with the component, as above.
+ */
+export function validNormalMixtureParameters(parameters) {
+    return normalMixtureComponents(parameters) !== null;
+}
+
+/**
+ * The mean and variance of the values a normal mixture produces, or NaN for both
+ * when its parameters describe no distribution.
+ *
+ * Exported for the component, which reports these: they are moments of the mixture
+ * as a whole, and no component's own mean or spread is one of them.
+ */
+export function normalMixtureMoments(parameters) {
+    const components = normalMixtureComponents(parameters);
+    if (components === null) {
+        return { mean: NaN, variance: NaN };
+    }
+
+    const { means, standardDeviations, proportions } = components;
+
+    // A convex combination of the component means, so it lies between the smallest
+    // and the largest of them and cannot overflow whatever they are --- which is why
+    // each mean is scaled by its proportion before being added rather than after.
+    let mean = 0;
+    for (let i = 0; i < means.length; i++) {
+        mean += proportions[i] * means[i];
+    }
+
+    // The law of total variance: the spread within the components, plus the spread
+    // of the components' own centers about the mixture's.
+    //
+    // Written as E[X^2] - E[X]^2 instead, two narrow components far from the origin
+    // lose the entire answer to cancellation --- at means of 1e8 and 1e8 + 1 the two
+    // terms agree to the sixteenth digit and their difference is noise --- and this
+    // form never forms the square of a mean at all. It is also what makes the
+    // degenerate cases exact: components that share a center, with no spread, give 0
+    // rather than a small difference of large numbers.
+    //
+    // Each squared factor is multiplied by its proportion before the second factor
+    // rather than after, so that a wide component carrying a tiny share reports the
+    // small number it contributes instead of the Infinity its square alone is.
+    let variance = 0;
+    for (let i = 0; i < means.length; i++) {
+        const spread = standardDeviations[i];
+        const offset = means[i] - mean;
+        variance +=
+            proportions[i] * spread * spread + proportions[i] * offset * offset;
+    }
+
+    return { mean, variance };
+}
+
+/**
+ * One draw from a normal mixture: choose a component in proportion to its weight,
+ * then draw from that component's normal distribution.
+ *
+ * The choice takes a `preciseUniform` draw rather than the single 32-bit one the
+ * gaussian keeps, since a proportion can legitimately be smaller than 2^-32 and a
+ * coarser draw would round every such component up to that floor. Nothing was
+ * written against this distribution before it existed, so unlike the gaussian there
+ * is no variant numbering that changing the draw would renumber.
+ */
+function sampleNormalMixture({ means, standardDeviations, proportions, rng }) {
+    const chosen = preciseUniform(rng);
+
+    // The last component takes whatever is left over, so proportions that add up a
+    // hair below 1 cannot leave a draw unassigned. A component of proportion 0 is
+    // never reached, since the running total already equals whatever could select it.
+    let index = 0;
+    let cumulative = proportions[0];
+    while (index < proportions.length - 1 && chosen >= cumulative) {
+        index++;
+        cumulative += proportions[index];
+    }
+
+    return means[index] + standardDeviations[index] * sampleStandardNormal(rng);
+}
+
 /** How many draws `sampleHypergeometric` makes for one variate. */
 function hypergeometricWork({ numTotal, numDraws }) {
     // it draws whichever of the taken and left-behind groups is smaller
@@ -306,6 +471,16 @@ function hypergeometricWork({ numTotal, numDraws }) {
  */
 function reportedValue(value) {
     return value == null ? "not-set" : value;
+}
+
+/**
+ * How a per-component list is written into a diagnostic: the values the author gave,
+ * or the same `not-set` sentinel a missing scalar uses. An omitted `numberList`
+ * attribute arrives as an empty list rather than as null, so emptiness is what
+ * "the author left it off" looks like here.
+ */
+function reportedList(list) {
+    return Array.isArray(list) && list.length > 0 ? list.join(", ") : "not-set";
 }
 
 /**
@@ -503,11 +678,7 @@ function multivariateHypergeometricProblem({ numInCategories, numDraws }) {
             type: "warning",
             code: "doenet-w0135",
             args: {
-                // an omitted numberList arrives empty rather than as null
-                numInCategories:
-                    numInCategories.length === 0
-                        ? "not-set"
-                        : numInCategories.join(", "),
+                numInCategories: reportedList(numInCategories),
                 numDraws: reportedValue(numDraws),
             },
         });
@@ -577,6 +748,9 @@ export function sampleFromRandomNumbers({
     mean,
     logStandardDeviation,
     logMean,
+    means,
+    standardDeviations,
+    weights,
     to,
     from,
     step,
@@ -650,6 +824,37 @@ export function sampleFromRandomNumbers({
         }
 
         return { sampledValues, diagnostics: [] };
+    } else if (type === "normalmixture") {
+        const components = normalMixtureComponents({
+            means,
+            standardDeviations,
+            weights,
+        });
+
+        if (components === null) {
+            return unsampleable(
+                numToSample,
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0166",
+                    args: {
+                        means: reportedList(means),
+                        standardDeviations: reportedList(standardDeviations),
+                        weights: reportedList(weights),
+                    },
+                }),
+            );
+        }
+
+        // the components are worked out once rather than per draw: expanding the
+        // lists and turning the weights into proportions does not depend on the
+        // randomness, and `numSamples` can be large
+        return {
+            sampledValues: Array.from({ length: numToSample }, () =>
+                sampleNormalMixture({ ...components, rng }),
+            ),
+            diagnostics: [],
+        };
     } else if (type === "uniform") {
         let sampledValues = [];
 

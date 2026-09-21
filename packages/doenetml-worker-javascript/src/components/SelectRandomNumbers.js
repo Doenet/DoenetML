@@ -89,8 +89,9 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         stateVariableDefinitions.numTrials.immutable = true;
         stateVariableDefinitions.probability.immutable = true;
 
-        // The gaussian, log-normal and poisson parameters are frozen for the same
-        // reason, and additionally because `selectedValues` reads them directly:
+        // The gaussian, log-normal, normal-mixture and poisson parameters are frozen
+        // for the same reason, and additionally because `selectedValues` reads them
+        // directly:
         // they are what the selection was drawn from, so a moment derived from them
         // later must see what the draw saw, not whatever a reference has since
         // become.
@@ -100,6 +101,10 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         stateVariableDefinitions.logMean.immutable = true;
         stateVariableDefinitions.logStandardDeviation.immutable = true;
         stateVariableDefinitions.logStandardDeviation.additionalStateVariablesDefined[0].immutable = true;
+        stateVariableDefinitions.means.immutable = true;
+        stateVariableDefinitions.standardDeviations.immutable = true;
+        stateVariableDefinitions.standardDeviations.additionalStateVariablesDefined[0].immutable = true;
+        stateVariableDefinitions.weights.immutable = true;
         stateVariableDefinitions.poissonMean.immutable = true;
 
         stateVariableDefinitions.mean.immutable = true;
@@ -159,6 +164,18 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                 logStandardDeviation: {
                     dependencyType: "stateVariable",
                     variableName: "logStandardDeviation",
+                },
+                means: {
+                    dependencyType: "stateVariable",
+                    variableName: "means",
+                },
+                standardDeviations: {
+                    dependencyType: "stateVariable",
+                    variableName: "standardDeviations",
+                },
+                weights: {
+                    dependencyType: "stateVariable",
+                    variableName: "weights",
                 },
                 numTotal: {
                     dependencyType: "stateVariable",

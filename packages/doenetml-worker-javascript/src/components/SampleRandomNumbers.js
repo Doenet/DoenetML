@@ -5,6 +5,7 @@ import {
     validBinomialParameters,
     validHypergeometricParameters,
     validPoissonMean,
+    normalMixtureMoments,
 } from "../utils/randomNumbers";
 import { returnNumberDisplayAttributes } from "../utils/numberDisplay";
 import { setUpVariantSeedAndRng } from "../utils/variants";
@@ -66,6 +67,9 @@ export default class SampleRandomNumbers extends CompositeComponent {
         // gaussian: gaussian with prescribed mean and standard deviation
         // lognormal: exponential of a gaussian with prescribed logMean and
         //     logStandardDeviation
+        // normalmixture: one of several gaussians, chosen with probability in
+        //     proportion to its weight, prescribed by means, standardDeviations
+        //     and weights
         // hypergeometric: determined by numTotal, numSuccesses, and numDraws
         // binomial: determined by numTrials and probability
         // poisson: determined by mean
@@ -98,6 +102,11 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     value: "logNormal",
                     description:
                         "Log-normal distribution: the exponential of a normal distribution with the specified `logMean` and `logStandardDeviation`.",
+                },
+                {
+                    value: "normalMixture",
+                    description:
+                        "Mixture of normal distributions: each value comes from one of the distributions described by `means` and `standardDeviations`, chosen with probability in proportion to its entry in `weights`.",
                 },
                 {
                     value: "hypergeometric",
@@ -179,6 +188,48 @@ export default class SampleRandomNumbers extends CompositeComponent {
             defaultValue: 1,
             description:
                 "Variance of the underlying normal distribution (log-normal).",
+        };
+
+        // The mixture's parameters are lists rather than scalars, and named in the
+        // plural to keep them apart from the gaussian's `mean` and
+        // `standardDeviation`: they describe several normal distributions at once,
+        // and which one a given value came from is not something the component
+        // reports. `means` is also the only one of the three with no default,
+        // because its length is what says how many components there are.
+        attributes.means = {
+            groupName: "sampling-mixture",
+            createComponentOfType: "numberList",
+            createStateVariable: "specifiedMeans",
+            defaultValue: [],
+            description:
+                "Means of the normal distributions being mixed (normal mixture). How many are listed is how many components the mixture has.",
+        };
+
+        attributes.standardDeviations = {
+            groupName: "sampling-mixture",
+            createComponentOfType: "numberList",
+            createStateVariable: "specifiedStandardDeviations",
+            defaultValue: [1],
+            description:
+                "Standard deviations of the normal distributions being mixed (normal mixture). A single value applies to every component.",
+        };
+
+        attributes.variances = {
+            groupName: "sampling-mixture",
+            createComponentOfType: "numberList",
+            createStateVariable: "specifiedVariances",
+            defaultValue: [1],
+            description:
+                "Variances of the normal distributions being mixed (normal mixture). A single value applies to every component.",
+        };
+
+        attributes.weights = {
+            groupName: "sampling-mixture",
+            createComponentOfType: "numberList",
+            createStateVariable: "specifiedWeights",
+            defaultValue: [1],
+            description:
+                "Relative weight of each normal distribution being mixed (normal mixture), which need not add up to 1. A single value applies to every component, weighting them equally.",
         };
 
         attributes.from = {
@@ -709,6 +760,114 @@ export default class SampleRandomNumbers extends CompositeComponent {
             },
         };
 
+        // The mixture's parameters as the author gave them. Public for the same
+        // reason the log-normal's are: the reported `mean` and `variance` are of the
+        // mixture as a whole, and no component's own center or spread can be read
+        // back out of them.
+        stateVariableDefinitions.means = {
+            groupName: "sampling-mixture",
+            description:
+                "Means of the normal distributions being mixed (normal mixture).",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "numberList",
+            },
+            returnDependencies: () => ({
+                specifiedMeans: {
+                    dependencyType: "stateVariable",
+                    variableName: "specifiedMeans",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                // A copy, not the list the attribute handed over: that one belongs to
+                // the `<numberList>` the attribute created, which rewrites it in place
+                // when a reference inside it changes. Holding onto it would leave this
+                // property following the reference even where it is frozen --- a
+                // `<selectRandomNumbers>` would report parameters its values were
+                // never drawn from --- and would hand every reader a list that changes
+                // under them. The other two below are copied for the same reason.
+                setValue: { means: [...dependencyValues.specifiedMeans] },
+            }),
+        };
+
+        stateVariableDefinitions.standardDeviations = {
+            groupName: "sampling-mixture",
+            description:
+                "Standard deviations of the normal distributions being mixed (normal mixture).",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "numberList",
+            },
+            additionalStateVariablesDefined: [
+                {
+                    variableName: "variances",
+                    public: true,
+                    groupName: "sampling-mixture",
+                    shadowingInstructions: {
+                        createComponentOfType: "numberList",
+                    },
+                    description:
+                        "Variances of the normal distributions being mixed (normal mixture).",
+                },
+            ],
+            returnDependencies: () => ({
+                specifiedVariances: {
+                    dependencyType: "stateVariable",
+                    variableName: "specifiedVariances",
+                },
+                specifiedStandardDeviations: {
+                    dependencyType: "stateVariable",
+                    variableName: "specifiedStandardDeviations",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                // settled together, and for the same reasons, as the gaussian and
+                // log-normal pairs above: whichever the author wrote decides both,
+                // and each is kept as written rather than round-tripped through the
+                // other, which would lose the sign of a negative spread. Neither is
+                // expanded to one value per component here --- the author's own list
+                // is what a reader of these properties asked for, and a single value
+                // standing for every component is expanded where it is used.
+                const fromStandardDeviations =
+                    usedDefault.specifiedVariances &&
+                    !usedDefault.specifiedStandardDeviations;
+
+                return {
+                    setValue: {
+                        standardDeviations: fromStandardDeviations
+                            ? [...dependencyValues.specifiedStandardDeviations]
+                            : dependencyValues.specifiedVariances.map(
+                                  (variance) => Math.sqrt(variance),
+                              ),
+                        variances: fromStandardDeviations
+                            ? dependencyValues.specifiedStandardDeviations.map(
+                                  (standardDeviation) => standardDeviation ** 2,
+                              )
+                            : [...dependencyValues.specifiedVariances],
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.weights = {
+            groupName: "sampling-mixture",
+            description:
+                "Relative weight of each normal distribution being mixed (normal mixture), as written rather than scaled to add up to 1.",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "numberList",
+            },
+            returnDependencies: () => ({
+                specifiedWeights: {
+                    dependencyType: "stateVariable",
+                    variableName: "specifiedWeights",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: { weights: [...dependencyValues.specifiedWeights] },
+            }),
+        };
+
         stateVariableDefinitions.poissonMean = {
             returnDependencies: () => ({
                 specifiedMean: {
@@ -772,6 +931,19 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     dependencies.logStandardDeviation = {
                         dependencyType: "stateVariable",
                         variableName: "logStandardDeviation",
+                    };
+                } else if (stateValues.type === "normalmixture") {
+                    dependencies.means = {
+                        dependencyType: "stateVariable",
+                        variableName: "means",
+                    };
+                    dependencies.standardDeviations = {
+                        dependencyType: "stateVariable",
+                        variableName: "standardDeviations",
+                    };
+                    dependencies.weights = {
+                        dependencyType: "stateVariable",
+                        variableName: "weights",
                     };
                 } else if (stateValues.type === "poisson") {
                     dependencies.poissonMean = {
@@ -854,6 +1026,10 @@ export default class SampleRandomNumbers extends CompositeComponent {
                                       dependencyValues.logStandardDeviation,
                           )
                         : NaN;
+                } else if (dependencyValues.type === "normalmixture") {
+                    // the weighted average of the component means, which
+                    // `normalMixtureMoments` computes alongside the variance
+                    mean = normalMixtureMoments(dependencyValues).mean;
                 } else if (dependencyValues.type === "poisson") {
                     // out-of-range parameters describe no distribution, so this
                     // case and the two below report NaN, just as their samples do
@@ -935,6 +1111,19 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     dependencies.logStandardDeviation = {
                         dependencyType: "stateVariable",
                         variableName: "logStandardDeviation",
+                    };
+                } else if (stateValues.type === "normalmixture") {
+                    dependencies.means = {
+                        dependencyType: "stateVariable",
+                        variableName: "means",
+                    };
+                    dependencies.standardDeviations = {
+                        dependencyType: "stateVariable",
+                        variableName: "standardDeviations",
+                    };
+                    dependencies.weights = {
+                        dependencyType: "stateVariable",
+                        variableName: "weights",
                     };
                 } else if (stateValues.type === "poisson") {
                     // the variance of a Poisson distribution equals its mean,
@@ -1070,6 +1259,11 @@ export default class SampleRandomNumbers extends CompositeComponent {
                                 logFactor,
                         );
                     }
+                } else if (dependencyValues.type === "normalmixture") {
+                    // the spread within the components plus the spread between
+                    // them; see `normalMixtureMoments` for why it is computed that
+                    // way round rather than as E[X^2] - E[X]^2
+                    variance = normalMixtureMoments(dependencyValues).variance;
                 } else if (dependencyValues.type === "poisson") {
                     // the variance of a Poisson distribution equals its mean,
                     // including the NaN that an out-of-range mean reports
@@ -1205,6 +1399,18 @@ export default class SampleRandomNumbers extends CompositeComponent {
                     logStandardDeviation: {
                         dependencyType: "stateVariable",
                         variableName: "logStandardDeviation",
+                    },
+                    means: {
+                        dependencyType: "stateVariable",
+                        variableName: "means",
+                    },
+                    standardDeviations: {
+                        dependencyType: "stateVariable",
+                        variableName: "standardDeviations",
+                    },
+                    weights: {
+                        dependencyType: "stateVariable",
+                        variableName: "weights",
                     },
                     numTotal: {
                         dependencyType: "stateVariable",
@@ -1542,6 +1748,9 @@ export default class SampleRandomNumbers extends CompositeComponent {
             mean: await this.stateValues.gaussianMean,
             logStandardDeviation: await this.stateValues.logStandardDeviation,
             logMean: await this.stateValues.logMean,
+            means: await this.stateValues.means,
+            standardDeviations: await this.stateValues.standardDeviations,
+            weights: await this.stateValues.weights,
             to: await this.stateValues.to,
             from: await this.stateValues.from,
             step: await this.stateValues.step,
