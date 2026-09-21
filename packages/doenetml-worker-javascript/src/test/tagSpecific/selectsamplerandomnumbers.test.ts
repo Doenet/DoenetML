@@ -2175,6 +2175,57 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         }
     });
 
+    it("resample the continuous distributions", async () => {
+        // `resample` assembles its own argument list rather than reusing the one
+        // `sampledValues` was computed from, so every distribution's parameters
+        // have to be named there as well; one left out reaches the sampler as
+        // `undefined` and the whole draw comes back NaN.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><sampleRandomNumbers name="gauss" type="gaussian" mean="10" standardDeviation="2" numSamples="20" /></p>
+    <p><sampleRandomNumbers name="logn" type="logNormal" logMean="3" logStandardDeviation="0.5" numSamples="20" /></p>
+
+    <callAction name="resampleGauss" target="$gauss" actionName="resample"><label>Resample</label></callAction>
+    <callAction name="resampleLogN" target="$logn" actionName="resample"><label>Resample</label></callAction>
+    `,
+        });
+
+        for (let [name, button, positive] of [
+            ["gauss", "resampleGauss", false],
+            ["logn", "resampleLogN", true],
+        ] as [string, string, boolean][]) {
+            const before = await current_values(
+                core,
+                resolvePathToNodeIdx,
+                name,
+            );
+            expect(before.length, name).eq(20);
+
+            await callAction({
+                core,
+                componentIdx: await resolvePathToNodeIdx(button),
+            });
+
+            const after = await current_values(
+                core,
+                resolvePathToNodeIdx,
+                name,
+            );
+            expect(after.length, name).eq(20);
+            // 20 continuous samples repeating exactly is vanishingly unlikely,
+            // so the values must have changed
+            expect(after, name).not.eqls(before);
+            for (let value of after) {
+                expect(Number.isFinite(value), name).eq(true);
+                if (positive) {
+                    expect(value > 0, name).eq(true);
+                }
+            }
+        }
+
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+    });
+
     it("same discrete samples for given variant if variantDeterminesSeed", async () => {
         const doenetML = `
     <sampleRandomNumbers name="hyper" type="hypergeometric" numTotal="50" numSuccesses="25" numDraws="20" numSamples="10" variantDeterminesSeed />

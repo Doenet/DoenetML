@@ -1491,6 +1491,8 @@ export default class SampleRandomNumbers extends CompositeComponent {
             numSamples: await this.stateValues.numSamples,
             standardDeviation: await this.stateValues.gaussianStandardDeviation,
             mean: await this.stateValues.gaussianMean,
+            logStandardDeviation: await this.stateValues.logStandardDeviation,
+            logMean: await this.stateValues.logMean,
             to: await this.stateValues.to,
             from: await this.stateValues.from,
             step: await this.stateValues.step,
