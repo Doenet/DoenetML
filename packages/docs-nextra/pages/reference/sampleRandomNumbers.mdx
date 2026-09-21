@@ -368,7 +368,8 @@ Writing $\mu$ for `logMean` and $\sigma$ for `logStandardDeviation`, the reporte
 $(e^{\sigma^2} - 1)\,e^{2\mu + \sigma^2}$. Both grow very fast with $\sigma$, so a 
 large one reports `Infinity` for a distribution whose true moments are beyond what a 
 number can hold, and samples past about $e^{709}$ come back as `Infinity` for the 
-same reason.
+same reason. At the other end, a sample below about $e^{-745}$ rounds to 0, which is 
+the only way a value can fail to be strictly positive.
 
 
 ---

@@ -1002,13 +1002,23 @@ export default class SampleRandomNumbers extends CompositeComponent {
                         // NaN for a distribution that is perfectly determined.
                         variance = 0;
                     } else {
-                        // (e^(sigma^2) - 1) e^(2 mu + sigma^2), with `expm1` for
-                        // the first factor so that a small spread does not lose
-                        // its precision to the 1 it is subtracted from
+                        // (1 - e^(-sigma^2)) e^(2 mu + 2 sigma^2), which is
+                        // (e^(sigma^2) - 1) e^(2 mu + sigma^2) with a factor of
+                        // e^(sigma^2) moved from the left factor to the right.
+                        // Written the usual way round, a spread past
+                        // sigma^2 = 710 overflows the left factor to Infinity
+                        // while a center far enough below it underflows the right
+                        // to zero, and their product is NaN for a variance a
+                        // number holds perfectly well: logMean="-1000"
+                        // logVariance="900" has one of e^-200. Moving the factor
+                        // across bounds the left one in (0, 1], so the only
+                        // Infinity left is the one the whole product earns.
+                        // `expm1` still keeps a small spread from losing its
+                        // precision to the 1 it is subtracted from.
                         variance =
-                            Math.expm1(logVariance) *
+                            -Math.expm1(-logVariance) *
                             Math.exp(
-                                2 * dependencyValues.logMean + logVariance,
+                                2 * dependencyValues.logMean + 2 * logVariance,
                             );
                     }
                 } else if (dependencyValues.type === "poisson") {

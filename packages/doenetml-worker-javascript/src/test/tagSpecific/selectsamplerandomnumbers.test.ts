@@ -1125,6 +1125,63 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         }
     });
 
+    it("a log-normal's variance survives a large spread beside a small center", async () => {
+        // Written as (e^(sigma^2) - 1) e^(2 mu + sigma^2), the first factor
+        // overflows to Infinity once sigma^2 passes about 710 while a center far
+        // enough below it underflows the second to zero, and the product is NaN
+        // for a distribution whose variance is an ordinary number.
+        for (const [logMean, logVariance] of [
+            // e^-200, with every sample underflowing to 0
+            [-1000, 900],
+            // and a spread where the samples are nonzero denormals
+            [-730, 713],
+        ] as [number, number][]) {
+            // E[X^2] - E[X]^2 written out, which needs neither `expm1` nor any
+            // rearrangement and so does not repeat the definition's own arithmetic
+            const expectedVariance =
+                Math.exp(2 * logMean + 2 * logVariance) -
+                Math.exp(2 * logMean + logVariance);
+            const expectedMean = Math.exp(logMean + logVariance / 2);
+
+            const doenetML = `<sampleRandomNumbers name="s" type="logNormal" logMean="${logMean}" logVariance="${logVariance}" numSamples="5" />`;
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const stateValues =
+                stateVariables[await resolvePathToNodeIdx("s")].stateValues;
+
+            expect(stateValues.variance, doenetML).closeTo(
+                expectedVariance,
+                expectedVariance * 1e-10,
+            );
+            expect(stateValues.standardDeviation, doenetML).closeTo(
+                Math.sqrt(expectedVariance),
+                Math.sqrt(expectedVariance) * 1e-10,
+            );
+            // the mean these parameters report is finite, so a NaN variance
+            // beside it would be the one moment contradicting the other two
+            expect(stateValues.mean, doenetML).closeTo(
+                expectedMean,
+                expectedMean * 1e-10,
+            );
+
+            // and the samples are numbers, so NaN moments would not be the
+            // "unusable parameters" the component reports them for
+            for (const value of await current_values(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            )) {
+                expect(Number.isNaN(value), doenetML).eq(false);
+            }
+            expect(getDiagnosticsByType(core).warnings.length, doenetML).eq(0);
+        }
+    });
+
     it("a log-normal that describes no distribution reports NaN moments", async () => {
         // The log-normal's parameters are the gaussian's under another name, so the
         // same values are unusable and for the same reasons.
@@ -1430,6 +1487,7 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         for (const parameters of [
             `type="binomial" numTrials="-1" probability="0.5"`,
             `type="gaussian" variance="-1"`,
+            `type="logNormal" logVariance="-1"`,
         ]) {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `<sampleRandomNumbers name="s" ${parameters} numSamples="1.5" />`,
