@@ -810,6 +810,28 @@ export default class Core {
         return this.rendererInstructionBuilder.updateRendererInstructions(args);
     }
 
+    async updateRenderersForComponents(
+        componentIndices: number[],
+        sourceInformation: any = {},
+        actionId?: string,
+    ): Promise<void> {
+        return this.rendererInstructionBuilder.updateRenderersForComponents(
+            componentIndices,
+            sourceInformation,
+            actionId,
+        );
+    }
+
+    scheduleDeferredRendererUpdate(
+        sourceInformation: any = {},
+        actionId?: string,
+    ): void {
+        return this.rendererInstructionBuilder.scheduleDeferredRendererUpdate(
+            sourceInformation,
+            actionId,
+        );
+    }
+
     async initializeRenderedComponentInstruction(
         component: any,
         componentsWithChangedChildrenToRenderInProgress?: Set<number>,
@@ -1239,6 +1261,11 @@ export default class Core {
         await this.autoSubmitManager.flush();
 
         this.processQueue.stopProcessingRequests = true;
+
+        // A drag interrupted by teardown can leave a deferred renderer flush
+        // pending; the viewer is going away, so drop it rather than push an
+        // update into it.
+        this.rendererInstructionBuilder.cancelDeferredRendererUpdate();
 
         if (this.processQueue.processing) {
             for (let i = 0; i < 10; i++) {

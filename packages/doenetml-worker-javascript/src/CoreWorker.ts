@@ -26,6 +26,12 @@ export type UpdateRenderersCallback = (arg: {
     actionId?: string;
     diagnostics?: any[];
     init?: boolean;
+    /**
+     * This batch is the deferred remainder of an earlier update, whose own
+     * batch already reported `actionId` as complete. The viewer applies the
+     * state but must not resolve the action a second time.
+     */
+    deferred?: boolean;
 }) => void;
 export type ReportScoreAndStateCallback = (data: {
     score: number;

@@ -6,6 +6,14 @@ import {
 import { removeFunctionsMathExpressionClass } from "../utils/math";
 
 /**
+ * How long an interaction must go quiet before the deferred half of its
+ * renderer fan-out is sent. Long enough to coalesce a drag (pointermove
+ * arrives far more often than this), short enough that a paused drag
+ * settles without feeling stuck.
+ */
+const DEFERRED_RENDERER_UPDATE_MS = 150;
+
+/**
  * Builds the dast/instruction stream sent to the renderer. Owns the
  * per-component "what's currently rendered" registry, the cached
  * renderer state used for save/restore, and the queue of components
@@ -24,12 +32,18 @@ export class RendererInstructionBuilder {
     componentsToRender: Record<number, { children: any[] }>;
     componentsWithChangedChildrenToRender: Set<number>;
     rendererState: Record<number, any>;
+    /** Pending timer for `scheduleDeferredRendererUpdate`, if any. */
+    _deferredRendererTimeout: ReturnType<typeof setTimeout> | null;
+    /** `sourceInformation`/`actionId` the deferred flush will send with. */
+    _deferredRendererArgs: { sourceInformation: any; actionId?: string };
 
     constructor({ core }: { core: Core }) {
         this.core = core;
         this.componentsToRender = {};
         this.componentsWithChangedChildrenToRender = new Set();
         this.rendererState = {};
+        this._deferredRendererTimeout = null;
+        this._deferredRendererArgs = { sourceInformation: {} };
     }
 
     /**
@@ -37,6 +51,7 @@ export class RendererInstructionBuilder {
      * so that state from any previous run does not leak into a fresh document.
      */
     reset(): void {
+        this.cancelDeferredRendererUpdate();
         this.componentsToRender = {};
         this.componentsWithChangedChildrenToRender = new Set();
         this.rendererState = {};
@@ -76,10 +91,29 @@ export class RendererInstructionBuilder {
         componentNamesToUpdate,
         sourceOfUpdate = {},
         actionId,
+        deferred = false,
+        reconcileChangedChildren = true,
     }: {
         componentNamesToUpdate: number[];
         sourceOfUpdate?: any;
         actionId?: string;
+        /**
+         * Mark this batch as the deferred remainder of an earlier update, so
+         * the viewer does not treat its arrival as the completion of
+         * `actionId` (the priority batch already did). See
+         * `scheduleDeferredRendererUpdate`.
+         */
+        deferred?: boolean;
+        /**
+         * Whether to also reconcile the components whose rendered children
+         * changed. That pass appends every such component to
+         * `componentNamesToUpdate` and consumes the pending set, so a batch
+         * meant to carry one component would otherwise carry the structural
+         * churn of the whole update — exactly what a priority batch exists to
+         * avoid. Turning it off leaves the pending set for the batch that
+         * follows.
+         */
+        reconcileChangedChildren?: boolean;
     }): Promise<void> {
         let deletedRenderers: any[] = [];
 
@@ -89,9 +123,14 @@ export class RendererInstructionBuilder {
         let newChildrenInstructions: Record<number, any[]> = {};
 
         // copy components with changed children and reset for next time
-        let componentsWithChangedChildrenToRenderInProgress =
-            this.componentsWithChangedChildrenToRender;
-        this.componentsWithChangedChildrenToRender = new Set();
+        let componentsWithChangedChildrenToRenderInProgress: Set<number>;
+        if (reconcileChangedChildren) {
+            componentsWithChangedChildrenToRenderInProgress =
+                this.componentsWithChangedChildrenToRender;
+            this.componentsWithChangedChildrenToRender = new Set();
+        } else {
+            componentsWithChangedChildrenToRenderInProgress = new Set();
+        }
 
         //TODO: Figure out what we need from here
         for (let componentIdx of componentsWithChangedChildrenToRenderInProgress) {
@@ -314,7 +353,7 @@ export class RendererInstructionBuilder {
             updateInstructions.splice(0, 0, instruction);
         }
 
-        this.callUpdateRenderers({ updateInstructions, actionId });
+        this.callUpdateRenderers({ updateInstructions, actionId, deferred });
     }
 
     /**
@@ -552,6 +591,10 @@ export class RendererInstructionBuilder {
         sourceInformation: any = {},
         actionId?: string,
     ): Promise<void> {
+        // This drains everything, so any deferred remainder is covered here
+        // and must not also arrive later on its own.
+        this.cancelDeferredRendererUpdate();
+
         let componentNamesToUpdate = [
             ...this.core.updateInfo.componentsToUpdateRenderers,
         ];
@@ -579,5 +622,120 @@ export class RendererInstructionBuilder {
                 actionId,
             });
         }
+    }
+
+    /**
+     * Send just `componentIndices`' renderer state, ahead of everything else
+     * an update has queued.
+     *
+     * A drag step invalidates far more than the thing being dragged: on a
+     * 50-point dot plot whose points are stacked by `<indexOf>`/`<searchSorted>`
+     * and tallied into a `<tabular>`, one `movePoint` queues ~133 rendered
+     * components, of which the dragged point is one. Because the viewer treats
+     * the arrival of a renderer batch as the completion of the action
+     * (`DocViewer.resolveAction`), sending the dragged point first both puts it
+     * on screen immediately and releases the next drag, while the other ~132
+     * follow once the drag settles.
+     *
+     * Components are *removed* from the pending set as they are sent, so the
+     * later flush does not send them twice. A component that is not currently
+     * queued is not sent at all, which is why this filters on `delete`.
+     */
+    async updateRenderersForComponents(
+        componentIndices: number[],
+        sourceInformation: any = {},
+        actionId?: string,
+    ): Promise<void> {
+        const componentNamesToUpdate = componentIndices.filter((idx) =>
+            this.core.updateInfo.componentsToUpdateRenderers.delete(idx),
+        );
+
+        if (componentNamesToUpdate.length === 0) {
+            return;
+        }
+
+        await this.updateRendererInstructions({
+            componentNamesToUpdate,
+            sourceOfUpdate: { sourceInformation, local: true },
+            actionId,
+            reconcileChangedChildren: false,
+        });
+    }
+
+    /**
+     * Hold the rest of an update's renderer fan-out until the interaction goes
+     * quiet, coalescing the intermediate states of a drag into one batch.
+     *
+     * The pending components stay in `updateInfo.componentsToUpdateRenderers`,
+     * which is already a carry-forward set: each further drag step adds to it
+     * rather than replacing it, so nothing is lost by waiting. Every
+     * non-transient update (the commit on pointer-up) cancels the timer and
+     * flushes synchronously, so a drag always ends with the screen correct.
+     *
+     * The delay is a debounce rather than a queue-length test because core
+     * never yields to the event loop during an update, so it cannot observe
+     * that a newer action has arrived; and because the viewer only sends one
+     * action at a time, the worker's own queue is empty between drag steps.
+     */
+    scheduleDeferredRendererUpdate(
+        sourceInformation: any = {},
+        actionId?: string,
+    ): void {
+        this._deferredRendererArgs = { sourceInformation, actionId };
+
+        if (this._deferredRendererTimeout !== null) {
+            clearTimeout(this._deferredRendererTimeout);
+        }
+
+        this._deferredRendererTimeout = setTimeout(() => {
+            this._deferredRendererTimeout = null;
+            this.flushDeferredRendererUpdate().catch((e) => console.error(e));
+        }, DEFERRED_RENDERER_UPDATE_MS);
+    }
+
+    /** Drop any pending deferred flush without sending it. */
+    cancelDeferredRendererUpdate(): void {
+        if (this._deferredRendererTimeout !== null) {
+            clearTimeout(this._deferredRendererTimeout);
+            this._deferredRendererTimeout = null;
+        }
+    }
+
+    /**
+     * Send whatever `scheduleDeferredRendererUpdate` left pending.
+     *
+     * Reschedules rather than running if the queue is mid-update, since this
+     * arrives on a timer and must not re-enter core between an update's phases.
+     */
+    async flushDeferredRendererUpdate(): Promise<void> {
+        if (this.core.processQueue.stopProcessingRequests) {
+            return;
+        }
+
+        if (this.core.processQueue.processing) {
+            this.scheduleDeferredRendererUpdate(
+                this._deferredRendererArgs.sourceInformation,
+                this._deferredRendererArgs.actionId,
+            );
+            return;
+        }
+
+        if (this.core.updateInfo.componentsToUpdateRenderers.size === 0) {
+            return;
+        }
+
+        const { sourceInformation, actionId } = this._deferredRendererArgs;
+
+        let componentNamesToUpdate = [
+            ...this.core.updateInfo.componentsToUpdateRenderers,
+        ];
+        this.core.updateInfo.componentsToUpdateRenderers.clear();
+
+        await this.updateRendererInstructions({
+            componentNamesToUpdate,
+            sourceOfUpdate: { sourceInformation, local: true },
+            actionId,
+            deferred: true,
+        });
     }
 }

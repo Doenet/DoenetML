@@ -94,6 +94,19 @@ type PerformUpdateArgs = {
      * not *which* components it covers.
      */
     skipRendererUpdate?: boolean;
+    /**
+     * Mark this as an intermediate step of an ongoing interaction (a drag
+     * still in progress) rather than its committed result. The update is
+     * performed in full; what changes is the renderer fan-out, which sends
+     * this update's own targets immediately and defers the rest until the
+     * interaction goes quiet, so the thing being dragged tracks the pointer
+     * even when the move invalidated much of the document. The commit that
+     * ends the interaction arrives without this flag and flushes the
+     * remainder. Renderers already pass it (`Point.movePoint` and the rest of
+     * the graph drag handlers set it on every pointermove); before this it
+     * was accepted and ignored.
+     */
+    transient?: boolean;
     sourceInformation?: SourceInformation;
 };
 
@@ -297,6 +310,7 @@ export class UpdateExecutor {
         doNotSave = false,
         canSkipUpdatingRenderer = false,
         skipRendererUpdate = false,
+        transient = false,
         sourceInformation = {},
     }: PerformUpdateArgs) {
         if (diagnostics) {
@@ -423,13 +437,32 @@ export class UpdateExecutor {
             });
         }
 
-        await this.core.processStateVariableTriggers();
-
-        if (!skipRendererUpdate) {
-            await this.core.updateAllChangedRenderers(
+        if (transient && !skipRendererUpdate) {
+            // Put the dragged component on screen before doing anything with
+            // the (much larger) set of components its move invalidated.
+            await this.core.updateRenderersForComponents(
+                updateInstructions
+                    .map((instruction) => instruction.componentIdx)
+                    .filter((componentIdx) => componentIdx != undefined),
                 sourceInformation,
                 actionId,
             );
+        }
+
+        await this.core.processStateVariableTriggers();
+
+        if (!skipRendererUpdate) {
+            if (transient) {
+                this.core.scheduleDeferredRendererUpdate(
+                    sourceInformation,
+                    actionId,
+                );
+            } else {
+                await this.core.updateAllChangedRenderers(
+                    sourceInformation,
+                    actionId,
+                );
+            }
         }
 
         if (recordComponentSubmissions.length > 0) {

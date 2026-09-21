@@ -2077,11 +2077,19 @@ export function DocViewer({
         actionId,
         diagnostics: newDiagnostics,
         init = false,
+        deferred = false,
     }: {
         updateInstructions: Record<string, any>[];
         actionId?: string;
         diagnostics?: DiagnosticRecord[];
         init?: boolean;
+        /**
+         * The deferred remainder of an update whose priority batch already
+         * resolved `actionId` (core sends the dragged component first and the
+         * rest once the drag settles). Resolving again here would release a
+         * second queued action for an interaction that has already finished.
+         */
+        deferred?: boolean;
     }) {
         if (newDiagnostics) {
             publishDiagnostics(newDiagnostics);
@@ -2138,13 +2146,16 @@ export function DocViewer({
                             actionId,
                             prefixForIds,
                             updatesToIgnoreRef,
+                            deferred,
                         }),
                     );
                 }
             }
         }
 
-        resolveAction({ actionId });
+        if (!deferred) {
+            resolveAction({ actionId });
+        }
     }
 
     function resolveAction({

@@ -84,6 +84,7 @@ export const mainThunks = {
                 actionId,
                 updatesToIgnoreRef,
                 prefixForIds = "",
+                deferred = false,
             }: {
                 coreId: string;
                 componentIdx: number;
@@ -96,6 +97,16 @@ export const mainThunks = {
                     Map<UniqueActionIdentifier, string>
                 >;
                 prefixForIds: string;
+                /**
+                 * This batch is the deferred remainder of an update whose
+                 * priority batch already reconciled the optimistic edit, so it
+                 * neither consumes nor invalidates `updatesToIgnore`. Without
+                 * this, a deferred batch arriving after the user has started a
+                 * *new* interaction would take the mismatch branch below and
+                 * clear that interaction's pending entry, reverting what they
+                 * just typed.
+                 */
+                deferred?: boolean;
             },
             { dispatch, getState },
         ) => {
@@ -103,7 +114,7 @@ export const mainThunks = {
 
             let rendererName = coreId + componentIdx;
 
-            if (baseStateVariable) {
+            if (baseStateVariable && !deferred) {
                 const updatesToIgnore = updatesToIgnoreRef.current;
 
                 if (updatesToIgnore.size > 0) {
