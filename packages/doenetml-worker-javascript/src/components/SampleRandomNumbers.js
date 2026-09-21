@@ -836,12 +836,22 @@ export default class SampleRandomNumbers extends CompositeComponent {
                 } else if (dependencyValues.type === "lognormal") {
                     // e^(mu + sigma^2 / 2), which overflows to Infinity for
                     // parameters whose distribution genuinely has a mean larger
-                    // than a number can hold
+                    // than a number can hold.
+                    //
+                    // The halving is done before the squaring rather than
+                    // after: `sigma ** 2` is already Infinity for a spread past
+                    // about 1.3e154, and adding a center to an Infinity loses
+                    // the center, so a spread in that range beside a center
+                    // below -sigma^2/2 reported Infinity where the true mean is
+                    // 0. `(sigma / 2) * sigma` divides exactly and so overflows
+                    // only once sigma^2/2 is itself past what a number can hold,
+                    // which is past where any center could bring the sum back
+                    // into range.
                     mean = validLogNormalParameters(dependencyValues)
                         ? Math.exp(
                               dependencyValues.logMean +
-                                  dependencyValues.logStandardDeviation ** 2 /
-                                      2,
+                                  (dependencyValues.logStandardDeviation / 2) *
+                                      dependencyValues.logStandardDeviation,
                           )
                         : NaN;
                 } else if (dependencyValues.type === "poisson") {
@@ -991,20 +1001,22 @@ export default class SampleRandomNumbers extends CompositeComponent {
                         ? dependencyValues.gaussianVariance
                         : NaN;
                 } else if (dependencyValues.type === "lognormal") {
-                    const logVariance =
-                        dependencyValues.logStandardDeviation ** 2;
+                    const logStandardDeviation =
+                        dependencyValues.logStandardDeviation;
                     if (!validLogNormalParameters(dependencyValues)) {
                         variance = NaN;
-                    } else if (logVariance === 0) {
-                        // A spread of zero is one value repeated, whose variance
-                        // is 0, and saying so here is both cheaper and surer than
-                        // asking the formula below: its left factor is 0, whose
-                        // logarithm is -Infinity, which cancels against the
-                        // +Infinity a center past about 9e307 doubles to and
+                    } else if (logStandardDeviation === 0) {
+                        // A spread of exactly zero is one value repeated, whose
+                        // variance is 0, and saying so here is both cheaper and
+                        // surer than asking the formula below: its logarithmic
+                        // factor is then -Infinity, which cancels against the
+                        // +Infinity a center past about 9e307 quadruples to and
                         // gives NaN for a distribution that is perfectly
                         // determined.
                         variance = 0;
                     } else {
+                        const logVariance = logStandardDeviation ** 2;
+
                         // (1 - e^(-sigma^2)) e^(2 mu + 2 sigma^2), which is the
                         // textbook (e^(sigma^2) - 1) e^(2 mu + sigma^2) with a
                         // factor of e^(sigma^2) moved from the left factor to
@@ -1026,14 +1038,36 @@ export default class SampleRandomNumbers extends CompositeComponent {
                         // Infinity where the truth is 1.7e307 (logMean="356"
                         // logStandardDeviation="0.1"). Adding the logarithm of
                         // the left factor to the exponent instead leaves only
-                        // the Infinity the whole expression earns. `expm1` still
+                        // the Infinity the whole expression earns.
+                        //
+                        // That logarithm is taken as 2 ln(sigma) once the square
+                        // is small, because sigma^2 is where the precision goes:
+                        // it falls into the subnormals below a spread of about
+                        // 1.5e-154 and is 0 below about 1e-162, at spreads whose
+                        // variance is an ordinary number once the center is
+                        // large. ln(1 - e^(-x)) is ln(x) - x/2 + ..., so below
+                        // the cut the term dropped is at most 5e-301 of an
+                        // exponent, far under what the result can resolve, while
+                        // the cut is itself above the smallest normal number so
+                        // nothing subnormal reaches `expm1` --- which above it
                         // keeps a small spread from losing its precision to the
-                        // 1 it is subtracted from, and its result is strictly
-                        // positive here because the zero spread is handled above.
+                        // 1 it is subtracted from.
+                        const logFactor =
+                            logVariance > 1e-300
+                                ? Math.log(-Math.expm1(-logVariance))
+                                : 2 * Math.log(logStandardDeviation);
+
+                        // the exponent is 2 mu + 2 sigma^2, evaluated at a
+                        // quarter scale because those two terms each overflow on
+                        // their own --- 2 mu past a center of 9e307, 2 sigma^2
+                        // past a spread of 9.5e153 --- for parameters whose sum
+                        // is an ordinary number, and Infinity + -Infinity is NaN
                         variance = Math.exp(
-                            2 * dependencyValues.logMean +
-                                2 * logVariance +
-                                Math.log(-Math.expm1(-logVariance)),
+                            4 *
+                                (dependencyValues.logMean / 2 +
+                                    (logStandardDeviation / 2) *
+                                        logStandardDeviation) +
+                                logFactor,
                         );
                     }
                 } else if (dependencyValues.type === "poisson") {

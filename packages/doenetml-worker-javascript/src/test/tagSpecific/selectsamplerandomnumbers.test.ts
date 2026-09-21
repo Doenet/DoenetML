@@ -1079,17 +1079,18 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
     });
 
     it("a log-normal with no spread is a single value repeated", async () => {
-        // A spread of zero is answered outright rather than by the variance
-        // formula, which for that spread has a zero factor whose logarithm is
-        // -Infinity: a center large enough that twice it is Infinity too would
-        // cancel the two and report NaN for a distribution that is perfectly
-        // determined.
+        // A spread of exactly zero is answered outright rather than by the
+        // variance formula, whose logarithmic factor is then -Infinity: a center
+        // large enough that four times half of it is Infinity too would cancel
+        // the two and report NaN for a distribution that is perfectly
+        // determined. A spread that is merely very small is not answered here
+        // but by the formula, which keeps it --- see the underflow test below.
         for (const [logMean, expectedValue] of [
             [0, 1],
             [2, Math.exp(2)],
             [1000, Infinity],
-            // large enough that 2 * logMean overflows, which is where the
-            // formula would need answering for
+            // large enough that the formula's 4 * (logMean / 2) overflows,
+            // which is where it would need answering for
             [1e308, Infinity],
             // and at the other end, the only way a log-normal value can fail to
             // be strictly positive: a center far enough below the underflow
@@ -1251,6 +1252,123 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 "s",
             )) {
                 expect(Number.isFinite(value), doenetML).eq(true);
+            }
+            expect(getDiagnosticsByType(core).warnings.length, doenetML).eq(0);
+        }
+    });
+
+    it("a log-normal's moments survive a spread whose square is not a number", async () => {
+        // sigma^2 is an intermediate here, not an answer: it is Infinity for a
+        // spread past about 1.3e154, while 2 sigma^2 is Infinity from 9.5e153
+        // and 2 mu is Infinity from a center of 9e307. All three happen at
+        // parameters whose moments a double still holds, and an Infinity that
+        // meets the other sign's Infinity in a sum is NaN. So the exponents are
+        // formed at half scale in the mean and at a quarter scale in the
+        // variance, where nothing overflows that the answer does not.
+        for (const [logMean, logStandardDeviation, expectedVariance] of [
+            // sigma^2 overflows while sigma^2/2 does not, so the mean's exponent
+            // is -1e308 + 9.8e307 = -2e306 and every value underflows to 0.
+            // Its variance is a genuine overflow: 2 mu + 2 sigma^2 is 1.9e308.
+            [-1e308, 1.4e154, Infinity],
+            // sigma^2 is an ordinary 9.0e307 but twice it is not, and twice the
+            // center is -Infinity: the exponent 2 mu + 2 sigma^2 = 1.1e305 was
+            // reported as NaN
+            [-9e307, 9.49e153, Infinity],
+            // the same spread against the most negative center there is, where
+            // 2 mu + 2 sigma^2 = -1.8e308 and the variance underflows to 0
+            [-1.7976931348623157e308, 9.49e153, 0],
+        ] as [number, number, number][]) {
+            const doenetML = `<sampleRandomNumbers name="s" type="logNormal" logMean="${logMean}" logStandardDeviation="${logStandardDeviation}" numSamples="3" />`;
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const stateValues =
+                stateVariables[await resolvePathToNodeIdx("s")].stateValues;
+
+            // in every row the center is far enough below the underflow point
+            // that a spread of at most 6.7 sigma cannot lift a value back over
+            // it, so the mean and every sample are exactly 0
+            expect(stateValues.mean, doenetML).eq(0);
+            expect(stateValues.variance, doenetML).eq(expectedVariance);
+            expect(stateValues.standardDeviation, doenetML).eq(
+                Math.sqrt(expectedVariance),
+            );
+            for (const value of await current_values(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            )) {
+                expect(value, doenetML).eq(0);
+            }
+            expect(getDiagnosticsByType(core).warnings.length, doenetML).eq(0);
+        }
+    });
+
+    it("a log-normal's variance survives a spread whose square underflows", async () => {
+        // The other end of the same intermediate: sigma^2 falls into the
+        // subnormals below a spread of about 1.5e-154 and is 0 below about
+        // 1e-162, at spreads whose variance is an ordinary number once the
+        // center is large. Taking the logarithm of sigma^2 as 2 ln(sigma) keeps
+        // it, where reading it off the square reported a variance too small by
+        // a factor of 1e-5, or 0.
+        for (const [logMean, logStandardDeviation] of [
+            // 1.97e34, where the square is 1e-400 and so exactly 0
+            [500, 1e-200],
+            // 6.75e215, at the largest center whose values are still numbers
+            [709, 1e-200],
+            // 1.65e-31, where the square is a subnormal 1e-340 and keeps only a
+            // handful of bits
+            [356, 1e-170],
+            // and a center small enough that the variance really does underflow,
+            // which reported 0 before and after --- the row is here to say that
+            // the change did not turn every tiny spread into a nonzero answer
+            [0, 1e-200],
+        ] as [number, number][]) {
+            // sigma^2 e^(2 mu), which is the variance to within the sigma^2/2
+            // of the next term of the series --- itself below 1e-308 here --- and
+            // is formed as a square of an ordinary number rather than through
+            // any logarithm, so it shares no arithmetic with the definition
+            const expectedVariance =
+                (logStandardDeviation * Math.exp(logMean)) ** 2;
+
+            const doenetML = `<sampleRandomNumbers name="s" type="logNormal" logMean="${logMean}" logStandardDeviation="${logStandardDeviation}" numSamples="3" />`;
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const stateValues =
+                stateVariables[await resolvePathToNodeIdx("s")].stateValues;
+
+            expect(stateValues.variance, doenetML).closeTo(
+                expectedVariance,
+                expectedVariance * 1e-10,
+            );
+            expect(stateValues.standardDeviation, doenetML).closeTo(
+                Math.sqrt(expectedVariance),
+                Math.sqrt(expectedVariance) * 1e-10,
+            );
+
+            // a spread this far below the center leaves no room in a double for
+            // the values to differ, so the mean and every sample are the same
+            // e^logMean --- which is why reporting 0 for the variance looked
+            // defensible, and why it is not: the component reports the variance
+            // of the distribution the author named, as the reference pages'
+            // formula does, and does so continuously rather than switching to 0
+            // at the spread where a square stops being representable
+            expect(stateValues.mean, doenetML).eq(Math.exp(logMean));
+            for (const value of await current_values(
+                core,
+                resolvePathToNodeIdx,
+                "s",
+            )) {
+                expect(value, doenetML).eq(Math.exp(logMean));
             }
             expect(getDiagnosticsByType(core).warnings.length, doenetML).eq(0);
         }
