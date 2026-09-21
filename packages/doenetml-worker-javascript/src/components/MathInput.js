@@ -1224,9 +1224,6 @@ export default class MathInput extends Input {
         skipRendererUpdate = false,
     }) {
         if (!(await this.stateValues.disabled)) {
-            // we set transient to true so that each keystroke does not
-            // add a row to the database
-
             return await this.coreFunctions.performUpdate({
                 updateInstructions: [
                     {
@@ -1245,8 +1242,11 @@ export default class MathInput extends Input {
                 // `<answer>`'s check-work button has to drop "Incorrect" on the
                 // first character of a correction, and a `$input.immediateValue`
                 // echo would otherwise freeze for the length of a typing burst.
-                // `transient` here is about not writing a database row per
-                // keystroke, not about a continuous pointer interaction.
+                // `transient` here is a legacy marker for "not a committed
+                // value": it once kept a keystroke out of the saved state, but
+                // that guard went away in Doenet/DoenetML#1035 and saving is
+                // debounced instead. It does not mean a continuous pointer
+                // interaction, which is what the split is for.
                 deferDownstreamRenderers: false,
                 actionId,
                 sourceInformation,

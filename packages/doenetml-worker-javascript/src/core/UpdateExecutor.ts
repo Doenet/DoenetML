@@ -98,20 +98,26 @@ type PerformUpdateArgs = {
      * Mark this as an intermediate step of an ongoing interaction — a drag
      * still in progress, or a keystroke in an input that commits on blur or
      * enter — rather than its committed result. The update is performed in
-     * full; what changes is the renderer fan-out, which sends this update's
-     * own targets immediately and defers the rest until the interaction goes
-     * quiet, so the thing being interacted with keeps up even when the change
-     * invalidated much of the document. The commit that ends the interaction
-     * arrives without this flag and flushes the remainder.
+     * full either way. What it can change is the renderer fan-out: unless
+     * `deferDownstreamRenderers` is false, this update's own targets are sent
+     * immediately and the rest wait until the interaction goes quiet, so the
+     * thing being interacted with keeps up even when the change invalidated
+     * much of the document. The commit that ends the interaction arrives
+     * without this flag and flushes the remainder.
      *
      * Two kinds of caller already set it, and before this it was accepted and
      * ignored in both cases:
-     * - the graph drag handlers and `Slider.changeValue`, on every pointermove
-     *   (`Point.movePoint` and its siblings forward the renderer's flag);
+     * - continuous pointer interactions, on every pointermove: the graph drag
+     *   handlers (`Point.movePoint` and its siblings forward the renderer's
+     *   flag), `Slider.changeValue`, and `SubsetOfRealsInput.movePoint` for
+     *   the points of a number line;
      * - `MathInput.updateRawValue`, `inputUpdateImmediateValue`
      *   (`<textInput>`, `<codeEditor>`) and `mathComponentInputUpdateRawValue`
-     *   (math-input cells), which set it on every keystroke so that typing
-     *   does not add a row to the database.
+     *   (math-input cells), on every keystroke. Their original reason was to
+     *   keep a keystroke from adding a row to the database, but that guard —
+     *   an `if (!transient)` around saving — went away in
+     *   Doenet/DoenetML#1035 and saving is debounced instead, so for them the
+     *   flag is now only a marker for "not a committed value".
      *
      * Only the first kind wants the renderer split, so the second passes
      * `deferDownstreamRenderers: false`. If you add a caller that sets

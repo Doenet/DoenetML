@@ -35,10 +35,11 @@ const doenetML = `
 
 /**
  * A drag is not the only `transient` caller: the inputs that commit on blur or
- * enter mark every keystroke transient so it does not add a row to the
- * database (`MathInput.updateRawValue`, `inputUpdateImmediateValue` in
- * `utils/input.js`, `mathComponentInputUpdateRawValue` in
- * `utils/mathComponentInput.js`).
+ * enter mark every keystroke transient (`MathInput.updateRawValue`,
+ * `inputUpdateImmediateValue` in `utils/input.js`,
+ * `mathComponentInputUpdateRawValue` in `utils/mathComponentInput.js`), for an
+ * unrelated and by now historical reason — it once kept a keystroke out of the
+ * saved state.
  *
  * Those must not take the renderer split, so they pass
  * `deferDownstreamRenderers: false`. A keystroke's downstream carries feedback
