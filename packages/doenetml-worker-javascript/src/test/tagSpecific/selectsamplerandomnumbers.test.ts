@@ -2075,6 +2075,41 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 1e-10,
             );
         }
+
+        // Selecting nothing is the degenerate case, and the one where the freeze
+        // rests entirely on how the dependency is declared: `selectedValues` returns
+        // an empty list before it looks at `exclude`, so nothing in the body of a
+        // definition ever reads it. It is pinned all the same, because every
+        // declared dependency is evaluated before the definition runs.
+        {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="e" prefill="3" />
+    <selectRandomNumbers name="s" type="discreteUniform" from="1" to="5" exclude="$e" numToSelect="0" />
+    `,
+            });
+
+            await updateMathInputValue({
+                latex: "5",
+                componentIdx: await resolvePathToNodeIdx("e"),
+                core,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const componentIdx = await resolvePathToNodeIdx("s");
+
+            expect(stateVariables[componentIdx].stateValues.mean).closeTo(
+                3,
+                1e-10,
+            );
+            expect(stateVariables[componentIdx].stateValues.variance).closeTo(
+                2.5,
+                1e-10,
+            );
+        }
     });
 
     it("a sampled distribution's exclusions still follow a reference", async () => {
