@@ -1016,8 +1016,9 @@ math-embedded-input-shape-unsuitable =
 
 ## `<sampleRandomNumbers>` and `<selectRandomNumbers>`
 ##
-## Translators: `mean`, `standardDeviation`, `variance`, `numTotal`,
-## `numSuccesses`, `numDraws`, `numTrials`, `probability` and `numSamples` are
+## Translators: `mean`, `standardDeviation`, `variance`, `logMean`,
+## `logStandardDeviation`, `logVariance`, `numTotal`, `numSuccesses`,
+## `numDraws`, `numTrials`, `probability` and `numSamples` are
 ## DoenetML attribute names. They are written into these messages as they stand
 ## and must be left in English exactly as written. Each of these names the
 ## attribute the author has to change, so a message that translated one would
@@ -1028,6 +1029,13 @@ math-embedded-input-shape-unsuitable =
 # message has to name both for the author to know what to edit.
 sample-gaussian-parameters-invalid =
     Invalid mean ({ $mean }) or standardDeviation ({ $standardDeviation }) for a gaussian random variable. The mean must be a finite number, and the standardDeviation (or the variance it is derived from) must be finite and non-negative. No numbers can be sampled.
+
+# The log-normal's parameters describe the normal distribution its values are the
+# exponential of, not the values themselves, which is why they are named apart from
+# the gaussian's `mean` and `standardDeviation`. As there, a negative `logVariance`
+# arrives here as a `logStandardDeviation` of NaN, so both are named.
+sample-lognormal-parameters-invalid =
+    Invalid logMean ({ $logMean }) or logStandardDeviation ({ $logStandardDeviation }) for a lognormal random variable. These describe the normal distribution the values are the exponential of: the logMean must be a finite number, and the logStandardDeviation (or the logVariance it is derived from) must be finite and non-negative. No numbers can be sampled.
 
 # These three attributes are the only ones with no default, so leaving one out is
 # the commonest way to reach this message. Each arrives either as the number the

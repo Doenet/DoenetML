@@ -132,9 +132,9 @@ export function sampleBinomial({ numTrials, probability, rng }) {
  *
  * The generator's range is [0, 1), so it can return exactly zero, and `-log(0)` is
  * infinite — which would end a Poisson sample early and bias it low. Redrawing on a
- * zero is how the Box-Muller transform in `sampleFromRandomNumbers` below handles the
- * same hazard, and it leaves the distribution exact: it rejects a single point, which
- * the exponential distribution gives no weight to.
+ * zero is how `sampleStandardNormal` below handles the same hazard, and it leaves the
+ * distribution exact: it rejects a single point, which the exponential distribution
+ * gives no weight to.
  */
 function sampleExponential(rng) {
     let uniform = 0;
@@ -193,7 +193,8 @@ export function samplePoisson({ mean, rng }) {
  * Only the samplers added alongside this use it. The gaussian, uniform and
  * discrete-uniform paths keep their single 32-bit draw, because changing how many
  * values they consume would renumber every variant of every document already
- * written against them.
+ * written against them — and so, by sharing `sampleStandardNormal` with the
+ * gaussian, does the log-normal.
  */
 function preciseUniformInteger(rng) {
     const high = Math.floor(rng() * 0x4000000); // 26 bits
@@ -236,6 +237,27 @@ function uniformBelow(rng, bound) {
 }
 
 /**
+ * One draw from the standard normal distribution, by the Box-Muller transform.
+ *
+ * Keeps the two 32-bit draws the gaussian has always consumed, rather than the
+ * `preciseUniform` pair the newer samplers use: changing how much randomness this
+ * takes would renumber every variant of every document already written against it.
+ * A draw of exactly zero is rejected and redrawn, since `log(0)` is infinite and
+ * `cos(0)` would fix the sign of every value that reached it.
+ */
+function sampleStandardNormal(rng) {
+    let u = 0,
+        v = 0;
+    while (u === 0) {
+        u = rng();
+    }
+    while (v === 0) {
+        v = rng();
+    }
+    return Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+}
+
+/**
  * Whether `mean` and `standardDeviation` describe a gaussian distribution that can
  * be sampled from. An infinite spread passes a bare `>= 0` test but produces
  * infinite or NaN values, so finiteness is checked on both.
@@ -250,6 +272,20 @@ export function validGaussianParameters({ mean, standardDeviation }) {
         Number.isFinite(standardDeviation) &&
         standardDeviation >= 0
     );
+}
+
+/**
+ * Whether `logMean` and `logStandardDeviation` describe a log-normal distribution
+ * that can be sampled from. They are the center and spread of the underlying normal
+ * distribution, so the same conditions apply as to the gaussian's own pair.
+ *
+ * Shared with the component, as above.
+ */
+export function validLogNormalParameters({ logMean, logStandardDeviation }) {
+    return validGaussianParameters({
+        mean: logMean,
+        standardDeviation: logStandardDeviation,
+    });
 }
 
 /** How many draws `sampleHypergeometric` makes for one variate. */
@@ -539,6 +575,8 @@ export function sampleFromRandomNumbers({
     numSamples,
     standardDeviation,
     mean,
+    logStandardDeviation,
+    logMean,
     to,
     from,
     step,
@@ -579,20 +617,36 @@ export function sampleFromRandomNumbers({
         let sampledValues = [];
 
         for (let i = 0; i < numToSample; i++) {
-            // Standard Normal variate using Box-Muller transform.
-            let u = 0,
-                v = 0;
-            while (u === 0) {
-                u = rng();
-            }
-            while (v === 0) {
-                v = rng();
-            }
-            let standardNormal =
-                Math.sqrt(-2.0 * Math.log(u)) * Math.cos(2.0 * Math.PI * v);
+            // transform a standard normal variate to the correct parameters
+            sampledValues.push(
+                mean + standardDeviation * sampleStandardNormal(rng),
+            );
+        }
 
-            // transform to correct parameters
-            sampledValues.push(mean + standardDeviation * standardNormal);
+        return { sampledValues, diagnostics: [] };
+    } else if (type === "lognormal") {
+        if (!validLogNormalParameters({ logMean, logStandardDeviation })) {
+            return unsampleable(
+                numToSample,
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0165",
+                    args: { logMean, logStandardDeviation },
+                }),
+            );
+        }
+
+        let sampledValues = [];
+
+        for (let i = 0; i < numToSample; i++) {
+            // a log-normal variate is the exponential of a normal one, so the
+            // parameters describe the normal distribution behind it rather than
+            // the values themselves
+            sampledValues.push(
+                Math.exp(
+                    logMean + logStandardDeviation * sampleStandardNormal(rng),
+                ),
+            );
         }
 
         return { sampledValues, diagnostics: [] };

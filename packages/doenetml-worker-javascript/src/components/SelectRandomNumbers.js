@@ -47,7 +47,10 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         delete attributes.numSamples;
         delete attributes.variantDeterminesSeed;
 
+        // The count `<sampleRandomNumbers>` highlights is deleted above, so this
+        // takes its place beside the inherited `type` in the highlighted section.
         attributes.numToSelect = {
+            highlighted: true,
             description: "How many random numbers to select.",
             createComponentOfType: "integer",
             createStateVariable: "numToSelect",
@@ -86,13 +89,17 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         stateVariableDefinitions.numTrials.immutable = true;
         stateVariableDefinitions.probability.immutable = true;
 
-        // The gaussian and poisson parameters are frozen for the same reason, and
-        // additionally because `selectedValues` reads them directly: they are what
-        // the selection was drawn from, so a moment derived from them later must see
-        // what the draw saw, not whatever a reference has since become.
+        // The gaussian, log-normal and poisson parameters are frozen for the same
+        // reason, and additionally because `selectedValues` reads them directly:
+        // they are what the selection was drawn from, so a moment derived from them
+        // later must see what the draw saw, not whatever a reference has since
+        // become.
         stateVariableDefinitions.gaussianMean.immutable = true;
         stateVariableDefinitions.gaussianStandardDeviation.immutable = true;
         stateVariableDefinitions.gaussianStandardDeviation.additionalStateVariablesDefined[0].immutable = true;
+        stateVariableDefinitions.logMean.immutable = true;
+        stateVariableDefinitions.logStandardDeviation.immutable = true;
+        stateVariableDefinitions.logStandardDeviation.additionalStateVariablesDefined[0].immutable = true;
         stateVariableDefinitions.poissonMean.immutable = true;
 
         stateVariableDefinitions.mean.immutable = true;
@@ -144,6 +151,14 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
                 standardDeviation: {
                     dependencyType: "stateVariable",
                     variableName: "gaussianStandardDeviation",
+                },
+                logMean: {
+                    dependencyType: "stateVariable",
+                    variableName: "logMean",
+                },
+                logStandardDeviation: {
+                    dependencyType: "stateVariable",
+                    variableName: "logStandardDeviation",
                 },
                 numTotal: {
                     dependencyType: "stateVariable",

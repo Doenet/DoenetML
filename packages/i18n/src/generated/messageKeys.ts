@@ -529,6 +529,7 @@ export type MessageKey =
     | "select-random-value-fluke"
     | "math-embedded-input-shape-unsuitable"
     | "sample-gaussian-parameters-invalid"
+    | "sample-lognormal-parameters-invalid"
     | "sample-hypergeometric-parameters-invalid"
     | "sample-hypergeometric-draws-too-many"
     | "sample-binomial-parameters-invalid"
@@ -1162,6 +1163,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "select-random-value-fluke",
     "math-embedded-input-shape-unsuitable",
     "sample-gaussian-parameters-invalid",
+    "sample-lognormal-parameters-invalid",
     "sample-hypergeometric-parameters-invalid",
     "sample-hypergeometric-draws-too-many",
     "sample-binomial-parameters-invalid",

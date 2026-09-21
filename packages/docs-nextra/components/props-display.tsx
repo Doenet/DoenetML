@@ -84,6 +84,11 @@ export type PropInfo = {
  */
 const GROUP_ORDER = [
     "sorting",
+    "sampling-range",
+    "sampling-gaussian",
+    "sampling-lognormal",
+    "sampling-discrete",
+    "sampling-moments",
     "data",
     "marks",
     "axes",
@@ -100,6 +105,11 @@ const GROUP_ORDER = [
 /** Human-readable section titles for the known functional groups. */
 const GROUP_LABELS: Record<string, string> = {
     sorting: "Sort order",
+    "sampling-range": "Uniform and discrete-uniform parameters",
+    "sampling-gaussian": "Gaussian and Poisson parameters",
+    "sampling-lognormal": "Log-normal parameters",
+    "sampling-discrete": "Hypergeometric and binomial parameters",
+    "sampling-moments": "Distribution moments",
     data: "Data",
     marks: "Marks",
     axes: "Axes",
