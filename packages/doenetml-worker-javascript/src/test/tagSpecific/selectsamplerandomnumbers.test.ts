@@ -1606,6 +1606,25 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         expect(getDiagnosticsByType(core).warnings.length).eq(0);
     });
 
+    it("components sharing a center leave only the spread within them", async () => {
+        // The other degenerate direction from the no-spread case above: with every
+        // center the same, the between-component term drops out and the variance is
+        // the weighted average of the component variances alone --- which is
+        // smaller than the widest component's, not larger than it.
+        const doenetML = `<sampleRandomNumbers name="s" type="normalMixture" means="0 0" standardDeviations="1 3" numSamples="3" />`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const stateValues = (await core.returnAllStateVariables(false, true))[
+            await resolvePathToNodeIdx("s")
+        ].stateValues;
+
+        expect(stateValues.mean).eq(0);
+        // (1 + 9)/2, below the second component's 9
+        expect(stateValues.variance).eq(5);
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+    });
+
     it("a component of weight zero is never drawn from", async () => {
         // A weight of zero is a component that contributes nothing, which the
         // moments already say; the sampler has to agree, and a cumulative total
