@@ -3,8 +3,10 @@ import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     callAction,
+    triggerActions,
     updateMathInputValue,
     updateTextInputValue,
+    updateValue,
 } from "../utils/actions";
 import me from "math-expressions";
 import seedrandom from "seedrandom";
@@ -1861,6 +1863,87 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 expect(Number.isInteger(value)).eq(true);
             }
         }
+    });
+
+    it("selectRandomNumbers has no resample action", async () => {
+        // A selection is made once and is the variant's, so `resample` is not
+        // an action `<selectRandomNumbers>` offers. Asking for it anyway used
+        // to reach `<sampleRandomNumbers>`'s action, which writes a state
+        // variable this component does not have: the button threw a stack
+        // trace into the console and told the author nothing. Now it warns.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><selectRandomNumbers name="s" type="gaussian" mean="3" standardDeviation="1" numToSelect="5" /></p>
+    <callAction name="again" target="$s" actionName="resample"><label>Resample</label></callAction>
+    <number name="n">1</number>
+    <updateValue name="bump" target="$n" newValue="$n+1"><label>Bump</label></updateValue>
+    `,
+        });
+
+        const before = await current_values(core, resolvePathToNodeIdx, "s");
+        expect(before.length).eq(5);
+
+        await callAction({
+            core,
+            componentIdx: await resolvePathToNodeIdx("again"),
+        });
+
+        expect(await current_values(core, resolvePathToNodeIdx, "s")).eqls(
+            before,
+        );
+
+        const warnings = getDiagnosticsByType(core).warnings;
+        expect(warnings.length).eq(1);
+        expect(warnings[0].message).contain("Cannot call resample");
+        expect(warnings[0].message).contain("$s");
+
+        // the page is still live: an unrelated update afterwards takes effect
+        await updateValue({
+            core,
+            componentIdx: await resolvePathToNodeIdx("bump"),
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(2);
+    });
+
+    it("actions sharing a trigger with an unavailable resample still run", async () => {
+        // The throw used to abandon everything the same button was still
+        // going to do: the rest of a `<triggerSet>` and anything chained with
+        // `triggerWith` never ran. An unavailable action is now reported and
+        // stepped over, so the siblings are unaffected.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <selectRandomNumbers name="s" from="1" to="10" numToSelect="3" />
+    <number name="inSet">1</number>
+    <number name="chained">1</number>
+    <triggerSet name="ts"><label>Go</label>
+      <callAction name="again" target="$s" actionName="resample" />
+      <updateValue name="alongside" target="$inSet" newValue="5" />
+    </triggerSet>
+    <updateValue name="after" target="$chained" newValue="7" triggerWith="$again" />
+    `,
+        });
+
+        await triggerActions({
+            core,
+            componentIdx: await resolvePathToNodeIdx("ts"),
+        });
+
+        const warnings = getDiagnosticsByType(core).warnings;
+        expect(warnings.length).eq(1);
+        expect(warnings[0].message).contain("Cannot call resample");
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("inSet")].stateValues
+                .value,
+        ).eq(5);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("chained")].stateValues
+                .value,
+        ).eq(7);
     });
 
     it("same discrete samples for given variant if variantDeterminesSeed", async () => {
