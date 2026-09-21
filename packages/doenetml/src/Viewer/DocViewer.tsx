@@ -37,8 +37,9 @@ import { DoenetMLFlags } from "../doenetml";
 import { Remote } from "comlink";
 import {
     actionIdentifier,
+    clearPendingValuesForAction,
     mainThunks,
-    UniqueActionIdentifier,
+    UpdatesToIgnore,
     useAppDispatch,
 } from "../state";
 import { renderersLoadComponent } from "./renderersLoadComponent";
@@ -401,9 +402,7 @@ export function DocViewer({
     // Sometimes components eagerly update before waiting for core to determine their exact state
     // This map from event ids to event values helps keep track of the updates that need to be ignored
     // so we don't clobber the component's state.
-    const updatesToIgnoreRef = useRef<Map<UniqueActionIdentifier, string>>(
-        new Map(),
-    );
+    const updatesToIgnoreRef = useRef<UpdatesToIgnore>(new Map());
     const dispatch = useAppDispatch();
 
     // Maps a rendered element's DOM id (prefixForIds + renderer id) to its
@@ -1793,7 +1792,7 @@ export function DocViewer({
             // whether or not to ignore the information core sends when it finishes the action
             updatesToIgnoreRef.current.set(
                 actionIdentifier(actionId, componentIdx),
-                baseVariableValue,
+                { componentIdx, value: baseVariableValue },
             );
         }
 
@@ -2157,6 +2156,11 @@ export function DocViewer({
         if (!actionId) {
             return;
         }
+
+        // Core is done with this action, so the value the renderer showed ahead
+        // of it is no longer waiting on an answer.
+        clearPendingValuesForAction(updatesToIgnoreRef.current, actionId);
+
         const callback = onActionCallbacks.current.get(actionId);
         if (callback) {
             callback(success);
