@@ -2097,11 +2097,35 @@ export function DocViewer({
         actionId,
         diagnostics: newDiagnostics,
         init = false,
+        deferred = false,
     }: {
         updateInstructions: Record<string, any>[];
         actionId?: string;
         diagnostics?: DiagnosticRecord[];
         init?: boolean;
+        /**
+         * The deferred remainder of an update whose priority batch already
+         * resolved `actionId` (core sends the dragged component first and the
+         * rest once the drag settles). Resolving again here would release a
+         * second queued action for an interaction that has already finished.
+         *
+         * The flag stops here; `updateRendererSVs` does not need it. An entry
+         * in `updatesToIgnore` is keyed by `(actionId, componentIdx)` and only
+         * exists where a renderer showed a value ahead of core
+         * (`baseVariableValue`). Of the actions that can produce a deferred
+         * batch, only `<slider>`'s `changeValue` does that, and its own update
+         * instruction targets the slider, so the slider goes out in the
+         * priority batch. It does not rest on that survey, though: the
+         * priority batch resolved this `actionId`, and `resolveAction` calls
+         * `clearPendingValuesForAction`, which drops every `actionId|*` key.
+         * By the time the deferred batch lands there is structurally no
+         * pending entry of its own left to match, whatever the renderers do.
+         * A deferred batch therefore never matches a pending entry and can
+         * neither consume nor clear one. What it does reach is
+         * the in-flight check, and that is what we want: an input the reader
+         * is still editing keeps the value it showed until core answers it.
+         */
+        deferred?: boolean;
     }) {
         if (newDiagnostics) {
             publishDiagnostics(newDiagnostics);
@@ -2164,7 +2188,9 @@ export function DocViewer({
             }
         }
 
-        resolveAction({ actionId });
+        if (!deferred) {
+            resolveAction({ actionId });
+        }
     }
 
     function resolveAction({

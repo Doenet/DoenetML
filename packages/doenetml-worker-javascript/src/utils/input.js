@@ -252,7 +252,16 @@ export async function inputUpdateImmediateValue({
                     componentIdx: this.componentIdx,
                 },
             ],
-            transient: true,
+            // Deliberately NOT `transient`. That flag means "a step of a
+            // continuous interaction, whose downstream may settle after the
+            // interaction rather than during it", and a keystroke's downstream has
+            // to keep up: an `<answer>`'s check-work button must drop "Incorrect"
+            // on the first character of a correction, and a `$input.immediateValue`
+            // echo would otherwise freeze for the length of a typing burst.
+            // A keystroke was marked transient until Doenet/DoenetML#1990, to keep
+            // it out of the saved state -- but that guard (`if (!transient)` around
+            // saving) went away in Doenet/DoenetML#1035 and saving is debounced
+            // instead, so the flag had no reader left here.
             actionId,
             sourceInformation,
             skipRendererUpdate,

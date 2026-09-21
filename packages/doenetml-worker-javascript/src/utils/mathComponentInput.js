@@ -453,8 +453,8 @@ export function returnMathComponentInputDisplayStateVariableDefinitions() {
 /**
  * Shared `updateRawValue` action for a math-input cell: stores the latest raw
  * (LaTeX) value from the renderer and flags the component as needing a value
- * update. The update is transient so each keystroke does not add a row to the
- * database. Bind to the component instance in its constructor.
+ * update. The update is deliberately not `transient` — see the call site for
+ * why. Bind to the component instance in its constructor.
  */
 export async function mathComponentInputUpdateRawValue({
     rawRendererValue,
@@ -476,7 +476,16 @@ export async function mathComponentInputUpdateRawValue({
                     componentIdx: this.componentIdx,
                 },
             ],
-            transient: true,
+            // Deliberately NOT `transient`. That flag means "a step of a
+            // continuous interaction, whose downstream may settle after the
+            // interaction rather than during it", and a keystroke's downstream has
+            // to keep up: an `<answer>`'s check-work button must drop "Incorrect"
+            // on the first character of a correction, and a `$input.immediateValue`
+            // echo would otherwise freeze for the length of a typing burst.
+            // A keystroke was marked transient until Doenet/DoenetML#1990, to keep
+            // it out of the saved state -- but that guard (`if (!transient)` around
+            // saving) went away in Doenet/DoenetML#1035 and saving is debounced
+            // instead, so the flag had no reader left here.
             actionId,
             sourceInformation,
             skipRendererUpdate,
@@ -561,7 +570,6 @@ export async function mathComponentInputUpdateValue({
         } else {
             // set raw renderer value to save it to the database,
             // as it might not have been saved
-            // given that updateRawValue is transient
             await this.coreFunctions.performUpdate({
                 updateInstructions: [
                     {

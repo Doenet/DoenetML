@@ -181,8 +181,11 @@ export class ProcessQueue {
         skippable?: boolean;
         overrideReadOnly?: boolean;
     }): Promise<any> {
-        // Note: the transient flag is now ignored
-        // as the debounce is preventing too many updates from occurring
+        // Note: `transient` is forwarded to `performUpdate`, which uses it to
+        // send the update's own targets to the renderer immediately and defer
+        // the rest of the fan-out (see `UpdateExecutor.performUpdate`).
+        // In read-only mode it never gets that far: the update is
+        // short-circuited below.
 
         if (this.core.flags.readOnly && !overrideReadOnly) {
             let sourceInformation: Record<number, any> = {};

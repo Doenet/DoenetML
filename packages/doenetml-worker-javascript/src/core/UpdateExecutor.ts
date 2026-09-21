@@ -94,6 +94,27 @@ type PerformUpdateArgs = {
      * not *which* components it covers.
      */
     skipRendererUpdate?: boolean;
+    /**
+     * Mark this as one step of a continuous interaction — a drag still in
+     * progress — rather than its committed result. The update is performed in
+     * full either way; what changes is the renderer fan-out. This update's own
+     * targets are sent immediately and the rest wait until the interaction
+     * goes quiet, so the thing being dragged keeps up even when the move
+     * invalidated much of the document. The commit that ends the interaction
+     * arrives without this flag and flushes the remainder.
+     *
+     * Set by the graph drag handlers (`Point.movePoint` and its siblings
+     * forward the renderer's flag), `Slider.changeValue` (both dragging and
+     * keyboard stepping), and `SubsetOfRealsInput.movePoint` for the points of
+     * a number line. Before this it was accepted and ignored.
+     *
+     * Set it only for a continuous interaction whose downstream may settle
+     * late. A keystroke is not one, however in-progress its value: the
+     * feedback beside an input has to keep up with it, so the inputs that
+     * commit on blur or enter deliberately do not set this. See the comment
+     * at `inputUpdateImmediateValue` in `utils/input.js`.
+     */
+    transient?: boolean;
     sourceInformation?: SourceInformation;
 };
 
@@ -278,7 +299,12 @@ export class UpdateExecutor {
      * renderer edit can be confirmed or reverted (see that flag). Then
      * `processStateVariableTriggers` runs, and the final
      * `updateAllChangedRenderers` fan-out runs only when
-     * `skipRendererUpdate` is false. Essential values saved during
+     * `skipRendererUpdate` is false.
+     *
+     * A `transient` update reorders that tail: the update's own targets are
+     * sent *before* `processStateVariableTriggers`, and the remainder is
+     * handed to `scheduleDeferredRendererUpdate` rather than going out with
+     * `updateAllChangedRenderers`. Essential values saved during
      * definitions are merged into the cumulative changes log so they
      * persist on the next save.
      *
@@ -297,6 +323,7 @@ export class UpdateExecutor {
         doNotSave = false,
         canSkipUpdatingRenderer = false,
         skipRendererUpdate = false,
+        transient = false,
         sourceInformation = {},
     }: PerformUpdateArgs) {
         if (diagnostics) {
@@ -423,13 +450,32 @@ export class UpdateExecutor {
             });
         }
 
-        await this.core.processStateVariableTriggers();
-
-        if (!skipRendererUpdate) {
-            await this.core.updateAllChangedRenderers(
+        if (transient && !skipRendererUpdate) {
+            // Put the dragged component on screen before doing anything with
+            // the (much larger) set of components its move invalidated.
+            await this.core.updateRenderersForComponents(
+                updateInstructions
+                    .map((instruction) => instruction.componentIdx)
+                    .filter((componentIdx) => componentIdx != undefined),
                 sourceInformation,
                 actionId,
             );
+        }
+
+        await this.core.processStateVariableTriggers();
+
+        if (!skipRendererUpdate) {
+            if (transient) {
+                this.core.scheduleDeferredRendererUpdate(
+                    sourceInformation,
+                    actionId,
+                );
+            } else {
+                await this.core.updateAllChangedRenderers(
+                    sourceInformation,
+                    actionId,
+                );
+            }
         }
 
         if (recordComponentSubmissions.length > 0) {
