@@ -424,9 +424,9 @@ export function normalMixtureMoments(parameters) {
  * gaussian keeps, since a proportion can legitimately be smaller than 2^-32. A
  * coarser draw can only take values 2^-32 apart, so such a component would be given
  * that whole floor where one of those values happens to fall inside its slice of the
- * cumulative range below, and --- the commoner case --- nothing at all where none
- * does. Nothing was written against this distribution before it existed, so unlike
- * the gaussian there is no variant numbering that changing the draw would renumber.
+ * cumulative range below, and nothing at all where none does. Nothing was written
+ * against this distribution before it existed, so unlike the gaussian there is no
+ * variant numbering that changing the draw would renumber.
  */
 function sampleNormalMixture({ means, standardDeviations, proportions, rng }) {
     const chosen = preciseUniform(rng);
@@ -454,10 +454,10 @@ function hypergeometricWork({ numTotal, numDraws }) {
  * How a parameter is written into a diagnostic: the number the author gave, or the
  * sentinel `"not-set"` for one they left off.
  *
- * The hypergeometric parameters, and the multivariate `numDraws`, are the only
- * ones with no default, so an omitted one reaches a message as `null` — a word out
- * of the implementation rather than anything the author typed, and omitting one is
- * the first way most authors reach those messages. The catalog selects on the
+ * The hypergeometric parameters, and the multivariate `numDraws`, have no default,
+ * so an omitted one reaches a message as `null` — a word out of the implementation
+ * rather than anything the author typed, and omitting one is the first way most
+ * authors reach those messages. The catalog selects on the
  * sentinel and says "not set" in the reader's language instead.
  */
 function reportedValue(value) {

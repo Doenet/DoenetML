@@ -419,9 +419,10 @@ gives all three components a spread of 2.
 
 The reported `mean` is the weighted average of the component means. The reported 
 `variance` is the weighted average of the component variances plus a second term 
-for how far the components sit from one another, so it is larger than that 
-average alone whenever the centers differ, and equal to it when every component 
-shares one center. Writing $p_i$, $\mu_i$ and $\sigma_i$ for the proportion, 
+for how far the components sit from one another. That second term is zero exactly 
+when every component *carrying weight* shares one center &mdash; a component whose 
+`weights` entry is 0 contributes to neither term &mdash; and is positive 
+otherwise. Writing $p_i$, $\mu_i$ and $\sigma_i$ for the proportion, 
 mean and standard deviation of each component, it is 
 $\sum_i p_i \sigma_i^2 + \sum_i p_i (\mu_i - \mu)^2$, where $\mu$ is the 
 reported mean.
