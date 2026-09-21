@@ -12,8 +12,9 @@ import { createTestCore } from "./test-core";
  * the interaction goes quiet; the commit that ends the drag sends everything.
  * These tests pin that split, and pin that nothing is dropped on the way.
  *
- * Typing is `transient` too, for an unrelated reason, and must NOT take the
- * split — see `typingDoenetML` below.
+ * Typing must NOT take the split, so the inputs that commit on blur or enter
+ * deliberately do not mark a keystroke `transient` — see `typingDoenetML`
+ * below.
  */
 
 /** Three points whose y stacks them by rank, so moving one moves the others. */
@@ -34,18 +35,17 @@ const doenetML = `
 `;
 
 /**
- * A drag is not the only `transient` caller: the inputs that commit on blur or
- * enter mark every keystroke transient (`MathInput.updateRawValue`,
+ * The inputs that commit on blur or enter (`MathInput.updateRawValue`,
  * `inputUpdateImmediateValue` in `utils/input.js`,
- * `mathComponentInputUpdateRawValue` in `utils/mathComponentInput.js`), for an
- * unrelated and by now historical reason — it once kept a keystroke out of the
- * saved state.
+ * `mathComponentInputUpdateRawValue` in `utils/mathComponentInput.js`) used to
+ * mark every keystroke `transient`, for an unrelated and by now historical
+ * reason — it once kept a keystroke out of the saved state.
  *
- * Those must not take the renderer split, so they deliberately do not set
- * `transient` at all. A keystroke's downstream carries feedback about what was
- * typed: an `<answer>`'s check-work button has to drop "Incorrect" on the
- * first character of a correction, and an echo of `immediateValue` would
- * otherwise freeze for the length of a typing burst.
+ * They must not take the renderer split, so they no longer set `transient` at
+ * all. A keystroke's downstream carries feedback about what was typed: an
+ * `<answer>`'s check-work button has to drop "Incorrect" on the first
+ * character of a correction, and an echo of `immediateValue` would otherwise
+ * freeze for the length of a typing burst.
  * Deferring it also broke `prototype/textInput.cy.js`,
  * `prototype/sectionTitleUpdate.cy.js`, `variants/specifysinglevariant.cy.js`
  * and `tagSpecific/pretzel.cy.js` — on the prototype's flat action path the

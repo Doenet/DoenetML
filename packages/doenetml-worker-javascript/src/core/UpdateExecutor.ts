@@ -301,10 +301,9 @@ export class UpdateExecutor {
      * `updateAllChangedRenderers` fan-out runs only when
      * `skipRendererUpdate` is false.
      *
-     * A `transient` update reorders that
-     * tail: the update's own targets are sent *before*
-     * `processStateVariableTriggers`, and the remainder is handed to
-     * `scheduleDeferredRendererUpdate` rather than going out with
+     * A `transient` update reorders that tail: the update's own targets are
+     * sent *before* `processStateVariableTriggers`, and the remainder is
+     * handed to `scheduleDeferredRendererUpdate` rather than going out with
      * `updateAllChangedRenderers`. Essential values saved during
      * definitions are merged into the cumulative changes log so they
      * persist on the next save.
