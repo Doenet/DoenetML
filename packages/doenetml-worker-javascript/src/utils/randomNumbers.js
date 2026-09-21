@@ -320,9 +320,10 @@ function perComponent(list, numComponents) {
  * weights --- be the one-element lists they are rather than something the caller has
  * to size against `means` before it can pass them.
  *
- * The sampler below and `normalMixtureMoments`, which the component reports, both
- * go through here, so that the reported moments are NaN for exactly the parameters
- * whose samples are NaN --- the same guarantee the other distributions give.
+ * The `normalmixture` branch of `sampleFromRandomNumbers` and `normalMixtureMoments`,
+ * which the component reports, both go through here, so that the reported moments are
+ * NaN for exactly the parameters whose samples are NaN --- the same guarantee the
+ * other distributions give.
  */
 function normalMixtureComponents({ means, standardDeviations, weights }) {
     if (
@@ -420,10 +421,12 @@ export function normalMixtureMoments(parameters) {
  * then draw from that component's normal distribution.
  *
  * The choice takes a `preciseUniform` draw rather than the single 32-bit one the
- * gaussian keeps, since a proportion can legitimately be smaller than 2^-32 and a
- * coarser draw would round every such component up to that floor. Nothing was
- * written against this distribution before it existed, so unlike the gaussian there
- * is no variant numbering that changing the draw would renumber.
+ * gaussian keeps, since a proportion can legitimately be smaller than 2^-32. A
+ * coarser draw can only take values 2^-32 apart, so such a component would be given
+ * that whole floor where one of those values happens to fall inside its slice of the
+ * cumulative range below, and --- the commoner case --- nothing at all where none
+ * does. Nothing was written against this distribution before it existed, so unlike
+ * the gaussian there is no variant numbering that changing the draw would renumber.
  */
 function sampleNormalMixture({ means, standardDeviations, proportions, rng }) {
     const chosen = preciseUniform(rng);

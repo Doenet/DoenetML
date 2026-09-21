@@ -365,7 +365,7 @@ groups, and the usual way to produce a bimodal set of values, which no single
 
 The components are described by three lists. `means` gives each component's 
 center, and how many are listed is how many components there are &mdash; it is 
-the one parameter with no default. `standardDeviations` (or `variances`, as 
+the one of the three with no default. `standardDeviations` (or `variances`, as 
 with the `gaussian` type) gives each component's spread, and `weights` gives 
 each component's share of the values. Weights are relative and need not add up 
 to 1: `weights="1 2"` above means a third of the values come from the first 
@@ -374,10 +374,12 @@ to every component, which is how the defaults &mdash; a spread of 1, and equal
 weights &mdash; are written.
 
 The reported `mean` is the weighted average of the component means. The reported 
-`variance` is *not* the weighted average of the component variances: it also 
-picks up how far the components sit from one another. Writing $p_i$, $\mu_i$ and 
-$\sigma_i$ for the proportion, mean and standard deviation of each component, it 
-is $\sum_i p_i \sigma_i^2 + \sum_i p_i (\mu_i - \mu)^2$, where $\mu$ is the 
+`variance` is the weighted average of the component variances plus a second term 
+for how far the components sit from one another, so it is larger than that 
+average alone whenever the centers differ, and equal to it when every component 
+shares one center. Writing $p_i$, $\mu_i$ and $\sigma_i$ for the proportion, 
+mean and standard deviation of each component, it is 
+$\sum_i p_i \sigma_i^2 + \sum_i p_i (\mu_i - \mu)^2$, where $\mu$ is the 
 reported mean.
 
 Whether the values come out looking bimodal depends on the components. Two 

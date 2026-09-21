@@ -935,6 +935,27 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 { logMean: 4, logStandardDeviation: -2 },
             ],
             [
+                // the mixture's parameters are lists, written into the message as
+                // the author gave them; `means` has no default, so an omitted one
+                // is reported as not set just as the hypergeometric's are
+                `<sampleRandomNumbers name="s" type="normalMixture" />`,
+                "doenet-w0166",
+                {
+                    means: "not-set",
+                    standardDeviations: "1",
+                    weights: "1",
+                },
+            ],
+            [
+                `<sampleRandomNumbers name="s" type="normalMixture" means="0 5" standardDeviations="1 -2" weights="2 3" />`,
+                "doenet-w0166",
+                {
+                    means: "0, 5",
+                    standardDeviations: "1, -2",
+                    weights: "2, 3",
+                },
+            ],
+            [
                 `<sampleRandomNumbers name="s" type="poisson" mean="-1" />`,
                 "doenet-w0131",
                 // the rate as written, not the reported `mean`, which is NaN here

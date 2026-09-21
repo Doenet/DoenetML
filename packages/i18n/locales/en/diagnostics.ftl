@@ -1055,12 +1055,12 @@ sample-normal-mixture-parameters-invalid =
     }), or weights ({ $weights ->
         [not-set] not set
        *[other] { $weights }
-    }) for a normal mixture random variable. means must list a finite number for each component of the mixture. standardDeviations (or the variances they are derived from) and weights must each give either one finite, non-negative value per component or a single value standing for all of them, and the weights must add up to a total that is positive and finite. No numbers can be sampled.
+    }) for a normal mixture random variable. means must list at least one component and give a finite number for each. standardDeviations (or the variances they are derived from) and weights must each give either one finite, non-negative value per component or a single value standing for all of them, and the weights must add up to a total that is positive and finite. No numbers can be sampled.
 
-# These three attributes are the only ones with no default, so leaving one out is
-# the commonest way to reach this message. Each arrives either as the number the
-# author wrote or as `not-set` for an attribute they left off entirely; translate
-# the "not set" wording, but leave the `not-set` key that selects it untouched.
+# These three attributes have no default, so leaving one out is the commonest way to
+# reach this message. Each arrives either as the number the author wrote or as
+# `not-set` for an attribute they left off entirely; translate the "not set" wording,
+# but leave the `not-set` key that selects it untouched.
 sample-hypergeometric-parameters-invalid =
     Invalid numTotal ({ $numTotal ->
         [not-set] not set
