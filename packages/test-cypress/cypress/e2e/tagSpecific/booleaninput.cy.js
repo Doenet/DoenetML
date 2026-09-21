@@ -545,4 +545,86 @@ describe("BooleanInput Tag Tests", { tags: ["@group3"] }, function () {
         cy.get("#bi_input").should("be.focused");
         cy.get("#fv").should("have.text", "focused: true");
     });
+
+    /**
+     * Record every value React writes to the checkbox's `checked` property.
+     * The box is a controlled input, so each write is a frame the reader could
+     * see; a value the renderer put up eagerly and then took back down shows up
+     * here as a `false` between two `true`s even when it is too brief to catch
+     * in a screenshot.
+     */
+    function recordCheckedWrites(win) {
+        const input = win.document.getElementById("bi_input");
+        const descriptor = Object.getOwnPropertyDescriptor(
+            win.HTMLInputElement.prototype,
+            "checked",
+        );
+        const writes = [];
+        win.__checkedWrites = writes;
+        Object.defineProperty(input, "checked", {
+            configurable: true,
+            get() {
+                return descriptor.get.call(this);
+            },
+            set(value) {
+                writes.push(value);
+                descriptor.set.call(this, value);
+            },
+        });
+    }
+
+    it("checking the box does not flash back off while core catches up", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><booleanInput name="bi">
+      <label>hello</label>
+    </booleanInput></p>
+    <p name="shown" hide="not $bi">shown</p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#bi_input").should("not.be.checked");
+
+        cy.window().then((win) => recordCheckedWrites(win));
+
+        cy.get("#bi").click();
+
+        // Clicking sends core two actions: `focusChanged` first, then the
+        // change itself. Core answers the first one while the second is still
+        // in flight, and that answer still carries the value from before the
+        // click.
+        cy.get("#shown").should("have.text", "shown");
+        cy.get("#bi_input").should("be.checked");
+
+        cy.window().then((win) => {
+            expect(win.__checkedWrites).not.to.include(false);
+        });
+    });
+
+    it("checking a box the document keeps false puts it back", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <boolean name="stuck">can't <text>update</text> <text>me</text></boolean>
+    <p><booleanInput name="bi" bindValueTo="$stuck">
+      <label>hello</label>
+    </booleanInput></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#bi_input").should("not.be.checked");
+
+        cy.get("#bi").click();
+
+        cy.get("#bi_input").should("not.be.checked");
+    });
 });

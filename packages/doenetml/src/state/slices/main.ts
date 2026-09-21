@@ -31,6 +31,62 @@ export function actionIdentifier(
     return `${actionId}|${componentIdx}` as UniqueActionIdentifier;
 }
 
+/**
+ * The value a renderer put on screen ahead of core, together with the component
+ * it belongs to. The component index is carried alongside the value so that an
+ * update arriving for that component can tell whether one of its own actions is
+ * still in flight.
+ */
+export type PendingRendererValue = {
+    componentIdx: number;
+    value: any;
+};
+
+export type UpdatesToIgnore = Map<UniqueActionIdentifier, PendingRendererValue>;
+
+/**
+ * Whether `updatesToIgnore` is still waiting on core's answer to an action that
+ * `componentIdx` started.
+ */
+function actionInFlightFor(
+    updatesToIgnore: UpdatesToIgnore,
+    componentIdx: number,
+) {
+    for (let pending of updatesToIgnore.values()) {
+        if (pending.componentIdx === componentIdx) {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Drop whatever `actionId` left pending. Core has finished with that action, so
+ * its answer has either been matched up already or is never coming, and a value
+ * left behind would go on suppressing core's updates to that component.
+ */
+export function clearPendingValuesForAction(
+    updatesToIgnore: UpdatesToIgnore,
+    actionId: string,
+) {
+    const prefix = `${actionId}|`;
+    for (let identifier of updatesToIgnore.keys()) {
+        if (identifier.startsWith(prefix)) {
+            updatesToIgnore.delete(identifier);
+        }
+    }
+}
+
+function sameBaseValue(valueFromRenderer: any, valueFromCore: any) {
+    return (
+        valueFromRenderer === valueFromCore ||
+        (Array.isArray(valueFromRenderer) &&
+            Array.isArray(valueFromCore) &&
+            valueFromRenderer.length === valueFromCore.length &&
+            valueFromRenderer.every((v, i) => valueFromCore[i] === v))
+    );
+}
+
 // Define a type for the slice state
 export interface MainSlice {
     /**
@@ -84,7 +140,6 @@ export const mainThunks = {
                 actionId,
                 updatesToIgnoreRef,
                 prefixForIds = "",
-                deferred = false,
             }: {
                 coreId: string;
                 componentIdx: number;
@@ -93,20 +148,8 @@ export const mainThunks = {
                 sourceOfUpdate?: Record<string, any>;
                 baseStateVariable?: string;
                 actionId?: string;
-                updatesToIgnoreRef: React.RefObject<
-                    Map<UniqueActionIdentifier, string>
-                >;
+                updatesToIgnoreRef: React.RefObject<UpdatesToIgnore>;
                 prefixForIds: string;
-                /**
-                 * This batch is the deferred remainder of an update whose
-                 * priority batch already reconciled the optimistic edit, so it
-                 * neither consumes nor invalidates `updatesToIgnore`. Without
-                 * this, a deferred batch arriving after the user has started a
-                 * *new* interaction would take the mismatch branch below and
-                 * clear that interaction's pending entry, reverting what they
-                 * just typed.
-                 */
-                deferred?: boolean;
             },
             { dispatch, getState },
         ) => {
@@ -114,35 +157,42 @@ export const mainThunks = {
 
             let rendererName = coreId + componentIdx;
 
-            if (baseStateVariable && !deferred) {
+            if (baseStateVariable) {
                 const updatesToIgnore = updatesToIgnoreRef.current;
 
                 if (updatesToIgnore.size > 0) {
-                    let valueFromRenderer = updatesToIgnore.get(
-                        actionIdentifier(actionId || "", componentIdx),
+                    const identifier = actionIdentifier(
+                        actionId || "",
+                        componentIdx,
                     );
-                    let valueFromCore = stateValues[baseStateVariable];
-                    if (
-                        valueFromRenderer === valueFromCore ||
-                        (Array.isArray(valueFromRenderer) &&
-                            Array.isArray(valueFromCore) &&
-                            valueFromRenderer.length == valueFromCore.length &&
-                            valueFromRenderer.every(
-                                (v, i) => valueFromCore[i] === v,
-                            ))
+                    const pending = updatesToIgnore.get(identifier);
+                    const valueFromCore = stateValues[baseStateVariable];
+
+                    if (pending) {
+                        // This update is core's answer to the component's own action.
+                        if (sameBaseValue(pending.value, valueFromCore)) {
+                            // console.log(`ignoring update of ${componentIdx} to ${valueFromCore}`)
+                            ignoreUpdate = true;
+                            // We've decided to ignore the update. Every update has a unique id,
+                            // so we should safely be able to remove it from the ignore map.
+                            updatesToIgnore.delete(identifier);
+                        } else {
+                            // since value was changed from the time the update was created
+                            // don't ignore the remaining pending changes in updatesToIgnore
+                            // as we changed the state used to determine they could be ignored
+                            updatesToIgnore.clear();
+                        }
+                    } else if (
+                        actionInFlightFor(updatesToIgnore, componentIdx)
                     ) {
-                        // console.log(`ignoring update of ${componentIdx} to ${valueFromCore}`)
+                        // Some other action reached core first and is reporting back
+                        // while this component's own action is still in flight: a
+                        // `focusChanged` from the same click, say. Core built this
+                        // update before it processed that action, so its copy of the
+                        // base state variable is the value from before the action.
+                        // Letting it through would take the eager value back off the
+                        // screen until core answers, which the reader sees as a flash.
                         ignoreUpdate = true;
-                        // We've decided to ignore the update. Every update has a unique id,
-                        // so we should safely be able to remove it from the ignore map.
-                        updatesToIgnore.delete(
-                            actionIdentifier(actionId || "", componentIdx),
-                        );
-                    } else {
-                        // since value was changed from the time the update was created
-                        // don't ignore the remaining pending changes in updatesToIgnore
-                        // as we changed the state used to determine they could be ignored
-                        updatesToIgnore.clear();
                     }
                 }
             }

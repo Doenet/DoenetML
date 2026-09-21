@@ -2,118 +2,155 @@ import { configureStore } from "@reduxjs/toolkit";
 import { describe, expect, it } from "vitest";
 import {
     actionIdentifier,
+    clearPendingValuesForAction,
     mainSlice,
     mainThunks,
-    type UniqueActionIdentifier,
+    UpdatesToIgnore,
 } from "./main";
 
-/**
- * `updateRendererSVs` reconciles a renderer batch from core against the
- * optimistic edits the renderer is still holding (`updatesToIgnore`).
- *
- * Core now splits a drag's fan-out in two: the dragged component's own state
- * goes out at once, and the rest follows on a timer tagged `deferred`. That
- * second batch carries the first one's `actionId`, so it must be kept out of
- * the reconciliation entirely — otherwise it misses on `updatesToIgnore` and
- * clears the map, taking with it a pending entry belonging to whatever the
- * reader has started doing since.
- */
-function makeStore() {
-    return configureStore({ reducer: { main: mainSlice.reducer } });
-}
-
-const COREID = "core1";
 const COMPONENT_IDX = 7;
+const OTHER_COMPONENT_IDX = 8;
+const CORE_ID = "core";
 
-function pendingEdit(value: unknown, actionId: string) {
-    const map = new Map<UniqueActionIdentifier, string>();
-    map.set(
-        actionIdentifier(actionId, COMPONENT_IDX),
-        value as unknown as string,
-    );
-    return { current: map };
+function setup() {
+    const store = configureStore({ reducer: { main: mainSlice.reducer } });
+    const updatesToIgnore: UpdatesToIgnore = new Map();
+    const updatesToIgnoreRef = { current: updatesToIgnore };
+
+    /**
+     * Stand in for the renderer showing `value` before core has answered, the
+     * way `callAction` does when it is given a `baseVariableValue`.
+     */
+    function eagerlyShow(actionId: string, value: any, componentIdx: number) {
+        updatesToIgnore.set(actionIdentifier(actionId, componentIdx), {
+            componentIdx,
+            value,
+        });
+    }
+
+    /**
+     * Deliver one of core's renderer updates and report whether the renderer is
+     * told to leave its base state variable alone.
+     */
+    async function updateFromCore({
+        actionId,
+        value,
+        componentIdx = COMPONENT_IDX,
+    }: {
+        actionId?: string;
+        value: any;
+        componentIdx?: number;
+    }) {
+        await store.dispatch(
+            mainThunks.updateRendererSVs({
+                coreId: CORE_ID,
+                componentIdx,
+                stateValues: { value },
+                childrenInstructions: [],
+                baseStateVariable: "value",
+                actionId,
+                updatesToIgnoreRef,
+                prefixForIds: "",
+            }) as any,
+        );
+
+        return mainSlice.selectors.componentInfo(store.getState() as any)[
+            CORE_ID + componentIdx
+        ].ignoreUpdate;
+    }
+
+    return { updatesToIgnore, eagerlyShow, updateFromCore };
 }
 
-async function sendBatch({
-    store,
-    updatesToIgnoreRef,
-    value,
-    actionId,
-    deferred,
-}: {
-    store: ReturnType<typeof makeStore>;
-    updatesToIgnoreRef: { current: Map<UniqueActionIdentifier, string> };
-    value: unknown;
-    actionId: string;
-    deferred?: boolean;
-}) {
-    await store.dispatch(
-        mainThunks.updateRendererSVs({
-            coreId: COREID,
-            componentIdx: COMPONENT_IDX,
-            stateValues: { value },
-            baseStateVariable: "value",
-            actionId,
-            updatesToIgnoreRef,
-            prefixForIds: "",
-            deferred,
-        }) as any,
-    );
-    return store.getState().main.componentInfo[COREID + COMPONENT_IDX];
-}
+describe("ignoring core updates that the renderer is already ahead of", () => {
+    it("ignores core's answer when it agrees with what the renderer showed", async () => {
+        const { updatesToIgnore, eagerlyShow, updateFromCore } = setup();
+        eagerlyShow("act1", true, COMPONENT_IDX);
 
-describe("updateRendererSVs and the deferred remainder of a drag", () => {
-    it("ignores an update that matches the edit the renderer already showed", async () => {
-        const updatesToIgnoreRef = pendingEdit("typed", "action-1");
-
-        const info = await sendBatch({
-            store: makeStore(),
-            updatesToIgnoreRef,
-            value: "typed",
-            actionId: "action-1",
-        });
-
-        expect(info.ignoreUpdate).toBe(true);
-        // Consumed, since this batch is the answer to that very edit.
-        expect(updatesToIgnoreRef.current.size).toBe(0);
+        expect(await updateFromCore({ actionId: "act1", value: true })).toBe(
+            true,
+        );
+        expect(updatesToIgnore.size).toBe(0);
     });
 
-    it("clears the pending edits when an undeferred batch disagrees with them", async () => {
-        const updatesToIgnoreRef = pendingEdit("typed", "action-1");
+    it("takes core's answer when it disagrees with what the renderer showed", async () => {
+        const { eagerlyShow, updateFromCore } = setup();
+        eagerlyShow("act1", true, COMPONENT_IDX);
 
-        const info = await sendBatch({
-            store: makeStore(),
-            updatesToIgnoreRef,
-            value: "something else",
-            actionId: "action-2",
-        });
-
-        expect(info.ignoreUpdate).toBe(false);
-        // This is the branch a deferred batch must not reach.
-        expect(updatesToIgnoreRef.current.size).toBe(0);
+        // A constraint in the document kept the value at false.
+        expect(await updateFromCore({ actionId: "act1", value: false })).toBe(
+            false,
+        );
     });
 
-    it("leaves the pending edits alone when the batch is the deferred remainder", async () => {
-        const updatesToIgnoreRef = pendingEdit("typed", "action-1");
+    it("ignores another action's update while the component's own action is in flight", async () => {
+        const { eagerlyShow, updateFromCore } = setup();
+        eagerlyShow("act1", true, COMPONENT_IDX);
 
-        const info = await sendBatch({
-            store: makeStore(),
-            updatesToIgnoreRef,
-            value: "something else",
-            actionId: "action-2",
-            deferred: true,
-        });
+        // `focusChanged` from the same click reaches core first, so its update
+        // still carries the value from before the click.
+        expect(await updateFromCore({ actionId: "focus", value: false })).toBe(
+            true,
+        );
 
-        // The deferred batch is the settled downstream state, so the renderer
-        // adopts it...
-        expect(info.ignoreUpdate).toBe(false);
-        expect(info.stateValues).toEqual({ value: "something else" });
-        // ...but the reader's in-flight edit survives it.
-        expect(updatesToIgnoreRef.current.size).toBe(1);
+        // Core then answers the click itself.
+        expect(await updateFromCore({ actionId: "act1", value: true })).toBe(
+            true,
+        );
+    });
+
+    it("takes updates again once the component has no action in flight", async () => {
+        const { eagerlyShow, updateFromCore } = setup();
+        eagerlyShow("act1", true, COMPONENT_IDX);
+        await updateFromCore({ actionId: "act1", value: true });
+
+        // Some other part of the document turns the value back off.
+        expect(await updateFromCore({ actionId: "later", value: false })).toBe(
+            false,
+        );
+    });
+
+    it("leaves other components' updates alone", async () => {
+        const { eagerlyShow, updateFromCore } = setup();
+        eagerlyShow("act1", true, COMPONENT_IDX);
+
         expect(
-            updatesToIgnoreRef.current.get(
-                actionIdentifier("action-1", COMPONENT_IDX),
-            ),
-        ).toBe("typed");
+            await updateFromCore({
+                actionId: "act2",
+                value: false,
+                componentIdx: OTHER_COMPONENT_IDX,
+            }),
+        ).toBe(false);
+    });
+});
+
+describe("clearPendingValuesForAction", () => {
+    it("drops only the entries belonging to the resolved action", () => {
+        const updatesToIgnore: UpdatesToIgnore = new Map();
+        updatesToIgnore.set(actionIdentifier("act1", COMPONENT_IDX), {
+            componentIdx: COMPONENT_IDX,
+            value: true,
+        });
+        updatesToIgnore.set(actionIdentifier("act2", OTHER_COMPONENT_IDX), {
+            componentIdx: OTHER_COMPONENT_IDX,
+            value: "hello",
+        });
+
+        clearPendingValuesForAction(updatesToIgnore, "act1");
+
+        expect([...updatesToIgnore.keys()]).toEqual([
+            actionIdentifier("act2", OTHER_COMPONENT_IDX),
+        ]);
+    });
+
+    it("stops an unanswered action from suppressing later updates", async () => {
+        const { updatesToIgnore, eagerlyShow, updateFromCore } = setup();
+        // An action that core never reports a renderer state for.
+        eagerlyShow("act1", true, COMPONENT_IDX);
+        clearPendingValuesForAction(updatesToIgnore, "act1");
+
+        expect(await updateFromCore({ actionId: "later", value: false })).toBe(
+            false,
+        );
     });
 });
