@@ -7,9 +7,9 @@ import { removeFunctionsMathExpressionClass } from "../utils/math";
 
 /**
  * How long an interaction must go quiet before the deferred half of its
- * renderer fan-out is sent. Long enough to coalesce a drag (pointermove
- * arrives far more often than this), short enough that a paused drag
- * settles without feeling stuck.
+ * renderer fan-out is sent. Long enough to coalesce a drag or a run of
+ * keystrokes (both arrive far more often than this), short enough that a
+ * paused interaction settles without feeling stuck.
  */
 const DEFERRED_RENDERER_UPDATE_MS = 150;
 
@@ -667,10 +667,11 @@ export class RendererInstructionBuilder {
      * quiet, coalescing the intermediate states of a drag into one batch.
      *
      * The pending components stay in `updateInfo.componentsToUpdateRenderers`,
-     * which is already a carry-forward set: each further drag step adds to it
+     * which is already a carry-forward set: each further step adds to it
      * rather than replacing it, so nothing is lost by waiting. Every
-     * non-transient update (the commit on pointer-up) cancels the timer and
-     * flushes synchronously, so a drag always ends with the screen correct.
+     * non-transient update — the commit on pointer-up, or the `updateValue` an
+     * input sends on blur or enter — cancels the timer and flushes
+     * synchronously, so an interaction always ends with the screen correct.
      *
      * The delay is a debounce rather than a queue-length test because core
      * never yields to the event loop during an update, so it cannot observe

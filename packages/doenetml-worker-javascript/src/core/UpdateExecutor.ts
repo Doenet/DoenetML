@@ -95,16 +95,23 @@ type PerformUpdateArgs = {
      */
     skipRendererUpdate?: boolean;
     /**
-     * Mark this as an intermediate step of an ongoing interaction (a drag
-     * still in progress) rather than its committed result. The update is
-     * performed in full; what changes is the renderer fan-out, which sends
-     * this update's own targets immediately and defers the rest until the
-     * interaction goes quiet, so the thing being dragged tracks the pointer
-     * even when the move invalidated much of the document. The commit that
-     * ends the interaction arrives without this flag and flushes the
-     * remainder. Renderers already pass it (`Point.movePoint` and the rest of
-     * the graph drag handlers set it on every pointermove); before this it
-     * was accepted and ignored.
+     * Mark this as an intermediate step of an ongoing interaction — a drag
+     * still in progress, or a keystroke in an input that commits on blur or
+     * enter — rather than its committed result. The update is performed in
+     * full; what changes is the renderer fan-out, which sends this update's
+     * own targets immediately and defers the rest until the interaction goes
+     * quiet, so the thing being interacted with keeps up even when the change
+     * invalidated much of the document. The commit that ends the interaction
+     * arrives without this flag and flushes the remainder.
+     *
+     * Two kinds of caller already set it, and before this it was accepted and
+     * ignored in both cases:
+     * - the graph drag handlers and `Slider.changeValue`, on every pointermove
+     *   (`Point.movePoint` and its siblings forward the renderer's flag);
+     * - `MathInput.updateRawValue`, `inputUpdateImmediateValue`
+     *   (`<textInput>`, `<codeEditor>`) and `mathComponentInputUpdateRawValue`
+     *   (math-input cells), which set it on every keystroke so that typing
+     *   does not add a row to the database.
      */
     transient?: boolean;
     sourceInformation?: SourceInformation;

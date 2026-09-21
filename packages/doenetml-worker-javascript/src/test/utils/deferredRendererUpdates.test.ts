@@ -8,10 +8,11 @@ import { createTestCore } from "./test-core";
  * that motivated this, ~133 rendered components per drag step, all of which
  * the viewer then reconciles and typesets.
  *
- * So a transient update (a drag in progress) sends its own targets straight
- * away and holds the rest until the interaction goes quiet; the commit that
- * ends the drag sends everything. These tests pin that split, and pin that
- * nothing is dropped on the way.
+ * So a transient update — a drag in progress, or a keystroke in an input that
+ * commits on blur or enter — sends its own targets straight away and holds the
+ * rest until the interaction goes quiet; the commit that ends it sends
+ * everything. These tests pin that split, and pin that nothing is dropped on
+ * the way.
  */
 
 /** Three points whose y stacks them by rank, so moving one moves the others. */
@@ -29,6 +30,20 @@ const doenetML = `
   <indexOf name="sortedPos" target="$indices">$perm</indexOf>
 </setup>
 <p>Mean: <mean name="mean">$values</mean></p>
+`;
+
+/**
+ * A drag is not the only transient interaction. The inputs that commit on
+ * blur or enter mark every keystroke transient so it does not add a row to
+ * the database (`MathInput.updateRawValue`, `inputUpdateImmediateValue` in
+ * `utils/input.js`, `mathComponentInputUpdateRawValue` in
+ * `utils/mathComponentInput.js`), so the same split applies while typing.
+ */
+const typingDoenetML = `
+<mathInput name="mi" />
+<p>Math echo: <math name="mEcho">$mi.immediateValue</math></p>
+<textInput name="ti" />
+<p>Text echo: <text name="tEcho">$ti.immediateValue</text></p>
 `;
 
 /**
@@ -120,7 +135,7 @@ function renderedDescendants(innerCore: any, componentIdx: number): number[] {
     return found.sort((a, b) => a - b);
 }
 
-describe("a drag sends the dragged component first @group4", () => {
+describe("an interaction sends its own target ahead of the rest @group4", () => {
     it("a transient move sends only its own target, and defers the rest", async () => {
         vi.useFakeTimers();
         try {
@@ -358,4 +373,47 @@ describe("a drag sends the dragged component first @group4", () => {
             vi.useRealTimers();
         }
     });
+
+    it.each([
+        [
+            "mathInput",
+            "mi",
+            "updateRawValue",
+            { rawRendererValue: "5" },
+            "mEcho",
+        ],
+        ["textInput", "ti", "updateImmediateValue", { text: "hello" }, "tEcho"],
+    ])(
+        "a keystroke in a %s sends the input first and defers what reads it",
+        async (_label, inputName, actionName, args, echoName) => {
+            // Typing is transient too, so it takes the same split: the input
+            // itself goes out at once and anything reading its in-progress
+            // value follows once the typing pauses.
+            vi.useFakeTimers();
+            try {
+                const { core, resolvePathToNodeIdx, batches } =
+                    await setup(typingDoenetML);
+                const inputIdx = await resolvePathToNodeIdx(inputName);
+                const echoIdx = await resolvePathToNodeIdx(echoName);
+
+                await (core as any).requestAction({
+                    componentIdx: inputIdx,
+                    actionName,
+                    args,
+                });
+
+                expect(batches).toHaveLength(1);
+                expect(batches[0].deferred).toBe(false);
+                expect(batches[0].componentIndices).toEqual([inputIdx]);
+
+                await vi.advanceTimersByTimeAsync(500);
+
+                expect(batches).toHaveLength(2);
+                expect(batches[1].deferred).toBe(true);
+                expect(batches[1].componentIndices).toContain(echoIdx);
+            } finally {
+                vi.useRealTimers();
+            }
+        },
+    );
 });
