@@ -150,6 +150,8 @@ function participatesInOrder(value, numeric) {
 export class SearchSorted extends ListIndexBaseListOperator {
     static componentType = "searchSorted";
 
+    static supportsAllowUnsorted = true;
+
     static componentDocs = {
         summary:
             "The position at which each target would be inserted to keep a sorted list sorted",
@@ -201,6 +203,16 @@ export class SearchSorted extends ListIndexBaseListOperator {
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
+
+        attributes.allowUnsorted = {
+            createComponentOfType: "boolean",
+            createStateVariable: "allowUnsorted",
+            defaultValue: false,
+            public: true,
+            highlighted: true,
+            description:
+                "Report where each target belongs among the values in ascending order, whatever order they are written in.",
+        };
 
         attributes.side = {
             createComponentOfType: "text",
@@ -255,6 +267,40 @@ export class SearchSorted extends ListIndexBaseListOperator {
                     // so the per-target bookkeeping, which bisecting does not
                     // touch, dominates until lists reach the thousands with
                     // comparably many targets.
+                    //
+                    // Under `allowUnsorted` none of that holds, because the list is not
+                    // in order and the position of an entry says nothing about
+                    // where the target belongs. Counting the entries below it
+                    // does, whatever order they are in — which is the form
+                    // this scan had before #1960 introduced the precondition,
+                    // and why nothing has to be sorted at all.
+                    //
+                    // The two disagree on a value that takes no part in the
+                    // ordering. Counting leaves it out; the positional scan
+                    // steps over it and so keeps its slot, which is what makes
+                    // 10 belong at 4 in `x 1 9`. Leaving it out is the right
+                    // reading here: a value with no place in the order has no
+                    // slot to keep once the operator is the one doing the
+                    // ordering.
+                    if (dependencyValues.allowUnsorted) {
+                        let count = 0;
+                        for (const value of values) {
+                            const comparison = compareExtractedValues(
+                                value,
+                                target,
+                                numeric,
+                            );
+                            if (
+                                comparison < 0 ||
+                                (dependencyValues.side === "right" &&
+                                    comparison === 0)
+                            ) {
+                                count++;
+                            }
+                        }
+                        return { index: count + 1 };
+                    }
+
                     let index = 1;
                     for (let [ind, value] of values.entries()) {
                         let comparison = compareExtractedValues(
@@ -277,6 +323,10 @@ export class SearchSorted extends ListIndexBaseListOperator {
                     side: {
                         dependencyType: "stateVariable",
                         variableName: "side",
+                    },
+                    allowUnsorted: {
+                        dependencyType: "stateVariable",
+                        variableName: "allowUnsorted",
                     },
                 },
             ),

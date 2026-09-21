@@ -35320,6 +35320,17 @@
                     "type": "boolean"
                 },
                 {
+                    "name": "allowUnsorted",
+                    "description": "Report where each target belongs among the values in ascending order, whatever order they are written in.",
+                    "highlighted": true,
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "side",
                     "description": "Which end of a run of equal values the target is placed at.",
                     "highlighted": true,
@@ -35362,6 +35373,14 @@
                     "isArray": false,
                     "description": "Whether this component is treated as a response for the purposes of assessment.",
                     "fromAttribute": true
+                },
+                {
+                    "name": "allowUnsorted",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Report where each target belongs among the values in ascending order, whatever order they are written in.",
+                    "fromAttribute": true,
+                    "highlighted": true
                 },
                 {
                     "name": "side",
