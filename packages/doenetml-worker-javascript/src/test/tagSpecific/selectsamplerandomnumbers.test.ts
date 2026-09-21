@@ -1087,6 +1087,12 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             [0, 1],
             [2, Math.exp(2)],
             [1000, Infinity],
+            // and at the other end, the only way a log-normal value can fail to
+            // be strictly positive: a center far enough below the underflow
+            // point that e^logMean rounds to 0. With no spread every value is
+            // that same number, so this is exact rather than overwhelmingly
+            // likely.
+            [-800, 0],
         ] as [number, number][]) {
             const doenetML = `<sampleRandomNumbers name="s" type="logNormal" logMean="${logMean}" logStandardDeviation="0" numSamples="3" />`;
             const { core, resolvePathToNodeIdx } = await createTestCore({
@@ -1100,7 +1106,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
 
             // an exact equality, not an approximate one: with no spread the
             // reported mean and every sample are the same `Math.exp(logMean)`,
-            // and a center past the overflow point is Infinity in both
+            // and a center past the overflow point is Infinity in both, as one
+            // past the underflow point is 0 in both
             expect(stateVariables[componentIdx].stateValues.mean, doenetML).eq(
                 expectedValue,
             );

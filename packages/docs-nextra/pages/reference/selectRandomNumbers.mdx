@@ -320,7 +320,11 @@ may be given, as with the `gaussian` type. If unspecified, `logMean` is 0 and
 
 Writing $\mu$ for `logMean` and $\sigma$ for `logStandardDeviation`, the reported 
 `mean` is $e^{\mu + \sigma^2/2}$ and the reported `variance` is 
-$(e^{\sigma^2} - 1)\,e^{2\mu + \sigma^2}$.
+$(e^{\sigma^2} - 1)\,e^{2\mu + \sigma^2}$. Both grow very fast with $\sigma$, so a 
+large enough one reports `Infinity` for moments beyond what a number can hold, and 
+a value too large to represent comes back as `Infinity` as well. A value too small 
+to represent rounds to 0, which is the only way one can fail to be strictly 
+positive.
 
 
 Select a new page variant from the pulldown menu at the top of the 
