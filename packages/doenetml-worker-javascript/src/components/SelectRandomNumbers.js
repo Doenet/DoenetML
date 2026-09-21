@@ -8,10 +8,12 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
     // `selectedValues` is immutable so that the draw stays the draw. The
     // inherited action also writes `sampledValues`, the variable deleted
     // below in favor of `selectedValues`, so calling it threw on a variable
-    // that is not there -- a console stack trace and a rejected action, with
-    // nothing said to the author. Removing the action leaves `<callAction>`
-    // to report that the action is unavailable, which is what an author who
-    // asked for it needs to hear.
+    // that is not there -- a console stack trace, nothing said to the author,
+    // and the throw carrying off whatever else shared the trigger, since it
+    // escaped before the chained actions ran: the rest of a `<triggerSet>`,
+    // and anything chained with `triggerWith`, never ran. Removing the action
+    // leaves `<callAction>` to report that the action is unavailable, which
+    // is what an author who asked for it needs to hear.
     constructor(args) {
         super(args);
 
