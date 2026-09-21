@@ -1053,9 +1053,10 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
     });
 
     it("a log-normal's values are the exponential of a normal distribution", async () => {
-        // The reported moments are of the samples; the parameters are of the normal
-        // distribution behind them. Taking logs recovers that distribution, which is
-        // what makes the two sets of numbers different things rather than a mistake.
+        // The reported moments are of the log-normal's own values; the parameters
+        // are of the normal distribution behind them. Taking logs recovers that
+        // distribution, which is what makes the two sets of numbers different
+        // things rather than a mistake.
         const logMean = -1.5;
         const logStandardDeviation = 0.75;
 
