@@ -76,6 +76,14 @@ export default class SelectRandomNumbers extends SampleRandomNumbers {
         };
 
         stateVariableDefinitions.step.immutable = true;
+        // `exclude` is frozen alongside the range it narrows. It was the one
+        // parameter left following its reference, and the moments are lazy, so a
+        // reference that changed before anything read them gave a `mean` and a
+        // `variance` for an exclusion set the selection had not been drawn from ---
+        // and, where the change altered how many values survived, for no set of
+        // values at all, since the count they divide by is frozen here while the
+        // exclusions they sum over were not (Doenet/DoenetML#1997).
+        stateVariableDefinitions.exclude.immutable = true;
         stateVariableDefinitions.from.immutable = true;
         stateVariableDefinitions.from.additionalStateVariablesDefined[0].immutable = true;
         stateVariableDefinitions.from.additionalStateVariablesDefined[1].immutable = true;

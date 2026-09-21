@@ -260,7 +260,7 @@ export default class SampleRandomNumbers extends CompositeComponent {
         attributes.exclude = {
             groupName: "sampling-range",
             createComponentOfType: "numberList",
-            createStateVariable: "exclude",
+            createStateVariable: "specifiedExclude",
             defaultValue: [],
             description: "Values to exclude from the sample space.",
         };
@@ -345,6 +345,30 @@ export default class SampleRandomNumbers extends CompositeComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // The excluded values as the author gave them. Like every other
+        // distribution parameter, these go through a definition of their own rather
+        // than straight off the attribute, so that `<selectRandomNumbers>` can freeze
+        // them: a selection is drawn once, and an exclusion set that kept following a
+        // reference would leave the reported moments describing a different set of
+        // values than the numbers on the page came from (Doenet/DoenetML#1997).
+        //
+        // The list is copied for the reason the mixture's three are: the list an
+        // attribute hands over belongs to the `<numberList>` the attribute created,
+        // which rewrites it in place when a reference inside it changes, so passing
+        // it through would leave this tracking the reference however immutable it was
+        // declared.
+        stateVariableDefinitions.exclude = {
+            returnDependencies: () => ({
+                specifiedExclude: {
+                    dependencyType: "stateVariable",
+                    variableName: "specifiedExclude",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: { exclude: [...dependencyValues.specifiedExclude] },
+            }),
+        };
 
         stateVariableDefinitions.step = {
             description:
