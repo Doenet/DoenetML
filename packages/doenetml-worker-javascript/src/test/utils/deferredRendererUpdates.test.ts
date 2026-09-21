@@ -32,14 +32,30 @@ const doenetML = `
 `;
 
 /**
+ * Moving `P` changes how many replacements the repeat has, so a drag step
+ * adds or removes rendered components rather than only restating them.
+ */
+const structuralDoenetML = `
+<graph>
+  <point name="P">(5,0)</point>
+</graph>
+<setup><sequence name="seq" from="1" to="$P.x" /></setup>
+<repeat for="$seq" name="rep" valueName="v">
+  <p name="item">Item <number name="n">$v</number></p>
+</repeat>
+`;
+
+/**
  * Build the core and capture every batch core sends the renderer.
  *
  * `createTestCore` passes a no-op as the renderer callback, so the capture
  * replaces it afterwards; batches from the initial render are therefore not
  * included, which is what we want.
  */
-async function setup() {
-    const { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
+async function setup(source: string = doenetML) {
+    const { core, resolvePathToNodeIdx } = await createTestCore({
+        doenetML: source,
+    });
     const innerCore = (core as any).core;
 
     const batches: {
@@ -84,6 +100,24 @@ async function movePointTo({
             ? { x, y: 0, transient: true, skippable: true }
             : { x, y: 0 },
     });
+}
+
+/** Every component index currently rendered below `componentIdx`. */
+function renderedDescendants(innerCore: any, componentIdx: number): number[] {
+    const found: number[] = [];
+    const walk = (idx: number) => {
+        const entry = innerCore.rendererInstructionBuilder.componentsToRender[
+            idx
+        ] as { children: any[] } | undefined;
+        for (const child of entry?.children ?? []) {
+            if (child?.componentIdx != undefined) {
+                found.push(child.componentIdx);
+                walk(child.componentIdx);
+            }
+        }
+    };
+    walk(componentIdx);
+    return found.sort((a, b) => a - b);
 }
 
 describe("a drag sends the dragged component first @group4", () => {
@@ -233,6 +267,93 @@ describe("a drag sends the dragged component first @group4", () => {
                     `renderer state for component ${idx} is stale`,
                 ).toEqual(actual.numericalXs);
             }
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it.each([
+        ["removes", 2],
+        ["adds", 8],
+    ])(
+        "a drag that %s rendered components leaves the same tree as an undeferred move",
+        async (_label, x) => {
+            // The deferred batch, unlike the priority one, is the batch that
+            // reconciles changed rendered children — and it goes out without
+            // the second composite-replacement drain that
+            // `updateAllChangedRenderers` runs. Pin that the tree it leaves
+            // behind is the same one the undeferred path produces.
+            vi.useFakeTimers();
+            let deferredTree: number[];
+            try {
+                const { core, innerCore, resolvePathToNodeIdx } =
+                    await setup(structuralDoenetML);
+                const pointIdx = await resolvePathToNodeIdx("P");
+
+                await movePointTo({
+                    core,
+                    componentIdx: pointIdx,
+                    x,
+                    transient: true,
+                });
+                await vi.advanceTimersByTimeAsync(500);
+
+                deferredTree = renderedDescendants(
+                    innerCore,
+                    innerCore.documentIdx,
+                );
+                expect(
+                    innerCore.updateInfo.componentsToUpdateRenderers.size,
+                ).toBe(0);
+            } finally {
+                vi.useRealTimers();
+            }
+
+            const { core, innerCore, resolvePathToNodeIdx } =
+                await setup(structuralDoenetML);
+            const pointIdx = await resolvePathToNodeIdx("P");
+            await movePointTo({
+                core,
+                componentIdx: pointIdx,
+                x,
+                transient: false,
+            });
+
+            expect(deferredTree).toEqual(
+                renderedDescendants(innerCore, innerCore.documentIdx),
+            );
+        },
+    );
+
+    it("a core terminated mid-drag sends nothing more", async () => {
+        vi.useFakeTimers();
+        try {
+            const { core, innerCore, resolvePathToNodeIdx, batches } =
+                await setup();
+            const pointIdx = await resolvePathToNodeIdx("Ps[1].P");
+
+            await movePointTo({
+                core,
+                componentIdx: pointIdx,
+                x: 10,
+                transient: true,
+            });
+            const sentBeforeTerminate = batches.length;
+            expect(
+                innerCore.rendererInstructionBuilder._deferredRendererTimeout,
+            ).not.toBe(null);
+
+            await (core as any).terminate();
+
+            // The viewer is going away, so the remainder is dropped rather
+            // than pushed into it: terminating takes the timer down with it
+            // instead of leaving it to fire into a torn-down page.
+            expect(
+                innerCore.rendererInstructionBuilder._deferredRendererTimeout,
+            ).toBe(null);
+
+            await vi.advanceTimersByTimeAsync(2000);
+            expect(batches).toHaveLength(sentBeforeTerminate);
         } finally {
             vi.useRealTimers();
         }
