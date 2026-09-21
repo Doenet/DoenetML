@@ -107,10 +107,10 @@ type PerformUpdateArgs = {
      *
      * Two kinds of caller already set it, and before this it was accepted and
      * ignored in both cases:
-     * - continuous pointer interactions, on every pointermove: the graph drag
-     *   handlers (`Point.movePoint` and its siblings forward the renderer's
-     *   flag), `Slider.changeValue`, and `SubsetOfRealsInput.movePoint` for
-     *   the points of a number line;
+     * - continuous interactions, on every step: the graph drag handlers
+     *   (`Point.movePoint` and its siblings forward the renderer's flag),
+     *   `Slider.changeValue` (both dragging and keyboard stepping), and
+     *   `SubsetOfRealsInput.movePoint` for the points of a number line;
      * - `MathInput.updateRawValue`, `inputUpdateImmediateValue`
      *   (`<textInput>`, `<codeEditor>`) and `mathComponentInputUpdateRawValue`
      *   (math-input cells), on every keystroke. Their original reason was to
@@ -323,7 +323,13 @@ export class UpdateExecutor {
      * renderer edit can be confirmed or reverted (see that flag). Then
      * `processStateVariableTriggers` runs, and the final
      * `updateAllChangedRenderers` fan-out runs only when
-     * `skipRendererUpdate` is false. Essential values saved during
+     * `skipRendererUpdate` is false.
+     *
+     * A split update (`transient && deferDownstreamRenderers`) reorders that
+     * tail: the update's own targets are sent *before*
+     * `processStateVariableTriggers`, and the remainder is handed to
+     * `scheduleDeferredRendererUpdate` rather than going out with
+     * `updateAllChangedRenderers`. Essential values saved during
      * definitions are merged into the cumulative changes log so they
      * persist on the next save.
      *

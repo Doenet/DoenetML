@@ -2115,8 +2115,13 @@ export function DocViewer({
          * (`baseVariableValue`). Of the actions that can produce a deferred
          * batch, only `<slider>`'s `changeValue` does that, and its own update
          * instruction targets the slider, so the slider goes out in the
-         * priority batch. A deferred batch therefore never matches a pending
-         * entry and can neither consume nor clear one. What it does reach is
+         * priority batch. It does not rest on that survey, though: the
+         * priority batch resolved this `actionId`, and `resolveAction` calls
+         * `clearPendingValuesForAction`, which drops every `actionId|*` key.
+         * By the time the deferred batch lands there is structurally no
+         * pending entry of its own left to match, whatever the renderers do.
+         * A deferred batch therefore never matches a pending entry and can
+         * neither consume nor clear one. What it does reach is
          * the in-flight check, and that is what we want: an input the reader
          * is still editing keeps the value it showed until core answers it.
          */
