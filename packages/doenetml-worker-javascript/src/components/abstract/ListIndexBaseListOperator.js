@@ -88,6 +88,12 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
     // unordered list is not a position at all.
     static validateValues = null;
 
+    // Whether the subclass declares an `allowUnsorted` attribute, which waives
+    // the precondition above: what the attribute then promises about the answer is
+    // the subclass's to keep, in `locate`. `<indexOf>` searches any list at
+    // all and has nothing to waive.
+    static supportsAllowUnsorted = false;
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
@@ -151,6 +157,7 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
         // `definition` it would not be.
         const componentType = this.componentType;
         const validateValues = this.validateValues;
+        const supportsAllowUnsorted = this.supportsAllowUnsorted;
 
         Object.assign(
             stateVariableDefinitions,
@@ -189,6 +196,16 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
                     dependencyType: "stateVariable",
                     variableName: "locate",
                 },
+                // Declared only by a subclass that offers an `allowUnsorted`
+                // attribute, since the rest have no such state variable.
+                ...(supportsAllowUnsorted
+                    ? {
+                          allowUnsorted: {
+                              dependencyType: "stateVariable",
+                              variableName: "allowUnsorted",
+                          },
+                      }
+                    : {}),
             }),
             definition({ dependencyValues }) {
                 const results = locateEachTarget({
@@ -196,7 +213,9 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
                     targets: dependencyValues.comparableTargets,
                     numeric: dependencyValues.allAreNumeric,
                     locate: dependencyValues.locate,
-                    validateValues,
+                    validateValues: dependencyValues.allowUnsorted
+                        ? null
+                        : validateValues,
                 });
 
                 return {

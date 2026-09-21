@@ -1095,9 +1095,10 @@ index-operator-no-values =
 # the one thing it asks of them. Deliberately names no offending value or
 # position: a list can pass through many arrangements while it is being built or
 # edited, and a message that changed with the arrangement would leave one entry
-# behind for each. `<sort>` is a DoenetML tag name and stays in English.
+# behind for each. `<sort>` is a DoenetML tag name and `allowUnsorted` is an
+# attribute name; both stay in English.
 index-operator-values-not-sorted =
-    `{ $component }` reports where a target belongs among values that are already in ascending order, and these are not in that order, so it gives 0, which is not the index of any item. Order the values first, such as with `<sort>`.
+    `{ $component }` reports where a target belongs among values that are already in ascending order, and these are not in that order, so it gives 0, which is not the index of any item. Order the values first, such as with `<sort>`, or write `allowUnsorted` to have the position worked out from the values as they are.
 
 ## `<sampleMultivariateRandomNumber>`
 ##

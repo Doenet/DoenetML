@@ -552,6 +552,138 @@ describe("List operator tag tests @group4", async () => {
             expect(warnings.filter(notSorted)).eqls([]);
         });
 
+        it("`allowUnsorted` answers a list that would otherwise be declined", async () => {
+            // The precondition is the operator's to keep once the author has
+            // said the values may be in any order, so the same list that gets 0
+            // above gets a position here, and no warning.
+            const { text, warnings } = await resultsFor(`
+    <p name="p"><searchSorted allowUnsorted target="25">10 30 20</searchSorted></p>
+    `);
+            expect(text).eq("3");
+            expect(warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("`allowUnsorted` agrees with sorting the list first", async () => {
+            // Same answers by both routes, including for targets that fall
+            // before, between, on, and after the values.
+            const viaSort = await resultsFor(`
+    <numberList name="v">30 10 20 10</numberList>
+    <sort name="s">$v</sort>
+    <p name="p"><searchSorted target="5 10 25 99">$s</searchSorted></p>
+    `);
+            const viaAttr = await resultsFor(`
+    <numberList name="v">30 10 20 10</numberList>
+    <p name="p"><searchSorted allowUnsorted target="5 10 25 99">$v</searchSorted></p>
+    `);
+            expect(viaAttr.text).eq(viaSort.text);
+            expect(viaAttr.text).eq("1, 1, 4, 5");
+            expect(viaAttr.warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("`allowUnsorted` still has nothing to search in an empty list", async () => {
+            // Counting the entries below the target gives 0 here, and 0 + 1 is
+            // a position the list does not have. An empty list is answered
+            // before any scan runs, with or without the attribute.
+            const { text, warnings } = await resultsFor(`
+    <numberList name="e"></numberList>
+    <p name="p"><searchSorted allowUnsorted target="5">$e</searchSorted></p>
+    `);
+            expect(text).eq("0");
+            expect(warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("`allowUnsorted` leaves `side` its meaning", async () => {
+            const left = await resultsFor(`
+    <p name="p"><searchSorted allowUnsorted side="left" target="2">3 2 1 2 2</searchSorted></p>
+    `);
+            const right = await resultsFor(`
+    <p name="p"><searchSorted allowUnsorted side="right" target="2">3 2 1 2 2</searchSorted></p>
+    `);
+            expect(left.text).eq("2");
+            expect(right.text).eq("5");
+        });
+
+        it("`allowUnsorted` places infinities where sorting first does", async () => {
+            // An infinite value is equal to itself but subtracts to NaN, and
+            // the count leans on the equality for `side="right"`: the run of
+            // infinities has to be counted, not skipped.
+            const values = `<mathList name="v">Infinity 1 -Infinity Infinity 5</mathList>`;
+            const viaSort = await resultsFor(`
+    ${values}
+    <sort name="s">$v</sort>
+    <p name="p"><searchSorted target="-Infinity Infinity">$s</searchSorted>; <searchSorted side="right" target="-Infinity Infinity">$s</searchSorted></p>
+    `);
+            const viaAttr = await resultsFor(`
+    ${values}
+    <p name="p"><searchSorted allowUnsorted target="-Infinity Infinity">$v</searchSorted>; <searchSorted allowUnsorted side="right" target="-Infinity Infinity">$v</searchSorted></p>
+    `);
+            expect(viaAttr.text).eq(viaSort.text);
+            expect(viaAttr.text).eq("1, 4; 2, 6");
+            expect(viaAttr.warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("`allowUnsorted` orders text values as text", async () => {
+            const { text, warnings } = await resultsFor(`
+    <p name="p"><searchSorted allowUnsorted type="text" target="cherry">pear apple cherry</searchSorted></p>
+    `);
+            expect(text).eq("2");
+            expect(warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("`allowUnsorted` leaves out a value with no place in the order", async () => {
+            // Without `allowUnsorted`, a value that takes no part is stepped
+            // over and
+            // keeps its slot, so 10 belongs at 5 — after the 9, the last of
+            // four entries. With `allowUnsorted` the operator is the one deciding
+            // the order, and a value with no place in it has no slot to keep,
+            // so the two `x`s are left out and 10 belongs at 3.
+            const stepped = await resultsFor(`
+    <numberList name="nl">x x 1 9</numberList>
+    <p name="p"><searchSorted target="10">$nl</searchSorted></p>
+    `);
+            const leftOut = await resultsFor(`
+    <numberList name="nl">x x 1 9</numberList>
+    <p name="p"><searchSorted allowUnsorted target="10">$nl</searchSorted></p>
+    `);
+            expect(stepped.text).eq("5");
+            expect(leftOut.text).eq("3");
+            expect(leftOut.warnings.filter(notSorted)).eqls([]);
+        });
+
+        it("`allowUnsorted` does not reorder anything the document can see", async () => {
+            // The guarantee is about the answer, not about the list: the
+            // values render in the order they were written.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="v">30 10 20</numberList>
+    <p name="shown">$v</p>
+    <p name="p"><searchSorted allowUnsorted target="25">$v</searchSorted></p>
+    `,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("shown")].stateValues
+                    .text,
+            ).eq("30, 10, 20");
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq("3");
+        });
+
+        it("without `allowUnsorted`, nothing changes", async () => {
+            // The attribute defaults off, so the precondition still applies to
+            // every document that does not ask for it.
+            const { text, warnings } = await resultsFor(`
+    <p name="p"><searchSorted allowUnsorted="false" target="25">10 30 20</searchSorted></p>
+    `);
+            expect(text).eq("0");
+            expect(warnings.filter(notSorted).length).eq(1);
+        });
+
         it("a descending list is unsorted", async () => {
             const { text, warnings } = await resultsFor(`
     <p name="p"><searchSorted target="25">30 20 10</searchSorted></p>

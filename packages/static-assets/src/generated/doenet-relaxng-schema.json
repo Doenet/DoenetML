@@ -42165,6 +42165,13 @@
                         "false"
                     ]
                 },
+                "allowUnsorted": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
                 "side": {
                     "optional": true,
                     "type": [
@@ -42925,6 +42932,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "allowUnsorted",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Report where each target belongs among the values in ascending order, whatever order they are written in.",
                     "fromAttribute": true
                 },
                 {
