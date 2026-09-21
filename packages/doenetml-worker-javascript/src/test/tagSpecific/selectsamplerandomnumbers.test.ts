@@ -2076,11 +2076,14 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             );
         }
 
-        // Selecting nothing is the degenerate case, and the one where the freeze
-        // rests entirely on how the dependency is declared: `selectedValues` returns
-        // an empty list before it looks at `exclude`, so nothing in the body of a
-        // definition ever reads it. It is pinned all the same, because every
-        // declared dependency is evaluated before the definition runs.
+        // Selecting nothing is the degenerate case: `selectedValues` returns an
+        // empty list without drawing, so its own definition never looks at
+        // `exclude`. The exclusion set is pinned all the same, and not by that
+        // dependency --- `selectedValues` also depends on the range, and the
+        // definition of `from`/`to`/`numDiscreteValues` reads `exclude` to count
+        // how many values survive, which it does whether or not anything is drawn.
+        // (Dropping `exclude` from `selectedValues`'s own dependency list leaves
+        // this case frozen exactly as it is; the route runs through the range.)
         {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
