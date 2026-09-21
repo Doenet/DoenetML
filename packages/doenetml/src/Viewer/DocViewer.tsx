@@ -37,8 +37,9 @@ import { DoenetMLFlags } from "../doenetml";
 import { Remote } from "comlink";
 import {
     actionIdentifier,
+    clearPendingValuesForAction,
     mainThunks,
-    UniqueActionIdentifier,
+    UpdatesToIgnore,
     useAppDispatch,
 } from "../state";
 import { renderersLoadComponent } from "./renderersLoadComponent";
@@ -401,9 +402,7 @@ export function DocViewer({
     // Sometimes components eagerly update before waiting for core to determine their exact state
     // This map from event ids to event values helps keep track of the updates that need to be ignored
     // so we don't clobber the component's state.
-    const updatesToIgnoreRef = useRef<Map<UniqueActionIdentifier, string>>(
-        new Map(),
-    );
+    const updatesToIgnoreRef = useRef<UpdatesToIgnore>(new Map());
     const dispatch = useAppDispatch();
 
     // Maps a rendered element's DOM id (prefixForIds + renderer id) to its
@@ -1067,13 +1066,34 @@ export function DocViewer({
         return disposeCoreWorker(remote, kill, { graceful, suspectWedge });
     }
 
+    /**
+     * Throw away the queued actions without sending them anywhere. They never
+     * reach core, so nothing will ever resolve them, and a value a renderer
+     * showed ahead of one would sit in `updatesToIgnore` with nothing left to
+     * settle it, suppressing later updates to that component. Drop those
+     * values here, the one exit from the queue that produces no answer.
+     */
     function clearDeferredCoreActions() {
+        for (const actionArgs of actionsBeforeCoreCreated.current) {
+            const actionId = actionArgs.args?.actionId;
+            if (actionId) {
+                clearPendingValuesForAction(
+                    updatesToIgnoreRef.current,
+                    actionId,
+                );
+            }
+        }
         actionsBeforeCoreCreated.current = [];
     }
 
+    /**
+     * Hand off the queued actions to be executed. Their pending values stay
+     * put: core is about to answer each one, and `resolveAction` clears them
+     * then.
+     */
     function takeDeferredCoreActions() {
         const pendingActions = actionsBeforeCoreCreated.current;
-        clearDeferredCoreActions();
+        actionsBeforeCoreCreated.current = [];
         return pendingActions;
     }
 
@@ -1793,7 +1813,7 @@ export function DocViewer({
             // whether or not to ignore the information core sends when it finishes the action
             updatesToIgnoreRef.current.set(
                 actionIdentifier(actionId, componentIdx),
-                baseVariableValue,
+                { componentIdx, value: baseVariableValue },
             );
         }
 
@@ -2157,6 +2177,11 @@ export function DocViewer({
         if (!actionId) {
             return;
         }
+
+        // This action is being settled, so the value the renderer showed ahead
+        // of it is no longer waiting on an answer.
+        clearPendingValuesForAction(updatesToIgnoreRef.current, actionId);
+
         const callback = onActionCallbacks.current.get(actionId);
         if (callback) {
             callback(success);
