@@ -320,15 +320,11 @@ function perComponent(list, numComponents) {
  * weights --- be the one-element lists they are rather than something the caller has
  * to size against `means` before it can pass them.
  *
- * Shared with the component, so that the reported moments are NaN for exactly the
- * parameters whose samples are NaN --- the same guarantee the other distributions
- * give.
+ * The sampler below and `normalMixtureMoments`, which the component reports, both
+ * go through here, so that the reported moments are NaN for exactly the parameters
+ * whose samples are NaN --- the same guarantee the other distributions give.
  */
-export function normalMixtureComponents({
-    means,
-    standardDeviations,
-    weights,
-}) {
+function normalMixtureComponents({ means, standardDeviations, weights }) {
     if (
         !Array.isArray(means) ||
         means.length === 0 ||
@@ -370,14 +366,6 @@ export function normalMixtureComponents({
         // weights say and the form both the sampler and the moments want
         proportions: mixingWeights.map((weight) => weight / total),
     };
-}
-
-/**
- * Whether `means`, `standardDeviations` and `weights` describe a normal mixture that
- * can be sampled from. Shared with the component, as above.
- */
-export function validNormalMixtureParameters(parameters) {
-    return normalMixtureComponents(parameters) !== null;
 }
 
 /**

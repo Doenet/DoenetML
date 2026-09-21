@@ -1739,6 +1739,42 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         expect(getDiagnosticsByType(core).warnings.length).eq(0);
     });
 
+    it("the mixture's parameters and the gaussian's do not reach across types", async () => {
+        // The two components share one attribute list, so every type now takes the
+        // plural names as well as the singular ones, and a parameter written for the
+        // wrong type is accepted and ignored rather than refused --- as `numTrials`
+        // on a gaussian already was. Worth pinning in both directions, because the
+        // plural and singular names differ by one letter.
+        const gaussian = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="gaussian" mean="3" standardDeviations="2" numSamples="3" />`,
+        });
+        const gaussianValues = (
+            await gaussian.core.returnAllStateVariables(false, true)
+        )[await gaussian.resolvePathToNodeIdx("s")].stateValues;
+
+        // the mixture's list is read back as written, and the gaussian keeps its
+        // own default spread of 1
+        expect(gaussianValues.standardDeviations).eqls([2]);
+        expect(gaussianValues.mean).eq(3);
+        expect(gaussianValues.variance).eq(1);
+        expect(getDiagnosticsByType(gaussian.core).warnings.length).eq(0);
+        expect(getDiagnosticsByType(gaussian.core).errors.length).eq(0);
+
+        const mixture = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="normalMixture" means="0 10" standardDeviation="7" numSamples="3" />`,
+        });
+        const mixtureValues = (
+            await mixture.core.returnAllStateVariables(false, true)
+        )[await mixture.resolvePathToNodeIdx("s")].stateValues;
+
+        // the singular spread is ignored, so each component keeps the default of 1:
+        // a within-component 1 plus a between-component 25
+        expect(mixtureValues.mean).eq(5);
+        expect(mixtureValues.variance).eq(26);
+        expect(getDiagnosticsByType(mixture.core).warnings.length).eq(0);
+        expect(getDiagnosticsByType(mixture.core).errors.length).eq(0);
+    });
+
     it("a selected normal mixture freezes the parameters its values came from", async () => {
         // As for the log-normal: the selection is drawn once, so a parameter that
         // kept following a reference would describe a distribution other than the
