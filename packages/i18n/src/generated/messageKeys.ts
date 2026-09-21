@@ -530,6 +530,7 @@ export type MessageKey =
     | "math-embedded-input-shape-unsuitable"
     | "sample-gaussian-parameters-invalid"
     | "sample-lognormal-parameters-invalid"
+    | "sample-normal-mixture-parameters-invalid"
     | "sample-hypergeometric-parameters-invalid"
     | "sample-hypergeometric-draws-too-many"
     | "sample-binomial-parameters-invalid"
@@ -1164,6 +1165,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "math-embedded-input-shape-unsuitable",
     "sample-gaussian-parameters-invalid",
     "sample-lognormal-parameters-invalid",
+    "sample-normal-mixture-parameters-invalid",
     "sample-hypergeometric-parameters-invalid",
     "sample-hypergeometric-draws-too-many",
     "sample-binomial-parameters-invalid",

@@ -1017,7 +1017,8 @@ math-embedded-input-shape-unsuitable =
 ## `<sampleRandomNumbers>` and `<selectRandomNumbers>`
 ##
 ## Translators: `mean`, `standardDeviation`, `variance`, `logMean`,
-## `logStandardDeviation`, `logVariance`, `numTotal`, `numSuccesses`,
+## `logStandardDeviation`, `logVariance`, `means`, `standardDeviations`,
+## `variances`, `weights`, `numTotal`, `numSuccesses`,
 ## `numDraws`, `numTrials`, `probability` and `numSamples` are
 ## DoenetML attribute names. They are written into these messages as they stand
 ## and must be left in English exactly as written. Each of these names the
@@ -1037,10 +1038,29 @@ sample-gaussian-parameters-invalid =
 sample-lognormal-parameters-invalid =
     Invalid logMean ({ $logMean }) or logStandardDeviation ({ $logStandardDeviation }) for a lognormal random variable. These describe the normal distribution the values are the exponential of: the logMean must be a finite number, and the logStandardDeviation (or the logVariance it is derived from) must be finite and non-negative. No numbers can be sampled.
 
-# These three attributes are the only ones with no default, so leaving one out is
-# the commonest way to reach this message. Each arrives either as the number the
-# author wrote or as `not-set` for an attribute they left off entirely; translate
-# the "not set" wording, but leave the `not-set` key that selects it untouched.
+# The mixture's parameters are lists, one entry per component, which is why they are
+# named in the plural and why each arrives here already written out as a list. As
+# above, a negative `variances` entry arrives as a `standardDeviations` entry of NaN,
+# so both are named. `means` has no default, and leaving it off is the commonest way
+# to reach this message: it arrives as `not-set` then, exactly as the hypergeometric
+# attributes below do. Translate the "not set" wording, but leave the `not-set` key
+# that selects it untouched.
+sample-normal-mixture-parameters-invalid =
+    Invalid means ({ $means ->
+        [not-set] not set
+       *[other] { $means }
+    }), standardDeviations ({ $standardDeviations ->
+        [not-set] not set
+       *[other] { $standardDeviations }
+    }), or weights ({ $weights ->
+        [not-set] not set
+       *[other] { $weights }
+    }) for a normal mixture random variable. means must list at least one component and give a finite number for each. standardDeviations (or the variances they are derived from) and weights must each give either one finite, non-negative value per component or a single value standing for all of them, and the weights must add up to a total that is positive and finite. No numbers can be sampled.
+
+# These three attributes have no default, so leaving one out is the commonest way to
+# reach this message. Each arrives either as the number the author wrote or as
+# `not-set` for an attribute they left off entirely; translate the "not set" wording,
+# but leave the `not-set` key that selects it untouched.
 sample-hypergeometric-parameters-invalid =
     Invalid numTotal ({ $numTotal ->
         [not-set] not set

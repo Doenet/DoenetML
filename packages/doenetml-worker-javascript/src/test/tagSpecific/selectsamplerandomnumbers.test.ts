@@ -485,6 +485,87 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         }
     });
 
+    it("twenty normal mixtures of two separated components", async () => {
+        const doenetMLs = [
+            `<selectRandomNumbers name="s" type="normalMixture" numToSelect="20" means="0 10" />`,
+            `<sampleRandomNumbers name="s" type="normalMixture" numSamples="20" means="0 10" />`,
+        ];
+
+        // equal weights by default, and the default spread of 1 standing for both
+        // components: the law of total variance gives 1 within the components plus
+        // 25 between their centers and the mixture's
+        const expectedMean = 5;
+        const expectedVariance = 26;
+
+        for (let doenetML of doenetMLs) {
+            await test_combined_statistics({
+                doenetML,
+                name: "s",
+                numSamplesPerComponent: 20,
+                numRepetitions: 5,
+                allowedMeanMid: expectedMean,
+                allowedMeanSpread: 0.5,
+                allowedVarianceMid: expectedVariance,
+                allowedVarianceSpread: 3,
+                expectedMean,
+                expectedVariance,
+            });
+        }
+    });
+
+    it("ten normal mixtures with unequal weights and spreads", async () => {
+        const doenetMLs = [
+            `<selectRandomNumbers name="s" type="normalMixture" numToSelect="10" means="-4 6" standardDeviations="1 2" weights="1 3" />`,
+            `<sampleRandomNumbers name="s" type="normalMixture" numSamples="10" means="-4 6" standardDeviations="1 2" weights="1 3" />`,
+        ];
+
+        // weights of 1 and 3 are proportions of 1/4 and 3/4, so the mean is
+        // -4/4 + 18/4 = 3.5, and the variance is the within-component
+        // 1/4 + 3 * 4/4 = 3.25 plus the between-component
+        // (7.5^2)/4 + 3 * (2.5^2)/4 = 18.75
+        const expectedMean = 3.5;
+        const expectedVariance = 22;
+
+        for (let doenetML of doenetMLs) {
+            await test_combined_statistics({
+                doenetML,
+                name: "s",
+                numSamplesPerComponent: 10,
+                numRepetitions: 5,
+                allowedMeanMid: expectedMean,
+                allowedMeanSpread: 0.5,
+                allowedVarianceMid: expectedVariance,
+                allowedVarianceSpread: 3,
+                expectedMean,
+                expectedVariance,
+            });
+        }
+    });
+
+    it("ten normal mixtures given variances instead of standardDeviations", async () => {
+        // the same distribution written the other way round, as for the gaussian's
+        // and the log-normal's own pairs
+        const doenetMLs = [
+            `<selectRandomNumbers name="s" type="normalMixture" numToSelect="10" means="-4 6" variances="1 4" weights="1 3" />`,
+            `<sampleRandomNumbers name="s" type="normalMixture" numSamples="10" means="-4 6" variances="1 4" weights="1 3" />`,
+        ];
+
+        for (let doenetML of doenetMLs) {
+            await test_combined_statistics({
+                doenetML,
+                name: "s",
+                numSamplesPerComponent: 10,
+                numRepetitions: 5,
+                allowedMeanMid: 3.5,
+                allowedMeanSpread: 0.5,
+                allowedVarianceMid: 22,
+                allowedVarianceSpread: 3,
+                expectedMean: 3.5,
+                expectedVariance: 22,
+            });
+        }
+    });
+
     it("single discrete uniform, no parameters, integer from 0 to 1", async () => {
         const doenetMLs = [
             `<selectRandomNumbers name="s" type="discreteUniform" />`,
@@ -852,6 +933,27 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 `<sampleRandomNumbers name="s" type="logNormal" logMean="4" logStandardDeviation="-2" />`,
                 "doenet-w0165",
                 { logMean: 4, logStandardDeviation: -2 },
+            ],
+            [
+                // the mixture's parameters are lists, written into the message as
+                // the author gave them; `means` has no default, so an omitted one
+                // is reported as not set just as the hypergeometric's are
+                `<sampleRandomNumbers name="s" type="normalMixture" />`,
+                "doenet-w0166",
+                {
+                    means: "not-set",
+                    standardDeviations: "1",
+                    weights: "1",
+                },
+            ],
+            [
+                `<sampleRandomNumbers name="s" type="normalMixture" means="0 5" standardDeviations="1 -2" weights="2 3" />`,
+                "doenet-w0166",
+                {
+                    means: "0, 5",
+                    standardDeviations: "1, -2",
+                    weights: "2, 3",
+                },
             ],
             [
                 `<sampleRandomNumbers name="s" type="poisson" mean="-1" />`,
@@ -1410,6 +1512,375 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         expect(stateValues.mean).closeTo(Math.exp(4), 1e-10);
         expect(stateValues.variance).closeTo(Math.expm1(4) * Math.exp(8), 1e-4);
         expect(getDiagnosticsByType(core).warnings.length).eq(0);
+    });
+
+    it("a normal mixture draws each value from one of its components", async () => {
+        // What makes this a mixture rather than a distribution in its own right:
+        // every value belongs to one component, so with the components far enough
+        // apart the values fall into distinguishable clusters, and each cluster
+        // holds its component's share of them.
+        const { sampledValues } = sampleFromRandomNumbers({
+            type: "normalmixture",
+            numSamples: 20000,
+            means: [-20, 20],
+            standardDeviations: [1, 2],
+            weights: [1, 3],
+            rng: seedrandom.alea("normalmixture"),
+        });
+
+        // ten spreads apart, so no value is plausibly from the other component
+        const lower = sampledValues.filter((value) => value < 0);
+        const upper = sampledValues.filter((value) => value >= 0);
+        expect(lower.length + upper.length).eq(sampledValues.length);
+
+        expect(lower.length / sampledValues.length).closeTo(0.25, 0.02);
+        expect(mean(lower)).closeTo(-20, 0.1);
+        expect(variance(lower, "uncorrected")).closeTo(1, 0.2);
+
+        expect(upper.length / sampledValues.length).closeTo(0.75, 0.02);
+        expect(mean(upper)).closeTo(20, 0.1);
+        expect(variance(upper, "uncorrected")).closeTo(4, 0.4);
+    });
+
+    it("a single spread or weight stands for every component", async () => {
+        // The lists are given either one value per component or one value for all of
+        // them, which is also how the defaults --- a spread of 1, and equal weights
+        // --- are written. All four spellings below are the same distribution.
+        const doenetMLs = [
+            `<sampleRandomNumbers name="s" type="normalMixture" means="0 4 8" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="normalMixture" means="0 4 8" standardDeviations="1" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="normalMixture" means="0 4 8" weights="2" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="normalMixture" means="0 4 8" standardDeviations="1 1 1" weights="5 5 5" numSamples="3" />`,
+        ];
+
+        for (const doenetML of doenetMLs) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateValues = (
+                await core.returnAllStateVariables(false, true)
+            )[await resolvePathToNodeIdx("s")].stateValues;
+
+            // 4, and 1 within the components plus (16 + 0 + 16)/3 between them
+            expect(stateValues.mean, doenetML).closeTo(4, 1e-10);
+            expect(stateValues.variance, doenetML).closeTo(1 + 32 / 3, 1e-10);
+            expect(getDiagnosticsByType(core).warnings.length, doenetML).eq(0);
+        }
+    });
+
+    it("a normal mixture reports its parameters as they were written", async () => {
+        // The reported `mean` and `variance` are of the mixture as a whole, so the
+        // component parameters are the only description of the parts, and they come
+        // back as the author gave them rather than expanded to one value each or
+        // scaled to add up to 1.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="normalMixture" means="-4 6" variances="1 4" weights="1 3" numSamples="3" />`,
+        });
+        const stateValues = (await core.returnAllStateVariables(false, true))[
+            await resolvePathToNodeIdx("s")
+        ].stateValues;
+
+        expect(stateValues.means).eqls([-4, 6]);
+        expect(stateValues.variances).eqls([1, 4]);
+        expect(stateValues.standardDeviations).eqls([1, 2]);
+        // as written: the weights are relative, and 1 and 3 are not 0.25 and 0.75
+        expect(stateValues.weights).eqls([1, 3]);
+
+        // and the other way round, the pair is derived from the spreads
+        const { core: core2, resolvePathToNodeIdx: resolve2 } =
+            await createTestCore({
+                doenetML: `<sampleRandomNumbers name="s" type="normalMixture" means="-4 6" standardDeviations="1 2" numSamples="3" />`,
+            });
+        const stateValues2 = (await core2.returnAllStateVariables(false, true))[
+            await resolve2("s")
+        ].stateValues;
+        expect(stateValues2.standardDeviations).eqls([1, 2]);
+        expect(stateValues2.variances).eqls([1, 4]);
+        // the default, which stands for every component
+        expect(stateValues2.weights).eqls([1]);
+    });
+
+    it("a normal mixture with no spread is its component means repeated", async () => {
+        // With every spread zero the values are the component means themselves, so
+        // the within-component term of the variance drops out and only the spread
+        // between the centers is left --- which is exactly 1 for centers of 0 and 2
+        // taken half the time each.
+        const doenetML = `<sampleRandomNumbers name="s" type="normalMixture" means="0 2" standardDeviations="0" numSamples="20" />`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const stateValues =
+            stateVariables[await resolvePathToNodeIdx("s")].stateValues;
+
+        expect(stateValues.mean).eq(1);
+        expect(stateValues.variance).eq(1);
+        expect(stateValues.standardDeviation).eq(1);
+
+        for (const value of await current_values(
+            core,
+            resolvePathToNodeIdx,
+            "s",
+        )) {
+            expect([0, 2].includes(value), `sample ${value}`).eq(true);
+        }
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+    });
+
+    it("components sharing a center leave only the spread within them", async () => {
+        // The other degenerate direction from the no-spread case above: with every
+        // center the same, the between-component term drops out and the variance is
+        // the weighted average of the component variances alone --- which is
+        // smaller than the widest component's, not larger than it.
+        const doenetML = `<sampleRandomNumbers name="s" type="normalMixture" means="0 0" standardDeviations="1 3" numSamples="3" />`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const stateValues = (await core.returnAllStateVariables(false, true))[
+            await resolvePathToNodeIdx("s")
+        ].stateValues;
+
+        expect(stateValues.mean).eq(0);
+        // (1 + 9)/2, below the second component's 9
+        expect(stateValues.variance).eq(5);
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+    });
+
+    it("a component of weight zero is never drawn from", async () => {
+        // A weight of zero is a component that contributes nothing, which the
+        // moments already say; the sampler has to agree, and a cumulative total
+        // compared with `>=` is what makes it agree at a draw of exactly 0.
+        const { sampledValues } = sampleFromRandomNumbers({
+            type: "normalmixture",
+            numSamples: 2000,
+            means: [-50, 0, 50],
+            standardDeviations: [0, 0, 0],
+            weights: [0, 1, 0],
+            rng: seedrandom.alea("zero-weight"),
+        });
+
+        for (const value of sampledValues) {
+            expect(value).eq(0);
+        }
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="normalMixture" means="-50 0 50" standardDeviations="0" weights="0 1 0" numSamples="3" />`,
+        });
+        const stateValues = (await core.returnAllStateVariables(false, true))[
+            await resolvePathToNodeIdx("s")
+        ].stateValues;
+        expect(stateValues.mean).eq(0);
+        expect(stateValues.variance).eq(0);
+    });
+
+    it("a normal mixture's variance survives components far from the origin", async () => {
+        // Computed as E[X^2] - E[X]^2, two narrow components a unit apart at 1e8
+        // lose the whole answer: both terms are about 1e16, where a double's steps
+        // are 2, so their difference is noise rather than the 0.25 the centers are
+        // actually spread by. The law of total variance never forms either square.
+        const doenetML = `<sampleRandomNumbers name="s" type="normalMixture" means="100000000 100000001" standardDeviations="0" numSamples="3" />`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const stateValues = (await core.returnAllStateVariables(false, true))[
+            await resolvePathToNodeIdx("s")
+        ].stateValues;
+
+        expect(stateValues.mean).eq(100000000.5);
+        // exactly, not approximately: each center is half a unit from the mean
+        expect(stateValues.variance).eq(0.25);
+        expect(stateValues.standardDeviation).eq(0.5);
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+    });
+
+    it("a normal mixture's variance survives a wide component of tiny weight", async () => {
+        // A spread of 1e200 squares to Infinity on its own, so a component carrying
+        // a proportion of 1e-300 would contribute Infinity rather than the 1e100 it
+        // is actually worth. Each factor is scaled by the proportion before the
+        // second is applied, which keeps both ends in range.
+        const doenetML = `<sampleRandomNumbers name="s" type="normalMixture" means="0 0" standardDeviations="1 1e200" weights="1 1e-300" numSamples="3" />`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const stateValues = (await core.returnAllStateVariables(false, true))[
+            await resolvePathToNodeIdx("s")
+        ].stateValues;
+
+        expect(stateValues.mean).eq(0);
+        expect(stateValues.variance).closeTo(1e100, 1e90);
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+    });
+
+    it("a normal mixture that describes no distribution reports NaN moments", async () => {
+        for (const doenetML of [
+            // `means` is the only one of the three with no default, and its length
+            // is what says how many components there are, so a mixture without it
+            // has none at all
+            `<sampleRandomNumbers name="s" type="normalMixture" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="normalMixture" means="0 Infinity" numSamples="3" />`,
+            // a list that is neither one value per component nor a single value
+            // standing for all of them fits no mixture the means describe
+            `<sampleRandomNumbers name="s" type="normalMixture" means="0 5" standardDeviations="1 2 3" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="normalMixture" means="0 5" weights="1 2 3" numSamples="3" />`,
+            // as for the gaussian, a spread kept as written so its sign survives
+            `<sampleRandomNumbers name="s" type="normalMixture" means="0 5" standardDeviations="1 -2" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="normalMixture" means="0 5" variances="1 -4" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="normalMixture" means="0 5" standardDeviations="1 Infinity" numSamples="3" />`,
+            // no component can be chosen when nothing has any weight
+            `<sampleRandomNumbers name="s" type="normalMixture" means="0 5" weights="0 0" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="normalMixture" means="0 5" weights="1 -1" numSamples="3" />`,
+            `<sampleRandomNumbers name="s" type="normalMixture" means="0 5" weights="1 Infinity" numSamples="3" />`,
+            // each weight is finite, but their total is not, which would leave every
+            // proportion 0 and no component ever chosen
+            `<sampleRandomNumbers name="s" type="normalMixture" means="0 5" weights="1e308 1e308" numSamples="3" />`,
+        ]) {
+            const { core } = await createTestCore({ doenetML });
+            await expect_nan_distribution(doenetML, 3);
+
+            const warnings = getDiagnosticsByType(core).warnings;
+            expect(warnings.length, doenetML).eq(1);
+            expect(warnings[0].code, doenetML).eq("doenet-w0166");
+        }
+    });
+
+    it("a mixture of one component is a gaussian", async () => {
+        // Nothing stops an author writing one, and it should behave as the
+        // distribution it is rather than as a special case to refuse.
+        const doenetML = `<sampleRandomNumbers name="s" type="normalMixture" means="7" standardDeviations="3" numSamples="3" />`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const stateValues = (await core.returnAllStateVariables(false, true))[
+            await resolvePathToNodeIdx("s")
+        ].stateValues;
+
+        expect(stateValues.mean).eq(7);
+        expect(stateValues.variance).eq(9);
+        expect(stateValues.standardDeviation).eq(3);
+        expect(getDiagnosticsByType(core).warnings.length).eq(0);
+    });
+
+    it("the mixture's parameters and the gaussian's do not reach across types", async () => {
+        // The two components share one attribute list, so every type now takes the
+        // plural names as well as the singular ones, and a parameter written for the
+        // wrong type is accepted and ignored rather than refused --- as `numTrials`
+        // on a gaussian already was. Worth pinning in both directions, because the
+        // plural and singular names differ by one letter.
+        const gaussian = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="gaussian" mean="3" standardDeviations="2" numSamples="3" />`,
+        });
+        const gaussianValues = (
+            await gaussian.core.returnAllStateVariables(false, true)
+        )[await gaussian.resolvePathToNodeIdx("s")].stateValues;
+
+        // the mixture's list is read back as written, and the gaussian keeps its
+        // own default spread of 1
+        expect(gaussianValues.standardDeviations).eqls([2]);
+        expect(gaussianValues.mean).eq(3);
+        expect(gaussianValues.variance).eq(1);
+        expect(getDiagnosticsByType(gaussian.core).warnings.length).eq(0);
+        expect(getDiagnosticsByType(gaussian.core).errors.length).eq(0);
+
+        const mixture = await createTestCore({
+            doenetML: `<sampleRandomNumbers name="s" type="normalMixture" means="0 10" standardDeviation="7" numSamples="3" />`,
+        });
+        const mixtureValues = (
+            await mixture.core.returnAllStateVariables(false, true)
+        )[await mixture.resolvePathToNodeIdx("s")].stateValues;
+
+        // the singular spread is ignored, so each component keeps the default of 1:
+        // a within-component 1 plus a between-component 25
+        expect(mixtureValues.mean).eq(5);
+        expect(mixtureValues.variance).eq(26);
+        expect(getDiagnosticsByType(mixture.core).warnings.length).eq(0);
+        expect(getDiagnosticsByType(mixture.core).errors.length).eq(0);
+    });
+
+    it("a selected normal mixture freezes the parameters its values came from", async () => {
+        // As for the log-normal: the selection is drawn once, so a parameter that
+        // kept following a reference would describe a distribution other than the
+        // numbers on the page.
+        //
+        // Each of the three lists is checked, because a list freezes for a reason a
+        // scalar parameter does not need: the list an attribute hands over belongs
+        // to the `<numberList>` it created, which rewrites it in place rather than
+        // replacing it, so a definition that passed it straight through left this
+        // property tracking the reference however immutable it was declared.
+        const doenetML = `
+    <mathInput name="ni" prefill="10" />
+    <selectRandomNumbers name="s" type="normalMixture" numToSelect="4"
+        means="0 $ni" standardDeviations="0 $ni" weights="1 $ni" />
+    `;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+        expect(stateVariables[componentIdx].stateValues.means).eqls([0, 10]);
+        expect(
+            stateVariables[componentIdx].stateValues.standardDeviations,
+        ).eqls([0, 10]);
+        expect(stateVariables[componentIdx].stateValues.variances).eqls([
+            0, 100,
+        ]);
+        expect(stateVariables[componentIdx].stateValues.weights).eqls([1, 10]);
+
+        const selected = await current_values(core, resolvePathToNodeIdx, "s");
+
+        await updateMathInputValue({
+            latex: "100",
+            componentIdx: await resolvePathToNodeIdx("ni"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[componentIdx].stateValues.means).eqls([0, 10]);
+        expect(
+            stateVariables[componentIdx].stateValues.standardDeviations,
+        ).eqls([0, 10]);
+        expect(stateVariables[componentIdx].stateValues.variances).eqls([
+            0, 100,
+        ]);
+        expect(stateVariables[componentIdx].stateValues.weights).eqls([1, 10]);
+        expect(await current_values(core, resolvePathToNodeIdx, "s")).eqls(
+            selected,
+        );
+    });
+
+    it("a sampled normal mixture's parameters follow a reference", async () => {
+        // `<sampleRandomNumbers>` freezes nothing, so the same document reports the
+        // new distribution --- which is the difference between the two components.
+        const doenetML = `
+    <mathInput name="ni" prefill="10" />
+    <sampleRandomNumbers name="s" type="normalMixture" numSamples="4" means="0 $ni" standardDeviations="0" />
+    `;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const componentIdx = await resolvePathToNodeIdx("s");
+        expect(stateVariables[componentIdx].stateValues.mean).eq(5);
+
+        await updateMathInputValue({
+            latex: "100",
+            componentIdx: await resolvePathToNodeIdx("ni"),
+            core,
+        });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[componentIdx].stateValues.means).eqls([0, 100]);
+        expect(stateVariables[componentIdx].stateValues.mean).eq(50);
+        expect(stateVariables[componentIdx].stateValues.variance).eq(2500);
+
+        for (const value of await current_values(
+            core,
+            resolvePathToNodeIdx,
+            "s",
+        )) {
+            expect([0, 100].includes(value), `sample ${value}`).eq(true);
+        }
     });
 
     it("resampling and reloading keep reporting why the parameters are unusable", async () => {

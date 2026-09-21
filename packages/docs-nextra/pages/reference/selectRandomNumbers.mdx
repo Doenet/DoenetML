@@ -9,8 +9,8 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 `<selectRandomNumbers/>{:dn}` is a [Math](../concepts/essentialConcepts#component-types)
 component that generates document variants by selecting random numbers from a specified range of 
-values, from a normal or log-normal distribution, or from one of the discrete count 
-distributions (hypergeometric, binomial, and Poisson).
+values, from a normal, log-normal, or mixture-of-normals distribution, or from one of 
+the discrete count distributions (hypergeometric, binomial, and Poisson).
 
 The numbers are selected once for each variant and stay the same while the activity is open, 
 so `<selectRandomNumbers/>{:dn}` has no `resample` action. For values a reader can redraw, 
@@ -329,6 +329,62 @@ large enough one reports `Infinity` for moments beyond what a number can hold, a
 a value too large to represent comes back as `Infinity` as well. A value too small 
 to represent rounds to 0, which is the only way one can fail to be strictly 
 positive.
+
+
+Select a new page variant from the pulldown menu at the top of the 
+editor to see different variants of the document.
+
+
+---
+
+### Attribute Example: type = "normalMixture"
+
+
+```doenet-editor-horiz
+<p>Ten exam scores from a class with two distinct groups:
+  <selectRandomNumbers 
+    name="x" 
+    type="normalMixture" 
+    means="55 85" 
+    standardDeviations="6 5" 
+    weights="1 2" 
+    numToSelect="10" 
+    displayDigits="3"/>
+</p>
+
+<p>The third selection is <c>x[3]</c> = $x[3]</p>
+```
+
+
+
+The `normalMixture` type draws each value from one of several normal 
+distributions: a component is chosen at random, and the value comes from that 
+component alone. It is the usual way to describe a population made of distinct 
+groups, and the usual way to produce a bimodal set of values, which no single 
+`gaussian` can.
+
+The components are described by three lists. `means` gives each component's 
+center, and how many are listed is how many components there are &mdash; it is 
+the one of the three with no default. `standardDeviations` (or `variances`, as 
+with the `gaussian` type) gives each component's spread, and `weights` gives 
+each component's share of the values. Weights are relative and need not add up 
+to 1: `weights="1 2"` above means a third of the values come from the first 
+component and two thirds from the second. A list holding a single value applies 
+to every component, which is how the defaults &mdash; a spread of 1, and equal 
+weights &mdash; are written.
+
+The reported `mean` is the weighted average of the component means. The reported 
+`variance` is the weighted average of the component variances plus a second term 
+for how far the components sit from one another, so it is larger than that 
+average alone whenever the centers differ, and equal to it when every component 
+shares one center. Writing $p_i$, $\mu_i$ and $\sigma_i$ for the proportion, 
+mean and standard deviation of each component, it is 
+$\sum_i p_i \sigma_i^2 + \sum_i p_i (\mu_i - \mu)^2$, where $\mu$ is the 
+reported mean.
+
+Whether the values come out looking bimodal depends on the components. Two 
+equally weighted components of equal spread separate into two visible humps only 
+once their centers are more than $2\sigma$ apart.
 
 
 Select a new page variant from the pulldown menu at the top of the 

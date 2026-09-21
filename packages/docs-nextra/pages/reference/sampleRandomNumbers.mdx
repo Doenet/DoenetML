@@ -10,9 +10,9 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 <ComponentDisplay name='sampleRandomNumbers'/>
 
 `<sampleRandomNumbers/>{:dn}` is a [Math](../concepts/essentialConcepts#component-types) 
-component that generates random numbers from a specified range of values, from a normal or 
-log-normal distribution, or from one of the discrete count distributions (hypergeometric, binomial, 
-and Poisson). It differs from the `<selectRandomNumbers/>{:dn}` component in that the 
+component that generates random numbers from a specified range of values, from a normal, 
+log-normal, or mixture-of-normals distribution, or from one of the discrete count 
+distributions (hypergeometric, binomial, and Poisson). It differs from the `<selectRandomNumbers/>{:dn}` component in that the 
 values can be altered within the document by resampling or changing one or more of the 
 component's attributes. The primary application of the `<sampleRandomNumbers/>{:dn}` component 
 is for use in simulations involving random numbers.
@@ -374,6 +374,67 @@ the only way a value can fail to be strictly positive.
 
 ---
 
+### Attribute Example: type = "normalMixture"
+
+
+```doenet-example
+<p>Twenty exam scores from a class with two distinct groups:
+  <sampleRandomNumbers 
+    name="x" 
+    type="normalMixture" 
+    means="55 85" 
+    standardDeviations="6 5" 
+    weights="1 2" 
+    numSamples="20" 
+    displayDigits="3"
+  />
+</p>
+
+<callAction actionName="resample" target="$x">
+  <label>Get New Numbers</label>
+</callAction>
+
+<p>Mean of the distribution: $x.mean</p>
+```
+
+
+
+The `normalMixture` type draws each value from one of several normal 
+distributions: a component is chosen at random, and the value comes from that 
+component alone. It is the usual way to describe a population made of distinct 
+groups &mdash; two study sections, two species, a process that sometimes runs 
+slowly &mdash; and the usual way to produce a bimodal sample, which no single 
+`gaussian` can.
+
+The components are described by three lists. `means` gives each component's 
+center, and how many are listed is how many components there are &mdash; it is 
+the one of the three with no default. `standardDeviations` (or `variances`, as 
+with the `gaussian` type) gives each component's spread, and `weights` gives 
+each component's share of the values. Weights are relative and need not add up 
+to 1: `weights="1 2"` above means a third of the values come from the first 
+component and two thirds from the second. A list holding a single value applies 
+to every component, which is how the defaults &mdash; a spread of 1, and equal 
+weights &mdash; are written, so `standardDeviations="2"` beside three means 
+gives all three components a spread of 2.
+
+The reported `mean` is the weighted average of the component means. The reported 
+`variance` is the weighted average of the component variances plus a second term 
+for how far the components sit from one another, so it is larger than that 
+average alone whenever the centers differ, and equal to it when every component 
+shares one center. Writing $p_i$, $\mu_i$ and $\sigma_i$ for the proportion, 
+mean and standard deviation of each component, it is 
+$\sum_i p_i \sigma_i^2 + \sum_i p_i (\mu_i - \mu)^2$, where $\mu$ is the 
+reported mean.
+
+Whether the values actually come out looking bimodal depends on the components. 
+Two equally weighted components of equal spread are visibly two humps only once 
+their centers are more than $2\sigma$ apart; closer together than that, the 
+mixture has a single peak. The type is named for what it does rather than for 
+that outcome, and the separation is worth exploring in its own right.
+
+
+---
+
 ### Attribute Example: type = "hypergeometric"
 
 
@@ -408,10 +469,10 @@ population, this is the without-replacement counterpart of the `binomial` type.
 Each sample lies between $\max(0, n - (N - K))$ and $\min(n, K)$, where 
 $N$ is `numTotal`, $K$ is `numSuccesses`, and $n$ is `numDraws`.
 
-Unlike the other distributions, `hypergeometric` has no defaults to fall back on. 
-If any of the three attributes is omitted, or they do not describe a population 
-(for example, more successes or more draws than there are items), every sample is 
-`NaN`, as are the reported `mean`, `variance`, and `standardDeviation`.
+Unlike most of the distributions, `hypergeometric` has no defaults at all to fall 
+back on. If any of the three attributes is omitted, or they do not describe a 
+population (for example, more successes or more draws than there are items), every 
+sample is `NaN`, as are the reported `mean`, `variance`, and `standardDeviation`.
 
 
 
