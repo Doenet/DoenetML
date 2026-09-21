@@ -95,50 +95,26 @@ type PerformUpdateArgs = {
      */
     skipRendererUpdate?: boolean;
     /**
-     * Mark this as an intermediate step of an ongoing interaction — a drag
-     * still in progress, or a keystroke in an input that commits on blur or
-     * enter — rather than its committed result. The update is performed in
-     * full either way. What it can change is the renderer fan-out: unless
-     * `deferDownstreamRenderers` is false, this update's own targets are sent
-     * immediately and the rest wait until the interaction goes quiet, so the
-     * thing being interacted with keeps up even when the change invalidated
-     * much of the document. The commit that ends the interaction arrives
-     * without this flag and flushes the remainder.
+     * Mark this as one step of a continuous interaction — a drag still in
+     * progress — rather than its committed result. The update is performed in
+     * full either way; what changes is the renderer fan-out. This update's own
+     * targets are sent immediately and the rest wait until the interaction
+     * goes quiet, so the thing being dragged keeps up even when the move
+     * invalidated much of the document. The commit that ends the interaction
+     * arrives without this flag and flushes the remainder.
      *
-     * Two kinds of caller already set it, and before this it was accepted and
-     * ignored in both cases:
-     * - continuous interactions, on every step: the graph drag handlers
-     *   (`Point.movePoint` and its siblings forward the renderer's flag),
-     *   `Slider.changeValue` (both dragging and keyboard stepping), and
-     *   `SubsetOfRealsInput.movePoint` for the points of a number line;
-     * - `MathInput.updateRawValue`, `inputUpdateImmediateValue`
-     *   (`<textInput>`, `<codeEditor>`) and `mathComponentInputUpdateRawValue`
-     *   (math-input cells), on every keystroke. Their original reason was to
-     *   keep a keystroke from adding a row to the database, but that guard —
-     *   an `if (!transient)` around saving — went away in
-     *   Doenet/DoenetML#1035 and saving is debounced instead, so for them the
-     *   flag is now only a marker for "not a committed value".
+     * Set by the graph drag handlers (`Point.movePoint` and its siblings
+     * forward the renderer's flag), `Slider.changeValue` (both dragging and
+     * keyboard stepping), and `SubsetOfRealsInput.movePoint` for the points of
+     * a number line. Before this it was accepted and ignored.
      *
-     * Only the first kind wants the renderer split, so the second passes
-     * `deferDownstreamRenderers: false`. If you add a caller that sets
-     * `transient` for a reason other than a continuous pointer interaction,
-     * it very likely wants that too.
+     * Set it only for a continuous interaction whose downstream may settle
+     * late. A keystroke is not one, however in-progress its value: the
+     * feedback beside an input has to keep up with it, so the inputs that
+     * commit on blur or enter deliberately do not set this. See the comment
+     * at `inputUpdateImmediateValue` in `utils/input.js`.
      */
     transient?: boolean;
-    /**
-     * Whether a `transient` update may let its downstream renderer updates
-     * settle after the interaction instead of during it. Ignored unless
-     * `transient`.
-     *
-     * True for a drag, where the downstream is a consequence of where the
-     * pointer is and can catch up once it stops. False for a keystroke, where
-     * the downstream carries feedback about what was typed and has to keep
-     * up: an `<answer>`'s check-work button must drop "Incorrect" on the
-     * first character of a correction, not 150 ms after the reader stops
-     * typing, and a `$input.immediateValue` echo would otherwise freeze for
-     * the length of a burst of typing.
-     */
-    deferDownstreamRenderers?: boolean;
     sourceInformation?: SourceInformation;
 };
 
@@ -325,7 +301,7 @@ export class UpdateExecutor {
      * `updateAllChangedRenderers` fan-out runs only when
      * `skipRendererUpdate` is false.
      *
-     * A split update (`transient && deferDownstreamRenderers`) reorders that
+     * A `transient` update reorders that
      * tail: the update's own targets are sent *before*
      * `processStateVariableTriggers`, and the remainder is handed to
      * `scheduleDeferredRendererUpdate` rather than going out with
@@ -349,7 +325,6 @@ export class UpdateExecutor {
         canSkipUpdatingRenderer = false,
         skipRendererUpdate = false,
         transient = false,
-        deferDownstreamRenderers = true,
         sourceInformation = {},
     }: PerformUpdateArgs) {
         if (diagnostics) {
@@ -476,9 +451,7 @@ export class UpdateExecutor {
             });
         }
 
-        const splitRendererUpdate = transient && deferDownstreamRenderers;
-
-        if (splitRendererUpdate && !skipRendererUpdate) {
+        if (transient && !skipRendererUpdate) {
             // Put the dragged component on screen before doing anything with
             // the (much larger) set of components its move invalidated.
             await this.core.updateRenderersForComponents(
@@ -493,7 +466,7 @@ export class UpdateExecutor {
         await this.core.processStateVariableTriggers();
 
         if (!skipRendererUpdate) {
-            if (splitRendererUpdate) {
+            if (transient) {
                 this.core.scheduleDeferredRendererUpdate(
                     sourceInformation,
                     actionId,

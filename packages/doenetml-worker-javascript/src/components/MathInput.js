@@ -1237,17 +1237,16 @@ export default class MathInput extends Input {
                         componentIdx: this.componentIdx,
                     },
                 ],
-                transient: true,
-                // A keystroke's consequences must keep up with it: an
-                // `<answer>`'s check-work button has to drop "Incorrect" on the
-                // first character of a correction, and a `$input.immediateValue`
+                // Deliberately NOT `transient`. That flag means "a step of a
+                // continuous interaction, whose downstream may settle after the
+                // interaction rather than during it", and a keystroke's downstream has
+                // to keep up: an `<answer>`'s check-work button must drop "Incorrect"
+                // on the first character of a correction, and a `$input.immediateValue`
                 // echo would otherwise freeze for the length of a typing burst.
-                // `transient` here is a legacy marker for "not a committed
-                // value": it once kept a keystroke out of the saved state, but
-                // that guard went away in Doenet/DoenetML#1035 and saving is
-                // debounced instead. It does not mean a continuous pointer
-                // interaction, which is what the split is for.
-                deferDownstreamRenderers: false,
+                // A keystroke was marked transient until Doenet/DoenetML#1990, to keep
+                // it out of the saved state -- but that guard (`if (!transient)` around
+                // saving) went away in Doenet/DoenetML#1035 and saving is debounced
+                // instead, so the flag had no reader left here.
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

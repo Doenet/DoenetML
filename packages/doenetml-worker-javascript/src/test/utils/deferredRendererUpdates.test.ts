@@ -41,11 +41,11 @@ const doenetML = `
  * unrelated and by now historical reason — it once kept a keystroke out of the
  * saved state.
  *
- * Those must not take the renderer split, so they pass
- * `deferDownstreamRenderers: false`. A keystroke's downstream carries feedback
- * about what was typed: an `<answer>`'s check-work button has to drop
- * "Incorrect" on the first character of a correction, and an echo of
- * `immediateValue` would otherwise freeze for the length of a typing burst.
+ * Those must not take the renderer split, so they deliberately do not set
+ * `transient` at all. A keystroke's downstream carries feedback about what was
+ * typed: an `<answer>`'s check-work button has to drop "Incorrect" on the
+ * first character of a correction, and an echo of `immediateValue` would
+ * otherwise freeze for the length of a typing burst.
  * Deferring it also broke `prototype/textInput.cy.js`,
  * `prototype/sectionTitleUpdate.cy.js`, `variants/specifysinglevariant.cy.js`
  * and `tagSpecific/pretzel.cy.js` — on the prototype's flat action path the
@@ -399,9 +399,9 @@ describe("an interaction sends its own target ahead of the rest @group4", () => 
     ])(
         "a keystroke in a %s sends what reads it in the same batch",
         async (_label, inputName, actionName, args, echoName) => {
-            // Typing is transient, but passes `deferDownstreamRenderers: false`,
-            // so it keeps the undeferred behavior: the echo goes out with the
-            // input, not 150 ms later, and nothing is left pending.
+            // Typing does not set `transient`, so it keeps the undeferred
+            // behavior: the echo goes out with the input, not 150 ms later,
+            // and nothing is left pending.
             vi.useFakeTimers();
             try {
                 const { core, innerCore, resolvePathToNodeIdx, batches } =
