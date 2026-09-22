@@ -748,7 +748,7 @@ export class StalenessPropagator {
                 for (const ancestorObj of component.ancestors) {
                     if (
                         !this.core.componentInfoObjects.allComponentClasses._composite.isPrototypeOf(
-                            ancestorObj.componentCase,
+                            ancestorObj.componentClass,
                         )
                     ) {
                         // found non-composite ancestor
