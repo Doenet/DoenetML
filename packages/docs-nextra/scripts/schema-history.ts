@@ -21,6 +21,7 @@
 import { execFileSync } from "node:child_process";
 import {
     attributeHistoryKey,
+    attributeValueHistoryKey,
     elementHistoryKey,
     propertyHistoryKey,
     type SchemaHistory,
@@ -37,16 +38,54 @@ export * from "./schema-history-keys";
 type SchemaSnapshotJson = {
     elements?: {
         name: string;
-        attributes?: { name: string }[];
+        attributes?: {
+            name: string;
+            values?: string[];
+            /**
+             * `string[]` from 0.7.14, the release that introduced it, through
+             * 0.7.16, and `{ value, description }[]` from 0.7.17 on. A reader
+             * that assumes the object form throws on those three tags.
+             */
+            autocompleteValues?: (string | { value: string })[];
+        }[];
         properties?: { name: string }[];
     }[];
 };
+
+/**
+ * The values one attribute accepts, from whichever field carries them.
+ *
+ * Both are read and unioned, not one in preference to the other. The docs
+ * render `autocompleteValues` where it exists, but 68 attributes list
+ * `true`/`false` under `values` alone, so keying on the preferred field would
+ * read the 0.7.14 arrival of `autocompleteValues` as those values being
+ * removed.
+ */
+function attributeValues(attribute: {
+    values?: string[];
+    autocompleteValues?: (string | { value: string })[];
+}): Set<string> {
+    const values = new Set(attribute.values ?? []);
+    for (const entry of attribute.autocompleteValues ?? []) {
+        values.add(typeof entry === "string" ? entry : entry.value);
+    }
+    return values;
+}
 
 /** One release's worth of schema keys, in release order. */
 export type VersionSnapshot = {
     /** Release version without the `v` prefix, e.g. `"0.7.21"`. */
     version: string;
     keys: Set<SchemaHistoryKey>;
+    /**
+     * Value key -> the attribute key accepting it, for every value declared in
+     * this release. Carries ownership that a `va:` key cannot be split back
+     * into: six values contain a `.` of their own (`APACHE-2.0`, and
+     * `licenseVersion`'s 1.0 through 4.0), so parsing the key apart would name
+     * the wrong attribute. `buildSchemaHistory` needs it to date the values in
+     * a newly written value list — see there.
+     */
+    valueOwners: Map<SchemaHistoryKey, SchemaHistoryKey>;
 };
 
 /**
@@ -64,6 +103,15 @@ export function schemaKeys(schema: SchemaSnapshotJson): Set<SchemaHistoryKey> {
         keys.add(elementHistoryKey(element.name));
         for (const attribute of element.attributes ?? []) {
             keys.add(attributeHistoryKey(element.name, attribute.name));
+            for (const value of attributeValues(attribute)) {
+                keys.add(
+                    attributeValueHistoryKey(
+                        element.name,
+                        attribute.name,
+                        value,
+                    ),
+                );
+            }
         }
         for (const property of element.properties ?? []) {
             keys.add(propertyHistoryKey(element.name, property.name));
@@ -73,14 +121,43 @@ export function schemaKeys(schema: SchemaSnapshotJson): Set<SchemaHistoryKey> {
 }
 
 /**
+ * Which attribute accepts each declared value, in one snapshot.
+ *
+ * The attributes that appear as values of this map are exactly those declaring
+ * a value list at all, which is what dates the list itself.
+ */
+export function attributeValueOwners(
+    schema: SchemaSnapshotJson,
+): Map<SchemaHistoryKey, SchemaHistoryKey> {
+    const owners = new Map<SchemaHistoryKey, SchemaHistoryKey>();
+    for (const element of schema.elements ?? []) {
+        for (const attribute of element.attributes ?? []) {
+            const attributeKey = attributeHistoryKey(
+                element.name,
+                attribute.name,
+            );
+            for (const value of attributeValues(attribute)) {
+                owners.set(
+                    attributeValueHistoryKey(
+                        element.name,
+                        attribute.name,
+                        value,
+                    ),
+                    attributeKey,
+                );
+            }
+        }
+    }
+    return owners;
+}
+
+/**
  * Fold release snapshots into the history index.
  *
- * `since` is the start of a key's *latest contiguous run of presence*, not its
- * first-ever appearance. Keys get removed and names get reused — 0.7.17 dropped
- * 501 keys and 0.7.18 another 261 — so first-ever-seen would report a stale
- * version for anything that came back. A rename shows up as a removal plus an
+ * `since` is the start of a key's *latest contiguous run of presence*, which
+ * `runStarts` computes and explains. A rename shows up as a removal plus an
  * addition, which is the right rendering: the old spelling carries `removedIn`
- * and the new one carries its own `since`.
+ * and the new one carries its own `since`. Value keys get one pass more, below.
  */
 export function buildSchemaHistory(
     snapshots: VersionSnapshot[],
@@ -93,6 +170,82 @@ export function buildSchemaHistory(
         );
     }
 
+    const { since, removedIn } = runStarts(
+        snapshots.map(({ version, keys }) => ({ version, keys })),
+    );
+
+    // When an attribute's value list first appears, date the values in it to
+    // the attribute rather than to that release.
+    //
+    // A list is written down long after the attribute starts accepting the
+    // values in it: `renderMode` set "inline" and "display" at 0.7.0 and only
+    // declared them at 0.7.25. Taking the snapshot at face value would tell an
+    // author on 0.7.20 that "display" is newer than their version, when they
+    // have been able to write it all along.
+    //
+    // Values added to a list that already existed keep their own date, which is
+    // the case where the schema really does record an arrival. The limit is any
+    // value that arrived before its list was written down: it has no key until
+    // the list appears, so it is dated to the attribute along with the rest.
+    // Two of the 28 tags show this at the boundary, where auditing the worker
+    // source can see it — 0.7.8 wrote down `answer`'s `type` list in the
+    // release `videoWatched` joined it, and 0.7.22 wrote down `halign` in the
+    // release `start` and `end` replaced `left` and `right` — costing five
+    // values against 118 the rule dates right. Anything that arrived earlier in
+    // the same window is silent in the same way and leaves no trace to count.
+    // Nothing in the snapshots separates the cases, so the rule prefers silence
+    // to a version that is wrong.
+    //
+    // Owners are named only where a list exists, so their runs are the lists'.
+    const listStarts = runStarts(
+        snapshots.map(({ version, valueOwners }) => ({
+            version,
+            keys: new Set(valueOwners.values()),
+        })),
+    ).since;
+    const owners = new Map<SchemaHistoryKey, SchemaHistoryKey>();
+    for (const snapshot of snapshots) {
+        for (const [value, attribute] of snapshot.valueOwners) {
+            owners.set(value, attribute);
+        }
+    }
+    for (const [value, attribute] of owners) {
+        const attributeSince = since.get(attribute);
+        if (
+            attributeSince !== undefined &&
+            listStarts.get(attribute) === since.get(value)
+        ) {
+            since.set(value, attributeSince);
+        }
+    }
+
+    return {
+        latestReleasedVersion: snapshots[snapshots.length - 1].version,
+        versions: snapshots.map((s) => s.version),
+        since: sortedRecord(since),
+        removedIn: sortedRecord(removedIn),
+    };
+}
+
+/**
+ * Fold a sequence of key sets into the release each key's latest contiguous run
+ * of presence began in, and the release each key absent from the last set
+ * disappeared in.
+ *
+ * Keys get removed and names get reused — 0.7.17 dropped 501 and 0.7.18 another
+ * 376 — so first-ever-seen would report a stale version for anything that came
+ * back. `removedIn` holds only what is still gone at the newest release, so
+ * `report:schema-changes 0.7.18` prints 320 of that 376: the other 56 returned,
+ * which is the whole reason the rule exists. `buildSchemaHistory` runs this
+ * twice: over the schema keys themselves, and over the attributes declaring a
+ * value list, whose runs date the lists.
+ */
+function runStarts(
+    snapshots: { version: string; keys: Set<SchemaHistoryKey> }[],
+): {
+    since: Map<SchemaHistoryKey, string>;
+    removedIn: Map<SchemaHistoryKey, string>;
+} {
     const since = new Map<SchemaHistoryKey, string>();
     const removedIn = new Map<SchemaHistoryKey, string>();
 
@@ -112,13 +265,7 @@ export function buildSchemaHistory(
         }
         previous = keys;
     }
-
-    return {
-        latestReleasedVersion: snapshots[snapshots.length - 1].version,
-        versions: snapshots.map((s) => s.version),
-        since: sortedRecord(since),
-        removedIn: sortedRecord(removedIn),
-    };
+    return { since, removedIn };
 }
 
 /** Key-sorted, so a regenerated index compares cleanly against an older one. */
@@ -229,7 +376,7 @@ function releaseTags(): { tag: string; version: string }[] {
  *
  * Throws rather than returning what it can: a clone without the tags would
  * otherwise yield an index claiming every key in the schema is unreleased, and
- * the docs would badge all 12,000 of them as in development.
+ * the docs would badge all 19,000-odd of them as in development.
  */
 export function releaseSnapshots(): VersionSnapshot[] {
     const tags = releaseTags();
@@ -268,6 +415,10 @@ export function releaseSnapshots(): VersionSnapshot[] {
                 { cause: e },
             );
         }
-        return { version, keys: schemaKeys(parsed) };
+        return {
+            version,
+            keys: schemaKeys(parsed),
+            valueOwners: attributeValueOwners(parsed),
+        };
     });
 }

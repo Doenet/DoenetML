@@ -21,8 +21,26 @@
  */
 export const UNRELEASED = "unreleased";
 
-/** Key space: `el:<element>`, `at:<element>.<attr>`, `pr:<element>.<prop>`. */
+/**
+ * Key space: `el:<element>`, `at:<element>.<attr>`, `pr:<element>.<prop>`,
+ * `va:<element>.<attr>.<value>`.
+ */
 export type SchemaHistoryKey = string;
+
+/**
+ * Every kind of key the index holds, each with a plural label for a report.
+ *
+ * Lives here rather than in the one script that groups keys this way, because
+ * it is a claim about the key space: a reader that covers this list covers the
+ * whole index. `test/schema-history.test.ts` holds it to that against the real
+ * tags, so a fifth kind added to `schemaKeys` cannot quietly go unreported.
+ */
+export const HISTORY_KEY_KINDS = [
+    { prefix: "el:", label: "elements" },
+    { prefix: "at:", label: "attributes" },
+    { prefix: "pr:", label: "properties" },
+    { prefix: "va:", label: "attribute values" },
+] as const;
 
 /** The history key for an element. */
 export function elementHistoryKey(element: string): SchemaHistoryKey {
@@ -35,6 +53,22 @@ export function attributeHistoryKey(
     attribute: string,
 ): SchemaHistoryKey {
     return `at:${element}.${attribute}`;
+}
+
+/**
+ * The history key for one of the values an enumerated attribute accepts.
+ *
+ * A value is keyed under the attribute that accepts it rather than on its own,
+ * because the same spelling means different things on different attributes:
+ * `gaussian` on `selectRandomNumbers.type` and on a styling attribute are
+ * unrelated, and each arrived when its own attribute learned it.
+ */
+export function attributeValueHistoryKey(
+    element: string,
+    attribute: string,
+    value: string,
+): SchemaHistoryKey {
+    return `va:${element}.${attribute}.${value}`;
 }
 
 /** The history key for one of an element's properties. */

@@ -4,7 +4,7 @@
  * pinned even as new releases change every real number.
  *
  * The rule that matters is the *contiguous run*. Keys really do vanish and come
- * back — 0.7.17 dropped 501 of them and 0.7.18 another 261 — so "first ever
+ * back — 0.7.17 dropped 501 of them and 0.7.18 another 376 — so "first ever
  * seen" would print a version the key was not actually available in for the
  * whole span the reader assumes.
  *
@@ -23,6 +23,7 @@ import { execFileSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 import {
     buildSchemaHistory,
+    HISTORY_KEY_KINDS,
     parseReleaseTags,
     releaseSnapshots,
     schemaKeys,
@@ -30,9 +31,28 @@ import {
     type VersionSnapshot,
 } from "../scripts/schema-history";
 
-/** `snapshot("0.7.3", "el:a", "at:a.b")` — a release holding just those keys. */
+/**
+ * `snapshot("0.7.3", "el:a", "at:a.b")` — a release holding just those keys.
+ * Any `va:` key among them is owned by the `at:` key it is written under, so a
+ * release that lists a value is also one that declares its attribute's list.
+ */
 function snapshot(version: string, ...keys: string[]): VersionSnapshot {
-    return { version, keys: new Set(keys) };
+    const valueOwners = new Map<string, string>();
+    for (const key of keys) {
+        if (key.startsWith("va:")) {
+            valueOwners.set(key, ownerInTest(key));
+        }
+    }
+    return { version, keys: new Set(keys), valueOwners };
+}
+
+/**
+ * The attribute a test's `va:` key belongs to. Test values never contain a
+ * `.`, so splitting the last segment off is safe here; the production code
+ * carries ownership rather than parsing it, because real values do.
+ */
+function ownerInTest(valueKey: string): string {
+    return `at:${valueKey.slice("va:".length, valueKey.lastIndexOf("."))}`;
 }
 
 describe("schemaKeys", () => {
@@ -60,6 +80,76 @@ describe("schemaKeys", () => {
             "el:point",
         ]);
         expect([...schemaKeys({})]).toEqual([]);
+    });
+
+    it("keys the values an enumerated attribute accepts", () => {
+        expect(
+            [
+                ...schemaKeys({
+                    elements: [
+                        {
+                            name: "selectRandomNumbers",
+                            attributes: [
+                                {
+                                    name: "type",
+                                    values: ["uniform", "gaussian"],
+                                },
+                            ],
+                        },
+                    ],
+                }),
+            ].sort(),
+        ).toEqual([
+            "at:selectRandomNumbers.type",
+            "el:selectRandomNumbers",
+            "va:selectRandomNumbers.type.gaussian",
+            "va:selectRandomNumbers.type.uniform",
+        ]);
+    });
+
+    it("unions both value fields, in either shape they have had", () => {
+        // `autocompleteValues` arrived at 0.7.14 as `string[]` and became
+        // `{ value, description }[]` at 0.7.17, so the walk meets both. It
+        // carries only the author-facing subset — 68 attributes list
+        // `true`/`false` under `values` alone — so keying on the field the
+        // docs prefer would read 0.7.14 as those values being removed.
+        const fromStrings = schemaKeys({
+            elements: [
+                {
+                    name: "and",
+                    attributes: [
+                        {
+                            name: "simplify",
+                            values: ["none", "true", "false"],
+                            autocompleteValues: ["none"],
+                        },
+                    ],
+                },
+            ],
+        });
+        const fromObjects = schemaKeys({
+            elements: [
+                {
+                    name: "and",
+                    attributes: [
+                        {
+                            name: "simplify",
+                            values: ["none", "true", "false"],
+                            autocompleteValues: [{ value: "none" }],
+                        },
+                    ],
+                },
+            ],
+        });
+        const expected = [
+            "at:and.simplify",
+            "el:and",
+            "va:and.simplify.false",
+            "va:and.simplify.none",
+            "va:and.simplify.true",
+        ];
+        expect([...fromStrings].sort()).toEqual(expected);
+        expect([...fromObjects].sort()).toEqual(expected);
     });
 
     it("ignores aliasedElements", () => {
@@ -126,6 +216,68 @@ describe("parseReleaseTags", () => {
 });
 
 describe("buildSchemaHistory", () => {
+    it("dates the values in a newly written list to their attribute", () => {
+        // `renderMode` set "inline" and "display" at 0.7.0 and only declared
+        // them at 0.7.25. The declaration is someone writing the list down, not
+        // the values arriving, so an author on 0.7.20 must not be told that
+        // "display" is newer than their version.
+        const history = buildSchemaHistory([
+            snapshot("0.7.0", "el:m", "at:m.renderMode"),
+            snapshot("0.7.10", "el:m", "at:m.renderMode"),
+            snapshot(
+                "0.7.25",
+                "el:m",
+                "at:m.renderMode",
+                "va:m.renderMode.inline",
+                "va:m.renderMode.display",
+            ),
+        ]);
+        expect(history.since["at:m.renderMode"]).toBe("0.7.0");
+        expect(history.since["va:m.renderMode.inline"]).toBe("0.7.0");
+        expect(history.since["va:m.renderMode.display"]).toBe("0.7.0");
+    });
+
+    it("keeps its own date for a value added to a list that already existed", () => {
+        // The case the snapshots really do record: the list was there, and a
+        // release extended it.
+        const history = buildSchemaHistory([
+            snapshot("0.7.0", "el:s", "at:s.type", "va:s.type.uniform"),
+            snapshot(
+                "0.7.10",
+                "el:s",
+                "at:s.type",
+                "va:s.type.uniform",
+                "va:s.type.poisson",
+            ),
+        ]);
+        expect(history.since["va:s.type.uniform"]).toBe("0.7.0");
+        expect(history.since["va:s.type.poisson"]).toBe("0.7.10");
+    });
+
+    it("dates a list written with its attribute to that release", () => {
+        // The degenerate case of the same rule: attribute and list arrive
+        // together, so the values take the attribute's date and the badge
+        // rules drop them against it.
+        const history = buildSchemaHistory([
+            snapshot("0.7.0", "el:c"),
+            snapshot("0.7.27", "el:c", "at:c.type", "va:c.type.bar"),
+        ]);
+        expect(history.since["at:c.type"]).toBe("0.7.27");
+        expect(history.since["va:c.type.bar"]).toBe("0.7.27");
+    });
+
+    it("re-dates a list that went away and came back", () => {
+        // A list that disappears and returns starts a new run, and the values
+        // in it are dated to the attribute again rather than to the return.
+        const history = buildSchemaHistory([
+            snapshot("0.7.0", "el:m", "at:m.mode", "va:m.mode.inline"),
+            snapshot("0.7.10", "el:m", "at:m.mode"),
+            snapshot("0.7.20", "el:m", "at:m.mode", "va:m.mode.inline"),
+        ]);
+        expect(history.since["at:m.mode"]).toBe("0.7.0");
+        expect(history.since["va:m.mode.inline"]).toBe("0.7.0");
+    });
+
     it("records the start of the latest contiguous run, not the first sighting", () => {
         // present -> removed -> re-added: the acceptance case from the issue.
         const history = buildSchemaHistory([
@@ -268,22 +420,51 @@ describe.skipIf(!hasReleaseTags)(
             ).toBe("0.7.21");
             // The 501-key drop the contiguous-run rule exists for.
             expect(history.removedIn["pr:abs.modifyIndirectly"]).toBe("0.7.17");
+            // Both branches of the list-dating rule, on the real tags rather
+            // than on synthetic snapshots. `math`'s `renderMode` list was
+            // written down at 0.7.25 for values MMeMen.js has set since v0.7.0;
+            // `selectRandomNumbers`' `type` list has been there since 0.7.0, so
+            // `poisson` joining it at 0.7.27 is an arrival and keeps its date.
+            expect(history.since["va:math.renderMode.display"]).toBe("0.7.0");
+            expect(history.since["va:selectRandomNumbers.type.poisson"]).toBe(
+                "0.7.27",
+            );
+        });
+
+        it("names a kind for every key the index holds", () => {
+            // What `report:schema-changes` needs to add up: it prints one line
+            // per kind in `HISTORY_KEY_KINDS` under a total counted over all
+            // keys, so a kind added to `schemaKeys` and not to that list would
+            // go unreported. Checked against the real tags rather than a
+            // synthetic schema, which would only ever hold the kinds this test
+            // thought to write.
+            const history = realHistory();
+            const prefixes = HISTORY_KEY_KINDS.map((kind) => kind.prefix);
+            const unnamed = [
+                ...Object.keys(history.since),
+                ...Object.keys(history.removedIn),
+            ].filter((key) => !prefixes.some((p) => key.startsWith(p)));
+            expect(unnamed).toEqual([]);
         });
 
         it("reproduces the counts, as a floor that only grows", () => {
-            // Exact as of 0.7.27: 12,191 live keys, 10,228 of them present at or
-            // before 0.7.0, 1,963 introduced during 0.7.x, 25 of those elements.
-            // Asserted as lower bounds so a new release does not fail the suite.
-            // The 0.7.0 figure is exact instead, and deliberately a tripwire: it
-            // moves only when a release removes — or removes and re-adds — a key
-            // that had been in the schema since 0.7.0, which is worth a look
-            // rather than a silent slide. Update the number when that happens.
+            // Exact as of 0.7.27: 19,661 live keys — 265 elements, 5,668
+            // attributes, 6,258 properties and 7,470 attribute values — of
+            // which 15,490 were present at or before 0.7.0, 4,171 arrived
+            // during 0.7.x, and 25 of those are elements. Asserted as lower
+            // bounds so a new release does not fail the suite. The 0.7.0 figure
+            // is exact instead, and deliberately a tripwire. Two things move
+            // it, both worth a look rather than a silent slide: a release that
+            // removes — or removes and re-adds — a key that had been in the
+            // schema since 0.7.0, and a release that writes down a value list
+            // for an attribute dating to 0.7.0, which back-dates every value in
+            // it into this bucket. Update the number when either happens.
             const live = liveKeys(realHistory());
             const history = realHistory();
-            expect(live.length).toBeGreaterThanOrEqual(12191);
+            expect(live.length).toBeGreaterThanOrEqual(19661);
             expect(
                 live.filter((k) => history.since[k] === "0.7.0"),
-            ).toHaveLength(10228);
+            ).toHaveLength(15490);
             expect(
                 live.filter(
                     (k) => k.startsWith("el:") && history.since[k] !== "0.7.0",

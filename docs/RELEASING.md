@@ -246,15 +246,15 @@ cherry-picked backport touches none of them, so the lines do not contend.
   maintenance line. Work to change this is tracked under
   [#1497](https://github.com/Doenet/DoenetML/issues/1497).
 - **A release adds nothing for anyone to regenerate.** The docs know which
-  release each schema element, attribute and property first appeared in, but
-  that index is derived at docs build time by reading the committed schema at
-  every release tag — so cutting a tag is the only action needed, with nothing
-  to regenerate or commit afterwards. Note when it becomes visible, though: the
-  Pages deploy runs on pushes to `main`, and the tag is cut in step 2, *after*
-  the version PR merges in step 1 — so the deploy that merge triggered predates
-  the tag. The new release reaches the docs on the next push to `main`, or right
-  away by running the Pages workflow manually from the Actions tab. To see what
-  a release changed, run
+  release each schema element, attribute, property and enumerated attribute
+  value first appeared in, but that index is derived at docs build time by
+  reading the committed schema at every release tag — so cutting a tag is the
+  only action needed, with nothing to regenerate or commit afterwards. Note when
+  it becomes visible, though: the Pages deploy runs on pushes to `main`, and the
+  tag is cut in step 2, *after* the version PR merges in step 1 — so the deploy
+  that merge triggered predates the tag. The new release reaches the docs on the
+  next push to `main`, or right away by running the Pages workflow manually from
+  the Actions tab. To see what a release changed, run
   `npm run report:schema-changes -w packages/docs-nextra -- <version>`.
 
 ## Where things are
