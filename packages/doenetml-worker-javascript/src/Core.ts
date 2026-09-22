@@ -810,8 +810,14 @@ export default class Core {
         return this.rendererInstructionBuilder.updateRendererInstructions(args);
     }
 
+    componentsOnVisibleGraphs(targets: number[]): Set<number> {
+        return this.rendererInstructionBuilder.componentsOnVisibleGraphs(
+            targets,
+        );
+    }
+
     async updateRenderersForComponents(
-        componentIndices: number[],
+        componentIndices: Iterable<number>,
         sourceInformation: any = {},
         actionId?: string,
     ): Promise<void> {

@@ -105,15 +105,15 @@ export class RendererInstructionBuilder {
          */
         deferred?: boolean;
         /**
-         * Whether to also reconcile the components whose rendered children
-         * changed. That pass appends every such component to
-         * `componentNamesToUpdate` and consumes the pending set, so a batch
-         * meant to carry one component would otherwise carry the structural
-         * churn of the whole update — exactly what a priority batch exists to
-         * avoid. Turning it off leaves the pending set for the batch that
-         * follows.
+         * Which components whose rendered children changed to reconcile in
+         * this batch. That pass appends each such component to
+         * `componentNamesToUpdate` and consumes it from the pending set.
+         * `true` takes all of them; a set takes only those in it, so a
+         * priority batch reconciles the structure it carries and leaves the
+         * rest of the update's structural churn for the batch that follows;
+         * `false` takes none.
          */
-        reconcileChangedChildren?: boolean;
+        reconcileChangedChildren?: boolean | Set<number>;
     }): Promise<void> {
         let deletedRenderers: any[] = [];
 
@@ -124,10 +124,18 @@ export class RendererInstructionBuilder {
 
         // copy components with changed children and reset for next time
         let componentsWithChangedChildrenToRenderInProgress: Set<number>;
-        if (reconcileChangedChildren) {
+        if (reconcileChangedChildren === true) {
             componentsWithChangedChildrenToRenderInProgress =
                 this.componentsWithChangedChildrenToRender;
             this.componentsWithChangedChildrenToRender = new Set();
+        } else if (reconcileChangedChildren) {
+            componentsWithChangedChildrenToRenderInProgress = new Set();
+            for (const idx of this.componentsWithChangedChildrenToRender) {
+                if (reconcileChangedChildren.has(idx)) {
+                    componentsWithChangedChildrenToRenderInProgress.add(idx);
+                    this.componentsWithChangedChildrenToRender.delete(idx);
+                }
+            }
         } else {
             componentsWithChangedChildrenToRenderInProgress = new Set();
         }
@@ -162,7 +170,9 @@ export class RendererInstructionBuilder {
                         },
                     );
 
-                    let renderedInd = 0;
+                    // Strings and numbers are keyed by their position among the
+                    // active children, the same position they hold in the
+                    // stored `children` list compared against below.
                     for (let [
                         ind,
                         child,
@@ -174,19 +184,16 @@ export class RendererInstructionBuilder {
                                 currentChildIdentifiers.push(
                                     `nameType:${child.componentIdx};${child.componentType}`,
                                 );
-                                renderedInd++;
                             } else if (typeof child === "string") {
                                 currentChildIdentifiers.push(
-                                    `string${renderedInd}:${child}`,
+                                    `string${ind}:${child}`,
                                 );
-                                renderedInd++;
                             } else if (typeof child === "number") {
                                 currentChildIdentifiers.push(
-                                    `number${renderedInd}:${(
+                                    `number${ind}:${(
                                         child as number
                                     ).toString()}`,
                                 );
-                                renderedInd++;
                             } else {
                                 currentChildIdentifiers.push("");
                             }
@@ -625,32 +632,108 @@ export class RendererInstructionBuilder {
     }
 
     /**
+     * Every component rendered on a graph the reader can see, together with
+     * `targets` themselves: the part of a drag step's renderer fan-out that
+     * goes out straight away.
+     *
+     * A graph counts as visible once its renderer reports it in the viewport
+     * (`Graph.recordVisibilityChange`, kept in `VisibilityTracker`). The graph
+     * holding a target counts regardless: the reader is dragging inside it, and
+     * it may not have reported yet. Only the outermost graph matters, since a
+     * graph inside a graph is already part of its subtree.
+     *
+     * The unit is the graph because it is where a drag's consequences are
+     * drawn. Other components that draw their own coordinate space, such as a
+     * `<subsetOfRealsInput>`, are themselves the target of their drags.
+     */
+    componentsOnVisibleGraphs(targets: number[]): Set<number> {
+        const isGraph = (componentType: string) =>
+            this.core.componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: componentType,
+                baseComponentType: "graph",
+            });
+
+        const graphs = new Set<number>();
+
+        for (const idxStr in this.core.visibilityInfo
+            .componentsCurrentlyVisible) {
+            const idx = Number(idxStr);
+            const component = this.core._components[idx];
+            if (
+                component &&
+                idx in this.componentsToRender &&
+                isGraph(component.componentType)
+            ) {
+                graphs.add(idx);
+            }
+        }
+
+        for (const idx of targets) {
+            let outermostGraph: number | undefined;
+            for (const ancestor of this.core._components[idx]?.ancestors ??
+                []) {
+                if (
+                    ancestor.componentIdx in this.componentsToRender &&
+                    isGraph(ancestor.componentClass.componentType)
+                ) {
+                    outermostGraph = ancestor.componentIdx;
+                }
+            }
+            if (outermostGraph !== undefined) {
+                graphs.add(outermostGraph);
+            }
+        }
+
+        const found = new Set<number>(targets);
+        const walk = (idx: number) => {
+            found.add(idx);
+            for (const child of this.componentsToRender[idx]?.children ?? []) {
+                if (child?.componentIdx != undefined) {
+                    walk(child.componentIdx);
+                }
+            }
+        };
+        for (const graphIdx of graphs) {
+            walk(graphIdx);
+        }
+
+        return found;
+    }
+
+    /**
      * Send just `componentIndices`' renderer state, ahead of everything else
      * an update has queued.
      *
-     * A drag step invalidates far more than the thing being dragged: on a
+     * A drag step invalidates far more than what the reader is watching: on a
      * 50-point dot plot whose points are stacked by `<indexOf>`/`<searchSorted>`
      * and tallied into a `<tabular>`, one `movePoint` queues ~133 rendered
-     * components, of which the dragged point is one. Because the viewer treats
-     * the arrival of a renderer batch as the completion of the action
-     * (`DocViewer.resolveAction`), sending the dragged point first both puts it
-     * on screen immediately and releases the next drag, while the other ~132
-     * follow once the drag settles.
+     * components, 80 of them in the table. Because the viewer treats the
+     * arrival of a renderer batch as the completion of the action
+     * (`DocViewer.resolveAction`), sending the graph first both puts it on
+     * screen immediately and releases the next drag, while the table follows
+     * once the drag settles.
      *
      * Components are *removed* from the pending set as they are sent, so the
      * later flush does not send them twice. A component that is not currently
-     * queued is not sent at all, which is why this filters on `delete`.
+     * queued is not sent at all, which is why this filters on `delete`. A
+     * change to which children render under one of `componentIndices` is
+     * reconciled here too, so a drag that adds or removes components on the
+     * graph lands with it.
      */
     async updateRenderersForComponents(
-        componentIndices: number[],
+        componentIndices: Iterable<number>,
         sourceInformation: any = {},
         actionId?: string,
     ): Promise<void> {
-        const componentNamesToUpdate = componentIndices.filter((idx) =>
+        const candidates = new Set(componentIndices);
+        const componentNamesToUpdate = [...candidates].filter((idx) =>
             this.core.updateInfo.componentsToUpdateRenderers.delete(idx),
         );
+        const hasStructuralChange = [
+            ...this.componentsWithChangedChildrenToRender,
+        ].some((idx) => candidates.has(idx));
 
-        if (componentNamesToUpdate.length === 0) {
+        if (componentNamesToUpdate.length === 0 && !hasStructuralChange) {
             return;
         }
 
@@ -658,7 +741,7 @@ export class RendererInstructionBuilder {
             componentNamesToUpdate,
             sourceOfUpdate: { sourceInformation, local: true },
             actionId,
-            reconcileChangedChildren: false,
+            reconcileChangedChildren: candidates,
         });
     }
 

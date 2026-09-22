@@ -8,7 +8,8 @@ import { createTestCore } from "./test-core";
  * that motivated this, ~133 rendered components per drag step, all of which
  * the viewer then reconciles and typesets.
  *
- * So a drag step sends its own targets straight away and holds the rest until
+ * So a drag step sends what the reader is watching straight away — its own
+ * targets and everything rendered on a visible graph — and holds the rest until
  * the interaction goes quiet; the commit that ends the drag sends everything.
  * These tests pin that split, and pin that nothing is dropped on the way.
  *
@@ -57,6 +58,35 @@ const typingDoenetML = `
 <p>Math echo: <math name="mEcho">$mi.immediateValue</math></p>
 <textInput name="ti" />
 <p>Text echo: <text name="tEcho">$ti.immediateValue</text></p>
+`;
+
+/**
+ * Dragging in one graph moves a point in a second, the way a side-by-side
+ * pair of graphs is often built, and an echo off both graphs.
+ */
+const twoGraphsDoenetML = `
+<graph name="gA">
+  <point name="A">(1,2)</point>
+</graph>
+<graph name="gB">
+  <point name="B">($A.x, -$A.y)</point>
+</graph>
+<p>Echo: <number name="echo">$A.x</number></p>
+`;
+
+/**
+ * As `structuralDoenetML` below, but the components the drag adds or removes
+ * are on the graph, so they belong in the priority batch.
+ */
+const structuralOnGraphDoenetML = `
+<graph name="g">
+  <point name="P">(5,0)</point>
+  <repeat for="$seq" name="rep" valueName="v">
+    <point name="Q">($v, 1)</point>
+  </repeat>
+</graph>
+<setup><sequence name="seq" from="1" to="$P.x" /></setup>
+<p>Count: <number name="count">$P.x</number></p>
 `;
 
 /**
@@ -130,6 +160,15 @@ async function movePointTo({
     });
 }
 
+/** Report `componentIdx` entering or leaving the viewport, as its renderer does. */
+async function setVisible(core: any, componentIdx: number, isVisible: boolean) {
+    await core.requestAction({
+        componentIdx,
+        actionName: "recordVisibilityChange",
+        args: { isVisible },
+    });
+}
+
 /** Every component index currently rendered below `componentIdx`. */
 function renderedDescendants(innerCore: any, componentIdx: number): number[] {
     const found: number[] = [];
@@ -148,12 +187,24 @@ function renderedDescendants(innerCore: any, componentIdx: number): number[] {
     return found.sort((a, b) => a - b);
 }
 
-describe("an interaction sends its own target ahead of the rest @group4", () => {
-    it("a transient move sends only its own target, and defers the rest", async () => {
+describe("an interaction sends what the reader is watching ahead of the rest @group4", () => {
+    it("a transient move sends its graph at once, and defers what is off it", async () => {
         vi.useFakeTimers();
         try {
-            const { core, resolvePathToNodeIdx, batches } = await setup();
+            const { core, innerCore, resolvePathToNodeIdx, batches } =
+                await setup();
             const pointIdx = await resolvePathToNodeIdx("Ps[1].P");
+            const otherPointIndices = [
+                await resolvePathToNodeIdx("Ps[2].P"),
+                await resolvePathToNodeIdx("Ps[3].P"),
+            ];
+            const meanIdx = await resolvePathToNodeIdx("mean");
+            const onGraph = new Set(
+                renderedDescendants(
+                    innerCore,
+                    innerCore._components[pointIdx].parentIdx,
+                ),
+            );
 
             await movePointTo({
                 core,
@@ -162,24 +213,26 @@ describe("an interaction sends its own target ahead of the rest @group4", () => 
                 transient: true,
             });
 
+            // The dragged point and the points its move restacks, which are
+            // on the same graph, go out together — the graph was never
+            // reported visible, but it is the one being dragged in.
             expect(batches).toHaveLength(1);
-            expect(batches[0].componentIndices).toEqual([pointIdx]);
             expect(batches[0].deferred).toBe(false);
+            expect(batches[0].componentIndices).toContain(pointIdx);
+            for (const idx of otherPointIndices) {
+                expect(batches[0].componentIndices).toContain(idx);
+            }
+            expect(batches[0].componentIndices).not.toContain(meanIdx);
 
             // The rest is still pending, and arrives once the drag goes quiet.
             await vi.advanceTimersByTimeAsync(500);
 
             expect(batches).toHaveLength(2);
             expect(batches[1].deferred).toBe(true);
-
-            // Everything the move restated beyond the point itself. The point
-            // may appear here too: the deferred batch is the one that
-            // reconciles changed rendered children, which the priority batch
-            // deliberately skips.
-            const others = batches[1].componentIndices.filter(
-                (idx) => idx !== pointIdx,
-            );
-            expect(others.length).toBeGreaterThan(0);
+            expect(batches[1].componentIndices).toContain(meanIdx);
+            for (const idx of batches[1].componentIndices) {
+                expect(onGraph.has(idx), `${idx} is on the graph`).toBe(false);
+            }
         } finally {
             vi.useRealTimers();
         }
@@ -190,6 +243,7 @@ describe("an interaction sends its own target ahead of the rest @group4", () => 
         try {
             const { core, resolvePathToNodeIdx, batches } = await setup();
             const pointIdx = await resolvePathToNodeIdx("Ps[1].P");
+            const meanIdx = await resolvePathToNodeIdx("mean");
 
             for (const x of [10, 11, 12, 13]) {
                 await movePointTo({
@@ -200,10 +254,12 @@ describe("an interaction sends its own target ahead of the rest @group4", () => 
                 });
             }
 
-            // One small batch per step, nothing else yet.
+            // One batch of the graph per step, nothing off it yet.
             expect(batches).toHaveLength(4);
             for (const batch of batches) {
-                expect(batch.componentIndices).toEqual([pointIdx]);
+                expect(batch.deferred).toBe(false);
+                expect(batch.componentIndices).toContain(pointIdx);
+                expect(batch.componentIndices).not.toContain(meanIdx);
             }
 
             await vi.advanceTimersByTimeAsync(500);
@@ -215,6 +271,54 @@ describe("an interaction sends its own target ahead of the rest @group4", () => 
             vi.useRealTimers();
         }
     });
+
+    it.each([
+        ["reported visible", [true], true],
+        ["never reported", [], false],
+        ["scrolled back out of view", [true, false], false],
+    ])(
+        "a second graph that is %s follows the drag accordingly",
+        async (_label, visibility, followsAtOnce) => {
+            vi.useFakeTimers();
+            try {
+                const { core, resolvePathToNodeIdx, batches } =
+                    await setup(twoGraphsDoenetML);
+                const aIdx = await resolvePathToNodeIdx("A");
+                const bIdx = await resolvePathToNodeIdx("B");
+                const gBIdx = await resolvePathToNodeIdx("gB");
+                const echoIdx = await resolvePathToNodeIdx("echo");
+
+                for (const isVisible of visibility) {
+                    await setVisible(core, gBIdx, isVisible);
+                }
+                batches.length = 0;
+
+                await movePointTo({
+                    core,
+                    componentIdx: aIdx,
+                    x: 5,
+                    transient: true,
+                });
+
+                expect(batches).toHaveLength(1);
+                expect(batches[0].componentIndices).toContain(aIdx);
+                expect(batches[0].componentIndices.includes(bIdx)).toBe(
+                    followsAtOnce,
+                );
+                expect(batches[0].componentIndices).not.toContain(echoIdx);
+
+                await vi.advanceTimersByTimeAsync(500);
+
+                expect(batches).toHaveLength(2);
+                expect(batches[1].componentIndices).toContain(echoIdx);
+                expect(batches[1].componentIndices.includes(bIdx)).toBe(
+                    !followsAtOnce,
+                );
+            } finally {
+                vi.useRealTimers();
+            }
+        },
+    );
 
     it("a non-transient move sends everything at once", async () => {
         const { core, resolvePathToNodeIdx, batches } = await setup();
@@ -349,6 +453,81 @@ describe("an interaction sends its own target ahead of the rest @group4", () => 
 
             expect(deferredTree).toEqual(
                 renderedDescendants(innerCore, innerCore.documentIdx),
+            );
+        },
+    );
+
+    it.each([
+        ["removes", 2],
+        ["adds", 8],
+    ])(
+        "a drag that %s rendered components on the graph lands with the drag step",
+        async (_label, x) => {
+            // The priority batch reconciles changed rendered children under
+            // the graph, so the graph is complete, and shows the moved values,
+            // before the deferred batch carries the off-graph `count`.
+            vi.useFakeTimers();
+            let priorityTree: number[];
+            try {
+                const { core, innerCore, resolvePathToNodeIdx, batches } =
+                    await setup(structuralOnGraphDoenetML);
+                const pointIdx = await resolvePathToNodeIdx("P");
+                const graphIdx = await resolvePathToNodeIdx("g");
+                const countIdx = await resolvePathToNodeIdx("count");
+
+                await movePointTo({
+                    core,
+                    componentIdx: pointIdx,
+                    x,
+                    transient: true,
+                });
+
+                expect(batches).toHaveLength(1);
+                expect(batches[0].componentIndices).not.toContain(countIdx);
+                priorityTree = renderedDescendants(innerCore, graphIdx);
+
+                const stateValues = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const rendererState = innerCore.rendererInstructionBuilder
+                    .rendererState as Record<number, any>;
+                for (const idx of priorityTree) {
+                    const cached = rendererState[idx]?.stateValues;
+                    const actual = stateValues[idx]?.stateValues;
+                    if (!cached || !actual || !("numericalXs" in cached)) {
+                        continue;
+                    }
+                    expect(
+                        cached.numericalXs,
+                        `renderer state for component ${idx} is stale`,
+                    ).toEqual(actual.numericalXs);
+                }
+
+                await vi.advanceTimersByTimeAsync(500);
+                expect(batches).toHaveLength(2);
+                expect(batches[1].componentIndices).toContain(countIdx);
+                expect(renderedDescendants(innerCore, graphIdx)).toEqual(
+                    priorityTree,
+                );
+            } finally {
+                vi.useRealTimers();
+            }
+
+            const { core, innerCore, resolvePathToNodeIdx } = await setup(
+                structuralOnGraphDoenetML,
+            );
+            const pointIdx = await resolvePathToNodeIdx("P");
+            const graphIdx = await resolvePathToNodeIdx("g");
+            await movePointTo({
+                core,
+                componentIdx: pointIdx,
+                x,
+                transient: false,
+            });
+
+            expect(priorityTree).toEqual(
+                renderedDescendants(innerCore, graphIdx),
             );
         },
     );
