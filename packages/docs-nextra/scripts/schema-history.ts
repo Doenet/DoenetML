@@ -193,7 +193,15 @@ function git(args: string[]): string {
 }
 
 /**
- * Release tags at or after `OLDEST_INDEXED_RELEASE`, in version order.
+ * The release tags in one `git tag --list` listing, one per line: those at or
+ * after `OLDEST_INDEXED_RELEASE`, in version order. Prereleases and anything
+ * that is not `vX.Y.Z` are dropped.
+ *
+ * Split out from the git call so the selection and the ordering are testable
+ * without a repository. That is the only coverage CI can have for them —
+ * `test-main` checks out shallow, so the tests that read real tags skip there,
+ * and a mis-ordering would otherwise reach `build-docs` as a wrong `since`
+ * rather than as a failure.
  *
  * Version order, not tag date: the snapshots are diffed as a single line of
  * development, which is what the repo is today. Once the two release lines of
@@ -205,6 +213,28 @@ function git(args: string[]): string {
  * like the release that dropped it, so it gains a spurious `removedIn`. Handle
  * that when the second line starts, by walking each line separately.
  */
+export function parseReleaseTags(
+    listed: string,
+): { tag: string; version: string }[] {
+    return listed
+        .split("\n")
+        .map((line) => line.trim())
+        .flatMap((tag) => {
+            const match = RELEASE_TAG.exec(tag);
+            if (!match) {
+                return [];
+            }
+            const parts = match.slice(1, 4).map(Number);
+            if (compareVersions(parts, OLDEST_INDEXED_RELEASE) < 0) {
+                return [];
+            }
+            return [{ tag, version: parts.join("."), parts }];
+        })
+        .sort((a, b) => compareVersions(a.parts, b.parts))
+        .map(({ tag, version }) => ({ tag, version }));
+}
+
+/** `parseReleaseTags` over this repository's own tags. */
 function releaseTags(): { tag: string; version: string }[] {
     let listed: string;
     try {
@@ -222,22 +252,7 @@ function releaseTags(): { tag: string; version: string }[] {
             { cause: e },
         );
     }
-    return listed
-        .split("\n")
-        .map((line) => line.trim())
-        .flatMap((tag) => {
-            const match = RELEASE_TAG.exec(tag);
-            if (!match) {
-                return [];
-            }
-            const parts = match.slice(1, 4).map(Number);
-            if (compareVersions(parts, OLDEST_INDEXED_RELEASE) < 0) {
-                return [];
-            }
-            return [{ tag, version: parts.join("."), parts }];
-        })
-        .sort((a, b) => compareVersions(a.parts, b.parts))
-        .map(({ tag, version }) => ({ tag, version }));
+    return parseReleaseTags(listed);
 }
 
 /**

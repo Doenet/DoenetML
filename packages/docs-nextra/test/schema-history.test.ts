@@ -8,6 +8,10 @@
  * seen" would print a version the key was not actually available in for the
  * whole span the reader assumes.
  *
+ * Which tags the walk selects, and in what order, is checked the same way —
+ * against a literal `git tag --list` listing rather than a repository — because
+ * that is the only way CI can check it at all.
+ *
  * The last block checks the derivation end to end against the repo's real tags.
  * It skips itself where they are absent, which includes CI: `test-main` uses a
  * default shallow checkout, and making it fetch the tags would charge the whole
@@ -19,6 +23,7 @@ import { execFileSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 import {
     buildSchemaHistory,
+    parseReleaseTags,
     releaseSnapshots,
     schemaKeys,
     type SchemaHistory,
@@ -66,6 +71,57 @@ describe("schemaKeys", () => {
             aliasedElements: { matrixRow: { name: "matrixRow" } },
         } as Parameters<typeof schemaKeys>[0]);
         expect([...keys]).toEqual(["el:matrix"]);
+    });
+});
+
+describe("parseReleaseTags", () => {
+    // `git tag --list` prints in lexical order, so the walk's own ordering is
+    // what puts 0.7.10 after 0.7.9 rather than between 0.7.1 and 0.7.2. Nothing
+    // else checks it in CI: the tests that read the repository's real tags skip
+    // on a shallow checkout, and a mis-ordering reaches `build-docs` as a wrong
+    // `since` in a file nothing reads yet, not as a failure.
+    it("orders numerically, not lexically", () => {
+        expect(
+            parseReleaseTags(
+                ["v0.7.1", "v0.7.10", "v0.7.2", "v0.7.9", "v0.8.0"].join("\n"),
+            ),
+        ).toEqual([
+            { tag: "v0.7.1", version: "0.7.1" },
+            { tag: "v0.7.2", version: "0.7.2" },
+            { tag: "v0.7.9", version: "0.7.9" },
+            { tag: "v0.7.10", version: "0.7.10" },
+            { tag: "v0.8.0", version: "0.8.0" },
+        ]);
+        // Minor and major compare numerically too, so a second release line
+        // does not sort under 0.7.
+        expect(
+            parseReleaseTags(["v0.10.0", "v0.9.0", "v1.0.0"].join("\n")).map(
+                (t) => t.version,
+            ),
+        ).toEqual(["0.9.0", "0.10.0", "1.0.0"]);
+    });
+
+    it("keeps only stable releases at or after the oldest indexed one", () => {
+        expect(
+            parseReleaseTags(
+                [
+                    "v0.6.9", // an older line, below OLDEST_INDEXED_RELEASE
+                    "v0.7.0-rc-8", // a prerelease: same blob as v0.7.0
+                    "v0.7.0",
+                    "  v0.7.1  ", // git's own output has no padding; be safe
+                    "v0.7", // not a release tag
+                    "vscode-extension-v1.2.3",
+                    "", // the trailing newline
+                ].join("\n"),
+            ).map((t) => t.tag),
+        ).toEqual(["v0.7.0", "v0.7.1"]);
+    });
+
+    it("returns nothing for a listing with no release tags", () => {
+        // What a shallow clone produces; `releaseSnapshots` turns it into the
+        // "fetch tags first" throw rather than an empty index.
+        expect(parseReleaseTags("")).toEqual([]);
+        expect(parseReleaseTags("\n\n")).toEqual([]);
     });
 });
 
