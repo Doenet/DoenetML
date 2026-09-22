@@ -154,12 +154,10 @@ export function attributeValueOwners(
 /**
  * Fold release snapshots into the history index.
  *
- * `since` is the start of a key's *latest contiguous run of presence*, not its
- * first-ever appearance. Keys get removed and names get reused — 0.7.17 dropped
- * 501 keys and 0.7.18 another 376 — so first-ever-seen would report a stale
- * version for anything that came back. A rename shows up as a removal plus an
+ * `since` is the start of a key's *latest contiguous run of presence*, which
+ * `runStarts` computes and explains. A rename shows up as a removal plus an
  * addition, which is the right rendering: the old spelling carries `removedIn`
- * and the new one carries its own `since`.
+ * and the new one carries its own `since`. Value keys get one pass more, below.
  */
 export function buildSchemaHistory(
     snapshots: VersionSnapshot[],
@@ -233,7 +231,8 @@ export function buildSchemaHistory(
  *
  * Keys get removed and names get reused — 0.7.17 dropped 501 and 0.7.18 another
  * 376 — so first-ever-seen would report a stale version for anything that came
- * back.
+ * back. `buildSchemaHistory` runs this twice: over the schema keys themselves,
+ * and over the attributes declaring a value list, whose runs date the lists.
  */
 function runStarts(
     snapshots: { version: string; keys: Set<SchemaHistoryKey> }[],
