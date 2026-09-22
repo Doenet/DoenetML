@@ -274,8 +274,8 @@ html.dark main .attr-filter-empty {
  * Tailwind 4 resolves to #A65F00. Over the yellow-50 callout background —
  * darkened a further 3% by the background an inline <code> chip adds — that is
  * 4.44:1, just under the 4.5:1 AA threshold for body text. Nextra 3 used
- * yellow-900 here, which is why this passed before the migration. yellow-800
- * (#854D0E) restores it at 6.2:1 without changing the hue.
+ * yellow-900 here, which is why this passed before the migration. #854D0E
+ * (Tailwind 3's yellow-800) restores it at 6.2:1 without changing the hue.
  * --------------------------------------------------------------------------- */
 html:not(.dark) main .nextra-callout.x\:text-yellow-700 {
     color: #854d0e;

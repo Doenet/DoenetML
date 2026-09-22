@@ -92,11 +92,20 @@ const fullConfig = withNextra({
     },
 });
 
-// Nextra 3 needed a webpack override here to force a single copy of React (and
-// `better-react-mathjax`) into the bundle, and to disable minification. Neither is
-// needed under Nextra 4 / the App Router: Next aliases `react` and `react-dom` to
-// its own vendored copies for every layer, so there is only ever one, and the
-// duplicate-identifier minifier bug the override worked around was scoped to
-// Next.js 14 with Nextra 3.
+// Nextra 3 needed a webpack override here to disable minification and to alias
+// `react`, `react-dom` and `better-react-mathjax` to a single copy each. Neither
+// is needed under Nextra 4 / the App Router:
+//
+//   - the duplicate-identifier minifier bug the override worked around was
+//     scoped to Next.js 14 with Nextra 3;
+//   - Next aliases `react` and `react-dom` for every layer itself, and applying
+//     our own alias on top of that broke every page with "Cannot read properties
+//     of null (reading 'useMemoCache')";
+//   - `better-react-mathjax` does resolve to two copies (3.x at the root, from
+//     `@doenet/doenetml-iframe`, and Nextra's own 2.x), but that is harmless
+//     here: `components/props-display.tsx` renders both the `MathJaxContext`
+//     provider and its consumers from the root copy, and Nextra only renders
+//     its own copy under `latex: { renderer: "mathjax" }` — the `latex: true`
+//     above selects rehype-katex instead.
 
 export default fullConfig;
