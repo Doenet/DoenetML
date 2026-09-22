@@ -35,18 +35,23 @@ const versions = all
     : [requested ?? history.latestReleasedVersion];
 
 /**
- * The three kinds of key, reported separately. An attribute and a property can
- * share a name on the same element — `document.documentWideCheckWork` is both —
- * so a single merged list would print it twice with nothing to tell the two
- * apart.
+ * The kinds of key, reported separately, and between them covering every key
+ * the index holds — so the per-kind lines add up to the `+n added` total above
+ * them. An attribute and a property can share a name on the same element —
+ * `document.documentWideCheckWork` is both — so a single merged list would
+ * print it twice with nothing to tell the two apart.
  */
 const KINDS = [
     { prefix: "el:", label: "elements" },
     { prefix: "at:", label: "attributes" },
     { prefix: "pr:", label: "properties" },
+    { prefix: "va:", label: "attribute values" },
 ] as const;
 
-/** `el:chart` -> `<chart>`; `at:point.x` -> `point.x`. */
+/**
+ * `el:chart` -> `<chart>`; `at:point.x` -> `point.x`;
+ * `va:selectRandomNumbers.type.poisson` -> `selectRandomNumbers.type.poisson`.
+ */
 function display(key: string): string {
     const name = key.slice(3);
     return key.startsWith("el:") ? `<${name}>` : name;

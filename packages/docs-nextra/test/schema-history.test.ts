@@ -88,11 +88,11 @@ describe("schemaKeys", () => {
     });
 
     it("unions both value fields, in either shape they have had", () => {
-        // `autocompleteValues` arrived at 0.7.16 as `string[]` and became
+        // `autocompleteValues` arrived at 0.7.14 as `string[]` and became
         // `{ value, description }[]` at 0.7.17, so the walk meets both. It
         // carries only the author-facing subset — 68 attributes list
         // `true`/`false` under `values` alone — so keying on the field the
-        // docs prefer would read 0.7.16 as those values being removed.
+        // docs prefer would read 0.7.14 as those values being removed.
         const fromStrings = schemaKeys({
             elements: [
                 {

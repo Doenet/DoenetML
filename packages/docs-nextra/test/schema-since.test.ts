@@ -5,8 +5,9 @@
  * regression would show up as silence on a page rather than as a wrong version.
  *
  * The suppression rule is the one that keeps the docs readable: without it
- * `<chart>`, which arrived in 0.7.27 carrying 70 keys, would badge each of its
- * 30 attributes and 39 properties instead of reading as one new component.
+ * `<chart>`, which arrived in 0.7.27 carrying 116 keys, would badge each of its
+ * 30 attributes, 39 properties and 46 attribute values instead of reading as
+ * one new component.
  */
 import { describe, expect, it } from "vitest";
 import { UNRELEASED, type SchemaHistory } from "../scripts/schema-history-keys";

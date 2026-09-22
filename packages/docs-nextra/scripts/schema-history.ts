@@ -42,9 +42,9 @@ type SchemaSnapshotJson = {
             name: string;
             values?: string[];
             /**
-             * `string[]` at 0.7.16, the release that introduced it, and
-             * `{ value, description }[]` from 0.7.17 on. A reader that assumes
-             * the object form throws on that one tag.
+             * `string[]` from 0.7.14, the release that introduced it, through
+             * 0.7.16, and `{ value, description }[]` from 0.7.17 on. A reader
+             * that assumes the object form throws on those three tags.
              */
             autocompleteValues?: (string | { value: string })[];
         }[];
@@ -58,7 +58,7 @@ type SchemaSnapshotJson = {
  * Both are read and unioned, not one in preference to the other. The docs
  * render `autocompleteValues` where it exists, but 68 attributes list
  * `true`/`false` under `values` alone, so keying on the preferred field would
- * read the 0.7.16 arrival of `autocompleteValues` as those values being
+ * read the 0.7.14 arrival of `autocompleteValues` as those values being
  * removed.
  */
 function attributeValues(attribute: {

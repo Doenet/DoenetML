@@ -100,10 +100,10 @@ Most items carry no badge, which is the point — the schema's 19,697 keys marke
 nothing to anyone. Two rules drop them:
 
 - An item that arrived with the item enclosing it says nothing; that badge already covers
-  it. `<chart>` arrived in 0.7.27 with 70 keys and reads as one new component, not as a
-  badge on each of its 30 attributes and 39 properties as well — and the same rule one
-  level down keeps a new enumerated attribute from repeating itself once per keyword in
-  its value table.
+  it. `<chart>` arrived in 0.7.27 with 116 keys and reads as one new component, not as a
+  badge on each of its 30 attributes, 39 properties and 46 attribute values as well. The
+  same rule between an attribute and its values keeps a new enumerated attribute from
+  repeating itself once per keyword in its value table.
 - An element present in the oldest release the index covers says nothing either. The
   snapshots cannot tell "arrived in 0.7.0" from "arrived earlier", and there is no version
   below it for a reader to select.

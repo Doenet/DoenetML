@@ -7,10 +7,10 @@
  * most of the schema's 19,697 keys should say nothing:
  *
  *   - An item that arrived with its element carries no badge of its own. The
- *     element's badge already covers it. `<chart>` arrived in 0.7.27 with 70
+ *     element's badge already covers it. `<chart>` arrived in 0.7.27 with 116
  *     keys and should read as one new component, not as a badge on each of its
- *     30 attributes and 39 properties as well; this rule removes most of the
- *     markers.
+ *     30 attributes, 39 properties and 46 attribute values as well; this rule
+ *     removes most of the markers.
  *   - An element present in the oldest release the index covers carries none
  *     either. The index cannot tell "arrived in 0.7.0" from "arrived earlier",
  *     and there is no version below it for a reader to select, so that badge
