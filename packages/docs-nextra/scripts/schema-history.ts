@@ -206,7 +206,23 @@ function git(args: string[]): string {
  * that when the second line starts, by walking each line separately.
  */
 function releaseTags(): { tag: string; version: string }[] {
-    return git(["tag", "--list", "v*"])
+    let listed: string;
+    try {
+        listed = git(["tag", "--list", "v*"]);
+    } catch (e) {
+        // Not "no tags" but "no answer": a source download with no `.git`, or
+        // no `git` on PATH. Without this the docs build stops on a raw
+        // `Command failed: git tag --list v*` dump that never says why it
+        // wanted git in the first place.
+        throw new Error(
+            `Could not list git tags. The docs build derives the schema ` +
+                `history from the committed schema at each release tag, so it ` +
+                `has to run inside a clone of this repository with git ` +
+                `available; an unpacked source archive has no tags to read.`,
+            { cause: e },
+        );
+    }
+    return listed
         .split("\n")
         .map((line) => line.trim())
         .flatMap((tag) => {

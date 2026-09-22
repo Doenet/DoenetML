@@ -126,6 +126,7 @@ if (!all) {
     console.log(
         `\n(${history.versions.length} releases indexed, ` +
             `${history.versions[0]}–${history.latestReleasedVersion}. ` +
-            `Pass a version, or --all.)`,
+            `Pass a version, or --all — as \`-- --all\` through npm, which ` +
+            `otherwise swallows the flag itself.)`,
     );
 }
