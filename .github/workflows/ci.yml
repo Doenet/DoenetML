@@ -648,7 +648,7 @@ jobs:
             # above, so there is no separate build step; see the comments in that
             # job for the reasoning behind that and behind the env below. The
             # reference pages it checks are the .mdx sources in
-            # packages/docs-nextra/pages/reference, tracked in git, so nothing
+            # packages/docs-nextra/content/reference, tracked in git, so nothing
             # else needs building.
             - name: Verify schema components map to /reference/<slug> pages
               run: npm run check:docs-coverage -w packages/static-assets

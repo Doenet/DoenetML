@@ -153,7 +153,7 @@ function collectExampleHeadings(tree: MdastRoot): ExampleHeading[] {
  */
 let crossPageExampleIndexCache: Map<string, ExampleRef[]> | null = null;
 
-/** Resolve the `pages/reference` directory from the file currently being
+/** Resolve the `content/reference` directory from the file currently being
  * processed, or `null` when the file is not a reference page. */
 function getReferenceDir(file: { path?: string; history?: string[] }) {
     const filePath = file.path ?? file.history?.[0];

@@ -334,7 +334,7 @@ switching to another port, so free the port and restart the command.
 
 ### Common failure: colour-contrast violations after style changes
 
-If you changed `packages/docs-nextra/pages/style.css` or other doc styles,
+If you changed `packages/docs-nextra/app/style.css` or other doc styles,
 rebuild the docs (step 1) before running the tests — Cypress reads the built
 `out/` directory, not the source files.
 

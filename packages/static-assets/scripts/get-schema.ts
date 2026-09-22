@@ -25,7 +25,7 @@ import type { MathDefaultValue, ValidValueEntry } from "../src/schema";
 const __dirname = path.dirname(fileURLToPath(import.meta.url));
 const REFERENCE_DOCS_DIR = path.resolve(
     __dirname,
-    "../../docs-nextra/pages/reference",
+    "../../docs-nextra/content/reference",
 );
 
 /**

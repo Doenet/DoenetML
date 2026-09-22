@@ -5,7 +5,7 @@ description: Author DoenetML documentation under packages/docs-nextra/ within th
 
 # DoenetML Reference-Docs Authoring Skill
 
-Use this skill when **creating or revising `pages/reference/<slug>.mdx` pages** for DoenetML components, or when retiring an entry from `undocumented-components-allowlist.txt` by writing the missing page.
+Use this skill when **creating or revising `content/reference/<slug>.mdx` pages** for DoenetML components, or when retiring an entry from `undocumented-components-allowlist.txt` by writing the missing page.
 
 For writing the DoenetML inside the examples themselves, defer to the [`doenetml-authoring`](../doenetml-authoring/SKILL.md) skill — it owns the rules for what is valid DoenetML. This skill owns the surrounding MDX prose, page layout, and how a new page is wired into the docs site.
 
@@ -15,19 +15,19 @@ The DoenetML docs are migrating to the [Diátaxis](https://diataxis.fr/) framewo
 
 | Diátaxis mode | Reader need | Site section | Folder |
 | --- | --- | --- | --- |
-| **Tutorial** | "teach me — I'm learning" | Tutorials | `pages/tutorials/` |
+| **Tutorial** | "teach me — I'm learning" | Tutorials | `content/tutorials/` |
 | **How-to guide** | "help me accomplish a task" | Guides | `pages/guides/` |
-| **Reference** | "tell me the facts" — **this skill** | Reference | `pages/reference/` |
+| **Reference** | "tell me the facts" — **this skill** | Reference | `content/reference/` |
 | **Explanation / Concepts** | "help me understand why" | Concepts | `pages/concepts/` |
 
 The **Concepts** section is the Explanation quadrant. It was created by renaming the former "Document Structure" section: the folder is `pages/concepts/` and the sidebar title is "Concepts", with a subheading (in `pages/index.mdx`) that emphasizes explanation — the ideas and the *why*, not document layout. The goal of the migration is to have a clean four-mode skeleton so the team can write many more Concept and Guide pages against a consistent pattern; today those two sections are still thin.
 
 ### Picking the right home for a page
 
-- **Reference** (`pages/reference/`, this skill) — complete, dry facts about one component: attributes, properties, small per-feature examples. Looked up, not read through.
+- **Reference** (`content/reference/`, this skill) — complete, dry facts about one component: attributes, properties, small per-feature examples. Looked up, not read through.
 - **How-to guide** (`pages/guides/`) — a single task the reader wants to accomplish ("style components", "validate an answer", "control credit awarded"). Imperative, recipe-shaped, assumes the reader already knows the basics. The task-oriented pages that used to sit under "Document Structure" (answer validation, controlling credit, advanced examples) belong here.
 - **Concept / Explanation** (`pages/concepts/`) — understanding-oriented prose: the model behind a feature, the reasons for a design, the trade-offs. No step-by-step recipes; link out to a guide for those. Current Concepts pages: `essentialConcepts` (how DoenetML works — the component model), `references` (what a reference is and how it resolves), `styling` (how styling works), and the `documentStructure` stub to be built out.
-- **Tutorial** (`pages/tutorials/`) — a guided, start-to-finish learning experience.
+- **Tutorial** (`content/tutorials/`) — a guided, start-to-finish learning experience.
 
 A quick test for where a draft belongs: a numbered list of steps → **guide**; "here's the model / here's why" → **concept**; "every attribute of `<x>`" → **reference**; "follow along and build this" → **tutorial**.
 
@@ -67,11 +67,11 @@ Do not, in author-facing prose:
 
 It is fine — and often necessary — to mention attribute names, child-tag names, property names, and other surface-API identifiers. Those *are* the author-facing surface. The line to hold is roughly: "what would an author see by experimenting" vs "how is it implemented".
 
-Source-code references *are* appropriate in: PR descriptions, GitHub issue bodies, code comments, and skill/contributor docs like this file. Just not in `pages/reference/*.mdx`.
+Source-code references *are* appropriate in: PR descriptions, GitHub issue bodies, code comments, and skill/contributor docs like this file. Just not in `content/reference/*.mdx`.
 
 ## High-level page anatomy
 
-Every reference page lives at `packages/docs-nextra/pages/reference/<slug>.mdx`. The standard skeleton is:
+Every reference page lives at `packages/docs-nextra/content/reference/<slug>.mdx`. The standard skeleton is:
 
 ```mdx
 import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
@@ -190,7 +190,7 @@ Fenced code-block forms registered in `next.config.mjs`:
 | ```` ```doenet-editor ```` | Source on top, live preview below (stacked). | When the example is tall enough that horizontal split feels cramped. |
 | ```` ```doenet-example ```` | Live preview only, source hidden behind a disclosure. | When the source is uninteresting to first-time readers and the visual result is the point (often used for "this is what `<foo>` looks like" demos). |
 | ```` ```doenet-viewer ```` | Live preview only, source completely hidden. | Rare — mainly when source is incidental to the point being made. Most pages should let readers see the source. |
-| ```` ```doenet ```` | **Source only**, syntax-highlighted. No live preview, no run button. | Showing a snippet the reader is meant to read but not run — e.g. in tutorials when introducing a concept before the full runnable example. Used widely in `pages/tutorials/`. (`` ```dn `` is the same fence via Shiki alias, but the hyphenated form is what existing pages use.) |
+| ```` ```doenet ```` | **Source only**, syntax-highlighted. No live preview, no run button. | Showing a snippet the reader is meant to read but not run — e.g. in tutorials when introducing a concept before the full runnable example. Used widely in `content/tutorials/`. (`` ```dn `` is the same fence via Shiki alias, but the hyphenated form is what existing pages use.) |
 | ```` ```math ```` | Display LaTeX via Nextra's KaTeX. | Long display math in prose (e.g. defining the equation a component solves). |
 
 Mechanics: `next.config.mjs` registers four `wrap*` remark plugins (`wrapDoenetEditor`, `wrapDoenetEditorHorizontal`, `wrapDoenetExample`, `wrapDoenetViewer`) that intercept the four hyphenated fence names and wrap them in the live React components. ```` ```doenet ```` has no wrapper — it falls through to Shiki and renders as a static highlighted block. ```` ```doenetml ```` is **not** registered; it would render as an unstyled unknown-language block. Do not use it.
@@ -357,11 +357,11 @@ When in doubt, run `npm run build -w packages/docs-nextra` on the changed page; 
 
 ## Integration steps when adding (or renaming) a page
 
-When you add `packages/docs-nextra/pages/reference/<slug>.mdx`, **all four** of the following must be updated in the same change, or CI will fail or the page will be unreachable:
+When you add `packages/docs-nextra/content/reference/<slug>.mdx`, **all four** of the following must be updated in the same change, or CI will fail or the page will be unreachable:
 
-1. **`packages/docs-nextra/pages/reference/_meta.ts`** — add `<slug>: { title: "<slug>" }` in alphabetical order. This drives the left-hand nav. For an existing component documented across multiple pages, the title can be augmented (`"foo (Properties)"`).
-2. **`packages/docs-nextra/pages/reference/componentIndex.mdx`** — the alphabetical "all components" table. Replace the existing **unlinked** row (`` `<slug>` ``) for the component with a linked one (`` [`<slug>`](slug) ``) and fill in the description. Sections are A, B, C, D, E, F-G, H-L, M, N-O, P, Q-R, S, T, U-Z.
-3. **`packages/docs-nextra/pages/reference/componentTypes.mdx`** — the "by category" table. If the component belongs to one of the named categories (Paragraph markup, Sectional, Input, Graphical, Display Math, Math, Math operator, General operator, Logic, Evaluation, Text), link it there too. If it appears in the existing table as an unlinked row, linkify it; if not, add a row in the appropriate category.
+1. **`packages/docs-nextra/content/reference/_meta.ts`** — add `<slug>: { title: "<slug>" }` in alphabetical order. This drives the left-hand nav. For an existing component documented across multiple pages, the title can be augmented (`"foo (Properties)"`).
+2. **`packages/docs-nextra/content/reference/componentIndex.mdx`** — the alphabetical "all components" table. Replace the existing **unlinked** row (`` `<slug>` ``) for the component with a linked one (`` [`<slug>`](slug) ``) and fill in the description. Sections are A, B, C, D, E, F-G, H-L, M, N-O, P, Q-R, S, T, U-Z.
+3. **`packages/docs-nextra/content/reference/componentTypes.mdx`** — the "by category" table. If the component belongs to one of the named categories (Paragraph markup, Sectional, Input, Graphical, Display Math, Math, Math operator, General operator, Logic, Evaluation, Text), link it there too. If it appears in the existing table as an unlinked row, linkify it; if not, add a row in the appropriate category.
 4. **`packages/static-assets/scripts/undocumented-components-allowlist.txt`** — if the component was on the allow-list (because it previously had no docs page), **remove the entry**. The docs-coverage CI check (`npm run check:docs-coverage -w packages/static-assets`) treats redundant allow-list entries as hard errors.
 
 If you also **renamed** a page, the component class's `componentDocs.docsSlug` (in `packages/doenetml-worker-javascript/src/components/...`) may need to be updated to point to the new slug.
@@ -422,7 +422,7 @@ This catches: MDX parse errors, broken `import`s, missing schema entries referen
 
 Before opening a PR that adds or renames a reference page:
 
-- [ ] `pages/reference/<slug>.mdx` exists and has the standard imports + H1 + `<AttrPropDisplay>` skeleton.
+- [ ] `content/reference/<slug>.mdx` exists and has the standard imports + H1 + `<AttrPropDisplay>` skeleton.
 - [ ] All examples use `doenet-editor-horiz` (or a documented alternative) and are valid DoenetML per the `doenetml-authoring` skill.
 - [ ] **Every tag and attribute in every example has been looked up in `doenet-schema.json`** — not pattern-matched from other docs. In particular, no `xLabel` / `yLabel` *attributes* on `<graph>` (they are children), and labels/short descriptions are children.
 - [ ] Examples follow the conventions: `<setup>`, `<shortDescription>`, labeled inputs, no `<asList>`, indexed array access, no redundant `<tag extend="$x" />`.

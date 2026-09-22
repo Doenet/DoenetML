@@ -2,15 +2,15 @@
 
 ## Local docs-nextra references
 
-- packages/docs-nextra/pages/tutorials/quickStart.mdx
-- packages/docs-nextra/pages/document_structure/documentStructure.mdx
-- packages/docs-nextra/pages/document_structure/answerValidation.mdx
-- packages/docs-nextra/pages/reference/math.mdx
-- packages/docs-nextra/pages/reference/mathInput.mdx
-- packages/docs-nextra/pages/reference/graph.mdx
-- packages/docs-nextra/pages/reference/ref.mdx
-- packages/docs-nextra/pages/reference/answer1.mdx
-- packages/docs-nextra/pages/reference/award.mdx
+- packages/docs-nextra/content/tutorials/quickStart.mdx
+- packages/docs-nextra/content/concepts/documentStructure.mdx
+- packages/docs-nextra/content/guides/answerValidation.mdx
+- packages/docs-nextra/content/reference/math.mdx
+- packages/docs-nextra/content/reference/mathInput.mdx
+- packages/docs-nextra/content/reference/graph.mdx
+- packages/docs-nextra/content/reference/ref.mdx
+- packages/docs-nextra/content/reference/answer1.mdx
+- packages/docs-nextra/content/reference/award.mdx
 
 ## Notes
 

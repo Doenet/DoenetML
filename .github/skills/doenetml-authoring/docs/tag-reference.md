@@ -1,6 +1,6 @@
 # DoenetML Tag Reference (Exhaustive from docs-nextra reference pages)
 
-Source extraction rule: component tag headings from `packages/docs-nextra/pages/reference/*.mdx` matching `# ` <tag>{:dn}``.
+Source extraction rule: component tag headings from `packages/docs-nextra/content/reference/*.mdx` matching `# ` <tag>{:dn}``.
 
 Total tags: 169
 
