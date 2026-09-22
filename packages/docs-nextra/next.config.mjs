@@ -7,26 +7,10 @@ import {
     wrapDoenetEditorHorizontal,
     wrapDoenetViewer,
 } from "./dist/index.js";
-import { getHighlighter, bundledLanguages, bundledThemes } from "shiki";
+import { createHighlighter, bundledLanguages, bundledThemes } from "shiki";
 import fs from "node:fs";
-import path from "node:path";
-import { createRequire } from "node:module";
-
-const require = createRequire(import.meta.url);
-
-/**
- * Returns the directory that contains a package. The `resolve.alias` entries below
- * alias each package to its directory (rather than a specific file), which is what
- * lets subpath imports such as `react/jsx-runtime` and `react-dom/client` keep
- * resolving against the aliased copy.
- */
-function packageDir(pkg) {
-    return path.dirname(require.resolve(`${pkg}/package.json`));
-}
 
 const withNextra = nextraConfig({
-    theme: "nextra-theme-docs",
-    themeConfig: "./theme.config.tsx",
     defaultShowCopyCode: true,
     latex: true,
     mdxOptions: {
@@ -61,7 +45,7 @@ const withNextra = nextraConfig({
                     modifiedThemes.push(theme);
                 }
 
-                const highlighter = getHighlighter({
+                const highlighter = createHighlighter({
                     langAlias,
                     themes: modifiedThemes,
                     ...rest,
@@ -91,65 +75,8 @@ const withNextra = nextraConfig({
             wrapDoenetEditorHorizontal,
             wrapDoenetViewer,
         ],
-        rehypePlugins: [
-            /**
-             * Add any data in `extraSearchData` to `structurizedData` so that it shows up in the search box.
-             * The format of `structuredData` is `Record<"id#Title", string>`. where `id` is the id of the page anchor,
-             * `title` is the display text of the heading in the search bar, and `string` is the text that will be searched.
-             * `extraSearchData` is structured in the same way.
-             *
-             * Newlines in `string` will cause search items to be separated so they don't all show up at once.
-             */
-            () => (tree, file) => {
-                if (file.data.extraSearchData && file.data.structurizedData) {
-                    const structurizedData = file.data.structurizedData;
-                    for (const [key, val] of Object.entries(
-                        file.data.extraSearchData,
-                    )) {
-                        structurizedData[key] ??= "";
-                        structurizedData[key] += val;
-                    }
-                }
-            },
-            /**
-             * Remove any instances of `{:dn}` or `{:doenet}` that occur in the search text. These
-             * are not stripped out, which is a mistake.
-             */
-            () => (tree, file) => {
-                if (file.data.structurizedData) {
-                    for (const [key, val] of Object.entries(
-                        file.data.structurizedData,
-                    )) {
-                        if (val?.match(/({:dn})|({:doenet})/)) {
-                            const replaced = val.replace(
-                                /({:dn})|({:doenet})/g,
-                                "",
-                            );
-                            file.data.structurizedData[key] = replaced;
-                        }
-                        // The key also might need replacing. It is of the form `id#Title`. We only want to replace things in `Title`.
-                        const [id, title] = key.split("#");
-                        if (title?.match(/({:dn})|({:doenet})/)) {
-                            const replaced = title.replace(
-                                /({:dn})|({:doenet})/gi,
-                                "",
-                            );
-                            const newKey = `${id}#${replaced}`;
-                            file.data.structurizedData[newKey] =
-                                file.data.structurizedData[key];
-                            delete file.data.structurizedData[key];
-                        }
-                    }
-                }
-            },
-        ],
     },
 });
-
-// module.exports = require('nextra')({
-//     latex: true
-//   });
-//
 
 let assetPrefix = "";
 let basePath = "";
@@ -164,32 +91,21 @@ const fullConfig = withNextra({
         unoptimized: true,
     },
 });
-// 2025-05-15 With Next.js 14 and Nextra 3, minification results in an error about
-// a duplicate identifier `e`. Preventing minification seems to fix the issue.
-// Since Nextra deeply modifies the Next.js config webpack config, we
-// apply its configuration and then our own.
-// Replace the webpack config with the one that prevents minification
-const nextraWebpackConfig = fullConfig.webpack;
-fullConfig.webpack = (config, options) => {
-    const newConfig = nextraWebpackConfig(config, options);
-    newConfig.optimization.minimizer = [];
-    newConfig.optimization.minimize = false;
 
-    // Force a single copy of React (and better-react-mathjax) so the
-    // `@doenet/doenetml-iframe` component shares the host page's React
-    // dispatcher. Without this, a duplicate React instance triggers
-    // `dispatcher.getOwner is not a function` when MathJaxContext renders.
-    // Alias to each package's directory so subpath imports
-    // (react/jsx-runtime, react-dom/client, ...) keep resolving.
-    newConfig.resolve = newConfig.resolve || {};
-    newConfig.resolve.alias = {
-        ...(newConfig.resolve.alias || {}),
-        react: packageDir("react"),
-        "react-dom": packageDir("react-dom"),
-        "better-react-mathjax": packageDir("better-react-mathjax"),
-    };
-
-    return newConfig;
-};
+// Nextra 3 needed a webpack override here to disable minification and to alias
+// `react`, `react-dom` and `better-react-mathjax` to a single copy each. Neither
+// is needed under Nextra 4 / the App Router:
+//
+//   - the duplicate-identifier minifier bug the override worked around was
+//     scoped to Next.js 14 with Nextra 3;
+//   - Next aliases `react` and `react-dom` for every layer itself, and applying
+//     our own alias on top of that broke every page with "Cannot read properties
+//     of null (reading 'useMemoCache')";
+//   - `better-react-mathjax` does resolve to two copies (3.x at the root, from
+//     `@doenet/doenetml-iframe`, and Nextra's own 2.x), but that is harmless
+//     here: `components/props-display.tsx` renders both the `MathJaxContext`
+//     provider and its consumers from the root copy, and Nextra only renders
+//     its own copy under `latex: { renderer: "mathjax" }` — the `latex: true`
+//     above selects rehype-katex instead.
 
 export default fullConfig;

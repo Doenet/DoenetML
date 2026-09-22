@@ -24,7 +24,10 @@
  * (the exact ratio depends on the browser's HSL rounding).
  * Lowering the lightness to 40% gives 5.44:1 on gray-100 and 5.99:1 on white,
  * both well above the threshold. */
-html:not(.dark) .nextra-content ._text-primary-600 {
+/* Nextra 4 renders content links with the `x:text-primary-600` utility class
+ * (Nextra 3 used `_text-primary-600`) inside the theme's <main> element
+ * (Nextra 3 used a `.nextra-content` wrapper). */
+html:not(.dark) main .x\:text-primary-600 {
     color: hsl(212deg 100% 40%);
 }
 
@@ -33,7 +36,7 @@ html:not(.dark) .nextra-content ._text-primary-600 {
  * backgrounds (rgb(246 248 250) for code blocks, rgb(250 250 250) for the
  * page body). #1A7E32 is a slightly darker green that gives 4.84–5.15:1
  * across all relevant light-mode backgrounds. */
-html:not(.dark) .nextra-content code span[style*="--shiki-light:#22863A" i] {
+html:not(.dark) main code span[style*="--shiki-light:#22863A" i] {
     color: #1a7e32 !important; /* overrides `color: var(--shiki-light)` */
 }
 
@@ -45,8 +48,8 @@ html:not(.dark) .nextra-content code span[style*="--shiki-light:#22863A" i] {
 /* Dark mode: rgb(0,122,255) on the gray-700 pill gives only ~2.6:1 contrast
    (fails WCAG AA). Use a lighter blue (Tailwind blue-300) that achieves
    ~5.7:1 against the rgb(55,65,81) pill background. */
-:is(html[class~="dark"] .nextra-content) .attr-name,
-:is(html[class~="dark"] .nextra-content) .prop-name {
+html.dark main .attr-name,
+html.dark main .prop-name {
     color: rgb(147, 197, 253);
 }
 
@@ -87,8 +90,8 @@ html:not(.dark) .nextra-content code span[style*="--shiki-light:#22863A" i] {
     border-radius: 0.25rem;
     padding: 0.1rem 0.45rem;
 }
-:is(html[class~="dark"] .nextra-content) .attr-name-box,
-:is(html[class~="dark"] .nextra-content) .prop-name-box {
+html.dark main .attr-name-box,
+html.dark main .prop-name-box {
     background-color: rgb(55, 65, 81);
 }
 
@@ -104,7 +107,7 @@ html:not(.dark) .nextra-content code span[style*="--shiki-light:#22863A" i] {
     border-radius: 0.25rem;
     padding: 0.05rem 0.35rem;
 }
-:is(html[class~="dark"] .nextra-content) .attr-default {
+html.dark main .attr-default {
     background-color: rgb(55, 65, 81);
 }
 
@@ -114,7 +117,7 @@ html:not(.dark) .nextra-content code span[style*="--shiki-light:#22863A" i] {
     border-radius: 0.25rem;
     padding: 0.05rem 0.35rem;
 }
-:is(html[class~="dark"] .nextra-content) .attr-inline-code {
+html.dark main .attr-inline-code {
     background-color: rgb(55, 65, 81);
 }
 
@@ -125,7 +128,7 @@ html:not(.dark) .nextra-content code span[style*="--shiki-light:#22863A" i] {
     border-radius: 0.6rem;
     padding: 0.05rem 0.5rem;
 }
-:is(html[class~="dark"] .nextra-content) .attr-value-chip {
+html.dark main .attr-value-chip {
     background-color: rgb(55, 65, 81);
 }
 
@@ -136,7 +139,7 @@ html:not(.dark) .nextra-content code span[style*="--shiki-light:#22863A" i] {
     color: rgb(75, 85, 99);
 }
 /* Dark mode: gray-400 achieves ~7.4:1 against Nextra dark backgrounds. */
-:is(html[class~="dark"] .nextra-content) .attr-default-marker {
+html.dark main .attr-default-marker {
     color: rgb(156, 163, 175);
 }
 
@@ -151,8 +154,8 @@ html:not(.dark) .nextra-content code span[style*="--shiki-light:#22863A" i] {
     padding: 0.2em 0.7em;
     text-align: left;
 }
-:is(html[class~="dark"] .nextra-content) .attr-value-table th,
-:is(html[class~="dark"] .nextra-content) .attr-value-table td {
+html.dark main .attr-value-table th,
+html.dark main .attr-value-table td {
     border-color: rgb(55, 65, 81);
 }
 
@@ -186,10 +189,10 @@ html:not(.dark) .nextra-content code span[style*="--shiki-light:#22863A" i] {
 /* Dark mode: the light-mode blue (29,85,197) achieves only ~2.8:1 against the
    dark page background (fails WCAG 1.4.11 non-text contrast of 3:1).
    Use Tailwind blue-400 which achieves ~7.4:1. */
-:is(html[class~="dark"] .nextra-content) .attr-filter-input:focus {
+html.dark main .attr-filter-input:focus {
     outline-color: rgb(96, 165, 250);
 }
-:is(html[class~="dark"] .nextra-content) .attr-filter-input {
+html.dark main .attr-filter-input {
     border-color: rgb(75, 85, 99);
 }
 .reveal-all-toggle {
@@ -204,11 +207,11 @@ html:not(.dark) .nextra-content code span[style*="--shiki-light:#22863A" i] {
 .reveal-all-toggle:hover {
     background-color: rgb(229, 231, 235);
 }
-:is(html[class~="dark"] .nextra-content) .reveal-all-toggle {
+html.dark main .reveal-all-toggle {
     border-color: rgb(75, 85, 99);
     background-color: rgb(55, 65, 81);
 }
-:is(html[class~="dark"] .nextra-content) .reveal-all-toggle:hover {
+html.dark main .reveal-all-toggle:hover {
     background-color: rgb(75, 85, 99);
 }
 
@@ -218,7 +221,7 @@ html:not(.dark) .nextra-content code span[style*="--shiki-light:#22863A" i] {
     border-radius: 0.5rem;
     margin: 0.5em 0;
 }
-:is(html[class~="dark"] .nextra-content) .attr-group {
+html.dark main .attr-group {
     border-color: rgb(55, 65, 81);
 }
 .attr-group-summary {
@@ -231,7 +234,7 @@ html:not(.dark) .nextra-content code span[style*="--shiki-light:#22863A" i] {
 .attr-group-summary:hover {
     background-color: rgb(243, 244, 246);
 }
-:is(html[class~="dark"] .nextra-content) .attr-group-summary:hover {
+html.dark main .attr-group-summary:hover {
     background-color: rgb(55, 65, 81);
 }
 .attr-group-count {
@@ -240,7 +243,7 @@ html:not(.dark) .nextra-content code span[style*="--shiki-light:#22863A" i] {
     color: rgb(75, 85, 99);
 }
 /* Dark mode: same contrast fix as .attr-default-marker above. */
-:is(html[class~="dark"] .nextra-content) .attr-group-count {
+html.dark main .attr-group-count {
     color: rgb(156, 163, 175);
 }
 .attr-group-body {
@@ -260,6 +263,20 @@ html:not(.dark) .nextra-content code span[style*="--shiki-light:#22863A" i] {
     color: rgb(75, 85, 99);
 }
 /* Dark mode: same contrast fix as .attr-default-marker above. */
-:is(html[class~="dark"] .nextra-content) .attr-filter-empty {
+html.dark main .attr-filter-empty {
     color: rgb(156, 163, 175);
+}
+
+/* ---------------------------------------------------------------------------
+ * Nextra 4 warning-callout contrast
+ * ---------------------------------------------------------------------------
+ * Nextra 4 renders a `type="warning"` callout's text in yellow-700, which
+ * Tailwind 4 resolves to #A65F00. Over the yellow-50 callout background —
+ * darkened a further 3% by the background an inline <code> chip adds — that is
+ * 4.44:1, just under the 4.5:1 AA threshold for body text. Nextra 3 used
+ * yellow-900 here, which is why this passed before the migration. #854D0E
+ * (Tailwind 3's yellow-800) restores it at 6.2:1 without changing the hue.
+ * --------------------------------------------------------------------------- */
+html:not(.dark) main .nextra-callout.x\:text-yellow-700 {
+    color: #854d0e;
 }

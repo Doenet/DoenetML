@@ -1,3 +1,8 @@
+"use client";
+
+// `next/dynamic` with `ssr: false` is only allowed in a Client Component, and the
+// windowed editor below is built on React state and an IntersectionObserver, so
+// this whole module — and everything it pulls in — belongs on the client.
 import React from "react";
 import dynamic from "next/dynamic";
 import "@doenet/virtual-keyboard/style.css";

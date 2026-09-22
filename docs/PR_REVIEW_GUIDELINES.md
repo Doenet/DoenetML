@@ -146,7 +146,7 @@ Then review whether the PR updates or adds documentation as needed:
   attributes, etc.), check whether the corresponding page(s) in `packages/docs-nextra/`
   need updating.
 - If the PR adds a new component, ensure a reference page exists or is created under
-  `packages/docs-nextra/pages/reference/`.
+  `packages/docs-nextra/content/reference/`.
 - If the PR changes how an existing component behaves (e.g. new attribute, changed
   default, fixed edge case), update the relevant reference or guide page.
 - Every DoenetML example on a page is a claim about what that markup renders. Run the ones

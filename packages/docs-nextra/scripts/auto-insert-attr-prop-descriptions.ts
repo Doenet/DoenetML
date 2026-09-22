@@ -153,7 +153,7 @@ function collectExampleHeadings(tree: MdastRoot): ExampleHeading[] {
  */
 let crossPageExampleIndexCache: Map<string, ExampleRef[]> | null = null;
 
-/** Resolve the `pages/reference` directory from the file currently being
+/** Resolve the `content/reference` directory from the file currently being
  * processed, or `null` when the file is not a reference page. */
 function getReferenceDir(file: { path?: string; history?: string[] }) {
     const filePath = file.path ?? file.history?.[0];
@@ -275,8 +275,6 @@ export const autoInsertAttrPropDescriptions: Plugin<
 > = function () {
     const optimizedSchema = computeOptimizedSchema();
     return (tree, file) => {
-        file.data.extraSearchData = {};
-
         // Collected up front, before we splice in the "Attributes and
         // Properties" heading below: that heading's slug never collides with
         // an example heading's, so its absence here does not perturb the
@@ -329,26 +327,26 @@ export const autoInsertAttrPropDescriptions: Plugin<
             ]);
 
             if (node.name === "AttrDisplay") {
-                injectAttrs(node, info, file);
+                injectAttrs(node, info);
                 // Standalone <AttrDisplay> renders only attributes, so its
                 // `links` prop carries the attribute-example anchors.
                 injectLinksAttribute(node, "links", attrLinks);
             }
             if (node.name === "PropDisplay") {
-                injectProps(node, info, file);
+                injectProps(node, info);
                 // Standalone <PropDisplay> renders only properties.
                 injectLinksAttribute(node, "links", propLinks);
             }
             if (node.name === "ComponentDisplay") {
-                injectSummary(node, info, file);
+                injectSummary(node, info);
             }
             if (node.name === "AttrPropDisplay") {
                 // <AttrPropDisplay> renders the attribute and property
                 // sections (or "no attributes/properties" messages), so it
                 // needs both data sets. This injection does not depend on the
                 // node's position, so it always runs.
-                injectAttrs(node, info, file);
-                injectProps(node, info, file);
+                injectAttrs(node, info);
+                injectProps(node, info);
                 // Attribute and property examples are kept in separate maps so
                 // a name that is both an attribute and a property (e.g.
                 // `format`) links to the right kind of example — or to none,
@@ -392,11 +390,7 @@ function hasAttribute(node: MdxJsxFlowElement, attrName: string): boolean {
 }
 
 /** Inject the schema `attrs` data onto an `<AttrDisplay>`/`<AttrPropDisplay>`. */
-function injectAttrs(
-    node: MdxJsxFlowElement,
-    info: OptimizedInfo,
-    file: { data: Record<string, any> },
-): void {
+function injectAttrs(node: MdxJsxFlowElement, info: OptimizedInfo): void {
     if (hasAttribute(node, "attrs")) {
         return;
     }
@@ -411,21 +405,10 @@ function injectAttrs(
             },
         },
     });
-
-    // Add some data that will be used for search. Include the descriptions
-    // so searches match the explanatory text too.
-    file.data.extraSearchData["attr-list#Attribute"] = info.attrs
-        .filter((attr) => !attr.common)
-        .map((attr) => `${attr.name}: ${attr.description}`)
-        .join("\n");
 }
 
 /** Inject the schema `props` data onto a `<PropDisplay>`/`<AttrPropDisplay>`. */
-function injectProps(
-    node: MdxJsxFlowElement,
-    info: OptimizedInfo,
-    file: { data: Record<string, any> },
-): void {
+function injectProps(node: MdxJsxFlowElement, info: OptimizedInfo): void {
     if (hasAttribute(node, "props")) {
         return;
     }
@@ -440,13 +423,6 @@ function injectProps(
             },
         },
     });
-
-    // Add some data that will be used for search. Include the descriptions
-    // so searches match the explanatory text too.
-    file.data.extraSearchData["prop-list#Property"] = info.props
-        .filter((prop) => !prop.common)
-        .map((prop) => `${prop.name}: ${prop.description}`)
-        .join("\n");
 }
 
 /**
@@ -509,11 +485,7 @@ function injectLinksAttribute(
 }
 
 /** Inject the schema `summary` onto a `<ComponentDisplay>`. */
-function injectSummary(
-    node: MdxJsxFlowElement,
-    info: OptimizedInfo,
-    file: { data: Record<string, any> },
-): void {
+function injectSummary(node: MdxJsxFlowElement, info: OptimizedInfo): void {
     if (hasAttribute(node, "summary")) {
         return;
     }
@@ -522,7 +494,4 @@ function injectSummary(
         name: "summary",
         value: info.summary,
     });
-
-    // Add the summary to the search data.
-    file.data.extraSearchData["component-summary#Description"] = info.summary;
 }

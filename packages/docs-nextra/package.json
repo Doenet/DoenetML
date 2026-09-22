@@ -14,6 +14,7 @@
         "test": "vitest",
         "dev": "npm run build:pre && next",
         "build": "npm run build:pre && next build",
+        "postbuild": "pagefind --site out --output-path out/_pagefind",
         "start": "next start",
         "build:pre": "npm run build:pre-copy && npm run build:pre-scripts",
         "build:pre-copy": "wireit",
