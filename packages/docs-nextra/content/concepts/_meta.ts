@@ -4,7 +4,7 @@ export default {
     styling: "Styling & Meaning",
     accessibility: "Accessibility",
     documentStructure: {
-        name: "Document Structure",
+        title: "Document Structure",
         display: "hidden",
     },
 };

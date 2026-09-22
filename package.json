@@ -72,6 +72,7 @@
         "tabWidth": 4
     },
     "overrides": {
+        "zod": "~4.3.6",
         "@qualified/lsp-connection": {
             "vscode-jsonrpc": "$vscode-jsonrpc"
         },
@@ -167,8 +168,9 @@
         "lorem-ipsum": "^2.0.8",
         "micromark": "^4.0.2",
         "nanoid": "^5.1.16",
-        "nextra": "^3.3.1",
-        "nextra-theme-docs": "^3.3.1",
+        "nextra": "^4.6.1",
+        "nextra-theme-docs": "^4.6.1",
+        "pagefind": "^1.5.2",
         "peggy": "^5.1.0",
         "postcss": "^8.5.16",
         "prettier": "^3.9.4",

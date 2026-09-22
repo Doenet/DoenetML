@@ -8,15 +8,15 @@ export default {
     "accessible-interactive-graphs": "Accessible Interactive Graphs",
     "charting-a-simulation": "Charting a Simulation",
     answerValidation: {
-        name: "Answer Validation",
+        title: "Answer Validation",
         display: "hidden",
     },
     creditAchieved: {
-        name: "Controlling Credit Awarded",
+        title: "Controlling Credit Awarded",
         display: "hidden",
     },
     advancedExamples: {
-        name: "Advanced Examples",
+        title: "Advanced Examples",
         display: "hidden",
     },
 };

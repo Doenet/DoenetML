@@ -1,0 +1,53 @@
+/* ---------------------------------------------------------------------------
+ * Nextra theme variables
+ * ---------------------------------------------------------------------------
+ * These are the CSS custom properties that `<Head>` from `nextra/components`
+ * emits as an inline <style> inside a <head> element it renders itself.
+ *
+ * We do not use that component. Under the App Router, Next.js and React hoist
+ * <title>, <meta> and <link> into the real <head>, which puts them ahead of any
+ * child a user-rendered <head> contributes; React then hydrates that <head>
+ * against a different child order and throws
+ * "Hydration failed because the server rendered HTML didn't match the client"
+ * on every page. That reproduces with a bare `<head><style>…</style></head>` in
+ * `app/layout.tsx`, so it is not specific to Nextra's component.
+ *
+ * Supplying the same declarations from a stylesheet Next injects as a <link>
+ * avoids rendering a <head> at all. The values below are Nextra 4.6.1's
+ * defaults (see `nextra/dist/client/components/head.js`), which is exactly what
+ * the site used under Nextra 3 — no colours change. The two
+ * <meta name="theme-color"> tags `<Head>` also emitted come from the `viewport`
+ * export in `app/layout.tsx`.
+ *
+ * Keep in step with Nextra on upgrade: if the theme's defaults change, or it
+ * starts relying on a variable that is not set here, this file needs the same
+ * edit.
+ * --------------------------------------------------------------------------- */
+
+:root {
+    --nextra-primary-hue: 212deg;
+    --nextra-primary-saturation: 100%;
+    --nextra-primary-lightness: 45%;
+    --nextra-bg: 250, 250, 250;
+    --nextra-content-width: 90rem;
+}
+
+.dark {
+    --nextra-primary-hue: 204deg;
+    --nextra-primary-saturation: 100%;
+    --nextra-primary-lightness: 55%;
+    --nextra-bg: 17, 17, 17;
+}
+
+::selection {
+    background: hsla(
+        var(--nextra-primary-hue),
+        var(--nextra-primary-saturation),
+        var(--nextra-primary-lightness),
+        0.3
+    );
+}
+
+html {
+    background: rgb(var(--nextra-bg));
+}
