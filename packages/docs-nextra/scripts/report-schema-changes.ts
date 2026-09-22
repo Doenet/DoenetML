@@ -38,10 +38,8 @@ const versions = all
     ? history.versions
     : [requested ?? history.latestReleasedVersion];
 
-/**
- * `el:chart` -> `<chart>`; `at:point.x` -> `point.x`;
- * `va:selectRandomNumbers.type.poisson` -> `selectRandomNumbers.type.poisson`.
- */
+/** `el:chart` -> `<chart>`; every other kind drops its prefix: `at:point.x`
+ * -> `point.x`. */
 function display(key: string): string {
     const name = key.slice(3);
     return key.startsWith("el:") ? `<${name}>` : name;
@@ -89,12 +87,10 @@ for (const version of versions) {
         ["added", added],
         ["removed", removed],
     ] as const) {
-        // One line per kind of key. `HISTORY_KEY_KINDS` covers every key the
-        // index holds, so these lines add up to the `+n added` total above
-        // them. Kept separate rather than merged because an attribute and a
-        // property can share a name on the same element —
-        // `document.documentWideCheckWork` is both — and one merged list would
-        // print it twice with nothing to tell the two apart.
+        // One line per kind of key, together adding up to the `+n added`
+        // total above. Each kind prints its own list, so an attribute and a
+        // property sharing a name on one element —
+        // `document.documentWideCheckWork` is both — appear as two entries.
         for (const kind of HISTORY_KEY_KINDS) {
             const inKind = keys.filter((key) => key.startsWith(kind.prefix));
             if (inKind.length === 0) continue;

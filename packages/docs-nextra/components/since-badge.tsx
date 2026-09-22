@@ -2,8 +2,8 @@ import React from "react";
 import { UNRELEASED } from "../scripts/schema-history-keys";
 
 /**
- * Inline marker for the release a component, attribute, property, or one of
- * the values an enumerated attribute accepts, arrived in.
+ * Inline marker for the release a schema item arrived in: a component, an
+ * attribute, a property, or one of the values an enumerated attribute accepts.
  *
  * Two kinds, and only one of them is visible by default:
  *
@@ -12,7 +12,7 @@ import { UNRELEASED } from "../scripts/schema-history-keys";
  *     usually on an older release than the page describes; this is the marker
  *     that stops them writing a feature that silently does nothing.
  *   - **Added in X** — released, and so true for most readers. It ships in the
- *     DOM but `app/style.css` hides it, because badging 1,900 items on a quiet
+ *     DOM but `app/style.css` hides it, because badging 1,800 items on a quiet
  *     page would say nothing to anyone. Carrying the version in `data-since`
  *     is what lets a version selector reveal the ones newer than the reader's
  *     by CSS alone, with no re-render.
