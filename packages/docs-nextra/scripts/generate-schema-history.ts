@@ -19,15 +19,21 @@
 
 import * as fs from "node:fs";
 import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 import { buildSchemaHistory, releaseSnapshots } from "./schema-history";
 
-const destUrl = new URL("../generated/schema-history.json", import.meta.url);
+// `fileURLToPath`, not `.pathname`: the latter is still percent-encoded, so a
+// checkout under a directory with a space in it would have the mkdir and the
+// write disagree about where the file goes.
+const dest = fileURLToPath(
+    new URL("../generated/schema-history.json", import.meta.url),
+);
 
 const history = buildSchemaHistory(releaseSnapshots());
 const out = JSON.stringify(history, null, 4) + "\n";
 
-fs.mkdirSync(path.dirname(destUrl.pathname), { recursive: true });
-fs.writeFileSync(destUrl, out);
+fs.mkdirSync(path.dirname(dest), { recursive: true });
+fs.writeFileSync(dest, out);
 
 const live = Object.keys(history.since).filter(
     (key) => !(key in history.removedIn),
@@ -36,5 +42,5 @@ console.log(
     `Schema history: ${history.versions.length} releases, ` +
         `${history.latestReleasedVersion} newest; ${live.length} live keys, ` +
         `${Object.keys(history.removedIn).length} removed. ` +
-        `Wrote ${Math.round(out.length / 1024)} KB to ${destUrl.pathname}`,
+        `Wrote ${Math.round(out.length / 1024)} KB to ${dest}`,
 );

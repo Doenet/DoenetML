@@ -179,6 +179,7 @@ const OLDEST_INDEXED_RELEASE = [0, 7, 0];
  */
 const RELEASE_TAG = /^v(\d+)\.(\d+)\.(\d+)$/;
 
+/** Numeric, component by component, so `0.7.10` sorts after `0.7.9`. */
 function compareVersions(a: number[], b: number[]): number {
     return a[0] - b[0] || a[1] - b[1] || a[2] - b[2];
 }
@@ -191,7 +192,19 @@ function git(args: string[]): string {
     });
 }
 
-/** Release tags at or after `OLDEST_INDEXED_RELEASE`, oldest first. */
+/**
+ * Release tags at or after `OLDEST_INDEXED_RELEASE`, in version order.
+ *
+ * Version order, not tag date: the snapshots are diffed as a single line of
+ * development, which is what the repo is today. Once the two release lines of
+ * #1962 exist, a maintenance release can be *cut* after a newer minor — a
+ * `v0.7.28` tagged the week after `v0.8.0`. Version order still gives the right
+ * `since` for anything the backport and the newer line share, because the key
+ * really was available from 0.7.28 on. What it gets wrong is a key that exists
+ * on the maintenance line only: sorting 0.7.28 before 0.8.0 makes 0.8.0 look
+ * like the release that dropped it, so it gains a spurious `removedIn`. Handle
+ * that when the second line starts, by walking each line separately.
+ */
 function releaseTags(): { tag: string; version: string }[] {
     return git(["tag", "--list", "v*"])
         .split("\n")
@@ -243,6 +256,18 @@ export function releaseSnapshots(): VersionSnapshot[] {
                 { cause: e },
             );
         }
-        return { version, keys: schemaKeys(JSON.parse(raw)) };
+        let parsed: SchemaSnapshotJson;
+        try {
+            parsed = JSON.parse(raw);
+        } catch (e) {
+            throw new Error(
+                `Could not parse ${SCHEMA_PATH_IN_REPO} at ${tag} as JSON. ` +
+                    `A partial clone fetches this blob on demand, so a ` +
+                    `truncated or filtered blob shows up here rather than as ` +
+                    `a git error.`,
+                { cause: e },
+            );
+        }
+        return { version, keys: schemaKeys(parsed) };
     });
 }

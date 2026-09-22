@@ -250,7 +250,7 @@ cherry-picked backport touches none of them, so the lines do not contend.
   that index is derived at docs build time by reading the committed schema at
   every release tag — so cutting a tag is the only action needed, and the next
   docs deploy picks it up. To see what a release changed, run
-  `npm run report:schema-changes -w packages/docs-nextra <version>`.
+  `npm run report:schema-changes -w packages/docs-nextra -- <version>`.
 
 ## Where things are
 

@@ -158,8 +158,9 @@ describe("buildSchemaHistory", () => {
 });
 
 /**
- * Against the repo's real tags. These are #2002's acceptance criteria; they
- * change only when a release is cut, and then only by growing.
+ * Against the repo's real tags. These are #2002's acceptance criteria. They
+ * change only when a release is cut: the lower bounds then only grow, and the
+ * one exact count moves only if a release drops a key that dates to 0.7.0.
  */
 const tags = (() => {
     try {
@@ -216,8 +217,11 @@ describe.skipIf(!hasReleaseTags)(
         it("reproduces the counts, as a floor that only grows", () => {
             // Exact as of 0.7.27: 12,191 live keys, 10,228 of them present at or
             // before 0.7.0, 1,963 introduced during 0.7.x, 25 of those elements.
-            // Asserted as lower bounds so a new release does not fail the suite —
-            // except the 0.7.0 figure, which no later release can change.
+            // Asserted as lower bounds so a new release does not fail the suite.
+            // The 0.7.0 figure is exact instead, and deliberately a tripwire: it
+            // moves only when a release removes — or removes and re-adds — a key
+            // that had been in the schema since 0.7.0, which is worth a look
+            // rather than a silent slide. Update the number when that happens.
             const live = liveKeys(realHistory());
             const history = realHistory();
             expect(live.length).toBeGreaterThanOrEqual(12191);
