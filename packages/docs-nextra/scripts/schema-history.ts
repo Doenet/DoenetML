@@ -11,33 +11,23 @@
  * unit-tested in `test/schema-history.test.ts`; `generate-schema-history.ts`
  * writes the index during the docs build and `report-schema-changes.ts` prints
  * what a release changed.
+ *
+ * The key space and the index's shape live in `schema-history-keys.ts` instead,
+ * because reading git means importing `node:child_process` and the components
+ * that will render the index are client components. Everything there is
+ * re-exported here, so the derivation side needs only this module.
  */
 
 import { execFileSync } from "node:child_process";
+import {
+    attributeHistoryKey,
+    elementHistoryKey,
+    propertyHistoryKey,
+    type SchemaHistory,
+    type SchemaHistoryKey,
+} from "./schema-history-keys";
 
-/** Key space: `el:<element>`, `at:<element>.<attr>`, `pr:<element>.<prop>`. */
-export type SchemaHistoryKey = string;
-
-/** The history key for an element. */
-export function elementHistoryKey(element: string): SchemaHistoryKey {
-    return `el:${element}`;
-}
-
-/** The history key for one of an element's attributes. */
-export function attributeHistoryKey(
-    element: string,
-    attribute: string,
-): SchemaHistoryKey {
-    return `at:${element}.${attribute}`;
-}
-
-/** The history key for one of an element's properties. */
-export function propertyHistoryKey(
-    element: string,
-    property: string,
-): SchemaHistoryKey {
-    return `pr:${element}.${property}`;
-}
+export * from "./schema-history-keys";
 
 /**
  * The parts of the schema JSON this derivation reads. Deliberately loose: it
@@ -57,27 +47,6 @@ export type VersionSnapshot = {
     /** Release version without the `v` prefix, e.g. `"0.7.21"`. */
     version: string;
     keys: Set<SchemaHistoryKey>;
-};
-
-export type SchemaHistory = {
-    /** The newest release the index was built from, e.g. `"0.7.27"`. */
-    latestReleasedVersion: string;
-    /** Every release the index covers, oldest first. */
-    versions: string[];
-    /**
-     * Key -> the release its *latest contiguous run of presence* began in.
-     * A key whose value is the oldest release covered appeared then or earlier.
-     *
-     * The index covers *released* versions only, so a key in the working-tree
-     * schema with no entry here is by definition unreleased — which is what
-     * lets the docs mark it as in development with no annotation to maintain.
-     */
-    since: Record<SchemaHistoryKey, string>;
-    /**
-     * Key -> the release it disappeared in, for keys absent from
-     * `latestReleasedVersion`. Only those keys appear here.
-     */
-    removedIn: Record<SchemaHistoryKey, string>;
 };
 
 /**

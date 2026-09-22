@@ -75,6 +75,12 @@ Two consequences:
   npm run report:schema-changes -w packages/docs-nextra -- --all   # every release
   ```
 
+Read it through `scripts/schema-history-keys.ts`, which holds the key space
+(`el:<element>`, `at:<element>.<attr>`, `pr:<element>.<prop>`), the helpers that build
+those keys and the index's type — and nothing else, so a client component can import it.
+`schema-history.ts` next to it reads git, so importing *that* one from a component fails
+the build on `node:child_process`.
+
 Two rules worth knowing before reading a value out of the index. `since` is the start of a
 key's *latest contiguous run of presence*, not its first-ever appearance — keys get
 removed and names get reused, so a rename reads as the old spelling gaining `removedIn`
