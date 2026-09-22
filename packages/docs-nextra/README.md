@@ -109,12 +109,15 @@ nothing to anyone. Three rules drop them:
   below it for a reader to select.
 - The values in a value list are dated to their attribute in the release that list is
   first written down. A `values` / `autocompleteValues` list is usually added long after
-  the attribute began accepting what it lists — `renderMode` set `inline` and `display` at
-  0.7.0 and only declared them at 0.7.25 — so reading the declaration as an arrival would
-  tell an author on 0.7.20 that `display` is newer than their version. This is applied in
-  `scripts/schema-history.ts`, where the index is derived, rather than in the badge rules,
-  because it is a statement about when the feature existed. Values added to a list that
-  already existed keep their own date, which is the case the snapshots really do record.
+  the attribute began accepting what it lists — `renderMode` set `inline` and `display`
+  at 0.7.0 and only declared them at 0.7.25 — so reading the declaration as an arrival
+  would tell an author on 0.7.20 that `display` is newer than their version. This is
+  applied in `scripts/schema-history.ts`, where the index is derived, rather than in the
+  badge rules, because it is a statement about when the feature existed. Values added to
+  a list that already existed keep their own date, which is the case the snapshots really
+  do record. A release that writes a list down *and* extends it in one go cannot be told
+  from one that only writes it down, so both read as the attribute's date: across the 28
+  tags that is five values dated older than they are, against 118 the rule dates right.
 
 Of the ~1,800 badges left, the default view shows only the ones reading **In development** —
 in the working-tree schema, in no release. Those are the ones an author cannot act on yet,

@@ -420,6 +420,15 @@ describe.skipIf(!hasReleaseTags)(
             ).toBe("0.7.21");
             // The 501-key drop the contiguous-run rule exists for.
             expect(history.removedIn["pr:abs.modifyIndirectly"]).toBe("0.7.17");
+            // Both branches of the list-dating rule, on the real tags rather
+            // than on synthetic snapshots. `math`'s `renderMode` list was
+            // written down at 0.7.25 for values MMeMen.js has set since v0.7.0;
+            // `selectRandomNumbers`' `type` list has been there since 0.7.0, so
+            // `poisson` joining it at 0.7.27 is an arrival and keeps its date.
+            expect(history.since["va:math.renderMode.display"]).toBe("0.7.0");
+            expect(history.since["va:selectRandomNumbers.type.poisson"]).toBe(
+                "0.7.27",
+            );
         });
 
         it("names a kind for every key the index holds", () => {
@@ -444,10 +453,12 @@ describe.skipIf(!hasReleaseTags)(
             // which 15,490 were present at or before 0.7.0, 4,171 arrived
             // during 0.7.x, and 25 of those are elements. Asserted as lower
             // bounds so a new release does not fail the suite. The 0.7.0 figure
-            // is exact instead, and deliberately a tripwire: it moves only when
-            // a release removes — or removes and re-adds — a key that had been
-            // in the schema since 0.7.0, which is worth a look rather than a
-            // silent slide. Update the number when that happens.
+            // is exact instead, and deliberately a tripwire. Two things move
+            // it, both worth a look rather than a silent slide: a release that
+            // removes — or removes and re-adds — a key that had been in the
+            // schema since 0.7.0, and a release that writes down a value list
+            // for an attribute dating to 0.7.0, which back-dates every value in
+            // it into this bucket. Update the number when either happens.
             const live = liveKeys(realHistory());
             const history = realHistory();
             expect(live.length).toBeGreaterThanOrEqual(19661);

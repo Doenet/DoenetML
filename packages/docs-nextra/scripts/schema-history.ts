@@ -81,7 +81,7 @@ export type VersionSnapshot = {
      * Value key -> the attribute key accepting it, for every value declared in
      * this release. Carries ownership that a `va:` key cannot be split back
      * into: six values contain a `.` of their own (`APACHE-2.0`, and
-     * `licenseVersion`'s 1.0 through 3.0), so parsing the key apart would name
+     * `licenseVersion`'s 1.0 through 4.0), so parsing the key apart would name
      * the wrong attribute. `buildSchemaHistory` needs it to date the values in
      * a newly written value list — see there.
      */
@@ -97,6 +97,29 @@ export type VersionSnapshot = {
  * *emitting* them — so a run start derived from the snapshots would report them
  * as seven releases newer than they are.
  */
+export function schemaKeys(schema: SchemaSnapshotJson): Set<SchemaHistoryKey> {
+    const keys = new Set<SchemaHistoryKey>();
+    for (const element of schema.elements ?? []) {
+        keys.add(elementHistoryKey(element.name));
+        for (const attribute of element.attributes ?? []) {
+            keys.add(attributeHistoryKey(element.name, attribute.name));
+            for (const value of attributeValues(attribute)) {
+                keys.add(
+                    attributeValueHistoryKey(
+                        element.name,
+                        attribute.name,
+                        value,
+                    ),
+                );
+            }
+        }
+        for (const property of element.properties ?? []) {
+            keys.add(propertyHistoryKey(element.name, property.name));
+        }
+    }
+    return keys;
+}
+
 /**
  * Which attribute accepts each declared value, in one snapshot.
  *
@@ -126,29 +149,6 @@ export function attributeValueOwners(
         }
     }
     return owners;
-}
-
-export function schemaKeys(schema: SchemaSnapshotJson): Set<SchemaHistoryKey> {
-    const keys = new Set<SchemaHistoryKey>();
-    for (const element of schema.elements ?? []) {
-        keys.add(elementHistoryKey(element.name));
-        for (const attribute of element.attributes ?? []) {
-            keys.add(attributeHistoryKey(element.name, attribute.name));
-            for (const value of attributeValues(attribute)) {
-                keys.add(
-                    attributeValueHistoryKey(
-                        element.name,
-                        attribute.name,
-                        value,
-                    ),
-                );
-            }
-        }
-        for (const property of element.properties ?? []) {
-            keys.add(propertyHistoryKey(element.name, property.name));
-        }
-    }
-    return keys;
 }
 
 /**
@@ -187,11 +187,15 @@ export function buildSchemaHistory(
     //
     // Values added to a list that already existed keep their own date, which is
     // the case where the schema really does record an arrival. The limit is a
-    // release that declares a list and extends it at once: nothing in the
-    // snapshots separates the two, and this dates all of them to the attribute,
-    // preferring silence to a version that is wrong.
-    // An attribute declares a list in the release its `valueOwners` names it,
-    // so the attributes appearing as owners are exactly those with a list.
+    // release that declares a list and extends it at once, and two of the 28
+    // tags do: 0.7.8 wrote down `answer`'s `type` list in the release
+    // `videoWatched` joined it, and 0.7.22 wrote down `halign` in the release
+    // `start` and `end` replaced `left` and `right`. Five values read as old as
+    // their attribute for that reason, against 118 the rule dates right;
+    // nothing in the snapshots tells the two cases apart, so it prefers silence
+    // to a version that is wrong.
+    //
+    // Owners are named only where a list exists, so their runs are the lists'.
     const listStarts = runStarts(
         snapshots.map(({ version, valueOwners }) => ({
             version,
