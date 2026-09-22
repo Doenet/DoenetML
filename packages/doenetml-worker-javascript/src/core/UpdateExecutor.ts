@@ -301,8 +301,10 @@ export class UpdateExecutor {
      * `updateAllChangedRenderers` fan-out runs only when
      * `skipRendererUpdate` is false.
      *
-     * A `transient` update reorders that tail: the update's own targets are
-     * sent *before* `processStateVariableTriggers`, and the remainder is
+     * A `transient` update reorders that tail: the update's own targets,
+     * along with everything rendered on a visible graph
+     * (`componentsOnVisibleGraphs`), are sent *before*
+     * `processStateVariableTriggers`, and the remainder is
      * handed to `scheduleDeferredRendererUpdate` rather than going out with
      * `updateAllChangedRenderers`. Essential values saved during
      * definitions are merged into the cumulative changes log so they
@@ -451,12 +453,18 @@ export class UpdateExecutor {
         }
 
         if (transient && !skipRendererUpdate) {
-            // Put the dragged component on screen before doing anything with
-            // the (much larger) set of components its move invalidated.
+            // Put the dragged component, and every visible graph it moves, on
+            // screen before doing anything with the rest of what its move
+            // invalidated.
             await this.core.updateRenderersForComponents(
-                updateInstructions
-                    .map((instruction) => instruction.componentIdx)
-                    .filter((componentIdx) => componentIdx != undefined),
+                this.core.componentsOnVisibleGraphs(
+                    updateInstructions
+                        .map((instruction) => instruction.componentIdx)
+                        .filter(
+                            (componentIdx): componentIdx is ComponentIdx =>
+                                componentIdx != undefined,
+                        ),
+                ),
                 sourceInformation,
                 actionId,
             );
