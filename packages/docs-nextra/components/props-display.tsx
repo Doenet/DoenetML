@@ -8,6 +8,7 @@ import {
     isComponentSizeValue,
     isMathDefaultValue,
 } from "@doenet/static-assets/schema";
+import { SinceBadge } from "./since-badge";
 
 /** Types the rendering code special-cases. */
 export type KnownPropAttrType =
@@ -58,6 +59,10 @@ export type AttrInfo = {
     groupName?: string;
     /** Whether this attribute is hand-picked into the "Highlighted" section. */
     highlighted?: boolean;
+    /** Release this attribute arrived in, or `"unreleased"` when it is in no
+     * release yet. Absent when there is nothing worth saying — an item that
+     * arrived with its element is covered by the element's own badge. */
+    since?: string;
 };
 
 export type PropInfo = {
@@ -75,6 +80,10 @@ export type PropInfo = {
     groupName?: string;
     /** Whether this prop is hand-picked into the "Highlighted" section. */
     highlighted?: boolean;
+    /** Release this property arrived in, or `"unreleased"` when it is in no
+     * release yet. Absent when there is nothing worth saying — an item that
+     * arrived with its element is covered by the element's own badge. */
+    since?: string;
 };
 
 /**
@@ -284,9 +293,13 @@ function renderAttrItem(
             className="attr-item"
             id={`${idPrefix}-${attr.name}`}
             key={attr.name}
+            // Repeated from the badge onto the item so the version selector can
+            // dim the whole entry, not just its marker.
+            data-since={attr.since}
         >
             <div>
                 <code className="attr-name attr-name-box">{nameElm}</code>
+                <SinceBadge since={attr.since} />
             </div>
             <p className="attr-detail">
                 {typeLabel ? (
@@ -370,11 +383,13 @@ function renderPropItem(
             className="prop-item"
             id={`${idPrefix}-${prop.name}`}
             key={prop.name}
+            data-since={prop.since}
         >
             <div>
                 <code className="prop-name-box">
                     ${refName}.<span className="prop-name">{nameElm}</span>
                 </code>
+                <SinceBadge since={prop.since} />
             </div>
             <p className="prop-detail">
                 {typeLabel ? (

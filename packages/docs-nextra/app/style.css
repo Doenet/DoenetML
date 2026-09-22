@@ -166,6 +166,49 @@ html.dark main .attr-value-table td {
     font-style: italic;
 }
 
+/* "In development" / "Added in X" markers rendered by <SinceBadge>. */
+.since-badge {
+    display: inline-block;
+    margin-left: 0.5rem;
+    border-radius: 0.6rem;
+    padding: 0.05rem 0.5rem;
+    font-size: 0.8em;
+    /* The component summary is italic; the marker beside it is not. */
+    font-style: normal;
+    font-weight: 600;
+    vertical-align: middle;
+    white-space: nowrap;
+}
+
+/* With no version selected the page marks only what is unreleased, so the
+   "Added in X" markers ship in the DOM but stay hidden. They carry their
+   version in `data-since`, which is what lets the version selector reveal the
+   ones a reader does not have with CSS alone and no re-render. */
+.since-badge-released {
+    display: none;
+    background-color: rgb(229, 231, 235);
+    /* gray-700 on gray-200: 8.3:1. */
+    color: rgb(55, 65, 81);
+}
+html.dark main .since-badge-released {
+    background-color: rgb(55, 65, 81);
+    /* gray-300 on gray-700: 7.0:1. */
+    color: rgb(209, 213, 219);
+}
+
+/* Solid rather than tinted: a pale fill would sit at ~1.1:1 against the page
+   and leave the marker's outline doing work its border cannot do at AA. */
+.since-badge-development {
+    /* amber-700 with white text: 5.0:1, and the same against the page. */
+    background-color: rgb(180, 83, 9);
+    color: rgb(255, 255, 255);
+}
+html.dark main .since-badge-development {
+    /* amber-300 with gray-900 text: 12.3:1. */
+    background-color: rgb(252, 211, 77);
+    color: rgb(17, 24, 39);
+}
+
 /* Filter box + Expand/Collapse-all toggle above the attribute/property lists. */
 .attr-prop-controls {
     display: flex;

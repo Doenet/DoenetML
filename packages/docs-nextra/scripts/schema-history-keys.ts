@@ -13,6 +13,14 @@
  * importing from there alone.
  */
 
+/**
+ * Stands in for a version wherever an item is in the working-tree schema but
+ * in no release yet. The index covers *released* versions only, so "absent
+ * from `since`" is exactly "unreleased" — which is what lets the docs mark a
+ * feature as in development with no annotation for anyone to maintain.
+ */
+export const UNRELEASED = "unreleased";
+
 /** Key space: `el:<element>`, `at:<element>.<attr>`, `pr:<element>.<prop>`. */
 export type SchemaHistoryKey = string;
 

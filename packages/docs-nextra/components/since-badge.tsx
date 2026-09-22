@@ -1,0 +1,52 @@
+import React from "react";
+import { UNRELEASED } from "../scripts/schema-history-keys";
+
+/**
+ * Inline marker for the release a component, attribute or property arrived in.
+ *
+ * Two kinds, and only one of them is visible by default:
+ *
+ *   - **In development** — in the working-tree schema but in no release. The
+ *     docs site deploys from every push to `main`, so an author reading it is
+ *     usually on an older release than the page describes; this is the marker
+ *     that stops them writing a feature that silently does nothing.
+ *   - **Added in X** — released, and so true for most readers. It ships in the
+ *     DOM but `app/style.css` hides it, because badging 1,100 items on a quiet
+ *     page would say nothing to anyone. The version selector reveals the ones
+ *     newer than the reader's version, by CSS over `data-since` alone.
+ *
+ * `<Callout>` is the theme's marker of choice but is block-level, which is
+ * wrong beside an attribute name.
+ */
+export function SinceBadge({ since }: { since?: string }) {
+    if (since === undefined) {
+        return null;
+    }
+    const inDevelopment = since === UNRELEASED;
+    return (
+        <span
+            className={
+                inDevelopment
+                    ? "since-badge since-badge-development"
+                    : "since-badge since-badge-released"
+            }
+            data-since={since}
+            title={
+                inDevelopment
+                    ? "In development: not in any released version yet"
+                    : undefined
+            }
+            // Faceting for Pagefind, which indexes the built HTML: a search
+            // result can then be screened by the version its page needs.
+            // `data-pagefind-ignore` keeps the badge's own words out of the
+            // index and out of result excerpts — with the default value,
+            // `index`, filters inside it are still collected.
+            data-pagefind-filter={`version:${
+                inDevelopment ? "In development" : since
+            }`}
+            data-pagefind-ignore=""
+        >
+            {inDevelopment ? "In development" : `Added in ${since}`}
+        </span>
+    );
+}
