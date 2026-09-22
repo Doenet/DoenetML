@@ -47,6 +47,40 @@ their descriptions — is searchable without any extra wiring.
 "Failed to load search index." in dev. Run `npm run build` and serve `out/` to exercise
 search.
 
+### Schema history
+
+`generated/schema-history.json` records which release each schema element, attribute and
+property first appeared in — `since`, plus `removedIn` for things that went away. It is
+derived by `scripts/generate-schema-history.ts`, which reads the committed
+`doenet-schema.json` at every release tag and diffs the snapshots, and it runs as part of
+`build:pre`.
+
+It is generated rather than committed, deliberately. The index is a pure function of the
+release tags, so a stored copy could only ever be *stale* — after a release, until someone
+remembered to regenerate it — and never more correct. Deriving it at build time means
+there is no freshness check to run and no step in the release flow to forget.
+
+Two consequences:
+
+- **The build needs the release tags.** A shallow or tagless clone cannot derive the
+  index, and the generator throws rather than emitting an empty one — an empty index would
+  silently mark all 12,000 schema keys as unreleased. CI asks for the tags with
+  `fetch-depth: 0` and `filter: blob:none`; locally, `git fetch --tags` is enough.
+- **There is no diff to read after a release.** `npm run report:schema-changes` replaces
+  it, and reports any release rather than only the most recent:
+
+  ```
+  npm run report:schema-changes -w packages/docs-nextra            # newest release
+  npm run report:schema-changes -w packages/docs-nextra -- 0.7.21  # a specific one
+  npm run report:schema-changes -w packages/docs-nextra -- --all   # every release
+  ```
+
+Two rules worth knowing before reading a value out of the index. `since` is the start of a
+key's *latest contiguous run of presence*, not its first-ever appearance — keys get
+removed and names get reused, so a rename reads as the old spelling gaining `removedIn`
+and the new one gaining its own `since`. And the index covers *released* versions only, so
+a key in the working-tree schema with no entry is by definition unreleased.
+
 ### zod is pinned to 4.3 in the root `overrides`
 
 Nextra 4.6.1 validates its `<Layout>` props with `z.custom()` schemas that carry no

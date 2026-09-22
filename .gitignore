@@ -62,6 +62,9 @@ stats.html
 tsconfig.tsbuildinfo
 .vscode
 packages/docs-nextra/public/bundle
+# Derived from the release tags by docs-nextra's build:pre, never committed:
+# a stored copy could only ever be stale, never more correct.
+packages/docs-nextra/generated/
 .next
 cspell.json
 *.timestamp-*

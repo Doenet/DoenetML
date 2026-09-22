@@ -16,9 +16,11 @@
         "build": "npm run build:pre && next build",
         "postbuild": "pagefind --site out --output-path out/_pagefind",
         "start": "next start",
-        "build:pre": "npm run build:pre-copy && npm run build:pre-scripts",
+        "build:pre": "npm run build:pre-copy && npm run build:pre-schema-history && npm run build:pre-scripts",
         "build:pre-copy": "wireit",
-        "build:pre-scripts": "wireit"
+        "build:pre-scripts": "wireit",
+        "build:pre-schema-history": "vite-node ./scripts/generate-schema-history.ts",
+        "report:schema-changes": "vite-node ./scripts/report-schema-changes.ts"
     },
     "wireit": {
         "build:pre-copy": {
