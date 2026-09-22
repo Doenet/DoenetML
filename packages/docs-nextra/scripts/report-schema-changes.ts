@@ -4,7 +4,7 @@
  * The history index is derived at build time rather than committed, so there is
  * no diff in a pull request to read after a release. This is the replacement,
  * and a better one: it reports any release, not just the most recent, and it
- * says what changed in words rather than as 600 KB of reordered JSON.
+ * says what changed in words rather than as a megabyte of reordered JSON.
  *
  *   npm run report:schema-changes -w packages/docs-nextra             # newest release
  *   npm run report:schema-changes -w packages/docs-nextra -- 0.7.21   # a specific one
@@ -14,7 +14,11 @@
  * of its own options and the script reports the newest release instead.
  */
 
-import { buildSchemaHistory, releaseSnapshots } from "./schema-history";
+import {
+    buildSchemaHistory,
+    HISTORY_KEY_KINDS,
+    releaseSnapshots,
+} from "./schema-history";
 
 const history = buildSchemaHistory(releaseSnapshots());
 
@@ -33,20 +37,6 @@ if (requested !== undefined && !history.versions.includes(requested)) {
 const versions = all
     ? history.versions
     : [requested ?? history.latestReleasedVersion];
-
-/**
- * The kinds of key, reported separately, and between them covering every key
- * the index holds — so the per-kind lines add up to the `+n added` total above
- * them. An attribute and a property can share a name on the same element —
- * `document.documentWideCheckWork` is both — so a single merged list would
- * print it twice with nothing to tell the two apart.
- */
-const KINDS = [
-    { prefix: "el:", label: "elements" },
-    { prefix: "at:", label: "attributes" },
-    { prefix: "pr:", label: "properties" },
-    { prefix: "va:", label: "attribute values" },
-] as const;
 
 /**
  * `el:chart` -> `<chart>`; `at:point.x` -> `point.x`;
@@ -80,7 +70,7 @@ for (const version of versions) {
     const removed = keysAt(version, history.removedIn);
 
     // The oldest release covered is the baseline, not a release that "added"
-    // 10,957 keys: everything already present shows up against it. Enumerating
+    // 16,548 keys: everything already present shows up against it. Enumerating
     // that is 245 element names of pure noise, so it gets counts only.
     if (version === history.versions[0]) {
         console.log(
@@ -99,7 +89,13 @@ for (const version of versions) {
         ["added", added],
         ["removed", removed],
     ] as const) {
-        for (const kind of KINDS) {
+        // One line per kind of key. `HISTORY_KEY_KINDS` covers every key the
+        // index holds, so these lines add up to the `+n added` total above
+        // them. Kept separate rather than merged because an attribute and a
+        // property can share a name on the same element —
+        // `document.documentWideCheckWork` is both — and one merged list would
+        // print it twice with nothing to tell the two apart.
+        for (const kind of HISTORY_KEY_KINDS) {
             const inKind = keys.filter((key) => key.startsWith(kind.prefix));
             if (inKind.length === 0) continue;
 

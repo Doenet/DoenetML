@@ -23,6 +23,7 @@ import { execFileSync } from "node:child_process";
 import { describe, expect, it } from "vitest";
 import {
     buildSchemaHistory,
+    HISTORY_KEY_KINDS,
     parseReleaseTags,
     releaseSnapshots,
     schemaKeys,
@@ -338,6 +339,22 @@ describe.skipIf(!hasReleaseTags)(
             ).toBe("0.7.21");
             // The 501-key drop the contiguous-run rule exists for.
             expect(history.removedIn["pr:abs.modifyIndirectly"]).toBe("0.7.17");
+        });
+
+        it("names a kind for every key the index holds", () => {
+            // What `report:schema-changes` needs to add up: it prints one line
+            // per kind in `HISTORY_KEY_KINDS` under a total counted over all
+            // keys, so a kind added to `schemaKeys` and not to that list would
+            // go unreported. Checked against the real tags rather than a
+            // synthetic schema, which would only ever hold the kinds this test
+            // thought to write.
+            const history = realHistory();
+            const prefixes = HISTORY_KEY_KINDS.map((kind) => kind.prefix);
+            const unnamed = [
+                ...Object.keys(history.since),
+                ...Object.keys(history.removedIn),
+            ].filter((key) => !prefixes.some((p) => key.startsWith(p)));
+            expect(unnamed).toEqual([]);
         });
 
         it("reproduces the counts, as a floor that only grows", () => {

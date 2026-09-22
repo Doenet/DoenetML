@@ -45,7 +45,7 @@ import {
  *
  * Joined rather than written as `new URL("…", import.meta.url)`: Vite treats
  * that form as an asset reference and the lib build would inline the whole
- * 600 KB index into `dist/index.js` as a `data:` URL, which `fileURLToPath`
+ * megabyte index into `dist/index.js` as a `data:` URL, which `fileURLToPath`
  * then refuses.
  */
 const INDEX_PATH = path.join(
@@ -57,8 +57,9 @@ const INDEX_PATH = path.join(
  * Read the generated index.
  *
  * Throws rather than falling back to an empty index: with no history every key
- * looks unreleased, so a silent fallback would badge all 19,000-odd of them as in
- * development. `build:pre` runs the generator before anything that calls this.
+ * looks unreleased, so a silent fallback would badge all 19,000-odd of them
+ * as in development. `build:pre` runs the generator before anything that calls
+ * this.
  */
 export function loadSchemaHistory(): SchemaHistory {
     let raw: string;

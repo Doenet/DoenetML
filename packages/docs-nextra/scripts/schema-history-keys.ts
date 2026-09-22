@@ -27,6 +27,21 @@ export const UNRELEASED = "unreleased";
  */
 export type SchemaHistoryKey = string;
 
+/**
+ * Every kind of key the index holds, each with a plural label for a report.
+ *
+ * Lives here rather than in the one script that groups keys this way, because
+ * it is a claim about the key space: a reader that covers this list covers the
+ * whole index. `test/schema-history.test.ts` holds it to that against the real
+ * tags, so a fifth kind added to `schemaKeys` cannot quietly go unreported.
+ */
+export const HISTORY_KEY_KINDS = [
+    { prefix: "el:", label: "elements" },
+    { prefix: "at:", label: "attributes" },
+    { prefix: "pr:", label: "properties" },
+    { prefix: "va:", label: "attribute values" },
+] as const;
+
 /** The history key for an element. */
 export function elementHistoryKey(element: string): SchemaHistoryKey {
     return `el:${element}`;
