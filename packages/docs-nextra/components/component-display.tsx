@@ -17,7 +17,7 @@ export type ComponentInfo = {
  *
  * The element's badge also stands in for its attributes and properties: those
  * that arrived with it carry none of their own, so a component new in 0.7.27
- * reads as one new component rather than seventy new attributes.
+ * reads as one new component and not as a badge on each of its members.
  */
 export function ComponentDisplay({
     name,

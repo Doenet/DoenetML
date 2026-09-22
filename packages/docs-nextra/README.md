@@ -99,7 +99,7 @@ nothing to anyone. Two rules drop them:
 
 - An attribute or property that arrived with its element says nothing; the element's own
   badge already covers it. `<chart>` arrived in 0.7.27 with 70 keys and reads as one new
-  component rather than 70 new attributes.
+  component, not as a badge on each of its 30 attributes and 39 properties as well.
 - An element present in the oldest release the index covers says nothing either. The
   snapshots cannot tell "arrived in 0.7.0" from "arrived earlier", and there is no version
   below it for a reader to select.

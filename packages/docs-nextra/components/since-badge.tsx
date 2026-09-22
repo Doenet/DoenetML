@@ -12,8 +12,9 @@ import { UNRELEASED } from "../scripts/schema-history-keys";
  *     that stops them writing a feature that silently does nothing.
  *   - **Added in X** — released, and so true for most readers. It ships in the
  *     DOM but `app/style.css` hides it, because badging 1,100 items on a quiet
- *     page would say nothing to anyone. The version selector reveals the ones
- *     newer than the reader's version, by CSS over `data-since` alone.
+ *     page would say nothing to anyone. Carrying the version in `data-since`
+ *     is what lets a version selector reveal the ones newer than the reader's
+ *     by CSS alone, with no re-render.
  *
  * `<Callout>` is the theme's marker of choice but is block-level, which is
  * wrong beside an attribute name.

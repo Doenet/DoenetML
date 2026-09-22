@@ -196,10 +196,12 @@ html.dark main .since-badge-released {
     color: rgb(209, 213, 219);
 }
 
-/* Solid rather than tinted: a pale fill would sit at ~1.1:1 against the page
-   and leave the marker's outline doing work its border cannot do at AA. */
+/* A solid fill, so the marker reads as a shape without needing a border: the
+   page behind it is rgb(250, 250, 250) in light mode (`--nextra-bg`, set in
+   `nextra-theme-vars.css`) and rgb(17, 17, 17) in dark, which the two fills
+   below clear at 4.8:1 and 13.1:1. */
 .since-badge-development {
-    /* amber-700 with white text: 5.0:1, and the same against the page. */
+    /* amber-700 with white text: 5.0:1. */
     background-color: rgb(180, 83, 9);
     color: rgb(255, 255, 255);
 }
