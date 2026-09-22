@@ -4,7 +4,7 @@
  *
  * `schema-history.ts` answers "when did this key appear". This module answers
  * "what should the page say about it", which is a smaller question, because
- * most of the 12,191 keys should say nothing:
+ * most of the schema's 12,221 keys should say nothing:
  *
  *   - An item that arrived with its element carries no badge of its own. The
  *     element's badge already covers it. `<chart>` arrived in 0.7.27 with 70
@@ -79,9 +79,16 @@ export type SchemaSince = {
 
 /** Apply the badge rules above to one history index. */
 export function schemaSince(history: SchemaHistory): SchemaSince {
-    // A key the index has never seen is in the working-tree schema only.
+    // A key the index has never seen is in the working-tree schema only. So is
+    // one the index saw leave: `removedIn` holds exactly the keys absent from
+    // the newest release, so a key listed there that the docs are still asking
+    // about came back after that release. Its old `since` names a run that has
+    // already ended, and taking it at face value would date the item to a
+    // release that does not have it.
     const arrivedIn = (key: SchemaHistoryKey) =>
-        history.since[key] ?? UNRELEASED;
+        key in history.removedIn
+            ? UNRELEASED
+            : (history.since[key] ?? UNRELEASED);
 
     // Recorded as the oldest covered release, which reads "then or earlier".
     const oldestCovered = history.versions[0];

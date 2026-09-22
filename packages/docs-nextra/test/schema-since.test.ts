@@ -16,12 +16,13 @@ import { schemaSince } from "../scripts/schema-since";
 function history(
     versions: string[],
     since: Record<string, string>,
+    removedIn: Record<string, string> = {},
 ): SchemaHistory {
     return {
         latestReleasedVersion: versions[versions.length - 1],
         versions,
         since,
-        removedIn: {},
+        removedIn,
     };
 }
 
@@ -95,6 +96,31 @@ describe("schemaSince", () => {
         expect(since.element("newThing")).toBe(UNRELEASED);
         expect(since.attribute("newThing", "size")).toBeUndefined();
         expect(since.property("newThing", "value")).toBeUndefined();
+    });
+
+    it("calls a member that came back after the newest release unreleased", () => {
+        // Present through 0.7.0, gone by 0.7.10, and back in the working tree.
+        // Read from `since` alone it looks as old as its element, which the
+        // suppression rule would then silence — leaving a reader on 0.7.27 no
+        // sign that the attribute is one they do not have.
+        const since = schemaSince(
+            history(
+                VERSIONS,
+                { "el:section": "0.7.0", "at:section.boxed": "0.7.0" },
+                { "at:section.boxed": "0.7.10" },
+            ),
+        );
+        expect(since.attribute("section", "boxed")).toBe(UNRELEASED);
+    });
+
+    it("calls an element that came back after the newest release unreleased", () => {
+        const since = schemaSince(
+            history(VERSIONS, { "el:gone": "0.7.0" }, { "el:gone": "0.7.10" }),
+        );
+        expect(since.element("gone")).toBe(UNRELEASED);
+        // And its members fall back under the element's badge, as for any
+        // other element the released schema does not have.
+        expect(since.attribute("gone", "size")).toBeUndefined();
     });
 
     it("marks a member reintroduced after its element settled", () => {

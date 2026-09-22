@@ -94,8 +94,8 @@ The reference pages mark schema items with the release they arrived in.
 `scripts/compute-optimized-schema.ts` threads it through beside `groupName`/`highlighted`,
 and `components/since-badge.tsx` renders it.
 
-Most items carry no badge, which is the point — 12,191 keys marked would say nothing to
-anyone. Two rules drop them:
+Most items carry no badge, which is the point — the schema's 12,221 keys marked would say
+nothing to anyone. Two rules drop them:
 
 - An attribute or property that arrived with its element says nothing; the element's own
   badge already covers it. `<chart>` arrived in 0.7.27 with 70 keys and reads as one new
