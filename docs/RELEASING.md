@@ -243,7 +243,14 @@ cherry-picked backport touches none of them, so the lines do not contend.
 - **The docs site is unversioned.** It is a single build from `main`, and its
   embedded examples render against the `dev` dist-tag. Once `main` is a new line,
   the published docs describe that line only, with no counterpart for the
-  maintenance line.
+  maintenance line. Work to change this is tracked under
+  [#1497](https://github.com/Doenet/DoenetML/issues/1497).
+- **A release adds nothing for anyone to regenerate.** The docs know which
+  release each schema element, attribute and property first appeared in, but
+  that index is derived at docs build time by reading the committed schema at
+  every release tag — so cutting a tag is the only action needed, and the next
+  docs deploy picks it up. To see what a release changed, run
+  `npm run report:schema-changes -w packages/docs-nextra <version>`.
 
 ## Where things are
 

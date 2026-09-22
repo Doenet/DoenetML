@@ -31,7 +31,16 @@ jobs:
                 # See supported Node.js release schedule at https://nodejs.org/en/about/releases/
 
         steps:
+            # The docs build derives the schema history index from the
+            # committed schema at every release tag, so it needs a checkout
+            # with the tags; the default is a single commit with none.
+            # `filter: blob:none` keeps that affordable — 8.2 MB rather than
+            # 298 MB, and faster overall. See the matching comment on
+            # `build-docs` in ci.yml for the measurements.
             - uses: actions/checkout@v6
+              with:
+                  fetch-depth: 0
+                  filter: blob:none
             - name: Use Node.js ${{ matrix.node-version }}
               uses: actions/setup-node@v6
               with:
