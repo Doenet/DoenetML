@@ -339,6 +339,7 @@ export const autoInsertAttrPropDescriptions: Plugin<
             }
             if (node.name === "ComponentDisplay") {
                 injectSummary(node, info);
+                injectSince(node, info);
             }
             if (node.name === "AttrPropDisplay") {
                 // <AttrPropDisplay> renders the attribute and property
@@ -481,6 +482,22 @@ function injectLinksAttribute(
                 estree: objectToEstree(links),
             },
         },
+    });
+}
+
+/**
+ * Inject the release the element arrived in onto a `<ComponentDisplay>`.
+ * Absent for most elements — see `schema-since.ts` for the two rules that
+ * decide when a badge would say nothing.
+ */
+function injectSince(node: MdxJsxFlowElement, info: OptimizedInfo): void {
+    if (info.since === undefined || hasAttribute(node, "since")) {
+        return;
+    }
+    node.attributes.push({
+        type: "mdxJsxAttribute",
+        name: "since",
+        value: info.since,
     });
 }
 

@@ -87,6 +87,35 @@ removed and names get reused, so a rename reads as the old spelling gaining `rem
 and the new one gaining its own `since`. And the index covers *released* versions only, so
 a key in the working-tree schema with no entry is by definition unreleased.
 
+### Version badges
+
+The reference pages mark schema items with the release they arrived in.
+`scripts/schema-since.ts` turns the history index into the one value a page needs,
+`scripts/compute-optimized-schema.ts` threads it through beside `groupName`/`highlighted`,
+and `components/since-badge.tsx` renders it.
+
+Most items carry no badge, which is the point — the schema's 12,221 keys marked would say
+nothing to anyone. Two rules drop them:
+
+- An attribute or property that arrived with its element says nothing; the element's own
+  badge already covers it. `<chart>` arrived in 0.7.27 with 70 keys and reads as one new
+  component, not as a badge on each of its 30 attributes and 39 properties as well.
+- An element present in the oldest release the index covers says nothing either. The
+  snapshots cannot tell "arrived in 0.7.0" from "arrived earlier", and there is no version
+  below it for a reader to select.
+
+Of the ~1,100 badges left, the default view shows only the ones reading **In development** —
+in the working-tree schema, in no release. Those are the ones an author cannot act on yet,
+and the docs site deploys from every push to `main`, so they are always present.
+
+The rest read "Added in X", ship in the DOM, and are hidden by `app/style.css`. Each carries
+its version in `data-since`, on both the badge and the item around it, which is what lets a
+"my version" selector reveal and dim by CSS alone with no re-render. They also carry
+`data-pagefind-filter="version:…"`, which Pagefind collects per page, so a *search* can be
+narrowed to the pages carrying an item from a given release, or one still in development.
+`data-pagefind-ignore` alongside keeps the badge's own words out of result excerpts while
+still collecting the filter.
+
 ### zod is pinned to 4.3 in the root `overrides`
 
 Nextra 4.6.1 validates its `<Layout>` props with `z.custom()` schemas that carry no
