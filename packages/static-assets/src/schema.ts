@@ -109,6 +109,16 @@ export type SchemaProperty = {
     indexAliases?: readonly (readonly string[])[];
     description: string;
     fromAttribute?: boolean;
+    /**
+     * Docs-only: functional group this property belongs to in the reference
+     * docs (e.g. `"number-display"`). See `AttributeDefinition.groupName`.
+     */
+    groupName?: string;
+    /**
+     * Docs-only: when `true`, surface this property in the docs "Highlighted"
+     * section. See `AttributeDefinition.highlighted`.
+     */
+    highlighted?: boolean;
 };
 
 export { doenetSchema };
