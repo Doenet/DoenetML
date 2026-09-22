@@ -1,8 +1,8 @@
 /*
  * Write `generated/schema-history.json`: the release each schema element,
- * attribute and property first appeared in, derived from the committed schema
- * at every release tag. See `schema-history.ts` for the derivation and why the
- * run rule is what it is.
+ * attribute, property and enumerated attribute value first appeared in, derived
+ * from the committed schema at every release tag. See `schema-history.ts` for
+ * the derivation and why the run rule is what it is.
  *
  * This runs as part of `build:pre`, and its output is generated rather than
  * committed. The index is a pure function of the release tags, so a committed

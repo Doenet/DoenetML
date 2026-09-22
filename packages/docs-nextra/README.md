@@ -49,11 +49,11 @@ search.
 
 ### Schema history
 
-`generated/schema-history.json` records which release each schema element, attribute and
-property first appeared in — `since`, plus `removedIn` for things that went away. It is
-derived by `scripts/generate-schema-history.ts`, which reads the committed
-`doenet-schema.json` at every release tag and diffs the snapshots, and it runs as part of
-`build:pre`.
+`generated/schema-history.json` records which release each schema element, attribute,
+property and enumerated attribute value first appeared in — `since`, plus `removedIn` for
+things that went away. It is derived by `scripts/generate-schema-history.ts`, which reads
+the committed `doenet-schema.json` at every release tag and diffs the snapshots, and it
+runs as part of `build:pre`.
 
 It is generated rather than committed, deliberately. The index is a pure function of the
 release tags, so a stored copy could only ever be *stale* — after a release, until someone
@@ -77,10 +77,10 @@ Two consequences:
 
 Read it through `scripts/schema-history-keys.ts`, which holds the key space
 (`el:<element>`, `at:<element>.<attr>`, `pr:<element>.<prop>`,
-`va:<element>.<attr>.<value>`), the helpers that build
-those keys and the index's type — and nothing else, so a client component can import it.
-`schema-history.ts` next to it reads git, so importing *that* one from a component fails
-the build on `node:child_process`.
+`va:<element>.<attr>.<value>`), the helpers that build those keys and the index's type —
+and nothing else, so a client component can import it. `schema-history.ts` next to it
+reads git, so importing *that* one from a component fails the build on
+`node:child_process`.
 
 Two rules worth knowing before reading a value out of the index. `since` is the start of a
 key's *latest contiguous run of presence*, not its first-ever appearance — keys get

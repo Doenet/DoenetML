@@ -15,9 +15,10 @@ export type ComponentInfo = {
  * remark plugin from the `name` attribute, so reference pages only need
  * `<ComponentDisplay name='…'/>`.
  *
- * The element's badge also stands in for its attributes and properties: those
- * that arrived with it carry none of their own, so a component new in 0.7.27
- * reads as one new component and not as a badge on each of its members.
+ * The element's badge also stands in for its attributes, its properties and the
+ * values those attributes accept: everything that arrived with it carries none
+ * of its own, so a component new in 0.7.27 reads as one new component and not
+ * as a badge on each of its parts.
  */
 export function ComponentDisplay({
     name,

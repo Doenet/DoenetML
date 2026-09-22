@@ -4,7 +4,7 @@
  * pinned even as new releases change every real number.
  *
  * The rule that matters is the *contiguous run*. Keys really do vanish and come
- * back — 0.7.17 dropped 501 of them and 0.7.18 another 261 — so "first ever
+ * back — 0.7.17 dropped 501 of them and 0.7.18 another 376 — so "first ever
  * seen" would print a version the key was not actually available in for the
  * whole span the reader assumes.
  *

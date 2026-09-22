@@ -429,7 +429,7 @@ jobs:
             # is ten times slower under the filter: each `git show` triggers
             # its own lazy fetch, so those 12 seconds are 28 network round
             # trips, not work. It still comes out ahead overall, and pulls a
-            # twenty-fifth of the data.
+            # thirty-sixth of the data.
             #
             # If the tags are ever missing the generator throws and names the
             # cause rather than emitting an empty index, which would badge all

@@ -116,7 +116,7 @@ export function schemaKeys(schema: SchemaSnapshotJson): Set<SchemaHistoryKey> {
  *
  * `since` is the start of a key's *latest contiguous run of presence*, not its
  * first-ever appearance. Keys get removed and names get reused — 0.7.17 dropped
- * 501 keys and 0.7.18 another 261 — so first-ever-seen would report a stale
+ * 501 keys and 0.7.18 another 376 — so first-ever-seen would report a stale
  * version for anything that came back. A rename shows up as a removal plus an
  * addition, which is the right rendering: the old spelling carries `removedIn`
  * and the new one carries its own `since`.
