@@ -31,9 +31,28 @@ import {
     type VersionSnapshot,
 } from "../scripts/schema-history";
 
-/** `snapshot("0.7.3", "el:a", "at:a.b")` — a release holding just those keys. */
+/**
+ * `snapshot("0.7.3", "el:a", "at:a.b")` — a release holding just those keys.
+ * Any `va:` key among them is owned by the `at:` key it is written under, so a
+ * release that lists a value is also one that declares its attribute's list.
+ */
 function snapshot(version: string, ...keys: string[]): VersionSnapshot {
-    return { version, keys: new Set(keys) };
+    const valueOwners = new Map<string, string>();
+    for (const key of keys) {
+        if (key.startsWith("va:")) {
+            valueOwners.set(key, ownerInTest(key));
+        }
+    }
+    return { version, keys: new Set(keys), valueOwners };
+}
+
+/**
+ * The attribute a test's `va:` key belongs to. Test values never contain a
+ * `.`, so splitting the last segment off is safe here; the production code
+ * carries ownership rather than parsing it, because real values do.
+ */
+function ownerInTest(valueKey: string): string {
+    return `at:${valueKey.slice("va:".length, valueKey.lastIndexOf("."))}`;
 }
 
 describe("schemaKeys", () => {
@@ -197,6 +216,68 @@ describe("parseReleaseTags", () => {
 });
 
 describe("buildSchemaHistory", () => {
+    it("dates the values in a newly written list to their attribute", () => {
+        // `renderMode` set "inline" and "display" at 0.7.0 and only declared
+        // them at 0.7.25. The declaration is someone writing the list down, not
+        // the values arriving, so an author on 0.7.20 must not be told that
+        // "display" is newer than their version.
+        const history = buildSchemaHistory([
+            snapshot("0.7.0", "el:m", "at:m.renderMode"),
+            snapshot("0.7.10", "el:m", "at:m.renderMode"),
+            snapshot(
+                "0.7.25",
+                "el:m",
+                "at:m.renderMode",
+                "va:m.renderMode.inline",
+                "va:m.renderMode.display",
+            ),
+        ]);
+        expect(history.since["at:m.renderMode"]).toBe("0.7.0");
+        expect(history.since["va:m.renderMode.inline"]).toBe("0.7.0");
+        expect(history.since["va:m.renderMode.display"]).toBe("0.7.0");
+    });
+
+    it("keeps its own date for a value added to a list that already existed", () => {
+        // The case the snapshots really do record: the list was there, and a
+        // release extended it.
+        const history = buildSchemaHistory([
+            snapshot("0.7.0", "el:s", "at:s.type", "va:s.type.uniform"),
+            snapshot(
+                "0.7.10",
+                "el:s",
+                "at:s.type",
+                "va:s.type.uniform",
+                "va:s.type.poisson",
+            ),
+        ]);
+        expect(history.since["va:s.type.uniform"]).toBe("0.7.0");
+        expect(history.since["va:s.type.poisson"]).toBe("0.7.10");
+    });
+
+    it("dates a list written with its attribute to that release", () => {
+        // The degenerate case of the same rule: attribute and list arrive
+        // together, so the values take the attribute's date and the badge
+        // rules drop them against it.
+        const history = buildSchemaHistory([
+            snapshot("0.7.0", "el:c"),
+            snapshot("0.7.27", "el:c", "at:c.type", "va:c.type.bar"),
+        ]);
+        expect(history.since["at:c.type"]).toBe("0.7.27");
+        expect(history.since["va:c.type.bar"]).toBe("0.7.27");
+    });
+
+    it("re-dates a list that went away and came back", () => {
+        // A list that disappears and returns starts a new run, and the values
+        // in it are dated to the attribute again rather than to the return.
+        const history = buildSchemaHistory([
+            snapshot("0.7.0", "el:m", "at:m.mode", "va:m.mode.inline"),
+            snapshot("0.7.10", "el:m", "at:m.mode"),
+            snapshot("0.7.20", "el:m", "at:m.mode", "va:m.mode.inline"),
+        ]);
+        expect(history.since["at:m.mode"]).toBe("0.7.0");
+        expect(history.since["va:m.mode.inline"]).toBe("0.7.0");
+    });
+
     it("records the start of the latest contiguous run, not the first sighting", () => {
         // present -> removed -> re-added: the acceptance case from the issue.
         const history = buildSchemaHistory([
@@ -360,7 +441,7 @@ describe.skipIf(!hasReleaseTags)(
         it("reproduces the counts, as a floor that only grows", () => {
             // Exact as of 0.7.27: 19,661 live keys — 265 elements, 5,668
             // attributes, 6,258 properties and 7,470 attribute values — of
-            // which 15,367 were present at or before 0.7.0, 4,294 arrived
+            // which 15,490 were present at or before 0.7.0, 4,171 arrived
             // during 0.7.x, and 25 of those are elements. Asserted as lower
             // bounds so a new release does not fail the suite. The 0.7.0 figure
             // is exact instead, and deliberately a tripwire: it moves only when
@@ -372,7 +453,7 @@ describe.skipIf(!hasReleaseTags)(
             expect(live.length).toBeGreaterThanOrEqual(19661);
             expect(
                 live.filter((k) => history.since[k] === "0.7.0"),
-            ).toHaveLength(15367);
+            ).toHaveLength(15490);
             expect(
                 live.filter(
                     (k) => k.startsWith("el:") && history.since[k] !== "0.7.0",

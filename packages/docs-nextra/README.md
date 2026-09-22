@@ -97,7 +97,7 @@ individual values an enumerated attribute accepts — with the release they arri
 and `components/since-badge.tsx` renders it.
 
 Most items carry no badge, which is the point — the schema's 19,697 keys marked would say
-nothing to anyone. Two rules drop them:
+nothing to anyone. Three rules drop them:
 
 - An item that arrived with the item enclosing it says nothing; that badge already covers
   it. `<chart>` arrived in 0.7.27 with 116 keys and reads as one new component, not as a
@@ -107,8 +107,16 @@ nothing to anyone. Two rules drop them:
 - An element present in the oldest release the index covers says nothing either. The
   snapshots cannot tell "arrived in 0.7.0" from "arrived earlier", and there is no version
   below it for a reader to select.
+- The values in a value list are dated to their attribute in the release that list is
+  first written down. A `values` / `autocompleteValues` list is usually added long after
+  the attribute began accepting what it lists — `renderMode` set `inline` and `display` at
+  0.7.0 and only declared them at 0.7.25 — so reading the declaration as an arrival would
+  tell an author on 0.7.20 that `display` is newer than their version. This is applied in
+  `scripts/schema-history.ts`, where the index is derived, rather than in the badge rules,
+  because it is a statement about when the feature existed. Values added to a list that
+  already existed keep their own date, which is the case the snapshots really do record.
 
-Of the ~1,900 badges left, the default view shows only the ones reading **In development** —
+Of the ~1,800 badges left, the default view shows only the ones reading **In development** —
 in the working-tree schema, in no release. Those are the ones an author cannot act on yet,
 and the docs site deploys from every push to `main`, so they are always present. Values
 matter here out of proportion to their number: `type` on `<selectRandomNumbers>` is as old

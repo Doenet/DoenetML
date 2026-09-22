@@ -70,7 +70,7 @@ for (const version of versions) {
     const removed = keysAt(version, history.removedIn);
 
     // The oldest release covered is the baseline, not a release that "added"
-    // 16,548 keys: everything already present shows up against it. Enumerating
+    // 16,671 keys: everything already present shows up against it. Enumerating
     // that is 245 element names of pure noise, so it gets counts only.
     if (version === history.versions[0]) {
         console.log(
