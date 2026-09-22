@@ -64,7 +64,7 @@ Two consequences:
 
 - **The build needs the release tags.** A shallow or tagless clone cannot derive the
   index, and the generator throws rather than emitting an empty one — an empty index would
-  silently mark all 12,000 schema keys as unreleased. CI asks for the tags with
+  silently mark all 19,000-odd schema keys as unreleased. CI asks for the tags with
   `fetch-depth: 0` and `filter: blob:none`; locally, `git fetch --tags` is enough.
 - **There is no diff to read after a release.** `npm run report:schema-changes` replaces
   it, and reports any release rather than only the most recent:
@@ -76,7 +76,8 @@ Two consequences:
   ```
 
 Read it through `scripts/schema-history-keys.ts`, which holds the key space
-(`el:<element>`, `at:<element>.<attr>`, `pr:<element>.<prop>`), the helpers that build
+(`el:<element>`, `at:<element>.<attr>`, `pr:<element>.<prop>`,
+`va:<element>.<attr>.<value>`), the helpers that build
 those keys and the index's type — and nothing else, so a client component can import it.
 `schema-history.ts` next to it reads git, so importing *that* one from a component fails
 the build on `node:child_process`.
@@ -89,24 +90,30 @@ a key in the working-tree schema with no entry is by definition unreleased.
 
 ### Version badges
 
-The reference pages mark schema items with the release they arrived in.
+The reference pages mark schema items — components, attributes, properties, and the
+individual values an enumerated attribute accepts — with the release they arrived in.
 `scripts/schema-since.ts` turns the history index into the one value a page needs,
 `scripts/compute-optimized-schema.ts` threads it through beside `groupName`/`highlighted`,
 and `components/since-badge.tsx` renders it.
 
-Most items carry no badge, which is the point — the schema's 12,221 keys marked would say
+Most items carry no badge, which is the point — the schema's 19,697 keys marked would say
 nothing to anyone. Two rules drop them:
 
-- An attribute or property that arrived with its element says nothing; the element's own
-  badge already covers it. `<chart>` arrived in 0.7.27 with 70 keys and reads as one new
-  component, not as a badge on each of its 30 attributes and 39 properties as well.
+- An item that arrived with the item enclosing it says nothing; that badge already covers
+  it. `<chart>` arrived in 0.7.27 with 70 keys and reads as one new component, not as a
+  badge on each of its 30 attributes and 39 properties as well — and the same rule one
+  level down keeps a new enumerated attribute from repeating itself once per keyword in
+  its value table.
 - An element present in the oldest release the index covers says nothing either. The
   snapshots cannot tell "arrived in 0.7.0" from "arrived earlier", and there is no version
   below it for a reader to select.
 
-Of the ~1,100 badges left, the default view shows only the ones reading **In development** —
+Of the ~1,900 badges left, the default view shows only the ones reading **In development** —
 in the working-tree schema, in no release. Those are the ones an author cannot act on yet,
-and the docs site deploys from every push to `main`, so they are always present.
+and the docs site deploys from every push to `main`, so they are always present. Values
+matter here out of proportion to their number: `type` on `<selectRandomNumbers>` is as old
+as the schema and so carries no badge of its own, which would otherwise leave its table
+listing `logNormal` as though an author could write it.
 
 The rest read "Added in X", ship in the DOM, and are hidden by `app/style.css`. Each carries
 its version in `data-since`, on both the badge and the item around it, which is what lets a

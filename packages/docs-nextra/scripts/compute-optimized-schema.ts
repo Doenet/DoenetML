@@ -159,6 +159,16 @@ function getAttrInfo(
         } else if (attr.values) {
             info.values = attr.values.map((value) => ({ value }));
         }
+        for (const value of info.values ?? []) {
+            const valueSince = since.value(
+                element.name,
+                attr.name,
+                value.value,
+            );
+            if (valueSince !== undefined) {
+                value.since = valueSince;
+            }
+        }
         // `isArray` is still cross-referenced from a same-named property.
         if (correspondingProp?.isArray) {
             info.isArray = true;

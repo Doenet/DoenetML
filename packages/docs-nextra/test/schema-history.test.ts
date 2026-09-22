@@ -62,6 +62,76 @@ describe("schemaKeys", () => {
         expect([...schemaKeys({})]).toEqual([]);
     });
 
+    it("keys the values an enumerated attribute accepts", () => {
+        expect(
+            [
+                ...schemaKeys({
+                    elements: [
+                        {
+                            name: "selectRandomNumbers",
+                            attributes: [
+                                {
+                                    name: "type",
+                                    values: ["uniform", "gaussian"],
+                                },
+                            ],
+                        },
+                    ],
+                }),
+            ].sort(),
+        ).toEqual([
+            "at:selectRandomNumbers.type",
+            "el:selectRandomNumbers",
+            "va:selectRandomNumbers.type.gaussian",
+            "va:selectRandomNumbers.type.uniform",
+        ]);
+    });
+
+    it("unions both value fields, in either shape they have had", () => {
+        // `autocompleteValues` arrived at 0.7.16 as `string[]` and became
+        // `{ value, description }[]` at 0.7.17, so the walk meets both. It
+        // carries only the author-facing subset — 68 attributes list
+        // `true`/`false` under `values` alone — so keying on the field the
+        // docs prefer would read 0.7.16 as those values being removed.
+        const fromStrings = schemaKeys({
+            elements: [
+                {
+                    name: "and",
+                    attributes: [
+                        {
+                            name: "simplify",
+                            values: ["none", "true", "false"],
+                            autocompleteValues: ["none"],
+                        },
+                    ],
+                },
+            ],
+        });
+        const fromObjects = schemaKeys({
+            elements: [
+                {
+                    name: "and",
+                    attributes: [
+                        {
+                            name: "simplify",
+                            values: ["none", "true", "false"],
+                            autocompleteValues: [{ value: "none" }],
+                        },
+                    ],
+                },
+            ],
+        });
+        const expected = [
+            "at:and.simplify",
+            "el:and",
+            "va:and.simplify.false",
+            "va:and.simplify.none",
+            "va:and.simplify.true",
+        ];
+        expect([...fromStrings].sort()).toEqual(expected);
+        expect([...fromObjects].sort()).toEqual(expected);
+    });
+
     it("ignores aliasedElements", () => {
         // `matrixRow` and `matrixColumn` entered the JSON at 0.7.17 but the
         // components date to 0.7.0 or earlier, so indexing them would report a
@@ -271,19 +341,21 @@ describe.skipIf(!hasReleaseTags)(
         });
 
         it("reproduces the counts, as a floor that only grows", () => {
-            // Exact as of 0.7.27: 12,191 live keys, 10,228 of them present at or
-            // before 0.7.0, 1,963 introduced during 0.7.x, 25 of those elements.
-            // Asserted as lower bounds so a new release does not fail the suite.
-            // The 0.7.0 figure is exact instead, and deliberately a tripwire: it
-            // moves only when a release removes — or removes and re-adds — a key
-            // that had been in the schema since 0.7.0, which is worth a look
-            // rather than a silent slide. Update the number when that happens.
+            // Exact as of 0.7.27: 19,661 live keys — 265 elements, 5,668
+            // attributes, 6,258 properties and 7,470 attribute values — of
+            // which 15,367 were present at or before 0.7.0, 4,294 arrived
+            // during 0.7.x, and 25 of those are elements. Asserted as lower
+            // bounds so a new release does not fail the suite. The 0.7.0 figure
+            // is exact instead, and deliberately a tripwire: it moves only when
+            // a release removes — or removes and re-adds — a key that had been
+            // in the schema since 0.7.0, which is worth a look rather than a
+            // silent slide. Update the number when that happens.
             const live = liveKeys(realHistory());
             const history = realHistory();
-            expect(live.length).toBeGreaterThanOrEqual(12191);
+            expect(live.length).toBeGreaterThanOrEqual(19661);
             expect(
                 live.filter((k) => history.since[k] === "0.7.0"),
-            ).toHaveLength(10228);
+            ).toHaveLength(15367);
             expect(
                 live.filter(
                     (k) => k.startsWith("el:") && history.since[k] !== "0.7.0",

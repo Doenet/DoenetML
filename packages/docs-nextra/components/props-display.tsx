@@ -38,6 +38,10 @@ export type AttrValueInfo = {
     value: string;
     /** Human-readable description of what the value does */
     description?: string;
+    /** Release this value arrived in, or `"unreleased"` when it is in no
+     * release yet. Absent when there is nothing worth saying — a value that
+     * arrived with its attribute is covered by the attribute's own badge. */
+    since?: string;
 };
 
 export type AttrInfo = {
@@ -342,7 +346,7 @@ function renderAttrItem(
                                 attr.defaultValue != null &&
                                 String(attr.defaultValue) === v.value;
                             return (
-                                <tr key={v.value}>
+                                <tr key={v.value} data-since={v.since}>
                                     <td>
                                         <code className="attr-value-chip">
                                             {v.value}
@@ -353,6 +357,7 @@ function renderAttrItem(
                                                 (default)
                                             </span>
                                         ) : null}
+                                        <SinceBadge since={v.since} />
                                     </td>
                                     <td>
                                         {v.description

@@ -21,7 +21,10 @@
  */
 export const UNRELEASED = "unreleased";
 
-/** Key space: `el:<element>`, `at:<element>.<attr>`, `pr:<element>.<prop>`. */
+/**
+ * Key space: `el:<element>`, `at:<element>.<attr>`, `pr:<element>.<prop>`,
+ * `va:<element>.<attr>.<value>`.
+ */
 export type SchemaHistoryKey = string;
 
 /** The history key for an element. */
@@ -35,6 +38,22 @@ export function attributeHistoryKey(
     attribute: string,
 ): SchemaHistoryKey {
     return `at:${element}.${attribute}`;
+}
+
+/**
+ * The history key for one of the values an enumerated attribute accepts.
+ *
+ * A value is keyed under the attribute that accepts it rather than on its own,
+ * because the same spelling means different things on different attributes:
+ * `gaussian` on `selectRandomNumbers.type` and on a styling attribute are
+ * unrelated, and each arrived when its own attribute learned it.
+ */
+export function attributeValueHistoryKey(
+    element: string,
+    attribute: string,
+    value: string,
+): SchemaHistoryKey {
+    return `va:${element}.${attribute}.${value}`;
 }
 
 /** The history key for one of an element's properties. */

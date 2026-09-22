@@ -21,6 +21,7 @@
 import { execFileSync } from "node:child_process";
 import {
     attributeHistoryKey,
+    attributeValueHistoryKey,
     elementHistoryKey,
     propertyHistoryKey,
     type SchemaHistory,
@@ -37,10 +38,39 @@ export * from "./schema-history-keys";
 type SchemaSnapshotJson = {
     elements?: {
         name: string;
-        attributes?: { name: string }[];
+        attributes?: {
+            name: string;
+            values?: string[];
+            /**
+             * `string[]` at 0.7.16, the release that introduced it, and
+             * `{ value, description }[]` from 0.7.17 on. A reader that assumes
+             * the object form throws on that one tag.
+             */
+            autocompleteValues?: (string | { value: string })[];
+        }[];
         properties?: { name: string }[];
     }[];
 };
+
+/**
+ * The values one attribute accepts, from whichever field carries them.
+ *
+ * Both are read and unioned, not one in preference to the other. The docs
+ * render `autocompleteValues` where it exists, but 68 attributes list
+ * `true`/`false` under `values` alone, so keying on the preferred field would
+ * read the 0.7.16 arrival of `autocompleteValues` as those values being
+ * removed.
+ */
+function attributeValues(attribute: {
+    values?: string[];
+    autocompleteValues?: (string | { value: string })[];
+}): Set<string> {
+    const values = new Set(attribute.values ?? []);
+    for (const entry of attribute.autocompleteValues ?? []) {
+        values.add(typeof entry === "string" ? entry : entry.value);
+    }
+    return values;
+}
 
 /** One release's worth of schema keys, in release order. */
 export type VersionSnapshot = {
@@ -64,6 +94,15 @@ export function schemaKeys(schema: SchemaSnapshotJson): Set<SchemaHistoryKey> {
         keys.add(elementHistoryKey(element.name));
         for (const attribute of element.attributes ?? []) {
             keys.add(attributeHistoryKey(element.name, attribute.name));
+            for (const value of attributeValues(attribute)) {
+                keys.add(
+                    attributeValueHistoryKey(
+                        element.name,
+                        attribute.name,
+                        value,
+                    ),
+                );
+            }
         }
         for (const property of element.properties ?? []) {
             keys.add(propertyHistoryKey(element.name, property.name));
@@ -229,7 +268,7 @@ function releaseTags(): { tag: string; version: string }[] {
  *
  * Throws rather than returning what it can: a clone without the tags would
  * otherwise yield an index claiming every key in the schema is unreleased, and
- * the docs would badge all 12,000 of them as in development.
+ * the docs would badge all 19,000-odd of them as in development.
  */
 export function releaseSnapshots(): VersionSnapshot[] {
     const tags = releaseTags();
