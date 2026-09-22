@@ -184,13 +184,16 @@ export function buildSchemaHistory(
     // have been able to write it all along.
     //
     // Values added to a list that already existed keep their own date, which is
-    // the case where the schema really does record an arrival. The limit is a
-    // release that declares a list and extends it at once, and two of the 28
-    // tags do: 0.7.8 wrote down `answer`'s `type` list in the release
-    // `videoWatched` joined it, and 0.7.22 wrote down `halign` in the release
-    // `start` and `end` replaced `left` and `right`. Five values read as old as
-    // their attribute for that reason, against 118 the rule dates right;
-    // nothing in the snapshots tells the two cases apart, so it prefers silence
+    // the case where the schema really does record an arrival. The limit is any
+    // value that arrived before its list was written down: it has no key until
+    // the list appears, so it is dated to the attribute along with the rest.
+    // Two of the 28 tags show this at the boundary, where auditing the worker
+    // source can see it — 0.7.8 wrote down `answer`'s `type` list in the
+    // release `videoWatched` joined it, and 0.7.22 wrote down `halign` in the
+    // release `start` and `end` replaced `left` and `right` — costing five
+    // values against 118 the rule dates right. Anything that arrived earlier in
+    // the same window is silent in the same way and leaves no trace to count.
+    // Nothing in the snapshots separates the cases, so the rule prefers silence
     // to a version that is wrong.
     //
     // Owners are named only where a list exists, so their runs are the lists'.
@@ -231,8 +234,11 @@ export function buildSchemaHistory(
  *
  * Keys get removed and names get reused — 0.7.17 dropped 501 and 0.7.18 another
  * 376 — so first-ever-seen would report a stale version for anything that came
- * back. `buildSchemaHistory` runs this twice: over the schema keys themselves,
- * and over the attributes declaring a value list, whose runs date the lists.
+ * back. `removedIn` holds only what is still gone at the newest release, so
+ * `report:schema-changes 0.7.18` prints 320 of that 376: the other 56 returned,
+ * which is the whole reason the rule exists. `buildSchemaHistory` runs this
+ * twice: over the schema keys themselves, and over the attributes declaring a
+ * value list, whose runs date the lists.
  */
 function runStarts(
     snapshots: { version: string; keys: Set<SchemaHistoryKey> }[],

@@ -115,9 +115,13 @@ nothing to anyone. Three rules drop them:
   applied in `scripts/schema-history.ts`, where the index is derived, rather than in the
   badge rules, because it is a statement about when the feature existed. Values added to
   a list that already existed keep their own date, which is the case the snapshots really
-  do record. A release that writes a list down *and* extends it in one go cannot be told
-  from one that only writes it down, so both read as the attribute's date: across the 28
-  tags that is five values dated older than they are, against 118 the rule dates right.
+  do record. What the rule cannot see is a value that arrived before its list was written
+  down: it has no key until the list appears, so it is dated to the attribute with the
+  rest. Across the 28 tags that shows up at the boundary twice — 0.7.8 wrote `answer`'s
+  `type` list down in the release `videoWatched` joined it, and 0.7.22 wrote `halign` down
+  in the release `start` and `end` replaced `left` and `right` — costing five values
+  against 118 the rule dates right. A value that arrived earlier in the same window is
+  silent the same way and leaves nothing to count.
 
 Of the ~1,800 badges left, the default view shows only the ones reading **In development** —
 in the working-tree schema, in no release. Those are the ones an author cannot act on yet,
