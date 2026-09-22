@@ -75,6 +75,20 @@ const twoGraphsDoenetML = `
 `;
 
 /**
+ * The dragged point sits in a graph nested inside another, and a point in the
+ * outer graph follows it.
+ */
+const nestedGraphDoenetML = `
+<graph name="outer">
+  <point name="R">($A.x, 5)</point>
+  <graph name="inner">
+    <point name="A">(1,2)</point>
+  </graph>
+</graph>
+<p>Echo: <number name="echo">$A.x</number></p>
+`;
+
+/**
  * As `structuralDoenetML` below, but the components the drag adds or removes
  * are on the graph, so they belong in the priority batch.
  */
@@ -319,6 +333,65 @@ describe("an interaction sends what the reader is watching ahead of the rest @gr
             }
         },
     );
+
+    it("a visible document or paragraph does not pull its contents into the drag step", async () => {
+        // The viewer reports the document itself, and other blocks, as they
+        // scroll into view. Only a visible graph widens the drag step.
+        vi.useFakeTimers();
+        try {
+            const { core, innerCore, resolvePathToNodeIdx, batches } =
+                await setup(twoGraphsDoenetML);
+            const aIdx = await resolvePathToNodeIdx("A");
+            const echoIdx = await resolvePathToNodeIdx("echo");
+            const echoParagraphIdx = innerCore._components[echoIdx].parentIdx;
+
+            await setVisible(core, innerCore.documentIdx, true);
+            await setVisible(core, echoParagraphIdx, true);
+            batches.length = 0;
+
+            await movePointTo({
+                core,
+                componentIdx: aIdx,
+                x: 5,
+                transient: true,
+            });
+
+            expect(batches).toHaveLength(1);
+            expect(batches[0].componentIndices).toContain(aIdx);
+            expect(batches[0].componentIndices).not.toContain(echoIdx);
+
+            await vi.advanceTimersByTimeAsync(500);
+            expect(batches).toHaveLength(2);
+            expect(batches[1].componentIndices).toContain(echoIdx);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("a drag in a graph nested inside another sends the outer graph at once", async () => {
+        vi.useFakeTimers();
+        try {
+            const { core, resolvePathToNodeIdx, batches } =
+                await setup(nestedGraphDoenetML);
+            const aIdx = await resolvePathToNodeIdx("A");
+            const rIdx = await resolvePathToNodeIdx("R");
+            const echoIdx = await resolvePathToNodeIdx("echo");
+
+            await movePointTo({
+                core,
+                componentIdx: aIdx,
+                x: 5,
+                transient: true,
+            });
+
+            expect(batches).toHaveLength(1);
+            expect(batches[0].componentIndices).toContain(aIdx);
+            expect(batches[0].componentIndices).toContain(rIdx);
+            expect(batches[0].componentIndices).not.toContain(echoIdx);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
 
     it("a non-transient move sends everything at once", async () => {
         const { core, resolvePathToNodeIdx, batches } = await setup();

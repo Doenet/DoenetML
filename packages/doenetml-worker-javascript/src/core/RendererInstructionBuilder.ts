@@ -714,11 +714,11 @@ export class RendererInstructionBuilder {
      * once the drag settles.
      *
      * Components are *removed* from the pending set as they are sent, so the
-     * later flush does not send them twice. A component that is not currently
-     * queued is not sent at all, which is why this filters on `delete`. A
-     * change to which children render under one of `componentIndices` is
-     * reconciled here too, so a drag that adds or removes components on the
-     * graph lands with it.
+     * later flush does not send them twice; filtering on `delete` keeps a
+     * component that is not currently queued out of the batch. A change to
+     * which children render under one of `componentIndices` is reconciled
+     * here too, and sends that component along with its new children, so a
+     * drag that adds or removes components on the graph lands with it.
      */
     async updateRenderersForComponents(
         componentIndices: Iterable<number>,
