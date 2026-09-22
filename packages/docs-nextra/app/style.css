@@ -182,7 +182,7 @@ html.dark main .attr-value-table td {
 
 /* With no version selected the page marks only what is unreleased, so the
    "Added in X" markers ship in the DOM but stay hidden. They carry their
-   version in `data-since`, which is what lets the version selector reveal the
+   version in `data-since`, which is what lets a version selector reveal the
    ones a reader does not have with CSS alone and no re-render. */
 .since-badge-released {
     display: none;

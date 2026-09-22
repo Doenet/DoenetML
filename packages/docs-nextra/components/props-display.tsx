@@ -293,7 +293,7 @@ function renderAttrItem(
             className="attr-item"
             id={`${idPrefix}-${attr.name}`}
             key={attr.name}
-            // Repeated from the badge onto the item so the version selector can
+            // Repeated from the badge onto the item so a version selector can
             // dim the whole entry, not just its marker.
             data-since={attr.since}
         >

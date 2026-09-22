@@ -111,8 +111,9 @@ and the docs site deploys from every push to `main`, so they are always present.
 The rest read "Added in X", ship in the DOM, and are hidden by `app/style.css`. Each carries
 its version in `data-since`, on both the badge and the item around it, which is what lets a
 "my version" selector reveal and dim by CSS alone with no re-render. They also carry
-`data-pagefind-filter="version:…"`, so Pagefind can screen *search results* the same way,
-and `data-pagefind-ignore`, which keeps the badge's own words out of result excerpts while
+`data-pagefind-filter="version:…"`, which Pagefind collects per page, so a *search* can be
+narrowed to the pages carrying an item from a given release, or one still in development.
+`data-pagefind-ignore` alongside keeps the badge's own words out of result excerpts while
 still collecting the filter.
 
 ### zod is pinned to 4.3 in the root `overrides`

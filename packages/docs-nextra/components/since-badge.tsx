@@ -15,9 +15,6 @@ import { UNRELEASED } from "../scripts/schema-history-keys";
  *     page would say nothing to anyone. Carrying the version in `data-since`
  *     is what lets a version selector reveal the ones newer than the reader's
  *     by CSS alone, with no re-render.
- *
- * `<Callout>` is the theme's marker of choice but is block-level, which is
- * wrong beside an attribute name.
  */
 export function SinceBadge({ since }: { since?: string }) {
     if (since === undefined) {
@@ -37,11 +34,12 @@ export function SinceBadge({ since }: { since?: string }) {
                     ? "In development: not in any released version yet"
                     : undefined
             }
-            // Faceting for Pagefind, which indexes the built HTML: a search
-            // result can then be screened by the version its page needs.
-            // `data-pagefind-ignore` keeps the badge's own words out of the
-            // index and out of result excerpts — with the default value,
-            // `index`, filters inside it are still collected.
+            // Faceting for Pagefind, which indexes the built HTML. Filter
+            // values are collected per page, so a search can be narrowed to
+            // the pages carrying an item from a given release, or one still
+            // in development. `data-pagefind-ignore` keeps the badge's own
+            // words out of the index and out of result excerpts — with the
+            // default value, `index`, filters inside it are still collected.
             data-pagefind-filter={`version:${
                 inDevelopment ? "In development" : since
             }`}
