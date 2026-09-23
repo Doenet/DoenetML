@@ -16,9 +16,12 @@ import {
  *
  * Every attribute defaults to `null` rather than to a concrete value, because
  * a column setting is an *override*: the `<tabular>` collects the non-null
- * ones into `columnSpecs`, and a cell only falls back to its column after its
- * own attribute and its row's have both come up empty (PreTeXt's cell → row →
- * col → tabular order).
+ * ones into `columnSpecs`, and a cell falls back to its column only after its
+ * own attribute has come up empty. For `halign` the row is consulted in
+ * between (PreTeXt's cell → row → col → tabular order); for `endBorder` there
+ * is no row step, because a `<row>` has no trailing-edge border. `topBorder`
+ * is not a fallback chain at all — neither a `<cell>` nor a `<row>` has one,
+ * and a column's is drawn across the top of that column.
  *
  * `<col>` contributes settings, not content, so it has no renderer of its own
  * — the `<tabular>` draws the `<colgroup>` from `columnSpecs`.

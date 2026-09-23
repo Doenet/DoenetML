@@ -12,6 +12,7 @@ import {
     readVocabularyValue,
     returnBorderValidValues,
     returnHalignValidValues,
+    effectiveColSpan,
 } from "../utils/tabularAttributes";
 
 export default class Cell extends BaseComponent {
@@ -642,13 +643,13 @@ function columnSettingForCell({ dependencyValues, setting, columnIndex }) {
  * spans, so that is the `<col>` whose `endBorder` belongs there; the rules of
  * the columns it swallows fall inside the cell, where neither a browser nor
  * PreTeXt draws them. A `colSpan` that is not a whole number greater than one
- * spans a single column, matching what HTML does with the same value.
+ * spans a single column, matching what HTML does with the same value, and a
+ * runaway one covers `MAX_COLSPAN` columns — the same number `<row>` advanced
+ * its column cursor by, so the column named here is one the row counted.
  */
 function lastColumnIndexOfCell({ columnIndex, colSpan }) {
     if (columnIndex === null) {
         return null;
     }
-    return Number.isInteger(colSpan) && colSpan > 1
-        ? columnIndex + colSpan - 1
-        : columnIndex;
+    return columnIndex + effectiveColSpan(colSpan) - 1;
 }

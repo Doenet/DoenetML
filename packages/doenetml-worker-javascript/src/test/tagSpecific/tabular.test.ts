@@ -451,4 +451,28 @@ describe("Tabular tag tests @group3", async () => {
                 .columnSpecs.length,
         ).eq(1004);
     });
+
+    it("a runaway colSpan takes its endBorder from the last column it really covers", async () => {
+        // The row advances its column cursor by the clamped span, so the
+        // cell covers columns 0 through 999 and its trailing edge falls at
+        // the right of column 999. Reading the unclamped span instead would
+        // look for a column 1999999 that no `<col>` and no cell ever reaches,
+        // and silently fall through to the `<tabular>`'s own endBorder.
+        const cols = Array.from({ length: 1001 }, (_, i) =>
+            i === 999 ? `<col endBorder="major" />` : `<col />`,
+        ).join("");
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<tabular name="t">${cols}
+  <row><cell name="runaway" colSpan="2000000">A</cell></row>
+</tabular>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("runaway")].stateValues
+                .endBorder,
+        ).eq("major");
+    });
 });

@@ -928,6 +928,15 @@ describe("Pretext export", async () => {
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(`"<m>x + y</m>+"`);
     });
+    // The `<tabular>` output asserted below was checked against PreTeXt's own
+    // RelaxNG schema (`.github/skills/pretext-authoring/docs/references/
+    // pretext.rng`), wrapped in a `<paragraphs>` so the fragment had a legal
+    // place to sit: every snapshot in this group validates. There is no
+    // RelaxNG validator among this package's dependencies, so the check is a
+    // manual one and any new attribute spelling here is worth re-running it
+    // for. Two shapes do *not* validate, both from markup PreTeXt has no
+    // reading of and both unchanged by these renderers: a `<tabular>` with no
+    // `<row>`, and a `<row>` with no `<cell>`.
     it("<tabular> keeps its borders and alignment, in PreTeXt's spelling", async () => {
         source = `<tabular halign="end" topBorder="major" startBorder="minor" bottomBorder="medium" endBorder="minor">
   <row header valign="top" bottomBorder="major">

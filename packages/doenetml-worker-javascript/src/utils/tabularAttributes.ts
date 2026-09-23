@@ -105,3 +105,20 @@ export function readVocabularyValue(
         typeof value === "string" ? value.trim().toLowerCase() : "";
     return vocabulary.includes(normalized) ? normalized : fallback;
 }
+
+/**
+ * The largest `colSpan` a `<cell>` is treated as having, matching the limit
+ * HTML itself imposes on `colspan` (a browser clamps `colspan="2000000"` to
+ * 1000). Everything that asks how many columns a cell covers has to agree:
+ * `<row>` uses it to advance the column cursor, so a runaway value cannot
+ * make the table claim two million columns, and `<cell>` uses it to find the
+ * last column it covers, which has to be a column the row actually counted.
+ */
+export const MAX_COLSPAN = 1000;
+
+/** A `colSpan` as a number of columns: a whole number from 1 to `MAX_COLSPAN`. */
+export function effectiveColSpan(colSpan: unknown): number {
+    return Number.isInteger(colSpan) && (colSpan as number) > 0
+        ? Math.min(colSpan as number, MAX_COLSPAN)
+        : 1;
+}

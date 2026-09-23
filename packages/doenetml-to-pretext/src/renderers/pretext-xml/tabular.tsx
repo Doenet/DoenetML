@@ -35,11 +35,21 @@ import { BasicComponentWithPassthroughChildren } from "../types";
 
 /**
  * The largest `colspan` written out, matching both HTML's own limit and the
- * `MAX_COLSPAN` the worker clamps a cell's column cursor to (`Row.js`).
- * Without it a runaway `colSpan="2000000"` would be written verbatim into a
- * table for which only 1001 `<col>` elements were emitted.
+ * `MAX_COLSPAN` the worker clamps a cell's column cursor to
+ * (`utils/tabularAttributes.ts`). Without it a runaway `colSpan="2000000"`
+ * would be written verbatim into a table for which only 1001 `<col>` elements
+ * were emitted. The two copies are kept in step by hand: the worker's lives in
+ * `@doenet/doenetml-worker-javascript`, which this package does not depend on
+ * — it sees only the flat DAST the worker produces.
  */
 const MAX_COLSPAN = 1000;
+
+/** A `colSpan` prop as a number of columns, the way the worker counts them. */
+function effectiveColSpan(colSpan: number | undefined): number {
+    return Number.isInteger(colSpan) && colSpan! > 0
+        ? Math.min(colSpan!, MAX_COLSPAN)
+        : 1;
+}
 
 /** DoenetML alignment → the PreTeXt spelling. */
 const HALIGN_TO_PRETEXT: Record<string, string> = {
@@ -262,9 +272,7 @@ export const Cell: BasicComponentWithPassthroughChildren<CellData> = ({
     const lastColumnIndex =
         columnIndex == null
             ? null
-            : Number.isInteger(props.colSpan) && props.colSpan! > 1
-              ? columnIndex + props.colSpan! - 1
-              : columnIndex;
+            : columnIndex + effectiveColSpan(props.colSpan) - 1;
     const halignColumn =
         columnIndex == null ? undefined : inherited.columnSpecs[columnIndex];
     const endBorderColumn =
@@ -290,7 +298,7 @@ export const Cell: BasicComponentWithPassthroughChildren<CellData> = ({
             // something PreTeXt's schema accepts.
             colspan={
                 Number.isInteger(props.colSpan) && props.colSpan! > 1
-                    ? String(Math.min(props.colSpan!, MAX_COLSPAN))
+                    ? String(effectiveColSpan(props.colSpan))
                     : undefined
             }
             halign={halignIfChanged(props.halign, inheritedHalign)}
