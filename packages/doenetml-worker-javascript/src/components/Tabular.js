@@ -182,7 +182,7 @@ export default class Tabular extends BlockComponent {
 
         stateVariableDefinitions.numColumns = {
             description:
-                "Number of columns in the tabular layout: the most any single row reaches, counting each cell's colSpan.",
+                "Number of columns in the tabular layout: the number of col components, or the furthest any single row reaches counting each cell's colSpan, whichever is larger.",
             public: true,
             shadowingInstructions: {
                 createComponentOfType: "integer",
@@ -214,7 +214,8 @@ export default class Tabular extends BlockComponent {
         // The padding is what lets the renderer emit a `<colgroup>` that lines
         // up with the cells, and it is also what PreTeXt's guide asks for:
         // "once there is one [`<col>`], then there needs to be as many as the
-        // number of columns of the table".
+        // number of columns of the table"
+        // (https://pretextbook.org/doc/guide/html/topic-tabular.html).
         stateVariableDefinitions.columnSpecs = {
             description:
                 "Per-column width, alignment, and border settings, one entry per column.",

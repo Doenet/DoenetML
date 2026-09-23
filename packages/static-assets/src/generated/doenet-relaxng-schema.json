@@ -131122,12 +131122,6 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
-                    "name": "columnIndex",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Zero-based index of the column this cell occupies, counting the colSpan of the cells before it in its row."
-                },
-                {
                     "name": "halign",
                     "type": "text",
                     "isArray": false,
@@ -132280,7 +132274,7 @@
                     "name": "numColumns",
                     "type": "integer",
                     "isArray": false,
-                    "description": "Number of columns in the tabular layout: the most any single row reaches, counting each cell's colSpan."
+                    "description": "Number of columns in the tabular layout: the number of col components, or the furthest any single row reaches counting each cell's colSpan, whichever is larger."
                 }
             ]
         },

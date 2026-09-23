@@ -188,7 +188,7 @@ describe("Tabular tag tests @group3", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <tabular name="t">
-  <col width="25%" />
+  <col width="25%" topBorder="major" />
   <col width="15%" />
   <row>
     <cell>State</cell>
@@ -209,7 +209,7 @@ describe("Tabular tag tests @group3", async () => {
             {
                 width: { size: 25, isAbsolute: false },
                 halign: null,
-                topBorder: null,
+                topBorder: "major",
                 endBorder: null,
             },
             {
@@ -225,6 +225,25 @@ describe("Tabular tag tests @group3", async () => {
                 endBorder: null,
             },
         ]);
+    });
+
+    it("more <col> than the rows use still count toward numColumns", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<tabular name="t">
+  <col /><col /><col /><col /><col />
+  <row><cell>a</cell><cell>b</cell></row>
+</tabular>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const tabular = stateVariables[await resolvePathToNodeIdx("t")];
+
+        // The rows reach only two columns, but five were declared, and a
+        // declared column is a column of the table.
+        expect(tabular.stateValues.numColumns).eq(5);
+        expect(tabular.stateValues.columnSpecs.length).eq(5);
     });
 
     it("a tabular with no <col> children reports no columnSpecs", async () => {

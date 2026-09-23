@@ -97,17 +97,17 @@ export default class Cell extends BaseComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        // Which column of the table this cell sits in, zero-based, so that it
-        // can find the `<col>` that applies to it. The row does the counting,
-        // because a preceding cell with `colSpan="2"` pushes this one along by
-        // two columns and only the row sees the cells in order.
+        // Which column of a `<tabular>` this cell sits in, zero-based, so that
+        // it can find the `<col>` that applies to it. The row does the
+        // counting, because a preceding cell with `colSpan="2"` pushes this
+        // one along by two columns and only the row sees the cells in order.
+        //
+        // Deliberately not `public`. It counts a cell's position among its
+        // siblings, which is the column only in a `<tabular>`: inside a
+        // `<spreadsheet>` a `<cell colNum="3">` is the third column but still
+        // the first among its siblings, so as an author-facing property it
+        // would contradict the `colNum` a `<cell>` already publishes.
         stateVariableDefinitions.columnIndex = {
-            description:
-                "Zero-based index of the column this cell occupies, counting the colSpan of the cells before it in its row.",
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "integer",
-            },
             forRenderer: true,
             returnDependencies: () => ({
                 positionAmongCells: {

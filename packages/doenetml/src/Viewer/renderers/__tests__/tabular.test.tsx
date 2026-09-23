@@ -71,9 +71,10 @@ describe("the tabular <colgroup>", () => {
     });
 
     it("draws a column's topBorder but not its halign or endBorder", () => {
-        // Those two reach the cells through the worker instead: neither
-        // `text-align` nor a trailing rule on a cell's content is something a
-        // `<colgroup>` can deliver.
+        // Those two reach the cells through the worker instead. A
+        // `<colgroup>` cannot deliver `text-align` at all, and while it can
+        // draw a trailing rule, one drawn there would override a
+        // `<cell endBorder="none">` rather than leave the gap it asks for.
         const html = render({
             columnSpecs: [
                 {

@@ -69,9 +69,14 @@ export default React.memo(function Tabular(props: UseDoenetRendererProps) {
     // `<col>` settings are delivered on the `<tabular>` rather than as
     // rendered children, because HTML wants them in a `<colgroup>` ahead of
     // the rows and the worker has already padded them out to one entry per
-    // column. Only `width` and `topBorder` are drawn here: a column's
-    // `halign` and `endBorder` do not reach cell content through a
-    // `<colgroup>`, so the worker inherits those into the cells instead.
+    // column. Only `width` and `topBorder` are drawn here. A column's
+    // `halign` cannot be: `text-align` is not one of the few properties a
+    // `<col>` passes on to its cells. Its `endBorder` could be — a border on
+    // a `<col>` is drawn, and in the collapsing border model it even beats a
+    // cell that asks for no border at all — but that is exactly why it is
+    // not: a `<cell endBorder="none">` has to be able to leave a gap in its
+    // column's rule. The worker inherits both settings into the cells
+    // instead.
     const columnSpecs = SVs.columnSpecs ?? [];
     const colGroup =
         columnSpecs.length > 0 ? (

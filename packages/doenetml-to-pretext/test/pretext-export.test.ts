@@ -934,20 +934,20 @@ describe("Pretext export", async () => {
     <cell>Name</cell>
     <cell halign="center" endBorder="medium">Value</cell>
   </row>
-  <row>
+  <row startBorder="major">
     <cell colSpan="2">everything</cell>
   </row>
 </tabular>`;
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<tabular halign="right" top="major" bottom="medium" left="minor" right="minor"><row header="yes" valign="top" bottom="major"><cell>Name</cell><cell halign="center" right="medium">Value</cell></row><row><cell colspan="2">everything</cell></row></tabular>"`,
+            `"<tabular halign="right" top="major" bottom="medium" left="minor" right="minor"><row header="yes" valign="top" bottom="major"><cell>Name</cell><cell halign="center" right="medium">Value</cell></row><row left="major"><cell colspan="2">everything</cell></row></tabular>"`,
         );
     });
 
     it("<col> is written back out ahead of the rows", async () => {
         source = `<tabular>
-  <col width="25%" />
+  <col width="25%" topBorder="major" />
   <col width="15%" halign="end" endBorder="minor" />
   <row>
     <cell>Pennsylvania</cell>
@@ -958,7 +958,7 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<tabular><col width="25%"></col><col width="15%" halign="right" right="minor"></col><col></col><row><cell>Pennsylvania</cell><cell>19</cell><cell>Rust Belt</cell></row></tabular>"`,
+            `"<tabular><col width="25%" top="major"></col><col width="15%" halign="right" right="minor"></col><col></col><row><cell>Pennsylvania</cell><cell>19</cell><cell>Rust Belt</cell></row></tabular>"`,
         );
     });
 
@@ -1030,5 +1030,48 @@ describe("Pretext export", async () => {
         const fragment = await coreRunner.processToFlatDastAsFragment(source);
         expect(fragment).toContain(`<cell colspan="1000">a</cell>`);
         expect(fragment.match(/<col>|<col /g)?.length).eq(1001);
+    });
+
+    it("only a width PreTeXt can express crosses over", async () => {
+        // A percentage is written out; the 100% a `<tabular>` defaults to is
+        // what PreTeXt assumes anyway; and PreTeXt has neither an absolute
+        // width nor a height for a tabular, so those are dropped.
+        expect(
+            await coreRunner.processToFlatDastAsFragment(
+                `<tabular width="50%"><row><cell>a</cell></row></tabular>`,
+            ),
+        ).toMatchInlineSnapshot(
+            `"<tabular width="50%"><row><cell>a</cell></row></tabular>"`,
+        );
+        expect(
+            await coreRunner.processToFlatDastAsFragment(
+                `<tabular><row><cell>a</cell></row></tabular>`,
+            ),
+        ).toMatchInlineSnapshot(
+            `"<tabular><row><cell>a</cell></row></tabular>"`,
+        );
+        expect(
+            await coreRunner.processToFlatDastAsFragment(
+                `<tabular width="120px" height="200px"><row><cell>a</cell></row></tabular>`,
+            ),
+        ).toMatchInlineSnapshot(
+            `"<tabular><row><cell>a</cell></row></tabular>"`,
+        );
+    });
+
+    it("a cell with no children still exports its text", async () => {
+        // `<cell prefill>` sets the cell's content without giving it a child,
+        // so the fallback to the cell's `text` is what carries it across.
+        source = `<tabular>
+  <row>
+    <cell prefill="hi" />
+    <cell />
+  </row>
+</tabular>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular><row><cell>hi</cell><cell></cell></row></tabular>"`,
+        );
     });
 });
