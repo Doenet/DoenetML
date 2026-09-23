@@ -154,6 +154,22 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     spreadsheet: {
         component: PretextComponent.Spreadsheet,
     },
+    // `<tabular>`/`<row>`/`<cell>` keep their names in PreTeXt, but not their
+    // attribute spellings, and a `<col>` has to be written from the
+    // `<tabular>`'s `columnSpecs` — so they cannot ride the pass-through
+    // fallback.
+    tabular: {
+        component: PretextComponent.Tabular,
+        passthroughChildren: true,
+    },
+    row: {
+        component: PretextComponent.Row,
+        passthroughChildren: true,
+    },
+    cell: {
+        component: PretextComponent.Cell,
+        passthroughChildren: true,
+    },
     booleanInput: {
         component: PretextComponent.MathInput,
     },

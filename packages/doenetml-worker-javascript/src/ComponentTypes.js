@@ -111,6 +111,7 @@ import DiscreteSimulationResultPolyline from "./components/DiscreteSimulationRes
 import Cell from "./components/Cell";
 import Row from "./components/Row";
 import Column from "./components/Column";
+import Col from "./components/Col";
 import CellBlock from "./components/CellBlock";
 import Tabular from "./components/Tabular";
 import Table from "./components/Table";
@@ -303,6 +304,7 @@ const componentTypeArray = [
     Cell,
     Row,
     Column,
+    Col,
     CellBlock,
     Tabular,
     Table,

@@ -928,4 +928,55 @@ describe("Pretext export", async () => {
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(`"<m>x + y</m>+"`);
     });
+    it("<tabular> keeps its borders and alignment, in PreTeXt's spelling", async () => {
+        source = `<tabular halign="end" topBorder="major" startBorder="minor" bottomBorder="medium" endBorder="minor">
+  <row header valign="top" bottomBorder="major">
+    <cell>Name</cell>
+    <cell halign="center" endBorder="medium">Value</cell>
+  </row>
+  <row>
+    <cell colSpan="2">everything</cell>
+  </row>
+</tabular>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular halign="right" top="major" bottom="medium" left="minor" right="minor"><row header="yes" valign="top" bottom="major"><cell>Name</cell><cell halign="center" right="medium">Value</cell></row><row><cell colspan="2">everything</cell></row></tabular>"`,
+        );
+    });
+
+    it("<col> is written back out ahead of the rows", async () => {
+        source = `<tabular>
+  <col width="25%" />
+  <col width="15%" halign="end" endBorder="minor" />
+  <row>
+    <cell>Pennsylvania</cell>
+    <cell>19</cell>
+    <cell>Rust Belt</cell>
+  </row>
+</tabular>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular><col width="25%"></col><col width="15%" halign="right" right="minor"></col><col></col><row><cell>Pennsylvania</cell><cell>19</cell><cell>Rust Belt</cell></row></tabular>"`,
+        );
+    });
+
+    it("a setting a cell only inherited is written once, on the element that set it", async () => {
+        source = `<tabular halign="center">
+  <col halign="end" />
+  <row>
+    <cell>a</cell>
+    <cell>b</cell>
+  </row>
+</tabular>`;
+        // Neither cell repeats an alignment: the first takes "right" from its
+        // `<col>` and the second "center" from the `<tabular>`, and both are
+        // already written on those.
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular halign="center"><col halign="right"></col><col></col><row><cell>a</cell><cell>b</cell></row></tabular>"`,
+        );
+    });
 });

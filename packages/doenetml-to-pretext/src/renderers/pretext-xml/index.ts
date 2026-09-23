@@ -32,6 +32,7 @@ export * from "./atom";
 export * from "./orbital-diagram";
 export * from "./as-list";
 export * from "./spreadsheet";
+export * from "./tabular";
 export * from "./display-doenetml";
 export * from "./extract-math-operator";
 export * from "./image";

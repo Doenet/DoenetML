@@ -1,0 +1,211 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<col>{:dn}`
+
+<ComponentDisplay name='col'/>
+
+`<col>{:dn}` is a [Sectional](../concepts/essentialConcepts#component-types)
+component that sets the width, alignment, and borders of one column of a
+[`<tabular>{:dn}`](tabular). It holds no content of its own — the content
+still lives in the [`<row>{:dn}`](row_table) and [`<cell>{:dn}`](cell)
+components — and it is written before the rows, one `<col>{:dn}` per column,
+left to right.
+
+<AttrPropDisplay name='col'/>
+
+## Examples
+
+### Example: giving each column its own width
+
+
+```doenet-editor-horiz
+<table>
+  <tabular topBorder="minor" bottomBorder="minor">
+    <col width="25%" />
+    <col width="15%" />
+    <col width="60%" />
+    <row header>
+      <cell>State</cell>
+      <cell>Electoral votes</cell>
+      <cell>Context</cell>
+    </row>
+    <row>
+      <cell>Pennsylvania</cell>
+      <cell>19</cell>
+      <cell>Highest-value Rust Belt battleground state</cell>
+    </row>
+    <row>
+      <cell>Nevada</cell>
+      <cell>6</cell>
+      <cell>Low-allocation swing state heavily influenced by labor politics</cell>
+    </row>
+  </tabular>
+</table>
+```
+
+
+
+Without any `<col>{:dn}`, the columns of a `<tabular>{:dn}` divide its width
+evenly, so a column of two-digit numbers is drawn as wide as a column of
+sentences. One `<col width="…">{:dn}` per column fixes that.
+
+
+
+---
+
+### Example: fewer `<col>{:dn}` than columns
+
+
+```doenet-editor-horiz
+<table>
+  <tabular topBorder="minor" bottomBorder="minor">
+    <col width="20%" />
+    <row>
+      <cell>Term</cell>
+      <cell>A definition long enough to want the room</cell>
+      <cell>And another one</cell>
+    </row>
+  </tabular>
+</table>
+```
+
+
+
+The `<col>{:dn}` components apply to the leftmost columns. Any column past the
+last `<col>{:dn}` is left alone, and the columns with no width of their own
+share out whatever width remains.
+
+
+
+## Attribute Examples
+
+### Attribute Example: width
+
+
+```doenet-editor-horiz
+<table>
+  <tabular topBorder="minor" bottomBorder="minor">
+    <col width="70%" />
+    <col width="30%" />
+    <row>
+      <cell>wide</cell>
+      <cell>narrow</cell>
+    </row>
+  </tabular>
+</table>
+```
+
+
+
+The `width` attribute sets the width of the column as a percentage of the
+width of the `<tabular>{:dn}`. Express it as a percentage rather than as a
+number of pixels: a percentage is what survives conversion of the document to
+PreTeXt.
+
+
+
+---
+
+### Attribute Example: halign
+
+
+```doenet-editor-horiz
+<table>
+  <tabular topBorder="minor" bottomBorder="minor">
+    <col />
+    <col halign="end" />
+    <row>
+      <cell>Pennsylvania</cell>
+      <cell>19</cell>
+    </row>
+    <row>
+      <cell>New Hampshire</cell>
+      <cell>4</cell>
+    </row>
+    <row>
+      <cell>Total</cell>
+      <cell halign="center">23</cell>
+    </row>
+  </tabular>
+</table>
+```
+
+
+
+The `halign` attribute sets the horizontal alignment of every `<cell>{:dn}` in
+the column, which is the usual way to right-align a column of numbers. The
+available options are `start`, `center`, `end`, and `justify`; `start` and
+`end` follow the writing direction, so `end` is the right edge in a
+left-to-right document and the left edge in a right-to-left one. An empty
+`<col />{:dn}` is a placeholder that leaves its column alone — here it holds
+the first column's place so that `halign="end"` lands on the second.
+
+A `<col>{:dn}` is the third of four places an alignment can come from. A
+`<cell>{:dn}` uses its own `halign` if it has one, then its `<row>{:dn}`'s,
+then its column's, then the `<tabular>{:dn}`'s — so the `<cell halign="center">{:dn}`
+in the last row above outranks the column, and a `<row halign="…">{:dn}` would
+too.
+
+
+
+---
+
+### Attribute Example: topBorder/endBorder
+
+
+```doenet-editor-horiz
+<table>
+  <tabular>
+    <col endBorder="medium" />
+    <col topBorder="major" />
+    <row>
+      <cell>a</cell>
+      <cell>b</cell>
+    </row>
+    <row>
+      <cell>c</cell>
+      <cell>d</cell>
+    </row>
+  </tabular>
+</table>
+```
+
+
+
+`endBorder` draws a dividing line down the trailing edge of the column — its
+right edge in a left-to-right document — and `topBorder` draws one across the
+top of it. Both accept `none` (default), `minor`, `medium`, and `major`. As
+with `halign`, a `<cell endBorder="…">{:dn}` of its own takes precedence over
+the column's, including `endBorder="none"` to leave a gap in the line.
+
+
+
+## Property Examples
+
+### Property Example: Attributes as properties
+
+
+```doenet-editor-horiz
+<table>
+  <tabular>
+    <col name="col1" width="40%" halign="end" endBorder="minor" />
+    <col />
+    <row>
+      <cell>1</cell>
+      <cell>2</cell>
+    </row>
+  </tabular>
+</table>
+
+<p><c>width</c> = $col1.width</p>
+<p><c>halign</c> = $col1.halign</p>
+<p><c>endBorder</c> = $col1.endBorder</p>
+```
+
+
+
+The attributes of the `<col>{:dn}` component are also accessible as
+properties.

@@ -184,4 +184,176 @@ describe("Tabular tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("c3")].stateValues.number,
         ).eqls(NaN);
     });
+    it("<col> sets column widths, which reach the renderer as columnSpecs", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<tabular name="t">
+  <col width="25%" />
+  <col width="15%" />
+  <row>
+    <cell>State</cell>
+    <cell>Votes</cell>
+    <cell>Context</cell>
+  </row>
+</tabular>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const tabular = stateVariables[await resolvePathToNodeIdx("t")];
+
+        expect(tabular.stateValues.numColumns).eq(3);
+        // Padded out to one entry per column, so the renderer's `<colgroup>`
+        // lines up with the cells even though only two columns were declared.
+        expect(tabular.stateValues.columnSpecs).eqls([
+            {
+                width: { size: 25, isAbsolute: false },
+                halign: null,
+                topBorder: null,
+                endBorder: null,
+            },
+            {
+                width: { size: 15, isAbsolute: false },
+                halign: null,
+                topBorder: null,
+                endBorder: null,
+            },
+            {
+                width: null,
+                halign: null,
+                topBorder: null,
+                endBorder: null,
+            },
+        ]);
+    });
+
+    it("a tabular with no <col> children reports no columnSpecs", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<tabular name="t">
+  <row><cell>A</cell><cell>B</cell></row>
+</tabular>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues
+                .columnSpecs,
+        ).eqls([]);
+    });
+
+    it("a cell takes halign and endBorder from its <col>", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<tabular name="t">
+  <col />
+  <col halign="end" endBorder="minor" />
+  <row>
+    <cell name="c1">A</cell>
+    <cell name="c2">1</cell>
+  </row>
+  <row>
+    <cell name="c3">B</cell>
+    <cell name="c4" halign="center" endBorder="none">2</cell>
+  </row>
+</tabular>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c1")].stateValues.halign,
+        ).eq("start");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues.halign,
+        ).eq("end");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues
+                .endBorder,
+        ).eq("minor");
+
+        // The column applies down the whole column, not just the first row.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c3")].stateValues.halign,
+        ).eq("start");
+
+        // ... and a cell of its own outranks it, including back down to "none".
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c4")].stateValues.halign,
+        ).eq("center");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c4")].stateValues
+                .endBorder,
+        ).eq("none");
+    });
+
+    it("halign resolves in PreTeXt's cell, row, col, tabular order", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<tabular name="t" halign="justify">
+  <col halign="center" />
+  <row name="r1">
+    <cell name="c1">A</cell>
+  </row>
+  <row name="r2" halign="end">
+    <cell name="c2">B</cell>
+    <cell name="c3" halign="start">C</cell>
+  </row>
+</tabular>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        // The column beats the tabular...
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c1")].stateValues.halign,
+        ).eq("center");
+        // ... the row beats the column ...
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c2")].stateValues.halign,
+        ).eq("end");
+        // ... and the cell beats the row.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c3")].stateValues.halign,
+        ).eq("start");
+    });
+
+    it("a preceding colSpan shifts which <col> a cell belongs to", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<tabular name="t">
+  <col />
+  <col />
+  <col halign="end" />
+  <row>
+    <cell name="wide" colSpan="2">A</cell>
+    <cell name="after">B</cell>
+  </row>
+</tabular>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("wide")].stateValues
+                .columnIndex,
+        ).eq(0);
+        // Not column 1 — the `colSpan="2"` before it covers columns 0 and 1.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("after")].stateValues
+                .columnIndex,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("after")].stateValues
+                .halign,
+        ).eq("end");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues
+                .numColumns,
+        ).eq(3);
+    });
 });

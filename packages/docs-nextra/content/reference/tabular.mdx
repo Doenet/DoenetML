@@ -10,7 +10,9 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 `<tabular>{:dn}` is a [Sectional](../concepts/essentialConcepts#component-types)
 component that contains the data and style specifications for a [`<table>{:dn}`](table.mdx). Nested 
 inside a `<tabular>{:dn}` component are the [`<row>{:dn}`](row.mdx) and [`<cell>{:dn}`](cell.mdx) 
-components. 
+components. Settings that belong to a whole column instead of a whole row go on
+[`<col>{:dn}`](col) components, written before the rows — that is where a
+column's width lives.
 
 
 <AttrPropDisplay name='tabular'/>
@@ -149,7 +151,7 @@ The `width` and `hAlign` attributes within a `<tabular>{:dn}` can control the wi
 
 
 
-The `width` and `height` attributes for the `<tabular>{:dn}` component accept measurements for the extents of the `<tabular>{:dn}`. Individual rows and cells are then scaled in proportion to these extents.
+The `width` and `height` attributes for the `<tabular>{:dn}` component accept measurements for the extents of the `<tabular>{:dn}`. Individual rows and cells are then scaled in proportion to these extents; the columns divide the width evenly unless [`<col>{:dn}`](col) components say otherwise.
 
 Either may be given as a number of pixels (`600`, `600px`) or as a physical
 measurement (`6in`, `15cm`). A width may also be a percentage of the available
