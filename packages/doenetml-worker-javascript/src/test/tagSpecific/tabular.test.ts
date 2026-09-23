@@ -357,6 +357,42 @@ describe("Tabular tag tests @group3", async () => {
         ).eq(3);
     });
 
+    it("a spanning cell aligns with its first column and borders with its last", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<tabular name="t">
+  <col halign="center" endBorder="minor" />
+  <col halign="end" endBorder="major" />
+  <col />
+  <row>
+    <cell name="wide" colSpan="2">A</cell>
+    <cell name="tail">B</cell>
+  </row>
+</tabular>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        // The content starts in the first column, so that is the alignment
+        // the cell takes.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("wide")].stateValues
+                .halign,
+        ).eq("center");
+        // The trailing edge, though, falls at the right of the *second*
+        // column, so that is the rule drawn there. The first column's rule
+        // falls inside the cell, where nothing draws it.
+        expect(
+            stateVariables[await resolvePathToNodeIdx("wide")].stateValues
+                .endBorder,
+        ).eq("major");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("tail")].stateValues
+                .endBorder,
+        ).eq("none");
+    });
+
     it("a degenerate or runaway colSpan still moves the cell on by a sane amount", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

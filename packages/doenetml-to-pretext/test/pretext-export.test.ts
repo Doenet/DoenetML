@@ -980,6 +980,24 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("a spanning cell's trailing border comes from the last column it covers", async () => {
+        source = `<tabular>
+  <col halign="center" endBorder="minor" />
+  <col halign="end" endBorder="major" />
+  <row>
+    <cell colSpan="2">A</cell>
+  </row>
+</tabular>`;
+        // The cell's right edge falls at the right of the second column, so
+        // `right="major"` is what it already inherits and nothing is repeated
+        // on the cell; its alignment comes from the first column it covers.
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular><col halign="center" right="minor"></col><col halign="right" right="major"></col><row><cell colspan="2">A</cell></row></tabular>"`,
+        );
+    });
+
     it("a colSpan that is not a genuine span is not written out", async () => {
         // Each of these occupies exactly one column, in the worker and in
         // HTML alike, and `colspan="0"` is not something PreTeXt accepts.
@@ -996,5 +1014,21 @@ describe("Pretext export", async () => {
         ).toMatchInlineSnapshot(
             `"<tabular><row><cell>a</cell><cell>b</cell><cell>c</cell><cell colspan="2">d</cell></row></tabular>"`,
         );
+    });
+
+    it("a runaway colSpan is written out clamped, not verbatim", async () => {
+        // The worker stops counting columns at 1000, so the table it
+        // describes has 1001 columns; writing `colspan="2000000"` into it
+        // would contradict the `<col>` list written alongside.
+        source = `<tabular>
+  <col halign="end" />
+  <row>
+    <cell colSpan="2000000">a</cell>
+    <cell>b</cell>
+  </row>
+</tabular>`;
+        const fragment = await coreRunner.processToFlatDastAsFragment(source);
+        expect(fragment).toContain(`<cell colspan="1000">a</cell>`);
+        expect(fragment.match(/<col>|<col /g)?.length).eq(1001);
     });
 });

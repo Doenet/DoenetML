@@ -195,9 +195,12 @@ export default class Cell extends BaseComponent {
                     };
                 }
 
+                // A cell that spans columns takes its alignment from the
+                // first column it covers, the one its content starts in.
                 const columnHalign = columnSettingForCell({
                     dependencyValues,
                     setting: "halign",
+                    columnIndex: dependencyValues.columnIndex,
                 });
                 if (columnHalign) {
                     return { setValue: { halign: columnHalign } };
@@ -295,7 +298,8 @@ export default class Cell extends BaseComponent {
             // the cells — rather than drawing it once on the `<colgroup>` —
             // is what lets a single `<cell endBorder="none">` punch a hole in
             // the column's rule, the way PreTeXt's "lower level wins" reading
-            // implies.
+            // implies. The column consulted is the *last* one the cell spans,
+            // because that is where the cell's trailing edge falls.
             returnDependencies: () => ({
                 endBorderAttr: {
                     dependencyType: "attributeComponent",
@@ -305,6 +309,10 @@ export default class Cell extends BaseComponent {
                 columnIndex: {
                     dependencyType: "stateVariable",
                     variableName: "columnIndex",
+                },
+                colSpan: {
+                    dependencyType: "stateVariable",
+                    variableName: "colSpan",
                 },
                 tabularColumnAttributes: {
                     dependencyType: "ancestor",
@@ -330,6 +338,7 @@ export default class Cell extends BaseComponent {
                 const columnEndBorder = columnSettingForCell({
                     dependencyValues,
                     setting: "endBorder",
+                    columnIndex: lastColumnIndexOfCell(dependencyValues),
                 });
                 if (columnEndBorder) {
                     return { setValue: { endBorder: columnEndBorder } };
@@ -610,18 +619,36 @@ export default class Cell extends BaseComponent {
 }
 
 /**
- * The value a cell's `<col>` contributes for `setting`, or `null` when the
- * cell has no column of its own (outside a `<row>`, or past the end of the
- * `<col>` list) or the column left that attribute off.
+ * The value the `<col>` at `columnIndex` contributes for `setting`, or `null`
+ * when there is no column to consult (the cell is outside a `<row>`, or its
+ * column is past the end of the `<col>` list) or the column left that
+ * attribute off.
  *
- * Expects `columnIndex` and `tabularColumnAttributes` among `dependencyValues`.
+ * Expects `tabularColumnAttributes` among `dependencyValues`.
  */
-function columnSettingForCell({ dependencyValues, setting }) {
-    const { columnIndex, tabularColumnAttributes } = dependencyValues;
+function columnSettingForCell({ dependencyValues, setting, columnIndex }) {
+    const { tabularColumnAttributes } = dependencyValues;
     if (columnIndex === null || !tabularColumnAttributes) {
         return null;
     }
     const columnAttributes =
         tabularColumnAttributes.stateValues.columnAttributes;
     return columnAttributes?.[columnIndex]?.[setting] ?? null;
+}
+
+/**
+ * The last column a cell covers: its own column plus one less than its
+ * `colSpan`. A cell's trailing edge sits at the right of the *last* column it
+ * spans, so that is the `<col>` whose `endBorder` belongs there; the rules of
+ * the columns it swallows fall inside the cell, where neither a browser nor
+ * PreTeXt draws them. A `colSpan` that is not a whole number greater than one
+ * spans a single column, matching what HTML does with the same value.
+ */
+function lastColumnIndexOfCell({ columnIndex, colSpan }) {
+    if (columnIndex === null) {
+        return null;
+    }
+    return Number.isInteger(colSpan) && colSpan > 1
+        ? columnIndex + colSpan - 1
+        : columnIndex;
 }

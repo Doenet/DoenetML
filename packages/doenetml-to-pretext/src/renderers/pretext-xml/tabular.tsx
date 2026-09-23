@@ -33,6 +33,14 @@ import { BasicComponentWithPassthroughChildren } from "../types";
  * markup and renders identically either way.
  */
 
+/**
+ * The largest `colspan` written out, matching both HTML's own limit and the
+ * `MAX_COLSPAN` the worker clamps a cell's column cursor to (`Row.js`).
+ * Without it a runaway `colSpan="2000000"` would be written verbatim into a
+ * table for which only 1001 `<col>` elements were emitted.
+ */
+const MAX_COLSPAN = 1000;
+
 /** DoenetML alignment → the PreTeXt spelling. */
 const HALIGN_TO_PRETEXT: Record<string, string> = {
     start: "left",
@@ -246,14 +254,28 @@ export const Cell: BasicComponentWithPassthroughChildren<CellData> = ({
     // The column is only consulted where it is not already outranked: by the
     // row for `halign`, by nothing at all for the trailing border, since a
     // PreTeXt `<row>` has no `right`.
-    const column =
-        props.columnIndex == null
+    //
+    // A cell that spans columns aligns with the first one it covers and
+    // borders with the last, which is where its trailing edge falls — the
+    // same two columns `Cell.js` consults in the worker.
+    const columnIndex = props.columnIndex;
+    const lastColumnIndex =
+        columnIndex == null
+            ? null
+            : Number.isInteger(props.colSpan) && props.colSpan! > 1
+              ? columnIndex + props.colSpan! - 1
+              : columnIndex;
+    const halignColumn =
+        columnIndex == null ? undefined : inherited.columnSpecs[columnIndex];
+    const endBorderColumn =
+        lastColumnIndex == null
             ? undefined
-            : inherited.columnSpecs[props.columnIndex];
+            : inherited.columnSpecs[lastColumnIndex];
     const inheritedHalign =
-        (inherited.rowOverridesColumnHalign ? null : column?.halign) ??
+        (inherited.rowOverridesColumnHalign ? null : halignColumn?.halign) ??
         inherited.halign;
-    const inheritedEndBorder = column?.endBorder ?? inherited.endBorder;
+    const inheritedEndBorder =
+        endBorderColumn?.endBorder ?? inherited.endBorder;
 
     // A cell whose content did not survive as children still has its text —
     // the same fallback the HTML renderer uses.
@@ -268,7 +290,7 @@ export const Cell: BasicComponentWithPassthroughChildren<CellData> = ({
             // something PreTeXt's schema accepts.
             colspan={
                 Number.isInteger(props.colSpan) && props.colSpan! > 1
-                    ? String(props.colSpan)
+                    ? String(Math.min(props.colSpan!, MAX_COLSPAN))
                     : undefined
             }
             halign={halignIfChanged(props.halign, inheritedHalign)}

@@ -181,6 +181,12 @@ top of it. Both accept `none` (default), `minor`, `medium`, and `major`. As
 with `halign`, a `<cell endBorder="…">{:dn}` of its own takes precedence over
 the column's, including `endBorder="none"` to leave a gap in the line.
 
+A `<cell colSpan="…">{:dn}` covers more than one column, so it follows two of
+them: it aligns with the first column it covers, where its content begins, and
+takes its `endBorder` from the last, where its trailing edge falls. The
+`endBorder` of a column that the cell swallows whole is not drawn, because
+there is no cell edge in the middle of the span to draw it on.
+
 
 
 ## Property Examples
