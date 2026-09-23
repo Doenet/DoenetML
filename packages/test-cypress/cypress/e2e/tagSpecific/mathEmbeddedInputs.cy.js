@@ -52,7 +52,10 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
         // which is a beat after the control itself renders.
         cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
 
-        cy.get(cesc("#m")).then(($root) => {
+        // Retried, not read once: the control is positioned only when the
+        // typeset output lands, which can be a frame or two after the reserved
+        // box first exists. What is pinned is where it settles.
+        cy.get(cesc("#m")).should(($root) => {
             const root = $root[0];
             const slot = root.querySelector(".doenet-math-slot");
             const reserved = root.querySelector("[id*='_mathSlot_']");
@@ -96,7 +99,7 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
             cy.get("button").should("not.exist");
         });
 
-        cy.get(cesc("#m")).then(($root) => {
+        cy.get(cesc("#m")).should(($root) => {
             const root = $root[0];
             const slotRect = root
                 .querySelector(".doenet-math-slot")
@@ -184,7 +187,7 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
             cy.get("button").should("not.exist");
         });
 
-        cy.get(cesc("#m")).then(($root) => {
+        cy.get(cesc("#m")).should(($root) => {
             const root = $root[0];
             const slotRect = root
                 .querySelector(".doenet-math-slot")
@@ -408,7 +411,7 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
 
         cy.get(`${cesc("#md")} [id*='_mathSlot_']`).should("exist");
 
-        cy.get(cesc("#md")).then(($root) => {
+        cy.get(cesc("#md")).should(($root) => {
             const root = $root[0];
             const slotRect = root
                 .querySelector(".doenet-math-slot")
@@ -694,7 +697,7 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
 
         cy.get(`${cesc("#md")} [id*='_mathSlot_']`).should("exist");
 
-        cy.get(cesc("#md")).then(($root) => {
+        cy.get(cesc("#md")).should(($root) => {
             const root = $root[0];
             const slot = root.querySelector(".doenet-math-slot");
             const reserved = root.querySelector("[id*='_mathSlot_']");
