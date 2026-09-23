@@ -294,8 +294,11 @@ export const Cell: BasicComponentWithPassthroughChildren<CellData> = ({
             // Only a genuine span is worth writing, and only a positive
             // whole number is a span at all: `colSpan="0"`, `colSpan="-2"`
             // and a `colSpan` whose content did not parse (`NaN`) each
-            // occupy one column here and in HTML, and `colspan="0"` is not
-            // something PreTeXt's schema accepts.
+            // occupy one column here and in HTML. PreTeXt's schema would let
+            // `colspan="0"` through — it declares `colspan` with no datatype
+            // — so writing one out would hand PreTeXt a span it has no
+            // reading of, and one that contradicts the `<col>` list written
+            // beside it.
             colspan={
                 Number.isInteger(props.colSpan) && props.colSpan! > 1
                     ? String(effectiveColSpan(props.colSpan))

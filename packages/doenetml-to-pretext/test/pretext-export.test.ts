@@ -1009,7 +1009,9 @@ describe("Pretext export", async () => {
 
     it("a colSpan that is not a genuine span is not written out", async () => {
         // Each of these occupies exactly one column, in the worker and in
-        // HTML alike, and `colspan="0"` is not something PreTeXt accepts.
+        // HTML alike, so writing `colspan="0"` out would describe a span
+        // nothing else in the document agrees with. PreTeXt's schema does
+        // not catch it — `colspan` is declared there with no datatype.
         source = `<tabular>
   <row>
     <cell colSpan="0">a</cell>
