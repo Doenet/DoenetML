@@ -60,5 +60,7 @@ impl Resolver {
             })
             .collect();
         self.node_resolver_data = new_node_resolver_data;
+        // Cached root names are indexed by the old indices
+        self.root_name_cache.clear();
     }
 }

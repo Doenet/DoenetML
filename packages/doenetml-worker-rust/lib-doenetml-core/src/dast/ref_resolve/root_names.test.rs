@@ -1,11 +1,12 @@
 use super::*;
 use crate::{
     dast::{
-        flat_dast::FlatRoot,
+        flat_dast::{FlatRoot, Index},
         ref_resolve::{IndexResolution, test_helpers::*},
     },
     test_utils::*,
 };
+use rustc_hash::FxHashMap;
 
 #[test]
 fn find_simplest_unique_name() {
@@ -277,4 +278,160 @@ fn elements_from_external_source_doc_require_parent() {
     assert_eq!(root_names[c_idx], Some("y.u".to_string()));
     assert_eq!(root_names[d_idx], Some("y.r".to_string()));
     assert_eq!(root_names[s_idx], Some("y".to_string()));
+}
+
+/// Apply the changes returned by `update_root_names` to `table`,
+/// mimicking how the JavaScript core patches its copy of the root names.
+fn apply_root_name_changes(
+    table: &mut FxHashMap<Index, String>,
+    changes: Vec<(Index, Option<String>)>,
+) {
+    for (idx, name) in changes {
+        match name {
+            Some(name) => table.insert(idx, name),
+            None => table.remove(&idx),
+        };
+    }
+}
+
+/// Assert that `table` matches the root names calculated from scratch by `resolver`.
+fn assert_matches_calculated_root_names(table: &FxHashMap<Index, String>, resolver: &Resolver) {
+    let expected: FxHashMap<Index, String> = resolver
+        .calculate_root_names()
+        .into_iter()
+        .enumerate()
+        .filter_map(|(idx, name)| name.map(|name| (idx, name)))
+        .collect();
+    assert_eq!(*table, expected);
+}
+
+#[test]
+fn first_root_name_update_returns_every_root_name() {
+    let dast_root = dast_root_no_position(
+        r#"
+    <document>
+        <a name="x">
+            <b name="y">
+                <c name="z" />
+            </b>
+        </a>
+        <e name="y" />
+    </document>"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let b_idx = find(&flat_root, "b").unwrap();
+    let c_idx = find(&flat_root, "c").unwrap();
+
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+
+    let mut changes = resolver.update_root_names(false);
+    changes.sort();
+    assert_eq!(
+        changes,
+        vec![
+            (a_idx, Some("x".to_string())),
+            (b_idx, Some("x.y".to_string())),
+            (c_idx, Some("z".to_string())),
+        ]
+    );
+
+    // Nothing changed, so there is nothing to report
+    assert_eq!(resolver.update_root_names(false), vec![]);
+
+    // unless every root name is requested
+    let mut all_names = resolver.update_root_names(true);
+    all_names.sort();
+    assert_eq!(all_names, changes);
+}
+
+#[test]
+fn root_name_updates_track_changes_to_resolver() {
+    let dast_root = dast_root_no_position(
+        r#"
+    <document>
+        <a name="x"/>
+        <group name="g">
+            <b name="u" />
+            <c />
+            <d />
+        </group>
+        <e name="v" />
+        <f name="v" />
+    </document>"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let c_idx = find(&flat_root, "c").unwrap();
+    let d_idx = find(&flat_root, "d").unwrap();
+    let e_idx = find(&flat_root, "e").unwrap();
+    let f_idx = find(&flat_root, "f").unwrap();
+    let g_idx = find(&flat_root, "group").unwrap();
+
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+    let mut table = FxHashMap::default();
+
+    apply_root_name_changes(&mut table, resolver.update_root_names(false));
+    assert_matches_calculated_root_names(&table, &resolver);
+    assert_eq!(table.get(&c_idx), Some(&"g:2".to_string()));
+    assert_eq!(table.get(&e_idx), None);
+
+    // Add new nodes as index resolutions of `<a>`
+    let flat_fragment = flat_fragment_from_str(
+        r#"<h name="w"><i name="t" /></h><j />"#,
+        flat_root.nodes.len(),
+        Some(a_idx),
+    );
+    let h_idx = flat_root.nodes.len();
+    let j_idx = flat_root.nodes.len() + 2;
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceAll { parent: a_idx },
+    );
+
+    let changes = resolver.update_root_names(false);
+    assert_eq!(changes.len(), 3);
+    apply_root_name_changes(&mut table, changes);
+    assert_matches_calculated_root_names(&table, &resolver);
+    assert_eq!(table.get(&h_idx), Some(&"x.w".to_string()));
+    assert_eq!(table.get(&j_idx), Some(&"x:2".to_string()));
+
+    // Insert new nodes at the start of the index resolutions of `<group>`,
+    // shifting the indices of `<c>` and `<d>`
+    let flat_fragment =
+        flat_fragment_from_str(r#"<k /><l />"#, flat_root.nodes.len() + 3, Some(g_idx));
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceRange {
+            parent: g_idx,
+            range: 0..0,
+        },
+    );
+
+    apply_root_name_changes(&mut table, resolver.update_root_names(false));
+    assert_matches_calculated_root_names(&table, &resolver);
+    assert_eq!(table.get(&c_idx), Some(&"g:4".to_string()));
+    assert_eq!(table.get(&d_idx), Some(&"g:5".to_string()));
+
+    // Remove `<d>` from the index resolutions of `<group>`, so that it loses its root name
+    resolver.replace_index_resolutions(
+        &[],
+        IndexResolution::ReplaceRange {
+            parent: g_idx,
+            range: 4..5,
+        },
+    );
+
+    let changes = resolver.update_root_names(false);
+    assert_eq!(changes, vec![(d_idx, None)]);
+    apply_root_name_changes(&mut table, changes);
+    assert_matches_calculated_root_names(&table, &resolver);
+
+    // Deleting `<f>` makes the name `v` unique, so `<e>` gains a root name
+    resolver.delete_nodes(&[flat_root.nodes[f_idx].clone()]);
+
+    let changes = resolver.update_root_names(false);
+    assert_eq!(changes, vec![(e_idx, Some("v".to_string()))]);
+    apply_root_name_changes(&mut table, changes);
+    assert_matches_calculated_root_names(&table, &resolver);
 }

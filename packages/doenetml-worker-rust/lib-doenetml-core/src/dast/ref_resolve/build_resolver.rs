@@ -39,6 +39,7 @@ impl Resolver {
                 }
             })
             .collect(),
+            root_name_cache: Vec::new(),
         };
 
         resolver.add_implicit_index_resolutions(

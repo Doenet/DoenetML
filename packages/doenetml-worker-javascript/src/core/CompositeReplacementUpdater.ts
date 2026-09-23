@@ -18,6 +18,7 @@ import {
     addReplacementsToResolver,
     determineParentAndIndexResolutionForResolver,
     gatherDiagnosticsAndAssignDoenetMLRange,
+    refreshRootNames,
 } from "./ResolverAdapter";
 import { postProcessCopy } from "../utils/copy";
 import { preprocessAttributesObject } from "../utils/attributes";
@@ -1328,7 +1329,7 @@ export class CompositeReplacementUpdater {
                     indexResolution,
                 );
 
-                this.core.rootNames = this.core.calculateRootNames?.().names;
+                refreshRootNames(this.core);
 
                 // A reference resolved through another composite has to be
                 // reconsidered as well; one resolved through this composite is
@@ -1487,8 +1488,7 @@ export class CompositeReplacementUpdater {
                                 indexResolution,
                             );
 
-                            this.core.rootNames =
-                                this.core.calculateRootNames?.().names;
+                            refreshRootNames(this.core);
 
                             indexParentComposite = candidate;
                         }

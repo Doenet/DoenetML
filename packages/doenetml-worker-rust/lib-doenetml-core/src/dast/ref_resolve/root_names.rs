@@ -4,6 +4,7 @@
 
 use super::node_traversal::*;
 use super::*;
+use crate::dast::flat_dast::Index;
 
 impl Resolver {
     /// Given the data from `resolver`, calculate the root name for each node,
@@ -65,6 +66,41 @@ impl Resolver {
         }
 
         root_names
+    }
+
+    /// Recalculate the root names and return only those that changed since the previous call,
+    /// as `(node index, new root name)` pairs, where `None` means the node no longer has a root name.
+    /// The first call, or a call with `report_all` set, returns every node that has a root name,
+    /// which is how a caller starting with an empty table gets a complete one.
+    ///
+    /// Applying the changes to the table built from the previous calls reproduces
+    /// [`Resolver::calculate_root_names`], without sending the whole table across the WASM boundary
+    /// after every change to the resolver.
+    pub fn update_root_names(&mut self, report_all: bool) -> Vec<(Index, Option<String>)> {
+        let new_names = self.calculate_root_names();
+        let old_names = std::mem::take(&mut self.root_name_cache);
+        let old_names = if report_all { Vec::new() } else { old_names };
+
+        let mut changes: Vec<(Index, Option<String>)> = new_names
+            .iter()
+            .enumerate()
+            .filter(|(idx, name)| old_names.get(*idx).unwrap_or(&None) != *name)
+            .map(|(idx, name)| (idx, name.clone()))
+            .collect();
+
+        // Nodes beyond the end of the new table no longer have root names
+        changes.extend(
+            old_names
+                .iter()
+                .enumerate()
+                .skip(new_names.len())
+                .filter(|(_, name)| name.is_some())
+                .map(|(idx, _)| (idx, None)),
+        );
+
+        self.root_name_cache = new_names;
+
+        changes
     }
 }
 

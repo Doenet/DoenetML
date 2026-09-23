@@ -473,8 +473,8 @@ export class CoreWorker {
 
             const doenetCore = this.doenetCore;
 
-            function calculateRootNames() {
-                return doenetCore.calculate_root_names();
+            function updateRootNames(reportAll: boolean) {
+                return doenetCore.update_root_names(reportAll);
             }
 
             function resolvePath(
@@ -521,7 +521,7 @@ export class CoreWorker {
                     replaceIndexResolutionsInResolver,
                     deleteNodesFromResolver,
                     resolvePath,
-                    calculateRootNames,
+                    updateRootNames,
                 });
             this.javascript_initialized = true;
             // The JavaScript core has consumed the normalized DAST; free the
@@ -646,7 +646,7 @@ export class CoreWorker {
             // The panic message is read here too, not only on the
             // initialization path: `createCoreGenerateDast` builds `Core`
             // before its own `try`, and that constructor calls back into the
-            // Rust core (`calculateRootNames`). A trap there would otherwise
+            // Rust core (`updateRootNames`). A trap there would otherwise
             // reach the reader as the bare word `unreachable`.
             throwAsDocumentBuildError(err, readPanicMessage());
         } finally {
@@ -719,8 +719,8 @@ export class CoreWorker {
         let normalizedRoot = this.doenetCore.return_normalized_dast_root();
         const doenetCore = this.doenetCore;
 
-        function calculateRootNames() {
-            return doenetCore.calculate_root_names();
+        function updateRootNames(reportAll: boolean) {
+            return doenetCore.update_root_names(reportAll);
         }
 
         function resolvePath(
@@ -759,7 +759,7 @@ export class CoreWorker {
             replaceIndexResolutionsInResolver,
             deleteNodesFromResolver,
             resolvePath,
-            calculateRootNames,
+            updateRootNames,
         });
         this.javascript_initialized = true;
         // The JavaScript core has consumed the normalized DAST; free the
