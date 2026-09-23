@@ -107,6 +107,10 @@ content within the `<cell>{:dn}`. Valid values are `start` (default), `center`,
 the left edge in a left-to-right document and the right edge in a right-to-left
 one.
 
+A cell with no `hAlign` of its own takes one from its
+[`<row>{:dn}`](row_table), then from its column's [`<col>{:dn}`](col), then from
+the [`<tabular>{:dn}`](tabular), in that order.
+
 
 
 ---
@@ -163,7 +167,9 @@ The `bottomBorder` attribute specifies a bounding line at the bottom of the `<ce
 
 The `endBorder` attribute specifies a bounding line at the trailing edge of the
 `<cell>{:dn}`: its right edge in a left-to-right document, its left edge in a
-right-to-left one.
+right-to-left one. A cell with none of its own takes one from its column's
+[`<col>{:dn}`](col), then from the [`<tabular>{:dn}`](tabular) — and setting
+`endBorder="none"` on the cell leaves a gap in a line the column drew.
 
 
 

@@ -7,6 +7,7 @@ import {
     returnBorderValidValues,
     returnHalignValidValues,
     returnValignValidValues,
+    effectiveColSpan,
 } from "../utils/tabularAttributes";
 
 export default class Row extends BaseComponent {
@@ -124,6 +125,7 @@ export default class Row extends BaseComponent {
             shadowingInstructions: {
                 createComponentOfType: "text",
             },
+            forRenderer: true,
             defaultValue: "start",
             hasEssential: true,
             returnDependencies: () => ({
@@ -251,6 +253,7 @@ export default class Row extends BaseComponent {
             shadowingInstructions: {
                 createComponentOfType: "text",
             },
+            forRenderer: true,
             defaultValue: "none",
             hasEssential: true,
             returnDependencies: () => ({
@@ -286,6 +289,73 @@ export default class Row extends BaseComponent {
                         useEssentialOrDefaultValue: { bottomBorder: true },
                     };
                 }
+            },
+        };
+
+        // The row's *own* `halign`, with no inheritance applied: `null` unless
+        // the author wrote `halign` on this `<row>`. `halign` above cannot
+        // answer this, because it has already folded in the `<tabular>`'s
+        // value, and a cell has to tell the two apart — PreTeXt resolves a
+        // cell's alignment as cell, then row, then col, then tabular, so a
+        // `<col halign>` outranks a `<tabular halign>` but not a `<row
+        // halign>`.
+        stateVariableDefinitions.authoredHalign = {
+            returnDependencies: () => ({
+                halignAttr: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "halign",
+                    variableNames: ["value"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                if (dependencyValues.halignAttr === null) {
+                    return { setValue: { authoredHalign: null } };
+                }
+                return {
+                    setValue: {
+                        authoredHalign: readVocabularyValue(
+                            dependencyValues.halignAttr.stateValues.value,
+                            HALIGN_VALUES,
+                            "start",
+                        ),
+                    },
+                };
+            },
+        };
+
+        // Where each cell of the row starts, counting the `colSpan` of the
+        // cells before it, and how far the row reaches in total. A `<cell>`
+        // reads its own entry out of this to find the `<col>` that applies to
+        // it; the `<tabular>` takes the maximum of `numColumns` over its rows
+        // to know how many columns the table has.
+        stateVariableDefinitions.cellColumnIndices = {
+            additionalStateVariablesDefined: ["numColumns"],
+            returnDependencies: () => ({
+                cellChildren: {
+                    dependencyType: "child",
+                    childGroups: ["cells"],
+                    variableNames: ["colSpan"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                const cellColumnIndices = [];
+                let nextColumn = 0;
+                for (const cell of dependencyValues.cellChildren) {
+                    cellColumnIndices.push(nextColumn);
+                    const colSpan = cell.stateValues?.colSpan;
+                    // A cell whose `colSpan` is missing or nonsensical (null
+                    // from unparseable content, or zero or negative) still
+                    // occupies one column, which keeps the cells after it from
+                    // all collapsing onto the same index. A runaway one is
+                    // clamped to `MAX_COLSPAN`, so that a stray
+                    // `colSpan="2000000"` cannot make the table claim two
+                    // million columns for `columnSpecs` — and so the
+                    // `<colgroup>` — to be padded out to.
+                    nextColumn += effectiveColSpan(colSpan);
+                }
+                return {
+                    setValue: { cellColumnIndices, numColumns: nextColumn },
+                };
             },
         };
 

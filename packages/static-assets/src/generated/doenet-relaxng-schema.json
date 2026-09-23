@@ -177,6 +177,7 @@
         "cell",
         "row",
         "column",
+        "col",
         "cellBlock",
         "tabular",
         "table",
@@ -3853,6 +3854,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -4850,6 +4854,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -5845,6 +5852,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -7775,6 +7785,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -39267,6 +39280,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -40598,6 +40614,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -41813,6 +41832,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -42702,6 +42724,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -43595,6 +43620,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -44480,6 +44508,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -57666,6 +57697,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -58878,6 +58912,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -60094,6 +60131,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -61306,6 +61346,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -62529,6 +62572,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -63741,6 +63787,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -64964,6 +65013,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -66183,6 +66235,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -67406,6 +67461,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -68627,6 +68685,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -69839,6 +69900,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -71055,6 +71119,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -72267,6 +72334,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -73483,6 +73553,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -74697,6 +74770,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -75909,6 +75985,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -77131,6 +77210,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -78337,6 +78419,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -79541,6 +79626,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -81215,6 +81303,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -89561,6 +89652,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -90474,6 +90568,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -91473,6 +91570,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -92405,6 +92505,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -93253,6 +93356,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -94133,6 +94239,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -97966,6 +98075,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -104084,6 +104196,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -122145,6 +122260,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -128503,6 +128621,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -130805,6 +130926,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -131500,6 +131624,187 @@
                 }
             ]
         },
+        "col": {
+            "type": "element",
+            "name": "col",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "width": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "halign": {
+                    "optional": true,
+                    "type": [
+                        "start",
+                        "center",
+                        "end",
+                        "justify"
+                    ]
+                },
+                "topBorder": {
+                    "optional": true,
+                    "type": [
+                        "none",
+                        "minor",
+                        "medium",
+                        "major"
+                    ]
+                },
+                "endBorder": {
+                    "optional": true,
+                    "type": [
+                        "none",
+                        "minor",
+                        "medium",
+                        "major"
+                    ]
+                }
+            },
+            "children": [],
+            "textChildrenAllowed": false,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "width",
+                    "type": "componentSize",
+                    "isArray": false,
+                    "description": "Display width of this column. Expressed as a percentage of the width of the tabular layout so that it survives conversion to PreTeXt.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "halign",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Horizontal alignment for cells in this column.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "topBorder",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Border style for the top edge of this column.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "endBorder",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Border style for the trailing edge of this column: its right edge in a left-to-right document, its left edge in a right-to-left one.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                }
+            ]
+        },
         "cellBlock": {
             "type": "element",
             "name": "cellBlock",
@@ -131823,7 +132128,7 @@
                     "ref": "collect"
                 },
                 {
-                    "ref": "row"
+                    "ref": "col"
                 },
                 {
                     "ref": "repeat"
@@ -131851,6 +132156,9 @@
                 },
                 {
                     "ref": "shuffle"
+                },
+                {
+                    "ref": "row"
                 }
             ],
             "textChildrenAllowed": false,
@@ -131961,6 +132269,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "numColumns",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of columns in the tabular layout: the number of col components, or the furthest any single row reaches counting each cell's colSpan, whichever is larger."
                 }
             ]
         },
@@ -134154,6 +134468,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -135093,6 +135410,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -138552,6 +138872,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -140602,6 +140925,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -143841,6 +144167,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -146211,6 +146540,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -148374,6 +148706,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -149215,6 +149550,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -150072,6 +150410,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -151501,6 +151842,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -152911,6 +153255,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -153796,6 +154143,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -154656,6 +155006,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -157772,6 +158125,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -158713,6 +159069,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -159567,6 +159926,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -162193,6 +162555,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -165556,6 +165921,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -171346,6 +171714,9 @@
                     "ref": "column"
                 },
                 {
+                    "ref": "col"
+                },
+                {
                     "ref": "cellBlock"
                 },
                 {
@@ -172194,6 +172565,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"
@@ -174167,6 +174541,9 @@
                 },
                 {
                     "ref": "column"
+                },
+                {
+                    "ref": "col"
                 },
                 {
                     "ref": "cellBlock"

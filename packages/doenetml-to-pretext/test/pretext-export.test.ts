@@ -928,4 +928,161 @@ describe("Pretext export", async () => {
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(`"<m>x + y</m>+"`);
     });
+    // The `<tabular>` output asserted below was checked against PreTeXt's own
+    // RelaxNG schema (`.github/skills/pretext-authoring/docs/references/
+    // pretext.rng`), wrapped in a `<paragraphs>` so the fragment had a legal
+    // place to sit: every snapshot in this group validates. There is no
+    // RelaxNG validator among this package's dependencies, so the check is a
+    // manual one and any new attribute spelling here is worth re-running it
+    // for. Two shapes do *not* validate, both from markup PreTeXt has no
+    // reading of and both unchanged by these renderers: a `<tabular>` with no
+    // `<row>`, and a `<row>` with no `<cell>`.
+    it("<tabular> keeps its borders and alignment, in PreTeXt's spelling", async () => {
+        source = `<tabular halign="end" topBorder="major" startBorder="minor" bottomBorder="medium" endBorder="minor">
+  <row header valign="top" bottomBorder="major">
+    <cell>Name</cell>
+    <cell halign="center" endBorder="medium">Value</cell>
+  </row>
+  <row startBorder="major">
+    <cell colSpan="2">everything</cell>
+  </row>
+</tabular>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular halign="right" top="major" bottom="medium" left="minor" right="minor"><row header="yes" valign="top" bottom="major"><cell>Name</cell><cell halign="center" right="medium">Value</cell></row><row left="major"><cell colspan="2">everything</cell></row></tabular>"`,
+        );
+    });
+
+    it("<col> is written back out ahead of the rows", async () => {
+        source = `<tabular>
+  <col width="25%" topBorder="major" />
+  <col width="15%" halign="end" endBorder="minor" />
+  <row>
+    <cell>Pennsylvania</cell>
+    <cell>19</cell>
+    <cell>Rust Belt</cell>
+  </row>
+</tabular>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular><col width="25%" top="major"></col><col width="15%" halign="right" right="minor"></col><col></col><row><cell>Pennsylvania</cell><cell>19</cell><cell>Rust Belt</cell></row></tabular>"`,
+        );
+    });
+
+    it("a setting a cell only inherited is written once, on the element that set it", async () => {
+        source = `<tabular halign="center">
+  <col halign="end" />
+  <row>
+    <cell>a</cell>
+    <cell>b</cell>
+  </row>
+</tabular>`;
+        // Neither cell repeats an alignment: the first takes "right" from its
+        // `<col>` and the second "center" from the `<tabular>`, and both are
+        // already written on those.
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular halign="center"><col halign="right"></col><col></col><row><cell>a</cell><cell>b</cell></row></tabular>"`,
+        );
+    });
+
+    it("a spanning cell's trailing border comes from the last column it covers", async () => {
+        source = `<tabular>
+  <col halign="center" endBorder="minor" />
+  <col halign="end" endBorder="major" />
+  <row>
+    <cell colSpan="2">A</cell>
+  </row>
+</tabular>`;
+        // The cell's right edge falls at the right of the second column, so
+        // `right="major"` is what it already inherits and nothing is repeated
+        // on the cell; its alignment comes from the first column it covers.
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular><col halign="center" right="minor"></col><col halign="right" right="major"></col><row><cell colspan="2">A</cell></row></tabular>"`,
+        );
+    });
+
+    it("a colSpan that is not a genuine span is not written out", async () => {
+        // Each of these occupies exactly one column, in the worker and in
+        // HTML alike, so writing `colspan="0"` out would describe a span
+        // nothing else in the document agrees with. PreTeXt's schema does
+        // not catch it — `colspan` is declared there with no datatype.
+        source = `<tabular>
+  <row>
+    <cell colSpan="0">a</cell>
+    <cell colSpan="-2">b</cell>
+    <cell colSpan="x">c</cell>
+    <cell colSpan="2">d</cell>
+  </row>
+</tabular>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular><row><cell>a</cell><cell>b</cell><cell>c</cell><cell colspan="2">d</cell></row></tabular>"`,
+        );
+    });
+
+    it("a runaway colSpan is written out clamped, not verbatim", async () => {
+        // The worker stops counting columns at 1000, so the table it
+        // describes has 1001 columns; writing `colspan="2000000"` into it
+        // would contradict the `<col>` list written alongside.
+        source = `<tabular>
+  <col halign="end" />
+  <row>
+    <cell colSpan="2000000">a</cell>
+    <cell>b</cell>
+  </row>
+</tabular>`;
+        const fragment = await coreRunner.processToFlatDastAsFragment(source);
+        expect(fragment).toContain(`<cell colspan="1000">a</cell>`);
+        expect(fragment.match(/<col>|<col /g)?.length).eq(1001);
+    });
+
+    it("only a width PreTeXt can express crosses over", async () => {
+        // A percentage is written out; the 100% a `<tabular>` defaults to is
+        // what PreTeXt assumes anyway; and PreTeXt has neither an absolute
+        // width nor a height for a tabular, so those are dropped.
+        expect(
+            await coreRunner.processToFlatDastAsFragment(
+                `<tabular width="50%"><row><cell>a</cell></row></tabular>`,
+            ),
+        ).toMatchInlineSnapshot(
+            `"<tabular width="50%"><row><cell>a</cell></row></tabular>"`,
+        );
+        expect(
+            await coreRunner.processToFlatDastAsFragment(
+                `<tabular><row><cell>a</cell></row></tabular>`,
+            ),
+        ).toMatchInlineSnapshot(
+            `"<tabular><row><cell>a</cell></row></tabular>"`,
+        );
+        expect(
+            await coreRunner.processToFlatDastAsFragment(
+                `<tabular width="120px" height="200px"><row><cell>a</cell></row></tabular>`,
+            ),
+        ).toMatchInlineSnapshot(
+            `"<tabular><row><cell>a</cell></row></tabular>"`,
+        );
+    });
+
+    it("a cell with no children still exports its text", async () => {
+        // `<cell prefill>` sets the cell's content without giving it a child,
+        // so the fallback to the cell's `text` is what carries it across.
+        source = `<tabular>
+  <row>
+    <cell prefill="hi" />
+    <cell />
+  </row>
+</tabular>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular><row><cell>hi</cell><cell></cell></row></tabular>"`,
+        );
+    });
 });

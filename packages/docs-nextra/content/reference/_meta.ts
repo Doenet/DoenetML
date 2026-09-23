@@ -52,6 +52,7 @@ export default {
     clampNumber: { title: "clampNumber" },
     cobwebPolyline: { title: "cobwebPolyline" },
     codeEditor: { title: "codeEditor" },
+    col: { title: "col" },
     collect: { title: "collect" },
     column_matrix: { title: "column (for matrix)" },
     column_table: { title: "column (for table)" },

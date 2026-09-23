@@ -12,6 +12,7 @@ import {
     readVocabularyValue,
     returnBorderValidValues,
     returnHalignValidValues,
+    effectiveColSpan,
 } from "../utils/tabularAttributes";
 
 export default class Cell extends BaseComponent {
@@ -97,6 +98,45 @@ export default class Cell extends BaseComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        // Which column of a `<tabular>` this cell sits in, zero-based, so that
+        // it can find the `<col>` that applies to it. The row does the
+        // counting, because a preceding cell with `colSpan="2"` pushes this
+        // one along by two columns and only the row sees the cells in order.
+        //
+        // Deliberately not `public`. It counts a cell's position among its
+        // siblings, which is the column only in a `<tabular>`: inside a
+        // `<spreadsheet>` a `<cell colNum="3">` is the third column but still
+        // the first among its siblings, so as an author-facing property it
+        // would contradict the `colNum` a `<cell>` already publishes.
+        stateVariableDefinitions.columnIndex = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                positionAmongCells: {
+                    dependencyType: "countAmongSiblings",
+                    componentType: "cell",
+                },
+                cellColumnIndices: {
+                    dependencyType: "parentStateVariable",
+                    parentComponentType: "row",
+                    variableName: "cellColumnIndices",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const { cellColumnIndices, positionAmongCells } =
+                    dependencyValues;
+                if (!Array.isArray(cellColumnIndices)) {
+                    // Not inside a `<row>` — a cell of a `<column>` or a
+                    // `<cellBlock>` in a spreadsheet, where columns are
+                    // addressed by `colNum` instead.
+                    return { setValue: { columnIndex: null } };
+                }
+                // `countAmongSiblings` is 1-based.
+                const columnIndex =
+                    cellColumnIndices[positionAmongCells - 1] ?? null;
+                return { setValue: { columnIndex } };
+            },
+        };
+
         stateVariableDefinitions.halign = {
             description:
                 "Horizontal alignment of the cell's content (start, center, end, or justify).",
@@ -107,17 +147,31 @@ export default class Cell extends BaseComponent {
             forRenderer: true,
             hasEssential: true,
             defaultValue: "start",
+            // PreTeXt resolves a cell's alignment in the order cell, row,
+            // col, tabular, and so does this chain. The row contributes
+            // `authoredHalign` rather than `halign`, because `halign` has
+            // already inherited the tabular's value and would otherwise hide
+            // the `<col>` behind a `<tabular halign>` the author set.
             returnDependencies: () => ({
                 halignAttr: {
                     dependencyType: "attributeComponent",
                     attributeName: "halign",
                     variableNames: ["value"],
                 },
-                parentHalign: {
+                parentAuthoredHalign: {
                     dependencyType: "parentStateVariable",
-                    variableName: "halign",
+                    parentComponentType: "row",
+                    variableName: "authoredHalign",
                 },
-                // TODO: get halign for corresponding col
+                columnIndex: {
+                    dependencyType: "stateVariable",
+                    variableName: "columnIndex",
+                },
+                tabularColumnAttributes: {
+                    dependencyType: "ancestor",
+                    componentType: "tabular",
+                    variableNames: ["columnAttributes"],
+                },
                 tabularHalign: {
                     dependencyType: "ancestor",
                     componentType: "tabular",
@@ -132,14 +186,28 @@ export default class Cell extends BaseComponent {
                         "start",
                     );
                     return { setValue: { halign } };
-                } else if (
-                    !usedDefault.parentHalign &&
-                    dependencyValues.parentHalign
-                ) {
+                }
+
+                if (dependencyValues.parentAuthoredHalign) {
                     return {
-                        setValue: { halign: dependencyValues.parentHalign },
+                        setValue: {
+                            halign: dependencyValues.parentAuthoredHalign,
+                        },
                     };
-                } else if (
+                }
+
+                // A cell that spans columns takes its alignment from the
+                // first column it covers, the one its content starts in.
+                const columnHalign = columnSettingForCell({
+                    dependencyValues,
+                    setting: "halign",
+                    columnIndex: dependencyValues.columnIndex,
+                });
+                if (columnHalign) {
+                    return { setValue: { halign: columnHalign } };
+                }
+
+                if (
                     !usedDefault.tabularHalign &&
                     dependencyValues.tabularHalign
                 ) {
@@ -149,9 +217,9 @@ export default class Cell extends BaseComponent {
                                 .halign,
                         },
                     };
-                } else {
-                    return { useEssentialOrDefaultValue: { halign: true } };
                 }
+
+                return { useEssentialOrDefaultValue: { halign: true } };
             },
         };
 
@@ -226,13 +294,32 @@ export default class Cell extends BaseComponent {
             forRenderer: true,
             hasEssential: true,
             defaultValue: "none",
+            // A `<row>` has no trailing-edge border of its own, so the chain
+            // is cell, col, tabular. Inheriting the column's border down into
+            // the cells — rather than drawing it once on the `<colgroup>` —
+            // is what lets a single `<cell endBorder="none">` punch a hole in
+            // the column's rule, the way PreTeXt's "lower level wins" reading
+            // implies. The column consulted is the *last* one the cell spans,
+            // because that is where the cell's trailing edge falls.
             returnDependencies: () => ({
                 endBorderAttr: {
                     dependencyType: "attributeComponent",
                     attributeName: "endBorder",
                     variableNames: ["value"],
                 },
-                // TODO: get endBorder for corresponding col
+                columnIndex: {
+                    dependencyType: "stateVariable",
+                    variableName: "columnIndex",
+                },
+                colSpan: {
+                    dependencyType: "stateVariable",
+                    variableName: "colSpan",
+                },
+                tabularColumnAttributes: {
+                    dependencyType: "ancestor",
+                    componentType: "tabular",
+                    variableNames: ["columnAttributes"],
+                },
                 tabularEndBorder: {
                     dependencyType: "ancestor",
                     componentType: "tabular",
@@ -247,7 +334,18 @@ export default class Cell extends BaseComponent {
                         "none",
                     );
                     return { setValue: { endBorder } };
-                } else if (
+                }
+
+                const columnEndBorder = columnSettingForCell({
+                    dependencyValues,
+                    setting: "endBorder",
+                    columnIndex: lastColumnIndexOfCell(dependencyValues),
+                });
+                if (columnEndBorder) {
+                    return { setValue: { endBorder: columnEndBorder } };
+                }
+
+                if (
                     !usedDefault.tabularEndBorder &&
                     dependencyValues.tabularEndBorder
                 ) {
@@ -258,9 +356,9 @@ export default class Cell extends BaseComponent {
                                     .endBorder,
                         },
                     };
-                } else {
-                    return { useEssentialOrDefaultValue: { endBorder: true } };
                 }
+
+                return { useEssentialOrDefaultValue: { endBorder: true } };
             },
         };
 
@@ -519,4 +617,39 @@ export default class Cell extends BaseComponent {
     }
 
     static adapters = ["text", "math", "number"];
+}
+
+/**
+ * The value the `<col>` at `columnIndex` contributes for `setting`, or `null`
+ * when there is no column to consult (the cell is outside a `<row>`, or its
+ * column is past the end of the `<col>` list) or the column left that
+ * attribute off.
+ *
+ * Expects `tabularColumnAttributes` among `dependencyValues`.
+ */
+function columnSettingForCell({ dependencyValues, setting, columnIndex }) {
+    const { tabularColumnAttributes } = dependencyValues;
+    if (columnIndex === null || !tabularColumnAttributes) {
+        return null;
+    }
+    const columnAttributes =
+        tabularColumnAttributes.stateValues.columnAttributes;
+    return columnAttributes?.[columnIndex]?.[setting] ?? null;
+}
+
+/**
+ * The last column a cell covers: its own column plus one less than its
+ * `colSpan`. A cell's trailing edge sits at the right of the *last* column it
+ * spans, so that is the `<col>` whose `endBorder` belongs there; the rules of
+ * the columns it swallows fall inside the cell, where neither a browser nor
+ * PreTeXt draws them. A `colSpan` that is not a whole number greater than one
+ * spans a single column, matching what HTML does with the same value, and a
+ * runaway one covers `MAX_COLSPAN` columns — the same number `<row>` advanced
+ * its column cursor by, so the column named here is one the row counted.
+ */
+function lastColumnIndexOfCell({ columnIndex, colSpan }) {
+    if (columnIndex === null) {
+        return null;
+    }
+    return columnIndex + effectiveColSpan(colSpan) - 1;
 }
