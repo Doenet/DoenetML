@@ -9,6 +9,13 @@ import {
     returnValignValidValues,
 } from "../utils/tabularAttributes";
 
+/**
+ * The largest `colSpan` that counts toward a table's column count, matching
+ * the limit HTML itself imposes on `colspan`, so that an absurd value cannot
+ * turn into an equally absurd number of `<col>` elements.
+ */
+const MAX_COLSPAN = 1000;
+
 export default class Row extends BaseComponent {
     static componentType = "row";
 
@@ -342,11 +349,18 @@ export default class Row extends BaseComponent {
                 for (const cell of dependencyValues.cellChildren) {
                     cellColumnIndices.push(nextColumn);
                     const colSpan = cell.stateValues?.colSpan;
-                    // A cell whose `colSpan` is missing or nonsensical still
+                    // A cell whose `colSpan` is missing or nonsensical (null
+                    // from unparseable content, or zero or negative) still
                     // occupies one column, which keeps the cells after it from
-                    // all collapsing onto the same index.
+                    // all collapsing onto the same index. A runaway one is
+                    // clamped to the same 1000 that HTML clamps a `colspan`
+                    // to, so that a stray `colSpan="2000000"` cannot make the
+                    // table claim two million columns for `columnSpecs` — and
+                    // so the `<colgroup>` — to be padded out to.
                     nextColumn +=
-                        Number.isInteger(colSpan) && colSpan > 0 ? colSpan : 1;
+                        Number.isInteger(colSpan) && colSpan > 0
+                            ? Math.min(colSpan, MAX_COLSPAN)
+                            : 1;
                 }
                 return {
                     setValue: { cellColumnIndices, numColumns: nextColumn },

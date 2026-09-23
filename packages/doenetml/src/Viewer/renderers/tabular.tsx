@@ -58,13 +58,7 @@ export default React.memo(function Tabular(props: UseDoenetRendererProps) {
     };
     if (SVs.topBorder !== "none") {
         tableStyle.borderTopStyle = "solid";
-        if (SVs.topBorder === "minor") {
-            tableStyle.borderTopWidth = "thin";
-        } else if (SVs.topBorder === "medium") {
-            tableStyle.borderTopWidth = "medium";
-        } else {
-            tableStyle.borderTopWidth = "thick";
-        }
+        tableStyle.borderTopWidth = borderWeightToCSSWidth(SVs.topBorder);
     }
 
     // Known limitation: when tabular is the first child of a list-item section,

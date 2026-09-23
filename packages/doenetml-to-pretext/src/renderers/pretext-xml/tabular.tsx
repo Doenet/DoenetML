@@ -261,8 +261,13 @@ export const Cell: BasicComponentWithPassthroughChildren<CellData> = ({
 
     return (
         <cell
+            // Only a genuine span is worth writing, and only a positive
+            // whole number is a span at all: `colSpan="0"`, `colSpan="-2"`
+            // and a `colSpan` whose content did not parse (`NaN`) each
+            // occupy one column here and in HTML, and `colspan="0"` is not
+            // something PreTeXt's schema accepts.
             colspan={
-                props.colSpan != null && props.colSpan !== 1
+                Number.isInteger(props.colSpan) && props.colSpan! > 1
                     ? String(props.colSpan)
                     : undefined
             }

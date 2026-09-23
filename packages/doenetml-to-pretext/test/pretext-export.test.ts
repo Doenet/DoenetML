@@ -979,4 +979,22 @@ describe("Pretext export", async () => {
             `"<tabular halign="center"><col halign="right"></col><col></col><row><cell>a</cell><cell>b</cell></row></tabular>"`,
         );
     });
+
+    it("a colSpan that is not a genuine span is not written out", async () => {
+        // Each of these occupies exactly one column, in the worker and in
+        // HTML alike, and `colspan="0"` is not something PreTeXt accepts.
+        source = `<tabular>
+  <row>
+    <cell colSpan="0">a</cell>
+    <cell colSpan="-2">b</cell>
+    <cell colSpan="x">c</cell>
+    <cell colSpan="2">d</cell>
+  </row>
+</tabular>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular><row><cell>a</cell><cell>b</cell><cell>c</cell><cell colspan="2">d</cell></row></tabular>"`,
+        );
+    });
 });

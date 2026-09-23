@@ -356,4 +356,44 @@ describe("Tabular tag tests @group3", async () => {
                 .numColumns,
         ).eq(3);
     });
+
+    it("a degenerate or runaway colSpan still moves the cell on by a sane amount", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<tabular name="t">
+  <col halign="center" />
+  <row>
+    <cell name="zero" colSpan="0">A</cell>
+    <cell name="negative" colSpan="-2">B</cell>
+    <cell name="unparseable" colSpan="x">C</cell>
+    <cell name="runaway" colSpan="2000000">D</cell>
+    <cell name="last">E</cell>
+  </row>
+</tabular>
+`,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const columnIndexOf = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .columnIndex;
+
+        // Zero, negative and unparseable spans each occupy one column rather
+        // than collapsing the cells after them onto the same index.
+        expect(await columnIndexOf("zero")).eq(0);
+        expect(await columnIndexOf("negative")).eq(1);
+        expect(await columnIndexOf("unparseable")).eq(2);
+        expect(await columnIndexOf("runaway")).eq(3);
+        // The runaway span is clamped to the 1000 HTML itself clamps a
+        // `colspan` to, so `columnSpecs` stays a list the renderer can draw.
+        expect(await columnIndexOf("last")).eq(1003);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues
+                .numColumns,
+        ).eq(1004);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t")].stateValues
+                .columnSpecs.length,
+        ).eq(1004);
+    });
 });
