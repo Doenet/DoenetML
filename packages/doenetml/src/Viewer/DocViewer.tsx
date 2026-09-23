@@ -2105,17 +2105,18 @@ export function DocViewer({
         init?: boolean;
         /**
          * The deferred remainder of an update whose priority batch already
-         * resolved `actionId` (core sends the dragged component first and the
-         * rest once the drag settles). Resolving again here would release a
+         * resolved `actionId`. Core sends the dragged component first and the
+         * rest once the drag settles, and after any update it sends offscreen
+         * components once it is idle. Resolving again here would release a
          * second queued action for an interaction that has already finished.
          *
          * The flag stops here; `updateRendererSVs` does not need it. An entry
          * in `updatesToIgnore` is keyed by `(actionId, componentIdx)` and only
          * exists where a renderer showed a value ahead of core
-         * (`baseVariableValue`). Of the actions that can produce a deferred
-         * batch, only `<slider>`'s `changeValue` does that, and its own update
-         * instruction targets the slider, so the slider goes out in the
-         * priority batch. It does not rest on that survey, though: the
+         * (`baseVariableValue`), such as an input being typed in or a
+         * `<slider>` being moved. That renderer is the target of its own
+         * update instruction, and core always sends an update's targets in
+         * the priority batch. It does not rest on that, though: the
          * priority batch resolved this `actionId`, and `resolveAction` calls
          * `clearPendingValuesForAction`, which drops every `actionId|*` key.
          * By the time the deferred batch lands there is structurally no

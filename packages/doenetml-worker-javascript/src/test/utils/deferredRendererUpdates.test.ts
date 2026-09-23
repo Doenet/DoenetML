@@ -10,12 +10,14 @@ import { createTestCore } from "./test-core";
  *
  * So a drag step sends what the reader is watching straight away — its own
  * targets and everything rendered on a visible graph — and holds the rest until
- * the interaction goes quiet; the commit that ends the drag sends everything.
- * These tests pin that split, and pin that nothing is dropped on the way.
+ * the interaction goes quiet; the commit that ends the drag sends everything on
+ * screen. Whatever is offscreen, after a drag or any other update, goes out
+ * from the idle lane once core has nothing else to do. These tests pin those
+ * splits, and pin that nothing is dropped on the way.
  *
- * Typing must NOT take the split, so the inputs that commit on blur or enter
- * deliberately do not mark a keystroke `transient` — see `typingDoenetML`
- * below.
+ * Typing must NOT take the drag split, so the inputs that commit on blur or
+ * enter deliberately do not mark a keystroke `transient` — see
+ * `typingDoenetML` below. A keystroke does hold back what is offscreen.
  */
 
 /** Three points whose y stacks them by rank, so moving one moves the others. */
@@ -118,6 +120,37 @@ const structuralDoenetML = `
 `;
 
 /**
+ * A text input with an echo beside it and two more in a section further
+ * down, which the tests report as scrolled away.
+ */
+const offscreenDoenetML = `
+<section name="top">
+  <textInput name="ti" />
+  <p name="pNear">Near echo: <text name="nearEcho">$ti.immediateValue</text></p>
+</section>
+<section name="bottom">
+  <p name="pFar1">Far echo: <text name="farEcho1">$ti.immediateValue</text></p>
+  <p name="pFar2">Far echo: <text name="farEcho2">$ti.immediateValue</text></p>
+</section>
+`;
+
+/**
+ * As `structuralDoenetML`, but the components a move adds or removes are in a
+ * section the tests report as scrolled away.
+ */
+const structuralOffscreenDoenetML = `
+<graph name="g">
+  <point name="P">(5,0)</point>
+</graph>
+<setup><sequence name="seq" from="1" to="$P.x" /></setup>
+<section name="list">
+  <repeat for="$seq" name="rep" valueName="v">
+    <p name="item">Item <number name="n">$v</number></p>
+  </repeat>
+</section>
+`;
+
+/**
  * Build the core and capture every batch core sends the renderer.
  *
  * `createTestCore` passes a no-op as the renderer callback, so the capture
@@ -175,11 +208,25 @@ async function movePointTo({
 }
 
 /** Report `componentIdx` entering or leaving the viewport, as its renderer does. */
-async function setVisible(core: any, componentIdx: number, isVisible: boolean) {
+async function setVisible(
+    core: any,
+    componentIdx: number,
+    isVisible: boolean,
+    isNear?: boolean,
+) {
     await core.requestAction({
         componentIdx,
         actionName: "recordVisibilityChange",
-        args: { isVisible },
+        args: isNear === undefined ? { isVisible } : { isVisible, isNear },
+    });
+}
+
+/** Type `text` into the text input `ti`, as one keystroke's update. */
+async function typeText(core: any, inputIdx: number, text: string) {
+    await core.requestAction({
+        componentIdx: inputIdx,
+        actionName: "updateImmediateValue",
+        args: { text },
     });
 }
 
@@ -287,12 +334,12 @@ describe("an interaction sends what the reader is watching ahead of the rest @gr
     });
 
     it.each([
-        ["reported visible", [true], true],
-        ["never reported", [], false],
-        ["scrolled back out of view", [true, false], false],
+        ["reported visible", [true], "step"],
+        ["never reported", [], "settle"],
+        ["scrolled back out of view", [true, false], "idle"],
     ])(
         "a second graph that is %s follows the drag accordingly",
-        async (_label, visibility, followsAtOnce) => {
+        async (_label, visibility, bLane) => {
             vi.useFakeTimers();
             try {
                 const { core, resolvePathToNodeIdx, batches } =
@@ -317,17 +364,25 @@ describe("an interaction sends what the reader is watching ahead of the rest @gr
                 expect(batches).toHaveLength(1);
                 expect(batches[0].componentIndices).toContain(aIdx);
                 expect(batches[0].componentIndices.includes(bIdx)).toBe(
-                    followsAtOnce,
+                    bLane === "step",
                 );
                 expect(batches[0].componentIndices).not.toContain(echoIdx);
 
                 await vi.advanceTimersByTimeAsync(500);
 
-                expect(batches).toHaveLength(2);
+                // A graph that has never reported takes the state of the
+                // document around it, which is on screen, so it follows once
+                // the drag settles. One reported out of view waits for the
+                // idle lane.
+                expect(batches).toHaveLength(bLane === "idle" ? 3 : 2);
                 expect(batches[1].componentIndices).toContain(echoIdx);
                 expect(batches[1].componentIndices.includes(bIdx)).toBe(
-                    !followsAtOnce,
+                    bLane === "settle",
                 );
+                if (bLane === "idle") {
+                    expect(batches[2].deferred).toBe(true);
+                    expect(batches[2].componentIndices).toContain(bIdx);
+                }
             } finally {
                 vi.useRealTimers();
             }
@@ -484,10 +539,9 @@ describe("an interaction sends what the reader is watching ahead of the rest @gr
         "a drag that %s rendered components leaves the same tree as an undeferred move",
         async (_label, x) => {
             // The deferred batch, unlike the priority one, is the batch that
-            // reconciles changed rendered children — and it goes out without
-            // the second composite-replacement drain that
-            // `updateAllChangedRenderers` runs. Pin that the tree it leaves
-            // behind is the same one the undeferred path produces.
+            // reconciles changed rendered children off the graph. Pin that the
+            // tree it leaves behind is the same one the undeferred path
+            // produces.
             vi.useFakeTimers();
             let deferredTree: number[];
             try {
@@ -686,6 +740,283 @@ describe("an interaction sends what the reader is watching ahead of the rest @gr
             } finally {
                 vi.useRealTimers();
             }
+        },
+    );
+});
+
+describe("updates hold back what is offscreen until core is idle @group4", () => {
+    async function setupOffscreen() {
+        const result = await setup(offscreenDoenetML);
+        const idx = async (name: string) =>
+            await result.resolvePathToNodeIdx(name);
+        return {
+            ...result,
+            tiIdx: await idx("ti"),
+            topIdx: await idx("top"),
+            bottomIdx: await idx("bottom"),
+            pFar1Idx: await idx("pFar1"),
+            pFar2Idx: await idx("pFar2"),
+            nearEchoIdx: await idx("nearEcho"),
+            farEcho1Idx: await idx("farEcho1"),
+            farEcho2Idx: await idx("farEcho2"),
+        };
+    }
+
+    it("a keystroke sends what is on screen at once and the rest when idle", async () => {
+        vi.useFakeTimers();
+        try {
+            const c = await setupOffscreen();
+            await setVisible(c.core, c.topIdx, true);
+            await setVisible(c.core, c.bottomIdx, false);
+            c.batches.length = 0;
+
+            await typeText(c.core, c.tiIdx, "hello");
+
+            expect(c.batches).toHaveLength(1);
+            expect(c.batches[0].deferred).toBe(false);
+            expect(c.batches[0].componentIndices).toContain(c.tiIdx);
+            expect(c.batches[0].componentIndices).toContain(c.nearEchoIdx);
+            expect(c.batches[0].componentIndices).not.toContain(c.farEcho1Idx);
+            expect(c.batches[0].componentIndices).not.toContain(c.farEcho2Idx);
+
+            await vi.advanceTimersByTimeAsync(100);
+
+            const later = c.batches.slice(1);
+            expect(later.length).toBeGreaterThan(0);
+            expect(later.every((batch) => batch.deferred)).toBe(true);
+            const sentLater = later.flatMap((batch) => batch.componentIndices);
+            expect(sentLater).toContain(c.farEcho1Idx);
+            expect(sentLater).toContain(c.farEcho2Idx);
+            expect(
+                c.innerCore.updateInfo.componentsToUpdateRenderers.size,
+            ).toBe(0);
+
+            const rendererState = c.innerCore.rendererInstructionBuilder
+                .rendererState as Record<number, any>;
+            expect(rendererState[c.farEcho1Idx].stateValues.text).toBe("hello");
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("an offscreen paragraph inside a visible section waits too", async () => {
+        vi.useFakeTimers();
+        try {
+            const c = await setupOffscreen();
+            await setVisible(c.core, c.bottomIdx, true);
+            await setVisible(c.core, c.pFar2Idx, false);
+            c.batches.length = 0;
+
+            await typeText(c.core, c.tiIdx, "hello");
+
+            expect(c.batches[0].componentIndices).toContain(c.farEcho1Idx);
+            expect(c.batches[0].componentIndices).not.toContain(c.farEcho2Idx);
+
+            await vi.advanceTimersByTimeAsync(100);
+            expect(
+                c.batches.slice(1).flatMap((batch) => batch.componentIndices),
+            ).toContain(c.farEcho2Idx);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("a block near the viewport counts as on screen", async () => {
+        vi.useFakeTimers();
+        try {
+            const c = await setupOffscreen();
+            await setVisible(c.core, c.bottomIdx, false);
+            await setVisible(c.core, c.pFar1Idx, false, true);
+            c.batches.length = 0;
+
+            await typeText(c.core, c.tiIdx, "hello");
+
+            expect(c.batches[0].componentIndices).toContain(c.farEcho1Idx);
+            expect(c.batches[0].componentIndices).not.toContain(c.farEcho2Idx);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("what scrolls into view goes out before the rest of the idle lane", async () => {
+        vi.useFakeTimers();
+        try {
+            const c = await setupOffscreen();
+            await setVisible(c.core, c.bottomIdx, false);
+            c.batches.length = 0;
+
+            await typeText(c.core, c.tiIdx, "hello");
+            expect(c.batches).toHaveLength(1);
+
+            // One component per chunk, so the order they go out in shows.
+            c.innerCore.rendererInstructionBuilder._idleRendererChunkSize = 1;
+            await setVisible(c.core, c.pFar2Idx, true);
+            await vi.advanceTimersByTimeAsync(200);
+
+            const order = c.batches
+                .slice(1)
+                .flatMap((batch) => batch.componentIndices);
+            expect(order).toContain(c.farEcho1Idx);
+            expect(order.indexOf(c.farEcho2Idx)).toBeLessThan(
+                order.indexOf(c.farEcho1Idx),
+            );
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("the idle lane waits while core is busy", async () => {
+        vi.useFakeTimers();
+        try {
+            const c = await setupOffscreen();
+            await setVisible(c.core, c.bottomIdx, false);
+            c.batches.length = 0;
+
+            await typeText(c.core, c.tiIdx, "hello");
+            expect(c.batches).toHaveLength(1);
+
+            c.innerCore.processQueue.processing = true;
+            await vi.advanceTimersByTimeAsync(100);
+            expect(c.batches).toHaveLength(1);
+
+            c.innerCore.processQueue.processing = false;
+            await vi.advanceTimersByTimeAsync(100);
+            expect(c.batches.length).toBeGreaterThan(1);
+            expect(
+                c.innerCore.updateInfo.componentsToUpdateRenderers.size,
+            ).toBe(0);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("a drag holds the idle lane until it settles", async () => {
+        vi.useFakeTimers();
+        try {
+            const c = await setupOffscreen();
+            await setVisible(c.core, c.bottomIdx, false);
+            c.batches.length = 0;
+
+            await typeText(c.core, c.tiIdx, "hello");
+            c.innerCore.rendererInstructionBuilder.scheduleDeferredRendererUpdate();
+
+            await vi.advanceTimersByTimeAsync(100);
+            expect(c.batches).toHaveLength(1);
+
+            await vi.advanceTimersByTimeAsync(500);
+            expect(
+                c.batches.slice(1).flatMap((batch) => batch.componentIndices),
+            ).toContain(c.farEcho1Idx);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("flushing pending renderers sends everything held back", async () => {
+        // What a save that includes renderer state does first.
+        vi.useFakeTimers();
+        try {
+            const c = await setupOffscreen();
+            await setVisible(c.core, c.bottomIdx, false);
+            c.batches.length = 0;
+
+            await typeText(c.core, c.tiIdx, "hello");
+            await c.innerCore.flushPendingRenderers();
+
+            expect(c.batches).toHaveLength(2);
+            expect(c.batches[1].componentIndices).toContain(c.farEcho1Idx);
+            expect(c.batches[1].componentIndices).toContain(c.farEcho2Idx);
+            expect(
+                c.innerCore.updateInfo.componentsToUpdateRenderers.size,
+            ).toBe(0);
+            expect(
+                c.innerCore.rendererInstructionBuilder._idleRendererTimeout,
+            ).toBe(null);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("a core terminated with the idle lane pending sends nothing more", async () => {
+        vi.useFakeTimers();
+        try {
+            const c = await setupOffscreen();
+            await setVisible(c.core, c.bottomIdx, false);
+            c.batches.length = 0;
+
+            await typeText(c.core, c.tiIdx, "hello");
+            expect(
+                c.innerCore.rendererInstructionBuilder._idleRendererTimeout,
+            ).not.toBe(null);
+            const sentBeforeTerminate = c.batches.length;
+
+            await (c.core as any).terminate();
+            await vi.advanceTimersByTimeAsync(2000);
+            expect(c.batches).toHaveLength(sentBeforeTerminate);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it.each([
+        ["removes", 2],
+        ["adds", 8],
+    ])(
+        "a move that %s offscreen rendered components leaves the same tree as an undeferred move",
+        async (_label, x) => {
+            vi.useFakeTimers();
+            let idleTree: number[];
+            try {
+                const { core, innerCore, resolvePathToNodeIdx, batches } =
+                    await setup(structuralOffscreenDoenetML);
+                const pointIdx = await resolvePathToNodeIdx("P");
+                const graphIdx = await resolvePathToNodeIdx("g");
+                const listIdx = await resolvePathToNodeIdx("list");
+                await setVisible(core, graphIdx, true);
+                await setVisible(core, listIdx, false);
+                batches.length = 0;
+
+                await movePointTo({
+                    core,
+                    componentIdx: pointIdx,
+                    x,
+                    transient: false,
+                });
+
+                expect(batches[0].componentIndices).toContain(pointIdx);
+                expect(batches[0].componentIndices).not.toContain(listIdx);
+
+                await vi.advanceTimersByTimeAsync(500);
+
+                idleTree = renderedDescendants(
+                    innerCore,
+                    innerCore.documentIdx,
+                );
+                expect(
+                    innerCore.updateInfo.componentsToUpdateRenderers.size,
+                ).toBe(0);
+                expect(
+                    innerCore.rendererInstructionBuilder
+                        .componentsWithChangedChildrenToRender.size,
+                ).toBe(0);
+            } finally {
+                vi.useRealTimers();
+            }
+
+            const { core, innerCore, resolvePathToNodeIdx } = await setup(
+                structuralOffscreenDoenetML,
+            );
+            const pointIdx = await resolvePathToNodeIdx("P");
+            await movePointTo({
+                core,
+                componentIdx: pointIdx,
+                x,
+                transient: false,
+            });
+
+            expect(idleTree).toEqual(
+                renderedDescendants(innerCore, innerCore.documentIdx),
+            );
         },
     );
 });

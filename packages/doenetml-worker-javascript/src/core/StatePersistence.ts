@@ -365,6 +365,12 @@ export class StatePersistence {
             return;
         }
 
+        // Renderer updates held back for offscreen components haven't reached
+        // `rendererState` yet; send them so the saved copy is complete.
+        if (core.flags.saveRendererState) {
+            await core.flushPendingRenderers();
+        }
+
         const sequence = ++this._saveSequence;
 
         const { payload, coreStateString, rendererStateString } =

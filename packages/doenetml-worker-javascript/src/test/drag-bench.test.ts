@@ -112,7 +112,126 @@ describe.runIf(DRAGBENCH_ENABLED)("drag benchmark", () => {
         },
         BENCH_TIMEOUT_MS,
     );
+
+    it(
+        "reports keystroke cost with the dependents on and off screen",
+        async () => {
+            const onScreen = await measureTyping({ offscreen: false });
+            const offScreen = await measureTyping({ offscreen: true });
+
+            const result = { onScreen, offScreen };
+            console.log(JSON.stringify(result, null, 2));
+
+            const resultPath = process.env.DRAGBENCH_RESULT;
+            if (resultPath) {
+                fs.writeFileSync(
+                    resultPath.replace(/(\.json)?$/, "-typing.json"),
+                    JSON.stringify(result, null, 2),
+                );
+            }
+
+            expect(onScreen.numKeystrokes).toBeGreaterThan(0);
+            expect(offScreen.numKeystrokes).toBeGreaterThan(0);
+        },
+        BENCH_TIMEOUT_MS,
+    );
 });
+
+const NUM_TYPING_DEPENDENTS = 100;
+
+/**
+ * A `<mathInput>` near the top and, in a section further down, many maths
+ * computed from what is typed. Typing does not defer anything by itself, so
+ * what a keystroke costs depends on whether that section is on screen.
+ */
+function buildTypingDoc() {
+    return `
+<section name="top">
+  <mathInput name="mi" />
+  <p>Echo: <math name="echo">$mi.immediateValue</math></p>
+</section>
+<section name="far">
+  <repeatForSequence from="1" to="${NUM_TYPING_DEPENDENTS}" indexName="i">
+    <p><math simplify>$i ($mi.immediateValue)^2 + $i ($mi.immediateValue)</math></p>
+  </repeatForSequence>
+</section>
+`;
+}
+
+/**
+ * Type into the math input one keystroke at a time and report the median
+ * `performUpdate`, with the `far` section reported on or off screen. The idle
+ * lane's work between keystrokes is timed separately: it runs while the
+ * reader isn't waiting.
+ */
+async function measureTyping({ offscreen }: { offscreen: boolean }) {
+    const { core, resolvePathToNodeIdx } = await createTestCore({
+        doenetML: buildTypingDoc(),
+    });
+    const innerCore = (core as any).core;
+    const miIdx = await resolvePathToNodeIdx("mi");
+
+    for (const [name, isVisible] of [
+        ["top", true],
+        ["far", !offscreen],
+    ] as const) {
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx(name),
+            actionName: "recordVisibilityChange",
+            args: { isVisible },
+        });
+    }
+
+    const keystrokeMs: number[] = [];
+    const origPerformUpdate = innerCore.updateExecutor.performUpdate.bind(
+        innerCore.updateExecutor,
+    );
+    let depth = 0;
+    innerCore.updateExecutor.performUpdate = async (...args: any[]) => {
+        depth++;
+        const t0 = performance.now();
+        try {
+            return await origPerformUpdate(...args);
+        } finally {
+            if (depth === 1) {
+                keystrokeMs.push(performance.now() - t0);
+            }
+            depth--;
+        }
+    };
+
+    const idleMs: number[] = [];
+    const builder = innerCore.rendererInstructionBuilder;
+    const origRunIdle = builder.runIdleRendererChunk.bind(builder);
+    builder.runIdleRendererChunk = async () => {
+        const t0 = performance.now();
+        try {
+            return await origRunIdle();
+        } finally {
+            idleMs.push(performance.now() - t0);
+        }
+    };
+
+    const typed = "x+2y-3";
+    for (let n = 1; n <= typed.length; n++) {
+        await core.requestAction({
+            componentIdx: miIdx,
+            actionName: "updateRawValue",
+            args: { rawRendererValue: typed.slice(0, n) },
+        });
+        // A reader's gap between keystrokes, long enough for the idle lane
+        // to catch up.
+        await new Promise((resolve) => setTimeout(resolve, 150));
+    }
+
+    return {
+        offscreen,
+        numKeystrokes: keystrokeMs.length,
+        medianKeystrokeMs: Number(median(keystrokeMs).toFixed(1)),
+        idleChunks: idleMs.length,
+        totalIdleMs: Number(idleMs.reduce((a, b) => a + b, 0).toFixed(1)),
+    };
+}
 
 /**
  * Build the document, drag one point across the plot, and report the median

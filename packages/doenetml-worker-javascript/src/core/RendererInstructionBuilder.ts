@@ -14,6 +14,19 @@ import { removeFunctionsMathExpressionClass } from "../utils/math";
 const DEFERRED_RENDERER_UPDATE_MS = 150;
 
 /**
+ * How long after an update the idle lane starts sending offscreen renderer
+ * state. Long enough for an action the viewer has already posted to reach
+ * the queue first.
+ */
+const IDLE_RENDERER_FLUSH_MS = 10;
+
+/**
+ * Wall time one idle-lane chunk aims for, so an action that arrives while a
+ * chunk runs waits no longer than about this.
+ */
+const IDLE_RENDERER_CHUNK_TARGET_MS = 8;
+
+/**
  * Builds the dast/instruction stream sent to the renderer. Owns the
  * per-component "what's currently rendered" registry, the cached
  * renderer state used for save/restore, and the queue of components
@@ -36,6 +49,13 @@ export class RendererInstructionBuilder {
     _deferredRendererTimeout: ReturnType<typeof setTimeout> | null;
     /** `sourceInformation`/`actionId` the deferred flush will send with. */
     _deferredRendererArgs: { sourceInformation: any; actionId?: string };
+    /** Pending timer for the next idle-lane chunk, if any. */
+    _idleRendererTimeout: ReturnType<typeof setTimeout> | null;
+    /**
+     * How many components the next idle-lane chunk takes, adapted after each
+     * chunk toward `IDLE_RENDERER_CHUNK_TARGET_MS`.
+     */
+    _idleRendererChunkSize: number;
 
     constructor({ core }: { core: Core }) {
         this.core = core;
@@ -44,6 +64,8 @@ export class RendererInstructionBuilder {
         this.rendererState = {};
         this._deferredRendererTimeout = null;
         this._deferredRendererArgs = { sourceInformation: {} };
+        this._idleRendererTimeout = null;
+        this._idleRendererChunkSize = 16;
     }
 
     /**
@@ -52,6 +74,7 @@ export class RendererInstructionBuilder {
      */
     reset(): void {
         this.cancelDeferredRendererUpdate();
+        this.cancelIdleRendererFlush();
         this.componentsToRender = {};
         this.componentsWithChangedChildrenToRender = new Set();
         this.rendererState = {};
@@ -601,6 +624,7 @@ export class RendererInstructionBuilder {
         // This drains everything, so any deferred remainder is covered here
         // and must not also arrive later on its own.
         this.cancelDeferredRendererUpdate();
+        this.cancelIdleRendererFlush();
 
         let componentNamesToUpdate = [
             ...this.core.updateInfo.componentsToUpdateRenderers,
@@ -724,37 +748,171 @@ export class RendererInstructionBuilder {
         componentIndices: Iterable<number>,
         sourceInformation: any = {},
         actionId?: string,
+        { deferred = false }: { deferred?: boolean } = {},
     ): Promise<void> {
         const candidates = new Set(componentIndices);
-        const componentNamesToUpdate = [...candidates].filter((idx) =>
-            this.core.updateInfo.componentsToUpdateRenderers.delete(idx),
-        );
-        const hasStructuralChange = [
-            ...this.componentsWithChangedChildrenToRender,
-        ].some((idx) => candidates.has(idx));
 
-        if (componentNamesToUpdate.length === 0 && !hasStructuralChange) {
+        const sendCandidates = async () => {
+            const componentNamesToUpdate = [...candidates].filter((idx) =>
+                this.core.updateInfo.componentsToUpdateRenderers.delete(idx),
+            );
+            const hasStructuralChange = [
+                ...this.componentsWithChangedChildrenToRender,
+            ].some((idx) => candidates.has(idx));
+
+            if (componentNamesToUpdate.length === 0 && !hasStructuralChange) {
+                return;
+            }
+
+            await this.updateRendererInstructions({
+                componentNamesToUpdate,
+                sourceOfUpdate: { sourceInformation, local: true },
+                actionId,
+                deferred,
+                reconcileChangedChildren: candidates,
+            });
+        };
+
+        await sendCandidates();
+
+        // Reconciling children can derive child results and queue composite
+        // replacement work, as in `updateAllChangedRenderers`. Apply it and
+        // send whatever it changed among the candidates.
+        if (this.core.updateInfo.compositesToUpdateReplacements.size > 0) {
+            await this.core.replacementChangesFromCompositesToUpdate();
+            await sendCandidates();
+        }
+    }
+
+    /**
+     * Whether `componentIdx` is on or near the reader's screen.
+     *
+     * Decided by the nearest component, itself or an ancestor, whose renderer
+     * has reported whether it is near the viewport
+     * (`VisibilityTracker.renderVisibility`). Only block-level renderers
+     * report, so inline content takes the state of the block around it. A
+     * component with no reporting ancestor counts as on screen, which covers
+     * a document with no viewer attached and a block too new to have
+     * reported.
+     *
+     * `memo` carries answers across calls for one classification pass.
+     */
+    isOnScreen(componentIdx: number, memo: Map<number, boolean>): boolean {
+        const known = this.core.visibilityTracker.renderVisibility;
+        if (known.size === 0) {
+            return true;
+        }
+
+        const component = this.core._components[componentIdx];
+        const chain = [
+            componentIdx,
+            ...(component?.ancestors ?? []).map(
+                (ancestor: any) => ancestor.componentIdx as number,
+            ),
+        ];
+
+        let result = true;
+        const visited: number[] = [];
+        for (const idx of chain) {
+            const memoized = memo.get(idx);
+            if (memoized !== undefined) {
+                result = memoized;
+                break;
+            }
+            visited.push(idx);
+            const reported = known.get(idx);
+            if (reported !== undefined) {
+                result = reported;
+                break;
+            }
+        }
+
+        for (const idx of visited) {
+            memo.set(idx, result);
+        }
+        return result;
+    }
+
+    /**
+     * Split everything waiting to be sent to the renderer, both components
+     * with pending state and components whose rendered children changed,
+     * by `isOnScreen`.
+     */
+    classifyPendingRenderers(): {
+        onScreen: Set<number>;
+        offScreen: Set<number>;
+    } {
+        const memo = new Map<number, boolean>();
+        const onScreen = new Set<number>();
+        const offScreen = new Set<number>();
+
+        for (const pending of [
+            this.componentsWithChangedChildrenToRender,
+            this.core.updateInfo.componentsToUpdateRenderers,
+        ]) {
+            for (const idx of pending) {
+                if (this.isOnScreen(idx, memo)) {
+                    onScreen.add(idx);
+                } else {
+                    offScreen.add(idx);
+                }
+            }
+        }
+
+        return { onScreen, offScreen };
+    }
+
+    /**
+     * Send the part of an update's renderer fan-out the reader can see, and
+     * leave the rest for the idle lane (`scheduleIdleRendererFlush`).
+     *
+     * `targets`, the components the update was addressed to, always go out
+     * now, so a renderer that showed the change ahead of core hears back
+     * straight away. When nothing pending is offscreen, which includes every
+     * document with no viewer reporting visibility, this is
+     * `updateAllChangedRenderers`.
+     */
+    async updateOnScreenRenderers(
+        targets: number[],
+        sourceInformation: any = {},
+        actionId?: string,
+    ): Promise<void> {
+        const { onScreen, offScreen } = this.classifyPendingRenderers();
+
+        if (offScreen.size === 0) {
+            await this.updateAllChangedRenderers(sourceInformation, actionId);
             return;
         }
 
-        await this.updateRendererInstructions({
-            componentNamesToUpdate,
-            sourceOfUpdate: { sourceInformation, local: true },
+        // A drag that was waiting to settle has been superseded by this
+        // update, which sends what is on screen now.
+        this.cancelDeferredRendererUpdate();
+
+        for (const idx of targets) {
+            onScreen.add(idx);
+        }
+
+        await this.updateRenderersForComponents(
+            onScreen,
+            sourceInformation,
             actionId,
-            reconcileChangedChildren: candidates,
-        });
+        );
+
+        this.scheduleIdleRendererFlush(sourceInformation, actionId);
     }
 
     /**
      * Hold the rest of an update's renderer fan-out until the interaction goes
      * quiet, coalescing the intermediate states of a drag into one batch.
+     * When it fires, it sends what is on screen and hands the rest to the
+     * idle lane.
      *
      * The pending components stay in `updateInfo.componentsToUpdateRenderers`,
      * which is already a carry-forward set: each further step adds to it
      * rather than replacing it, so nothing is lost by waiting. Every
      * non-transient update — the drag's commit on pointer-up — cancels the
-     * timer and flushes synchronously, so a drag always ends with the screen
-     * correct.
+     * timer and sends what is on screen synchronously, so a drag always ends
+     * with the visible part of the screen correct.
      *
      * The delay is a debounce rather than a queue-length test because core
      * never yields to the event loop during an update, so it cannot observe
@@ -766,6 +924,10 @@ export class RendererInstructionBuilder {
         actionId?: string,
     ): void {
         this._deferredRendererArgs = { sourceInformation, actionId };
+
+        // The idle lane waits for the drag to settle, so it does not compete
+        // with the next drag step; the flush hands off to it.
+        this.cancelIdleRendererFlush();
 
         if (this._deferredRendererTimeout !== null) {
             clearTimeout(this._deferredRendererTimeout);
@@ -804,22 +966,141 @@ export class RendererInstructionBuilder {
             return;
         }
 
-        if (this.core.updateInfo.componentsToUpdateRenderers.size === 0) {
+        const { sourceInformation, actionId } = this._deferredRendererArgs;
+
+        await this.updateRenderersForComponents(
+            this.classifyPendingRenderers().onScreen,
+            sourceInformation,
+            actionId,
+            { deferred: true },
+        );
+
+        this.scheduleIdleRendererFlush(sourceInformation, actionId);
+    }
+
+    /**
+     * Start the idle lane: send renderer state the reader can't see, a chunk
+     * at a time, whenever core has nothing else to do.
+     *
+     * The pending components stay in the same carry-forward sets the other
+     * batches draw from, so an update that lands in between simply adds to
+     * them, and anything it scrolls into view goes out with it. Each chunk
+     * re-sorts what is left so components that came into view since the last
+     * chunk go first.
+     *
+     * Workers have no `requestIdleCallback`, so "idle" means the queue is
+     * empty when a chunk's timer fires and no drag is waiting to settle.
+     * Chunks are sized toward `IDLE_RENDERER_CHUNK_TARGET_MS`, which bounds
+     * how long an arriving action waits behind one.
+     */
+    scheduleIdleRendererFlush(
+        sourceInformation?: any,
+        actionId?: string,
+    ): void {
+        if (sourceInformation !== undefined) {
+            this._deferredRendererArgs = { sourceInformation, actionId };
+        }
+
+        if (
+            this._idleRendererTimeout !== null ||
+            this._deferredRendererTimeout !== null
+        ) {
             return;
         }
 
+        this._idleRendererTimeout = setTimeout(() => {
+            this._idleRendererTimeout = null;
+            this.runIdleRendererChunk().catch((e) => console.error(e));
+        }, IDLE_RENDERER_FLUSH_MS);
+    }
+
+    /** Drop the next idle-lane chunk without sending it. */
+    cancelIdleRendererFlush(): void {
+        if (this._idleRendererTimeout !== null) {
+            clearTimeout(this._idleRendererTimeout);
+            this._idleRendererTimeout = null;
+        }
+    }
+
+    /** Send one idle-lane chunk and schedule the next if anything is left. */
+    async runIdleRendererChunk(): Promise<void> {
+        const processQueue = this.core.processQueue;
+        if (processQueue.stopProcessingRequests) {
+            return;
+        }
+        if (this._deferredRendererTimeout !== null) {
+            return;
+        }
+        if (processQueue.processing || processQueue.queue.length > 0) {
+            this.scheduleIdleRendererFlush();
+            return;
+        }
+
+        const { onScreen, offScreen } = this.classifyPendingRenderers();
+        const ordered = [...onScreen, ...offScreen];
+        if (ordered.length === 0) {
+            return;
+        }
+
+        const chunk = ordered.slice(0, this._idleRendererChunkSize);
         const { sourceInformation, actionId } = this._deferredRendererArgs;
 
-        let componentNamesToUpdate = [
-            ...this.core.updateInfo.componentsToUpdateRenderers,
-        ];
-        this.core.updateInfo.componentsToUpdateRenderers.clear();
-
-        await this.updateRendererInstructions({
-            componentNamesToUpdate,
-            sourceOfUpdate: { sourceInformation, local: true },
+        const start = performance.now();
+        await this.updateRenderersForComponents(
+            chunk,
+            sourceInformation,
             actionId,
-            deferred: true,
-        });
+            { deferred: true },
+        );
+        const elapsed = performance.now() - start;
+
+        const scale = Math.min(
+            2,
+            IDLE_RENDERER_CHUNK_TARGET_MS / Math.max(elapsed, 0.1),
+        );
+        this._idleRendererChunkSize = Math.max(
+            1,
+            Math.min(1000, Math.round(this._idleRendererChunkSize * scale)),
+        );
+
+        if (
+            this.core.updateInfo.componentsToUpdateRenderers.size > 0 ||
+            this.componentsWithChangedChildrenToRender.size > 0
+        ) {
+            this.scheduleIdleRendererFlush();
+        }
+    }
+
+    /**
+     * Send everything still waiting in the drag's deferred batch or the idle
+     * lane, now. For callers that need `rendererState` complete, such as a
+     * save that includes it. Does nothing mid-update.
+     */
+    async flushPendingRenderers(): Promise<void> {
+        if (
+            this.core.processQueue.processing ||
+            this.core.processQueue.stopProcessingRequests
+        ) {
+            return;
+        }
+        if (
+            this.core.updateInfo.componentsToUpdateRenderers.size === 0 &&
+            this.componentsWithChangedChildrenToRender.size === 0
+        ) {
+            return;
+        }
+
+        this.cancelDeferredRendererUpdate();
+        this.cancelIdleRendererFlush();
+
+        const { sourceInformation, actionId } = this._deferredRendererArgs;
+        const pending = this.classifyPendingRenderers();
+
+        await this.updateRenderersForComponents(
+            [...pending.onScreen, ...pending.offScreen],
+            sourceInformation,
+            actionId,
+            { deferred: true },
+        );
     }
 }

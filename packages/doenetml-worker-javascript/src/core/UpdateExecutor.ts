@@ -218,6 +218,10 @@ export class UpdateExecutor {
             return { actionId: args!.actionId };
         }
 
+        if (actionName === "recordVisibilityChange" && args) {
+            this.core.recordRenderVisibility(componentIdx!, args);
+        }
+
         let component = this.core._components[componentIdx!];
         if (component && component.actions) {
             let action = component.actions[actionName];
@@ -452,19 +456,19 @@ export class UpdateExecutor {
             });
         }
 
+        const targets = updateInstructions
+            .map((instruction) => instruction.componentIdx)
+            .filter(
+                (componentIdx): componentIdx is ComponentIdx =>
+                    componentIdx != undefined,
+            );
+
         if (transient && !skipRendererUpdate) {
             // Put the dragged component, and every visible graph it moves, on
             // screen before doing anything with the rest of what its move
             // invalidated.
             await this.core.updateRenderersForComponents(
-                this.core.componentsOnVisibleGraphs(
-                    updateInstructions
-                        .map((instruction) => instruction.componentIdx)
-                        .filter(
-                            (componentIdx): componentIdx is ComponentIdx =>
-                                componentIdx != undefined,
-                        ),
-                ),
+                this.core.componentsOnVisibleGraphs(targets),
                 sourceInformation,
                 actionId,
             );
@@ -479,7 +483,10 @@ export class UpdateExecutor {
                     actionId,
                 );
             } else {
-                await this.core.updateAllChangedRenderers(
+                // What the reader can see goes out now; the rest waits for
+                // the idle lane.
+                await this.core.updateOnScreenRenderers(
+                    targets,
                     sourceInformation,
                     actionId,
                 );
