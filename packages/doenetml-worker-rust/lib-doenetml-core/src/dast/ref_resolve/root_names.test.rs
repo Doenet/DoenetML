@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     dast::{
-        flat_dast::{FlatRoot, Index},
+        flat_dast::{FlatRoot, Index, UntaggedContent},
         ref_resolve::{IndexResolution, test_helpers::*},
     },
     test_utils::*,
@@ -434,4 +434,193 @@ fn root_name_updates_track_changes_to_resolver() {
     assert_eq!(changes, vec![(e_idx, Some("v".to_string()))]);
     apply_root_name_changes(&mut table, changes);
     assert_matches_calculated_root_names(&table, &resolver);
+}
+
+/// Update `table` from `resolver`, checking that it then matches the root names calculated from scratch.
+/// Returns whether the update extended the previous root names rather than recalculating them.
+fn update_and_check(table: &mut FxHashMap<Index, String>, resolver: &mut Resolver) -> bool {
+    apply_root_name_changes(table, resolver.update_root_names(false));
+    assert_matches_calculated_root_names(table, resolver);
+    resolver.root_name_cache.last_update_extended
+}
+
+#[test]
+fn added_fragments_extend_root_names_without_recalculating() {
+    let dast_root = dast_root_no_position(
+        r#"
+    <document>
+        <a name="x"/>
+        <b />
+        <e name="z" />
+    </document>"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let b_idx = find(&flat_root, "b").unwrap();
+
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+    let mut table = FxHashMap::default();
+    assert!(!update_and_check(&mut table, &mut resolver));
+
+    // A fragment under `<a>` becomes its index resolutions, including a group with its own index resolutions
+    let mut next_idx = flat_root.nodes.len();
+    let flat_fragment = flat_fragment_from_str(
+        r#"<c name="w"><d name="v" /></c><group name="g"><f /><h name="u" /></group>"#,
+        next_idx,
+        Some(a_idx),
+    );
+    let c_idx = next_idx;
+    let f_idx = next_idx + 3;
+    next_idx += flat_fragment.nodes.len();
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceAll { parent: a_idx },
+    );
+
+    // Before updating, add a fragment under a node of the first fragment
+    let flat_fragment = flat_fragment_from_str(r#"<i name="t" />"#, next_idx, Some(c_idx));
+    let i_idx = next_idx;
+    next_idx += flat_fragment.nodes.len();
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+
+    // and one under `<b>`, which has no root name
+    let flat_fragment = flat_fragment_from_str(r#"<j name="s" />"#, next_idx, Some(b_idx));
+    next_idx += flat_fragment.nodes.len();
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+
+    assert!(update_and_check(&mut table, &mut resolver));
+    assert_eq!(table.get(&f_idx), Some(&"x.g:1".to_string()));
+    assert_eq!(table.get(&i_idx), Some(&"x.w.t".to_string()));
+
+    // Appending to the index resolutions of `<a>` shifts nothing
+    let flat_fragment = flat_fragment_from_str(r#"<k />"#, next_idx, Some(a_idx));
+    let k_idx = next_idx;
+    next_idx += flat_fragment.nodes.len();
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceRange {
+            parent: a_idx,
+            range: 2..2,
+        },
+    );
+    assert!(update_and_check(&mut table, &mut resolver));
+    assert_eq!(table.get(&k_idx), Some(&"x:3".to_string()));
+
+    // Inserting before them shifts `<c>`, `<group>` and `<k>`, so the root names are recalculated
+    let flat_fragment = flat_fragment_from_str(r#"<l />"#, next_idx, Some(a_idx));
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceRange {
+            parent: a_idx,
+            range: 0..0,
+        },
+    );
+    assert!(!update_and_check(&mut table, &mut resolver));
+    assert_eq!(table.get(&k_idx), Some(&"x:4".to_string()));
+}
+
+#[test]
+fn changes_that_can_alter_existing_root_names_recalculate_them() {
+    let dast_root = dast_root_no_position(
+        r#"
+    <document>
+        <a name="x"><b name="y" /></a>
+        <c name="y" />
+    </document>"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let b_idx = find(&flat_root, "b").unwrap();
+    let c_idx = find(&flat_root, "c").unwrap();
+
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+    let mut table = FxHashMap::default();
+    update_and_check(&mut table, &mut resolver);
+
+    // Re-adding a node that already has a root name
+    let flat_fragment = flat_fragment_from_str(r#"<b name="y" />"#, b_idx, Some(a_idx));
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+    assert!(!update_and_check(&mut table, &mut resolver));
+
+    // Pointing an index resolution at an existing node
+    resolver.replace_index_resolutions(
+        &[UntaggedContent::Ref(c_idx)],
+        IndexResolution::ReplaceAll { parent: a_idx },
+    );
+    assert!(!update_and_check(&mut table, &mut resolver));
+    assert_eq!(table.get(&c_idx), Some(&"x:1".to_string()));
+
+    // Deleting a node
+    resolver.delete_nodes(&[flat_root.nodes[b_idx].clone()]);
+    assert!(!update_and_check(&mut table, &mut resolver));
+    assert_eq!(table.get(&c_idx), Some(&"y".to_string()));
+}
+
+#[test]
+fn extending_root_names_through_a_cycle() {
+    let dast_root = dast_root_no_position(r#"<group name="a"><group name="b" /></group>"#);
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let b_idx = find(&flat_root, "group").unwrap() + 1;
+
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+    let mut table = FxHashMap::default();
+    update_and_check(&mut table, &mut resolver);
+
+    // `<group name="b">` gains a child referring back to `a`
+    let flat_fragment = flat_fragment_from_str(
+        r#"<group name="c"><group name="a" /></group>"#,
+        flat_root.nodes.len(),
+        Some(b_idx),
+    );
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceAll { parent: b_idx },
+    );
+    assert!(update_and_check(&mut table, &mut resolver));
+}
+
+#[test]
+fn fragments_reachable_through_two_parents() {
+    let dast_root = dast_root_no_position(
+        r#"
+    <document>
+        <a name="x" />
+        <b name="y" />
+        <c />
+    </document>"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let b_idx = find(&flat_root, "b").unwrap();
+    let c_idx = find(&flat_root, "c").unwrap();
+
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+    let mut table = FxHashMap::default();
+    update_and_check(&mut table, &mut resolver);
+
+    // The fragment is under `<a>`, with its children the index resolutions of `<b>`,
+    // so it can be reached from either one: the root names are recalculated.
+    let mut next_idx = flat_root.nodes.len();
+    let flat_fragment = flat_fragment_from_str(r#"<d name="w" />"#, next_idx, Some(a_idx));
+    let d_idx = next_idx;
+    next_idx += flat_fragment.nodes.len();
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceAll { parent: b_idx },
+    );
+    assert!(!update_and_check(&mut table, &mut resolver));
+    assert_eq!(table.get(&d_idx), Some(&"x.w".to_string()));
+
+    // Under `<c>`, which has no root name, the fragment can be reached only through `<b>`
+    let flat_fragment = flat_fragment_from_str(r#"<e name="v" />"#, next_idx, Some(c_idx));
+    let e_idx = next_idx;
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceRange {
+            parent: b_idx,
+            range: 1..1,
+        },
+    );
+    assert!(update_and_check(&mut table, &mut resolver));
+    assert_eq!(table.get(&e_idx), Some(&"y:2".to_string()));
 }

@@ -45,7 +45,7 @@ impl Resolver {
                 _ => None,
             })
         {
-            self.replace_index_resolutions(
+            self.splice_index_resolutions(
                 &element.children,
                 IndexResolution::ReplaceAll {
                     parent: element.idx,
@@ -57,6 +57,21 @@ impl Resolver {
     /// Replace the index resolutions of the parent of `index_resolution` with `components`,
     /// replacing the indices given by `index_resolution`.
     pub fn replace_index_resolutions(
+        &mut self,
+        components: &[UntaggedContent],
+        index_resolution: IndexResolution,
+    ) {
+        // The new index resolutions can point at existing nodes, giving them new root names
+        if !matches!(index_resolution, IndexResolution::None) {
+            self.root_name_cache.invalidate();
+        }
+        self.splice_index_resolutions(components, index_resolution);
+    }
+
+    /// Replace the index resolutions of the parent of `index_resolution` with `components`,
+    /// replacing the indices given by `index_resolution`,
+    /// where `components` are nodes that were just added to the resolver.
+    pub(super) fn splice_index_resolutions(
         &mut self,
         components: &[UntaggedContent],
         index_resolution: IndexResolution,
@@ -80,6 +95,17 @@ impl Resolver {
                 UntaggedContent::Ref(idx) => Some(Some(*idx)),
             })
             .collect();
+
+        let (parent, first_replaced) = match &index_resolution {
+            IndexResolution::ReplaceAll { parent } => (*parent, 0),
+            IndexResolution::ReplaceRange { parent, range } => (*parent, range.start),
+            IndexResolution::None => unreachable!(),
+        };
+        self.root_name_cache.note_replaced_index_resolutions(
+            parent,
+            first_replaced,
+            &self.node_resolver_data[parent + 1].index_resolutions,
+        );
 
         match index_resolution {
             IndexResolution::ReplaceAll { parent } => {
