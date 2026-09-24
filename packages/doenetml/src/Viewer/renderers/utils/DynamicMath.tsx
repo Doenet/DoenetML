@@ -42,16 +42,9 @@ const MAX_TYPESETS_IN_FLIGHT = 2;
 const IDLE_FALLBACK_MS = 50;
 
 /**
- * Where `requestIdleCallback` is missing, how long (ms) after the fallback
- * timer fires the page counts as idle, standing in for the deadline an idle
- * callback is given.
- */
-const IDLE_FALLBACK_BUDGET_MS = 16;
-
-/**
- * How much of the current idle period (ms) must be left for the next typeset
- * that is not urgent to start straight away, rather than waiting for the next
- * idle callback. A typeset holds the main thread for only a few milliseconds;
+ * The next typeset that is not urgent starts straight away, rather than
+ * waiting for the next idle callback, while more than this much (ms) of the
+ * current idle period is left. A typeset holds the main thread for only a few milliseconds;
  * most of its time is spent waiting for MathJax's speech and braille.
  */
 const MIN_IDLE_REMAINING_MS = 2;
@@ -156,7 +149,8 @@ function scheduleIdleTypeset() {
     if (typeof requestIdleCallback === "function") {
         requestIdleCallback((deadline) => run(deadline.timeRemaining()));
     } else {
-        setTimeout(() => run(IDLE_FALLBACK_BUDGET_MS), IDLE_FALLBACK_MS);
+        // With no deadline to go by, each such typeset waits for the timer.
+        setTimeout(() => run(0), IDLE_FALLBACK_MS);
     }
 }
 
