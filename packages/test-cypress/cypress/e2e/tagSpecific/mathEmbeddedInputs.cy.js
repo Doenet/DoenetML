@@ -52,9 +52,9 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
         // which is a beat after the control itself renders.
         cy.get(`${cesc("#m")} [id*='_mathSlot_']`).should("exist");
 
-        // Retried, not read once: the control is positioned only when the
-        // typeset output lands, which can be a frame or two after the reserved
-        // box first exists. What is pinned is where it settles.
+        // Retried until it holds: the control can be measured before it has
+        // its full height, and the expression is re-typeset around the
+        // corrected box a moment later.
         cy.get(cesc("#m")).should(($root) => {
             const root = $root[0];
             const slot = root.querySelector(".doenet-math-slot");
@@ -99,6 +99,9 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
             cy.get("button").should("not.exist");
         });
 
+        // Retried until it holds: the control can be measured before it has
+        // its full height, and the expression is re-typeset around the
+        // corrected box a moment later.
         cy.get(cesc("#m")).should(($root) => {
             const root = $root[0];
             const slotRect = root
@@ -187,6 +190,9 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
             cy.get("button").should("not.exist");
         });
 
+        // Retried until it holds: the control can be measured before it has
+        // its full height, and the expression is re-typeset around the
+        // corrected box a moment later.
         cy.get(cesc("#m")).should(($root) => {
             const root = $root[0];
             const slotRect = root
@@ -411,6 +417,9 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
 
         cy.get(`${cesc("#md")} [id*='_mathSlot_']`).should("exist");
 
+        // Retried until it holds: the control can be measured before it has
+        // its full height, and the expression is re-typeset around the
+        // corrected box a moment later.
         cy.get(cesc("#md")).should(($root) => {
             const root = $root[0];
             const slotRect = root
@@ -697,6 +706,9 @@ describe("Math embedded input tests", { tags: ["@group2"] }, function () {
 
         cy.get(`${cesc("#md")} [id*='_mathSlot_']`).should("exist");
 
+        // Retried until it holds: the control can be measured before it has
+        // its full height, and the expression is re-typeset around the
+        // corrected box a moment later.
         cy.get(cesc("#md")).should(($root) => {
             const root = $root[0];
             const slot = root.querySelector(".doenet-math-slot");
