@@ -1025,6 +1025,11 @@ export function DocViewer({
     const coreWorkerKill = useRef<((suspectWedge?: boolean) => void) | null>(
         null,
     );
+    // Releases for the `holdIdleTypesets` holds of actions still waiting on
+    // core. Tearing down the core lets them go, since an action the core
+    // never answers would otherwise hold back math far from the viewport in
+    // every document on the page.
+    const idleTypesetHolds = useRef(new Set<() => void>());
 
     // Spin up a fresh core worker and store its Comlink remote and kill
     // switch in lockstep. Returns the remote for the caller to drive.
@@ -1064,6 +1069,10 @@ export function DocViewer({
         // is the unmount cleanup below, which delivers the payload first —
         // there being no successor to overwrite.
         pendingStateReport.current = null;
+        for (const release of idleTypesetHolds.current) {
+            release();
+        }
+        idleTypesetHolds.current.clear();
         return disposeCoreWorker(remote, kill, { graceful, suspectWedge });
     }
 
@@ -1859,6 +1868,7 @@ export function DocViewer({
         // Math far from the viewport waits to be typeset until core has
         // answered, so the math this action changes on screen goes first.
         const releaseIdleTypesets = holdIdleTypesets();
+        idleTypesetHolds.current.add(releaseIdleTypesets);
         try {
             actionResult =
                 await coreWorker.current?.dispatchActionJavascript(actionArgs);
@@ -1870,6 +1880,7 @@ export function DocViewer({
             });
             return;
         } finally {
+            idleTypesetHolds.current.delete(releaseIdleTypesets);
             releaseIdleTypesets();
         }
 

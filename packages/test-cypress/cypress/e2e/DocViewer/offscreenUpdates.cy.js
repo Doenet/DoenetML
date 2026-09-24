@@ -175,3 +175,75 @@ describe("Math far from the screen", { tags: ["@group5"] }, function () {
         cy.get("#farMath", { timeout: 15000 }).should("contain.text", typesetA);
     });
 });
+
+describe(
+    "Math far from the screen after a core that never answered",
+    { tags: ["@group5"] },
+    function () {
+        // Drop the viewer's action messages to the core worker while
+        // `win.dropActions` is set, as a core that is stuck mid-action would.
+        beforeEach(() => {
+            cy.clearIndexedDB();
+            cy.visit("/", {
+                onBeforeLoad(win) {
+                    const PageWorker = win.Worker;
+                    win.Worker = class extends PageWorker {
+                        postMessage(message, ...rest) {
+                            if (
+                                win.dropActions &&
+                                message?.path?.[0] ===
+                                    "dispatchActionJavascript"
+                            ) {
+                                return;
+                            }
+                            return super.postMessage(message, ...rest);
+                        }
+                    };
+                },
+            });
+        });
+
+        const doenetML = `
+<section name="far">
+  <p>Far: <math name="farMath">$mi.immediateValue</math></p>
+</section>
+<section name="spacer">
+  <repeatForSequence from="1" to="80">
+    <p>Filler paragraph to push the input well below the fold.</p>
+  </repeatForSequence>
+</section>
+<p>Input: <mathInput name="mi" /></p>
+<p name="echoP">Echo: <math name="echo">$mi.immediateValue</math></p>
+`;
+
+        // The italic b that MathJax draws for "b".
+        const typesetB = "\u{1D44F}";
+
+        it("updates without being scrolled to once the viewer is rebuilt", () => {
+            cy.window().then((win) => {
+                win.postMessage({ doenetML }, "*");
+            });
+            cy.get("#farMath").should("exist");
+            cy.get("#echoP").scrollIntoView();
+
+            cy.window().then((win) => {
+                win.dropActions = true;
+            });
+            cy.get("#mi textarea").type("a", { force: true });
+
+            // Changing a test setting mounts a new viewer, with a new core.
+            cy.window().then((win) => {
+                win.dropActions = false;
+            });
+            cy.get("#testRunner_toggleControls").click();
+            cy.get("#testRunner_showCorrectness").click();
+            cy.get("#testRunner_toggleControls").click();
+            cy.get("#farMath").should("exist");
+
+            cy.get("#echoP").scrollIntoView();
+            cy.get("#mi textarea").type("b", { force: true });
+            cy.get("#echo").should("contain.text", typesetB);
+            cy.get("#farMath").should("contain.text", typesetB);
+        });
+    },
+);
