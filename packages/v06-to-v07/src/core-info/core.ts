@@ -136,7 +136,7 @@ export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
                 initializeCounters: {},
                 theme: "light",
             },
-            () => null,
+            () => {},
             () => null,
             () => null,
             () => null,
