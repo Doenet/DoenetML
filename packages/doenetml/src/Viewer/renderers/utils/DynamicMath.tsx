@@ -44,8 +44,9 @@ const IDLE_FALLBACK_MS = 50;
 /**
  * The next typeset that is not urgent starts straight away, rather than
  * waiting for the next idle callback, while more than this much (ms) of the
- * current idle period is left. A typeset holds the main thread for only a few milliseconds;
- * most of its time is spent waiting for MathJax's speech and braille.
+ * current idle period is left. A typeset holds the main thread for only a
+ * few milliseconds; most of its time is spent waiting for MathJax's speech
+ * and braille.
  */
 const MIN_IDLE_REMAINING_MS = 2;
 
