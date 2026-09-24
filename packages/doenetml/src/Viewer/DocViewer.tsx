@@ -2106,9 +2106,10 @@ export function DocViewer({
         /**
          * The deferred remainder of an update whose priority batch already
          * resolved `actionId`. Core sends the dragged component first and the
-         * rest once the drag settles, and after any update it sends offscreen
-         * components once it is idle. Resolving again here would release a
-         * second queued action for an interaction that has already finished.
+         * rest once the drag settles, and after other updates it can send
+         * offscreen components once it is idle. Resolving again here would
+         * release a second queued action for an interaction that has already
+         * finished.
          *
          * The flag stops here; `updateRendererSVs` does not need it. An entry
          * in `updatesToIgnore` is keyed by `(actionId, componentIdx)` and only

@@ -157,9 +157,13 @@ const structuralOffscreenDoenetML = `
  * replaces it afterwards; batches from the initial render are therefore not
  * included, which is what we want.
  */
-async function setup(source: string = doenetML) {
+async function setup(
+    source: string = doenetML,
+    flags: Parameters<typeof createTestCore>[0]["flags"] = {},
+) {
     const { core, resolvePathToNodeIdx } = await createTestCore({
         doenetML: source,
+        flags,
     });
     const innerCore = (core as any).core;
 
@@ -935,6 +939,64 @@ describe("updates hold back what is offscreen until core is idle @group4", () =>
         } finally {
             vi.useRealTimers();
         }
+    });
+
+    it("a save that includes renderer state sends what was held back first", async () => {
+        vi.useFakeTimers();
+        try {
+            const { core, innerCore, resolvePathToNodeIdx } = await setup(
+                offscreenDoenetML,
+                { allowSaveState: true, saveRendererState: true },
+            );
+            const tiIdx = await resolvePathToNodeIdx("ti");
+            const farEcho1Idx = await resolvePathToNodeIdx("farEcho1");
+            await setVisible(core, await resolvePathToNodeIdx("bottom"), false);
+
+            await typeText(core, tiIdx, "hello");
+            expect(
+                innerCore.updateInfo.componentsToUpdateRenderers.has(
+                    farEcho1Idx,
+                ),
+            ).toBe(true);
+
+            await innerCore.saveState(true);
+
+            const saved = JSON.parse(
+                innerCore.statePersistence.docStateToBeSavedToDatabase
+                    .rendererState,
+            );
+            expect(saved[farEcho1Idx].stateValues.text).toBe("hello");
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("a report from a block that no longer exists forgets it", async () => {
+        const { core, innerCore, resolvePathToNodeIdx } = await setup(`
+<graph><point name="P">(5,0)</point></graph>
+<conditionalContent name="cc">
+  <case condition="$P.x > 3"><p name="big">Big</p></case>
+  <else><p name="small">Small</p></else>
+</conditionalContent>
+`);
+        const pointIdx = await resolvePathToNodeIdx("P");
+        const bigIdx = await resolvePathToNodeIdx("cc.big");
+        const renderVisibility = innerCore.visibilityTracker.renderVisibility;
+
+        await setVisible(core, bigIdx, true);
+        expect(renderVisibility.get(bigIdx)).toBe(true);
+
+        await movePointTo({
+            core,
+            componentIdx: pointIdx,
+            x: 2,
+            transient: false,
+        });
+        expect(innerCore._components[bigIdx]).toBeUndefined();
+
+        // The viewer's report as the block's renderer unmounts.
+        await setVisible(core, bigIdx, false, false);
+        expect(renderVisibility.has(bigIdx)).toBe(false);
     });
 
     it("a core terminated with the idle lane pending sends nothing more", async () => {
