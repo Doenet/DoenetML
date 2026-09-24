@@ -71,14 +71,14 @@ function scheduleTypeset(
                     });
             },
         });
-        // Wait out the current task, so the requests one update makes are all
-        // waiting, and sorted, before the first of them starts.
+        // Start after the microtasks already queued, so the requests one
+        // update makes are all waiting, and sorted, before the first starts.
         if (!startScheduled) {
             startScheduled = true;
-            setTimeout(() => {
+            queueMicrotask(() => {
                 startScheduled = false;
                 startWaitingTypesets();
-            }, 0);
+            });
         }
     });
 }
@@ -337,14 +337,19 @@ export function DynamicMath({
                     buffer.innerHTML = next;
                     // An element that unmounts while its typeset waits in
                     // the queue has nothing to show it in, so it skips it.
-                    await scheduleTypeset(
-                        () => inViewport.current !== false,
-                        async () => {
-                            if (mounted.current) {
-                                await MathJax.typesetPromise([buffer]);
-                            }
-                        },
-                    );
+                    // One with a control being edited in it goes straight to
+                    // MathJax, since the reader is watching it change.
+                    const typeset = async () => {
+                        if (mounted.current) {
+                            await MathJax.typesetPromise([buffer]);
+                        }
+                    };
+                    await (immediate
+                        ? typeset()
+                        : scheduleTypeset(
+                              () => inViewport.current !== false,
+                              typeset,
+                          ));
                     // Drop MathJax's record of this render as soon as the
                     // typeset finishes — before the unmount check below and
                     // before moving the rendered nodes out of the buffer.
