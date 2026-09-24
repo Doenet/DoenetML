@@ -1,4 +1,4 @@
-import { RefObject, useEffect, useState } from "react";
+import { RefObject, useEffect, useRef, useState } from "react";
 
 /**
  * How far beyond the viewport a block still counts as near it. Core sends
@@ -75,6 +75,11 @@ function observeIntersection(
  * becomes or stops being visible in the browser's viewport (`isVisible`), or
  * near it (`isNear`).
  *
+ * The hook follows whatever element `ref` holds after each render, so a
+ * renderer that returns `null` for a while and later renders a new element
+ * is observed again. When the element goes away, or the renderer unmounts,
+ * it reports the block as neither visible nor near.
+ *
  * If `skipRecording` is true, then don't do anything.
  */
 export function useRecordVisibilityChanges(
@@ -83,11 +88,28 @@ export function useRecordVisibilityChanges(
     actions: any,
     skipRecording = false,
 ) {
+    const observed = useRef<{
+        element: HTMLElement;
+        stop: () => void;
+    } | null>(null);
+
+    // Runs after every render, since a ref change does not cause one.
     useEffect(() => {
-        if (skipRecording) {
+        const element = skipRecording ? null : ref.current;
+        if (element === (observed.current?.element ?? null)) {
             return;
         }
-        const element = ref.current;
+
+        if (observed.current) {
+            observed.current.stop();
+            observed.current = null;
+            if (!element) {
+                callAction({
+                    action: actions.recordVisibilityChange,
+                    args: { isVisible: false, isNear: false },
+                });
+            }
+        }
         if (!element) {
             return;
         }
@@ -118,15 +140,27 @@ export function useRecordVisibilityChanges(
             },
         );
 
-        return () => {
-            stopVisible();
-            stopNear();
-            callAction({
-                action: actions.recordVisibilityChange,
-                args: { isVisible: false, isNear: false },
-            });
+        observed.current = {
+            element,
+            stop: () => {
+                stopVisible();
+                stopNear();
+            },
         };
-    }, [ref]);
+    });
+
+    useEffect(() => {
+        return () => {
+            if (observed.current) {
+                observed.current.stop();
+                observed.current = null;
+                callAction({
+                    action: actions.recordVisibilityChange,
+                    args: { isVisible: false, isNear: false },
+                });
+            }
+        };
+    }, []);
 }
 
 /**

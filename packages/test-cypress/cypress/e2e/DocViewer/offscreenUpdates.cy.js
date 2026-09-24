@@ -43,3 +43,85 @@ describe("Offscreen updates", { tags: ["@group5"] }, function () {
         cy.get("#farEcho").should("have.text", "hello world");
     });
 });
+
+describe(
+    "Offscreen updates wait for what is on screen",
+    { tags: ["@group5"] },
+    function () {
+        beforeEach(() => {
+            cy.clearIndexedDB();
+            cy.visit("/");
+        });
+
+        // The far section is above the reader, who has scrolled to the input at
+        // the bottom. Its hundreds of dependents take long enough to send that
+        // `farEchoLast` is still behind when what is on screen has caught up.
+        const doenetML = `
+<section name="far">
+  <p><text name="farEcho">$ti.immediateValue</text></p>
+  <repeatForSequence from="1" to="400" valueName="v">
+    <p><math simplify>$v x + $ti.immediateValue</math></p>
+  </repeatForSequence>
+  <p><text name="farEchoLast">$ti.immediateValue</text></p>
+</section>
+<section name="spacer">
+  <repeatForSequence from="1" to="80">
+    <p>Filler paragraph to push the next section well below the fold.</p>
+  </repeatForSequence>
+</section>
+<section name="controls">
+  <booleanInput name="hideSol" />
+  <textInput name="ti" />
+</section>
+<solution name="sol" hide="$hideSol">
+  Echo: <text name="echo">$ti.immediateValue</text>
+</solution>
+`;
+
+        function load() {
+            cy.window().then((win) => {
+                win.postMessage({ doenetML }, "*");
+            });
+            cy.get("#sol_button", { timeout: 15000 }).click();
+            cy.get("#echo").should("have.text", "");
+            cy.get("#sol").scrollIntoView();
+        }
+
+        // Checks both texts in the same retry, so it passes only at a moment
+        // when the echo on screen is current and the far one is not yet.
+        function echoCurrentBeforeFar(current, previous) {
+            cy.document({ timeout: 4000 }).should((doc) => {
+                expect(doc.getElementById("echo").textContent).eq(current);
+                expect(doc.getElementById("farEchoLast").textContent).eq(
+                    previous,
+                );
+            });
+            cy.get("#farEchoLast").should("have.text", current);
+        }
+
+        it("a keystroke updates what is on screen before what is far away", () => {
+            load();
+
+            cy.get("#ti_input").type("a");
+            echoCurrentBeforeFar("a", "");
+
+            cy.get("#ti_input").type("b");
+            echoCurrentBeforeFar("ab", "a");
+        });
+
+        it("a solution hidden and shown again still counts as on screen", () => {
+            load();
+
+            cy.get("#ti_input").type("a");
+            echoCurrentBeforeFar("a", "");
+
+            cy.get("#hideSol").click();
+            cy.get("#echo").should("not.exist");
+            cy.get("#hideSol").click();
+            cy.get("#echo").should("have.text", "a");
+
+            cy.get("#ti_input").type("b");
+            echoCurrentBeforeFar("ab", "a");
+        });
+    },
+);
