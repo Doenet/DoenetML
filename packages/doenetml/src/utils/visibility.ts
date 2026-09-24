@@ -70,6 +70,19 @@ function observeIntersection(
 }
 
 /**
+ * Call `listener` with whether any part of `element` is in the viewport, each
+ * time that changes. Returns a function that stops it.
+ */
+export function observeInViewport(
+    element: Element,
+    listener: (inViewport: boolean) => void,
+): () => void {
+    return observeIntersection(element, "0px", (entry) =>
+        listener(entry.isIntersecting),
+    );
+}
+
+/**
  * Call `listener` with whether `element` is near the viewport, by the same
  * margin core uses to decide what to send straight away, each time that
  * changes. Returns a function that stops it.

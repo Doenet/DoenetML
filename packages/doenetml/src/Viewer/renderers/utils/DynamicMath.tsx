@@ -1,6 +1,9 @@
 import React, { useLayoutEffect, useRef } from "react";
 import { loadMathJax } from "@doenet/utils";
-import { observeNearViewport } from "../../../utils/visibility";
+import {
+    observeInViewport,
+    observeNearViewport,
+} from "../../../utils/visibility";
 
 /** Minimum time between typesets of a single element (ms). Caps how often a
  * fast drag re-typesets; the displayed value lags by at most this plus one
@@ -26,6 +29,75 @@ interface LoadedMathJax {
 
 /** The engine once it has started, so an immediate typeset need not wait. */
 let startedMathJax: LoadedMathJax | null = null;
+
+/**
+ * How many typesets are handed to MathJax at once. MathJax runs them one at a
+ * time in the order given, so the rest wait in `waitingTypesets`, where math
+ * in the viewport can go ahead of math that is only near it. Two keeps
+ * MathJax from idling between one typeset and the next.
+ */
+const MAX_TYPESETS_IN_FLIGHT = 2;
+
+interface TypesetRequest {
+    /** Whether the element is in the viewport now. */
+    inViewport: () => boolean;
+    start: () => void;
+}
+
+const waitingTypesets: TypesetRequest[] = [];
+let typesetsInFlight = 0;
+let startScheduled = false;
+
+/**
+ * Run `typeset` once MathJax has room for it, giving elements in the viewport
+ * precedence over those only near it, and first come first served otherwise.
+ * Resolves or rejects as `typeset` does.
+ */
+function scheduleTypeset(
+    inViewport: () => boolean,
+    typeset: () => Promise<unknown>,
+): Promise<void> {
+    return new Promise((resolve, reject) => {
+        waitingTypesets.push({
+            inViewport,
+            start() {
+                typesetsInFlight++;
+                Promise.resolve()
+                    .then(typeset)
+                    .then(() => resolve(), reject)
+                    .finally(() => {
+                        typesetsInFlight--;
+                        startWaitingTypesets();
+                    });
+            },
+        });
+        // Wait out the current task, so the requests one update makes are all
+        // waiting, and sorted, before the first of them starts.
+        if (!startScheduled) {
+            startScheduled = true;
+            setTimeout(() => {
+                startScheduled = false;
+                startWaitingTypesets();
+            }, 0);
+        }
+    });
+}
+
+function startWaitingTypesets() {
+    while (
+        typesetsInFlight < MAX_TYPESETS_IN_FLIGHT &&
+        waitingTypesets.length > 0
+    ) {
+        const inViewportIndex = waitingTypesets.findIndex((request) =>
+            request.inViewport(),
+        );
+        const [next] = waitingTypesets.splice(
+            inViewportIndex === -1 ? 0 : inViewportIndex,
+            1,
+        );
+        next.start();
+    }
+}
 
 /**
  * Renders continuously-updating inline math (e.g. `$P` while a point is
@@ -57,7 +129,8 @@ let startedMathJax: LoadedMathJax | null = null;
  * expression at a time in the order asked, so this keeps math the reader can
  * see from queuing behind math they can't; the element keeps its last output
  * in the meantime. The first typeset always runs, so what the page lays out
- * around is real output.
+ * around is real output. Among the typesets waiting for MathJax, those of
+ * elements in the viewport go first (`scheduleTypeset`).
  *
  * `immediate` is for an expression with a control being edited inside it,
  * whose every keystroke changes the LaTeX: the typeset then runs synchronously
@@ -96,6 +169,9 @@ export function DynamicMath({
     // Whether the element is near the viewport, or null until the observer
     // first reports, which counts as near.
     const near = useRef<boolean | null>(null);
+    // Whether any of the element is in the viewport, or null until the
+    // observer first reports, which counts as in it.
+    const inViewport = useRef<boolean | null>(null);
     // Restarts the typeset loop for a value that waited while far away.
     const resumeRef = useRef<(() => void) | null>(null);
 
@@ -104,12 +180,19 @@ export function DynamicMath({
         if (!visible) {
             return;
         }
-        return observeNearViewport(visible, (isNear) => {
+        const stopNear = observeNearViewport(visible, (isNear) => {
             near.current = isNear;
             if (isNear) {
                 resumeRef.current?.();
             }
         });
+        const stopInViewport = observeInViewport(visible, (isIn) => {
+            inViewport.current = isIn;
+        });
+        return () => {
+            stopNear();
+            stopInViewport();
+        };
     }, []);
 
     // Arm/re-arm the unmount guard and clean up the off-screen buffer. Runs
@@ -252,7 +335,16 @@ export function DynamicMath({
 
                     const buffer = ensureBuffer(bufferRef);
                     buffer.innerHTML = next;
-                    await MathJax.typesetPromise([buffer]);
+                    // An element that unmounts while its typeset waits in
+                    // the queue has nothing to show it in, so it skips it.
+                    await scheduleTypeset(
+                        () => inViewport.current !== false,
+                        async () => {
+                            if (mounted.current) {
+                                await MathJax.typesetPromise([buffer]);
+                            }
+                        },
+                    );
                     // Drop MathJax's record of this render as soon as the
                     // typeset finishes — before the unmount check below and
                     // before moving the rendered nodes out of the buffer.
