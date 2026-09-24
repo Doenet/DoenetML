@@ -41,6 +41,21 @@ const MAX_TYPESETS_IN_FLIGHT = 2;
  */
 const IDLE_FALLBACK_MS = 50;
 
+/**
+ * Where `requestIdleCallback` is missing, how long (ms) after the fallback
+ * timer fires the page counts as idle, standing in for the deadline an idle
+ * callback is given.
+ */
+const IDLE_FALLBACK_BUDGET_MS = 16;
+
+/**
+ * How much of the current idle period (ms) must be left for the next typeset
+ * that is not urgent to start straight away, rather than waiting for the next
+ * idle callback. A typeset holds the main thread for only a few milliseconds;
+ * most of its time is spent waiting for MathJax's speech and braille.
+ */
+const MIN_IDLE_REMAINING_MS = 2;
+
 interface TypesetRequest {
     /**
      * Whether the typeset should start as soon as MathJax has room, rather
@@ -57,12 +72,18 @@ let typesetsInFlight = 0;
 let startScheduled = false;
 let idleScheduled = false;
 let actionsInFlight = 0;
+/**
+ * When (`performance.now()`) the current idle period ends, or 0 when the page
+ * has not been idle since it last had work to do.
+ */
+let idleEndsAt = 0;
 
 /**
  * Run `typeset` once MathJax has room for it. An urgent typeset starts as
  * soon as there is room; any other starts only when the page is idle, nothing
  * urgent is waiting and no action is in flight, one at a time, nearest to the
- * viewport first. Resolves or rejects as `typeset` does.
+ * viewport first. Within one idle period they follow each other while the
+ * period has time left. Resolves or rejects as `typeset` does.
  */
 function scheduleTypeset(
     urgent: () => boolean,
@@ -106,10 +127,19 @@ function startWaitingTypesets() {
         if (index === -1) {
             break;
         }
+        // Urgent work means the page is busy again: the next typeset that is
+        // not urgent waits for a fresh idle period.
+        idleEndsAt = 0;
         waitingTypesets.splice(index, 1)[0].start();
     }
     if (typesetsInFlight === 0 && waitingTypesets.length > 0) {
-        scheduleIdleTypeset();
+        // Within an idle period with time left, carry on without waiting a
+        // frame for the next idle callback.
+        if (performance.now() + MIN_IDLE_REMAINING_MS < idleEndsAt) {
+            startIdleTypeset();
+        } else {
+            scheduleIdleTypeset();
+        }
     }
 }
 
@@ -118,14 +148,15 @@ function scheduleIdleTypeset() {
         return;
     }
     idleScheduled = true;
-    const run = () => {
+    const run = (remainingMs: number) => {
         idleScheduled = false;
+        idleEndsAt = performance.now() + remainingMs;
         startIdleTypeset();
     };
     if (typeof requestIdleCallback === "function") {
-        requestIdleCallback(run);
+        requestIdleCallback((deadline) => run(deadline.timeRemaining()));
     } else {
-        setTimeout(run, IDLE_FALLBACK_MS);
+        setTimeout(() => run(IDLE_FALLBACK_BUDGET_MS), IDLE_FALLBACK_MS);
     }
 }
 
@@ -185,6 +216,7 @@ function distanceFromViewport(element: Element | null): number {
  */
 export function holdIdleTypesets(): () => void {
     actionsInFlight++;
+    idleEndsAt = 0;
     let released = false;
     return () => {
         if (released) {
