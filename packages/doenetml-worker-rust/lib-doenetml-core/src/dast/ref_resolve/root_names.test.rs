@@ -662,3 +662,47 @@ fn re_adding_a_node_that_still_has_edges_recalculates_root_names() {
     assert!(!update_and_check(&mut table, &mut resolver));
     assert_eq!(table.get(&c_idx), Some(&"x:1:1".to_string()));
 }
+
+#[test]
+fn index_resolutions_to_nodes_outside_the_fragment_recalculate_root_names() {
+    let dast_root = dast_root_no_position(
+        r#"
+    <document>
+        <a name="x" />
+        <group name="g"><group><group><c /></group></group></group>
+    </document>"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let c_idx = find(&flat_root, "c").unwrap();
+
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+    let mut table = FxHashMap::default();
+    update_and_check(&mut table, &mut resolver);
+    assert_eq!(table.get(&c_idx), Some(&"g:1:1:1".to_string()));
+
+    // The fragment's children, which become the index resolutions of `<a>`, include the existing `<c>`,
+    // giving `<c>` a shorter path, so the root names are recalculated
+    let mut flat_fragment = flat_fragment_from_str(r#"<b />"#, flat_root.nodes.len(), Some(a_idx));
+    flat_fragment.children.push(UntaggedContent::Ref(c_idx));
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceAll { parent: a_idx },
+    );
+    assert!(!update_and_check(&mut table, &mut resolver));
+    assert_eq!(table.get(&c_idx), Some(&"x:2".to_string()));
+
+    // The same holds for the children of a group in the fragment, which become the group's index resolutions
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+    let mut table = FxHashMap::default();
+    update_and_check(&mut table, &mut resolver);
+    let mut flat_fragment =
+        flat_fragment_from_str(r#"<group name="h" />"#, flat_root.nodes.len(), Some(a_idx));
+    let FlatNode::Element(group) = &mut flat_fragment.nodes[0] else {
+        unreachable!()
+    };
+    group.children.push(UntaggedContent::Ref(c_idx));
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+    assert!(!update_and_check(&mut table, &mut resolver));
+    assert_eq!(table.get(&c_idx), Some(&"x.h:1".to_string()));
+}

@@ -8,7 +8,7 @@ use rustc_hash::FxHashSet;
 
 use super::node_traversal::*;
 use super::*;
-use crate::dast::flat_dast::{FlatFragment, Index, SourceDoc};
+use crate::dast::flat_dast::{FlatFragment, FlatNode, Index, SourceDoc, UntaggedContent};
 
 impl Resolver {
     /// Given the data from `resolver`, calculate the root name for each node,
@@ -150,7 +150,8 @@ impl Resolver {
 
         for parents in mem::take(&mut cache.pending_fragments) {
             // A parent without a root name hides the fragment from the root.
-            // If the parent is in a fragment added later, the search from that fragment's parent reaches it.
+            // (Adding the parent later, as a node of another fragment, invalidates the cache
+            // if the parent has edges into this fragment.)
             let mut reached_parents = parents
                 .into_iter()
                 .flatten()
@@ -287,6 +288,7 @@ impl RootNameCache {
     /// Adding a fragment gives new edges to its parent, to the node given the index resolutions, and to its own nodes,
     /// all of them pointing into the fragment, and leaves the edges of every other node alone.
     /// As long as the fragment's nodes had no way to be reached before and no edges of their own,
+    /// and the children that become index resolutions are all nodes of the fragment,
     /// the root names of existing nodes stay the same, and the fragment's nodes can be reached only through its parents.
     /// Otherwise the cache is invalidated.
     pub(super) fn note_added_fragment(
@@ -315,6 +317,29 @@ impl RootNameCache {
                 self.invalidate();
                 return;
             }
+        }
+
+        // The children that become index resolutions must be nodes of the fragment,
+        // or the new index resolutions could give existing nodes shorter paths
+        let fragment_nodes: FxHashSet<Index> =
+            flat_fragment.nodes.iter().map(|node| node.idx()).collect();
+        let fragment_children = match index_resolution {
+            IndexResolution::None => &[][..],
+            _ => &flat_fragment.children[..],
+        };
+        let group_children = flat_fragment.nodes.iter().flat_map(|node| match node {
+            FlatNode::Element(element)
+                if CHILDREN_ARE_IMPLICIT_INDEX_RESOLUTIONS.contains(&element.name.as_str()) =>
+            {
+                &element.children[..]
+            }
+            _ => &[][..],
+        });
+        if fragment_children.iter().chain(group_children).any(
+            |child| matches!(child, UntaggedContent::Ref(idx) if !fragment_nodes.contains(idx)),
+        ) {
+            self.invalidate();
+            return;
         }
 
         let index_parent = match index_resolution {
