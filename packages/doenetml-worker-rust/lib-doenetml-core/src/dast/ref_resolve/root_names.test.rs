@@ -1,7 +1,7 @@
 use super::*;
 use crate::{
     dast::{
-        flat_dast::{FlatRoot, Index, UntaggedContent},
+        flat_dast::{FlatAttribute, FlatRoot, Index, UntaggedContent},
         ref_resolve::{IndexResolution, test_helpers::*},
     },
     test_utils::*,
@@ -623,6 +623,24 @@ fn fragments_reachable_through_two_parents() {
     );
     assert!(update_and_check(&mut table, &mut resolver));
     assert_eq!(table.get(&e_idx), Some(&"y:2".to_string()));
+
+    // Before an update, a fragment reachable only through `<a>` and then one reachable through two parents:
+    // the recalculation still reports the root names of the first fragment
+    next_idx += flat_fragment.nodes.len();
+    let flat_fragment = flat_fragment_from_str(r#"<f name="t" />"#, next_idx, Some(a_idx));
+    let f_idx = next_idx;
+    next_idx += flat_fragment.nodes.len();
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+    let flat_fragment = flat_fragment_from_str(r#"<h name="s" />"#, next_idx, Some(a_idx));
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceRange {
+            parent: b_idx,
+            range: 2..2,
+        },
+    );
+    assert!(!update_and_check(&mut table, &mut resolver));
+    assert_eq!(table.get(&f_idx), Some(&"x.t".to_string()));
 }
 
 #[test]
@@ -705,4 +723,78 @@ fn index_resolutions_to_nodes_outside_the_fragment_recalculate_root_names() {
     resolver.add_nodes(&flat_fragment, IndexResolution::None);
     assert!(!update_and_check(&mut table, &mut resolver));
     assert_eq!(table.get(&c_idx), Some(&"x.h:1".to_string()));
+}
+
+#[test]
+fn a_new_source_sequence_on_the_parent_recalculates_root_names() {
+    let dast_root = dast_root_no_position(
+        r#"
+    <document>
+        <a name="x">
+            <c name="v"><group name="g"><b name="w" /></group></c>
+            <d name="u"><group name="g" /></d>
+        </a>
+    </document>"#,
+    );
+    let mut flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let b_idx = find(&flat_root, "b").unwrap();
+
+    // `<b>` comes from an external document, so `<a>` can't follow its name `w` without a source sequence
+    let FlatNode::Element(b) = &mut flat_root.nodes[b_idx] else {
+        unreachable!()
+    };
+    b.source_doc = Some(1.into());
+
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+    let mut table = FxHashMap::default();
+    update_and_check(&mut table, &mut resolver);
+    assert_eq!(table.get(&b_idx), Some(&"v.g:1".to_string()));
+
+    // A fragment that gives `<a>` a source sequence lets `<a>` follow `w`, giving `<b>` a shorter path,
+    // so the root names are recalculated
+    let mut flat_fragment = flat_fragment_from_str(r#"<e />"#, flat_root.nodes.len(), Some(a_idx));
+    flat_fragment.parent_source_sequence = Some(FlatAttribute {
+        name: "source:sequence".to_string(),
+        parent: Some(a_idx),
+        children: vec![
+            UntaggedContent::Text("0".to_string()),
+            UntaggedContent::Text("1".to_string()),
+        ],
+        position: None,
+        source_doc: None,
+    });
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+    assert!(!update_and_check(&mut table, &mut resolver));
+    assert_eq!(table.get(&b_idx), Some(&"x.w".to_string()));
+}
+
+#[test]
+fn re_adding_a_node_before_an_update_recalculates_root_names() {
+    let dast_root = dast_root_no_position(
+        r#"
+    <document>
+        <a name="x" />
+        <b name="y"><c name="u" /></b>
+        <d name="v"><c name="u" /></d>
+    </document>"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let c_idx = find(&flat_root, "c").unwrap();
+
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+    let mut table = FxHashMap::default();
+    update_and_check(&mut table, &mut resolver);
+    assert_eq!(table.get(&c_idx), Some(&"y.u".to_string()));
+
+    // `<e>` is added under `<c>`, then, before an update, added again under `<a>`,
+    // which is closer to the root, so the root names are recalculated
+    let e_idx = flat_root.nodes.len();
+    let flat_fragment = flat_fragment_from_str(r#"<e name="t" />"#, e_idx, Some(c_idx));
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+    let flat_fragment = flat_fragment_from_str(r#"<e name="t" />"#, e_idx, Some(a_idx));
+    resolver.add_nodes(&flat_fragment, IndexResolution::None);
+    assert!(!update_and_check(&mut table, &mut resolver));
+    assert_eq!(table.get(&e_idx), Some(&"x.t".to_string()));
 }

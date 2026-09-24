@@ -287,7 +287,8 @@ impl RootNameCache {
     ///
     /// Adding a fragment gives new edges to its parent, to the node given the index resolutions, and to its own nodes,
     /// all of them pointing into the fragment, and leaves the edges of every other node alone.
-    /// As long as the fragment's nodes had no way to be reached before and no edges of their own,
+    /// As long as the parent's source sequence is unchanged, the fragment's nodes had no root names,
+    /// no edges of their own and are not in another fragment added since the last update,
     /// and the children that become index resolutions are all nodes of the fragment,
     /// the root names of existing nodes stay the same, and the fragment's nodes can be reached only through its parents.
     /// Otherwise the cache is invalidated.
