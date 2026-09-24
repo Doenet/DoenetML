@@ -624,3 +624,41 @@ fn fragments_reachable_through_two_parents() {
     assert!(update_and_check(&mut table, &mut resolver));
     assert_eq!(table.get(&e_idx), Some(&"y:2".to_string()));
 }
+
+#[test]
+fn re_adding_a_node_that_still_has_edges_recalculates_root_names() {
+    let dast_root = dast_root_no_position(
+        r#"
+    <document>
+        <a name="x" />
+        <b />
+        <group name="g"><group><group><c /></group></group></group>
+    </document>"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let a_idx = find(&flat_root, "a").unwrap();
+    let b_idx = find(&flat_root, "b").unwrap();
+    let c_idx = find(&flat_root, "c").unwrap();
+
+    let mut resolver = Resolver::from_flat_root(&flat_root);
+    let mut table = FxHashMap::default();
+
+    // `<b>`, which has no root name, is given `<c>` as an index resolution
+    resolver.replace_index_resolutions(
+        &[UntaggedContent::Ref(c_idx)],
+        IndexResolution::ReplaceAll { parent: b_idx },
+    );
+    update_and_check(&mut table, &mut resolver);
+    assert_eq!(table.get(&b_idx), None);
+    assert_eq!(table.get(&c_idx), Some(&"g:1:1:1".to_string()));
+
+    // Re-adding `<b>` under `<a>` gives `<c>` a shorter path through the index resolution `<b>` kept,
+    // so the root names are recalculated
+    let flat_fragment = flat_fragment_from_str(r#"<b />"#, b_idx, Some(a_idx));
+    resolver.add_nodes(
+        &flat_fragment,
+        IndexResolution::ReplaceAll { parent: a_idx },
+    );
+    assert!(!update_and_check(&mut table, &mut resolver));
+    assert_eq!(table.get(&c_idx), Some(&"x:1:1".to_string()));
+}

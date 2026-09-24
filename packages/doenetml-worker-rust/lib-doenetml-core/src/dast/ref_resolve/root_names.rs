@@ -281,17 +281,19 @@ impl RootNameCache {
         self.visited.get(idx).copied().unwrap_or(false)
     }
 
-    /// Record that `flat_fragment` is about to be added to the resolver,
+    /// Record that `flat_fragment` is about to be added to `node_resolver_data`,
     /// with its children becoming index resolutions as specified by `index_resolution`.
     ///
     /// Adding a fragment gives new edges to its parent, to the node given the index resolutions, and to its own nodes,
-    /// all of them pointing into the fragment, and leaves the edges of every other node alone. As long as the fragment's nodes had no way to be reached before,
-    /// the root names of existing nodes stay the same, and the fragment's nodes can be reached only through its parent.
+    /// all of them pointing into the fragment, and leaves the edges of every other node alone.
+    /// As long as the fragment's nodes had no way to be reached before and no edges of their own,
+    /// the root names of existing nodes stay the same, and the fragment's nodes can be reached only through its parents.
     /// Otherwise the cache is invalidated.
     pub(super) fn note_added_fragment(
         &mut self,
         flat_fragment: &FlatFragment,
         index_resolution: &IndexResolution,
+        node_resolver_data: &[NodeResolverData],
     ) {
         if !self.in_sync {
             return;
@@ -305,7 +307,11 @@ impl RootNameCache {
 
         for node in flat_fragment.nodes.iter() {
             let idx = node.idx();
-            if self.has_root_name(idx) || !self.pending_nodes.insert(idx) {
+            // A node being re-added keeps the edges it already had, which could give existing nodes shorter paths
+            let has_edges = node_resolver_data.get(idx + 1).is_some_and(|data| {
+                !data.name_map.is_empty() || !data.index_resolutions.is_empty()
+            });
+            if has_edges || self.has_root_name(idx) || !self.pending_nodes.insert(idx) {
                 self.invalidate();
                 return;
             }

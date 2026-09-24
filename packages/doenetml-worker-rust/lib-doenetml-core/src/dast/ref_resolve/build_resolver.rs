@@ -69,8 +69,11 @@ impl Resolver {
     /// - `index_resolution`: used to optionally specify that the children of the `flat_fragment` should also
     ///   be added as indices of the `flat_fragment` parent.
     pub fn add_nodes(&mut self, flat_fragment: &FlatFragment, index_resolution: IndexResolution) {
-        self.root_name_cache
-            .note_added_fragment(flat_fragment, &index_resolution);
+        self.root_name_cache.note_added_fragment(
+            flat_fragment,
+            &index_resolution,
+            &self.node_resolver_data,
+        );
 
         let prev_num_nodes = self.node_resolver_data.len();
         let new_num_nodes = flat_fragment.len() + 1;
