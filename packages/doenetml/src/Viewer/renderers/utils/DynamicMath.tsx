@@ -1,5 +1,6 @@
 import React, { useLayoutEffect, useRef } from "react";
 import { loadMathJax } from "@doenet/utils";
+import { observeNearViewport } from "../../../utils/visibility";
 
 /** Minimum time between typesets of a single element (ms). Caps how often a
  * fast drag re-typesets; the displayed value lags by at most this plus one
@@ -51,6 +52,13 @@ let startedMathJax: LoadedMathJax | null = null;
  * of the loop: under coalescing the loop may swap several times, and a caller
  * positioning something against the output has to follow every one of them.
  *
+ * Once an element has been typeset, a new value that arrives while it is far
+ * from the viewport waits until the element comes near. MathJax typesets one
+ * expression at a time in the order asked, so this keeps math the reader can
+ * see from queuing behind math they can't; the element keeps its last output
+ * in the meantime. The first typeset always runs, so what the page lays out
+ * around is real output.
+ *
  * `immediate` is for an expression with a control being edited inside it,
  * whose every keystroke changes the LaTeX: the typeset then runs synchronously
  * in the layout phase, so the new output is on screen in the same frame as the
@@ -85,6 +93,24 @@ export function DynamicMath({
     // re-run the [latex] effect on every render.
     const onTypesetRef = useRef(onTypeset);
     onTypesetRef.current = onTypeset;
+    // Whether the element is near the viewport, or null until the observer
+    // first reports, which counts as near.
+    const near = useRef<boolean | null>(null);
+    // Restarts the typeset loop for a value that waited while far away.
+    const resumeRef = useRef<(() => void) | null>(null);
+
+    useLayoutEffect(() => {
+        const visible = visibleRef.current;
+        if (!visible) {
+            return;
+        }
+        return observeNearViewport(visible, (isNear) => {
+            near.current = isNear;
+            if (isNear) {
+                resumeRef.current?.();
+            }
+        });
+    }, []);
 
     // Arm/re-arm the unmount guard and clean up the off-screen buffer. Runs
     // before the [latex] effect below on every (re)mount, so the loop there
@@ -113,9 +139,18 @@ export function DynamicMath({
         }
         // On failure, keep the last good render rather than flashing raw LaTeX
         // or going blank.
-        renderPendingLatex().catch((e) => {
-            console.error("DynamicMath: MathJax typesetting failed", e);
-        });
+        const startLoop = () => {
+            renderPendingLatex().catch((e) => {
+                console.error("DynamicMath: MathJax typesetting failed", e);
+            });
+        };
+        resumeRef.current = startLoop;
+        startLoop();
+
+        /** Whether a new value must wait for the element to come near. */
+        function waitsUntilNear(): boolean {
+            return current.current !== null && near.current === false;
+        }
 
         /**
          * Typeset the pending value here and now, in the layout phase, so the
@@ -167,8 +202,10 @@ export function DynamicMath({
          * throttles, takes the latest `pending` value (skipping any intermediate
          * ones), typesets it on the off-screen buffer, drops MathJax's record of
          * that render, and swaps the rendered nodes into the visible span. It
-         * exits once `pending` has caught up to what is displayed (or the
-         * component unmounts), leaving the newest value on screen.
+         * exits once `pending` has caught up to what is displayed, leaving the
+         * newest value on screen. It also exits when the component unmounts,
+         * and when the element is far from the viewport (see `waitsUntilNear`),
+         * leaving the value pending until the element comes near.
          */
         async function renderPendingLatex() {
             if (busy.current) {
@@ -187,7 +224,8 @@ export function DynamicMath({
                 while (
                     mounted.current &&
                     pending.current !== null &&
-                    pending.current !== current.current
+                    pending.current !== current.current &&
+                    !waitsUntilNear()
                 ) {
                     const wait =
                         THROTTLE_MS -
@@ -199,7 +237,9 @@ export function DynamicMath({
                     }
                     // Bail if we unmounted while waiting, before creating the
                     // buffer (which cleanup has already removed) or typesetting.
-                    if (!mounted.current) {
+                    // Also stop if the element went far away meanwhile; the
+                    // value stays pending until it comes back.
+                    if (!mounted.current || waitsUntilNear()) {
                         break;
                     }
                     // Grab the newest requested value, skipping any intermediate

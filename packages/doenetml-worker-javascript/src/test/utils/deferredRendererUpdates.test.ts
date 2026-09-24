@@ -999,6 +999,147 @@ describe("updates hold back what is offscreen until core is idle @group4", () =>
         expect(renderVisibility.has(bigIdx)).toBe(false);
     });
 
+    /** As `offscreenDoenetML`, with enough offscreen echoes to span chunks. */
+    const manyOffscreenDoenetML = `
+<section name="top">
+  <textInput name="ti" />
+  <p>Near echo: <text name="nearEcho">$ti.immediateValue</text></p>
+</section>
+<section name="bottom">
+  <repeatForSequence from="1" to="20" name="rep">
+    <p>Far echo: <text name="farEcho">$ti.immediateValue</text></p>
+  </repeatForSequence>
+</section>
+`;
+
+    async function setupManyOffscreen() {
+        const result = await setup(manyOffscreenDoenetML);
+        const idx = async (name: string) =>
+            await result.resolvePathToNodeIdx(name);
+        return {
+            ...result,
+            tiIdx: await idx("ti"),
+            topIdx: await idx("top"),
+            bottomIdx: await idx("bottom"),
+            nearEchoIdx: await idx("nearEcho"),
+            lastFarEchoIdx: await idx("rep[20].farEcho"),
+        };
+    }
+
+    /** Resolve everything the viewer owes, until the idle lane is done. */
+    async function drawUntilDone(viewer: {
+        outstanding: any[];
+        drawAll(): void;
+    }) {
+        for (let i = 0; i < 100 && viewer.outstanding.length > 0; i++) {
+            viewer.drawAll();
+            await vi.advanceTimersByTimeAsync(20);
+        }
+    }
+
+    /**
+     * Have the capture in `setup` answer each deferred batch with a promise,
+     * as the viewer does, and return a way to resolve the ones outstanding.
+     */
+    function answerDeferredBatchesLater(innerCore: any) {
+        const outstanding: (() => void)[] = [];
+        const capture = innerCore.updateRenderersCallback;
+        innerCore.updateRenderersCallback = (args: any) => {
+            capture(args);
+            if (args.deferred) {
+                return new Promise<void>((resolve) =>
+                    outstanding.push(resolve),
+                );
+            }
+        };
+        return {
+            outstanding,
+            drawAll() {
+                outstanding.splice(0).forEach((resolve) => resolve());
+            },
+        };
+    }
+
+    it("the idle lane sends its next chunk only once the viewer has drawn the last", async () => {
+        vi.useFakeTimers();
+        try {
+            const c = await setupManyOffscreen();
+            await setVisible(c.core, c.bottomIdx, false);
+            const viewer = answerDeferredBatchesLater(c.innerCore);
+            c.batches.length = 0;
+
+            await typeText(c.core, c.tiIdx, "hello");
+            c.innerCore.rendererInstructionBuilder._idleRendererChunkSize = 1;
+
+            await vi.advanceTimersByTimeAsync(500);
+            expect(c.batches).toHaveLength(2);
+            expect(viewer.outstanding).toHaveLength(1);
+
+            viewer.drawAll();
+            await vi.advanceTimersByTimeAsync(20);
+            expect(c.batches.length).toBeGreaterThan(2);
+
+            await drawUntilDone(viewer);
+            expect(
+                c.innerCore.updateInfo.componentsToUpdateRenderers.size,
+            ).toBe(0);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("the idle lane goes on without a viewer that never answers", async () => {
+        vi.useFakeTimers();
+        try {
+            const c = await setupManyOffscreen();
+            await setVisible(c.core, c.bottomIdx, false);
+            answerDeferredBatchesLater(c.innerCore);
+            c.batches.length = 0;
+
+            await typeText(c.core, c.tiIdx, "hello");
+            c.innerCore.rendererInstructionBuilder._idleRendererChunkSize = 1;
+
+            await vi.advanceTimersByTimeAsync(500);
+            expect(c.batches).toHaveLength(2);
+
+            await vi.advanceTimersByTimeAsync(2500);
+            expect(c.batches.length).toBeGreaterThan(2);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("an update arriving while the idle lane waits for the viewer is sent at once", async () => {
+        vi.useFakeTimers();
+        try {
+            const c = await setupManyOffscreen();
+            await setVisible(c.core, c.topIdx, true);
+            await setVisible(c.core, c.bottomIdx, false);
+            const viewer = answerDeferredBatchesLater(c.innerCore);
+            c.batches.length = 0;
+
+            await typeText(c.core, c.tiIdx, "hello");
+            c.innerCore.rendererInstructionBuilder._idleRendererChunkSize = 1;
+            await vi.advanceTimersByTimeAsync(500);
+            expect(viewer.outstanding).toHaveLength(1);
+            const before = c.batches.length;
+
+            await typeText(c.core, c.tiIdx, "hello!");
+            expect(c.batches).toHaveLength(before + 1);
+            expect(c.batches[before].deferred).toBe(false);
+            expect(c.batches[before].componentIndices).toContain(c.nearEchoIdx);
+
+            await drawUntilDone(viewer);
+            const rendererState = c.innerCore.rendererInstructionBuilder
+                .rendererState as Record<number, any>;
+            expect(rendererState[c.lastFarEchoIdx].stateValues.text).toBe(
+                "hello!",
+            );
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
     it("a core terminated with the idle lane pending sends nothing more", async () => {
         vi.useFakeTimers();
         try {

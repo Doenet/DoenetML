@@ -27,6 +27,13 @@ const IDLE_RENDERER_FLUSH_MS = 10;
 const IDLE_RENDERER_CHUNK_TARGET_MS = 8;
 
 /**
+ * The longest the idle lane waits for the viewer to report it has drawn a
+ * chunk before sending the next anyway, so a viewer that never answers
+ * cannot stall it.
+ */
+const RENDERER_ACK_TIMEOUT_MS = 2000;
+
+/**
  * Builds the dast/instruction stream sent to the renderer. Owns the
  * per-component "what's currently rendered" registry, the cached
  * renderer state used for save/restore, and the queue of components
@@ -56,6 +63,13 @@ export class RendererInstructionBuilder {
      * chunk toward `IDLE_RENDERER_CHUNK_TARGET_MS`.
      */
     _idleRendererChunkSize: number;
+    /**
+     * What the viewer returned for the most recent deferred batch: a promise
+     * that resolves once it has drawn the batch, or nothing.
+     */
+    _lastDeferredRendererAck: unknown;
+    /** Whether an idle-lane chunk is waiting for the viewer to draw it. */
+    _awaitingRendererAck: boolean;
 
     constructor({ core }: { core: Core }) {
         this.core = core;
@@ -66,6 +80,8 @@ export class RendererInstructionBuilder {
         this._deferredRendererArgs = { sourceInformation: {} };
         this._idleRendererTimeout = null;
         this._idleRendererChunkSize = 16;
+        this._lastDeferredRendererAck = undefined;
+        this._awaitingRendererAck = false;
     }
 
     /**
@@ -92,7 +108,14 @@ export class RendererInstructionBuilder {
             diagnostics = this.core.getDiagnostics().diagnostics;
         }
 
-        this.core.updateRenderersCallback({ ...args, init, diagnostics });
+        const result = this.core.updateRenderersCallback({
+            ...args,
+            init,
+            diagnostics,
+        });
+        if (args.deferred) {
+            this._lastDeferredRendererAck = result;
+        }
     }
 
     /**
@@ -381,6 +404,16 @@ export class RendererInstructionBuilder {
                 sourceOfUpdate,
             };
             updateInstructions.splice(0, 0, instruction);
+        }
+
+        // A deferred batch with nothing in it has nothing to draw, and no
+        // action waits on it.
+        if (
+            deferred &&
+            updateInstructions.length === 0 &&
+            !this.core.hasPendingDiagnostics
+        ) {
+            return;
         }
 
         this.callUpdateRenderers({ updateInstructions, actionId, deferred });
@@ -992,6 +1025,13 @@ export class RendererInstructionBuilder {
      * empty when a chunk's timer fires and no drag is waiting to settle.
      * Chunks are sized toward `IDLE_RENDERER_CHUNK_TARGET_MS`, which bounds
      * how long an arriving action waits behind one.
+     *
+     * Drawing a chunk can cost the viewer far more than computing it costs
+     * core, so each chunk also waits for the viewer to report it has drawn
+     * the last one (the promise `updateRenderersCallback` returns
+     * for a deferred batch). Otherwise the offscreen backlog would pile up on
+     * the viewer's side, and the next update's visible changes would wait
+     * behind it there.
      */
     scheduleIdleRendererFlush(
         sourceInformation?: any,
@@ -1001,9 +1041,11 @@ export class RendererInstructionBuilder {
             this._deferredRendererArgs = { sourceInformation, actionId };
         }
 
+        // A chunk waiting for the viewer schedules the next one itself.
         if (
             this._idleRendererTimeout !== null ||
-            this._deferredRendererTimeout !== null
+            this._deferredRendererTimeout !== null ||
+            this._awaitingRendererAck
         ) {
             return;
         }
@@ -1012,6 +1054,36 @@ export class RendererInstructionBuilder {
             this._idleRendererTimeout = null;
             this.runIdleRendererChunk().catch((e) => console.error(e));
         }, IDLE_RENDERER_FLUSH_MS);
+    }
+
+    /**
+     * Wait until the viewer reports it has drawn the last deferred batch, or
+     * `RENDERER_ACK_TIMEOUT_MS`, whichever comes first. Returns at once if
+     * the viewer returned nothing to wait on.
+     */
+    async waitForRendererAck(): Promise<void> {
+        const ack = this._lastDeferredRendererAck;
+        this._lastDeferredRendererAck = undefined;
+        if (
+            typeof (ack as PromiseLike<unknown> | undefined)?.then !==
+            "function"
+        ) {
+            return;
+        }
+
+        this._awaitingRendererAck = true;
+        let timeout: ReturnType<typeof setTimeout> | undefined;
+        try {
+            await Promise.race([
+                Promise.resolve(ack).catch(() => {}),
+                new Promise<void>((resolve) => {
+                    timeout = setTimeout(resolve, RENDERER_ACK_TIMEOUT_MS);
+                }),
+            ]);
+        } finally {
+            clearTimeout(timeout);
+            this._awaitingRendererAck = false;
+        }
     }
 
     /** Drop the next idle-lane chunk without sending it. */
@@ -1045,6 +1117,7 @@ export class RendererInstructionBuilder {
         const chunk = ordered.slice(0, this._idleRendererChunkSize);
         const { sourceInformation, actionId } = this._deferredRendererArgs;
 
+        this._lastDeferredRendererAck = undefined;
         const start = performance.now();
         await this.updateRenderersForComponents(
             chunk,
@@ -1062,6 +1135,8 @@ export class RendererInstructionBuilder {
             1,
             Math.min(1000, Math.round(this._idleRendererChunkSize * scale)),
         );
+
+        await this.waitForRendererAck();
 
         if (
             this.core.updateInfo.componentsToUpdateRenderers.size > 0 ||

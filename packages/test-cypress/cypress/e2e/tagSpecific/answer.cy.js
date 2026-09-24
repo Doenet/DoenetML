@@ -2054,93 +2054,98 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             cy.get("#firstQuad_button").should("not.exist");
         });
 
-        cy.get("#pSubX").should("have.text", "Submitted response: ");
-        cy.get("#pCreditX").should("have.text", "Credit for this answer: 0");
-        cy.get("#pSubCorrect").should("have.text", "Submitted response: ");
-        cy.get("#pCreditCorrect").should(
-            "have.text",
-            "Credit for this answer: 0",
-        );
-        cy.get("#pSubFirstQuad").should("have.text", "Submitted response: ");
-        cy.get("#pCreditFirstQuad").should(
-            "have.text",
-            "Credit for this answer: 0",
-        );
-        cy.get("#pCreditDoc").should(
-            "have.text",
-            "Document credit achieved: 0",
-        );
+        cy.get("#pSubX")
+            .scrollIntoView()
+            .should("have.text", "Submitted response: ");
+        cy.get("#pCreditX")
+            .scrollIntoView()
+            .should("have.text", "Credit for this answer: 0");
+        cy.get("#pSubCorrect")
+            .scrollIntoView()
+            .should("have.text", "Submitted response: ");
+        cy.get("#pCreditCorrect")
+            .scrollIntoView()
+            .should("have.text", "Credit for this answer: 0");
+        cy.get("#pSubFirstQuad")
+            .scrollIntoView()
+            .should("have.text", "Submitted response: ");
+        cy.get("#pCreditFirstQuad")
+            .scrollIntoView()
+            .should("have.text", "Credit for this answer: 0");
+        cy.get("#pCreditDoc")
+            .scrollIntoView()
+            .should("have.text", "Document credit achieved: 0");
 
         cy.get("#x" + " textarea").type("y", { force: true });
 
         cy.wait(1500); // wait for debounce
 
-        cy.get("#pSubX").should("have.text", "Submitted response: ");
-        cy.get("#pCreditX").should("have.text", "Credit for this answer: 0");
-        cy.get("#pCreditDoc").should(
-            "have.text",
-            "Document credit achieved: 0",
-        );
+        cy.get("#pSubX")
+            .scrollIntoView()
+            .should("have.text", "Submitted response: ");
+        cy.get("#pCreditX")
+            .scrollIntoView()
+            .should("have.text", "Credit for this answer: 0");
+        cy.get("#pCreditDoc")
+            .scrollIntoView()
+            .should("have.text", "Document credit achieved: 0");
 
         cy.get("#x" + " textarea").blur();
-        cy.get("#pSubX").should("contain.text", toMathJaxString("y"));
-        cy.get("#pCreditX").should("have.text", "Credit for this answer: 0");
-        cy.get("#pCreditDoc").should(
-            "have.text",
-            "Document credit achieved: 0",
-        );
+        cy.get("#pSubX")
+            .scrollIntoView()
+            .should("contain.text", toMathJaxString("y"));
+        cy.get("#pCreditX")
+            .scrollIntoView()
+            .should("have.text", "Credit for this answer: 0");
+        cy.get("#pCreditDoc")
+            .scrollIntoView()
+            .should("have.text", "Document credit achieved: 0");
 
         cy.get("#x" + " textarea").type("{end}{backspace}x{enter}", {
             force: true,
         });
-        cy.get("#pSubX").should("contain.text", toMathJaxString("x"));
-        cy.get("#pCreditX").should("have.text", "Credit for this answer: 1");
-        cy.get("#pCreditDoc").should(
-            "have.text",
-            "Document credit achieved: 0.333",
-        );
+        cy.get("#pSubX")
+            .scrollIntoView()
+            .should("contain.text", toMathJaxString("x"));
+        cy.get("#pCreditX")
+            .scrollIntoView()
+            .should("have.text", "Credit for this answer: 1");
+        cy.get("#pCreditDoc")
+            .scrollIntoView()
+            .should("have.text", "Document credit achieved: 0.333");
 
         cy.get("#choice1").click();
-        cy.get("#pSubCorrect").should(
-            "have.text",
-            "Submitted response: correct",
-        );
-        cy.get("#pCreditCorrect").should(
-            "have.text",
-            "Credit for this answer: 1",
-        );
-        cy.get("#pCreditDoc").should(
-            "have.text",
-            "Document credit achieved: 0.667",
-        );
+        cy.get("#pSubCorrect")
+            .scrollIntoView()
+            .should("have.text", "Submitted response: correct");
+        cy.get("#pCreditCorrect")
+            .scrollIntoView()
+            .should("have.text", "Credit for this answer: 1");
+        cy.get("#pCreditDoc")
+            .scrollIntoView()
+            .should("have.text", "Document credit achieved: 0.667");
 
         cy.get("#choice2").click();
-        cy.get("#pSubCorrect").should(
-            "have.text",
-            "Submitted response: incorrect",
-        );
-        cy.get("#pCreditCorrect").should(
-            "have.text",
-            "Credit for this answer: 0",
-        );
-        cy.get("#pCreditDoc").should(
-            "have.text",
-            "Document credit achieved: 0.333",
-        );
+        cy.get("#pSubCorrect")
+            .scrollIntoView()
+            .should("have.text", "Submitted response: incorrect");
+        cy.get("#pCreditCorrect")
+            .scrollIntoView()
+            .should("have.text", "Credit for this answer: 0");
+        cy.get("#pCreditDoc")
+            .scrollIntoView()
+            .should("have.text", "Document credit achieved: 0.333");
 
         cy.get("#choice1").click();
-        cy.get("#pSubCorrect").should(
-            "have.text",
-            "Submitted response: correct",
-        );
-        cy.get("#pCreditCorrect").should(
-            "have.text",
-            "Credit for this answer: 1",
-        );
-        cy.get("#pCreditDoc").should(
-            "have.text",
-            "Document credit achieved: 0.667",
-        );
+        cy.get("#pSubCorrect")
+            .scrollIntoView()
+            .should("have.text", "Submitted response: correct");
+        cy.get("#pCreditCorrect")
+            .scrollIntoView()
+            .should("have.text", "Credit for this answer: 1");
+        cy.get("#pCreditDoc")
+            .scrollIntoView()
+            .should("have.text", "Document credit achieved: 0.667");
 
         cy.window().then(async (win) => {
             win.callAction1({
@@ -2151,11 +2156,12 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
         });
 
         cy.wait(200);
-        cy.get("#pSubFirstQuad").should("have.text", "Submitted response: ");
-        cy.get("#pCreditFirstQuad").should(
-            "have.text",
-            "Credit for this answer: 0",
-        );
+        cy.get("#pSubFirstQuad")
+            .scrollIntoView()
+            .should("have.text", "Submitted response: ");
+        cy.get("#pCreditFirstQuad")
+            .scrollIntoView()
+            .should("have.text", "Credit for this answer: 0");
 
         cy.window().then(async (win) => {
             win.callAction1({
@@ -2166,11 +2172,12 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
         });
 
         cy.wait(200);
-        cy.get("#pSubFirstQuad").should("have.text", "Submitted response: ");
-        cy.get("#pCreditFirstQuad").should(
-            "have.text",
-            "Credit for this answer: 0",
-        );
+        cy.get("#pSubFirstQuad")
+            .scrollIntoView()
+            .should("have.text", "Submitted response: ");
+        cy.get("#pCreditFirstQuad")
+            .scrollIntoView()
+            .should("have.text", "Credit for this answer: 0");
 
         cy.window().then(async (win) => {
             win.callAction1({
@@ -2181,11 +2188,12 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
         });
 
         cy.wait(200);
-        cy.get("#pSubFirstQuad").should("have.text", "Submitted response: ");
-        cy.get("#pCreditFirstQuad").should(
-            "have.text",
-            "Credit for this answer: 0",
-        );
+        cy.get("#pSubFirstQuad")
+            .scrollIntoView()
+            .should("have.text", "Submitted response: ");
+        cy.get("#pCreditFirstQuad")
+            .scrollIntoView()
+            .should("have.text", "Credit for this answer: 0");
 
         cy.window().then(async (win) => {
             win.callAction1({
@@ -2196,11 +2204,12 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
         });
 
         cy.wait(200);
-        cy.get("#pSubFirstQuad").should("have.text", "Submitted response: ");
-        cy.get("#pCreditFirstQuad").should(
-            "have.text",
-            "Credit for this answer: 0",
-        );
+        cy.get("#pSubFirstQuad")
+            .scrollIntoView()
+            .should("have.text", "Submitted response: ");
+        cy.get("#pCreditFirstQuad")
+            .scrollIntoView()
+            .should("have.text", "Credit for this answer: 0");
 
         cy.window().then(async (win) => {
             win.callAction1({
@@ -2211,11 +2220,12 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
         });
 
         cy.wait(200);
-        cy.get("#pSubFirstQuad").should("have.text", "Submitted response: ");
-        cy.get("#pCreditFirstQuad").should(
-            "have.text",
-            "Credit for this answer: 0",
-        );
+        cy.get("#pSubFirstQuad")
+            .scrollIntoView()
+            .should("have.text", "Submitted response: ");
+        cy.get("#pCreditFirstQuad")
+            .scrollIntoView()
+            .should("have.text", "Credit for this answer: 0");
 
         cy.window().then(async (win) => {
             win.callAction1({
@@ -2226,11 +2236,12 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
         });
 
         cy.wait(200);
-        cy.get("#pSubFirstQuad").should("have.text", "Submitted response: ");
-        cy.get("#pCreditFirstQuad").should(
-            "have.text",
-            "Credit for this answer: 0",
-        );
+        cy.get("#pSubFirstQuad")
+            .scrollIntoView()
+            .should("have.text", "Submitted response: ");
+        cy.get("#pCreditFirstQuad")
+            .scrollIntoView()
+            .should("have.text", "Credit for this answer: 0");
 
         cy.window().then(async (win) => {
             win.callAction1({
@@ -2241,11 +2252,12 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
         });
 
         cy.wait(200);
-        cy.get("#pSubFirstQuad").should("have.text", "Submitted response: ");
-        cy.get("#pCreditFirstQuad").should(
-            "have.text",
-            "Credit for this answer: 0",
-        );
+        cy.get("#pSubFirstQuad")
+            .scrollIntoView()
+            .should("have.text", "Submitted response: ");
+        cy.get("#pCreditFirstQuad")
+            .scrollIntoView()
+            .should("have.text", "Credit for this answer: 0");
 
         cy.window().then(async (win) => {
             win.callAction1({
@@ -2256,22 +2268,23 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
         });
 
         cy.wait(200);
-        cy.get("#pSubFirstQuad").should("have.text", "Submitted response: ");
-        cy.get("#pCreditFirstQuad").should(
-            "have.text",
-            "Credit for this answer: 0",
-        );
+        cy.get("#pSubFirstQuad")
+            .scrollIntoView()
+            .should("have.text", "Submitted response: ");
+        cy.get("#pCreditFirstQuad")
+            .scrollIntoView()
+            .should("have.text", "Credit for this answer: 0");
 
-        cy.get("#pSubFirstQuad").should("contain.text", "3, −5");
+        cy.get("#pSubFirstQuad")
+            .scrollIntoView()
+            .should("contain.text", "3, −5");
 
-        cy.get("#pCreditFirstQuad").should(
-            "have.text",
-            "Credit for this answer: 0",
-        );
-        cy.get("#pCreditDoc").should(
-            "have.text",
-            "Document credit achieved: 0.667",
-        );
+        cy.get("#pCreditFirstQuad")
+            .scrollIntoView()
+            .should("have.text", "Credit for this answer: 0");
+        cy.get("#pCreditDoc")
+            .scrollIntoView()
+            .should("have.text", "Document credit achieved: 0.667");
 
         cy.window().then(async (win) => {
             win.callAction1({
@@ -2281,16 +2294,16 @@ describe("Answer Tag Tests", { tags: ["@group1"] }, function () {
             });
         });
 
-        cy.get("#pSubFirstQuad").should("contain.text", "9, 8");
+        cy.get("#pSubFirstQuad")
+            .scrollIntoView()
+            .should("contain.text", "9, 8");
 
-        cy.get("#pCreditFirstQuad").should(
-            "have.text",
-            "Credit for this answer: 1",
-        );
-        cy.get("#pCreditDoc").should(
-            "have.text",
-            "Document credit achieved: 1",
-        );
+        cy.get("#pCreditFirstQuad")
+            .scrollIntoView()
+            .should("have.text", "Credit for this answer: 1");
+        cy.get("#pCreditDoc")
+            .scrollIntoView()
+            .should("have.text", "Document credit achieved: 1");
     });
 
     it("reload math answer without blurring or hitting enter", () => {

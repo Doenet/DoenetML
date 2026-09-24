@@ -125,3 +125,41 @@ describe(
         });
     },
 );
+
+describe("Math far from the screen", { tags: ["@group5"] }, function () {
+    beforeEach(() => {
+        cy.clearIndexedDB();
+        cy.visit("/");
+    });
+
+    const doenetML = `
+<p name="farP">Far: <math name="farMath">$mi.immediateValue</math></p>
+<section name="spacer">
+  <repeatForSequence from="1" to="80">
+    <p>Filler paragraph to push the input well below the fold.</p>
+  </repeatForSequence>
+</section>
+<p>Input: <mathInput name="mi" /></p>
+<p>Echo: <math name="echo">$mi.immediateValue</math></p>
+`;
+
+    // The italic a that MathJax draws for "a".
+    const typesetA = "\u{1D44E}";
+
+    it("is redrawn when scrolled to, not while far away", () => {
+        cy.window().then((win) => {
+            win.postMessage({ doenetML }, "*");
+        });
+        cy.get("#farMath").should("exist");
+        cy.get("#mi textarea").type("a", { force: true });
+        cy.get("#echo").should("contain.text", typesetA);
+
+        // Core has long since sent the new value; the far math keeps its old
+        // output until it comes near.
+        cy.wait(500);
+        cy.get("#farMath").should("not.contain.text", typesetA);
+
+        cy.get("#farP").scrollIntoView();
+        cy.get("#farMath").should("contain.text", typesetA);
+    });
+});

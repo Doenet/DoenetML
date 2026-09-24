@@ -70,6 +70,20 @@ function observeIntersection(
 }
 
 /**
+ * Call `listener` with whether `element` is near the viewport, by the same
+ * margin core uses to decide what to send straight away, each time that
+ * changes. Returns a function that stops it.
+ */
+export function observeNearViewport(
+    element: Element,
+    listener: (isNear: boolean) => void,
+): () => void {
+    return observeIntersection(element, NEAR_VIEWPORT_MARGIN, (entry) =>
+        listener(entry.isIntersecting),
+    );
+}
+
+/**
  * Call `callAction` with the `actions.recordVisibilityChange`
  * when any portion of the element referenced by `ref`
  * becomes or stops being visible in the browser's viewport (`isVisible`), or

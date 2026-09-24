@@ -125,7 +125,9 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
         function checkEquationNumbering(m, n) {
             let counter = 1;
 
-            cy.get("#x").should("have.text", toMathJaxString(`x(${counter})`));
+            cy.get("#x")
+                .scrollIntoView()
+                .should("have.text", toMathJaxString(`x(${counter})`));
             cy.get("#px").should(
                 "have.text",
                 `x: ${counter}, equation (${counter})`,
@@ -141,10 +143,12 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
             for (let i = 1; i <= m; i++) {
                 cy.window().then(async (win) => {
                     counter++;
-                    cy.get(cesc(`#rm:${i}.eq`)).should(
-                        "have.text",
-                        toMathJaxString(`${i}m(${counter})`),
-                    );
+                    cy.get(cesc(`#rm:${i}.eq`))
+                        .scrollIntoView()
+                        .should(
+                            "have.text",
+                            toMathJaxString(`${i}m(${counter})`),
+                        );
                     if (i <= 6) {
                         cy.get(cesc(`#pm${i}`)).should(
                             "have.text",
@@ -183,10 +187,9 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
 
             cy.window().then(async (win) => {
                 counter++;
-                cy.get("#y").should(
-                    "have.text",
-                    toMathJaxString(`y(${counter})`),
-                );
+                cy.get("#y")
+                    .scrollIntoView()
+                    .should("have.text", toMathJaxString(`y(${counter})`));
                 cy.get("#py").should(
                     "have.text",
                     `y: ${counter}, equation (${counter})`,
@@ -203,10 +206,12 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
             for (let i = 1; i <= n; i++) {
                 cy.window().then(async (win) => {
                     counter++;
-                    cy.get(cesc(`#rn:${i}.eq`)).should(
-                        "have.text",
-                        toMathJaxString(`${i}n(${counter})`),
-                    );
+                    cy.get(cesc(`#rn:${i}.eq`))
+                        .scrollIntoView()
+                        .should(
+                            "have.text",
+                            toMathJaxString(`${i}n(${counter})`),
+                        );
                     if (i <= 6) {
                         cy.get(cesc(`#pn${i}`)).should(
                             "have.text",
@@ -246,10 +251,9 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
 
             cy.window().then(async (win) => {
                 counter++;
-                cy.get("#z").should(
-                    "have.text",
-                    toMathJaxString(`z(${counter})`),
-                );
+                cy.get("#z")
+                    .scrollIntoView()
+                    .should("have.text", toMathJaxString(`z(${counter})`));
                 cy.get("#pz").should(
                     "have.text",
                     `z: ${counter}, equation (${counter})`,
@@ -269,37 +273,37 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#m" + " textarea").type(`{end}{backspace}4{enter}`, {
             force: true,
         });
-        cy.get("#ma").should("contain.text", "4");
+        cy.get("#ma").scrollIntoView().should("contain.text", "4");
         checkEquationNumbering(4, 1);
 
         cy.get("#n" + " textarea").type(`{end}{backspace}2{enter}`, {
             force: true,
         });
-        cy.get("#na").should("contain.text", "2");
+        cy.get("#na").scrollIntoView().should("contain.text", "2");
         checkEquationNumbering(4, 2);
 
         cy.get("#m" + " textarea").type(`{end}{backspace}0{enter}`, {
             force: true,
         });
-        cy.get("#ma").should("contain.text", "0");
+        cy.get("#ma").scrollIntoView().should("contain.text", "0");
         checkEquationNumbering(0, 2);
 
         cy.get("#n" + " textarea").type(`{end}{backspace}6{enter}`, {
             force: true,
         });
-        cy.get("#na").should("contain.text", "6");
+        cy.get("#na").scrollIntoView().should("contain.text", "6");
         checkEquationNumbering(0, 6);
 
         cy.get("#m" + " textarea").type(`{end}{backspace}3{enter}`, {
             force: true,
         });
-        cy.get("#ma").should("contain.text", "3");
+        cy.get("#ma").scrollIntoView().should("contain.text", "3");
         checkEquationNumbering(3, 6);
 
         cy.get("#n" + " textarea").type(`{end}{backspace}1{enter}`, {
             force: true,
         });
-        cy.get("#na").should("contain.text", "1");
+        cy.get("#na").scrollIntoView().should("contain.text", "1");
         checkEquationNumbering(3, 1);
     });
 
@@ -356,7 +360,9 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
         function checkEquationNumbering(m, n) {
             let counter = 1;
 
-            cy.get("#x").should("have.text", toMathJaxString(`x(${counter})`));
+            cy.get("#x")
+                .scrollIntoView()
+                .should("have.text", toMathJaxString(`x(${counter})`));
             cy.get("#px").should(
                 "have.text",
                 `x: ${counter}, equation (${counter})`,
@@ -423,10 +429,9 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
 
             cy.window().then(async (win) => {
                 counter++;
-                cy.get("#y").should(
-                    "have.text",
-                    toMathJaxString(`y(${counter})`),
-                );
+                cy.get("#y")
+                    .scrollIntoView()
+                    .should("have.text", toMathJaxString(`y(${counter})`));
                 cy.get("#py").should(
                     "have.text",
                     `y: ${counter}, equation (${counter})`,
@@ -496,10 +501,9 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
 
             cy.window().then(async (win) => {
                 counter++;
-                cy.get("#z").should(
-                    "have.text",
-                    toMathJaxString(`z(${counter})`),
-                );
+                cy.get("#z")
+                    .scrollIntoView()
+                    .should("have.text", toMathJaxString(`z(${counter})`));
                 cy.get("#pz").should(
                     "have.text",
                     `z: ${counter}, equation (${counter})`,
@@ -519,37 +523,37 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#m" + " textarea").type(`{end}{backspace}4{enter}`, {
             force: true,
         });
-        cy.get("#ma").should("contain.text", "4");
+        cy.get("#ma").scrollIntoView().should("contain.text", "4");
         checkEquationNumbering(4, 1);
 
         cy.get("#n" + " textarea").type(`{end}{backspace}2{enter}`, {
             force: true,
         });
-        cy.get("#na").should("contain.text", "2");
+        cy.get("#na").scrollIntoView().should("contain.text", "2");
         checkEquationNumbering(4, 2);
 
         cy.get("#m" + " textarea").type(`{end}{backspace}0{enter}`, {
             force: true,
         });
-        cy.get("#ma").should("contain.text", "0");
+        cy.get("#ma").scrollIntoView().should("contain.text", "0");
         checkEquationNumbering(0, 2);
 
         cy.get("#n" + " textarea").type(`{end}{backspace}6{enter}`, {
             force: true,
         });
-        cy.get("#na").should("contain.text", "6");
+        cy.get("#na").scrollIntoView().should("contain.text", "6");
         checkEquationNumbering(0, 6);
 
         cy.get("#m" + " textarea").type(`{end}{backspace}3{enter}`, {
             force: true,
         });
-        cy.get("#ma").should("contain.text", "3");
+        cy.get("#ma").scrollIntoView().should("contain.text", "3");
         checkEquationNumbering(3, 6);
 
         cy.get("#n" + " textarea").type(`{end}{backspace}1{enter}`, {
             force: true,
         });
-        cy.get("#na").should("contain.text", "1");
+        cy.get("#na").scrollIntoView().should("contain.text", "1");
         checkEquationNumbering(3, 1);
     });
 
@@ -606,7 +610,9 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
         function checkEquationNumbering(m, n) {
             let counter = 1;
 
-            cy.get("#x").should("have.text", toMathJaxString(`x(${counter})`));
+            cy.get("#x")
+                .scrollIntoView()
+                .should("have.text", toMathJaxString(`x(${counter})`));
             cy.get("#px").should(
                 "have.text",
                 `x: ${counter}, equation (${counter})`,
@@ -700,10 +706,9 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
 
             cy.window().then(async (win) => {
                 counter++;
-                cy.get("#y").should(
-                    "have.text",
-                    toMathJaxString(`y(${counter})`),
-                );
+                cy.get("#y")
+                    .scrollIntoView()
+                    .should("have.text", toMathJaxString(`y(${counter})`));
                 cy.get("#py").should(
                     "have.text",
                     `y: ${counter}, equation (${counter})`,
@@ -797,10 +802,9 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
 
             cy.window().then(async (win) => {
                 counter++;
-                cy.get("#z").should(
-                    "have.text",
-                    toMathJaxString(`z(${counter})`),
-                );
+                cy.get("#z")
+                    .scrollIntoView()
+                    .should("have.text", toMathJaxString(`z(${counter})`));
                 cy.get("#pz").should(
                     "have.text",
                     `z: ${counter}, equation (${counter})`,
@@ -821,37 +825,37 @@ describe("Math Display Tag Tests", { tags: ["@group2"] }, function () {
         cy.get("#m" + " textarea").type(`{end}{backspace}4{enter}`, {
             force: true,
         });
-        cy.get("#ma").should("contain.text", "4");
+        cy.get("#ma").scrollIntoView().should("contain.text", "4");
         checkEquationNumbering(4, 1);
 
         cy.get("#n" + " textarea").type(`{end}{backspace}2{enter}`, {
             force: true,
         });
-        cy.get("#na").should("contain.text", "2");
+        cy.get("#na").scrollIntoView().should("contain.text", "2");
         checkEquationNumbering(4, 2);
 
         cy.get("#m" + " textarea").type(`{end}{backspace}0{enter}`, {
             force: true,
         });
-        cy.get("#ma").should("contain.text", "0");
+        cy.get("#ma").scrollIntoView().should("contain.text", "0");
         checkEquationNumbering(0, 2);
 
         cy.get("#n" + " textarea").type(`{end}{backspace}6{enter}`, {
             force: true,
         });
-        cy.get("#na").should("contain.text", "6");
+        cy.get("#na").scrollIntoView().should("contain.text", "6");
         checkEquationNumbering(0, 6);
 
         cy.get("#m" + " textarea").type(`{end}{backspace}3{enter}`, {
             force: true,
         });
-        cy.get("#ma").should("contain.text", "3");
+        cy.get("#ma").scrollIntoView().should("contain.text", "3");
         checkEquationNumbering(3, 6);
 
         cy.get("#n" + " textarea").type(`{end}{backspace}1{enter}`, {
             force: true,
         });
-        cy.get("#na").should("contain.text", "1");
+        cy.get("#na").scrollIntoView().should("contain.text", "1");
         checkEquationNumbering(3, 1);
     });
 

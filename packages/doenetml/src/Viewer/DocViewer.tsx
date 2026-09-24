@@ -2092,6 +2092,25 @@ export function DocViewer({
             });
     }
 
+    /**
+     * Resolves once the next frame has been painted, so what was just
+     * dispatched has been drawn. A page that is hidden paints no frames, so
+     * it resolves after a short wait there instead.
+     */
+    function afterNextPaint(): Promise<void> {
+        return new Promise((resolve) => {
+            const fallback = setTimeout(resolve, 100);
+            // `window.` because this component has its own
+            // `requestAnimationFrame`, for core's animations.
+            window.requestAnimationFrame(() => {
+                setTimeout(() => {
+                    clearTimeout(fallback);
+                    resolve();
+                }, 0);
+            });
+        });
+    }
+
     function updateRenderers({
         updateInstructions,
         actionId,
@@ -2192,7 +2211,13 @@ export function DocViewer({
 
         if (!deferred) {
             resolveAction({ actionId });
+            return;
         }
+
+        // Core waits for this before sending the next deferred batch, so the
+        // rate it sends offscreen updates at is the rate this thread can draw
+        // them.
+        return afterNextPaint();
     }
 
     function resolveAction({
