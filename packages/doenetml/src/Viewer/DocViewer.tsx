@@ -2111,8 +2111,9 @@ export function DocViewer({
 
     /**
      * Resolves once the next frame has been painted, so what was just
-     * dispatched has been drawn. A page that is hidden paints no frames, so
-     * it resolves after a short wait there instead.
+     * dispatched has been drawn, or after 100 ms, whichever comes first. A
+     * page that is hidden paints no frames, so there it resolves after the
+     * 100 ms.
      */
     function afterNextPaint(): Promise<void> {
         return new Promise((resolve) => {

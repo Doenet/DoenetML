@@ -24,7 +24,8 @@ import { reportTimerError, TimerLabels } from "./utils/timerErrors";
 
 /**
  * For a deferred batch, the viewer may return a promise that resolves once it
- * has drawn the batch; core sends its next idle-lane chunk only after that.
+ * has drawn the batch; core sends its next idle-lane chunk only after that,
+ * or after `RENDERER_ACK_TIMEOUT_MS` if it never resolves.
  */
 export type UpdateRenderersCallback = (arg: {
     updateInstructions: Record<string, any>[];

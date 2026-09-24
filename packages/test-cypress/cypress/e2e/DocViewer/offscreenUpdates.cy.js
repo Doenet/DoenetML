@@ -132,47 +132,72 @@ describe("Math far from the screen", { tags: ["@group5"] }, function () {
         cy.visit("/");
     });
 
-    // A hundred maths above the reader, who has scrolled down to the input.
-    // They are typeset once the page is idle, nearest first, so `farMath`, at
-    // the top, is the last.
+    // Sixty maths above the reader, who has scrolled to the input, and sixty
+    // below. They are typeset once the page is idle, nearest first, so the
+    // ends of each section nearest the input, `nearAbove` and `nearBelow`,
+    // come well before the ends farthest from it, `farMath` and `farBelow`.
     const doenetML = `
 <section name="far">
   <p>Far: <math name="farMath">$mi.immediateValue</math></p>
-  <repeatForSequence from="1" to="100" valueName="v">
+  <repeatForSequence from="1" to="60" valueName="v">
     <p><math>$v + $mi.immediateValue</math></p>
   </repeatForSequence>
+  <p>Near: <math name="nearAbove">$mi.immediateValue</math></p>
 </section>
 <section name="spacer">
   <repeatForSequence from="1" to="80">
     <p>Filler paragraph to push the input well below the fold.</p>
   </repeatForSequence>
 </section>
-<p>Input: <mathInput name="mi" /></p>
+<p>Input: <mathInput name="mi" prefill="x" /></p>
 <p name="echoP">Echo: <math name="echo">$mi.immediateValue</math></p>
+<section name="spacer2">
+  <repeatForSequence from="1" to="80">
+    <p>Filler paragraph to push the next section well below the fold.</p>
+  </repeatForSequence>
+</section>
+<section name="below">
+  <p>Near: <math name="nearBelow">$mi.immediateValue</math></p>
+  <repeatForSequence from="1" to="60" valueName="v">
+    <p><math>$v - $mi.immediateValue</math></p>
+  </repeatForSequence>
+  <p>Far: <math name="farBelow">$mi.immediateValue</math></p>
+</section>
 `;
 
     // The italic a that MathJax draws for "a".
     const typesetA = "\u{1D44E}";
 
-    it("updates after the math on screen, and without being scrolled to", () => {
+    it("updates after the math on screen, nearest first, and without being scrolled to", () => {
         cy.window().then((win) => {
             win.postMessage({ doenetML }, "*");
         });
-        cy.get("#farMath", { timeout: 15000 }).should("exist");
+        cy.get("#farBelow mjx-container", { timeout: 15000 }).should("exist");
         cy.get("#echoP").scrollIntoView();
         cy.get("#mi textarea").type("a", { force: true });
+
+        const text = (doc, id) => doc.getElementById(id).textContent;
 
         // Both in the same retry: it passes only at a moment when the echo on
         // screen is current and the far math is not yet.
         cy.document().should((doc) => {
-            expect(doc.getElementById("echo").textContent).contain(typesetA);
-            expect(doc.getElementById("farMath").textContent).not.contain(
-                typesetA,
-            );
+            expect(text(doc, "echo")).contain(typesetA);
+            expect(text(doc, "farMath")).not.contain(typesetA);
+            expect(text(doc, "farBelow")).not.contain(typesetA);
         });
 
-        // About a hundred typesets of idle time later.
+        // Nearest first: the ends of both sections nearest the input are
+        // current while the far ends are not yet.
+        cy.document().should((doc) => {
+            expect(text(doc, "nearAbove")).contain(typesetA);
+            expect(text(doc, "nearBelow")).contain(typesetA);
+            expect(text(doc, "farMath")).not.contain(typesetA);
+            expect(text(doc, "farBelow")).not.contain(typesetA);
+        });
+
+        // About 120 typesets of idle time later.
         cy.get("#farMath", { timeout: 15000 }).should("contain.text", typesetA);
+        cy.get("#farBelow").should("contain.text", typesetA);
     });
 });
 
