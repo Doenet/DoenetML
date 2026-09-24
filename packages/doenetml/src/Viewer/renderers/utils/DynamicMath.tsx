@@ -1,9 +1,6 @@
 import React, { useLayoutEffect, useRef } from "react";
 import { loadMathJax } from "@doenet/utils";
-import {
-    observeInViewport,
-    observeNearViewport,
-} from "../../../utils/visibility";
+import { observeInViewport } from "../../../utils/visibility";
 
 /** Minimum time between typesets of a single element (ms). Caps how often a
  * fast drag re-typesets; the displayed value lags by at most this plus one
@@ -31,35 +28,51 @@ interface LoadedMathJax {
 let startedMathJax: LoadedMathJax | null = null;
 
 /**
- * How many typesets are handed to MathJax at once. MathJax runs them one at a
- * time in the order given, so the rest wait in `waitingTypesets`, where math
- * in the viewport can go ahead of math that is only near it. Two keeps
- * MathJax from idling between one typeset and the next.
+ * How many urgent typesets are handed to MathJax at once. MathJax runs them one
+ * at a time in the order given, so the rest wait in `waitingTypesets`, where a
+ * newer urgent typeset can still go ahead of older ones that are not. Two
+ * keeps MathJax from idling between one typeset and the next.
  */
 const MAX_TYPESETS_IN_FLIGHT = 2;
 
+/**
+ * Where `requestIdleCallback` is missing, how long (ms) the page must have had
+ * nothing else to do before a typeset that is not urgent starts.
+ */
+const IDLE_FALLBACK_MS = 50;
+
 interface TypesetRequest {
-    /** Whether the element is in the viewport now. */
-    inViewport: () => boolean;
+    /**
+     * Whether the typeset should start as soon as MathJax has room, rather
+     * than waiting for the page to be idle.
+     */
+    urgent: () => boolean;
+    /** The element being typeset, to find how far it is from the viewport. */
+    element: () => Element | null;
     start: () => void;
 }
 
 const waitingTypesets: TypesetRequest[] = [];
 let typesetsInFlight = 0;
 let startScheduled = false;
+let idleScheduled = false;
+let actionsInFlight = 0;
 
 /**
- * Run `typeset` once MathJax has room for it, giving elements in the viewport
- * precedence over those only near it, and first come first served otherwise.
- * Resolves or rejects as `typeset` does.
+ * Run `typeset` once MathJax has room for it. An urgent typeset starts as
+ * soon as there is room; any other starts only when the page is idle, nothing
+ * urgent is waiting and no action is in flight, one at a time, nearest to the
+ * viewport first. Resolves or rejects as `typeset` does.
  */
 function scheduleTypeset(
-    inViewport: () => boolean,
+    urgent: () => boolean,
+    element: () => Element | null,
     typeset: () => Promise<unknown>,
 ): Promise<void> {
     return new Promise((resolve, reject) => {
         waitingTypesets.push({
-            inViewport,
+            urgent,
+            element,
             start() {
                 typesetsInFlight++;
                 Promise.resolve()
@@ -83,20 +96,106 @@ function scheduleTypeset(
     });
 }
 
+/**
+ * Start the urgent typesets MathJax has room for, and once nothing is in
+ * flight, arrange for the rest to continue when the page is idle.
+ */
 function startWaitingTypesets() {
-    while (
-        typesetsInFlight < MAX_TYPESETS_IN_FLIGHT &&
-        waitingTypesets.length > 0
-    ) {
-        const inViewportIndex = waitingTypesets.findIndex((request) =>
-            request.inViewport(),
-        );
-        const [next] = waitingTypesets.splice(
-            inViewportIndex === -1 ? 0 : inViewportIndex,
-            1,
-        );
-        next.start();
+    while (typesetsInFlight < MAX_TYPESETS_IN_FLIGHT) {
+        const index = waitingTypesets.findIndex((request) => request.urgent());
+        if (index === -1) {
+            break;
+        }
+        waitingTypesets.splice(index, 1)[0].start();
     }
+    if (typesetsInFlight === 0 && waitingTypesets.length > 0) {
+        scheduleIdleTypeset();
+    }
+}
+
+function scheduleIdleTypeset() {
+    if (idleScheduled) {
+        return;
+    }
+    idleScheduled = true;
+    const run = () => {
+        idleScheduled = false;
+        startIdleTypeset();
+    };
+    if (typeof requestIdleCallback === "function") {
+        requestIdleCallback(run);
+    } else {
+        setTimeout(run, IDLE_FALLBACK_MS);
+    }
+}
+
+/**
+ * Start the waiting typeset nearest the viewport, unless something has come
+ * up since the page went idle. Whatever came up restarts the queue when done:
+ * a typeset finishing, or the last action in flight resolving.
+ */
+function startIdleTypeset() {
+    if (
+        typesetsInFlight > 0 ||
+        actionsInFlight > 0 ||
+        waitingTypesets.length === 0
+    ) {
+        return;
+    }
+    if (waitingTypesets.some((request) => request.urgent())) {
+        startWaitingTypesets();
+        return;
+    }
+    let nearest = 0;
+    let nearestDistance = Infinity;
+    for (const [index, request] of waitingTypesets.entries()) {
+        const distance = distanceFromViewport(request.element());
+        if (distance < nearestDistance) {
+            nearest = index;
+            nearestDistance = distance;
+        }
+    }
+    waitingTypesets.splice(nearest, 1)[0].start();
+}
+
+/**
+ * How far (px) `element` is above or below the viewport, 0 if any of it is in
+ * it, and `Infinity` if it is not laid out at all, such as inside a closed
+ * hint.
+ */
+function distanceFromViewport(element: Element | null): number {
+    if (!element?.isConnected || element.getClientRects().length === 0) {
+        return Infinity;
+    }
+    const rect = element.getBoundingClientRect();
+    if (rect.bottom < 0) {
+        return -rect.bottom;
+    }
+    if (rect.top > window.innerHeight) {
+        return rect.top - window.innerHeight;
+    }
+    return 0;
+}
+
+/**
+ * Hold typesets that are not urgent while an action is in flight: the page may
+ * be idle while core works out the action's result, and the typesets that
+ * result brings for math in the viewport should not have to wait behind one
+ * for math far away. Returns the function that releases the hold.
+ */
+export function holdIdleTypesets(): () => void {
+    actionsInFlight++;
+    let released = false;
+    return () => {
+        if (released) {
+            return;
+        }
+        released = true;
+        actionsInFlight--;
+        if (actionsInFlight === 0) {
+            startWaitingTypesets();
+        }
+    };
 }
 
 /**
@@ -124,13 +223,13 @@ function startWaitingTypesets() {
  * of the loop: under coalescing the loop may swap several times, and a caller
  * positioning something against the output has to follow every one of them.
  *
- * Once an element has been typeset, a new value that arrives while it is far
- * from the viewport waits until the element comes near. MathJax typesets one
- * expression at a time in the order asked, so this keeps math the reader can
- * see from queuing behind math they can't; the element keeps its last output
- * in the meantime. The first typeset always runs, so what the page lays out
- * around is real output. Among the typesets waiting for MathJax, those of
- * elements in the viewport go first (`scheduleTypeset`).
+ * MathJax typesets one expression at a time in the order asked, so typesets
+ * go through a shared queue (`scheduleTypeset`) that keeps math the reader can
+ * see from waiting behind math they can't. An element in the viewport, or one
+ * not yet typeset at all, starts as soon as MathJax has room; the first
+ * typeset always runs, so what the page lays out around is real output. Any
+ * other element keeps its last output until the page is idle, then updates,
+ * nearest to the viewport first.
  *
  * `immediate` is for an expression with a control being edited inside it,
  * whose every keystroke changes the LaTeX: the typeset then runs synchronously
@@ -166,33 +265,22 @@ export function DynamicMath({
     // re-run the [latex] effect on every render.
     const onTypesetRef = useRef(onTypeset);
     onTypesetRef.current = onTypeset;
-    // Whether the element is near the viewport, or null until the observer
-    // first reports, which counts as near.
-    const near = useRef<boolean | null>(null);
     // Whether any of the element is in the viewport, or null until the
     // observer first reports, which counts as in it.
     const inViewport = useRef<boolean | null>(null);
-    // Restarts the typeset loop for a value that waited while far away.
-    const resumeRef = useRef<(() => void) | null>(null);
 
     useLayoutEffect(() => {
         const visible = visibleRef.current;
         if (!visible) {
             return;
         }
-        const stopNear = observeNearViewport(visible, (isNear) => {
-            near.current = isNear;
-            if (isNear) {
-                resumeRef.current?.();
+        return observeInViewport(visible, (isIn) => {
+            inViewport.current = isIn;
+            // A typeset waiting for the page to be idle becomes urgent.
+            if (isIn) {
+                startWaitingTypesets();
             }
         });
-        const stopInViewport = observeInViewport(visible, (isIn) => {
-            inViewport.current = isIn;
-        });
-        return () => {
-            stopNear();
-            stopInViewport();
-        };
     }, []);
 
     // Arm/re-arm the unmount guard and clean up the off-screen buffer. Runs
@@ -222,18 +310,9 @@ export function DynamicMath({
         }
         // On failure, keep the last good render rather than flashing raw LaTeX
         // or going blank.
-        const startLoop = () => {
-            renderPendingLatex().catch((e) => {
-                console.error("DynamicMath: MathJax typesetting failed", e);
-            });
-        };
-        resumeRef.current = startLoop;
-        startLoop();
-
-        /** Whether a new value must wait for the element to come near. */
-        function waitsUntilNear(): boolean {
-            return current.current !== null && near.current === false;
-        }
+        renderPendingLatex().catch((e) => {
+            console.error("DynamicMath: MathJax typesetting failed", e);
+        });
 
         /**
          * Typeset the pending value here and now, in the layout phase, so the
@@ -286,9 +365,7 @@ export function DynamicMath({
          * ones), typesets it on the off-screen buffer, drops MathJax's record of
          * that render, and swaps the rendered nodes into the visible span. It
          * exits once `pending` has caught up to what is displayed, leaving the
-         * newest value on screen. It also exits when the component unmounts,
-         * and when the element is far from the viewport (see `waitsUntilNear`),
-         * leaving the value pending until the element comes near.
+         * newest value on screen, or when the component unmounts.
          */
         async function renderPendingLatex() {
             if (busy.current) {
@@ -307,8 +384,7 @@ export function DynamicMath({
                 while (
                     mounted.current &&
                     pending.current !== null &&
-                    pending.current !== current.current &&
-                    !waitsUntilNear()
+                    pending.current !== current.current
                 ) {
                     const wait =
                         THROTTLE_MS -
@@ -320,36 +396,40 @@ export function DynamicMath({
                     }
                     // Bail if we unmounted while waiting, before creating the
                     // buffer (which cleanup has already removed) or typesetting.
-                    // Also stop if the element went far away meanwhile; the
-                    // value stays pending until it comes back.
-                    if (!mounted.current || waitsUntilNear()) {
+                    if (!mounted.current) {
                         break;
                     }
-                    // Grab the newest requested value, skipping any intermediate
-                    // ones that arrived while we were waiting or typesetting.
-                    const next = pending.current;
-                    if (next === null) {
-                        break;
-                    }
-                    pending.current = null;
 
                     const buffer = ensureBuffer(bufferRef);
-                    buffer.innerHTML = next;
-                    // An element that unmounts while its typeset waits in
-                    // the queue has nothing to show it in, so it skips it.
+                    // Grab the newest requested value when the typeset starts,
+                    // not when it joins the queue, so one that waited for the
+                    // page to be idle skips the values that arrived meanwhile.
+                    // An element that unmounted while its typeset waited has
+                    // nothing to show it in, so it skips it.
+                    let next: string | null = null;
+                    const typeset = async () => {
+                        if (!mounted.current || pending.current === null) {
+                            return;
+                        }
+                        next = pending.current;
+                        pending.current = null;
+                        buffer.innerHTML = next;
+                        await MathJax.typesetPromise([buffer]);
+                    };
                     // One with a control being edited in it goes straight to
                     // MathJax, since the reader is watching it change.
-                    const typeset = async () => {
-                        if (mounted.current) {
-                            await MathJax.typesetPromise([buffer]);
-                        }
-                    };
                     await (immediate
                         ? typeset()
                         : scheduleTypeset(
-                              () => inViewport.current !== false,
+                              () =>
+                                  current.current === null ||
+                                  inViewport.current !== false,
+                              () => visibleRef.current,
                               typeset,
                           ));
+                    if (next === null) {
+                        break;
+                    }
                     // Drop MathJax's record of this render as soon as the
                     // typeset finishes — before the unmount check below and
                     // before moving the rendered nodes out of the buffer.

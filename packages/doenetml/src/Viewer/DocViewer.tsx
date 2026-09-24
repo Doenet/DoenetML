@@ -82,6 +82,7 @@ import {
     localizeDiagnostics,
     useDiagnosticFormatter,
 } from "../utils/diagnostics";
+import { holdIdleTypesets } from "./renderers/utils/DynamicMath";
 
 // Re-export for back-compat: `renderersLoadComponent` was previously defined
 // here, and external consumers may deep-import it from
@@ -1855,6 +1856,9 @@ export function DocViewer({
         // undefined), settle the pending callAction promise as false so it does not hang
         // and so lastSkippableAction can be released.
         let actionResult;
+        // Math far from the viewport waits to be typeset until core has
+        // answered, so the math this action changes on screen goes first.
+        const releaseIdleTypesets = holdIdleTypesets();
         try {
             actionResult =
                 await coreWorker.current?.dispatchActionJavascript(actionArgs);
@@ -1865,6 +1869,8 @@ export function DocViewer({
                 success: false,
             });
             return;
+        } finally {
+            releaseIdleTypesets();
         }
 
         if (actionResult) {

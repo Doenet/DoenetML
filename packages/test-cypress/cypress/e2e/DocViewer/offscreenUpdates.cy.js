@@ -132,34 +132,46 @@ describe("Math far from the screen", { tags: ["@group5"] }, function () {
         cy.visit("/");
     });
 
+    // A hundred maths above the reader, who has scrolled down to the input.
+    // They are typeset once the page is idle, nearest first, so `farMath`, at
+    // the top, is the last.
     const doenetML = `
-<p name="farP">Far: <math name="farMath">$mi.immediateValue</math></p>
+<section name="far">
+  <p>Far: <math name="farMath">$mi.immediateValue</math></p>
+  <repeatForSequence from="1" to="100" valueName="v">
+    <p><math>$v + $mi.immediateValue</math></p>
+  </repeatForSequence>
+</section>
 <section name="spacer">
   <repeatForSequence from="1" to="80">
     <p>Filler paragraph to push the input well below the fold.</p>
   </repeatForSequence>
 </section>
 <p>Input: <mathInput name="mi" /></p>
-<p>Echo: <math name="echo">$mi.immediateValue</math></p>
+<p name="echoP">Echo: <math name="echo">$mi.immediateValue</math></p>
 `;
 
     // The italic a that MathJax draws for "a".
     const typesetA = "\u{1D44E}";
 
-    it("is redrawn when scrolled to, not while far away", () => {
+    it("updates after the math on screen, and without being scrolled to", () => {
         cy.window().then((win) => {
             win.postMessage({ doenetML }, "*");
         });
-        cy.get("#farMath").should("exist");
+        cy.get("#farMath", { timeout: 15000 }).should("exist");
+        cy.get("#echoP").scrollIntoView();
         cy.get("#mi textarea").type("a", { force: true });
-        cy.get("#echo").should("contain.text", typesetA);
 
-        // Core has long since sent the new value; the far math keeps its old
-        // output until it comes near.
-        cy.wait(500);
-        cy.get("#farMath").should("not.contain.text", typesetA);
+        // Both in the same retry: it passes only at a moment when the echo on
+        // screen is current and the far math is not yet.
+        cy.document().should((doc) => {
+            expect(doc.getElementById("echo").textContent).contain(typesetA);
+            expect(doc.getElementById("farMath").textContent).not.contain(
+                typesetA,
+            );
+        });
 
-        cy.get("#farP").scrollIntoView();
-        cy.get("#farMath").should("contain.text", typesetA);
+        // About a hundred typesets of idle time later.
+        cy.get("#farMath", { timeout: 15000 }).should("contain.text", typesetA);
     });
 });
