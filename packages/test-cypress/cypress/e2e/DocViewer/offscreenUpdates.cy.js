@@ -60,7 +60,7 @@ describe(
 <section name="far">
   <p><text name="farEcho">$ti.immediateValue</text></p>
   <repeatForSequence from="1" to="400" valueName="v">
-    <p><math simplify>$v x + $ti.immediateValue</math></p>
+    <p><text>$v $ti.immediateValue</text></p>
   </repeatForSequence>
   <p><text name="farEchoLast">$ti.immediateValue</text></p>
 </section>
