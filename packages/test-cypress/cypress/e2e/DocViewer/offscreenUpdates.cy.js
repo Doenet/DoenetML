@@ -180,7 +180,7 @@ describe("Math far from the screen", { tags: ["@group5"] }, function () {
 
         // Both in the same retry: it passes only at a moment when the echo on
         // screen is current and the far math is not yet.
-        cy.document().should((doc) => {
+        cy.document({ timeout: 4000 }).should((doc) => {
             expect(text(doc, "echo")).contain(typesetA);
             expect(text(doc, "farMath")).not.contain(typesetA);
             expect(text(doc, "farBelow")).not.contain(typesetA);
@@ -188,7 +188,7 @@ describe("Math far from the screen", { tags: ["@group5"] }, function () {
 
         // Nearest first: the ends of both sections nearest the input are
         // current while the far ends are not yet.
-        cy.document().should((doc) => {
+        cy.document({ timeout: 4000 }).should((doc) => {
             expect(text(doc, "nearAbove")).contain(typesetA);
             expect(text(doc, "nearBelow")).contain(typesetA);
             expect(text(doc, "farMath")).not.contain(typesetA);
@@ -197,7 +197,59 @@ describe("Math far from the screen", { tags: ["@group5"] }, function () {
 
         // About 120 typesets of idle time later.
         cy.get("#farMath", { timeout: 15000 }).should("contain.text", typesetA);
-        cy.get("#farBelow").should("contain.text", typesetA);
+        cy.get("#farBelow", { timeout: 4000 }).should("contain.text", typesetA);
+    });
+
+    // The italic b that MathJax draws for "b".
+    const typesetB = "\u{1D44F}";
+
+    it("typesets only the newest value in math that waited", () => {
+        cy.window().then((win) => {
+            win.postMessage({ doenetML }, "*");
+        });
+        cy.get("#farBelow mjx-container", { timeout: 15000 }).should("exist");
+        cy.get("#echoP").scrollIntoView();
+
+        // Note whether the far ends ever show the first keystroke without
+        // the second.
+        cy.window().then((win) => {
+            win.showedOnlyA = false;
+            const farEnds = ["farMath", "farBelow"].map((id) =>
+                win.document.getElementById(id),
+            );
+            new win.MutationObserver(() => {
+                for (const element of farEnds) {
+                    const text = element.textContent;
+                    if (text.includes(typesetA) && !text.includes(typesetB)) {
+                        win.showedOnlyA = true;
+                    }
+                }
+            }).observe(win.document.body, {
+                subtree: true,
+                childList: true,
+                characterData: true,
+            });
+        });
+
+        // Type "b" once the maths nearest the input show "a", while the far
+        // ends are still waiting to be typeset with it.
+        cy.get("#mi textarea").type("a", { force: true });
+        cy.get("#nearBelow", { timeout: 4000 }).should(
+            "contain.text",
+            typesetA,
+        );
+        cy.get("#nearAbove", { timeout: 4000 }).should(
+            "contain.text",
+            typesetA,
+        );
+        cy.get("#mi textarea").type("b", { force: true });
+        cy.get("#echo", { timeout: 4000 }).should("contain.text", typesetB);
+
+        cy.get("#farMath", { timeout: 15000 }).should("contain.text", typesetB);
+        cy.get("#farBelow", { timeout: 4000 }).should("contain.text", typesetB);
+        cy.window().then((win) => {
+            expect(win.showedOnlyA).eq(false);
+        });
     });
 });
 
