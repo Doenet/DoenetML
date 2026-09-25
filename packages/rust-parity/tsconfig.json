@@ -1,0 +1,15 @@
+{
+    "extends": "../../tsconfig.build.json",
+    "compilerOptions": {
+        // A script, not a library: nothing is emitted, and it reads the
+        // parser's source directly, which a composite project cannot.
+        "noEmit": true,
+        "emitDeclarationOnly": false,
+        "composite": false,
+        "incremental": false,
+        "declaration": false,
+        "declarationMap": false,
+        "types": ["node"]
+    },
+    "include": ["./*.ts"]
+}

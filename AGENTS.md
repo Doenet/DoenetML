@@ -109,6 +109,7 @@ Read [TEST_RUN_INSTRUCTIONS_FOR_AGENTS.md](TEST_RUN_INSTRUCTIONS_FOR_AGENTS.md) 
 - **Vitest** for unit tests, component logic, and utility functions (files: `*.test.ts`, `*.test.tsx`)
 - **Cypress** for e2e tests, user interactions, and full rendering (files: `cypress/e2e/*.cy.js`)
 - **Cargo** for the Rust core in `packages/doenetml-worker-rust` — reference resolution, the flattener, the resolver and the name maps (files: `lib-doenetml-core/src/**/*.test.rs`, `lib-doenetml-core/tests/`)
+- **Rust-core parity**: `npm run parity -w @doenet/rust-parity` runs the worker's Vitest suite on the Rust core (`DOENET_TEST_CORE=rust`) and writes a dashboard of what the Rust core is missing to `packages/rust-parity/out/`. See that package's README.
 - Tests are grouped; run by group number to parallelize CI
 
 ### Common Test Commands
