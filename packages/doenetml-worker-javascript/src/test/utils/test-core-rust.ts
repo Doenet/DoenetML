@@ -362,7 +362,7 @@ function fromRustValue(value: any): unknown {
         Object.keys(value).length === 1 &&
         typeof value.math_object === "string"
     ) {
-        let tree: unknown;
+        let tree: any;
         try {
             tree = JSON.parse(value.math_object);
         } catch {
