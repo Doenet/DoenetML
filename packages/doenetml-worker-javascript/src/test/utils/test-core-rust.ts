@@ -303,7 +303,31 @@ export async function createTestCoreRust({
         core: withJavascriptOnlyGaps(core),
         rustCore,
         resolvePathToNodeIdx,
+        // The JavaScript stand-in fills these from the core's score and state
+        // reports, which the Rust core does not send.
+        scoreState: unreported("scoreState"),
+        pendingReports: unreported("pendingReports"),
+        lastStateReport: unreported("lastStateReport"),
     };
+}
+
+/**
+ * An object that throws a `RustCoreGap` naming `name.<key>` on any property a
+ * test reads from it. Throwing on the read rather than when the test
+ * destructures it keeps the failure at the test's first actual gap.
+ */
+function unreported(name: string) {
+    return new Proxy(
+        {},
+        {
+            get(_target, key) {
+                if (typeof key !== "string" || key === "then") {
+                    return undefined;
+                }
+                throw new RustCoreGap(`core API \`${name}.${key}\``);
+            },
+        },
+    );
 }
 
 /**

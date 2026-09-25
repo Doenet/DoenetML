@@ -827,7 +827,7 @@
             }${comp.testFailuresNamingIt ? ` ${comp.testFailuresNamingIt} test failures name it.` : ""}${
                 comp.docsSlug ? ` <a href="https://docs.doenet.org/reference/${esc(comp.docsSlug)}" target="_blank" rel="noopener">Reference docs</a>` : ""
             }</p>
-            <div><h3>Attributes <span class="muted">— green supported, grey missing; the number is uses in tests</span></h3>
+            <div><h3>Attributes <span class="muted">— green supported, grey missing; the number on a missing one is its uses in tests</span></h3>
             ${chipsOr(
                 attrs.map((a) => `<span class="chip ${a.supported ? "ok" : "no"}"${hl(a.name)}>${esc(a.name)}${!a.supported && a.testUses ? `<sup>${a.testUses}</sup>` : ""}</span>`),
                 "No attributes.",
