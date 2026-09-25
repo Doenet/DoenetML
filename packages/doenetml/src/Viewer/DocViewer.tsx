@@ -82,6 +82,7 @@ import {
     localizeDiagnostics,
     useDiagnosticFormatter,
 } from "../utils/diagnostics";
+import { holdIdleTypesets } from "./renderers/utils/DynamicMath";
 
 // Re-export for back-compat: `renderersLoadComponent` was previously defined
 // here, and external consumers may deep-import it from
@@ -1024,6 +1025,11 @@ export function DocViewer({
     const coreWorkerKill = useRef<((suspectWedge?: boolean) => void) | null>(
         null,
     );
+    // Releases for the `holdIdleTypesets` holds of actions still waiting on
+    // core. Tearing down the core lets them go, since an action the core
+    // never answers would otherwise hold back math far from the viewport in
+    // every document on the page.
+    const idleTypesetHolds = useRef(new Set<() => void>());
 
     // Spin up a fresh core worker and store its Comlink remote and kill
     // switch in lockstep. Returns the remote for the caller to drive.
@@ -1063,6 +1069,10 @@ export function DocViewer({
         // is the unmount cleanup below, which delivers the payload first —
         // there being no successor to overwrite.
         pendingStateReport.current = null;
+        for (const release of idleTypesetHolds.current) {
+            release();
+        }
+        idleTypesetHolds.current.clear();
         return disposeCoreWorker(remote, kill, { graceful, suspectWedge });
     }
 
@@ -1855,6 +1865,10 @@ export function DocViewer({
         // undefined), settle the pending callAction promise as false so it does not hang
         // and so lastSkippableAction can be released.
         let actionResult;
+        // Math far from the viewport waits to be typeset until core has
+        // answered, so the math this action changes on screen goes first.
+        const releaseIdleTypesets = holdIdleTypesets();
+        idleTypesetHolds.current.add(releaseIdleTypesets);
         try {
             actionResult =
                 await coreWorker.current?.dispatchActionJavascript(actionArgs);
@@ -1865,6 +1879,9 @@ export function DocViewer({
                 success: false,
             });
             return;
+        } finally {
+            idleTypesetHolds.current.delete(releaseIdleTypesets);
+            releaseIdleTypesets();
         }
 
         if (actionResult) {
@@ -2092,6 +2109,26 @@ export function DocViewer({
             });
     }
 
+    /**
+     * Resolves once the next frame has been painted, so what was just
+     * dispatched has been drawn, or after 100 ms, whichever comes first. A
+     * page that is hidden paints no frames, so there it resolves after the
+     * 100 ms.
+     */
+    function afterNextPaint(): Promise<void> {
+        return new Promise((resolve) => {
+            const fallback = setTimeout(resolve, 100);
+            // `window.` because this component has its own
+            // `requestAnimationFrame`, for core's animations.
+            window.requestAnimationFrame(() => {
+                setTimeout(() => {
+                    clearTimeout(fallback);
+                    resolve();
+                }, 0);
+            });
+        });
+    }
+
     function updateRenderers({
         updateInstructions,
         actionId,
@@ -2105,17 +2142,19 @@ export function DocViewer({
         init?: boolean;
         /**
          * The deferred remainder of an update whose priority batch already
-         * resolved `actionId` (core sends the dragged component first and the
-         * rest once the drag settles). Resolving again here would release a
-         * second queued action for an interaction that has already finished.
+         * resolved `actionId`. Core sends the dragged component first and the
+         * rest once the drag settles, and after other updates it can send
+         * offscreen components once it is idle. Resolving again here would
+         * release a second queued action for an interaction that has already
+         * finished.
          *
          * The flag stops here; `updateRendererSVs` does not need it. An entry
          * in `updatesToIgnore` is keyed by `(actionId, componentIdx)` and only
          * exists where a renderer showed a value ahead of core
-         * (`baseVariableValue`). Of the actions that can produce a deferred
-         * batch, only `<slider>`'s `changeValue` does that, and its own update
-         * instruction targets the slider, so the slider goes out in the
-         * priority batch. It does not rest on that survey, though: the
+         * (`baseVariableValue`), such as an input being typed in or a
+         * `<slider>` being moved. That renderer is the target of its own
+         * update instruction, and core always sends an update's targets in
+         * the priority batch. It does not rest on that, though: the
          * priority batch resolved this `actionId`, and `resolveAction` calls
          * `clearPendingValuesForAction`, which drops every `actionId|*` key.
          * By the time the deferred batch lands there is structurally no
@@ -2190,7 +2229,13 @@ export function DocViewer({
 
         if (!deferred) {
             resolveAction({ actionId });
+            return;
         }
+
+        // Core waits for this before sending the next deferred batch, so the
+        // rate it sends offscreen updates at is the rate this thread can draw
+        // them.
+        return afterNextPaint();
     }
 
     function resolveAction({

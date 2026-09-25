@@ -238,12 +238,12 @@ describe("Text Tag Tests", { tags: ["@group4"] }, function () {
             cy.get(t2cAnchor).should("have.css", "color", "rgb(255, 0, 0)");
             cy.get(t2dAnchor).should("have.css", "color", "rgb(0, 0, 0)");
 
-            cy.get("#t1coords").should("have.text", "(0,0)");
-            cy.get("#t2coords").should("have.text", "(3,4)");
-            cy.get("#t1acoords").should("have.text", "(0,0)");
-            cy.get("#t2acoords").should("have.text", "(3,4)");
-            cy.get("#t1bcoords").should("have.text", "(0,0)");
-            cy.get("#t2bcoords").should("have.text", "(0,0)");
+            cy.get("#t1coords").scrollIntoView().should("have.text", "(0,0)");
+            cy.get("#t2coords").scrollIntoView().should("have.text", "(3,4)");
+            cy.get("#t1acoords").scrollIntoView().should("have.text", "(0,0)");
+            cy.get("#t2acoords").scrollIntoView().should("have.text", "(3,4)");
+            cy.get("#t1bcoords").scrollIntoView().should("have.text", "(0,0)");
+            cy.get("#t2bcoords").scrollIntoView().should("have.text", "(0,0)");
 
             cy.log("move first texts");
             cy.window().then(async (win) => {
@@ -259,14 +259,16 @@ describe("Text Tag Tests", { tags: ["@group4"] }, function () {
                 });
             });
 
-            cy.get("#t2coords").should("contain.text", "(4,−5)");
+            cy.get("#t2coords")
+                .scrollIntoView()
+                .should("contain.text", "(4,−5)");
 
-            cy.get("#t1coords").should("have.text", "(−2,3)");
-            cy.get("#t2coords").should("have.text", "(4,−5)");
-            cy.get("#t1acoords").should("have.text", "(−2,3)");
-            cy.get("#t2acoords").should("have.text", "(4,−5)");
-            cy.get("#t1bcoords").should("have.text", "(0,0)");
-            cy.get("#t2bcoords").should("have.text", "(0,0)");
+            cy.get("#t1coords").scrollIntoView().should("have.text", "(−2,3)");
+            cy.get("#t2coords").scrollIntoView().should("have.text", "(4,−5)");
+            cy.get("#t1acoords").scrollIntoView().should("have.text", "(−2,3)");
+            cy.get("#t2acoords").scrollIntoView().should("have.text", "(4,−5)");
+            cy.get("#t1bcoords").scrollIntoView().should("have.text", "(0,0)");
+            cy.get("#t2bcoords").scrollIntoView().should("have.text", "(0,0)");
 
             cy.log("move second texts");
             cy.window().then(async (win) => {
@@ -282,14 +284,16 @@ describe("Text Tag Tests", { tags: ["@group4"] }, function () {
                 });
             });
 
-            cy.get("#t2coords").should("contain.text", "(−8,2)");
+            cy.get("#t2coords")
+                .scrollIntoView()
+                .should("contain.text", "(−8,2)");
 
-            cy.get("#t1coords").should("have.text", "(7,1)");
-            cy.get("#t2coords").should("have.text", "(−8,2)");
-            cy.get("#t1acoords").should("have.text", "(7,1)");
-            cy.get("#t2acoords").should("have.text", "(−8,2)");
-            cy.get("#t1bcoords").should("have.text", "(0,0)");
-            cy.get("#t2bcoords").should("have.text", "(0,0)");
+            cy.get("#t1coords").scrollIntoView().should("have.text", "(7,1)");
+            cy.get("#t2coords").scrollIntoView().should("have.text", "(−8,2)");
+            cy.get("#t1acoords").scrollIntoView().should("have.text", "(7,1)");
+            cy.get("#t2acoords").scrollIntoView().should("have.text", "(−8,2)");
+            cy.get("#t1bcoords").scrollIntoView().should("have.text", "(0,0)");
+            cy.get("#t2bcoords").scrollIntoView().should("have.text", "(0,0)");
 
             cy.log("move third texts");
             cy.window().then(async (win) => {
@@ -305,14 +309,18 @@ describe("Text Tag Tests", { tags: ["@group4"] }, function () {
                 });
             });
 
-            cy.get("#t2bcoords").should("contain.text", "(−5,−4)");
+            cy.get("#t2bcoords")
+                .scrollIntoView()
+                .should("contain.text", "(−5,−4)");
 
-            cy.get("#t1coords").should("have.text", "(7,1)");
-            cy.get("#t2coords").should("have.text", "(−8,2)");
-            cy.get("#t1acoords").should("have.text", "(7,1)");
-            cy.get("#t2acoords").should("have.text", "(−8,2)");
-            cy.get("#t1bcoords").should("have.text", "(−6,3)");
-            cy.get("#t2bcoords").should("have.text", "(−5,−4)");
+            cy.get("#t1coords").scrollIntoView().should("have.text", "(7,1)");
+            cy.get("#t2coords").scrollIntoView().should("have.text", "(−8,2)");
+            cy.get("#t1acoords").scrollIntoView().should("have.text", "(7,1)");
+            cy.get("#t2acoords").scrollIntoView().should("have.text", "(−8,2)");
+            cy.get("#t1bcoords").scrollIntoView().should("have.text", "(−6,3)");
+            cy.get("#t2bcoords")
+                .scrollIntoView()
+                .should("have.text", "(−5,−4)");
         });
     });
 });

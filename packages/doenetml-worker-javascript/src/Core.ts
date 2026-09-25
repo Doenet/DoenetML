@@ -838,6 +838,37 @@ export default class Core {
         );
     }
 
+    async updateOnScreenRenderers(
+        targets: number[],
+        sourceInformation: any = {},
+        actionId?: string,
+    ): Promise<void> {
+        return this.rendererInstructionBuilder.updateOnScreenRenderers(
+            targets,
+            sourceInformation,
+            actionId,
+        );
+    }
+
+    async flushPendingRenderers(): Promise<void> {
+        return this.rendererInstructionBuilder.flushPendingRenderers();
+    }
+
+    /**
+     * Record whether a block is near the viewport, and when it has just come
+     * near, wake the idle lane so anything it was holding there goes out first.
+     */
+    recordRenderVisibility(
+        componentIdx: number,
+        report: { isVisible?: boolean; isNear?: boolean },
+    ): void {
+        if (
+            this.visibilityTracker.recordRenderVisibility(componentIdx, report)
+        ) {
+            this.rendererInstructionBuilder.scheduleIdleRendererFlush();
+        }
+    }
+
     async initializeRenderedComponentInstruction(
         component: any,
         componentsWithChangedChildrenToRenderInProgress?: Set<number>,
@@ -1269,19 +1300,21 @@ export default class Core {
         this.processQueue.stopProcessingRequests = true;
 
         // A drag interrupted by teardown can leave a deferred renderer flush
-        // pending; the viewer is going away, so drop it rather than push an
-        // update into it.
+        // pending, and any update can leave offscreen components waiting in
+        // the idle lane; the viewer is going away, so drop both rather than
+        // push an update into it.
         //
         // The `saveImmediately` below therefore serializes a `rendererState`
-        // that is one drag step behind for the components the flush would have
+        // that is behind for the components those batches would have
         // covered, and `DocViewer` skips core's init batch when it restores a
         // saved one — so those components would come back drawn from the
-        // dropped step until something re-renders them. `coreState` is
+        // dropped state until something re-renders them. `coreState` is
         // complete either way, and this needs `saveRendererState` (off in
-        // every package today) plus teardown inside the 150 ms window, but it
-        // is the reason to look here first if a restored document ever comes
-        // back mid-drag. `skipRendererUpdate` leaves the same kind of gap.
+        // every package today) plus teardown before the batches went out, but
+        // it is the reason to look here first if a restored document ever
+        // comes back stale. `skipRendererUpdate` leaves the same kind of gap.
         this.rendererInstructionBuilder.cancelDeferredRendererUpdate();
+        this.rendererInstructionBuilder.cancelIdleRendererFlush();
 
         if (this.processQueue.processing) {
             for (let i = 0; i < 10; i++) {

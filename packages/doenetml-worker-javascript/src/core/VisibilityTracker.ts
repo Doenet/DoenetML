@@ -27,9 +27,17 @@ type VisibilityInfo = {
 export class VisibilityTracker {
     core: Core;
     info: VisibilityInfo;
+    /**
+     * Whether each block that reports its position is on or near the
+     * reader's screen, including the ones that last reported being away from
+     * it. Renderer updates for everything else wait for the idle lane
+     * (`RendererInstructionBuilder.isOnScreen`).
+     */
+    renderVisibility: Map<number, boolean>;
 
     constructor({ core }: { core: Core }) {
         this.core = core;
+        this.renderVisibility = new Map();
         this.info = {
             componentsCurrentlyVisible: {},
             infoToSend: {},
@@ -41,6 +49,31 @@ export class VisibilityTracker {
             suspended: false,
             documentHasBeenVisible: false,
         };
+    }
+
+    /**
+     * Record a renderer's report of whether its block is near the viewport.
+     * The viewer sends `isNear` from an observer with a margin around the
+     * viewport; a report without it falls back to `isVisible`.
+     *
+     * Returns true when the block has just come near, so the caller can send
+     * whatever the idle lane was holding for it.
+     */
+    recordRenderVisibility(
+        componentIdx: number,
+        { isVisible, isNear }: { isVisible?: boolean; isNear?: boolean },
+    ): boolean {
+        const near = isNear ?? isVisible;
+        if (typeof near !== "boolean") {
+            return false;
+        }
+        if (!this.core._components[componentIdx]) {
+            this.renderVisibility.delete(componentIdx);
+            return false;
+        }
+        const wasNear = this.renderVisibility.get(componentIdx);
+        this.renderVisibility.set(componentIdx, near);
+        return near && wasNear !== true;
     }
 
     processVisibilityChangedEvent(event: any): void {

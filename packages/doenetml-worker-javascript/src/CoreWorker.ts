@@ -21,6 +21,12 @@ import { normalizedDastToSerializedComponents } from "./utils/dast/convertNormal
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
 
 // Type signatures for callbacks
+
+/**
+ * For a deferred batch, the viewer may return a promise that resolves once it
+ * has drawn the batch; core sends its next idle-lane chunk only after that,
+ * or after `RENDERER_ACK_TIMEOUT_MS` if it never resolves.
+ */
 export type UpdateRenderersCallback = (arg: {
     updateInstructions: Record<string, any>[];
     actionId?: string;
@@ -32,7 +38,7 @@ export type UpdateRenderersCallback = (arg: {
      * state but must not resolve the action a second time.
      */
     deferred?: boolean;
-}) => void;
+}) => void | Promise<void>;
 export type ReportScoreAndStateCallback = (data: {
     score: number;
     state: unknown;

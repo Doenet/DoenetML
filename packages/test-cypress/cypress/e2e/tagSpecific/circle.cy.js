@@ -51,7 +51,7 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
                 stateVariables[await win.resolvePath1("circ")].stateValues
                     .numericalRadius,
             ).eq(1);
-            cy.get(cesc(`#r2`)).should("contain.text", "1");
+            cy.get(cesc(`#r2`)).scrollIntoView().should("contain.text", "1");
         });
 
         cy.log(`move circle`);
@@ -62,11 +62,10 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
                 args: { center: [-7, 2] },
             });
 
-            cy.get(cesc(`#r2`)).should("contain.text", "1");
-            cy.get(cesc(`#c`)).should(
-                "contain.text",
-                `(${nInDOM(-7)},${nInDOM(2)})`,
-            );
+            cy.get(cesc(`#r2`)).scrollIntoView().should("contain.text", "1");
+            cy.get(cesc(`#c`))
+                .scrollIntoView()
+                .should("contain.text", `(${nInDOM(-7)},${nInDOM(2)})`);
 
             cy.window().then(async (win) => {
                 let stateVariables = await win.returnAllStateVariables1();
@@ -86,7 +85,7 @@ describe("Circle Tag Tests", { tags: ["@group3"] }, function () {
             force: true,
         });
         cy.get(cesc(`#r`) + ` .mq-editable-field`).should("contain.text", "3");
-        cy.get(cesc(`#r2`)).should("contain.text", "3");
+        cy.get(cesc(`#r2`)).scrollIntoView().should("contain.text", "3");
 
         cy.window().then(async (win) => {
             let stateVariables = await win.returnAllStateVariables1();
