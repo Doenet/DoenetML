@@ -8,11 +8,11 @@
  * use:
  *
  * - `core.returnAllStateVariables()` returns a lazy proxy rather than a dump
- *   of every state variable. Almost every test reads one or two values from
- *   it, so each `stateVariables[idx].stateValues.<name>` is fetched from the
- *   Rust core when it is read. Reading from a snapshot taken before a later
- *   action throws `StaleSnapshotRead`: the JavaScript core's snapshot would
- *   still hold the old value, and a lazy read cannot reproduce it.
+ *   of every state variable. A test reads only a few values from each
+ *   snapshot, so each `stateVariables[idx].stateValues.<name>` is fetched
+ *   from the Rust core when it is read. Reading from a snapshot taken before
+ *   a later action throws `StaleSnapshotRead`: the JavaScript core's snapshot
+ *   would still hold the old value, and a lazy read cannot reproduce it.
  * - `core.requestAction()` forwards to `dispatch_action`. The Rust action
  *   format matches the JavaScript one (`{ componentIdx, actionName, args }`)
  *   plus a `component` field naming the component type.

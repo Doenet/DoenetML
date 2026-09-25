@@ -17,10 +17,10 @@ writes `out/parity-dashboard.html`, a self-contained page showing:
 
 The data behind the page is in `out/parity-report.json`.
 
-The test run takes about 12 minutes. Wireit caches it, so `npm run parity`
-reruns the tests only when the worker's sources, its tests or the Rust core
-have changed. To rebuild the page from the last test run without rerunning
-anything, use `npm run parity:report`.
+The test run takes 5 to 20 minutes, depending on the machine and its load.
+Wireit caches it, so `npm run parity` reruns the tests only when the worker's
+sources, its tests or the Rust core have changed. To rebuild the page from the
+last test run without rerunning anything, use `npm run parity:report`.
 
 ## Inputs
 
