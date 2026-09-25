@@ -23,6 +23,7 @@
         "watch": "vite build --watch",
         "test:before": "wireit",
         "test": "npm run test:before && vitest",
+        "test:rust-core": "npm run test:before && DOENET_TEST_CORE=rust vitest",
         "test:group1": "npm run test:before && vitest -t '@group1'",
         "test:group2": "npm run test:before && vitest -t '@group2'",
         "test:group3": "npm run test:before && vitest -t '@group3'",
