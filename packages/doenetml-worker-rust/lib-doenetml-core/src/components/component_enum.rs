@@ -1,5 +1,5 @@
 use enum_dispatch::enum_dispatch;
-use strum_macros::EnumString;
+use strum_macros::{EnumIter, EnumString};
 
 pub use super::_error::_Error;
 pub use super::_external::_External;
@@ -27,7 +27,7 @@ pub use super::doenet::xref::Xref;
 /// to allow easy access to the methods.
 ///
 /// Each component type added to `ComponentEnum` must implement the component node traits.
-#[derive(Debug, EnumString, Clone)]
+#[derive(Debug, EnumString, EnumIter, Clone)]
 #[enum_dispatch(
     ComponentNode,
     ComponentVariantProps,

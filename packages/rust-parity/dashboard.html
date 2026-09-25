@@ -1,0 +1,1008 @@
+<title>Rust Core Parity</title>
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover" />
+<link rel="preconnect" href="https://fonts.googleapis.com" />
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
+<link
+    rel="stylesheet"
+    href="https://fonts.googleapis.com/css2?family=IBM+Plex+Mono:wght@400;500&family=IBM+Plex+Sans:wght@400;500;600&display=swap"
+/>
+<style>
+    :root {
+        --bg: #f4f6f5;
+        --surface: #ffffff;
+        --surface-2: #eef1ef;
+        --ink: #18211d;
+        --muted: #5b6862;
+        --line: #dce2de;
+        --accent: #2b5d8a;
+        --accent-soft: #e3ecf5;
+        --good: #2c7a4b;
+        --good-soft: #e2f1e7;
+        --warn: #a8690f;
+        --warn-soft: #f8ecd6;
+        --bad: #b0413a;
+        --bad-soft: #f7e1df;
+        --idle: #c9d0cc;
+        --sans: "IBM Plex Sans", system-ui, -apple-system, "Segoe UI", sans-serif;
+        --mono: "IBM Plex Mono", ui-monospace, "SFMono-Regular", Menlo, monospace;
+    }
+    @media (prefers-color-scheme: dark) {
+        :root:not([data-theme="light"]) {
+            color-scheme: dark;
+            --bg: #111513;
+            --surface: #181e1b;
+            --surface-2: #1f2723;
+            --ink: #e4eae7;
+            --muted: #98a6a0;
+            --line: #2b3430;
+            --accent: #86b4de;
+            --accent-soft: #1d2c3a;
+            --good: #62c288;
+            --good-soft: #17301f;
+            --warn: #e3ab4f;
+            --warn-soft: #33270f;
+            --bad: #e97b71;
+            --bad-soft: #3a1c19;
+            --idle: #3a4540;
+        }
+    }
+    :root[data-theme="dark"] {
+        color-scheme: dark;
+        --bg: #111513;
+        --surface: #181e1b;
+        --surface-2: #1f2723;
+        --ink: #e4eae7;
+        --muted: #98a6a0;
+        --line: #2b3430;
+        --accent: #86b4de;
+        --accent-soft: #1d2c3a;
+        --good: #62c288;
+        --good-soft: #17301f;
+        --warn: #e3ab4f;
+        --warn-soft: #33270f;
+        --bad: #e97b71;
+        --bad-soft: #3a1c19;
+        --idle: #3a4540;
+    }
+
+    * {
+        box-sizing: border-box;
+    }
+    body {
+        background: var(--bg);
+        color: var(--ink);
+        font-family: var(--sans);
+        font-size: 14px;
+        line-height: 1.5;
+        padding-inline: 16px;
+        padding-block: 0 48px;
+    }
+    .wrap {
+        max-width: 1180px;
+        margin: 0 auto;
+        display: grid;
+        gap: 32px;
+    }
+    h1,
+    h2,
+    h3 {
+        text-wrap: balance;
+        margin: 0;
+        font-weight: 600;
+    }
+    h1 {
+        font-size: 26px;
+        letter-spacing: -0.01em;
+    }
+    h2 {
+        font-size: 18px;
+    }
+    h3 {
+        font-size: 13px;
+        text-transform: uppercase;
+        letter-spacing: 0.06em;
+        color: var(--muted);
+        font-weight: 500;
+    }
+    p {
+        margin: 0;
+    }
+    code,
+    .mono {
+        font-family: var(--mono);
+        font-size: 0.92em;
+    }
+    .muted {
+        color: var(--muted);
+    }
+    .num {
+        font-variant-numeric: tabular-nums;
+    }
+    a {
+        color: var(--accent);
+    }
+    :focus-visible {
+        outline: 2px solid var(--accent);
+        outline-offset: 2px;
+    }
+
+    header.top {
+        display: flex;
+        flex-wrap: wrap;
+        justify-content: space-between;
+        align-items: end;
+        gap: 12px 24px;
+        padding-top: 28px;
+    }
+    header.top .meta {
+        display: grid;
+        gap: 4px;
+        justify-items: end;
+        text-align: right;
+    }
+    nav.jump {
+        position: sticky;
+        top: env(safe-area-inset-top, 0px);
+        z-index: 5;
+        background: var(--bg);
+        border-bottom: 1px solid var(--line);
+        display: flex;
+        gap: 20px;
+        padding-block: 10px;
+        overflow-x: auto;
+    }
+    nav.jump a {
+        text-decoration: none;
+        color: var(--muted);
+        font-weight: 500;
+        white-space: nowrap;
+    }
+    nav.jump a:hover {
+        color: var(--ink);
+    }
+
+    .tiles {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(230px, 1fr));
+        gap: 12px;
+    }
+    .tile {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px;
+        display: grid;
+        gap: 8px;
+        align-content: start;
+    }
+    .tile .big {
+        font-size: 30px;
+        font-weight: 600;
+        font-variant-numeric: tabular-nums;
+        line-height: 1.1;
+    }
+    .tile .big small {
+        font-size: 15px;
+        color: var(--muted);
+        font-weight: 400;
+    }
+    .stack {
+        display: flex;
+        height: 8px;
+        border-radius: 4px;
+        overflow: hidden;
+        background: var(--idle);
+    }
+    .stack span {
+        display: block;
+        height: 100%;
+    }
+    .legend {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 4px 12px;
+        color: var(--muted);
+        font-size: 12px;
+    }
+    .dot {
+        display: inline-block;
+        width: 9px;
+        height: 9px;
+        border-radius: 2px;
+        margin-right: 5px;
+        vertical-align: 0;
+    }
+    .bg-good {
+        background: var(--good);
+    }
+    .bg-warn {
+        background: var(--warn);
+    }
+    .bg-bad {
+        background: var(--bad);
+    }
+    .bg-idle {
+        background: var(--idle);
+    }
+    .bg-accent {
+        background: var(--accent);
+    }
+
+    section.block {
+        display: grid;
+        gap: 14px;
+    }
+    .section-head {
+        display: flex;
+        flex-wrap: wrap;
+        align-items: baseline;
+        justify-content: space-between;
+        gap: 6px 16px;
+    }
+    .panel {
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        padding: 16px;
+    }
+
+    .grid-map {
+        display: grid;
+        grid-template-columns: repeat(auto-fill, minmax(14px, 1fr));
+        gap: 3px;
+    }
+    .grid-map button {
+        aspect-ratio: 1;
+        max-width: 100%;
+        border: 0;
+        border-radius: 3px;
+        padding: 0;
+        cursor: pointer;
+    }
+    .grid-map button:hover {
+        outline: 2px solid var(--ink);
+        outline-offset: 1px;
+    }
+
+    .controls {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        align-items: center;
+    }
+    .seg {
+        display: inline-flex;
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        overflow: hidden;
+        background: var(--surface);
+    }
+    .seg button {
+        border: 0;
+        background: transparent;
+        color: var(--muted);
+        font: inherit;
+        padding: 6px 12px;
+        cursor: pointer;
+    }
+    .seg button[aria-pressed="true"] {
+        background: var(--accent-soft);
+        color: var(--ink);
+        font-weight: 500;
+    }
+    input[type="search"],
+    select {
+        font: inherit;
+        color: var(--ink);
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 6px 10px;
+    }
+    button.more {
+        justify-self: start;
+        font: inherit;
+        font-weight: 500;
+        color: var(--accent);
+        background: var(--surface);
+        border: 1px solid var(--line);
+        border-radius: 6px;
+        padding: 6px 14px;
+        cursor: pointer;
+    }
+    input[type="search"] {
+        flex: 1 1 200px;
+        min-width: 0;
+    }
+
+    .table-scroll {
+        overflow-x: auto;
+        border: 1px solid var(--line);
+        border-radius: 8px;
+        background: var(--surface);
+    }
+    table {
+        width: 100%;
+        border-collapse: collapse;
+    }
+    th,
+    td {
+        text-align: left;
+        padding: 8px 12px;
+        border-bottom: 1px solid var(--line);
+        vertical-align: middle;
+    }
+    th {
+        font-size: 12px;
+        font-weight: 500;
+        color: var(--muted);
+        text-transform: uppercase;
+        letter-spacing: 0.05em;
+        white-space: nowrap;
+        background: var(--surface-2);
+    }
+    td.r,
+    th.r {
+        text-align: right;
+    }
+    tr.row {
+        cursor: pointer;
+    }
+    tr.row:hover td {
+        background: var(--surface-2);
+    }
+    tr.row td:first-child {
+        min-width: 180px;
+    }
+    tr.detail td {
+        background: var(--surface-2);
+        padding: 14px 16px 18px;
+    }
+    .name {
+        font-family: var(--mono);
+        font-weight: 500;
+    }
+    .caret {
+        display: inline-block;
+        width: 1em;
+        color: var(--muted);
+        transition: transform 0.12s;
+    }
+    tr.row[aria-expanded="true"] .caret {
+        transform: rotate(90deg);
+    }
+    .pill {
+        display: inline-block;
+        padding: 1px 8px;
+        border-radius: 999px;
+        font-size: 12px;
+        font-weight: 500;
+        white-space: nowrap;
+    }
+    .pill.complete {
+        background: var(--good-soft);
+        color: var(--good);
+    }
+    .pill.partial {
+        background: var(--warn-soft);
+        color: var(--warn);
+    }
+    .pill.missing {
+        background: var(--bad-soft);
+        color: var(--bad);
+    }
+    .bar {
+        width: 90px;
+        height: 6px;
+        border-radius: 3px;
+        background: var(--idle);
+        overflow: hidden;
+        display: inline-block;
+        vertical-align: middle;
+        margin-right: 8px;
+    }
+    .bar span {
+        display: block;
+        height: 100%;
+        background: var(--accent);
+    }
+
+    .detail-grid {
+        display: grid;
+        gap: 14px;
+    }
+    .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 5px;
+    }
+    .chip {
+        font-family: var(--mono);
+        font-size: 12px;
+        padding: 2px 7px;
+        border-radius: 4px;
+        border: 1px solid transparent;
+        white-space: nowrap;
+    }
+    .chip.ok {
+        background: var(--good-soft);
+        color: var(--good);
+    }
+    .chip.priv {
+        background: var(--warn-soft);
+        color: var(--warn);
+    }
+    .chip.no {
+        background: var(--surface);
+        color: var(--muted);
+        border-color: var(--line);
+    }
+    .chip.extra {
+        background: var(--accent-soft);
+        color: var(--accent);
+    }
+    .chip sup {
+        font-size: 10px;
+        margin-left: 3px;
+        color: var(--bad);
+    }
+
+    .two {
+        display: grid;
+        grid-template-columns: repeat(auto-fit, minmax(320px, 1fr));
+        gap: 12px;
+    }
+    .hbars {
+        display: grid;
+        gap: 8px;
+    }
+    .hbar {
+        display: grid;
+        grid-template-columns: minmax(0, 1fr) auto;
+        gap: 2px 10px;
+        align-items: center;
+    }
+    .hbar .track {
+        grid-column: 1 / -1;
+        height: 6px;
+        background: var(--surface-2);
+        border-radius: 3px;
+        overflow: hidden;
+    }
+    .hbar .track span {
+        display: block;
+        height: 100%;
+        background: var(--accent);
+    }
+    ol.rank {
+        margin: 0;
+        padding: 0;
+        list-style: none;
+        display: grid;
+        gap: 4px;
+    }
+    ol.rank li {
+        display: flex;
+        justify-content: space-between;
+        gap: 12px;
+        border-bottom: 1px dashed var(--line);
+        padding-block: 3px;
+    }
+    ol.rank li span:first-child {
+        overflow-wrap: anywhere;
+    }
+    .empty {
+        color: var(--muted);
+        font-style: italic;
+    }
+    details summary {
+        cursor: pointer;
+        color: var(--muted);
+    }
+    .notes {
+        display: grid;
+        gap: 8px;
+        max-width: 72ch;
+        color: var(--muted);
+    }
+    .notes li {
+        margin-bottom: 4px;
+    }
+    @media (prefers-reduced-motion: reduce) {
+        .caret {
+            transition: none;
+        }
+    }
+</style>
+
+<div class="wrap">
+    <header class="top">
+        <div style="display: grid; gap: 6px">
+            <h1>Rust Core Parity</h1>
+            <p class="muted" style="max-width: 62ch">
+                How much of the JavaScript core's DoenetML surface the Rust core implements, and
+                how the JavaScript worker's test suite does when run on the Rust core.
+            </p>
+        </div>
+        <div class="meta muted">
+            <span id="generated"></span>
+            <span>Regenerate: <code>npm run parity -w @doenet/rust-parity</code></span>
+        </div>
+    </header>
+
+    <nav class="jump" aria-label="Sections">
+        <a href="#overview">Overview</a>
+        <a href="#components">Components</a>
+        <a href="#tests">Test suite</a>
+        <a href="#rust-only">Rust-only names</a>
+        <a href="#method">How this is measured</a>
+    </nav>
+
+    <section class="block" id="overview">
+        <div class="tiles" id="tiles"></div>
+        <div class="panel" style="display: grid; gap: 10px">
+            <div class="section-head">
+                <h3>Every JavaScript component, most used in tests first</h3>
+                <div class="legend">
+                    <span><i class="dot bg-good"></i>complete</span>
+                    <span><i class="dot bg-warn"></i>partial</span>
+                    <span><i class="dot bg-idle"></i>missing</span>
+                </div>
+            </div>
+            <div class="grid-map" id="grid-map"></div>
+        </div>
+    </section>
+
+    <section class="block" id="components">
+        <div class="section-head">
+            <h2>Components</h2>
+            <span class="muted" id="component-count"></span>
+        </div>
+        <div class="controls">
+            <div class="seg" role="group" aria-label="Filter by status" id="status-filter">
+                <button type="button" data-status="all" aria-pressed="true">All</button>
+                <button type="button" data-status="complete" aria-pressed="false">Complete</button>
+                <button type="button" data-status="partial" aria-pressed="false">Partial</button>
+                <button type="button" data-status="missing" aria-pressed="false">Missing</button>
+            </div>
+            <input
+                type="search"
+                id="component-search"
+                placeholder="Find a component, attribute or property"
+                aria-label="Find a component, attribute or property"
+            />
+            <select id="component-sort" aria-label="Sort components">
+                <option value="uses">Most used in tests</option>
+                <option value="coverage">Coverage</option>
+                <option value="name">Name</option>
+            </select>
+        </div>
+        <div class="table-scroll">
+            <table>
+                <thead>
+                    <tr>
+                        <th>Component</th>
+                        <th>Status</th>
+                        <th>Coverage</th>
+                        <th class="r">Attributes</th>
+                        <th class="r">Properties</th>
+                        <th class="r">Uses in tests</th>
+                    </tr>
+                </thead>
+                <tbody id="component-rows"></tbody>
+            </table>
+        </div>
+        <button type="button" class="more" id="show-all" hidden></button>
+    </section>
+
+    <section class="block" id="tests">
+        <div class="section-head">
+            <h2>Test suite on the Rust core</h2>
+            <span class="muted" id="tests-ran"></span>
+        </div>
+        <div id="tests-body"></div>
+    </section>
+
+    <section class="block" id="rust-only">
+        <div class="section-head">
+            <h2>Rust-only names</h2>
+            <span class="muted">Defined in Rust but not in the JavaScript core, often the same idea under another name</span>
+        </div>
+        <div class="panel" id="rust-only-body"></div>
+    </section>
+
+    <section class="block" id="method">
+        <h2>How this is measured</h2>
+        <ul class="notes">
+            <li>
+                <b>Components, attributes and properties</b> come from the JavaScript core's schema
+                (<code>@doenet/static-assets</code>) and the Rust core's own inventory
+                (<code>cargo run --example component_inventory</code>). Names are compared
+                case-insensitively. Elements the parser rewrites, such as
+                <code>&lt;section&gt;</code> into <code>&lt;division type="section"&gt;</code>, count as
+                the Rust component they become.
+            </li>
+            <li>
+                <b>Complete</b> means Rust has the component and every one of its JavaScript
+                attributes and public properties. <code>name</code>, <code>extend</code> and
+                <code>copy</code> count as supported on every Rust component, because the Rust core
+                handles them while building the document.
+            </li>
+            <li>
+                <b>Properties</b> in green are public in Rust (referenceable as
+                <code>$c.prop</code>); amber ones exist in Rust but are private, which is enough for
+                tests but not for authors.
+            </li>
+            <li>
+                A supported name is not proof of the same behavior. The test suite is the behavioral
+                check: it runs every worker test with <code>DOENET_TEST_CORE=rust</code>, and each
+                failure is classified by its first error. A test that reads a missing state variable
+                names it; a wrong value is an <code>AssertionError</code>.
+            </li>
+            <li>
+                <b>Uses in tests</b> counts tags and attributes in the DoenetML of the worker's test
+                files. It is approximate and only meant to rank what to port first.
+            </li>
+            <li>
+                The Rust core ignores attributes it doesn't know rather than rejecting them, so an
+                unsupported attribute usually shows up as a wrong value, not as a named gap.
+            </li>
+        </ul>
+    </section>
+</div>
+
+<script>
+    const REPORT = /*__PARITY_REPORT__*/null;
+
+    const $ = (id) => document.getElementById(id);
+    const esc = (s) =>
+        String(s).replace(/[&<>"']/g, (c) => ({ "&": "&amp;", "<": "&lt;", ">": "&gt;", '"': "&quot;", "'": "&#39;" })[c]);
+    const pct = (x) => `${Math.round(x * 100)}%`;
+    const fmt = (n) => n.toLocaleString("en-US");
+
+    function render() {
+        if (!REPORT) {
+            document.querySelector(".wrap").insertAdjacentHTML(
+                "beforeend",
+                `<p class="empty">No report data. Generate the dashboard with <code>npm run parity -w @doenet/rust-parity</code>.</p>`,
+            );
+            return;
+        }
+        const { summary: s, components, tests } = REPORT;
+        $("generated").textContent = `Generated ${new Date(REPORT.generatedAt).toLocaleString()}`;
+
+        const c = s.components;
+        const t = tests?.totals;
+        const testsRun = t ? t.passed + t.failed : 0;
+        const tile = (label, big, sub, stack, legend) => `
+            <div class="tile">
+                <h3>${label}</h3>
+                <div class="big">${big}</div>
+                ${stack}
+                <div class="legend">${legend}</div>
+                ${sub ? `<p class="muted">${sub}</p>` : ""}
+            </div>`;
+        const stack = (parts, total) =>
+            `<div class="stack">${parts
+                .map(([n, cls]) => `<span class="${cls}" style="width:${total ? (n / total) * 100 : 0}%"></span>`)
+                .join("")}</div>`;
+        $("tiles").innerHTML = [
+            tile(
+                "Components in Rust",
+                `${c.complete + c.partial} <small>of ${c.total}</small>`,
+                `${pct(s.testTagUsesCovered)} of the component tags in the tests' DoenetML are ones Rust has.`,
+                stack([[c.complete, "bg-good"], [c.partial, "bg-warn"]], c.total),
+                `<span><i class="dot bg-good"></i>${c.complete} complete</span><span><i class="dot bg-warn"></i>${c.partial} partial</span><span><i class="dot bg-idle"></i>${c.missing} missing</span>`,
+            ),
+            tile(
+                "Attributes",
+                `${fmt(s.attributes.supported)} <small>of ${fmt(s.attributes.total)}</small>`,
+                `On the components Rust has: ${s.attributes.supportedOnPresent} of ${s.attributes.totalOnPresent} (${pct(s.attributes.supportedOnPresent / s.attributes.totalOnPresent)}).`,
+                stack([[s.attributes.supported, "bg-accent"]], s.attributes.total),
+                `<span>${pct(s.attributes.supported / s.attributes.total)} supported</span>`,
+            ),
+            tile(
+                "Properties",
+                `${fmt(s.properties.supported)} <small>of ${fmt(s.properties.total)}</small>`,
+                `On the components Rust has: ${s.properties.supportedOnPresent} of ${s.properties.totalOnPresent} (${pct(s.properties.supportedOnPresent / s.properties.totalOnPresent)}).`,
+                stack([[s.properties.public, "bg-good"], [s.properties.supported - s.properties.public, "bg-warn"]], s.properties.total),
+                `<span><i class="dot bg-good"></i>${s.properties.public} public</span><span><i class="dot bg-warn"></i>${s.properties.supported - s.properties.public} private</span>`,
+            ),
+            t
+                ? tile(
+                      "Worker tests passing on Rust",
+                      `${fmt(t.passed)} <small>of ${fmt(testsRun)}</small>`,
+                      `${pct(t.passed / testsRun)} pass. ${fmt(t.skipped)} skipped tests are not counted.`,
+                      stack([[t.passed, "bg-good"], [t.failed, "bg-bad"]], testsRun),
+                      `<span><i class="dot bg-good"></i>${fmt(t.passed)} pass</span><span><i class="dot bg-bad"></i>${fmt(t.failed)} fail</span>`,
+                  )
+                : tile("Worker tests passing on Rust", "—", "No test results in this report.", "", ""),
+        ].join("");
+
+        const statusClass = { complete: "bg-good", partial: "bg-warn", missing: "bg-idle" };
+        $("grid-map").innerHTML = [...components]
+            .sort((a, b) => b.testUses - a.testUses || a.name.localeCompare(b.name))
+            .map(
+                (comp) =>
+                    `<button type="button" class="${statusClass[comp.status]}" data-name="${esc(comp.name)}" title="${esc(comp.name)} — ${comp.status}, ${fmt(comp.testUses)} uses in tests" aria-label="${esc(comp.name)}, ${comp.status}"></button>`,
+            )
+            .join("");
+        $("grid-map").addEventListener("click", (e) => {
+            const name = e.target.closest("button")?.dataset.name;
+            if (!name) return;
+            state.status = "all";
+            state.query = name;
+            $("component-search").value = name;
+            syncFilterButtons();
+            renderComponents(name);
+            document.getElementById("components").scrollIntoView({ behavior: "smooth" });
+        });
+
+        renderComponents();
+        renderTests();
+        renderRustOnly();
+    }
+
+    const ROW_LIMIT = 40;
+    const state = { status: "all", query: "", sort: "uses", open: new Set(), showAll: false };
+    // Schema summaries use Markdown backticks for code.
+    const summaryHtml = (text) => esc(text).replace(/`([^`]+)`/g, "<code>$1</code>");
+    try {
+        const saved = JSON.parse(localStorage.getItem("parity-view") || "{}");
+        if (saved.sort) state.sort = saved.sort;
+        if (saved.status) state.status = saved.status;
+    } catch {}
+
+    function saveView() {
+        try {
+            localStorage.setItem("parity-view", JSON.stringify({ sort: state.sort, status: state.status }));
+        } catch {}
+    }
+
+    function syncFilterButtons() {
+        for (const b of $("status-filter").querySelectorAll("button")) {
+            b.setAttribute("aria-pressed", String(b.dataset.status === state.status));
+        }
+        $("component-sort").value = state.sort;
+    }
+
+    function matches(comp, q) {
+        if (!q) return true;
+        q = q.toLowerCase();
+        return (
+            comp.name.toLowerCase().includes(q) ||
+            comp.attributes.some((a) => a.name.toLowerCase().includes(q)) ||
+            comp.properties.some((p) => p.name.toLowerCase().includes(q))
+        );
+    }
+
+    function renderComponents(openName) {
+        if (openName) state.open = new Set([openName]);
+        const list = REPORT.components
+            .filter((c) => state.status === "all" || c.status === state.status)
+            .filter((c) => matches(c, state.query))
+            .sort((a, b) => {
+                if (state.sort === "name") return a.name.localeCompare(b.name);
+                if (state.sort === "coverage") return b.coverage - a.coverage || b.testUses - a.testUses;
+                return b.testUses - a.testUses || a.name.localeCompare(b.name);
+            });
+        const limited = !state.showAll && !state.query && list.length > ROW_LIMIT;
+        const shown = limited ? list.slice(0, ROW_LIMIT) : list;
+        $("component-count").textContent = `${shown.length} of ${list.length} shown`;
+        $("show-all").hidden = !limited;
+        $("show-all").textContent = `Show all ${list.length} components`;
+        const q = state.query.toLowerCase();
+        $("component-rows").innerHTML =
+            shown
+                .map((comp) => {
+                    const attrOk = comp.attributes.filter((a) => a.supported).length;
+                    const propOk = comp.properties.filter((p) => p.status !== "missing").length;
+                    const open = state.open.has(comp.name);
+                    return `
+                <tr class="row" tabindex="0" data-name="${esc(comp.name)}" aria-expanded="${open}">
+                    <td><span class="caret">›</span><span class="name">${esc(comp.name)}</span>
+                        ${comp.viaExpansion ? `<span class="muted"> → <code>${esc(comp.viaExpansion)}</code></span>` : ""}
+                        <div class="muted" style="font-size:12px;padding-left:1em">${summaryHtml(comp.summary)}</div></td>
+                    <td><span class="pill ${comp.status}">${comp.status}</span></td>
+                    <td class="num" style="white-space:nowrap"><span class="bar"><span style="width:${comp.coverage * 100}%"></span></span>${pct(comp.coverage)}</td>
+                    <td class="r num">${attrOk}/${comp.attributes.length}</td>
+                    <td class="r num">${propOk}/${comp.properties.length}</td>
+                    <td class="r num">${fmt(comp.testUses)}</td>
+                </tr>
+                ${open ? `<tr class="detail"><td colspan="6">${detail(comp, q)}</td></tr>` : ""}`;
+                })
+                .join("") || `<tr><td colspan="6" class="empty">No components match.</td></tr>`;
+    }
+
+    function detail(comp, q) {
+        const hl = (name) => (q && name.toLowerCase().includes(q) ? ' style="outline:2px solid var(--accent)"' : "");
+        const attrs = [...comp.attributes].sort((a, b) => Number(b.supported) - Number(a.supported) || b.testUses - a.testUses);
+        const props = [...comp.properties].sort((a, b) => ["public", "private", "missing"].indexOf(a.status) - ["public", "private", "missing"].indexOf(b.status) || a.name.localeCompare(b.name));
+        const chipsOr = (items, empty) => (items.length ? `<div class="chips">${items.join("")}</div>` : `<p class="empty">${empty}</p>`);
+        return `<div class="detail-grid">
+            <p class="muted">${
+                comp.rustComponent
+                    ? `Implemented by the Rust component <code>${esc(comp.rustComponent)}</code>.`
+                    : "Not implemented in Rust. In a Rust document this tag renders as an unrecognized external element."
+            }${comp.testFailuresNamingIt ? ` ${comp.testFailuresNamingIt} test failures name it.` : ""}${
+                comp.docsSlug ? ` <a href="https://docs.doenet.org/reference/${esc(comp.docsSlug)}" target="_blank" rel="noopener">Reference docs</a>` : ""
+            }</p>
+            <div><h3>Attributes <span class="muted">— green supported, grey missing; the number on a missing one is its uses in tests</span></h3>
+            ${chipsOr(
+                attrs.map((a) => `<span class="chip ${a.supported ? "ok" : "no"}"${hl(a.name)}>${esc(a.name)}${!a.supported && a.testUses ? `<sup>${a.testUses}</sup>` : ""}</span>`),
+                "No attributes.",
+            )}</div>
+            <div><h3>Properties <span class="muted">— green public, amber private in Rust, grey missing</span></h3>
+            ${chipsOr(
+                props.map((p) => `<span class="chip ${p.status === "public" ? "ok" : p.status === "private" ? "priv" : "no"}"${hl(p.name)}>${esc(p.name)}</span>`),
+                "No public properties.",
+            )}</div>
+            ${
+                comp.rustComponent
+                    ? `<div><h3>Only in Rust</h3>${chipsOr(
+                          [
+                              ...comp.rustOnlyAttributes.map((a) => `<span class="chip extra">attr ${esc(a)}</span>`),
+                              ...comp.rustOnlyProps.map((p) => `<span class="chip extra">${p.public ? "prop" : "private prop"} ${esc(p.name)}</span>`),
+                          ],
+                          "Nothing.",
+                      )}</div>
+                      <div><h3>Actions in Rust</h3>${chipsOr(comp.actions.map((a) => `<span class="chip extra">${esc(a)}</span>`), "None.")}</div>`
+                    : ""
+            }
+        </div>`;
+    }
+
+    function rankList(items, empty, limit = 12) {
+        if (!items?.length) return `<p class="empty">${empty}</p>`;
+        const shown = items.slice(0, limit);
+        const rest = items.slice(limit);
+        const li = (i) => `<li><span class="mono">${esc(i.name)}</span><span class="num muted">${fmt(i.count)}</span></li>`;
+        return `<ol class="rank">${shown.map(li).join("")}</ol>${
+            rest.length ? `<details><summary>${rest.length} more</summary><ol class="rank">${rest.map(li).join("")}</ol></details>` : ""
+        }`;
+    }
+
+    function renderTests() {
+        const tests = REPORT.tests;
+        if (!tests) {
+            $("tests-body").innerHTML = `<p class="empty panel">This report was generated without test results. Run <code>npm run parity -w @doenet/rust-parity</code> to include them.</p>`;
+            return;
+        }
+        $("tests-ran").textContent = `Run ${new Date(tests.ranAt).toLocaleString()}`;
+        const maxKind = Math.max(1, ...tests.failureKinds.map((k) => k.count));
+
+        const groups = new Map();
+        for (const f of tests.files) {
+            const g = groups.get(f.group) ?? { group: f.group, passed: 0, failed: 0, files: [] };
+            g.passed += f.passed;
+            g.failed += f.failed;
+            g.files.push(f);
+            groups.set(f.group, g);
+        }
+        const groupRows = [...groups.values()]
+            .sort((a, b) => b.passed / (b.passed + b.failed || 1) - a.passed / (a.passed + a.failed || 1) || a.group.localeCompare(b.group))
+            .map((g) => {
+                const run = g.passed + g.failed;
+                return `<tr class="row" tabindex="0" data-group="${esc(g.group)}" aria-expanded="false">
+                    <td><span class="caret">›</span><span class="name">${esc(g.group)}</span> <span class="muted">${g.files.length} files</span></td>
+                    <td class="num" style="white-space:nowrap"><span class="bar"><span style="width:${run ? (g.passed / run) * 100 : 0}%;background:var(--good)"></span></span>${run ? pct(g.passed / run) : "—"}</td>
+                    <td class="r num">${fmt(g.passed)}</td>
+                    <td class="r num">${fmt(g.failed)}</td>
+                </tr>
+                <tr class="detail" data-group-detail="${esc(g.group)}" hidden><td colspan="4">
+                    <table><tbody>${g.files
+                        .map(
+                            (f) => `<tr><td class="mono">${esc(f.file)}${
+                                f.passing.length
+                                    ? `<details><summary>${f.passing.length} passing</summary><ol class="rank">${f.passing.map((p) => `<li><span>${esc(p)}</span></li>`).join("")}</ol></details>`
+                                    : ""
+                            }</td><td class="r num">${f.passed} / ${f.passed + f.failed}</td></tr>`,
+                        )
+                        .join("")}</tbody></table>
+                </td></tr>`;
+            })
+            .join("");
+
+        $("tests-body").innerHTML = `
+        <div style="display:grid;gap:12px">
+            <div class="two">
+                <div class="panel" style="display:grid;gap:12px">
+                    <h3>Why tests fail</h3>
+                    <div class="hbars">${tests.failureKinds
+                        .map(
+                            (k) => `<div class="hbar"><span>${esc(k.label)}</span><span class="num muted">${fmt(k.count)}</span>
+                            <div class="track"><span style="width:${(k.count / maxKind) * 100}%"></span></div></div>`,
+                        )
+                        .join("")}</div>
+                </div>
+                <div class="panel" style="display:grid;gap:12px">
+                    <h3>Missing state variables tests read first</h3>
+                    ${rankList(tests.stateVariableGaps, "None.")}
+                </div>
+            </div>
+            <div class="two">
+                <div class="panel" style="display:grid;gap:12px"><h3>Missing actions</h3>${rankList(tests.actionGaps, "None.", 8)}</div>
+                <div class="panel" style="display:grid;gap:12px"><h3>Children and replacements read</h3>${rankList(tests.componentFieldGaps, "None.", 8)}</div>
+                <div class="panel" style="display:grid;gap:12px"><h3>Test options Rust lacks</h3>${rankList(tests.optionGaps, "None.", 8)}</div>
+                <div class="panel" style="display:grid;gap:12px"><h3>Core API and internals used</h3>${rankList(tests.coreApiGaps, "None.", 8)}</div>
+                <div class="panel" style="display:grid;gap:12px"><h3>Other errors</h3>${rankList(tests.otherErrors, "None.", 8)}</div>
+            </div>
+            <div class="table-scroll"><table>
+                <thead><tr><th>Test folder</th><th>Passing</th><th class="r">Pass</th><th class="r">Fail</th></tr></thead>
+                <tbody id="group-rows">${groupRows}</tbody>
+            </table></div>
+        </div>`;
+
+        $("group-rows").addEventListener("click", (e) => toggleGroup(e));
+        $("group-rows").addEventListener("keydown", (e) => {
+            if (e.key === "Enter" || e.key === " ") toggleGroup(e);
+        });
+    }
+
+    function toggleGroup(e) {
+        if (e.target.closest("details")) return;
+        const row = e.target.closest("tr[data-group]");
+        if (!row) return;
+        e.preventDefault();
+        const open = row.getAttribute("aria-expanded") !== "true";
+        row.setAttribute("aria-expanded", String(open));
+        const detailRow = $("group-rows").querySelector(`tr[data-group-detail="${CSS.escape(row.dataset.group)}"]`);
+        if (detailRow) detailRow.hidden = !open;
+    }
+
+    function renderRustOnly() {
+        const rows = [];
+        for (const comp of REPORT.rustOnlyComponents) {
+            rows.push(`<div><span class="chip extra">component ${esc(comp.name)}</span> <span class="muted">attributes: ${comp.attributes.map(esc).join(", ") || "none"}</span></div>`);
+        }
+        for (const comp of REPORT.components) {
+            if (!comp.rustComponent) continue;
+            const extras = [...comp.rustOnlyAttributes.map((a) => `attr ${a}`), ...comp.rustOnlyProps.filter((p) => p.public).map((p) => `prop ${p.name}`)];
+            if (extras.length) {
+                rows.push(`<div><span class="name">${esc(comp.name)}</span> <span class="chips" style="display:inline-flex">${extras.map((x) => `<span class="chip extra">${esc(x)}</span>`).join("")}</span></div>`);
+            }
+        }
+        $("rust-only-body").innerHTML = rows.length
+            ? `<div style="display:grid;gap:8px">${rows.join("")}</div><p class="muted" style="margin-top:10px">Private Rust props are listed in each component's detail row.</p>`
+            : `<p class="empty">None.</p>`;
+    }
+
+    function toggleComponent(e) {
+        const row = e.target.closest("tr.row");
+        if (!row) return;
+        e.preventDefault();
+        const name = row.dataset.name;
+        if (state.open.has(name)) state.open.delete(name);
+        else state.open.add(name);
+        renderComponents();
+        document.querySelector(`#component-rows tr[data-name="${CSS.escape(name)}"]`)?.focus();
+    }
+    $("component-rows").addEventListener("click", toggleComponent);
+    $("component-rows").addEventListener("keydown", (e) => {
+        if (e.key === "Enter" || e.key === " ") toggleComponent(e);
+    });
+    $("status-filter").addEventListener("click", (e) => {
+        const b = e.target.closest("button");
+        if (!b) return;
+        state.status = b.dataset.status;
+        syncFilterButtons();
+        saveView();
+        renderComponents();
+    });
+    $("component-search").addEventListener("input", (e) => {
+        state.query = e.target.value.trim();
+        renderComponents();
+    });
+    $("show-all").addEventListener("click", () => {
+        state.showAll = true;
+        renderComponents();
+    });
+    $("component-sort").addEventListener("change", (e) => {
+        state.sort = e.target.value;
+        saveView();
+        renderComponents();
+    });
+
+    syncFilterButtons();
+    render();
+</script>

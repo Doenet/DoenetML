@@ -27,6 +27,7 @@ import { defaultFlags } from "../../../../doenetml/src/flags";
 import type { DoenetMLFlags } from "../../../../doenetml/src/flags";
 
 import util from "util";
+import { createTestCoreRust } from "./test-core-rust";
 
 const origLog = console.log;
 console.log = (...args) => {
@@ -39,19 +40,7 @@ export type ResolvePathToNodeIdx = Awaited<
     ReturnType<typeof createTestCore>
 >["resolvePathToNodeIdx"];
 
-export async function createTestCore({
-    doenetML,
-    requestedVariantIndex = 1,
-    flags: specifiedFlags = {},
-    theme,
-    documentLocale,
-    localeResources,
-    styleOverrides,
-    initializeCounters = {},
-    requestSolutionView = async () => ({ allowView: true }),
-    externalDoenetMLs = {},
-    initialState,
-}: {
+type CreateTestCoreOptions = {
     doenetML: string;
     requestedVariantIndex?: number;
     flags?: DoenetMLFlagsSubset;
@@ -67,7 +56,67 @@ export async function createTestCore({
     }>;
     externalDoenetMLs?: Record<string, string>;
     initialState?: string;
-}) {
+};
+
+export async function createTestCore({
+    doenetML,
+    requestedVariantIndex = 1,
+    flags: specifiedFlags = {},
+    theme,
+    documentLocale,
+    localeResources,
+    styleOverrides,
+    initializeCounters = {},
+    requestSolutionView = async () => ({ allowView: true }),
+    externalDoenetMLs = {},
+    initialState,
+}: CreateTestCoreOptions): Promise<
+    Awaited<ReturnType<typeof createTestCoreJavascript>>
+> {
+    if (process.env.DOENET_TEST_CORE === "rust") {
+        // Measures Rust-core parity; see `test-core-rust.ts`. The Rust stand-in
+        // returns only the part of this interface that most tests use.
+        return (await createTestCoreRust({
+            doenetML,
+            requestedVariantIndex,
+            flags: specifiedFlags,
+            theme,
+            documentLocale,
+            localeResources,
+            styleOverrides,
+            initializeCounters,
+            externalDoenetMLs,
+            initialState,
+        })) as unknown as Awaited<ReturnType<typeof createTestCoreJavascript>>;
+    }
+    return createTestCoreJavascript({
+        doenetML,
+        requestedVariantIndex,
+        flags: specifiedFlags,
+        theme,
+        documentLocale,
+        localeResources,
+        styleOverrides,
+        initializeCounters,
+        requestSolutionView,
+        externalDoenetMLs,
+        initialState,
+    });
+}
+
+async function createTestCoreJavascript({
+    doenetML,
+    requestedVariantIndex = 1,
+    flags: specifiedFlags = {},
+    theme,
+    documentLocale,
+    localeResources,
+    styleOverrides,
+    initializeCounters = {},
+    requestSolutionView = async () => ({ allowView: true }),
+    externalDoenetMLs = {},
+    initialState,
+}: CreateTestCoreOptions) {
     const wasmBuffer = fs.readFileSync(
         path.resolve(
             import.meta.dirname,
