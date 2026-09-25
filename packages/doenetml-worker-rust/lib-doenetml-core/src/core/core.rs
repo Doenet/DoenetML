@@ -9,6 +9,12 @@ use crate::dast::{
     ref_resolve::{IndexResolution, RefResolution, ResolutionError, Resolver},
 };
 
+use crate::components::{
+    ComponentProps,
+    types::{ComponentIdx, PropPointer},
+};
+use crate::props::PropValue;
+
 use super::{
     component_builder::ComponentBuilder, document_model::DocumentModel,
     document_renderer::DocumentRenderer,
@@ -124,6 +130,52 @@ impl Core {
     pub fn to_flat_dast(&mut self) -> FlatDastRoot {
         self.document_renderer
             .render_flat_dast(&self.document_model)
+    }
+
+    /// Get the type of the component at `component_idx`,
+    /// or `None` if there is no such component.
+    pub fn get_component_type(&self, component_idx: usize) -> Option<String> {
+        if component_idx >= self.num_components() {
+            return None;
+        }
+        Some(
+            self.document_model
+                .get_component_type(ComponentIdx::new(component_idx)),
+        )
+    }
+
+    /// Get the value of the prop named `prop_name` (in camelCase) of the component
+    /// at `component_idx`, resolving and calculating it if needed.
+    ///
+    /// The read is untracked, so it does not change what the next `to_flat_dast`
+    /// reports as changed. Returns `None` if there is no such component or the component
+    /// has no prop with that name.
+    pub fn get_prop_value_by_name(
+        &mut self,
+        component_idx: usize,
+        prop_name: &str,
+    ) -> Option<PropValue> {
+        if component_idx >= self.num_components() {
+            return None;
+        }
+        let component_idx = ComponentIdx::new(component_idx);
+        let local_prop_idx = self
+            .document_model
+            .get_component(component_idx)
+            .get_local_prop_index_from_name(prop_name)?;
+        let prop_node = self.document_model.prop_pointer_to_prop_node(PropPointer {
+            component_idx,
+            local_prop_idx,
+        });
+        Some(
+            self.document_renderer
+                .get_prop_for_render_untracked(prop_node, &self.document_model)
+                .value,
+        )
+    }
+
+    fn num_components(&self) -> usize {
+        self.document_model.get_component_indices().count()
     }
 
     pub fn _run_test(&mut self, test_name: &str) {

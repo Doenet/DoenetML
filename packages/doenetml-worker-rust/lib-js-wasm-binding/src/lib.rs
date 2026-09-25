@@ -213,6 +213,31 @@ impl PublicDoenetMLCore {
         })
     }
 
+    /// Get the type of the component at `component_idx`, or `undefined` if there is none.
+    ///
+    /// Call `return_dast` first so that the components have been created.
+    pub fn get_component_type(&self, component_idx: usize) -> Option<String> {
+        self.core.get_component_type(component_idx)
+    }
+
+    /// Get the current value of the prop named `prop_name` (camelCase) of the
+    /// component at `component_idx`, calculating it if needed. Returns `undefined`
+    /// if there is no such component or prop.
+    ///
+    /// Intended for tests that read one value at a time rather than going through
+    /// the renderer; the read does not affect what the next `return_dast` reports.
+    /// A math value comes back as `{ math_object: <JSON of the math-expressions tree> }`.
+    pub fn get_prop_value(
+        &mut self,
+        component_idx: usize,
+        prop_name: &str,
+    ) -> Result<JsValue, String> {
+        match self.core.get_prop_value_by_name(component_idx, prop_name) {
+            Some(value) => serde_wasm_bindgen::to_value(&value).map_err(|e| e.to_string()),
+            None => Ok(JsValue::UNDEFINED),
+        }
+    }
+
     pub fn _run_test(&mut self, test_name: &str) {
         self.core._run_test(test_name);
     }
