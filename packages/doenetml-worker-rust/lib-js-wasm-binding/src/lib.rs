@@ -226,14 +226,24 @@ impl PublicDoenetMLCore {
     ///
     /// Intended for tests that read one value at a time rather than going through
     /// the renderer; the read does not affect what the next `return_dast` reports.
-    /// A math value comes back as `{ math_object: <JSON of the math-expressions tree> }`.
+    /// A math value comes back as `{ math_object: <JSON of the math-expressions tree> }`,
+    /// and an empty value (such as the `title` of a section without one) as `null`.
     pub fn get_prop_value(
         &mut self,
         component_idx: usize,
         prop_name: &str,
     ) -> Result<JsValue, String> {
         match self.core.get_prop_value_by_name(component_idx, prop_name) {
-            Some(value) => serde_wasm_bindgen::to_value(&value).map_err(|e| e.to_string()),
+            Some(value) => {
+                let value = serde_wasm_bindgen::to_value(&value).map_err(|e| e.to_string())?;
+                // `serde_wasm_bindgen` serializes `None` and `()` as `undefined`,
+                // which would read as "no such prop".
+                Ok(if value.is_undefined() {
+                    JsValue::NULL
+                } else {
+                    value
+                })
+            }
             None => Ok(JsValue::UNDEFINED),
         }
     }

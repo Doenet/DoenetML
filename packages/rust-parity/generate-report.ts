@@ -216,7 +216,12 @@ function classifyFailure(message: string): {
     if (m) return { kind: "missing-core-api", detail: m[1] ?? m[2] };
     // `stateVariables[idx]` was undefined: the name did not resolve to a
     // component in the Rust document (or resolved to one it never created).
-    if (/reading 'stateValues'/.test(firstLine)) {
+    // The fields are those of a `returnAllStateVariables()` entry.
+    if (
+        /of undefined \(reading '(stateValues|componentType|componentIdx|activeChildren|replacements|replacementsToWithhold|replacementOf|sharedParameters)'\)/.test(
+            firstLine,
+        )
+    ) {
         return { kind: "component-not-found" };
     }
     m = firstLine.match(
