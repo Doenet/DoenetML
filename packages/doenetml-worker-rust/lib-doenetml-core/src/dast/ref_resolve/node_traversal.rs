@@ -52,14 +52,31 @@ impl Resolver {
     ///
     /// From each origin node, name edges are traversed before index edges.
     pub(super) fn breadth_first_traversal(&self) -> Vec<ResolverEdge> {
+        let mut visited = vec![false; self.node_resolver_data.len() - 1];
+
+        self.breadth_first_traversal_from(NodeOrRoot::Root, None.into(), &mut visited)
+    }
+
+    /// Continue a breadth-first traversal of the resolver graph from `origin`,
+    /// which was reached with source `origin_source`, skipping every node already marked in `visited`.
+    /// Nodes are marked in `visited` as they are reached.
+    ///
+    /// Returns: a vector of the edges by which each newly visited node was reached.
+    ///
+    /// When every node reachable other than through `origin` is already marked in `visited`,
+    /// this gives the same edges, in the same order, as the part of a full traversal that passes through `origin`.
+    pub(super) fn breadth_first_traversal_from(
+        &self,
+        origin: NodeOrRoot,
+        origin_source: SourceDoc,
+        visited: &mut [bool],
+    ) -> Vec<ResolverEdge> {
         // TODO: decide if this should be converted to an iterator
 
         let mut edges_encountered = Vec::new();
 
         let mut queue: VecDeque<(NodeOrRoot, SourceDoc)> = VecDeque::new();
-        queue.push_back((NodeOrRoot::Root, None.into()));
-
-        let mut visited = vec![false; self.node_resolver_data.len() - 1];
+        queue.push_back((origin, origin_source));
 
         let mut counter = 0;
         let max_count = self.node_resolver_data.len();
@@ -94,7 +111,8 @@ impl Resolver {
                 // naming itself, and cycles through a prop all resolve without
                 // reaching this. See `dast/panic_reachability.test.rs`, whose
                 // harness calls `calculate_root_names` for this site's sake --
-                // it is the only caller of `breadth_first_traversal`, so a
+                // only the root names (`calculate_root_names` and
+                // `update_root_names`) traverse the resolver graph, so a
                 // corpus that stopped at `Expander::expand` would say nothing
                 // about this panic while appearing to.
                 panic!("Cycles detected in references")

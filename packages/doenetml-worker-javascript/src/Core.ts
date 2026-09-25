@@ -1,3 +1,4 @@
+import type { RootNameChanges } from "@doenet/doenetml-worker";
 import ParameterStack from "./ParameterStack";
 import { codedDiagnostic } from "./utils/diagnostics";
 // `Numerics.js` is still JavaScript; cast at the import site once.
@@ -38,6 +39,7 @@ import { DiagnosticsManager } from "./core/DiagnosticsManager";
 import { EssentialValueWriter } from "./core/EssentialValueWriter";
 import { navigateToTarget } from "./core/NavigationHandler";
 import { ProcessQueue } from "./core/ProcessQueue";
+import { refreshRootNames } from "./core/ResolverAdapter";
 import { RendererInstructionBuilder } from "./core/RendererInstructionBuilder";
 import { StalenessPropagator } from "./core/StalenessPropagator";
 import { StatePersistence } from "./core/StatePersistence";
@@ -82,7 +84,7 @@ export interface CoreOptions {
     replaceIndexResolutionsInResolver?: (...args: any[]) => any;
     deleteNodesFromResolver?: (...args: any[]) => any;
     resolvePath?: (...args: any[]) => any;
-    calculateRootNames?: () => { names: Record<ComponentIdx, any> };
+    updateRootNames?: (reportAll: boolean) => RootNameChanges;
     updateRenderersCallback: (...args: any[]) => any;
     reportScoreAndStateCallback: (...args: any[]) => any;
     requestAnimationFrame: (...args: any[]) => any;
@@ -186,8 +188,8 @@ export default class Core {
     replaceIndexResolutionsInResolver?: (...args: any[]) => any;
     deleteNodesFromResolver?: (...args: any[]) => any;
     resolvePath?: (...args: any[]) => any;
-    calculateRootNames?: () => { names: Record<ComponentIdx, any> };
-    rootNames: Record<ComponentIdx, any> | undefined;
+    updateRootNames?: (reportAll: boolean) => RootNameChanges;
+    rootNames: Record<ComponentIdx, string>;
 
     // ─── Host callbacks ───────────────────────────────────────────────────
     updateRenderersCallback: (...args: any[]) => any;
@@ -320,7 +322,7 @@ export default class Core {
         replaceIndexResolutionsInResolver,
         deleteNodesFromResolver,
         resolvePath,
-        calculateRootNames,
+        updateRootNames,
         updateRenderersCallback,
         reportScoreAndStateCallback,
         requestAnimationFrame,
@@ -344,9 +346,10 @@ export default class Core {
             replaceIndexResolutionsInResolver;
         this.deleteNodesFromResolver = deleteNodesFromResolver;
         this.resolvePath = resolvePath;
-        this.calculateRootNames = calculateRootNames;
+        this.updateRootNames = updateRootNames;
 
-        this.rootNames = this.calculateRootNames?.().names;
+        this.rootNames = {};
+        refreshRootNames(this, true);
 
         this.updateRenderersCallback = updateRenderersCallback;
         this.reportScoreAndStateCallback = reportScoreAndStateCallback;

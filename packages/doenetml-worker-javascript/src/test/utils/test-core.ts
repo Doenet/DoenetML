@@ -160,8 +160,8 @@ async function createTestCoreJavascript({
 
     const normalizedRoot = rustCore.return_normalized_dast_root();
 
-    function calculateRootNames() {
-        return rustCore.calculate_root_names();
+    function updateRootNames(reportAll: boolean) {
+        return rustCore.update_root_names(reportAll);
     }
 
     function resolvePath(
@@ -219,7 +219,7 @@ async function createTestCoreJavascript({
         replaceIndexResolutionsInResolver,
         deleteNodesFromResolver,
         resolvePath,
-        calculateRootNames,
+        updateRootNames,
     });
 
     const scoreState = {

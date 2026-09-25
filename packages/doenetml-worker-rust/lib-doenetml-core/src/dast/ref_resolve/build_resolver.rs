@@ -6,7 +6,7 @@ use crate::dast::flat_dast::{
     UntaggedContent,
 };
 
-use super::*;
+use super::{root_names::RootNameCache, *};
 
 impl Resolver {
     pub fn from_flat_root(flat_root: &FlatRoot) -> Self {
@@ -39,6 +39,7 @@ impl Resolver {
                 }
             })
             .collect(),
+            root_name_cache: RootNameCache::default(),
         };
 
         resolver.add_implicit_index_resolutions(
@@ -68,6 +69,12 @@ impl Resolver {
     /// - `index_resolution`: used to optionally specify that the children of the `flat_fragment` should also
     ///   be added as indices of the `flat_fragment` parent.
     pub fn add_nodes(&mut self, flat_fragment: &FlatFragment, index_resolution: IndexResolution) {
+        self.root_name_cache.note_added_fragment(
+            flat_fragment,
+            &index_resolution,
+            &self.node_resolver_data,
+        );
+
         let prev_num_nodes = self.node_resolver_data.len();
         let new_num_nodes = flat_fragment.len() + 1;
 
@@ -131,7 +138,7 @@ impl Resolver {
 
         // If the new nodes are also index resolutions for a parent,
         // add them to `index_resolutions`
-        self.replace_index_resolutions(&flat_fragment.children, index_resolution);
+        self.splice_index_resolutions(&flat_fragment.children, index_resolution);
 
         self.add_implicit_index_resolutions(
             &FlatRootOrFragment::Fragment(flat_fragment),
@@ -141,6 +148,8 @@ impl Resolver {
 
     /// Delete `nodes` from the resolver
     pub fn delete_nodes(&mut self, nodes: &[FlatNode]) {
+        self.root_name_cache.invalidate();
+
         for (name_with_source_doc, node_idx) in nodes
             .iter()
             .filter_map(|node| {

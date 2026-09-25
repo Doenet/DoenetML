@@ -15,7 +15,7 @@ import {
     RefResolution,
     IndexResolution,
     ContentVector,
-    RootNames,
+    RootNameChanges,
 } from "@doenet/doenetml-worker";
 import { normalizedDastToSerializedComponents } from "./utils/dast/convertNormalizedDast";
 import { reportTimerError, TimerLabels } from "./utils/timerErrors";
@@ -111,7 +111,7 @@ export class PublicDoenetMLCore {
         origin: number,
         skip_parent_search: boolean,
     ) => RefResolution;
-    calculateRootNames?: () => RootNames;
+    updateRootNames?: (reportAll: boolean) => RootNameChanges;
 
     setSource(doenetML: string) {
         this.doenetML = doenetML;
@@ -142,7 +142,7 @@ export class PublicDoenetMLCore {
         replaceIndexResolutionsInResolver,
         deleteNodesFromResolver,
         resolvePath,
-        calculateRootNames,
+        updateRootNames,
     }: {
         activityId: string;
         docId: string;
@@ -163,14 +163,14 @@ export class PublicDoenetMLCore {
             origin: number,
             skip_parent_search: boolean,
         ) => RefResolution;
-        calculateRootNames?: () => RootNames;
+        updateRootNames?: (reportAll: boolean) => RootNameChanges;
     }) {
         this.addNodesToResolver = addNodesToResolver;
         this.replaceIndexResolutionsInResolver =
             replaceIndexResolutionsInResolver;
         this.deleteNodesFromResolver = deleteNodesFromResolver;
         this.resolvePath = resolvePath;
-        this.calculateRootNames = calculateRootNames;
+        this.updateRootNames = updateRootNames;
 
         let componentInfoObjects = createComponentInfoObjects();
 
@@ -272,7 +272,7 @@ export class PublicDoenetMLCore {
                 this.replaceIndexResolutionsInResolver,
             deleteNodesFromResolver: this.deleteNodesFromResolver,
             resolvePath: this.resolvePath,
-            calculateRootNames: this.calculateRootNames,
+            updateRootNames: this.updateRootNames,
             updateRenderersCallback,
             reportScoreAndStateCallback,
             requestAnimationFrame,

@@ -95,6 +95,13 @@ impl Core {
             .calculate_root_names()
     }
 
+    pub fn update_root_names(&mut self, report_all: bool) -> Vec<(Index, Option<String>)> {
+        self.resolver
+            .as_mut()
+            .expect("Cannot update root names from resolver before it is created")
+            .update_root_names(report_all)
+    }
+
     pub fn resolve_path<T: AsRef<[FlatPathPart]>>(
         &self,
         path: T,

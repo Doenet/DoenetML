@@ -2,7 +2,7 @@ use serde::{Deserialize, Serialize};
 use std::iter;
 use tsify_next::Tsify;
 
-use super::{NameMap, ResolutionError};
+use super::{NameMap, ResolutionError, root_names::RootNameCache};
 use crate::dast::{
     flat_dast::{FlatElement, FlatNode, FlatPathPart, Index, SourceDoc, UntaggedContent},
     ref_resolve::NameWithSource,
@@ -133,6 +133,10 @@ pub struct Resolver {
     /// so that `node_resolver_data[i+1]` gives the data for node `i`
     /// and `node_resolver_data[0]` gives that data for the flat root (which isn't a node)
     pub(super) node_resolver_data: Vec<NodeResolverData>,
+    /// The root names last returned by [`Resolver::update_root_names`],
+    /// against which the next call reports its changes.
+    #[serde(skip)]
+    pub(super) root_name_cache: RootNameCache,
 }
 
 impl Resolver {

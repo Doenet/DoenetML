@@ -16,9 +16,28 @@ import {
  * Stateless — the resolver lives outside this process. Each function takes
  * a back-reference to Core to read `_components` / `componentInfoObjects`,
  * invoke the resolver callbacks (`addNodesToResolver`,
- * `deleteNodesFromResolver`, `calculateRootNames`), append diagnostics, and
+ * `deleteNodesFromResolver`, `updateRootNames`), append diagnostics, and
  * notify `dependencies.addBlockersFromChangedReplacements`.
  */
+
+/**
+ * Bring `core.rootNames` up to date with the resolver by applying the root
+ * names that changed since the last call. With `reportAll`, the resolver
+ * reports every root name, for a `core.rootNames` that starts out empty.
+ */
+export function refreshRootNames(core: Core, reportAll = false): void {
+    const result = core.updateRootNames?.(reportAll);
+    if (!result) {
+        return;
+    }
+    for (const [componentIdx, name] of result.changes) {
+        if (name == null) {
+            delete core.rootNames[componentIdx];
+        } else {
+            core.rootNames[componentIdx] = name;
+        }
+    }
+}
 
 export async function addReplacementsToResolver({
     core,
@@ -121,7 +140,7 @@ export async function addReplacementsToResolver({
     ) {
         core.addNodesToResolver(flatFragment, indexResolution);
 
-        core.rootNames = core.calculateRootNames?.().names;
+        refreshRootNames(core);
 
         let indexParent =
             indexResolution.ReplaceAll?.parent ??
@@ -354,7 +373,7 @@ export function addComponentsToResolver({
     if (core.addNodesToResolver) {
         core.addNodesToResolver(flatFragment, "None");
 
-        core.rootNames = core.calculateRootNames?.().names;
+        refreshRootNames(core);
     }
 }
 
@@ -431,6 +450,6 @@ export function removeComponentsFromResolver({
             nodes: flatElements,
         });
 
-        core.rootNames = core.calculateRootNames?.().names;
+        refreshRootNames(core);
     }
 }
