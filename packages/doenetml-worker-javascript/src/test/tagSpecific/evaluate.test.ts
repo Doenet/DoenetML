@@ -8,6 +8,7 @@ import {
 } from "../utils/actions";
 import me from "math-expressions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { createFunctionFromDefinition } from "@doenet/utils";
 import type { round as RoundType } from "mathjs";
 const { round } = me.math as { round: RoundType };
 
@@ -5602,13 +5603,17 @@ describe("Evaluate tag tests @group2", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        const sv = async (name: string) =>
-            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        async function sv(name: string) {
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        }
 
         const direct = (await sv("direct")).numericalfs[0];
-        const pdf = (x: number, mu: number, sigma: number) =>
-            Math.exp(-0.5 * ((x - mu) / sigma) ** 2) /
-            (sigma * Math.sqrt(2 * Math.PI));
+        function pdf(x: number, mu: number, sigma: number) {
+            return (
+                Math.exp(-0.5 * ((x - mu) / sigma) ** 2) /
+                (sigma * Math.sqrt(2 * Math.PI))
+            );
+        }
 
         for (const name of ["f", "g", "h"]) {
             expect((await sv(name)).fDefinitions[0].functionType).eq("formula");
@@ -5631,6 +5636,15 @@ describe("Evaluate tag tests @group2", async () => {
             expect(g(x)).closeTo(2 * pdf(x, 1, 2) + 1, 1e-14);
         }
 
+        // A graph builds the function from `fDefinitions`: same values
+        for (const name of ["f", "g", "h"]) {
+            const { fDefinitions, numericalfs } = await sv(name);
+            const drawn = createFunctionFromDefinition(fDefinitions[0]);
+            for (const x of [-3, 0, 0.5, 2, 11.15, 40]) {
+                expect(drawn(x)).toBe(numericalfs[0](x));
+            }
+        }
+
         // Precision in the tail is what keeps the search from reporting
         // minima the function does not have.
         expect((await sv("f")).minima).eqls([]);
@@ -5650,8 +5664,9 @@ describe("Evaluate tag tests @group2", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        const sv = async (name: string) =>
-            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        async function sv(name: string) {
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        }
 
         for (const name of ["f", "f2"]) {
             expect((await sv(name)).fDefinitions[0].functionType).eq(
@@ -5668,6 +5683,15 @@ describe("Evaluate tag tests @group2", async () => {
         expect(f2(0)).toBeNaN();
         expect(f2(5)).eq(3);
         expect(f2(6)).toBeNaN();
+
+        // A graph builds the function from `fDefinitions`: same values
+        for (const name of ["f", "f2"]) {
+            const { fDefinitions, numericalfs } = await sv(name);
+            const drawn = createFunctionFromDefinition(fDefinitions[0]);
+            for (const x of [0, 1, 3, 5, 6]) {
+                expect(drawn(x)).toBe(numericalfs[0](x));
+            }
+        }
     });
 
     it("a function evaluating a function with a domain is evaluated numerically at each sample", async () => {
@@ -5682,8 +5706,9 @@ describe("Evaluate tag tests @group2", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        const sv = async (name: string) =>
-            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        async function sv(name: string) {
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        }
 
         expect((await sv("f")).fDefinitions[0].functionType).eq(
             "reevaluatedFormula",
@@ -5730,8 +5755,9 @@ describe("Evaluate tag tests @group2", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        const sv = async (name: string) =>
-            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        async function sv(name: string) {
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        }
 
         for (const name of ["f", "k"]) {
             expect((await sv(name)).fDefinitions[0].functionType).eq("formula");
@@ -5762,6 +5788,12 @@ describe("Evaluate tag tests @group2", async () => {
         const f = fSVs.numericalfs[0];
         expect(f(2)).eq(17);
         expect(f(-1)).toBeNaN();
+
+        // A graph builds the function from `fDefinitions`: same values
+        const drawn = createFunctionFromDefinition(fSVs.fDefinitions[0]);
+        for (const x of [-1, 0, 2, 10, 11]) {
+            expect(drawn(x)).toBe(f(x));
+        }
     });
 
     it("a function evaluating a one-input function at a vector has no value", async () => {
@@ -5775,8 +5807,9 @@ describe("Evaluate tag tests @group2", async () => {
         });
 
         const stateVariables = await core.returnAllStateVariables(false, true);
-        const sv = async (name: string) =>
-            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        async function sv(name: string) {
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        }
 
         // Like evaluating `g` at a vector directly: no value
         expect((await sv("p")).text).eq("＿");
