@@ -10,6 +10,10 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 `<div>{:dn}` is a [Sectional](../concepts/essentialConcepts#component-types) 
 component that groups doenetML content into an unformatted container that can be named.
 
+A `<div>{:dn}` shows no number of its own, so a [`<section>{:dn}`](section) or
+other numbered sectional component inside it is numbered along with the ones
+beside the `<div>{:dn}`, and the count continues after it.
+
 <AttrPropDisplay name='div'/>
 
 

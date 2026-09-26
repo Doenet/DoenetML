@@ -49,6 +49,15 @@ the other sectioning components (such as `<subsection>{:dn}`, `<paragraphs>{:dn}
 Within a DoenetML document, default titles for sectional components are 
 auto-numbered. Each sectional component is on the same counter.
 
+A container that shows no number of its own, such as a [`<div>{:dn}`](div)
+or a [`<cascade>{:dn}`](cascade), does not start a count of its own. The
+sectional components inside it are numbered along with the ones beside it, and
+the count continues after it: in
+`<section><subsection/><div><subsection/></div><subsection/></section>{:dn}`
+the subsections are numbered 1.1, 1.2 and 1.3. A [`<proof>{:dn}`](proof) is
+different: it takes no place in the count, and any sections inside it are
+numbered among themselves.
+
 
 
 ---
