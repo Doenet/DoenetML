@@ -24,7 +24,7 @@
         }
     },
     "scripts": {
-        "dev": "vite",
+        "dev": "wireit",
         "build": "wireit",
         "build:dev": "wireit",
         "preview": "vite preview",
@@ -84,6 +84,9 @@
                 "../lsp-tools:build",
                 "../math:build"
             ]
+        },
+        "dev": {
+            "command": "node ../../scripts/copy-test-code.ts && vite"
         }
     },
     "peerDependencies": {
