@@ -124054,6 +124054,10 @@
                 "displayXAxis": {
                     "optional": true,
                     "type": [
+                        "full",
+                        "none",
+                        "positiveOnly",
+                        "negativeOnly",
                         "true",
                         "false"
                     ]
@@ -124061,6 +124065,10 @@
                 "displayYAxis": {
                     "optional": true,
                     "type": [
+                        "full",
+                        "none",
+                        "positiveOnly",
+                        "negativeOnly",
                         "true",
                         "false"
                     ]
@@ -124728,14 +124736,14 @@
                 },
                 {
                     "name": "displayXAxis",
-                    "type": "boolean",
+                    "type": "text",
                     "isArray": false,
                     "description": "Whether to display the x axis.",
                     "fromAttribute": true
                 },
                 {
                     "name": "displayYAxis",
-                    "type": "boolean",
+                    "type": "text",
                     "isArray": false,
                     "description": "Whether to display the y axis.",
                     "fromAttribute": true
