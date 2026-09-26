@@ -1489,4 +1489,245 @@ describe("Module tag tests @group1", async () => {
                 .stateValues.coords.tree,
         ).eqls(["vector", 9, -3]);
     });
+
+    describe("references in module attributes resolve where the module is written", () => {
+        const moduleDefinition = `
+<setup>
+    <module name="g">
+        <moduleAttributes>
+            <number name="xmin">-10</number>
+            <number name="xmax">10</number>
+        </moduleAttributes>
+        <math name="w">100</math>
+        <number name="i">1</number>
+        <p name="p">$xmin, $xmax</p>
+    </module>
+</setup>
+`;
+
+        async function expectModuleText({
+            core,
+            resolvePathToNodeIdx,
+            path,
+            text,
+        }: {
+            core: any;
+            resolvePathToNodeIdx: (path: string) => Promise<number>;
+            path: string;
+            text: string;
+        }) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx(path)].stateValues
+                    .text,
+            ).eq(text);
+        }
+
+        it("attribute value named the same as the attribute", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+${moduleDefinition}
+<problem name="prob">
+    <setup>
+        <math name="xmax">4</math>
+        <math name="xmin" simplify>-$xmax</math>
+    </setup>
+    <mathInput name="mi" bindValueTo="$xmax" />
+    <module copy="$g" xmin="$xmin" xmax="$xmax" name="m2" />
+</problem>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.m2.p",
+                text: "-4, 4",
+            });
+
+            await updateMathInputValue({
+                latex: "7",
+                componentIdx: await resolvePathToNodeIdx("prob.mi"),
+                core,
+            });
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.m2.p",
+                text: "-7, 7",
+            });
+        });
+
+        it("attribute value named the same as another of the module's components", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+${moduleDefinition}
+<problem name="prob">
+    <setup>
+        <number name="xmax">3</number>
+        <number name="w">-5</number>
+    </setup>
+    <module copy="$g" xmin="$w" xmax="$xmax" name="m2" />
+    <module copy="$g" xmin="-$xmax" xmax="$w+20" name="m3" />
+</problem>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.m2.p",
+                text: "-5, 3",
+            });
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.m3.p",
+                text: "-3, 15",
+            });
+        });
+
+        it("reference with an index named the same as the module's components", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+${moduleDefinition}
+<problem name="prob">
+    <setup>
+        <numberList name="xmin">7 8 9</numberList>
+        <number name="i">3</number>
+    </setup>
+    <module copy="$g" xmin="$xmin[$i]" name="m2" />
+</problem>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.m2.p",
+                text: "9, 10",
+            });
+        });
+
+        it("attribute value named the same as the attribute, inside a repeat", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+${moduleDefinition}
+<section name="sec">
+    <repeatForSequence from="1" to="2" valueName="xmin" name="r">
+        <module copy="$g" xmin="$xmin" name="m2" />
+    </repeatForSequence>
+</section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "sec.r[1].m2.p",
+                text: "1, 10",
+            });
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "sec.r[2].m2.p",
+                text: "2, 10",
+            });
+        });
+
+        it("attribute value named the same as the attribute, in a module inside a module", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+${moduleDefinition}
+<setup>
+    <module name="n">
+        <moduleAttributes>
+            <number name="xmin">-1</number>
+        </moduleAttributes>
+        <module copy="$g" xmin="$xmin" name="inner" />
+    </module>
+</setup>
+<section name="sec">
+    <module copy="$n" name="n1" />
+    <module copy="$n" xmin="-2" name="n2" />
+</section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "sec.n1.inner.p",
+                text: "-1, 10",
+            });
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "sec.n2.inner.p",
+                text: "-2, 10",
+            });
+        });
+
+        it("attribute written on the module's own definition is ambiguous with the module's attribute", async () => {
+            const { core } = await createTestCore({
+                doenetML: `
+<problem name="prob">
+    <setup>
+        <number name="xmin">-3</number>
+    </setup>
+    <module name="g" xmin="$xmin">
+        <moduleAttributes>
+            <number name="xmin">-10</number>
+        </moduleAttributes>
+        <p name="p">$xmin</p>
+    </module>
+</problem>
+`,
+            });
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors).eqls([]);
+            expect(
+                diagnosticsByType.warnings.map((w: any) => w.message),
+            ).toContain("Multiple referents found for reference: `$xmin`");
+        });
+
+        it("copy of a module attribute keeps resolving where the module is written", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+${moduleDefinition}
+<problem name="prob">
+    <setup>
+        <number name="xmin">-6</number>
+    </setup>
+    <module copy="$g" xmin="$xmin" name="m2" />
+</problem>
+<section name="sec">
+    <setup>
+        <number name="xmin">99</number>
+    </setup>
+    <number extend="$prob.m2.xmin" name="copied" />
+</section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("sec.copied")]
+                    .stateValues.value,
+            ).eq(-6);
+        });
+    });
 });
