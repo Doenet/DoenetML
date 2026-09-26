@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     submitAnswer,
     updateMathInputValue,
@@ -93,7 +94,6 @@ describe("Cascade tag tests @group4", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <cascade name="w">
-  <title>My cascade</title>
 
   <section boxed name="section1">
     <title>First part</title>
@@ -135,7 +135,6 @@ describe("Cascade tag tests @group4", async () => {
         async function check_values(numCompleted: number) {
             const stateVariables = await getStateVariables(core);
 
-            expect(stateVariables[wIdx].stateValues.title).eq("My cascade");
             expect(stateVariables[wIdx].stateValues.numCompleted).eq(
                 numCompleted,
             );
@@ -317,7 +316,6 @@ describe("Cascade tag tests @group4", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <cascade name="w" hideFutureSections>
-  <title>My cascade</title>
 
   <section boxed name="section1">
     <title>First part</title>
@@ -359,7 +357,6 @@ describe("Cascade tag tests @group4", async () => {
         async function check_values(numCompleted: number) {
             const stateVariables = await getStateVariables(core);
 
-            expect(stateVariables[wIdx].stateValues.title).eq("My cascade");
             expect(stateVariables[wIdx].stateValues.numCompleted).eq(
                 numCompleted,
             );
@@ -482,7 +479,6 @@ describe("Cascade tag tests @group4", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <cascade name="w1">
-  <title>My cascade</title>
 
   <section boxed name="section1">
     <title>First part</title>
@@ -528,18 +524,21 @@ describe("Cascade tag tests @group4", async () => {
         ) {
             const stateVariables = await getStateVariables(core);
 
-            expect(stateVariables[w1Idx].stateValues.title).eq("My cascade");
             expect(stateVariables[w1Idx].stateValues.numCompleted).eq(
                 numCompleted1,
             );
 
-            expect(stateVariables[w2Idx].stateValues.title).eq("");
+            expect(stateVariables[w2Idx].stateValues).not.toHaveProperty(
+                "title",
+            );
             expect(stateVariables[w2Idx].stateValues.hidden).eq(false);
             expect(stateVariables[w2Idx].stateValues.numCompleted).eq(
                 numCompleted2,
             );
 
-            expect(stateVariables[w3Idx].stateValues.title).eq("");
+            expect(stateVariables[w3Idx].stateValues).not.toHaveProperty(
+                "title",
+            );
             expect(stateVariables[w3Idx].stateValues.hidden).eq(
                 numCompleted1 < 1,
             );
@@ -669,7 +668,6 @@ describe("Cascade tag tests @group4", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <cascade name="w1" revealAll>
-  <title>My cascade</title>
 
   <section boxed name="section1">
     <title>First part</title>
@@ -715,18 +713,21 @@ describe("Cascade tag tests @group4", async () => {
         ) {
             const stateVariables = await getStateVariables(core);
 
-            expect(stateVariables[w1Idx].stateValues.title).eq("My cascade");
             expect(stateVariables[w1Idx].stateValues.numCompleted).eq(
                 numCompleted1,
             );
 
-            expect(stateVariables[w2Idx].stateValues.title).eq("");
+            expect(stateVariables[w2Idx].stateValues).not.toHaveProperty(
+                "title",
+            );
             expect(stateVariables[w2Idx].stateValues.hidden).eq(false);
             expect(stateVariables[w2Idx].stateValues.numCompleted).eq(
                 numCompleted2,
             );
 
-            expect(stateVariables[w3Idx].stateValues.title).eq("");
+            expect(stateVariables[w3Idx].stateValues).not.toHaveProperty(
+                "title",
+            );
             expect(stateVariables[w3Idx].stateValues.hidden).eq(false);
             expect(stateVariables[w3Idx].stateValues.numCompleted).eq(
                 numCompleted3,
@@ -846,7 +847,6 @@ describe("Cascade tag tests @group4", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <cascade name="w" notStartedColor="orange" inProgressColor="yellow" completedColor="blue">
-  <title>My cascade</title>
 
   <section boxed name="section1">
     <title>First part</title>
@@ -898,7 +898,6 @@ describe("Cascade tag tests @group4", async () => {
         async function check_values(numCompleted: number) {
             const stateVariables = await getStateVariables(core);
 
-            expect(stateVariables[wIdx].stateValues.title).eq("My cascade");
             expect(stateVariables[wIdx].stateValues.numCompleted).eq(
                 numCompleted,
             );
@@ -1028,7 +1027,6 @@ describe("Cascade tag tests @group4", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <cascade name="w">
-  <title>My cascade</title>
 
   <section boxed name="section1">
     <title>First part</title>
@@ -1077,7 +1075,6 @@ describe("Cascade tag tests @group4", async () => {
         async function check_values(numCompleted: number) {
             const stateVariables = await getStateVariables(core);
 
-            expect(stateVariables[wIdx].stateValues.title).eq("My cascade");
             expect(stateVariables[wIdx].stateValues.numCompleted).eq(
                 numCompleted,
             );
@@ -1638,7 +1635,6 @@ describe("Cascade tag tests @group4", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <cascade name="w">
-  <title>My cascade</title>
 
   <div name="div1">
     <p name="p1a">What is 1+1? <answer name="ans">2</answer></p>
@@ -1774,7 +1770,6 @@ describe("Cascade tag tests @group4", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <cascade name="w">
-  <title>My cascade</title>
 
   <cascadeMessage name="cm1"><em>Never seen</em></cascadeMessage>
 
@@ -1922,7 +1917,6 @@ describe("Cascade tag tests @group4", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
 <cascade name="w">
-  <title>My cascade</title>
 
   <section boxed name="section1">
     <title>First part</title>
@@ -2797,7 +2791,7 @@ describe("Cascade tag tests @group4", async () => {
         const textInputIdx =
             stateVariables[ansIdx].stateValues.inputChildren[0].componentIdx;
 
-        // Inherited from the cascade, which is itself a section.
+        // Inherited from the cascade, which passes it on as a section would.
         expect(
             stateVariables[section1Idx].stateValues
                 .completedColorRequiresCredit,
@@ -2899,10 +2893,10 @@ describe("Cascade tag tests @group4", async () => {
             stateVariables[await resolvePathToNodeIdx("deep")].stateValues
                 .tableName,
         ).eq("Table 3");
+        // Not a section, so it has no number to take.
         expect(
-            stateVariables[await resolvePathToNodeIdx("c")].stateValues
-                .sectionNumber,
-        ).eq(null);
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues,
+        ).not.toHaveProperty("sectionNumber");
     });
 
     it("includeParentNumber inside a cascade reads the enclosing section", async () => {
@@ -2955,5 +2949,230 @@ describe("Cascade tag tests @group4", async () => {
         expect(await numberOf("a")).eq("1");
         expect(await numberOf("aa")).eq("1.1");
         expect(await numberOf("b")).eq("2");
+    });
+
+    // A cascade only reveals its children. It is not a section, so it has no
+    // heading level of its own to push the sections inside it down by.
+    it("a section inside a cascade gets the heading level of its siblings", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <section name="top"><title>Top</title>
+      <subsection name="beside"><title>Beside</title></subsection>
+      <cascade>
+        <subsection name="inside"><title>Inside</title></subsection>
+        <cascade>
+          <subsection name="nested"><title>Nested</title></subsection>
+        </cascade>
+      </cascade>
+    </section>
+    <cascade>
+      <section name="outer"><title>Outer</title></section>
+    </cascade>
+    `,
+        });
+
+        const stateVariables = await getStateVariables(core);
+        const levelOf = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues.level;
+
+        expect(await levelOf("top")).eq(1);
+        expect(await levelOf("beside")).eq(2);
+        expect(await levelOf("inside")).eq(2);
+        expect(await levelOf("nested")).eq(2);
+        expect(await levelOf("outer")).eq(1);
+    });
+
+    it("a cascade has no title or number, and a title written in one is reported", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<cascade name="c">
+  <title name="t">Steps</title>
+  <section name="s1"><p>a</p></section>
+  <section name="s2"><p>b</p></section>
+</cascade>
+    `,
+        });
+
+        const stateVariables = await getStateVariables(core);
+        const c = stateVariables[await resolvePathToNodeIdx("c")];
+
+        expect(c.stateValues).not.toHaveProperty("title");
+        expect(c.stateValues).not.toHaveProperty("sectionNumber");
+
+        // The title is neither rendered nor taken for a step: the first
+        // section is still the first step, and it is complete (it holds no
+        // answers), so the second is revealed.
+        expect(c.stateValues.childIndicesToRender).not.toContain(
+            c.activeChildren.findIndex(
+                (child: any) => child.componentType === "title",
+            ),
+        );
+        expect(c.stateValues.numCompleted).eq(2);
+
+        const warnings = getDiagnosticsByType(core).warnings;
+        expect(warnings.map((w: any) => w.code)).eqls(["doenet-w0167"]);
+        expect(warnings[0].message).toContain("<section>");
+        expect(warnings[0].position.start.line).eq(3);
+    });
+
+    it("a figure beside or inside a cascade of sections is still Figure 1", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <cascade>
+      <section><title>A</title><figure name="inside"><caption>in</caption></figure></section>
+      <section><title>B</title></section>
+    </cascade>
+    <figure name="after"><caption>after</caption></figure>
+    `,
+        });
+
+        const stateVariables = await getStateVariables(core);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("inside")].stateValues
+                .figureName,
+        ).eq("Figure 1");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("after")].stateValues
+                .figureName,
+        ).eq("Figure 2");
+    });
+
+    // A cascade has no score of its own, so the section around it is scored on
+    // the cascade's steps directly — each of which aggregates its own answers,
+    // since a cascade still makes its children aggregate.
+    it("a section around a cascade is scored on the cascade's steps", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="outer" aggregateScores>
+  <cascade name="c">
+    <section name="s1">
+      <p>1: <answer name="a1">1</answer></p>
+      <p>2: <answer name="a2">2</answer></p>
+    </section>
+    <section name="s2">
+      <p>3: <answer name="a3">3</answer></p>
+    </section>
+  </cascade>
+  <p>4: <answer name="a4">4</answer></p>
+</section>
+    `,
+        });
+
+        let stateVariables = await getStateVariables(core);
+
+        async function check(expected: {
+            outer: number;
+            s1: number;
+            numCompleted: number;
+        }) {
+            stateVariables = await getStateVariables(core);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("outer")].stateValues
+                    .creditAchieved,
+            ).closeTo(expected.outer, 1e-12);
+            // The document is scored the same way, on `outer`'s own scored
+            // descendants since `outer` aggregates.
+            expect(
+                stateVariables[await resolvePathToNodeIdx("_document1")]
+                    .stateValues.creditAchieved,
+            ).closeTo(expected.outer, 1e-12);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("s1")].stateValues
+                    .creditAchieved,
+            ).eq(expected.s1);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                    .numCompleted,
+            ).eq(expected.numCompleted);
+        }
+
+        async function answer(name: string, latex: string) {
+            const answerIdx = await resolvePathToNodeIdx(name);
+            await submitMathAnswer({
+                core,
+                latex,
+                answerIdx,
+                mathInputIdx: getMathInputIdx(stateVariables, answerIdx),
+            });
+        }
+
+        // Three scored descendants of `outer`, each weighing 1: `s1`, `s2`,
+        // and the answer after the cascade.
+        await check({ outer: 0, s1: 0, numCompleted: 0 });
+
+        await answer("a1", "1");
+        await check({ outer: 1 / 6, s1: 0.5, numCompleted: 0 });
+
+        await answer("a2", "2");
+        await check({ outer: 1 / 3, s1: 1, numCompleted: 1 });
+
+        await answer("a3", "3");
+        await check({ outer: 2 / 3, s1: 1, numCompleted: 2 });
+
+        await answer("a4", "4");
+        await check({ outer: 1, s1: 1, numCompleted: 2 });
+    });
+
+    it("problems inside a cascade in a problems list are its items", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<problems name="ps">
+  <cascade name="c">
+    <problem name="a"><p>a</p></problem>
+    <problem name="b"><p>b</p></problem>
+  </cascade>
+</problems>
+    `,
+        });
+
+        const stateVariables = await getStateVariables(core);
+        const ps = stateVariables[await resolvePathToNodeIdx("ps")];
+        const c = stateVariables[await resolvePathToNodeIdx("c")];
+        const a = stateVariables[await resolvePathToNodeIdx("a")];
+        const b = stateVariables[await resolvePathToNodeIdx("b")];
+
+        // The list renders the cascade even though it is not a section...
+        const cascadePosition = ps.activeChildren.findIndex(
+            (child: any) => child.componentType === "cascade",
+        );
+        expect(ps.stateValues.childIndicesToRender).toContain(cascadePosition);
+
+        // ...which is not itself an item, but passes `asList` to the problems
+        // inside it, so they are.
+        expect(c.stateValues.isListItem).eq(false);
+        expect(c.stateValues.asList).eq(true);
+        expect(a.stateValues.isListItem).eq(true);
+        expect(b.stateValues.isListItem).eq(true);
+        expect(a.stateValues.sectionNumber).eq("1");
+        expect(b.stateValues.sectionNumber).eq("2");
+    });
+
+    // A `<setup>` is not a step, so it neither holds the cascade up nor is
+    // hidden with the steps after it, which would hollow out what it defines.
+    it("a setup in a cascade is not a step", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<cascade name="c">
+  <section name="s1"><p>1: <answer name="a1">1</answer></p></section>
+  <setup name="setup"><number name="n">7</number></setup>
+  <section name="s2"><p>Add $n</p></section>
+</cascade>
+    `,
+        });
+
+        const stateVariables = await getStateVariables(core);
+        const c = stateVariables[await resolvePathToNodeIdx("c")];
+
+        expect(c.stateValues.numCompleted).eq(0);
+        expect(c.stateValues.childrenToHide).not.toContain(
+            await resolvePathToNodeIdx("setup"),
+        );
+        expect(
+            stateVariables[await resolvePathToNodeIdx("s2")].stateValues
+                .hideChildren,
+        ).eq(true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.hidden,
+        ).eq(false);
     });
 });

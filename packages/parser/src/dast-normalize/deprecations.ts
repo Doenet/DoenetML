@@ -110,7 +110,6 @@ const SCORED_SECTION_COMPONENT_TYPES = [
     "exercises",
     "standinForFutureLayoutTag",
     "externalContent",
-    "cascade",
     "div",
     "span",
     "ol",

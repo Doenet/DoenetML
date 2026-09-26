@@ -134468,21 +134468,17 @@
         {
             "name": "cascade",
             "children": [
+                "title",
                 "collect",
                 "repeat",
                 "repeatForSequence",
                 "conditionalContent",
-                "variantControl",
                 "select",
                 "group",
                 "module",
                 "setup",
                 "sort",
                 "shuffle",
-                "title",
-                "styleDefinition",
-                "stylePalette",
-                "feedbackDefinition",
                 "cascadeMessage",
                 "rightHandSide",
                 "xLabel",
@@ -134664,6 +134660,7 @@
                 "pegboard",
                 "intersection",
                 "asList",
+                "variantControl",
                 "selectFromSequence",
                 "animateFromSequence",
                 "evaluate",
@@ -134717,9 +134714,8 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11110111011000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "01111111011011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
-                "_sectioningComponent",
                 "_block",
                 "_base"
             ],
@@ -134796,149 +134792,9 @@
                     "type": "reference"
                 },
                 {
-                    "name": "aggregateScores",
-                    "description": "Whether to aggregate scores of scored descendants into a section credit-achieved value.",
-                    "groupName": "scoring",
+                    "name": "hideFutureSections",
+                    "description": "Whether to hide later cascade sections until previous ones are completed.",
                     "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "weight",
-                    "description": "Relative weight of this section when aggregated by an enclosing scored section.",
-                    "groupName": "scoring",
-                    "defaultValue": 1,
-                    "type": "number"
-                },
-                {
-                    "name": "sectionWideCheckWork",
-                    "description": "Whether to show a single section-wide check-work button instead of per-answer buttons.",
-                    "groupName": "scoring",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "maxNumAttempts",
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "groupName": "scoring",
-                    "defaultValue": "Infinity",
-                    "type": "integer"
-                },
-                {
-                    "name": "showCorrectness",
-                    "description": "Whether to display correctness indicators for the answers it contains.",
-                    "groupName": "scoring",
-                    "defaultValue": true,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "colorCorrectness",
-                    "description": "Whether to color-code the answers it contains based on correctness.",
-                    "groupName": "scoring",
-                    "defaultValue": true,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "colorAnswersSeparately",
-                    "description": "When section-wide check work is enabled, color each answer based on its own correctness rather than the section's overall credit.",
-                    "groupName": "scoring",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "submitLabel",
-                    "description": "Label for the section-wide submit button when correctness is shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Check Work",
-                    "type": "text"
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "description": "Label for the section-wide submit button when correctness is not shown.",
-                    "groupName": "scoring",
-                    "defaultValue": "Submit Response",
-                    "type": "text"
-                },
-                {
-                    "name": "displayDigitsForCreditAchieved",
-                    "description": "Number of significant digits to display for the credit achieved value.",
-                    "groupName": "scoring",
-                    "defaultValue": 3,
-                    "type": "integer"
-                },
-                {
-                    "name": "boxed",
-                    "description": "Whether to render this section with a visible box around it.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "includeAutoName",
-                    "description": "Whether to include the auto-generated section name (e.g. \"Section\") in the rendered title.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "includeAutoNumber",
-                    "description": "Whether to include the auto-generated section number in the rendered title.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "noAutoTitle",
-                    "description": "Whether to suppress the auto-generated title entirely.",
-                    "defaultValue": true,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "includeAutoNameIfNoTitle",
-                    "description": "Whether to include the auto-generated name when no explicit title is provided.",
-                    "defaultValue": true,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "includeAutoNumberIfNoTitle",
-                    "description": "Whether to include the auto-generated number when no explicit title is provided.",
-                    "defaultValue": true,
                     "values": [
                         "true",
                         "false"
@@ -134947,7 +134803,7 @@
                 },
                 {
                     "name": "asList",
-                    "description": "Whether to render this section's children as a list.",
+                    "description": "Whether to render this cascade's children as a list (by default, whatever its parent does).",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -134956,8 +134812,8 @@
                     "type": "boolean"
                 },
                 {
-                    "name": "collapsible",
-                    "description": "Whether the section can be collapsed and expanded.",
+                    "name": "revealAll",
+                    "description": "Whether all cascade entries should be revealed regardless of progress.",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -134966,24 +134822,14 @@
                     "type": "boolean"
                 },
                 {
-                    "name": "startOpen",
-                    "description": "Whether the collapsible section starts in the open state.",
-                    "defaultValue": true,
+                    "name": "boxAll",
+                    "description": "Whether to draw boxes around all cascade entries regardless of progress.",
+                    "defaultValue": false,
                     "values": [
                         "true",
                         "false"
                     ],
                     "type": "boolean"
-                },
-                {
-                    "name": "level",
-                    "description": "The heading level for this section (overrides the default level inferred from nesting).",
-                    "type": "integer"
-                },
-                {
-                    "name": "renameTo",
-                    "description": "Override the auto-generated section name (e.g. rename \"Section\" to a custom label).",
-                    "type": "text"
                 },
                 {
                     "name": "completedColor",
@@ -135030,36 +134876,6 @@
                     "description": "Color used to indicate this section has not been started (dark mode). If omitted, the dark-mode color is derived from `notStartedColor` when that attribute is explicitly set; otherwise falls back to a dark gray that meets WCAG AA contrast for white text.",
                     "defaultValue": "#3a3a3a",
                     "type": "text"
-                },
-                {
-                    "name": "hideFutureSections",
-                    "description": "Whether to hide later cascade sections until previous ones are completed.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "revealAll",
-                    "description": "Whether all cascade entries should be revealed regardless of progress.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "boxAll",
-                    "description": "Whether to draw boxes around all cascade entries regardless of progress.",
-                    "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
                 }
             ],
             "properties": [
@@ -135082,80 +134898,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether this component is treated as a response for the purposes of assessment.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "weight",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Relative weight of this section when aggregated by an enclosing scored section.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "sectionWideCheckWork",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to show a single section-wide check-work button instead of per-answer buttons.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "displayDigitsForCreditAchieved",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Number of significant digits to display for the credit achieved value.",
-                    "fromAttribute": true,
-                    "groupName": "scoring"
-                },
-                {
-                    "name": "includeAutoName",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to include the auto-generated section name (e.g. \"Section\") in the rendered title.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "includeAutoNumber",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to include the auto-generated section number in the rendered title.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "noAutoTitle",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to suppress the auto-generated title entirely.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "includeAutoNameIfNoTitle",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to include the auto-generated name when no explicit title is provided.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "includeAutoNumberIfNoTitle",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to include the auto-generated number when no explicit title is provided.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "collapsible",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the section can be collapsed and expanded.",
                     "fromAttribute": true
                 },
                 {
@@ -135196,94 +134938,16 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
-                },
-                {
-                    "name": "numSubmissions",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Number of times the section-wide check-work button has been submitted."
-                },
-                {
-                    "name": "numAttemptsLeft",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Remaining number of section-wide submissions before the maximum is reached."
-                },
-                {
-                    "name": "showCorrectness",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
-                },
-                {
-                    "name": "colorCorrectness",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
-                },
-                {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether scores of scored descendants are aggregated into this section's credit value."
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Aggregate credit achieved (between 0 and 1) for scored descendants of this section."
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Aggregate credit achieved as a percentage (between 0 and 100)."
-                },
-                {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether this section is rendered with a visible box around it."
-                },
-                {
-                    "name": "sectionNumber",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "The displayed number for this section."
-                },
-                {
-                    "name": "title",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "The displayed title text for this section."
-                },
-                {
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
-                    "name": "open",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether this section is currently open (for collapsible sections)."
-                },
-                {
                     "name": "asList",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether to render this section's children as a list."
+                    "description": "Whether to render this cascade's children as a list (by default, whatever its parent does)."
                 },
                 {
                     "name": "numCompleted",
@@ -135296,7 +134960,7 @@
             "acceptsStringChildren": true,
             "takesIndex": false,
             "docsSlug": "cascade",
-            "summary": "Sectional component that reveals its children step-by-step",
+            "summary": "Reveals its children one step at a time, each once the steps before it are complete",
             "layoutCategory": "block"
         },
         {

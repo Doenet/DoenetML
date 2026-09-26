@@ -1,12 +1,49 @@
-import { SectioningComponent } from "./abstract/SectioningComponent";
+import BlockComponent from "./abstract/BlockComponent";
+import { returnCascadeStepStateVariableDefinitions } from "../utils/cascadeStep";
+import { codedDiagnostic } from "../utils/diagnostics";
+import { returnScoredSectionStateVariableDefinition } from "../utils/scoredSection";
+import {
+    returnSectionTitleStateColorAttributes,
+    returnSectionTitleStateColorStateVariableDefinitions,
+} from "../utils/sectionTitleColors";
 
-export default class Cascade extends SectioningComponent {
+/**
+ * `<cascade>` does one thing: it reveals its children one step at a time, each
+ * once the steps before it are complete.
+ *
+ * It is not a section. It has no heading, no number, no heading level, no box
+ * and no score of its own, and it seeds no variants, so a section inside it is
+ * numbered, leveled and scored exactly as it would be beside it. An author who
+ * wants any of those wraps the cascade in a `<section>`.
+ *
+ * What it keeps of a section is what its steps read off their parent: the
+ * `childrenToHideChildren` and `sectionToShowCascadeMessage` that hold a step
+ * back and pick its message (`returnCascadeStepStateVariableDefinitions`), the
+ * `childrenAggregateScores` that makes each step score itself, the heading-bar
+ * colors a step shows its progress in, `boxAll`, and `asList`, passed through
+ * so that a `<problems>` still numbers the problems inside a cascade as its
+ * items. A cascade that is itself a step of another cascade reads the same
+ * variables off its parent in turn.
+ */
+export default class Cascade extends BlockComponent {
+    constructor(args) {
+        super(args);
+
+        Object.assign(this.actions, {
+            recordVisibilityChange: this.recordVisibilityChange.bind(this),
+        });
+    }
+
     static componentType = "cascade";
 
     static componentDocs = {
-        summary: "Sectional component that reveals its children step-by-step",
+        summary:
+            "Reveals its children one step at a time, each once the steps before it are complete",
     };
-    static rendererType = "section";
+    static rendererType = "containerBlock";
+    static renderChildren = true;
+
+    static canDisplayChildErrors = true;
 
     static includeBlankStringChildren = false;
 
@@ -22,14 +59,17 @@ export default class Cascade extends SectioningComponent {
                 "Whether to hide later cascade sections until previous ones are completed.",
         };
 
-        attributes.noAutoTitle.defaultValue = true;
-
         // Keep the explicit attribute value separate so the effective state
         // variable can inherit from the parent when the attribute is omitted.
         // Mark it non-public so it doesn't appear in the schema or as a
         // shadowable property.
-        attributes.asList.createStateVariable = "asListPreliminary";
-        attributes.asList.public = false;
+        attributes.asList = {
+            createComponentOfType: "boolean",
+            createStateVariable: "asListPreliminary",
+            defaultValue: false,
+            description:
+                "Whether to render this cascade's children as a list (by default, whatever its parent does).",
+        };
 
         attributes.revealAll = {
             createComponentOfType: "boolean",
@@ -47,16 +87,145 @@ export default class Cascade extends SectioningComponent {
                 "Whether to draw boxes around all cascade entries regardless of progress.",
         };
 
+        // The colors the steps' heading bars show their progress in. A step
+        // reads these off its immediate parent, so without them here a cascade
+        // would cut its steps off from the colors of the section around it.
+        Object.assign(attributes, returnSectionTitleStateColorAttributes());
+
         return attributes;
+    }
+
+    static returnChildGroups() {
+        return [
+            // Not rendered: a cascade has no heading. Kept apart so a `<title>`
+            // is not taken for a step, and so it can be reported.
+            {
+                group: "titles",
+                componentTypes: ["title"],
+            },
+            // Kept apart so a `<setup>` is not taken for a step and hidden,
+            // which would hollow out whatever it defines.
+            {
+                group: "setups",
+                componentTypes: ["setup"],
+            },
+            {
+                group: "cascadeMessages",
+                componentTypes: ["cascadeMessage"],
+            },
+            {
+                group: "anything",
+                componentTypes: ["_base"],
+            },
+        ];
     }
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        // A cascade nested in another cascade is one of its steps.
+        Object.assign(
+            stateVariableDefinitions,
+            returnCascadeStepStateVariableDefinitions(),
+        );
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnSectionTitleStateColorStateVariableDefinitions(),
+        );
+
+        /**
+         * Which children to render: every child but a `<title>`, which a
+         * cascade does not show, and — while an enclosing cascade holds this one
+         * back — none of its strings, which `childrenToHide` cannot reach.
+         *
+         * Under `asList` (a cascade in a `<problems>`), only the children that
+         * are items of that list render, as they did when a cascade was a
+         * section: the sections and nested cascades.
+         *
+         * Also where a `<title>` is reported, since this is computed for every
+         * cascade that renders.
+         */
+        stateVariableDefinitions.childIndicesToRender = {
+            returnDependencies: () => ({
+                allChildren: {
+                    dependencyType: "child",
+                    includeAllChildren: true,
+                },
+                titleChildren: {
+                    dependencyType: "child",
+                    childGroups: ["titles"],
+                },
+                asList: {
+                    dependencyType: "stateVariable",
+                    variableName: "asList",
+                },
+                hideChildren: {
+                    dependencyType: "stateVariable",
+                    variableName: "hideChildren",
+                },
+            }),
+            definition({ dependencyValues, componentInfoObjects }) {
+                const titleChildIndices = new Set(
+                    dependencyValues.titleChildren.map((x) => x.componentIdx),
+                );
+
+                const childIndicesToRender = [];
+
+                for (const [
+                    ind,
+                    child,
+                ] of dependencyValues.allChildren.entries()) {
+                    if (typeof child === "string") {
+                        if (
+                            !dependencyValues.hideChildren &&
+                            !dependencyValues.asList
+                        ) {
+                            childIndicesToRender.push(ind);
+                        }
+                        continue;
+                    }
+                    if (titleChildIndices.has(child.componentIdx)) {
+                        continue;
+                    }
+                    if (
+                        dependencyValues.asList &&
+                        !["_sectioningComponent", "cascade"].some(
+                            (baseComponentType) =>
+                                componentInfoObjects.isInheritedComponentType({
+                                    inheritedComponentType: child.componentType,
+                                    baseComponentType,
+                                }),
+                        ) &&
+                        !["introduction", "conclusion"].includes(
+                            child.componentType,
+                        )
+                    ) {
+                        continue;
+                    }
+                    childIndicesToRender.push(ind);
+                }
+
+                const sendDiagnostics = dependencyValues.titleChildren.map(
+                    (child) =>
+                        codedDiagnostic({
+                            type: "warning",
+                            code: "doenet-w0167",
+                            position: child.position || undefined,
+                        }),
+                );
+
+                return {
+                    setValue: { childIndicesToRender },
+                    sendDiagnostics,
+                };
+            },
+            markStale: () => ({ updateRenderedChildren: true }),
+        };
+
         // Cascade is a structural container rather than a numbered item, even
         // when it sits inside a list-producing parent such as <problems>.
         stateVariableDefinitions.isListItem = {
-            forRenderer: true,
             returnDependencies: () => ({}),
             definition: () => ({ setValue: { isListItem: false } }),
         };
@@ -64,7 +233,8 @@ export default class Cascade extends SectioningComponent {
         // Make cascade transparent for `asList` propagation unless the author
         // explicitly sets `asList` on the cascade itself.
         stateVariableDefinitions.asList = {
-            description: "Whether to render this section's children as a list.",
+            description:
+                "Whether to render this cascade's children as a list (by default, whatever its parent does).",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
@@ -94,6 +264,24 @@ export default class Cascade extends SectioningComponent {
             returnDependencies: () => ({}),
             definition: () => ({ setValue: { childrenAggregateScores: true } }),
         };
+
+        // A cascade has no score of its own: a section around it is scored on
+        // the steps inside it directly, since the scored-descendant search
+        // looks through a cascade the way it looks through any container it
+        // does not list. What a cascade does keep is its progress, which an
+        // enclosing cascade reads to decide whether this one — as a step of
+        // it — is complete. That is the shared aggregate over the scored
+        // descendants, always aggregated, with nothing to weigh it by.
+        const scoredSectionDefinitions =
+            returnScoredSectionStateVariableDefinition();
+        stateVariableDefinitions.aggregateScores = {
+            returnDependencies: () => ({}),
+            definition: () => ({ setValue: { aggregateScores: true } }),
+        };
+        stateVariableDefinitions.scoredDescendants =
+            scoredSectionDefinitions.scoredDescendants;
+        stateVariableDefinitions.creditAchievedForProgress =
+            scoredSectionDefinitions.creditAchievedForProgress;
 
         // Progress reads `creditAchievedForProgress` rather than
         // `creditAchieved`, and the two differ in exactly one place: a
@@ -202,9 +390,9 @@ export default class Cascade extends SectioningComponent {
          * the cascade's own message on its behalf.
          *
          * Note that a nested message is the only kind that survives `asList`
-         * (`<problems>` and friends): `childIndicesToRender` there renders only a
-         * section's sectioning children, so a message child of the cascade is
-         * dropped before it can be shown.
+         * (`<problems>` and friends): `childIndicesToRender` there renders only
+         * the cascade's sections and nested cascades, so a message child of the
+         * cascade is dropped before it can be shown.
          */
         stateVariableDefinitions.childrenToHide = {
             additionalStateVariablesDefined: [
@@ -276,10 +464,15 @@ export default class Cascade extends SectioningComponent {
                     } else if (
                         !dependencyValues.hideChildren &&
                         !dependencyValues.hideFutureSections &&
-                        componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType: child.componentType,
-                            baseComponentType: "_sectioningComponent",
-                        })
+                        // A step that can show its heading (or, for a nested
+                        // cascade, its message) while held back.
+                        ["_sectioningComponent", "cascade"].some(
+                            (baseComponentType) =>
+                                componentInfoObjects.isInheritedComponentType({
+                                    inheritedComponentType: child.componentType,
+                                    baseComponentType,
+                                }),
+                        )
                     ) {
                         childrenToHideChildren.push(child.componentIdx);
                     } else {
@@ -381,6 +574,17 @@ export default class Cascade extends SectioningComponent {
         };
 
         return stateVariableDefinitions;
+    }
+
+    recordVisibilityChange({ isVisible }) {
+        this.coreFunctions.requestRecordEvent({
+            verb: "visibilityChanged",
+            object: {
+                componentIdx: this.componentIdx,
+                componentType: this.componentType,
+            },
+            result: { isVisible },
+        });
     }
 }
 
