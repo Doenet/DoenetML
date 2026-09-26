@@ -5,8 +5,8 @@ import { DastElement } from "../../types";
  * are the author-facing components whose class extends `SectioningComponent` in
  * the worker (which is where the shared `addChildren`/`deleteChildren` actions
  * are registered). Internal/special sectioning components that are excluded from
- * the schema (`standinForFutureLayoutTag`, `externalContent`) or that manage
- * their own children (`cascade`) are intentionally omitted.
+ * the schema (`standinForFutureLayoutTag`, `externalContent`) are intentionally
+ * omitted. (`<cascade>` is not a sectioning component and has no such actions.)
  *
  * Note: several of these (`section`, `subsection`, `subsubsection`,
  * `paragraphs`, `part`) are expanded to `<division type="…">` before sugar runs;

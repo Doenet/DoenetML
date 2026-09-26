@@ -412,6 +412,7 @@ export type MessageKey =
     | "answer-award-depends-on-own-response"
     | "answer-max-num-attempts-in-section-wide-check-work"
     | "nested-section-wide-check-work-max-num-attempts"
+    | "cascade-title-not-shown"
     | "answer-attributes-need-symbolic-equality"
     | "answer-invalid-type"
     | "module-attribute-child-needs-name"
@@ -1047,6 +1048,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "answer-award-depends-on-own-response",
     "answer-max-num-attempts-in-section-wide-check-work",
     "nested-section-wide-check-work-max-num-attempts",
+    "cascade-title-not-shown",
     "answer-attributes-need-symbolic-equality",
     "answer-invalid-type",
     "module-attribute-child-needs-name",

@@ -454,6 +454,11 @@ answer-max-num-attempts-in-section-wide-check-work = Setting `maxNumAttempts` on
 
 nested-section-wide-check-work-max-num-attempts = Setting `maxNumAttempts` on a container with `sectionWideCheckWork` that is inside another container with `sectionWideCheckWork` has no effect, as the number of attempts is controlled by the outer container. Set `maxNumAttempts` on the outer container instead.
 
+# Raised by a `<title>` written inside a `<cascade>`. A cascade only reveals its
+# children step by step; it has no heading of its own, so the title is not
+# shown. Translators: cascade, section and title are element names.
+cascade-title-not-shown = A `<cascade>` has no heading, so this `<title>` is not shown. To give it one, wrap the `<cascade>` in a `<section>` and move the `<title>` to the `<section>`.
+
 # $attributes is a list of attribute names; $attributesCount is its length.
 answer-attributes-need-symbolic-equality =
     { $attributesCount ->
