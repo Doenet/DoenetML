@@ -842,4 +842,40 @@ describe("Sectioning Tag Tests", { tags: ["@group4"] }, function () {
             "lower-alpha",
         );
     });
+
+    // A `<cascade>` only reveals its children: it draws no heading and no box
+    // of its own, and a section inside it is drawn at the heading level of the
+    // sections beside it.
+    it("a cascade draws no heading and leaves its sections' levels alone", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <section name="top">
+      <title>Top</title>
+      <subsection name="beside"><title>Beside</title></subsection>
+      <cascade name="cascade">
+        <subsection name="first"><title>First</title><p name="p1">1+1=<answer name="ans">2</answer></p></subsection>
+        <subsection name="second"><title>Second</title><p name="p2">Revealed</p></subsection>
+      </cascade>
+    </section>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#first_title").should("exist");
+
+        cy.get("#cascade").should("match", "div");
+        cy.get("#cascade").children("h1,h2,h3,h4,h5,h6").should("not.exist");
+
+        cy.get("#beside_title").should("match", "h3");
+        cy.get("#first_title").should("match", "h3");
+        cy.get("#second_title").should("match", "h3");
+
+        // The step not yet reached keeps its heading and hides the rest.
+        cy.get("#p1").should("be.visible");
+        cy.get("#p2").should("not.exist");
+    });
 });

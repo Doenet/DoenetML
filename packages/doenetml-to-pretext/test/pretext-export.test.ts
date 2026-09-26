@@ -696,6 +696,18 @@ describe("Pretext export", async () => {
             `);
     });
 
+    it("does not export a title written in a cascade", async () => {
+        // A cascade has no heading, so a `<title>` in one is not rendered
+        // and has nowhere to go in the export either.
+        source = `<cascade>
+                    <title>Steps</title>
+                    <section><p>hi</p></section>
+                  </cascade>`;
+        const result = await coreRunner.processToFlatDastAsFragment(source);
+        expect(result).not.toContain("Steps");
+        expect(result).toContain("<p>hi</p>");
+    });
+
     it("convertMultiple assigns different xml:id's to elements with the same name across fragments", async () => {
         // Two fragments, each with an element named "foo"
         // When converted together, they should get different xml:id's

@@ -7,15 +7,27 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 <ComponentDisplay name='cascade'/>
 
-`<cascade>{:dn}` is a [Sectional](../concepts/essentialConcepts#component-types)
-container that reveals its children one at a time as the learner makes progress.
-Each child is hidden until the preceding child has been *completed* — answered
-correctly (`creditAchieved = 1`), or having no `creditAchieved` at all (in
-which case it is treated as auto-completed the moment it becomes visible).
+`<cascade>{:dn}` reveals its children one at a time as the learner makes
+progress. Each child is hidden until the preceding child has been *completed* —
+answered correctly (`creditAchieved = 1`), or having no `creditAchieved` at all
+(in which case it is treated as auto-completed the moment it becomes visible).
 
 The `numCompleted` property tracks how many children have been completed so
 far. Use [`<cascadeMessage>{:dn}`](cascadeMessage) inside a `<cascade>{:dn}`
 to show a "continuation message" in place of a not-yet-revealed entry.
+
+A `<cascade>{:dn}` is not a section: controlling that step-by-step reveal is
+all it does. It has no title, no number and no box of its own, and it does not
+change the heading level of the sections inside it — a section inside a
+cascade is drawn at the same level as the sections beside it. A cascade has no score of its own either (no `weight`, no
+`sectionWideCheckWork`), and it does not choose variants. For any of those, put
+the `<cascade>{:dn}` inside a [`<section>{:dn}`](section) and give the section
+the title, the box, the scoring or the variants, as in the examples below. A
+`<title>{:dn}` written directly inside a `<cascade>{:dn}` is not shown, and a
+warning suggests moving it to an enclosing section.
+
+A section around a cascade is scored on the steps inside it directly, the same
+as if the cascade were not there.
 
 A `<cascade>{:dn}` automatically turns on `aggregateScores` on every scored
 child (sections, `<problem>{:dn}`, nested `<cascade>{:dn}`s, even bare
@@ -39,9 +51,15 @@ The same rule colors the heading bar of a `boxed` or `collapsible` section, so a
 step whose questions have all been answered shows as completed rather than
 staying gray until an instructor gets to it. Set
 [`completedColorRequiresCredit`](section#attribute-example-completedcolorrequirescredit)
-on a section, or on any section that encloses it, to have the bar wait for the
-real credit instead; that affects only the color, never when the cascade
-advances.
+on a section, on any section that encloses it, or on the cascade itself, to
+have the bar wait for the real credit instead; that affects only the color,
+never when the cascade advances. The cascade's `completedColor`,
+`inProgressColor` and `notStartedColor` set the colors of its steps' heading
+bars; when it sets none, its steps use the colors of the section around it.
+
+Inside a [`<problems>{:dn}`](problems), the problems in a cascade are numbered
+as items of the list, just as if they were written in the `<problems>{:dn}`
+directly.
 
 
 <AttrPropDisplay name='cascade'/>
@@ -53,24 +71,26 @@ advances.
 
 
 ```doenet-editor-horiz
-<cascade name="walkthrough">
+<section>
   <title>A short walkthrough</title>
 
-  <section boxed>
-    <title>First step</title>
-    <p><answer><label>What is <m>1 + 1</m>?</label>2</answer></p>
-  </section>
+  <cascade name="walkthrough">
+    <section boxed>
+      <title>First step</title>
+      <p><answer><label>What is <m>1 + 1</m>?</label>2</answer></p>
+    </section>
 
-  <section boxed>
-    <title>Second step</title>
-    <p><answer><label>What is <m>3 \times 4</m>?</label>12</answer></p>
-  </section>
+    <section boxed>
+      <title>Second step</title>
+      <p><answer><label>What is <m>3 \times 4</m>?</label>12</answer></p>
+    </section>
 
-  <section boxed>
-    <title>Third step</title>
-    <p><answer><label>What is <m>3 - 4</m>?</label>-1</answer></p>
-  </section>
-</cascade>
+    <section boxed>
+      <title>Third step</title>
+      <p><answer><label>What is <m>3 - 4</m>?</label>-1</answer></p>
+    </section>
+  </cascade>
+</section>
 
 <p>Sections completed: $walkthrough.numCompleted</p>
 ```
@@ -78,7 +98,9 @@ advances.
 
 Each `<section>{:dn}` is revealed only after the previous one is answered
 correctly. The `numCompleted` property of the named `<cascade>{:dn}` updates
-as the learner progresses.
+as the learner progresses. The title belongs to the enclosing
+`<section>{:dn}`, since the cascade has none of its own, and the three steps
+are subsections of it.
 
 
 
@@ -88,27 +110,29 @@ as the learner progresses.
 
 
 ```doenet-editor-horiz
-<cascade name="outer">
+<section>
   <title>A walkthrough with a nested cascade</title>
 
-  <section boxed>
-    <title>Warm-up</title>
-    <p><answer><label>What is <m>2 + 2</m>?</label>4</answer></p>
-  </section>
+  <cascade name="outer">
+    <section boxed>
+      <title>Warm-up</title>
+      <p><answer><label>What is <m>2 + 2</m>?</label>4</answer></p>
+    </section>
 
-  <section boxed>
-    <title>Two-step part</title>
-    <cascade name="inner">
-      <p><answer><label>What is <m>3 \times 4</m>?</label>12</answer></p>
-      <p><answer><label>What is <m>12 \div 3</m>?</label>4</answer></p>
-    </cascade>
-  </section>
+    <section boxed>
+      <title>Two-step part</title>
+      <cascade name="inner">
+        <p><answer><label>What is <m>3 \times 4</m>?</label>12</answer></p>
+        <p><answer><label>What is <m>12 \div 3</m>?</label>4</answer></p>
+      </cascade>
+    </section>
 
-  <section boxed>
-    <title>Cool-down</title>
-    <p><answer><label>What is <m>10 - 7</m>?</label>3</answer></p>
-  </section>
-</cascade>
+    <section boxed>
+      <title>Cool-down</title>
+      <p><answer><label>What is <m>10 - 7</m>?</label>3</answer></p>
+    </section>
+  </cascade>
+</section>
 ```
 
 
@@ -128,32 +152,34 @@ the first answer is correct, then reveal it.
 
 
 ```doenet-editor-horiz
-<cascade name="quiz">
+<section>
   <title>A guided quiz</title>
 
-  <section boxed>
-    <title>Step 1</title>
-    <p><answer><label>What is <m>2^3</m>?</label>8</answer></p>
-  </section>
+  <cascade name="quiz">
+    <section boxed>
+      <title>Step 1</title>
+      <p><answer><label>What is <m>2^3</m>?</label>8</answer></p>
+    </section>
 
-  <cascadeMessage>
-    <em>Solve the previous step to continue.</em>
-  </cascadeMessage>
+    <cascadeMessage>
+      <em>Solve the previous step to continue.</em>
+    </cascadeMessage>
 
-  <section boxed>
-    <title>Step 2</title>
-    <p><answer><label>What is <m>3^2</m>?</label>9</answer></p>
-  </section>
+    <section boxed>
+      <title>Step 2</title>
+      <p><answer><label>What is <m>3^2</m>?</label>9</answer></p>
+    </section>
 
-  <cascadeMessage>
-    <em>One more step to go.</em>
-  </cascadeMessage>
+    <cascadeMessage>
+      <em>One more step to go.</em>
+    </cascadeMessage>
 
-  <section boxed>
-    <title>Step 3</title>
-    <p><answer><label>What is <m>4^2</m>?</label>16</answer></p>
-  </section>
-</cascade>
+    <section boxed>
+      <title>Step 3</title>
+      <p><answer><label>What is <m>4^2</m>?</label>16</answer></p>
+    </section>
+  </cascade>
+</section>
 ```
 
 
@@ -165,25 +191,52 @@ takes its place.
 
 
 
+---
+
+### Example: A scored, boxed cascade
+
+
+```doenet-editor-horiz
+<section boxed aggregateScores name="checkpoint">
+  <title>Checkpoint</title>
+
+  <cascade>
+    <p><answer><label>What is <m>6 \times 7</m>?</label>42</answer></p>
+    <p><answer><label>What is <m>42 \div 6</m>?</label>7</answer></p>
+  </cascade>
+</section>
+
+<p>Checkpoint credit: $checkpoint.creditAchieved</p>
+```
+
+
+A cascade has no box or score of its own, so the enclosing
+`<section>{:dn}` supplies both. Its credit comes from the answers inside the
+cascade, the same as if they were written in the section directly.
+
+
+
 ## Attribute Examples
 
 ### Attribute Example: hideFutureSections
 
 
 ```doenet-editor-horiz
-<cascade name="walkthrough" hideFutureSections>
+<section>
   <title>Sequenced steps</title>
 
-  <section boxed>
-    <title>Step 1</title>
-    <p><answer><label>What is <m>5 + 5</m>?</label>10</answer></p>
-  </section>
+  <cascade name="walkthrough" hideFutureSections>
+    <section boxed>
+      <title>Step 1</title>
+      <p><answer><label>What is <m>5 + 5</m>?</label>10</answer></p>
+    </section>
 
-  <section boxed>
-    <title>Step 2</title>
-    <p><answer><label>What is <m>5 \times 5</m>?</label>25</answer></p>
-  </section>
-</cascade>
+    <section boxed>
+      <title>Step 2</title>
+      <p><answer><label>What is <m>5 \times 5</m>?</label>25</answer></p>
+    </section>
+  </cascade>
+</section>
 ```
 
 
@@ -199,19 +252,21 @@ next section still appears greyed-out so the learner can see what is coming.
 
 
 ```doenet-editor-horiz
-<cascade name="walkthrough" revealAll>
+<section>
   <title>All steps visible</title>
 
-  <section boxed>
-    <title>Step 1</title>
-    <p><answer><label>What is <m>5 + 5</m>?</label>10</answer></p>
-  </section>
+  <cascade name="walkthrough" revealAll>
+    <section boxed>
+      <title>Step 1</title>
+      <p><answer><label>What is <m>5 + 5</m>?</label>10</answer></p>
+    </section>
 
-  <section boxed>
-    <title>Step 2</title>
-    <p><answer><label>What is <m>5 \times 5</m>?</label>25</answer></p>
-  </section>
-</cascade>
+    <section boxed>
+      <title>Step 2</title>
+      <p><answer><label>What is <m>5 \times 5</m>?</label>25</answer></p>
+    </section>
+  </cascade>
+</section>
 ```
 
 
@@ -227,24 +282,27 @@ cascade *structure* without enforcing the order.
 
 
 ```doenet-editor-horiz
-<cascade name="walkthrough" boxAll>
+<section>
   <title>All steps boxed</title>
 
-  <section>
-    <title>Step 1</title>
-    <p><answer><label>What is <m>5 + 5</m>?</label>10</answer></p>
-  </section>
+  <cascade name="walkthrough" boxAll>
+    <section>
+      <title>Step 1</title>
+      <p><answer><label>What is <m>5 + 5</m>?</label>10</answer></p>
+    </section>
 
-  <section>
-    <title>Step 2</title>
-    <p><answer><label>What is <m>5 \times 5</m>?</label>25</answer></p>
-  </section>
-</cascade>
+    <section>
+      <title>Step 2</title>
+      <p><answer><label>What is <m>5 \times 5</m>?</label>25</answer></p>
+    </section>
+  </cascade>
+</section>
 ```
 
 
-`boxAll` draws a box around every child regardless of progress, instead of
-boxing only the currently-active child.
+`boxAll` draws a box around every child section, as if each had been given
+`boxed`. The cascade itself is never boxed; to box the whole cascade, put it in
+a `boxed` section.
 
 
 

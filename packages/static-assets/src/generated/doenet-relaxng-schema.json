@@ -173800,107 +173800,7 @@
                         "string"
                     ]
                 },
-                "aggregateScores": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "weight": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "sectionWideCheckWork": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "maxNumAttempts": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "showCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "colorCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "colorAnswersSeparately": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "submitLabel": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "submitLabelNoCorrectness": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "displayDigitsForCreditAchieved": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "boxed": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "includeAutoName": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "includeAutoNumber": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "noAutoTitle": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "includeAutoNameIfNoTitle": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "includeAutoNumberIfNoTitle": {
+                "hideFutureSections": {
                     "optional": true,
                     "type": [
                         "true",
@@ -173914,30 +173814,18 @@
                         "false"
                     ]
                 },
-                "collapsible": {
+                "revealAll": {
                     "optional": true,
                     "type": [
                         "true",
                         "false"
                     ]
                 },
-                "startOpen": {
+                "boxAll": {
                     "optional": true,
                     "type": [
                         "true",
                         "false"
-                    ]
-                },
-                "level": {
-                    "optional": true,
-                    "type": [
-                        "string"
-                    ]
-                },
-                "renameTo": {
-                    "optional": true,
-                    "type": [
-                        "string"
                     ]
                 },
                 "completedColor": {
@@ -173982,30 +173870,12 @@
                     "type": [
                         "string"
                     ]
-                },
-                "hideFutureSections": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "revealAll": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
-                "boxAll": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
                 }
             },
             "children": [
+                {
+                    "ref": "title"
+                },
                 {
                     "ref": "collect"
                 },
@@ -174017,9 +173887,6 @@
                 },
                 {
                     "ref": "conditionalContent"
-                },
-                {
-                    "ref": "variantControl"
                 },
                 {
                     "ref": "select"
@@ -174038,18 +173905,6 @@
                 },
                 {
                     "ref": "shuffle"
-                },
-                {
-                    "ref": "title"
-                },
-                {
-                    "ref": "styleDefinition"
-                },
-                {
-                    "ref": "stylePalette"
-                },
-                {
-                    "ref": "feedbackDefinition"
                 },
                 {
                     "ref": "cascadeMessage"
@@ -174595,6 +174450,9 @@
                     "ref": "asList"
                 },
                 {
+                    "ref": "variantControl"
+                },
+                {
                     "ref": "selectFromSequence"
                 },
                 {
@@ -174775,76 +174633,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "weight",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Relative weight of this section when aggregated by an enclosing scored section.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "sectionWideCheckWork",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to show a single section-wide check-work button instead of per-answer buttons.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "maxNumAttempts",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Maximum number of times the section-wide check-work button can be submitted. Once reached, all enclosed answers are disabled.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "displayDigitsForCreditAchieved",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Number of significant digits to display for the credit achieved value.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "includeAutoName",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to include the auto-generated section name (e.g. \"Section\") in the rendered title.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "includeAutoNumber",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to include the auto-generated section number in the rendered title.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "noAutoTitle",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to suppress the auto-generated title entirely.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "includeAutoNameIfNoTitle",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to include the auto-generated name when no explicit title is provided.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "includeAutoNumberIfNoTitle",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether to include the auto-generated number when no explicit title is provided.",
-                    "fromAttribute": true
-                },
-                {
-                    "name": "collapsible",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the section can be collapsed and expanded.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "hideFutureSections",
                     "type": "boolean",
                     "isArray": false,
@@ -174882,94 +174670,16 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
-                    "name": "submitLabel",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is shown."
-                },
-                {
-                    "name": "submitLabelNoCorrectness",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "Label for the section-wide submit button when correctness is not shown."
-                },
-                {
-                    "name": "numSubmissions",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Number of times the section-wide check-work button has been submitted."
-                },
-                {
-                    "name": "numAttemptsLeft",
-                    "type": "integer",
-                    "isArray": false,
-                    "description": "Remaining number of section-wide submissions before the maximum is reached."
-                },
-                {
-                    "name": "showCorrectness",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether correctness is shown for the answers this section contains, after combining the attribute with any enclosing section's setting and with the activity-wide flag."
-                },
-                {
-                    "name": "colorCorrectness",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether the answers this section contains are color-coded by correctness, after combining the attribute with any enclosing section's setting and with whether correctness is shown at all."
-                },
-                {
-                    "name": "aggregateScores",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether scores of scored descendants are aggregated into this section's credit value."
-                },
-                {
-                    "name": "creditAchieved",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Aggregate credit achieved (between 0 and 1) for scored descendants of this section."
-                },
-                {
-                    "name": "percentCreditAchieved",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Aggregate credit achieved as a percentage (between 0 and 100)."
-                },
-                {
-                    "name": "boxed",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether this section is rendered with a visible box around it."
-                },
-                {
-                    "name": "sectionNumber",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "The displayed number for this section."
-                },
-                {
-                    "name": "title",
-                    "type": "text",
-                    "isArray": false,
-                    "description": "The displayed title text for this section."
-                },
-                {
                     "name": "completedColorRequiresCredit",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the heading bar's completion state is driven by the real `creditAchieved` rather than by progress, so that a hand-graded answer keeps the section from being colored as completed until an instructor grades it."
                 },
                 {
-                    "name": "open",
-                    "type": "boolean",
-                    "isArray": false,
-                    "description": "Whether this section is currently open (for collapsible sections)."
-                },
-                {
                     "name": "asList",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether to render this section's children as a list."
+                    "description": "Whether to render this cascade's children as a list (by default, whatever its parent does)."
                 },
                 {
                     "name": "numCompleted",
