@@ -1676,6 +1676,71 @@ ${moduleDefinition}
             });
         });
 
+        it("function evaluated in an attribute value named the same as the module's function", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<setup>
+    <module name="g">
+        <moduleAttributes>
+            <number name="xmin">-10</number>
+        </moduleAttributes>
+        <function name="f">x+1000</function>
+        <p name="p">$xmin</p>
+    </module>
+</setup>
+<problem name="prob">
+    <function name="f">x^2</function>
+    <module copy="$g" xmin="$$f(3)" name="m2" />
+</problem>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.m2.p",
+                text: "9",
+            });
+        });
+
+        it("copy of a module copy resolves both sets of attributes where they are written", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+${moduleDefinition}
+<problem name="prob">
+    <setup>
+        <number name="xmin">-3</number>
+        <number name="xmax">5</number>
+    </setup>
+    <module copy="$g" xmin="$xmin" name="m2" />
+    <module copy="$m2" xmax="$xmax" name="m3" />
+    <module copy="$m2" xmin="$xmax" name="m4" />
+</problem>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.m2.p",
+                text: "-3, 10",
+            });
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.m3.p",
+                text: "-3, 5",
+            });
+            await expectModuleText({
+                core,
+                resolvePathToNodeIdx,
+                path: "prob.m4.p",
+                text: "5, 10",
+            });
+        });
+
         it("attribute written on the module's own definition is ambiguous with the module's attribute", async () => {
             const { core } = await createTestCore({
                 doenetML: `
