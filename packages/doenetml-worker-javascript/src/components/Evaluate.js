@@ -267,10 +267,11 @@ export default class Evaluate extends MathComponent {
                     });
                     // A caller that wants a number, such as a `<function>`
                     // reevaluating this `<evaluate>` at each sample, gets the
-                    // function's own numerical function. It gives the same
-                    // value as evaluating the symbolic result, without building
-                    // an expression per sample, and without the precision the
-                    // symbolic route loses where the value is tiny.
+                    // function's own numerical function: the value the function
+                    // gives numerically and a graph of it draws, computed
+                    // without building an expression per sample, and without
+                    // the precision the symbolic route loses where the value is
+                    // tiny.
                     fReevaluate.numeric ??= returnNumericFunctionForEvaluate({
                         numInputs: functionComp.stateValues.numInputs,
                         numericalfs: functionComp.stateValues.numericalfs,
@@ -405,6 +406,10 @@ export default class Evaluate extends MathComponent {
  * - no symbol in the formula other than `g`'s variables, `e` and `pi`, since a
  *   free symbol that shares a name with the outer function's variable would be
  *   captured by it once substituted.
+ *
+ * When one of those inputs is a vector, `g` gives no value (it spreads a lone
+ * vector across its variables, and a vector cannot stand for one variable), so
+ * the formula returned is blank.
  */
 function substituteInputsIntoFormula({
     fDefinition,
@@ -422,11 +427,11 @@ function substituteInputsIntoFormula({
     }
 
     let formula = me.fromAst(fDefinition.formula).subscripts_to_strings();
-    if (
-        Array.isArray(formula.tree) &&
-        vectorOperators.includes(formula.tree[0])
-    ) {
+    if (isVectorValued(formula)) {
         return null;
+    }
+    if (inputMaths.some(isVectorValued)) {
+        return me.fromAst("\uff3f");
     }
 
     let variableNames = fDefinition.variables.map(
@@ -452,6 +457,13 @@ function substituteInputsIntoFormula({
     }
 
     return formula.substitute(substitutions);
+}
+
+function isVectorValued(expression) {
+    return (
+        Array.isArray(expression.tree) &&
+        vectorOperators.includes(expression.tree[0])
+    );
 }
 
 /**

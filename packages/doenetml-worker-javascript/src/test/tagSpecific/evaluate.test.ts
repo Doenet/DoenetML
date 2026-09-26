@@ -5743,6 +5743,26 @@ describe("Evaluate tag tests @group2", async () => {
         expect(f(-1)).toBeNaN();
     });
 
+    it("a function evaluating a one-input function at a vector has no value", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <function name="g">x</function>
+  <function name="f">$$g((x, 1))</function>
+  <function name="f2">$$g((x, 1)) + 1</function>
+  <p name="p">$$g((2, 1))</p>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+
+        // Like evaluating `g` at a vector directly: no value
+        expect((await sv("p")).text).eq("＿");
+        expect((await sv("f")).numericalfs[0](2)).toBeNaN();
+        expect((await sv("f2")).numericalfs[0](2)).toBeNaN();
+    });
+
     it("evaluate functions based on interpolated function", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
