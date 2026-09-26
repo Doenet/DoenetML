@@ -3141,6 +3141,117 @@ describe("Cascade tag tests @group4", async () => {
         await check({ outer: 1, s1: 1, numCompleted: 2 });
     });
 
+    // A cascade has no score of its own, so a cascade nested in a cascade no
+    // longer counts as one step toward a section around them: each of its
+    // answers counts on its own.
+    it("a cascade nested in a cascade is scored on its own steps", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="s" aggregateScores>
+  <cascade name="c">
+    <p><answer name="a1">1</answer></p>
+    <cascade name="inner">
+      <p><answer name="a2">2</answer></p>
+      <p><answer name="a3">3</answer></p>
+    </cascade>
+  </cascade>
+</section>
+    `,
+        });
+
+        let stateVariables = await getStateVariables(core);
+
+        async function check(credit: number, numCompleted: number) {
+            stateVariables = await getStateVariables(core);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("s")].stateValues
+                    .creditAchieved,
+            ).closeTo(credit, 1e-12);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                    .numCompleted,
+            ).eq(numCompleted);
+        }
+
+        await check(0, 0);
+        for (const [name, latex, credit, numCompleted] of [
+            ["a1", "1", 1 / 3, 1],
+            ["a2", "2", 2 / 3, 1],
+            ["a3", "3", 1, 2],
+        ] as const) {
+            const answerIdx = await resolvePathToNodeIdx(name);
+            await submitMathAnswer({
+                core,
+                latex,
+                answerIdx,
+                mathInputIdx: getMathInputIdx(stateVariables, answerIdx),
+            });
+            await check(credit, numCompleted);
+        }
+    });
+
+    // A cascade that sets no step colors passes on those of the section
+    // around it, so its steps color their heading bars as they would outside
+    // it.
+    it("steps take the enclosing section's colors when the cascade sets none", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="s" completedColor="blue" inProgressColor="cyan" notStartedColor="pink">
+  <cascade name="c">
+    <section name="x" boxed>
+      <answer name="a1">1</answer>
+      <answer name="a2">2</answer>
+    </section>
+  </cascade>
+</section>
+    `,
+        });
+
+        let stateVariables = await getStateVariables(core);
+        const xIdx = await resolvePathToNodeIdx("x");
+        expect(stateVariables[xIdx].stateValues.titleColor).eq("pink");
+
+        for (const [name, latex, color] of [
+            ["a1", "1", "cyan"],
+            ["a2", "2", "blue"],
+        ] as const) {
+            const answerIdx = await resolvePathToNodeIdx(name);
+            await submitMathAnswer({
+                core,
+                latex,
+                answerIdx,
+                mathInputIdx: getMathInputIdx(stateVariables, answerIdx),
+            });
+            stateVariables = await getStateVariables(core);
+            expect(stateVariables[xIdx].stateValues.titleColor).eq(color);
+        }
+    });
+
+    // A cascade is not a list item, so an `<ol>` in a cascade in a problem is
+    // at the list level of an `<ol>` directly in the problem.
+    it("an ol in a cascade in a list item takes the list item's list level", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<problems>
+  <problem>
+    <cascade><ol name="inCascade"><li>x</li></ol></cascade>
+    <ol name="direct"><li>y</li></ol>
+  </problem>
+</problems>
+<section>
+  <cascade><ol name="inSection"><li>z</li></ol></cascade>
+</section>
+    `,
+        });
+
+        const stateVariables = await getStateVariables(core);
+        const levelOf = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues.level;
+        expect(await levelOf("direct")).eq(2);
+        expect(await levelOf("inCascade")).eq(2);
+        expect(await levelOf("inSection")).eq(1);
+    });
+
     it("problems inside a cascade in a problems list are its items", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

@@ -133,9 +133,9 @@ export default class Cascade extends BlockComponent {
          * cascade does not show, and — while an enclosing cascade holds this one
          * back — none of its strings, which `childrenToHide` cannot reach.
          *
-         * Under `asList` (a cascade in a `<problems>`), only the children that
-         * are items of that list render, as they did when a cascade was a
-         * section: the sections and nested cascades.
+         * Under `asList` (a cascade in a `<problems>`), only the children a
+         * list shows are rendered, as when a cascade was a section: the
+         * sections, nested cascades, `<introduction>` and `<conclusion>`.
          *
          * Also where a `<title>` is reported, since this is computed for every
          * cascade that renders.
