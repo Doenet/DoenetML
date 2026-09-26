@@ -334,6 +334,33 @@ const DEPRECATION_REGISTRY: DeprecationRegistry = {
         // legal in the delimiters the other modes of the math renderer supply.
         // The mode is now fixed by the component, so the attribute is dropped.
         odeSystem: ignoredAttributes("odeSystem", ["renderMode"]),
+        // `<cascade>` was a sectioning component and took these attributes
+        // from it. It now only reveals its children step by step, so they are
+        // dropped with a warning. An invalid attribute would turn the whole
+        // cascade, content and all, into an error.
+        cascade: ignoredAttributes("cascade", [
+            "aggregateScores",
+            "boxed",
+            "collapsible",
+            "colorAnswersSeparately",
+            "colorCorrectness",
+            "displayDigitsForCreditAchieved",
+            "forceIndividualAnswerColoring",
+            "includeAutoName",
+            "includeAutoNameIfNoTitle",
+            "includeAutoNumber",
+            "includeAutoNumberIfNoTitle",
+            "level",
+            "maxNumAttempts",
+            "noAutoTitle",
+            "renameTo",
+            "sectionWideCheckWork",
+            "showCorrectness",
+            "startOpen",
+            "submitLabel",
+            "submitLabelNoCorrectness",
+            "weight",
+        ]),
     },
     attributeValueRenames: {
         // The label sits beside the input in DOM order, which mirrors with the

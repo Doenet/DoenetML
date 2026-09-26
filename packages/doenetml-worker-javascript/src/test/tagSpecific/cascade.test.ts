@@ -3015,6 +3015,34 @@ describe("Cascade tag tests @group4", async () => {
         expect(warnings[0].position.start.line).eq(3);
     });
 
+    // An attribute a cascade had as a section is dropped with a warning, so a
+    // cascade written for the old component still reveals its steps rather
+    // than turning into an error.
+    it("a cascade drops the section attributes it no longer has", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<cascade name="c" boxed collapsible weight="2" aggregateScores>
+  <section name="s1"><p>a</p></section>
+  <section name="s2"><p>b</p></section>
+</cascade>
+    `,
+        });
+
+        const stateVariables = await getStateVariables(core);
+        const c = stateVariables[await resolvePathToNodeIdx("c")];
+        expect(c.componentType).eq("cascade");
+        expect(c.stateValues.numCompleted).eq(2);
+
+        const diagnostics = getDiagnosticsByType(core);
+        expect(diagnostics.errors).eqls([]);
+        expect(diagnostics.warnings.map((w: any) => w.message).sort()).eqls(
+            ["aggregateScores", "boxed", "collapsible", "weight"].map(
+                (attr) =>
+                    `[deprecation] Attribute \`${attr}\` on \`<cascade>\` is deprecated and ignored.`,
+            ),
+        );
+    });
+
     it("a figure beside or inside a cascade of sections is still Figure 1", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
