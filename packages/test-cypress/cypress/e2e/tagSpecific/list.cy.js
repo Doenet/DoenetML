@@ -837,7 +837,8 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
     // belongs beside the first row, as it is beside a paragraph's first line.
     // With three rows the middle one is a whole row away from the first, so the
     // marker's center cannot land in the first row by accident. The labeled
-    // `<mdn>` and a top-level `array` are the other ways to write such a table.
+    // `<mdn>` and an `<me>` that is just an `array` are two other ways to write
+    // such a table.
     [
         {
             name: "md",
@@ -915,6 +916,37 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
                 }
             },
         );
+    });
+
+    // Only a table that is the whole equation is aligned on its first row.
+    // Beside other math, as in `x = \begin{array}…`, the `x =` stays beside
+    // the array's middle row.
+    it("math beside a leading array stays beside its middle row", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <ol>
+      <li name="item"><me>x = \\begin{array}{c} a \\\\ b \\\\ c \\end{array}</me></li>
+    </ol>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`#${cesc("item")} mjx-math > mjx-mi`).should(($x) => {
+            const rows = [
+                ...$x[0].parentElement.querySelector("mjx-itable").children,
+            ];
+            expect(rows, "the array's rows").to.have.length(3);
+            const xBox = $x[0].getBoundingClientRect();
+            const middleBox = rows[1].getBoundingClientRect();
+            expect(
+                (xBox.top + xBox.bottom) / 2,
+                "x beside the array's middle row",
+            ).to.be.closeTo((middleBox.top + middleBox.bottom) / 2, 2);
+        });
     });
 
     // `<ul>` and `<ol>` share one `Li` class, so this is a guard against that

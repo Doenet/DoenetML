@@ -8,4 +8,4 @@
 
 Viewer: put a list item's number beside the first row of a displayed equation that leads it.
 
-An `<li>`, `<problem>`, `<exercise>` or `<part>` whose content opens with a displayed equation of several rows — an `<md>`, an `<mdn>`, or an `<me>` holding an `array` — showed its number beside the equation's middle row. The number now sits beside the first row, as it sits beside the first line of a paragraph. The equation itself is drawn exactly where it was.
+A list item whose content opens with a displayed equation of several rows — an `<md>`, an `<mdn>`, or an `<me>` that is nothing but an `array` or `aligned` — showed its number beside the equation's middle row. This held for an `<li>` in an `<ol>` or `<ul>`, and for a `<part>`, a `<task>`, or a `<problem>` or `<exercise>` in a list of them. The number now sits beside the first row, as it sits beside the first line of a paragraph. The equation itself is drawn exactly where it was.
