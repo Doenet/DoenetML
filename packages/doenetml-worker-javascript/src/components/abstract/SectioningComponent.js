@@ -254,11 +254,13 @@ export class SectioningComponent extends BlockComponent {
                 "The heading level for this section (overrides the default level inferred from nesting).",
         };
 
-        attributes.renameTo = {
-            createComponentOfType: "text",
-            description:
-                'Override the auto-generated section name (e.g. rename "Section" to a custom label).',
-        };
+        if (this.allowRenameTo) {
+            attributes.renameTo = {
+                createComponentOfType: "text",
+                description:
+                    'Override the auto-generated section name (e.g. rename "Section" to a custom label).',
+            };
+        }
 
         attributes.completedColor = {
             createComponentOfType: "text",
@@ -450,22 +452,20 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
-        // What is left here is the container case: a sectioning component that
-        // shows no number of its own, such as `<cascade>` or the wrapper a copy
-        // from an external URI arrives in. It takes none either — the counter
-        // that numbers figures and tables in one sequence belongs to the
-        // components that display what they take from it, and a figure that is
-        // the first numbered thing in a document is Figure 1 however many
-        // wrappers enclose it. The enclosing section's enumeration passes
-        // through in place of a number of its own, so that a division written
-        // inside such a wrapper with `includeParentNumber` is prefixed with the
-        // number of the section its author sees around the wrapper.
+        // The numbering of a container: a sectioning component that shows no
+        // number of its own, such as `<cascade>` or the wrapper a copy from an
+        // external URI arrives in. It takes none either, so it leaves no gap in
+        // the sequence that numbers figures and tables: a figure that is the
+        // first numbered thing in a document is Figure 1 however many wrappers
+        // enclose it. The enclosing section's enumeration passes through in
+        // place of a number of its own, so that a division written inside such
+        // a wrapper with `includeParentNumber` is prefixed with the number of
+        // the section its author sees around the wrapper. The exception is a
+        // wrapper that a list-producing parent numbers as one of its items.
         //
         // A division that does carry a number overrides this:
         // `SectioningComponentNumberWithSiblings` numbers among its siblings,
-        // and `UnnumberedSectioningComponent` has no number at all. The list
-        // branch stays for the wrapper that a list-producing parent numbers as
-        // one of its items.
+        // and `UnnumberedSectioningComponent` has no number at all.
         stateVariableDefinitions.enumeration = {
             additionalStateVariablesDefined: [
                 {
@@ -1942,10 +1942,6 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
-
-        if (!this.allowRenameTo) {
-            delete attributes.renameTo;
-        }
 
         attributes.includeParentNumber = {
             createComponentOfType: "boolean",
