@@ -17,8 +17,10 @@ import {
  *
  * It is not a section. It has no heading, no number, no heading level, no box
  * and no score of its own, and it seeds no variants, so a section inside it is
- * numbered, leveled and scored exactly as it would be beside it. An author who
- * wants any of those wraps the cascade in a `<section>`.
+ * leveled and scored exactly as it would be beside it. (Its number among
+ * sibling divisions is another matter: a cascade, like a `<div>`, does not
+ * pass the count of the divisions around it on to the ones inside it.) An
+ * author who wants any of those wraps the cascade in a `<section>`.
  *
  * What it keeps of a section is what its steps read off their parent: the
  * `childrenToHideChildren` and `sectionToShowCascadeMessage` that hold a step

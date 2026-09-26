@@ -18,9 +18,8 @@ to show a "continuation message" in place of a not-yet-revealed entry.
 
 A `<cascade>{:dn}` is not a section: controlling that step-by-step reveal is
 all it does. It has no title, no number and no box of its own, and it does not
-change the heading level or the numbering of the sections inside it — a
-section inside a cascade is numbered and drawn exactly like the sections beside
-it. A cascade has no score of its own either (no `weight`, no
+change the heading level of the sections inside it — a section inside a
+cascade is drawn at the same level as the sections beside it. A cascade has no score of its own either (no `weight`, no
 `sectionWideCheckWork`), and it does not choose variants. For any of those, put
 the `<cascade>{:dn}` inside a [`<section>{:dn}`](section) and give the section
 the title, the box, the scoring or the variants, as in the examples below. A
