@@ -2876,4 +2876,84 @@ describe("Cascade tag tests @group4", async () => {
                 .hideChildren,
         ).eq(false);
     });
+    it("a cascade takes no number from the section, figure and table counter", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <figure name="bare"><caption>alone</caption></figure>
+    <cascade name="c"><figure name="inCascade"><caption>wrapped</caption></figure></cascade>
+    <cascade><cascade><table name="deep"><title>twice wrapped</title><tabular><row><cell>1</cell></row></tabular></table></cascade></cascade>
+    `,
+        });
+
+        const stateVariables = await getStateVariables(core);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("bare")].stateValues
+                .figureName,
+        ).eq("Figure 1");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("inCascade")].stateValues
+                .figureName,
+        ).eq("Figure 2");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("deep")].stateValues
+                .tableName,
+        ).eq("Table 3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                .sectionNumber,
+        ).eq(null);
+    });
+
+    it("includeParentNumber inside a cascade reads the enclosing section", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <section name="first"><title>First</title></section>
+    <section name="second"><title>Second</title>
+      <cascade>
+        <problem name="p"><p>a</p></problem>
+        <subsection name="ss" includeParentNumber><title>Inner</title></subsection>
+      </cascade>
+    </section>
+    `,
+        });
+
+        const stateVariables = await getStateVariables(core);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("second")].stateValues
+                .sectionNumber,
+        ).eq("2");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .sectionNumber,
+        ).eq("1");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ss")].stateValues
+                .sectionNumber,
+        ).eq("2.2");
+    });
+
+    it("sections inside a cascade that wraps the document are numbered as top-level sections", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <figure name="f"><caption>before</caption></figure>
+    <cascade>
+      <section name="a"><title>A</title><subsection name="aa"><title>AA</title></subsection></section>
+      <section name="b"><title>B</title></section>
+    </cascade>
+    `,
+        });
+
+        const stateVariables = await getStateVariables(core);
+        const numberOf = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .sectionNumber;
+
+        // Neither the cascade nor the figure before it contributes a number,
+        // so the sections are not prefixed with one.
+        expect(await numberOf("a")).eq("1");
+        expect(await numberOf("aa")).eq("1.1");
+        expect(await numberOf("b")).eq("2");
+    });
 });

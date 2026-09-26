@@ -157,6 +157,12 @@ export class SectioningComponent extends BlockComponent {
 
     static createsVariants = true;
 
+    // Whether the author may replace this block's auto-generated word with
+    // `renameTo`. A division that names itself from the catalog does not — see
+    // `SectioningComponentNumberWithSiblings` — while a container that groups
+    // divisions, such as `<problems>`, does.
+    static allowRenameTo = true;
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
@@ -248,11 +254,13 @@ export class SectioningComponent extends BlockComponent {
                 "The heading level for this section (overrides the default level inferred from nesting).",
         };
 
-        attributes.renameTo = {
-            createComponentOfType: "text",
-            description:
-                'Override the auto-generated section name (e.g. rename "Section" to a custom label).',
-        };
+        if (this.allowRenameTo) {
+            attributes.renameTo = {
+                createComponentOfType: "text",
+                description:
+                    'Override the auto-generated section name (e.g. rename "Section" to a custom label).',
+            };
+        }
 
         attributes.completedColor = {
             createComponentOfType: "text",
@@ -444,8 +452,21 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
+        // The numbering of a container: a sectioning component that shows no
+        // number of its own, such as `<cascade>` or the wrapper a copy from an
+        // external URI arrives in. It takes none either, so it leaves no gap in
+        // the sequence that numbers figures and tables: a figure that is the
+        // first numbered thing in a document is Figure 1 however many wrappers
+        // enclose it. The enclosing section's enumeration passes through in
+        // place of a number of its own, so that a division written inside such
+        // a wrapper with `includeParentNumber` is prefixed with the number of
+        // the section its author sees around the wrapper. The exception is a
+        // wrapper that a list-producing parent numbers as one of its items.
+        //
+        // A division that does carry a number overrides this:
+        // `SectioningComponentNumberWithSiblings` numbers among its siblings,
+        // and `UnnumberedSectioningComponent` has no number at all.
         stateVariableDefinitions.enumeration = {
-            stateVariablesDeterminingDependencies: ["isListItem"],
             additionalStateVariablesDefined: [
                 {
                     variableName: "sectionNumber",
@@ -457,46 +478,42 @@ export class SectioningComponent extends BlockComponent {
                     forRenderer: true,
                 },
             ],
-            mustEvaluate: true, // must evaluate to make sure all counters are accounted for
-            returnDependencies: ({ stateValues }) => {
-                let dependencies = {
-                    isListItem: {
-                        dependencyType: "stateVariable",
-                        variableName: "isListItem",
-                    },
-                };
-
-                if (stateValues.isListItem) {
-                    dependencies.countAmongSiblings = {
-                        dependencyType: "countAmongSiblings",
-                        componentType: "_sectioningComponent",
-                        includeInheritedComponentTypes: true,
-                    };
-                } else {
-                    dependencies.sectioningCounter = {
-                        dependencyType: "counter",
-                        counterName: "sectioning",
-                    };
-                }
-
-                return dependencies;
-            },
+            returnDependencies: () => ({
+                isListItem: {
+                    dependencyType: "stateVariable",
+                    variableName: "isListItem",
+                },
+                countAmongSiblings: {
+                    dependencyType: "countAmongSiblings",
+                    componentType: "_sectioningComponent",
+                    includeInheritedComponentTypes: true,
+                },
+                sectionAncestor: {
+                    dependencyType: "ancestor",
+                    componentType: "_sectioningComponent",
+                    variableNames: ["enumeration"],
+                },
+            }),
             definition({ dependencyValues }) {
                 if (dependencyValues.isListItem) {
-                    let sectionNumber = dependencyValues.countAmongSiblings;
-                    let enumeration = [sectionNumber];
-                    return { setValue: { enumeration, sectionNumber } };
-                } else {
-                    let sectionNumber = String(
-                        dependencyValues.sectioningCounter,
-                    );
+                    let countAmongSiblings =
+                        dependencyValues.countAmongSiblings;
                     return {
                         setValue: {
-                            enumeration: [sectionNumber],
-                            sectionNumber,
+                            enumeration: [countAmongSiblings],
+                            sectionNumber: String(countAmongSiblings),
                         },
                     };
                 }
+
+                return {
+                    setValue: {
+                        enumeration:
+                            dependencyValues.sectionAncestor?.stateValues
+                                .enumeration ?? [],
+                        sectionNumber: null,
+                    },
+                };
             },
         };
 
@@ -1919,10 +1936,12 @@ export class SectioningComponent extends BlockComponent {
 export class SectioningComponentNumberWithSiblings extends SectioningComponent {
     static componentType = "_sectioningComponentNumberWithSiblings";
 
+    // A division names itself from the catalog in the document's language, so
+    // its word is not the author's to replace.
+    static allowRenameTo = false;
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
-
-        delete attributes.renameTo;
 
         attributes.includeParentNumber = {
             createComponentOfType: "boolean",

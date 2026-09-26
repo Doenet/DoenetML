@@ -77851,6 +77851,13 @@
                     "type": [
                         "string"
                     ]
+                },
+                "includeParentNumber": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
                 }
             },
             "children": [
@@ -78697,6 +78704,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the section can be collapsed and expanded.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "includeParentNumber",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to prefix this section's number with the parent section's number.",
                     "fromAttribute": true
                 },
                 {
@@ -79060,6 +79074,13 @@
                     "type": [
                         "string"
                     ]
+                },
+                "includeParentNumber": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
                 }
             },
             "children": [
@@ -79906,6 +79927,13 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the section can be collapsed and expanded.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "includeParentNumber",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to prefix this section's number with the parent section's number.",
                     "fromAttribute": true
                 },
                 {
