@@ -1,6 +1,9 @@
 import { cesc } from "@doenet/utils";
 import { verifySideBySideColumnTopAlignment } from "./utils/listItemAlignment";
-import { verifyListItemNumbersAlign } from "./utils/listItemNumberAlignment";
+import {
+    verifyListItemNumbersAlign,
+    verifySectionNumberSharesRowWith,
+} from "./utils/listItemNumberAlignment";
 
 describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
     beforeEach(() => {
@@ -1884,5 +1887,31 @@ describe("Problem Tag Tests", { tags: ["@group5"] }, function () {
         verifyListItemNumbersAlign(["p1", "p2", "p3", "p4"], {
             label: "cascade single- vs multi-line at 500px",
         });
+    });
+
+    // The section-number counterpart of the `<li>` marker test in `list.cy.js`:
+    // the number lines up with its content's first baseline, which for a
+    // several-row display is the middle row unless the display is aligned on
+    // its first row.
+    it("a part's number sits beside the first row of a leading md", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+        <problem>
+            <part name="part1">
+                <md><mrow>a &= b</mrow><mrow>c &= d</mrow><mrow>e &= f</mrow></md>
+            </part>
+        </problem>
+    `,
+                },
+                "*",
+            );
+        });
+
+        verifySectionNumberSharesRowWith(
+            "part1",
+            `#${cesc("part1")} mjx-itable > :first-child`,
+        );
     });
 });
