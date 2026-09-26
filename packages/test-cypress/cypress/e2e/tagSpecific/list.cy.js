@@ -874,6 +874,49 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
         });
     });
 
+    // Aligning a several-row display on its first row applies to the display's
+    // own table only. A matrix inside one of its rows stays centered between
+    // its parentheses.
+    it("a matrix in a row of a leading md stays between its parentheses", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <ol>
+      <li name="item"><md>
+        <mrow>f(x) &= \\begin{pmatrix} a \\\\ b \\\\ c \\end{pmatrix}</mrow>
+        <mrow>g &= h</mrow>
+      </md></li>
+    </ol>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get(`#${cesc("item")} mjx-mtd mjx-table > mjx-itable`).should(
+            ($matrix) => {
+                const matrixBox = $matrix[0].getBoundingClientRect();
+                const parenBoxes = [
+                    ...$matrix[0].closest("mjx-mtd").querySelectorAll("mjx-mo"),
+                ]
+                    .map((mo) => mo.getBoundingClientRect())
+                    .filter((box) => box.height > matrixBox.height / 2);
+                expect(parenBoxes, "the matrix's parentheses").to.have.length(
+                    2,
+                );
+                for (const parenBox of parenBoxes) {
+                    const matrixCenter = (matrixBox.top + matrixBox.bottom) / 2;
+                    const parenCenter = (parenBox.top + parenBox.bottom) / 2;
+                    expect(
+                        matrixCenter,
+                        "matrix centered between its parentheses",
+                    ).to.be.closeTo(parenCenter, 2);
+                }
+            },
+        );
+    });
+
     // `<ul>` and `<ol>` share one `Li` class, so this is a guard against that
     // ever stopping being true rather than a second implementation.
     //

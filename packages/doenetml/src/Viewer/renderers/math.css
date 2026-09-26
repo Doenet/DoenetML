@@ -62,7 +62,9 @@
  * height would reach above it and grow the line. The table is taller than any
  * strut, so the display's height and row positions do not change. A single-row
  * table is left alone: its baseline is already its row's, and there the strut
- * is what sets the display's height.
+ * is what sets the display's height. A table nested in a row, such as a
+ * `pmatrix` or `cases`, keeps MathJax's centering, which is what holds it
+ * between its delimiters.
  */
 .doenet-viewer
     mjx-container[display="true"]:has(
@@ -75,6 +77,7 @@
     mjx-container[display="true"]
     > mjx-math
     > mjx-mtable:has(> mjx-table > mjx-itable > :nth-child(2))
-    mjx-itable {
+    > mjx-table
+    > mjx-itable {
     vertical-align: baseline;
 }
