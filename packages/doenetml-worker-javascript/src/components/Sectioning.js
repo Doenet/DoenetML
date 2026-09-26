@@ -3,6 +3,10 @@ import {
     SectioningComponentNumberWithSiblings,
     UnnumberedSectioningComponent,
 } from "./abstract/SectioningComponent";
+import {
+    DIVISION_SEQUENCE,
+    returnSequencePassThroughDefinitions,
+} from "../utils/sequenceNumbering";
 
 export class Section extends SectioningComponentNumberWithSiblings {
     static componentType = "section";
@@ -388,6 +392,13 @@ export class StandinForFutureLayoutTag extends SectioningComponent {
             setValue: { containerTag: "aside" },
         });
 
+        // It shows no number, so the divisions inside it are numbered among
+        // the divisions beside it.
+        Object.assign(
+            stateVariableDefinitions,
+            returnSequencePassThroughDefinitions(DIVISION_SEQUENCE),
+        );
+
         return stateVariableDefinitions;
     }
 }
@@ -403,5 +414,19 @@ export class externalContent extends SectioningComponent {
         attributes.includeAutoNameIfNoTitle.defaultValue = false;
         attributes.includeAutoNumberIfNoTitle.defaultValue = false;
         return attributes;
+    }
+
+    static returnStateVariableDefinitions() {
+        let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        // It shows no number, so the divisions it brings in are numbered among
+        // the divisions beside it, as they would be had they been written
+        // there.
+        Object.assign(
+            stateVariableDefinitions,
+            returnSequencePassThroughDefinitions(DIVISION_SEQUENCE),
+        );
+
+        return stateVariableDefinitions;
     }
 }

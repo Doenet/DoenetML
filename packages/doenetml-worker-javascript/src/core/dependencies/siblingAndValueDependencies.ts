@@ -388,6 +388,20 @@ export class FlagDependency extends ValueDependency {
 }
 
 /**
+ * The `initializeCounters` the hosting page passed in: for a component type,
+ * the number the first of its kind at the top level of the document takes.
+ *
+ * Fixed for a core's lifetime, like flags.
+ */
+export class InitializeCountersDependency extends ValueDependency {
+    static dependencyType = "initializeCounters";
+
+    setUpParameters() {
+        this.value = this.dependencyHandler.core.initializeCounters;
+    }
+}
+
+/**
  * The content locale the hosting page asked for, as a BCP-47 tag.
  *
  * Fixed for a core's lifetime, like flags: changing the content language
