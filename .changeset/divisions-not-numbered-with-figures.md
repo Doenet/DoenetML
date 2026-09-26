@@ -12,6 +12,6 @@ A document numbers its figures and tables in one sequence and its divisions in a
 
 `<problems>` and `<exercises>` now number themselves among their sibling divisions, the way `<section>` and `<problem>` already did — a `<problems>` between two `<section>`s is "Problems 2", not a number out of the figure sequence. They keep `renameTo`, which the divisions they group do not have, and they gain `includeParentNumber`, which those divisions do have.
 
-The three containers now take no number at all, and pass the enclosing section's enumeration through in place of one. A figure that is the first numbered thing in a document is Figure 1 however many containers enclose it, and a division written inside one with `includeParentNumber` is prefixed with the number of the section its author sees around the container rather than with a number the container had taken.
+The three containers now take no number at all, and pass the enclosing section's enumeration through in place of one. A figure that is the first numbered thing in a document is Figure 1 however many containers enclose it, and a division written inside one with `includeParentNumber` (the default for `<section>`) is prefixed with the number of the section its author sees around the container rather than with a number the container had taken. Sections in a `<cascade>` that wraps the document are numbered 1, 2, … rather than 1.1, 1.2, ….
 
 `$section.sectionNumber` now reports the number of a section rendered as a list item as text, as it already did for a section rendered anywhere else.

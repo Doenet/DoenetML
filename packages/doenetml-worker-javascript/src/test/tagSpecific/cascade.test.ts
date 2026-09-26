@@ -2933,4 +2933,27 @@ describe("Cascade tag tests @group4", async () => {
                 .sectionNumber,
         ).eq("2.2");
     });
+
+    it("sections inside a cascade that wraps the document are numbered as top-level sections", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <figure name="f"><caption>before</caption></figure>
+    <cascade>
+      <section name="a"><title>A</title><subsection name="aa"><title>AA</title></subsection></section>
+      <section name="b"><title>B</title></section>
+    </cascade>
+    `,
+        });
+
+        const stateVariables = await getStateVariables(core);
+        const numberOf = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .sectionNumber;
+
+        // Neither the cascade nor the figure before it contributes a number,
+        // so the sections are not prefixed with one.
+        expect(await numberOf("a")).eq("1");
+        expect(await numberOf("aa")).eq("1.1");
+        expect(await numberOf("b")).eq("2");
+    });
 });
