@@ -1,5 +1,190 @@
 # @doenet/vscode-extension
 
+## 0.8.0
+
+### Minor Changes
+
+- 904279a: Replace the JavaScript `math-expressions` library with the Rust core compiled to WASM.
+
+    Everything DoenetML does with mathematics — parsing what a student types, deciding whether an
+    answer is equivalent to the expected one, simplifying, differentiating, rendering a `<math>` — now
+    runs through the Rust engine reached by its `math-expressions-js-compat` drop-in, rather than
+    through the legacy JavaScript library. The API is unchanged, so authored documents need no edits,
+    but the engine is a different implementation and some results differ:
+
+    - **Text rendering of containers is no longer padded.** A point that read `( 0, 0 )` now reads
+      `(0, 0)`; the same for intervals, vectors and matrices. LaTeX is unchanged except that a
+      compound `\frac` operand no longer carries interior spaces (`\frac{\partial f}{\partial x}`
+      rather than `\frac{ \partial f }{ \partial x }`), which renders identically.
+    - **Simplification is stronger.** Identities the old engine could not reach, such as
+      `exp(ln x) → x`, `cos(pi/3) → 1/2` and `log_2(2^3) → 3`, now fold. Because equality testing
+      evaluates exact constants, expressions the old engine called different can now compare equal,
+      which can change whether a student's answer is marked correct.
+    - **Inverse trigonometric notation parses correctly.** `sin^(-1)(1)` is read as the inverse
+      function; the old engine read it as `(1/sin)(1)`.
+    - **A value that is not a number now reads as `NaN` rather than as zero.** An expression with no
+      numeric value — a free variable, a blank, a matrix — reports `NaN` from every path, uniformly,
+      and `NaN` propagates through arithmetic and falsifies every comparison. Where a numeric state
+      variable used to take it — `<numberList>` over a
+      symbolic child, `<clampNumber>` of a free variable, a `<curve>` whose `parMin` does not evaluate,
+      a `<line>` through an undefined point, a `<rectangle>` or `<regularPolygon>` on symbolic
+      vertices, a `<circle>` with a symbolic radius, a `<curve>` whose `<bezierControls>` are symbolic,
+      a `<function>` with a symbolic domain endpoint, a `<polygon>` or `<polyline>` with a symbolic
+      vertex, a `<vector>` with a symbolic head or tail, a `<ray>` with a symbolic endpoint, an
+      `<angle>` through a symbolic point, a `<math>` or `<cell>` whose content is not a number — the
+      result is `NaN`, so an undefined point is
+      not drawn at the origin, a
+      rectangle on symbolic corners does not report a width of exactly zero, a polygon on symbolic
+      corners does not report a centroid pulled towards the origin, and an unclampable value
+      does not report as the lower bound. `±Infinity` is still a value and still clamps. A shape in a
+      `<stickyGroup>` with such a vertex can still be dragged: the constraint machinery reduces the
+      vertex to `NaN` rather than dropping the whole drag.
+    - **Odd roots of negative numbers now grade consistently, in every spelling.** `\sqrt[3]{-2}`,
+      `-\sqrt[3]{2}`, `(-2)^{1/3}` and the decimal `-1.2599…` are all read as the same number — the
+      real cube root of −2. The old engine's grading was non-transitive here: it accepted
+      `(-2)^{1/3}` for `\sqrt[3]{-2}` but rejected `-\sqrt[3]{2}` and the decimal for `\sqrt[3]{-2}`,
+      because its simplifier read a cube root on the real branch while its numeric evaluator read it
+      as the principal complex value. Everything the old engine accepted is still accepted, and the
+      spellings it wrongly rejected now earn credit. Even roots are unchanged (`\sqrt{-4}` is still
+      the imaginary `2i`), as is a fractional power whose denominator is even — `(-8)^{0.3333}` is
+      `3333/10000`, not a cube root. A related plotting change: `<function>cbrt(x)</function>` and
+      `<function>nthroot(x,3)</function>` now draw for negative inputs instead of stopping at the
+      origin. Writing the same function as `x^(1/3)` still leaves that gap — the evaluator behind
+      plotting takes the principal complex branch for a fractional power, as it did before, so a
+      `<function>` and an `<answer>` can disagree about `x^(1/3)` at a negative input.
+    - **A `<function>` no longer reports an extremum beside a pole, and its extrema are exact where
+      the engine can be exact.** Where a function's derivative is a rational function, the engine now
+      gives every one of its roots exactly, so the reported locations no longer carry the round-off
+      left by refining a bracket — and, because that list is _complete_, a place where the derivative
+      flips sign without being on it can be recognized as a pole and left alone. That removes a
+      long-standing spurious extremum: `(x+8)(x-8)/((x-2)(x+4)(x-5)^2)` reported a minimum at
+      `4.999999948`, beside its double pole at `x = 5` (issue #940), and now reports only its four
+      real extrema. Moving the pole off the sampling grid — `(x-5.1)^2` — used to bring the spurious
+      minimum back; it no longer does, and neither does putting a genuine extremum and a pole in the
+      same sampling cell (`(x-5)^2/(x-5.1)^2` reported a maximum of 3e10 beside its pole and now
+      reports only the minimum at `5`). Functions whose derivative is not rational (anything with a
+      `sin`, a `log`, an absolute value) are unchanged, and still search numerically.
+    - **`<round>` rounds exact fractions.** `<round numDecimals="3">1/3</round>` answers `0.333`; it
+      had stopped rounding anything the engine holds exactly. The trade-off is that a decimal literal
+      with more than about seventeen significant digits now goes through a double on the way in, so its
+      last digits can move.
+    - **`<line>`'s coefficients follow the equation as written.** `coeffvar1`, `coeffvar2` and `coeff0`
+      are now the coefficients of _left-hand side minus right-hand side_ for every spelling; they
+      previously came out negated for whichever spellings the simplifier did not reorder. A line's
+      direction is also canonicalized, so `5x-2y=3` and `2y-5x=-3` now point the same way and
+      `<angle betweenLines>` draws the same ray for both.
+    - **A `<video>` that changes source resets its playback state.** `time` and `segmentsWatched`
+      describe one particular video, so a new source starts from zero instead of inheriting the old
+      video's position and having the player seek into the middle of a video nobody has watched.
+
+    **If you install `@doenet/doenetml` rather than building this repository, you now need one more
+    package.** The engine used to be bundled invisibly inside the library; it is now a peer dependency,
+    so that an application embedding several `@doenet/*` libraries resolves one copy of it rather than
+    one per library:
+
+    ```
+    npm install math-expressions@^3.0.0-alpha.1
+    ```
+
+    That is the whole of it — no code, and no initialization step. `@doenet/doenetml` brings the engine
+    up itself and waits for it before rendering, and your bundler emits the WASM binary as an ordinary
+    asset beside your other chunks (Vite and webpack 5 both recognize the pattern the engine's loader
+    uses). The one thing to know is that the binary is fetched rather than inlined on this path, so a
+    host that cannot make a same-origin request for it — a `srcdoc` or blob-URL document, for instance
+    — should use `@doenet/standalone` instead, which carries everything in one file.
+
+    In `@doenet/standalone`, and in anything built from this repository, the engine's WASM is inlined
+    into the bundle rather than fetched, so no extra network request is made, but the bundle carries
+    it: the engine is 2.38 MiB uncompressed and 777 kB gzipped, against roughly 1 MiB (about 290 kB
+    gzipped) for the JavaScript library it replaces.
+
+    Building DoenetML from source needs no toolchain it did not need before. The engine arrives
+    prebuilt in the `math-expressions` package, so nothing here compiles it: `npm run build` still
+    reaches `wasm-pack` for `packages/doenetml-worker-rust`, DoenetML's own core, exactly as it always
+    has, and `wasm-pack` brings its own wasm target and bindgen. The bytes the bundle inlines are
+    therefore the ones the lockfile pins, so a local build and a CI build now carry an identical
+    engine — they did not while it was compiled here from source.
+
+### Patch Changes
+
+- ae9fbc5: Viewer: keep an input's eagerly shown value on screen until core answers the action that set it.
+
+    Inputs put the reader's change on screen right away and let core confirm it afterwards. Clicking a boolean input sends core two actions, though — `focusChanged` first, then the change itself — and core answers the first while the second is still in flight. That answer carries the value from before the click, so the renderer took the reader's check mark back off and then put it on again once core caught up: a visible flash, and a long one in a document where the change sets off an expensive recompute.
+
+    An update that arrives for a component while one of that component's own actions is still in flight now leaves the base state variable alone, since core built it before it had processed the action. Core's answer to the action itself is still taken as it always was, so a value the document refuses — a `bindValueTo` that can't be updated, say — still snaps back.
+
+- 5bb26c6: Viewer: put a list item's number beside the first row of a displayed equation that leads it.
+
+    A list item whose content opens with a displayed equation of several rows — an `<md>`, an `<mdn>`, or an `<me>` that is nothing but an `array` or `aligned` — showed its number beside the equation's middle row. This held for an `<li>` in an `<ol>` or `<ul>`, and for a `<part>`, a `<task>`, or a `<problem>` or `<exercise>` in a list of them. The number now sits beside the first row, as it sits beside the first line of a paragraph. The equation itself is drawn exactly where it was.
+
+- b28649b: Number `<problems>` and `<exercises>` among the divisions, and stop the containers that show no number from taking one.
+
+    A document numbers its figures and tables in one sequence and its divisions in another. Five components were taking a number out of the figure-and-table sequence: `<problems>` and `<exercises>`, which showed the number they took, and `<cascade>`, `<externalContent>` and `<standinForFutureLayoutTag>`, which had no use for one and left a gap. The first figure inside a `<cascade>` read "Figure 2", and every figure and table after any of the five was one too high.
+
+    `<problems>` and `<exercises>` now number themselves among their sibling divisions, the way `<section>` and `<problem>` already did — a `<problems>` between two `<section>`s is "Problems 2", not a number out of the figure sequence, and the `<section>` after it is now Section 3. They keep `renameTo`, which the divisions they group do not have, and they gain `includeParentNumber`, which those divisions do have.
+
+    The three containers now take no number at all, and pass the enclosing section's enumeration through in place of one. A figure that is the first numbered thing in a document is Figure 1 however many containers enclose it, and a division written inside one with `includeParentNumber` (the default for `<section>`) is prefixed with the number of the section its author sees around the container rather than with a number the container had taken. Sections in a `<cascade>` that wraps the document are numbered 1, 2, … rather than 1.1, 1.2, ….
+
+- a8327c7: `<searchSorted>` can search a list that is not sorted.
+
+    `<searchSorted>` answers where a value belongs in a list that is already in
+    ascending order, and declines a list that is not. An author whose list is
+    unsorted had to sort it first and hand the result over:
+
+    ```doenet
+    <sort name="sorted">$values</sort>
+    <searchSorted target="$targets">$sorted</searchSorted>
+    ```
+
+    Writing `allowUnsorted` on the operator says the same thing in one step:
+
+    ```doenet
+    <searchSorted allowUnsorted target="$targets">$values</searchSorted>
+    ```
+
+    The answers are the same either way, and `side` still chooses which end of a
+    run of equal values is reported. The values themselves stay in the order they
+    were written: `allowUnsorted` says where the target belongs, not what the list
+    looks like. Without the attribute nothing changes.
+
+    In a document where the values move — points a reader drags, numbers they
+    type — the shorter form is also much quicker, because the separate `<sort>`
+    produced a component for every value and everything reading it had to follow
+    them.
+
+    One difference worth knowing: where the values are compared as numbers, one
+    that is not a number at all takes no part in the ordering. Without `allowUnsorted` it
+    keeps its place in the list and the answer counts around it; with `allowUnsorted` it is
+    left out, since a value with no place in the order has no place to keep.
+
+- dc5704a: `<sort>` no longer rebuilds its results every time its input changes order.
+
+    A `<sort>` over values that a reader can change — points they drag, numbers they
+    type — threw away everything it had produced and built it again whenever the
+    order changed, and everything reading the sorted list had to find its components
+    afresh. It now moves the results it already has into their new order, which it
+    can do whenever the same things are being sorted. In a document that sorts forty
+    dragged values, a drag that carries one of them past its neighbor costs a
+    fraction of what it did, and the more of the document reads the sorted list the
+    larger that difference is.
+
+    A value that lands most of the way across the list in a single step is the
+    exception, and `<sort>` takes the old route for it: what a rearrangement saves
+    is the results that stay where they are, so once most of them would move there
+    is nothing left to save and rebuilding is the cheaper of the two.
+
+    Sorting a changed set of values — one added, one removed — rebuilds as before.
+
+- 694c0f8: `<tabular>` accepts `<col>` components, which set a column's width, alignment, and borders.
+
+    A `<tabular>` divided its width evenly among its columns and gave an author no way to say otherwise, so a column of two-digit numbers was drawn as wide as a column of sentences. `<col>` is the same answer PreTeXt gives, with the same four settings: `width`, `halign`, `topBorder`, and `endBorder`. The `<col>` components go before the rows, one per column, left to right; a table may declare fewer than it has columns, and the columns past the last one are left alone.
+
+    A column's `width` is a percentage of the width of the `<tabular>`. A number of pixels works in the viewer, but only a percentage means anything to PreTeXt, so a percentage is what the documentation asks for.
+
+    `halign` and `endBorder` are overrides rather than defaults for the whole table, and they resolve the way PreTeXt resolves them: a `<cell>` uses its own setting first, then its `<row>`'s, then its column's, then the `<tabular>`'s — skipping the row for `endBorder`, which a `<row>` has no setting for. (`topBorder` has no `<cell>` or `<row>` setting at all; a column's is simply drawn across the top of that column.) So a `<col halign="end">` right-aligns a column of numbers without touching the rest of the table, and a single `<cell endBorder="none">` still leaves a gap in a rule its column drew. A `<cell colSpan="…">` covers more than one column, so it aligns with the first column it covers and takes its `endBorder` from the last, where its trailing edge actually falls.
+
+    Conversion to PreTeXt now carries the whole of a `<tabular>` across, not only its contents. Before this, `<tabular>`, `<row>` and `<cell>` reached the exporter through the pass-through fallback, which dropped every attribute: width, alignment, header rows, `colSpan` and all four borders were lost. They are now written in PreTeXt's own spelling — the borders as `top`/`bottom`/`left`/`right`, `halign="start"`/`"end"` as `"left"`/`"right"` — with each setting emitted on the element that established it rather than repeated on everything beneath it. Two things still do not cross: a `<tabular height>`, which PreTeXt has no attribute for, and a width given in pixels rather than as a percentage.
+
 ## 0.7.27
 
 ### Patch Changes
