@@ -5719,6 +5719,27 @@ describe("Evaluate tag tests @group2", async () => {
         ).eq("x + 2");
     });
 
+    it("a function evaluating another function compiles to one formula with subscripted variables", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <function name="g" variables="x_1">x_1^2</function>
+  <function name="f">$$g(x+1)</function>
+  <function name="h">x^2</function>
+  <function name="k" variables="x_1">$$h(x_1+1) + x_1</function>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+
+        for (const name of ["f", "k"]) {
+            expect((await sv(name)).fDefinitions[0].functionType).eq("formula");
+        }
+        expect((await sv("f")).numericalfs[0](2)).eq(9);
+        expect((await sv("k")).numericalfs[0](2)).eq(11);
+    });
+
     it("a function mixing a substituted evaluate with one that is reevaluated", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
