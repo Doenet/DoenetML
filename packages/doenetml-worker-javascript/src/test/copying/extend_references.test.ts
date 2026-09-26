@@ -7637,6 +7637,7 @@ describe("Extend and references tests @group2", async () => {
     <section copy="$S" hide="$h" name="S2" />
     <section extend="$S" hide="$h" name="S3" />
     <section copy="$S" hide="$S4.h" name="S4" />
+    <section extend="$S" hide="$S5.h" name="S5" />
 </section>
 `,
             });
@@ -7652,6 +7653,9 @@ describe("Extend and references tests @group2", async () => {
             expect(
                 (await stateOf(core, resolvePathToNodeIdx, "T.S4")).hidden,
             ).eq(false);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.S5")).hidden,
+            ).eq(false);
 
             await updateBooleanInputValue({
                 boolean: false,
@@ -7666,7 +7670,7 @@ describe("Extend and references tests @group2", async () => {
             ).eq(false);
         });
 
-        it("attribute of a copied group or module", async () => {
+        it("attribute of a copied or extended group or module", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
 <group name="G"><boolean name="h">false</boolean><p name="q">x</p></group>
@@ -7675,6 +7679,8 @@ describe("Extend and references tests @group2", async () => {
     <setup><boolean name="h">true</boolean></setup>
     <group copy="$G" hide="$h" name="G2" />
     <module copy="$M" hide="$h" name="M2" />
+    <group extend="$G" hide="$h" name="G3" />
+    <module extend="$M" hide="$h" name="M3" />
 </section>
 `,
             });
@@ -7685,6 +7691,12 @@ describe("Extend and references tests @group2", async () => {
             ).eq(true);
             expect(
                 (await stateOf(core, resolvePathToNodeIdx, "T.M2.q")).hidden,
+            ).eq(true);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.G3.q")).hidden,
+            ).eq(true);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.M3.q")).hidden,
             ).eq(true);
         });
 
