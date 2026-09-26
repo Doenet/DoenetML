@@ -357,8 +357,6 @@ export default class Cascade extends BlockComponent {
                 } else if (dependencyValues.cascadeAncestor) {
                     revealAll =
                         dependencyValues.cascadeAncestor.stateValues.revealAll;
-                } else {
-                    dependencyValues.revealAllPreliminary;
                 }
 
                 return { setValue: { revealAll } };
@@ -384,15 +382,16 @@ export default class Cascade extends BlockComponent {
          * like any other, and one that has a message to show is nominated like
          * any other — it then chooses that message here in its own right, which
          * is the single message shown. What "has one" means is
-         * `hasCascadeMessageToShow`, which the override below answers for a
-         * cascade by asking this very question of itself: nominating a step that
+         * `hasCascadeMessageToShow`, which a cascade answers (below) by
+         * asking this very question of itself: nominating a step that
          * would then show nothing would leave the gap silent, having suppressed
          * the cascade's own message on its behalf.
          *
          * Note that a nested message is the only kind that survives `asList`
          * (`<problems>` and friends): `childIndicesToRender` there renders only
-         * the cascade's sections and nested cascades, so a message child of the
-         * cascade is dropped before it can be shown.
+         * the cascade's sections, nested cascades, `<introduction>` and
+         * `<conclusion>`, so a message child of the cascade is dropped before it
+         * can be shown.
          */
         stateVariableDefinitions.childrenToHide = {
             additionalStateVariablesDefined: [

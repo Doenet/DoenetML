@@ -20,8 +20,6 @@ import {
     CANVAS_LIGHT_MODE_COLOR,
     sectionTitleStateKeys,
     titleStateKeyFromCredit,
-    resolveSectionTitleLightColorSpec,
-    resolveSectionTitleDarkColorSpec,
     shouldEmitSectionTitleColorDiagnostic,
     addSectionTitleColorContrastDiagnostic,
     returnSectionTitleStateColorAttributes,
