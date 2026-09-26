@@ -1,6 +1,10 @@
 import BlockComponent from "./abstract/BlockComponent";
 import { returnCascadeStepStateVariableDefinitions } from "../utils/cascadeStep";
 import { codedDiagnostic } from "../utils/diagnostics";
+import {
+    returnCascadeListItemCountDefinitions,
+    returnListItemNumbersOfChildrenDefinition,
+} from "../utils/listItemNumbering";
 import { returnScoredSectionStateVariableDefinition } from "../utils/scoredSection";
 import {
     returnSectionTitleStateColorAttributes,
@@ -259,6 +263,16 @@ export default class Cascade extends BlockComponent {
                 return { setValue: { asList: Boolean(asList) } };
             },
         };
+
+        // A cascade is transparent to list-item numbering: the sections inside
+        // it continue the sequence of the list around it rather than starting
+        // one of their own. See `utils/listItemNumbering.js`.
+        Object.assign(
+            stateVariableDefinitions,
+            returnCascadeListItemCountDefinitions(),
+        );
+        stateVariableDefinitions.listItemNumbersOfChildren =
+            returnListItemNumbersOfChildrenDefinition({ hasOffset: true });
 
         stateVariableDefinitions.childrenAggregateScores = {
             returnDependencies: () => ({}),

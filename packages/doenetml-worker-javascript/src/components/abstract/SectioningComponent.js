@@ -35,6 +35,11 @@ import {
 import { composeTitlePrefix, sectionNameWord } from "../../utils/sectionWords";
 import { returnCascadeStepStateVariableDefinitions } from "../../utils/cascadeStep";
 import {
+    listItemNumberDependencies,
+    listItemNumberFromParent,
+    returnListItemNumbersOfChildrenDefinition,
+} from "../../utils/listItemNumbering";
+import {
     childRendersSomething,
     listItemChildVisibilityDependency,
     listItemNumberAlignmentForLead,
@@ -379,6 +384,11 @@ export class SectioningComponent extends BlockComponent {
             },
         };
 
+        // How this section numbers the children that are its list items,
+        // counting through any `<cascade>` among them.
+        stateVariableDefinitions.listItemNumbersOfChildren =
+            returnListItemNumbersOfChildrenDefinition();
+
         // The numbering of a container: a sectioning component that shows no
         // number of its own, such as the wrapper a copy from an external URI
         // arrives in. It takes none either, so it leaves no gap in
@@ -405,30 +415,32 @@ export class SectioningComponent extends BlockComponent {
                     forRenderer: true,
                 },
             ],
-            returnDependencies: () => ({
+            stateVariablesDeterminingDependencies: ["isListItem"],
+            returnDependencies: ({ stateValues }) => ({
                 isListItem: {
                     dependencyType: "stateVariable",
                     variableName: "isListItem",
                 },
-                countAmongSiblings: {
-                    dependencyType: "countAmongSiblings",
-                    componentType: "_sectioningComponent",
-                    includeInheritedComponentTypes: true,
-                },
+                ...(stateValues.isListItem ? listItemNumberDependencies() : {}),
                 sectionAncestor: {
                     dependencyType: "ancestor",
                     componentType: "_sectioningComponent",
                     variableNames: ["enumeration"],
                 },
             }),
-            definition({ dependencyValues }) {
+            definition({ dependencyValues, componentIdx }) {
                 if (dependencyValues.isListItem) {
-                    let countAmongSiblings =
-                        dependencyValues.countAmongSiblings;
+                    const listItemNumber = listItemNumberFromParent({
+                        parentListItemNumbers:
+                            dependencyValues.parentListItemNumbers,
+                        countAmongSiblings:
+                            dependencyValues.countAmongSiblingsForListItem,
+                        componentIdx,
+                    });
                     return {
                         setValue: {
-                            enumeration: [countAmongSiblings],
-                            sectionNumber: String(countAmongSiblings),
+                            enumeration: [listItemNumber],
+                            sectionNumber: String(listItemNumber),
                         },
                     };
                 }
@@ -1697,7 +1709,8 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
                     forRenderer: true,
                 },
             ],
-            returnDependencies: () => ({
+            stateVariablesDeterminingDependencies: ["isListItem"],
+            returnDependencies: ({ stateValues }) => ({
                 countAmongSiblings: {
                     dependencyType: "countAmongSiblings",
                     componentType: "_sectioningComponentNumberWithSiblings",
@@ -1716,17 +1729,19 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
                     dependencyType: "stateVariable",
                     variableName: "isListItem",
                 },
-                countAmongSiblingsForListItem: {
-                    dependencyType: "countAmongSiblings",
-                    componentType: "_sectioningComponent",
-                    includeInheritedComponentTypes: true,
-                },
+                ...(stateValues.isListItem ? listItemNumberDependencies() : {}),
             }),
-            definition({ dependencyValues }) {
+            definition({ dependencyValues, componentIdx }) {
                 let enumeration = [];
                 if (dependencyValues.isListItem) {
                     enumeration.push(
-                        dependencyValues.countAmongSiblingsForListItem,
+                        listItemNumberFromParent({
+                            parentListItemNumbers:
+                                dependencyValues.parentListItemNumbers,
+                            countAmongSiblings:
+                                dependencyValues.countAmongSiblingsForListItem,
+                            componentIdx,
+                        }),
                     );
                 } else {
                     if (

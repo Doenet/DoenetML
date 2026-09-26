@@ -3175,4 +3175,170 @@ describe("Cascade tag tests @group4", async () => {
             stateVariables[await resolvePathToNodeIdx("n")].stateValues.hidden,
         ).eq(false);
     });
+
+    describe("list items are numbered through a cascade", () => {
+        async function numbersOf(doenetML: string, names: string[]) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const stateVariables = await getStateVariables(core);
+            const numbers: string[] = [];
+            for (const name of names) {
+                numbers.push(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .sectionNumber,
+                );
+            }
+            return numbers;
+        }
+
+        it("problems after a cascade continue its numbering", async () => {
+            expect(
+                await numbersOf(
+                    `
+<problems>
+  <cascade>
+    <problem name="a"><p>a</p></problem>
+    <problem name="b"><p>b</p></problem>
+  </cascade>
+  <problem name="c"><p>c</p></problem>
+</problems>`,
+                    ["a", "b", "c"],
+                ),
+            ).eqls(["1", "2", "3"]);
+        });
+
+        it("a cascade between problems continues their numbering", async () => {
+            expect(
+                await numbersOf(
+                    `
+<problems>
+  <problem name="a"><p>a</p></problem>
+  <cascade>
+    <problem name="b"><p>b</p></problem>
+    <problem name="c"><p>c</p></problem>
+  </cascade>
+  <problem name="d"><p>d</p></problem>
+</problems>`,
+                    ["a", "b", "c", "d"],
+                ),
+            ).eqls(["1", "2", "3", "4"]);
+        });
+
+        it("a cascade inside a cascade continues the same sequence", async () => {
+            expect(
+                await numbersOf(
+                    `
+<exercises>
+  <exercise name="a"><p>a</p></exercise>
+  <cascade>
+    <exercise name="b"><p>b</p></exercise>
+    <cascade>
+      <exercise name="c"><p>c</p></exercise>
+      <exercise name="d"><p>d</p></exercise>
+    </cascade>
+    <exercise name="e"><p>e</p></exercise>
+  </cascade>
+  <cascade><cascade><exercise name="f"><p>f</p></exercise></cascade></cascade>
+  <exercise name="g"><p>g</p></exercise>
+</exercises>`,
+                    ["a", "b", "c", "d", "e", "f", "g"],
+                ),
+            ).eqls(["1", "2", "3", "4", "5", "6", "7"]);
+        });
+
+        it("parts of a problem are numbered through a cascade", async () => {
+            expect(
+                await numbersOf(
+                    `
+<problem>
+  <cascade>
+    <part name="a"><p>a</p></part>
+    <part name="b"><p>b</p></part>
+  </cascade>
+  <part name="c"><p>c</p></part>
+</problem>`,
+                    ["a", "b", "c"],
+                ),
+            ).eqls(["1", "2", "3"]);
+        });
+
+        // Revealing a step changes what is shown, never a number, and the
+        // number agrees wherever it is read: the heading, a copy of
+        // `sectionNumber`, and a reference.
+        it("numbers stay put as steps reveal and agree everywhere they are read", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<problems asList>
+  <problem name="a"><p>1: <answer name="ans1">1</answer></p></problem>
+  <cascade name="c">
+    <problem name="b"><p>2: <answer name="ans2">2</answer></p></problem>
+    <cascadeMessage>Finish the problem above to continue.</cascadeMessage>
+    <problem name="d">
+      <cascadeMessage>Finish problem 2 first.</cascadeMessage>
+      <p>4: <answer name="ans4">4</answer></p>
+    </problem>
+  </cascade>
+  <problem name="e"><p>5: <answer name="ans5">5</answer></p></problem>
+</problems>
+<p name="copied">$d.sectionNumber</p>
+<p name="reffed"><ref name="r" to="$d" /></p>
+`,
+            });
+
+            let stateVariables = await getStateVariables(core);
+
+            async function check(numCompleted: number) {
+                stateVariables = await getStateVariables(core);
+                const numbers: string[] = [];
+                for (const name of ["a", "b", "d", "e"]) {
+                    numbers.push(
+                        stateVariables[await resolvePathToNodeIdx(name)]
+                            .stateValues.sectionNumber,
+                    );
+                }
+                expect(numbers).eqls(["1", "2", "3", "4"]);
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                        .numCompleted,
+                ).eq(numCompleted);
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("d")].stateValues
+                        .hideChildren,
+                ).eq(numCompleted < 1);
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("d")].stateValues
+                        .title,
+                ).eq("Problem 3");
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("copied")]
+                        .stateValues.text,
+                ).eq("3");
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("r")].stateValues
+                        .linkText,
+                ).eq("Problem 3");
+            }
+
+            await check(0);
+
+            const ans2Idx = await resolvePathToNodeIdx("ans2");
+            await submitMathAnswer({
+                core,
+                latex: "2",
+                answerIdx: ans2Idx,
+                mathInputIdx: getMathInputIdx(stateVariables, ans2Idx),
+            });
+            await check(1);
+
+            const ans4Idx = await resolvePathToNodeIdx("ans4");
+            await submitMathAnswer({
+                core,
+                latex: "4",
+                answerIdx: ans4Idx,
+                mathInputIdx: getMathInputIdx(stateVariables, ans4Idx),
+            });
+            await check(2);
+        });
+    });
 });
