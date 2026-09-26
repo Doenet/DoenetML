@@ -5763,6 +5763,27 @@ describe("Evaluate tag tests @group2", async () => {
         expect((await sv("f2")).numericalfs[0](2)).toBeNaN();
     });
 
+    it("a PreFigure graph draws a function that evaluates another function", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <function name="g">e^(-x^2)</function>
+  <graph name="graph" renderer="prefigure">
+    <function>$$g(x-1)</function>
+  </graph>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("graph")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(
+            'function="curve_0_f(x)=e^(-(x - 1)^2)"',
+        );
+        expect(getDiagnosticsByType(core).warnings).toHaveLength(0);
+    });
+
     it("evaluate functions based on interpolated function", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
