@@ -488,6 +488,59 @@ function remapUnflattenedRefResolutions(
 }
 
 /**
+ * Recurse through the unflattened components and make `originIdx` the origin
+ * (`nodesInResolvedPath[0]`) of every reference in them, including references
+ * in their attributes, their descendants, and the indices of their paths.
+ *
+ * A reference's path is re-resolved from its origin, so this makes the references
+ * resolve as though written at `originIdx`, whatever position they are later placed in.
+ *
+ * References whose path starts with an empty name are left alone:
+ * those resolve from the origin itself rather than searching from its parent,
+ * so they are only meaningful from where they were created.
+ */
+export function setUnflattenedReferenceOrigins(
+    unflattenedComponents: (UnflattenedComponent | string)[],
+    originIdx: number,
+) {
+    for (const component of unflattenedComponents) {
+        if (typeof component === "string") {
+            continue;
+        }
+
+        if (component.extending) {
+            const refResolution = unwrapSource(component.extending);
+
+            const pathParts = [
+                ...refResolution.originalPath,
+                ...(refResolution.unresolvedPath ?? []),
+            ];
+            for (const pathPart of pathParts) {
+                for (const indexPart of pathPart.index) {
+                    setUnflattenedReferenceOrigins(indexPart.value, originIdx);
+                }
+            }
+
+            if (
+                refResolution.originalPath[0]?.name &&
+                refResolution.nodesInResolvedPath.length > 0
+            ) {
+                refResolution.nodesInResolvedPath[0] = originIdx;
+            }
+        }
+
+        setUnflattenedReferenceOrigins(component.children, originIdx);
+
+        for (const attrName in component.attributes) {
+            setUnflattenedReferenceOrigins(
+                component.attributes[attrName].children,
+                originIdx,
+            );
+        }
+    }
+}
+
+/**
  * Recurse through all serialized components and update their component indices.
  * For components and their descendants use the `componentIdx` of the corresponding component in `componentIdxSources`.
  * (An error will be thrown if `serializedComponents` and `componentIdxSources` don't have the exact same structure.)

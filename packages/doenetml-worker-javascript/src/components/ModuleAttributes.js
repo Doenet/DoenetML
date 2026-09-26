@@ -3,6 +3,7 @@ import { expandUnflattenedToSerializedComponents } from "../utils/dast/convertNo
 import CompositeComponent from "./abstract/CompositeComponent";
 import { applySugar } from "../utils/dast/sugar";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { setUnflattenedReferenceOrigins } from "../utils/componentIndices";
 
 export default class ModuleAttributes extends CompositeComponent {
     static componentType = "moduleAttributes";
@@ -174,9 +175,16 @@ export default class ModuleAttributes extends CompositeComponent {
                 );
             }
 
+            // The attribute's content was written on the `<module>`, so its references must resolve
+            // where the `<module>` sits. Left to resolve from their new position inside the module,
+            // they would find the module's own components by those names first, such as
+            // this very `child` for an attribute like `xmin="$xmin"`.
+            const attributeChildren = deepClone(attributeFromModule.children);
+            setUnflattenedReferenceOrigins(attributeChildren, moduleIdx);
+
             // Use the children from the attribute to replace the child's children
             const expandResult = expandUnflattenedToSerializedComponents({
-                serializedComponents: attributeFromModule.children,
+                serializedComponents: attributeChildren,
                 componentInfoObjects,
                 nComponents,
                 stateIdInfo,
