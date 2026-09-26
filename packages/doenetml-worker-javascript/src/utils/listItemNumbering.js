@@ -3,10 +3,11 @@
  *
  * A section numbered as a list item — a `<problem>` in a `<problems>`, a
  * `<part>` in a `<problem>` — used to take its number from its position among
- * its own sibling sections. A `<cascade>` is not a section, so the problems
- * inside one were numbered among themselves and the problems after it skipped
- * over it: `<problems><cascade><problem/><problem/></cascade><problem/></problems>`
- * numbered 1, 2, 1.
+ * its own sibling sections. The problems inside a cascade were then numbered
+ * among themselves, so
+ * `<problems><cascade><problem/><problem/></cascade><problem/></problems>`
+ * numbered 1, 2, 2 while a cascade was a section (it counted as one item),
+ * and would number 1, 2, 1 now that it is not (it would count as none).
  *
  * Instead, the parent numbers its children. `listItemNumbersOfChildren` walks
  * the parent's children in order with one counter: a section takes the next
@@ -17,8 +18,11 @@
  * cascades continue one sequence.
  *
  * The count is the one the sibling count made — every sectioning child counts,
- * whether or not it is itself a list item — so the numbering of a list that has
- * no cascade in it is unchanged.
+ * whether or not it is itself a list item — so a list that has no cascade in it
+ * is numbered as it was. The one difference is that a number now follows a
+ * count that changes at runtime: when a `<repeatForSequence>` among the items
+ * grows or shrinks, the items after it are renumbered, where the sibling count
+ * left them with their old numbers.
  *
  * Counts flow up (`numListItems` reads only children) and offsets flow down
  * (`listItemOffset` reads only the parent), so there is no cycle. None of it

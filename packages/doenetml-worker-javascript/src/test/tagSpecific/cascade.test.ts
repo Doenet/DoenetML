@@ -3340,5 +3340,61 @@ describe("Cascade tag tests @group4", async () => {
             });
             await check(2);
         });
+
+        // The items a cascade holds can change while the document runs. The
+        // problems after it follow the new count, and so do the problems after
+        // a `<repeatForSequence>` with no cascade around it.
+        it("numbers follow a count of items that changes at runtime", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<mathInput name="n" prefill="2" />
+<problems>
+  <problem name="a"><p>a</p></problem>
+  <cascade>
+    <repeatForSequence name="r" length="$n">
+      <problem name="p"><p>p</p></problem>
+    </repeatForSequence>
+  </cascade>
+  <problem name="b"><p>b</p></problem>
+  <repeatForSequence name="s" length="$n">
+    <problem name="q"><p>q</p></problem>
+  </repeatForSequence>
+  <problem name="c"><p>c</p></problem>
+</problems>
+`,
+            });
+
+            async function numberOf(name: string) {
+                const stateVariables = await getStateVariables(core);
+                return stateVariables[await resolvePathToNodeIdx(name)]
+                    .stateValues.sectionNumber;
+            }
+
+            const nIdx = await resolvePathToNodeIdx("n");
+
+            for (const [n, b, c] of [
+                [2, "4", "7"],
+                [3, "5", "9"],
+                [0, "2", "3"],
+                [1, "3", "5"],
+            ] as const) {
+                await updateMathInputValue({
+                    latex: String(n),
+                    componentIdx: nIdx,
+                    core,
+                });
+                expect(await numberOf("a")).eq("1");
+                expect(await numberOf("b")).eq(b);
+                expect(await numberOf("c")).eq(c);
+                if (n > 0) {
+                    expect(await numberOf(`r[${n}].p`)).eq(
+                        String(Number(b) - 1),
+                    );
+                    expect(await numberOf(`s[${n}].q`)).eq(
+                        String(Number(c) - 1),
+                    );
+                }
+            }
+        });
     });
 });

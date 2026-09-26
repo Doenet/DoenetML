@@ -14,4 +14,4 @@ What it no longer has is everything that made it a section. It has no title, num
 
 To keep any of those, wrap the cascade in a `<section>` (or another division) and give the section the title, `boxed`, `collapsible`, scoring attributes or `<variantControl>`. A `<title>` written directly in a `<cascade>` is no longer shown, and a warning suggests moving it to an enclosing `<section>`.
 
-List items are now numbered in one sequence through a cascade. In `<problems><cascade><problem/><problem/></cascade><problem/></problems>` the problems are 1, 2, 3 rather than 1, 2, 2, and the same holds for `<exercises>`, for `<part>`s of a problem, and for cascades nested in cascades.
+List items are now numbered in one sequence through a cascade. In `<problems><cascade><problem/><problem/></cascade><problem/></problems>` the problems are 1, 2, 3 rather than 1, 2, 2, and the same holds for `<exercises>`, for `<part>`s of a problem, and for cascades nested in cascades. Items after a `<repeatForSequence>` whose length changes while the document runs are also renumbered to follow it.
