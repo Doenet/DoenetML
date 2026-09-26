@@ -173807,13 +173807,6 @@
                         "false"
                     ]
                 },
-                "asList": {
-                    "optional": true,
-                    "type": [
-                        "true",
-                        "false"
-                    ]
-                },
                 "revealAll": {
                     "optional": true,
                     "type": [
@@ -174679,7 +174672,7 @@
                     "name": "asList",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether to render this cascade's children as a list (by default, whatever its parent does)."
+                    "description": "Whether this cascade's children are rendered as a list, which is whatever its parent does."
                 },
                 {
                     "name": "numCompleted",

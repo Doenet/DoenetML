@@ -25,8 +25,8 @@ not choose variants. For any of those, put the `<cascade>{:dn}` inside a
 [`<section>{:dn}`](section) and give the section the title, the box, the
 scoring or the variants, as in the examples below. A `<title>{:dn}` written
 directly inside a `<cascade>{:dn}` is not shown, and a warning suggests moving
-it to an enclosing section. A section attribute such as `boxed` or `weight`
-written on a cascade is ignored, with a warning.
+it to an enclosing section. A section attribute such as `boxed`, `weight` or
+`asList` written on a cascade is ignored, with a warning.
 
 A section around a cascade is scored on the steps inside it directly, the same
 as if the cascade were not there.
@@ -61,7 +61,8 @@ bars; when it sets none, its steps use the colors of the section around it.
 
 Inside a [`<problems>{:dn}`](problems), the problems in a cascade are numbered
 as items of the list, just as if they were written in the `<problems>{:dn}`
-directly.
+directly. A cascade always lays out its children the way its parent does; it
+has no `asList` of its own.
 
 
 <AttrPropDisplay name='cascade'/>

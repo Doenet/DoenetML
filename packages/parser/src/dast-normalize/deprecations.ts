@@ -336,10 +336,12 @@ const DEPRECATION_REGISTRY: DeprecationRegistry = {
         odeSystem: ignoredAttributes("odeSystem", ["renderMode"]),
         // `<cascade>` was a sectioning component and took these attributes
         // from it. It now only reveals its children step by step, so they are
-        // dropped with a warning. An invalid attribute would turn the whole
-        // cascade, content and all, into an error.
+        // dropped with a warning. (A cascade's `asList` now always follows its
+        // parent's.) An invalid attribute would turn the whole cascade,
+        // content and all, into an error.
         cascade: ignoredAttributes("cascade", [
             "aggregateScores",
+            "asList",
             "boxed",
             "collapsible",
             "colorAnswersSeparately",

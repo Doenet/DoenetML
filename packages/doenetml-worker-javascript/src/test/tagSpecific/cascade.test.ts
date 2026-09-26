@@ -3175,6 +3175,67 @@ describe("Cascade tag tests @group4", async () => {
         expect(b.stateValues.sectionNumber).eq("2");
     });
 
+    it("a cascade outside a list does not make its sections list items", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<section name="s">
+  <cascade name="c">
+    <problem name="a"><p>a</p></problem>
+    <problem name="b"><p>b</p></problem>
+  </cascade>
+</section>
+    `,
+        });
+
+        const stateVariables = await getStateVariables(core);
+        const c = stateVariables[await resolvePathToNodeIdx("c")];
+        const a = stateVariables[await resolvePathToNodeIdx("a")];
+        const b = stateVariables[await resolvePathToNodeIdx("b")];
+
+        expect(c.stateValues.isListItem).eq(false);
+        expect(c.stateValues.asList).eq(false);
+        expect(a.stateValues.isListItem).eq(false);
+        expect(b.stateValues.isListItem).eq(false);
+    });
+
+    // A cascade no longer has an `asList` attribute: it always passes its
+    // parent's through. One written on it is dropped with a warning rather
+    // than turning the cascade into an error.
+    it("asList on a cascade is ignored with a warning", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<problems name="ps">
+  <cascade name="c" asList="false">
+    <problem name="a"><p>a</p></problem>
+    <problem name="b"><p>b</p></problem>
+  </cascade>
+  <problem name="d"><p>d</p></problem>
+</problems>
+    `,
+        });
+
+        const stateVariables = await getStateVariables(core);
+        const c = stateVariables[await resolvePathToNodeIdx("c")];
+        expect(c.componentType).eq("cascade");
+        expect(c.stateValues.asList).eq(true);
+
+        for (const [name, number] of [
+            ["a", "1"],
+            ["b", "2"],
+            ["d", "3"],
+        ]) {
+            const problem = stateVariables[await resolvePathToNodeIdx(name)];
+            expect(problem.stateValues.isListItem, name).eq(true);
+            expect(problem.stateValues.sectionNumber, name).eq(number);
+        }
+
+        const diagnostics = getDiagnosticsByType(core);
+        expect(diagnostics.errors).eqls([]);
+        expect(diagnostics.warnings.map((w: any) => w.message)).eqls([
+            "[deprecation] Attribute `asList` on `<cascade>` is deprecated and ignored.",
+        ]);
+    });
+
     // A `<setup>` is not a step, so it neither holds the cascade up nor is
     // hidden with the steps after it, which would hollow out what it defines.
     it("a setup in a cascade is not a step", async () => {

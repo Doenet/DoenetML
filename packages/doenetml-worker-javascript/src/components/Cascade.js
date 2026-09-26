@@ -65,18 +65,6 @@ export default class Cascade extends BlockComponent {
                 "Whether to hide later cascade sections until previous ones are completed.",
         };
 
-        // Keep the explicit attribute value separate so the effective state
-        // variable can inherit from the parent when the attribute is omitted.
-        // Mark it non-public so it doesn't appear in the schema or as a
-        // shadowable property.
-        attributes.asList = {
-            createComponentOfType: "boolean",
-            createStateVariable: "asListPreliminary",
-            defaultValue: false,
-            description:
-                "Whether to render this cascade's children as a list (by default, whatever its parent does).",
-        };
-
         attributes.revealAll = {
             createComponentOfType: "boolean",
             createStateVariable: "revealAllPreliminary",
@@ -236,33 +224,29 @@ export default class Cascade extends BlockComponent {
             definition: () => ({ setValue: { isListItem: false } }),
         };
 
-        // Make cascade transparent for `asList` propagation unless the author
-        // explicitly sets `asList` on the cascade itself.
+        // A cascade has no `asList` of its own: it always passes its parent's
+        // through, so that the sections inside a cascade in a `<problems>`
+        // are items of that list.
         stateVariableDefinitions.asList = {
             description:
-                "Whether to render this cascade's children as a list (by default, whatever its parent does).",
+                "Whether this cascade's children are rendered as a list, which is whatever its parent does.",
             public: true,
             forRenderer: true,
             shadowingInstructions: {
                 createComponentOfType: "boolean",
             },
             returnDependencies: () => ({
-                asListPreliminary: {
-                    dependencyType: "stateVariable",
-                    variableName: "asListPreliminary",
-                },
                 parentAsList: {
                     dependencyType: "parentStateVariable",
                     variableName: "asList",
                 },
             }),
-            definition({ dependencyValues, usedDefault }) {
-                let asList = dependencyValues.parentAsList;
-                if (!usedDefault.asListPreliminary) {
-                    asList = dependencyValues.asListPreliminary;
-                }
-
-                return { setValue: { asList: Boolean(asList) } };
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        asList: Boolean(dependencyValues.parentAsList),
+                    },
+                };
             },
         };
 
