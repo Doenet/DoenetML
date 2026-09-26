@@ -7614,4 +7614,207 @@ describe("Extend and references tests @group2", async () => {
             }
         });
     });
+
+    describe("references in a copy's attributes resolve where the copy is written", () => {
+        async function stateOf(
+            core: PublicDoenetMLCore,
+            resolvePathToNodeIdx: ResolvePathToNodeIdx,
+            path: string,
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx(path)].stateValues;
+        }
+
+        it("attribute named the same as a component inside the copy", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="S"><boolean name="h">false</boolean><p name="q">x</p></section>
+<section name="T">
+    <booleanInput name="h" prefill="true" />
+    <section copy="$S" hide="$h" name="S2" />
+    <section extend="$S" hide="$h" name="S3" />
+    <section copy="$S" hide="$S4.h" name="S4" />
+    <section extend="$S" hide="$S5.h" name="S5" />
+</section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.S2")).hidden,
+            ).eq(true);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.S3")).hidden,
+            ).eq(true);
+            // Reaching inside the copy takes its name
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.S4")).hidden,
+            ).eq(false);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.S5")).hidden,
+            ).eq(false);
+
+            await updateBooleanInputValue({
+                boolean: false,
+                componentIdx: await resolvePathToNodeIdx("T.h"),
+                core,
+            });
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.S2")).hidden,
+            ).eq(false);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.S3")).hidden,
+            ).eq(false);
+        });
+
+        it("attribute of a copied or extended group or module", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<group name="G"><boolean name="h">false</boolean><p name="q">x</p></group>
+<module name="M"><boolean name="h">false</boolean><p name="q">x</p></module>
+<section name="T">
+    <setup><boolean name="h">true</boolean></setup>
+    <group copy="$G" hide="$h" name="G2" />
+    <module copy="$M" hide="$h" name="M2" />
+    <group extend="$G" hide="$h" name="G3" />
+    <module extend="$M" hide="$h" name="M3" />
+</section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.G2.q")).hidden,
+            ).eq(true);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.M2.q")).hidden,
+            ).eq(true);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.G3.q")).hidden,
+            ).eq(true);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.M3.q")).hidden,
+            ).eq(true);
+        });
+
+        it("non-boolean attribute named the same as a component inside the copy", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<graph name="G"><point name="n">(1,2)</point></graph>
+<section name="T">
+    <setup><number name="n">-3</number></setup>
+    <graph copy="$G" xMin="$n" name="G2" />
+</section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            expect((await stateOf(core, resolvePathToNodeIdx, "T.G2")).xMin).eq(
+                -3,
+            );
+        });
+
+        it("attribute whose only referent is in the original, not the copy", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="S"><booleanInput name="h" /><p name="q">x</p></section>
+<section name="T">
+    <section copy="$S" hide="$h" name="S2" />
+</section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.S2")).hidden,
+            ).eq(false);
+
+            // The copy's own input does not hide it
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("T.S2.h"),
+                core,
+            });
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.S2")).hidden,
+            ).eq(false);
+
+            // The original's input does
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("S.h"),
+                core,
+            });
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.S2")).hidden,
+            ).eq(true);
+        });
+
+        it("attribute of a copy inside a repeat", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<p name="P"><number name="v">100</number></p>
+<section name="T">
+    <repeatForSequence from="1" to="2" valueName="v" name="r">
+        <p copy="$P" hide="$v > 1" name="P2" />
+    </repeatForSequence>
+</section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.r[1].P2")).hidden,
+            ).eq(false);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.r[2].P2")).hidden,
+            ).eq(true);
+        });
+
+        it("attribute of a copied list", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<mathList name="L"><math name="h">1</math><math>2</math></mathList>
+<section name="T">
+    <setup><boolean name="h">true</boolean></setup>
+    <mathList copy="$L" hide="$h" name="L2" />
+</section>
+`,
+            });
+
+            expect(getDiagnosticsByType(core).errors).eqls([]);
+            expect(
+                (await stateOf(core, resolvePathToNodeIdx, "T.L2")).hidden,
+            ).eq(true);
+        });
+
+        it("attribute inherited by a copy of a copy resolves where that copy is written", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<graph name="G"><point name="n">(1,2)</point></graph>
+<section name="T">
+    <setup><number name="n">-3</number></setup>
+    <graph copy="$G" xMin="$n" name="G2" />
+</section>
+<section name="U">
+    <setup><number name="n">-5</number></setup>
+    <graph copy="$T.G2" name="G3" />
+</section>
+`,
+            });
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(diagnosticsByType.errors).eqls([]);
+            expect(diagnosticsByType.warnings).eqls([]);
+            expect((await stateOf(core, resolvePathToNodeIdx, "T.G2")).xMin).eq(
+                -3,
+            );
+            expect((await stateOf(core, resolvePathToNodeIdx, "U.G3")).xMin).eq(
+                -5,
+            );
+        });
+    });
 });

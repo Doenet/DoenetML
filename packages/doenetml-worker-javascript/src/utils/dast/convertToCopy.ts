@@ -12,6 +12,7 @@ import {
     UnflattenedRefResolution,
 } from "./intermediateTypes";
 import { addSource, unwrapSource } from "./convertNormalizedDast";
+import { setUnflattenedReferenceOrigins } from "../componentIndices";
 
 export function convertRefsToCopies({
     serializedComponents,
@@ -187,6 +188,18 @@ export function convertRefsToCopies({
                 };
                 const originalIdx = newComponent.componentIdx;
                 newComponent.componentIdx = nComponents++;
+
+                // The author wrote these attributes on the copy, and can't see the copied content inside it,
+                // so references in them resolve as they would outside the copy.
+                // Left to resolve from their own position, they would find the copied content first
+                // once the copy expands, e.g., `$h` in `<section copy="$S" hide="$h" name="S2" />`
+                // would find the `h` inside `S2`. An author reaches that one with `$S2.h`.
+                for (const attrName in outerAttributes) {
+                    setUnflattenedReferenceOrigins(
+                        outerAttributes[attrName].children,
+                        originalIdx,
+                    );
+                }
 
                 if (addNodesToResolver) {
                     const flatFragment: FlatFragment = {
