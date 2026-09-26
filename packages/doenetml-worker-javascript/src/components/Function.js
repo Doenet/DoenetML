@@ -1984,6 +1984,7 @@ export default class Function extends InlineComponent {
                                     "value",
                                     "fReevaluate",
                                     "inputMaths",
+                                    "substitutedFormula",
                                 ],
                                 variablesOptional: true,
                             };
@@ -2000,6 +2001,7 @@ export default class Function extends InlineComponent {
                                     "value",
                                     "fReevaluate",
                                     "inputMaths",
+                                    "substitutedFormula",
                                 ],
                                 variablesOptional: true,
                             };
@@ -2060,6 +2062,7 @@ export default class Function extends InlineComponent {
 
                         let evaluateChildrenToReevaluate = {};
                         let needToReevaluate = false;
+                        let substitutedAny = false;
 
                         let codePre = globalDependencyValues.mathChildCodePre;
                         let subsMapping = {};
@@ -2083,6 +2086,20 @@ export default class Function extends InlineComponent {
                                     );
 
                                 if (
+                                    inputVariables.some((invar) =>
+                                        variables.includes(invar),
+                                    ) &&
+                                    mathGrandChild.stateValues
+                                        .substitutedFormula
+                                ) {
+                                    // The inputMaths to the <evaluate> contain a function variable,
+                                    // and evaluating its function is evaluating a formula.
+                                    // Substitute that formula, with the inputs in place,
+                                    // so the whole formula is compiled once.
+                                    subsMapping[codePre + ind] =
+                                        mathGrandChild.stateValues.substitutedFormula;
+                                    substitutedAny = true;
+                                } else if (
                                     inputVariables.some((invar) =>
                                         variables.includes(invar),
                                     )
@@ -2126,8 +2143,9 @@ export default class Function extends InlineComponent {
                             }
                         }
 
-                        if (needToReevaluate) {
+                        if (needToReevaluate || substitutedAny) {
                             // We found one <evaluate> that needs to be reevaluated
+                            // or whose formula has been substituted
 
                             // For all values that don't need to be reevaluated,
                             // substitute them directly into the expressionWithCodes for the formula.
@@ -2148,6 +2166,26 @@ export default class Function extends InlineComponent {
                             formulaExpressionWithCodes = mergeListsIfNeeded(
                                 formulaExpressionWithCodes,
                             );
+
+                            if (!needToReevaluate) {
+                                // Every <evaluate> was substituted, so this is a formula
+                                let numericalfs = {};
+                                for (let arrayKey of arrayKeys) {
+                                    numericalfs[arrayKey] =
+                                        returnNumericalFunctionFromFormula({
+                                            formula: formulaExpressionWithCodes,
+                                            numInputs:
+                                                globalDependencyValues.numInputs,
+                                            variables:
+                                                globalDependencyValues.variables,
+                                            domain: globalDependencyValues.domain,
+                                            component: arrayKey,
+                                        });
+                                }
+                                return {
+                                    setValue: { numericalfs },
+                                };
+                            }
 
                             // At this point, formulaExpressionWithCodes contains only those codes from
                             // <evaluate>s that need to be reevaluated.
@@ -2196,6 +2234,32 @@ export default class Function extends InlineComponent {
                             );
 
                         if (
+                            inputVariables.some((invar) =>
+                                variables.includes(invar),
+                            ) &&
+                            mathChild.stateValues.substitutedFormula
+                        ) {
+                            // As above: evaluating the <evaluate>'s function is evaluating a formula,
+                            // so compile that formula, with the inputs in place, once.
+                            let numericalfs = {};
+                            for (let arrayKey of arrayKeys) {
+                                numericalfs[arrayKey] =
+                                    returnNumericalFunctionFromFormula({
+                                        formula:
+                                            mathChild.stateValues
+                                                .substitutedFormula,
+                                        numInputs:
+                                            globalDependencyValues.numInputs,
+                                        variables:
+                                            globalDependencyValues.variables,
+                                        domain: globalDependencyValues.domain,
+                                        component: arrayKey,
+                                    });
+                            }
+                            return {
+                                setValue: { numericalfs },
+                            };
+                        } else if (
                             inputVariables.some((invar) =>
                                 variables.includes(invar),
                             )
@@ -2429,6 +2493,7 @@ export default class Function extends InlineComponent {
                                     "value",
                                     "fReevaluateDefinition",
                                     "inputMaths",
+                                    "substitutedFormula",
                                 ],
                                 variablesOptional: true,
                             };
@@ -2445,6 +2510,7 @@ export default class Function extends InlineComponent {
                                     "value",
                                     "fReevaluateDefinition",
                                     "inputMaths",
+                                    "substitutedFormula",
                                 ],
                                 variablesOptional: true,
                             };
@@ -2510,6 +2576,7 @@ export default class Function extends InlineComponent {
 
                         let evaluateChildrenToReevaluate = {};
                         let needToReevaluate = false;
+                        let substitutedAny = false;
 
                         let codePre = globalDependencyValues.mathChildCodePre;
                         let subsMapping = {};
@@ -2535,6 +2602,17 @@ export default class Function extends InlineComponent {
                                     );
 
                                 if (
+                                    inputVariables.some((invar) =>
+                                        variables.includes(invar),
+                                    ) &&
+                                    mathGrandChild.stateValues
+                                        .substitutedFormula
+                                ) {
+                                    // As in `numericalfs`: substitute the formula of the <evaluate>'s function
+                                    subsMapping[codePre + ind] =
+                                        mathGrandChild.stateValues.substitutedFormula;
+                                    substitutedAny = true;
+                                } else if (
                                     inputVariables.some((invar) =>
                                         variables.includes(invar),
                                     )
@@ -2570,8 +2648,9 @@ export default class Function extends InlineComponent {
                             }
                         }
 
-                        if (needToReevaluate) {
+                        if (needToReevaluate || substitutedAny) {
                             // We found one <evaluate> that needs to be reevaluated
+                            // or whose formula has been substituted
 
                             // For all values that don't need to be reevaluated,
                             // substitute them directly into the expressionWithCodes for the formula.
@@ -2592,6 +2671,35 @@ export default class Function extends InlineComponent {
                             formulaExpressionWithCodes = mergeListsIfNeeded(
                                 formulaExpressionWithCodes,
                             );
+
+                            if (!needToReevaluate) {
+                                // Every <evaluate> was substituted, so this is a formula
+                                let fDefinitions = {};
+                                for (let arrayKey of arrayKeys) {
+                                    fDefinitions[arrayKey] = {
+                                        functionType: "formula",
+                                        formula:
+                                            formulaExpressionWithCodes.tree,
+                                        variables:
+                                            globalDependencyValues.variables.map(
+                                                (x) => x.tree,
+                                            ),
+                                        numInputs:
+                                            globalDependencyValues.numInputs,
+                                        numOutputs:
+                                            globalDependencyValues.numOutputs,
+                                        domain: globalDependencyValues.domain
+                                            ? globalDependencyValues.domain.map(
+                                                  (x) => x.tree,
+                                              )
+                                            : null,
+                                        component: arrayKey,
+                                    };
+                                }
+                                return {
+                                    setValue: { fDefinitions },
+                                };
+                            }
 
                             // At this point, formulaExpressionWithCodes contains only those codes from
                             // <evaluate>s that need to be reevaluated.
@@ -2645,6 +2753,38 @@ export default class Function extends InlineComponent {
                             );
 
                         if (
+                            inputVariables.some((invar) =>
+                                variables.includes(invar),
+                            ) &&
+                            mathChild.stateValues.substitutedFormula
+                        ) {
+                            // As in `numericalfs`: the formula of the <evaluate>'s function, with the inputs in place
+                            let fDefinitions = {};
+                            for (let arrayKey of arrayKeys) {
+                                fDefinitions[arrayKey] = {
+                                    functionType: "formula",
+                                    formula:
+                                        mathChild.stateValues.substitutedFormula
+                                            .tree,
+                                    variables:
+                                        globalDependencyValues.variables.map(
+                                            (x) => x.tree,
+                                        ),
+                                    numInputs: globalDependencyValues.numInputs,
+                                    numOutputs:
+                                        globalDependencyValues.numOutputs,
+                                    domain: globalDependencyValues.domain
+                                        ? globalDependencyValues.domain.map(
+                                              (x) => x.tree,
+                                          )
+                                        : null,
+                                    component: arrayKey,
+                                };
+                            }
+                            return {
+                                setValue: { fDefinitions },
+                            };
+                        } else if (
                             inputVariables.some((invar) =>
                                 variables.includes(invar),
                             )
