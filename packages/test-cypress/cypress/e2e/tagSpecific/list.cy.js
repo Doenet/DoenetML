@@ -832,6 +832,48 @@ describe("List Tag Tests", { tags: ["@group4"] }, function () {
         });
     });
 
+    // A displayed equation of several rows is a table MathJax centers on the
+    // math axis, which put the item's number beside its middle row. The number
+    // belongs beside the first row, as it is beside a paragraph's first line.
+    // With three rows the middle one is a whole row away from the first, so the
+    // marker's center cannot land in the first row by accident. The labeled
+    // `<mdn>` and a top-level `array` are the other ways to write such a table.
+    [
+        {
+            name: "md",
+            markup: `<md><mrow>a &= b</mrow><mrow>c &= d</mrow><mrow>e &= f</mrow></md>`,
+        },
+        {
+            name: "mdn",
+            markup: `<mdn><mrow>a &= b</mrow><mrow>c &= d</mrow><mrow>e &= f</mrow></mdn>`,
+        },
+        {
+            name: "me holding an array",
+            markup: `<me>\\begin{array}{c} a \\\\ b \\\\ c \\end{array}</me>`,
+        },
+    ].forEach(({ name, markup }) => {
+        it(`marker sits beside the first row of a leading ${name}`, () => {
+            cy.window().then(async (win) => {
+                win.postMessage(
+                    {
+                        doenetML: `
+    <ol>
+      <li name="textItem">Plain text item</li>
+      <li name="item">${markup}</li>
+    </ol>
+    `,
+                    },
+                    "*",
+                );
+            });
+
+            verifyListItemMarkerSharesRowWith(
+                "item",
+                `#${cesc("item")} mjx-itable > :first-child`,
+            );
+        });
+    });
+
     // `<ul>` and `<ol>` share one `Li` class, so this is a guard against that
     // ever stopping being true rather than a second implementation.
     //

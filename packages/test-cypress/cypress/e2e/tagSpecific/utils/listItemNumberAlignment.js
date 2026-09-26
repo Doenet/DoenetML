@@ -363,3 +363,59 @@ export function verifyListItemMarkerSharesRowWith(liId, targetSelector) {
         ).to.be.within(targetBox.top, targetBox.bottom);
     });
 }
+
+/**
+ * Assert that an untitled `<problem>`-style list item's `::before` number sits
+ * on the same row as `targetSelector`.
+ *
+ * The number is a grid item in the section's first column, lined up with the
+ * content by the grid's `align-items`. A pseudo-element has no rect, and the
+ * gutter scan {@link findMarkerBand} uses does not find it either: the number's
+ * column is inside the section's own box, so a point there hits the section on
+ * every row. So the number is stood in for: its `::before` is hidden for
+ * the moment of the measurement and a real element with the same text takes
+ * its place in the first column, where the grid lines it up by the same rule.
+ * The stand-in is removed in the same synchronous block, so the page never
+ * paints it.
+ *
+ * @param {string} sectionId Doenet component id of the section.
+ * @param {string} targetSelector CSS selector for a single-line element the
+ *   number must share a row with.
+ */
+export function verifySectionNumberSharesRowWith(sectionId, targetSelector) {
+    cy.get(targetSelector).should("be.visible");
+    cy.get(`#${cesc(sectionId)}`).should(($section) => {
+        const section = $section[0];
+        const doc = section.ownerDocument;
+        const target = doc.querySelector(targetSelector);
+        expect(target, `${targetSelector} exists`).to.not.be.null;
+
+        const number = doc.defaultView
+            .getComputedStyle(section, "::before")
+            .content.replace(/^"|"$/g, "");
+        expect(number, `${sectionId} draws a number`).to.match(/\S/);
+
+        const hideNumber = doc.createElement("style");
+        hideNumber.textContent = `#${doc.defaultView.CSS.escape(section.id)}::before { display: none !important; }`;
+        const standIn = doc.createElement("span");
+        standIn.textContent = number;
+        standIn.style.gridColumn = "1";
+        standIn.style.gridRow = "1";
+        doc.head.appendChild(hideNumber);
+        section.insertBefore(standIn, section.firstChild);
+        const numberBox = standIn.getBoundingClientRect();
+        const targetBox = target.getBoundingClientRect();
+        standIn.remove();
+        hideNumber.remove();
+
+        const sectionTop = section.getBoundingClientRect().top;
+        const relative = (y) => (y - sectionTop).toFixed(0);
+        const numberCenter = (numberBox.top + numberBox.bottom) / 2;
+        expect(
+            numberCenter,
+            `${sectionId}'s number is on the row of ${targetSelector} ` +
+                `[number ${relative(numberBox.top)}-${relative(numberBox.bottom)}px into ${sectionId}, ` +
+                `target ${relative(targetBox.top)}-${relative(targetBox.bottom)}px]`,
+        ).to.be.within(targetBox.top, targetBox.bottom);
+    });
+}
