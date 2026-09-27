@@ -52,6 +52,7 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
     const cols: React.ReactNode[] = [];
     if (hasPretextWidth) {
         const numColumns = clonedCellData[0]?.length ?? 0;
+        const drawnColumns: { key: number; percent: number | null }[] = [];
         for (let colIndex = 0; colIndex < numColumns; colIndex++) {
             const spreadsheetColIndex = includeRowHeaders
                 ? colIndex
@@ -63,15 +64,33 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
                 spreadsheetColIndex === 0
                     ? null
                     : columnWidths[spreadsheetColIndex - 1];
+            drawnColumns.push({
+                key: colIndex,
+                percent: width && !width.isAbsolute ? width.size : null,
+            });
+        }
+        // PreTeXt stops the whole build if a tabular's `<col>` widths add up
+        // to more than 100%, while the spreadsheet itself just scrolls. So
+        // widths that overflow are scaled down, keeping their proportions,
+        // and rounded down so rounding cannot push the total back over.
+        const total = drawnColumns.reduce(
+            (sum, { percent }) => sum + (percent ?? 0),
+            0,
+        );
+        const scale = total > 100 ? 100 / total : 1;
+        for (const { key, percent } of drawnColumns) {
+            const scaled =
+                percent === null
+                    ? null
+                    : scale === 1
+                      ? percent
+                      : Math.floor(percent * scale * 100) / 100;
             // `createElement` because `col` is also an HTML element, whose
             // React typing rejects PreTeXt's attributes (see `tabular.tsx`).
             cols.push(
                 React.createElement("col", {
-                    key: colIndex,
-                    width:
-                        width && !width.isAbsolute
-                            ? `${width.size}%`
-                            : undefined,
+                    key,
+                    width: scaled ? `${scaled}%` : undefined,
                 }),
             );
         }

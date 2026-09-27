@@ -495,6 +495,21 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("spreadsheet widths over 100% are scaled to fit", async () => {
+        // PreTeXt refuses a tabular whose `<col>` widths add up to over 100%.
+        source = `<spreadsheet minNumRows="1" minNumColumns="3" columnHeaders="false">
+  <col width="60%" />
+  <col width="30%" />
+  <col width="60%" />
+  <row><cell>a</cell></row>
+</spreadsheet>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular><col></col><col width="40%"></col><col width="20%"></col><col width="40%"></col><row bottom="minor"><cell right="minor"><em>1</em></cell><cell right="minor">a</cell><cell right="minor"></cell><cell right="minor"></cell></row></tabular>"`,
+        );
+    });
+
     it("spreadsheet without a percentage width writes no <col>", async () => {
         source = `<spreadsheet minNumRows="1" minNumColumns="2" columnHeaders="false" rowHeaders="false">
   <col width="80px" />
