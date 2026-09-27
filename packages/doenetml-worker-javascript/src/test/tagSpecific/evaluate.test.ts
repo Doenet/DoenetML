@@ -8,6 +8,7 @@ import {
 } from "../utils/actions";
 import me from "math-expressions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { createFunctionFromDefinition } from "@doenet/utils";
 import type { round as RoundType } from "mathjs";
 const { round } = me.math as { round: RoundType };
 
@@ -5586,6 +5587,255 @@ describe("Evaluate tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("pha")].stateValues.text,
         ).eq("5");
+    });
+
+    it("a function evaluating a symbolic function at its variable compiles to one formula", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <function name="normalpdf" variables="x mu sigma">
+    1/(sigma*sqrt(2pi))*e^(-0.5*((x-mu)/sigma)^2)
+  </function>
+  <function name="direct">1/sqrt(2pi)*e^(-0.5*x^2)</function>
+  <function name="f">$$normalpdf(x, 0, 1)</function>
+  <function name="g" variables="t">2$$normalpdf(t, 1, 2) + 1</function>
+  <function name="h"><evaluate function="$normalpdf" input="x 0 1" /></function>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        async function sv(name: string) {
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        }
+
+        const direct = (await sv("direct")).numericalfs[0];
+        function pdf(x: number, mu: number, sigma: number) {
+            return (
+                Math.exp(-0.5 * ((x - mu) / sigma) ** 2) /
+                (sigma * Math.sqrt(2 * Math.PI))
+            );
+        }
+
+        for (const name of ["f", "g", "h"]) {
+            expect((await sv(name)).fDefinitions[0].functionType).eq("formula");
+        }
+
+        const f = (await sv("f")).numericalfs[0];
+        const g = (await sv("g")).numericalfs[0];
+        const h = (await sv("h")).numericalfs[0];
+        // Out in the tail too, where the value is tiny and evaluating the
+        // symbolic result per sample used to lose its precision.
+        for (const x of [-3, 0, 0.5, 2, 11.15, 40]) {
+            expect(f(x)).closeTo(
+                direct(x),
+                1e-14 * Math.max(direct(x), 1e-300),
+            );
+            expect(h(x)).closeTo(
+                direct(x),
+                1e-14 * Math.max(direct(x), 1e-300),
+            );
+            expect(g(x)).closeTo(2 * pdf(x, 1, 2) + 1, 1e-14);
+        }
+
+        // A graph builds the function from `fDefinitions`: same values
+        for (const name of ["f", "g", "h"]) {
+            const { fDefinitions, numericalfs } = await sv(name);
+            const drawn = createFunctionFromDefinition(fDefinitions[0]);
+            for (const x of [-3, 0, 0.5, 2, 11.15, 40]) {
+                expect(drawn(x)).toBe(numericalfs[0](x));
+            }
+        }
+
+        // Precision in the tail is what keeps the search from reporting
+        // minima the function does not have.
+        expect((await sv("f")).minima).eqls([]);
+        expect((await sv("f")).maxima.length).eq(1);
+        expect((await sv("f")).maxima[0][0]).closeTo(0, 1e-10);
+        expect((await sv("g")).minima).eqls([]);
+        expect((await sv("g")).maxima[0][0]).closeTo(1, 1e-10);
+    });
+
+    it("a function evaluating a function with a domain applies that domain", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <function name="g" domain="[0,4]">sqrt(x)</function>
+  <function name="f">$$g(x-1)</function>
+  <function name="f2">$$g(x-1) + 1</function>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        async function sv(name: string) {
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        }
+
+        for (const name of ["f", "f2"]) {
+            expect((await sv(name)).fDefinitions[0].functionType).eq(
+                "reevaluatedFormula",
+            );
+        }
+
+        const f = (await sv("f")).numericalfs[0];
+        const f2 = (await sv("f2")).numericalfs[0];
+        expect(f(0)).toBeNaN();
+        expect(f(1)).eq(0);
+        expect(f(5)).eq(2);
+        expect(f(6)).toBeNaN();
+        expect(f2(0)).toBeNaN();
+        expect(f2(5)).eq(3);
+        expect(f2(6)).toBeNaN();
+
+        // A graph builds the function from `fDefinitions`: same values
+        for (const name of ["f", "f2"]) {
+            const { fDefinitions, numericalfs } = await sv(name);
+            const drawn = createFunctionFromDefinition(fDefinitions[0]);
+            for (const x of [0, 1, 3, 5, 6]) {
+                expect(drawn(x)).toBe(numericalfs[0](x));
+            }
+        }
+    });
+
+    it("a function evaluating a function with a domain is evaluated numerically at each sample", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <function name="normalpdf" variables="x mu sigma" domain="[-50,50] [-50,50] [0.1,50]">
+    1/(sigma*sqrt(2pi))*e^(-0.5*((x-mu)/sigma)^2)
+  </function>
+  <function name="direct" domain="[-50,50]">1/sqrt(2pi)*e^(-0.5*x^2)</function>
+  <function name="f">$$normalpdf(x, 0, 1)</function>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        async function sv(name: string) {
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        }
+
+        expect((await sv("f")).fDefinitions[0].functionType).eq(
+            "reevaluatedFormula",
+        );
+
+        const direct = (await sv("direct")).numericalfs[0];
+        const f = (await sv("f")).numericalfs[0];
+        for (const x of [-3, 0, 2, 11.15, 40]) {
+            expect(f(x)).closeTo(direct(x), 1e-14 * direct(x));
+        }
+        expect(f(51)).toBeNaN();
+
+        expect((await sv("f")).minima).eqls((await sv("direct")).minima);
+        expect((await sv("f")).maxima).eqls((await sv("direct")).maxima);
+    });
+
+    it("a free symbol in the evaluated function is not captured by the function's variable", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <function name="g" variables="t">t + x</function>
+  <function name="f">$$g(x)</function>
+  <p name="p">$$f(2)</p>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const f =
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numericalfs[0];
+        expect(f(2)).toBeNaN();
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("x + 2");
+    });
+
+    it("a function evaluating another function compiles to one formula with subscripted variables", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <function name="g" variables="x_1">x_1^2</function>
+  <function name="f">$$g(x+1)</function>
+  <function name="h">x^2</function>
+  <function name="k" variables="x_1">$$h(x_1+1) + x_1</function>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        async function sv(name: string) {
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        }
+
+        for (const name of ["f", "k"]) {
+            expect((await sv(name)).fDefinitions[0].functionType).eq("formula");
+        }
+        expect((await sv("f")).numericalfs[0](2)).eq(9);
+        expect((await sv("k")).numericalfs[0](2)).eq(11);
+    });
+
+    it("a function mixing a substituted evaluate with one that is reevaluated", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <function name="g">x^2</function>
+  <function name="k" domain="[0,10]">x^3</function>
+  <function name="f">$$g(x+1) + $$k(x)</function>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const fSVs =
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues;
+        expect(fSVs.fDefinitions[0].functionType).eq("reevaluatedFormula");
+        // Only `k`, whose domain has to be applied at each sample, is reevaluated
+        expect(
+            Object.keys(fSVs.fDefinitions[0].evaluateChildrenToReevaluate)
+                .length,
+        ).eq(1);
+
+        const f = fSVs.numericalfs[0];
+        expect(f(2)).eq(17);
+        expect(f(-1)).toBeNaN();
+
+        // A graph builds the function from `fDefinitions`: same values
+        const drawn = createFunctionFromDefinition(fSVs.fDefinitions[0]);
+        for (const x of [-1, 0, 2, 10, 11]) {
+            expect(drawn(x)).toBe(f(x));
+        }
+    });
+
+    it("a function evaluating a one-input function at a vector has no value", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <function name="g">x</function>
+  <function name="f">$$g((x, 1))</function>
+  <function name="f2">$$g((x, 1)) + 1</function>
+  <p name="p">$$g((2, 1))</p>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        async function sv(name: string) {
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        }
+
+        // Like evaluating `g` at a vector directly: no value
+        expect((await sv("p")).text).eq("＿");
+        expect((await sv("f")).numericalfs[0](2)).toBeNaN();
+        expect((await sv("f2")).numericalfs[0](2)).toBeNaN();
+    });
+
+    it("a PreFigure graph draws a function that evaluates another function", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <function name="g">e^(-x^2)</function>
+  <graph name="graph" renderer="prefigure">
+    <function>$$g(x-1)</function>
+  </graph>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const prefigureXML =
+            stateVariables[await resolvePathToNodeIdx("graph")].stateValues
+                .prefigureXML;
+
+        expect(prefigureXML).toContain(
+            'function="curve_0_f(x)=e^(-(x - 1)^2)"',
+        );
+        expect(getDiagnosticsByType(core).warnings).toHaveLength(0);
     });
 
     it("evaluate functions based on interpolated function", async () => {

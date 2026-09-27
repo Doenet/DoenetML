@@ -3,6 +3,8 @@ import me from "math-expressions";
 import {
     returnNumericFunctionForEvaluate,
     returnSymbolicFunctionForEvaluate,
+    vectorOperators,
+    find_effective_domain,
 } from "@doenet/utils";
 import {
     returnNumberDisplayAttributeComponentShadowing,
@@ -263,6 +265,17 @@ export default class Evaluate extends MathComponent {
                         numInputs: functionComp.stateValues.numInputs,
                         symbolicfs: functionComp.stateValues.symbolicfs,
                     });
+                    // A caller that wants a number, such as a `<function>`
+                    // reevaluating this `<evaluate>` at each sample, gets the
+                    // function's own numerical function: the value the function
+                    // gives numerically and a graph of it draws, computed
+                    // without building an expression per sample, and without
+                    // the precision the symbolic route loses where the value is
+                    // tiny.
+                    fReevaluate.numeric ??= returnNumericFunctionForEvaluate({
+                        numInputs: functionComp.stateValues.numInputs,
+                        numericalfs: functionComp.stateValues.numericalfs,
+                    }).numeric;
                 } else {
                     fReevaluate = returnNumericFunctionForEvaluate({
                         numInputs: functionComp.stateValues.numInputs,
@@ -271,6 +284,44 @@ export default class Evaluate extends MathComponent {
                 }
 
                 return { setValue: { fReevaluate } };
+            },
+        };
+
+        stateVariableDefinitions.substitutedFormula = {
+            returnDependencies() {
+                return {
+                    inputMaths: {
+                        dependencyType: "stateVariable",
+                        variableName: "inputMaths",
+                    },
+                    functionAttr: {
+                        dependencyType: "attributeComponent",
+                        attributeName: "function",
+                        variableNames: [
+                            "fDefinitions",
+                            "numInputs",
+                            "numOutputs",
+                        ],
+                    },
+                };
+            },
+            definition({ dependencyValues }) {
+                let functionComp = dependencyValues.functionAttr;
+
+                return {
+                    setValue: {
+                        substitutedFormula: functionComp
+                            ? substituteInputsIntoFormula({
+                                  fDefinition:
+                                      functionComp.stateValues.fDefinitions[0],
+                                  numInputs: functionComp.stateValues.numInputs,
+                                  numOutputs:
+                                      functionComp.stateValues.numOutputs,
+                                  inputMaths: dependencyValues.inputMaths,
+                              })
+                            : null,
+                    },
+                };
             },
         };
 
@@ -337,4 +388,96 @@ export default class Evaluate extends MathComponent {
 
         return stateVariableDefinitions;
     }
+}
+
+/**
+ * The function's formula with `inputMaths` substituted for its variables, as a
+ * single expression to be compiled once, or `null` when evaluating the function
+ * numerically is not the same as evaluating that expression.
+ *
+ * A `<function>` whose formula evaluates another function at its own variable,
+ * such as `$$g(x, 0, 1)`, uses this in place of calling `g` at every sample.
+ *
+ * It applies only when `g`'s numerical function is its compiled formula and
+ * nothing more, which is what a `"formula"` definition records:
+ * - a single output, and as many inputs as `g` has variables;
+ * - no domain other than the whole real line for each input, since `g` would
+ *   give no value outside it, and a substituted formula has no record of it;
+ * - no symbol in the formula other than `g`'s variables, `e` and `pi`, since a
+ *   free symbol that shares a name with the outer function's variable would be
+ *   captured by it once substituted.
+ *
+ * When one of those inputs is a vector, `g` gives no value (it spreads a lone
+ * vector across its variables, and a vector cannot stand for one variable), so
+ * the formula returned is blank.
+ */
+function substituteInputsIntoFormula({
+    fDefinition,
+    numInputs,
+    numOutputs,
+    inputMaths,
+}) {
+    if (
+        fDefinition?.functionType !== "formula" ||
+        numOutputs !== 1 ||
+        inputMaths.length !== numInputs ||
+        !domainIsUnbounded(fDefinition.domain)
+    ) {
+        return null;
+    }
+
+    let formula = me.fromAst(fDefinition.formula).subscripts_to_strings();
+    if (isVectorValued(formula)) {
+        return null;
+    }
+    if (inputMaths.some(isVectorValued)) {
+        return me.fromAst("\uff3f");
+    }
+
+    let variableNames = fDefinition.variables.map(
+        (v) => me.fromAst(v).subscripts_to_strings().tree,
+    );
+    if (variableNames.some((name) => typeof name !== "string")) {
+        return null;
+    }
+
+    let hasFreeSymbol = formula
+        .variables()
+        .some(
+            (name) =>
+                !variableNames.includes(name) && !["e", "pi"].includes(name),
+        );
+    if (hasFreeSymbol) {
+        return null;
+    }
+
+    let substitutions = {};
+    for (let [ind, name] of variableNames.entries()) {
+        substitutions[name] = inputMaths[ind].subscripts_to_strings();
+    }
+
+    return formula.substitute(substitutions);
+}
+
+function isVectorValued(expression) {
+    return (
+        Array.isArray(expression.tree) &&
+        vectorOperators.includes(expression.tree[0])
+    );
+}
+
+/**
+ * Whether a function's domain, as a definition records it (one interval tree
+ * per input, or `null`), is the whole real line in every input.
+ */
+function domainIsUnbounded(domain) {
+    return (domain ?? []).every((interval) => {
+        if (!interval) {
+            return true;
+        }
+        let { minx, maxx } = find_effective_domain({
+            domain: [me.fromAst(interval)],
+        });
+        return minx === -Infinity && maxx === Infinity;
+    });
 }
