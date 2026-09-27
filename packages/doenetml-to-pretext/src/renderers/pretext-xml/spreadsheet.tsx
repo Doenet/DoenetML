@@ -1,5 +1,10 @@
 import React from "react";
 import { BasicComponent } from "../types";
+import {
+    LINE_POINTS,
+    columnPaddingPercent,
+    printedColumnWidths,
+} from "./column-widths";
 
 type SpreadsheetData = {
     props: {
@@ -26,18 +31,6 @@ const ROW_HEADER_PIXELS = 50;
  * a percentage, so that the row-label strip can be given its share of it.
  */
 const ASSUMED_PAGE_PIXELS = 600;
-
-/** The width, in points, of the line in PreTeXt's default LaTeX article. */
-const LINE_POINTS = 340;
-
-/**
- * The share of the printed line, as a percentage, that LaTeX spends on the
- * padding and rule around each column: 6pt of `\tabcolsep` on each side and a
- * 0.4pt rule, out of the 340pt line of PreTeXt's default article. LaTeX adds
- * it outside a paragraph cell's width, where the viewer counts a cell's
- * padding inside it, so widths totalling 100% would overrun the line by it.
- */
-const COLUMN_PADDING_PERCENT = (12.4 / LINE_POINTS) * 100;
 
 /**
  * The width, in points, of a row number in PreTeXt's default LaTeX font: the
@@ -84,9 +77,9 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
     // The printed table is meant to look like the one on screen. There the
     // percentages are shares of the width beside the fixed row-label strip,
     // so they are scaled into what is left of the page once the generated
-    // row-number column has its share (see `rowHeaderPercent`), and that
-    // column keeps no width of its own, taking its natural width as the
-    // strip does.
+    // row-number column has its share (see `rowHeaderPercent`) and each
+    // column its padding (see `printedColumnWidths`). The row-number column
+    // keeps no width of its own, taking its natural width as the strip does.
     //
     // PreTeXt applies a `<col>` width only to a cell holding a `<p>`, which
     // it sets as a paragraph box of that width; a bare-text cell keeps its
@@ -118,43 +111,18 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
                 percent: width && !width.isAbsolute ? width.size : null,
             });
         }
-        // The share of the page the data columns divide between them: all
-        // of it, less the row-number column's share when there is one and
-        // the padding LaTeX puts around each column given a width.
-        const numWithWidth = drawnColumns.filter(
-            ({ percent }) => percent,
-        ).length;
-        // So many columns that the padding alone fills the line leaves the
-        // widths nothing, and they are dropped rather than written negative.
-        const available = Math.max(
-            0,
-            100 -
-                (includeRowHeaders
+        // The percentages are shares of the data area on screen, beside the
+        // row-label strip, so the row-number column's share is set aside.
+        const exported = printedColumnWidths(
+            drawnColumns.map(({ percent }) => percent),
+            {
+                reserved: includeRowHeaders
                     ? rowHeaderPercent(
                           node.data.props.width,
                           node.data.props.cells.length,
                       )
-                    : 0) -
-                numWithWidth * COLUMN_PADDING_PERCENT,
-        );
-        // The percentages are shares of `available`, as they are shares of
-        // the data area on screen. Widths totalling more than 100%, which the
-        // spreadsheet just scrolls, are scaled down to fit it, keeping their
-        // proportions: PreTeXt stops the whole build if a tabular's `<col>`
-        // widths add up to more than 100%. Rounding down to hundredths keeps
-        // the total within `available`, which the padding keeps at least
-        // 3.65% under 100, clear of the floating-point slack in PreTeXt's
-        // own check of the sum.
-        const total = drawnColumns.reduce(
-            (sum, { percent }) => sum + (percent ?? 0),
-            0,
-        );
-        const exported = drawnColumns.map(({ percent }) =>
-            percent === null
-                ? null
-                : Math.floor(
-                      percent * (available / Math.max(total, 100)) * 100,
-                  ) / 100,
+                    : 0,
+            },
         );
         drawnColumns.forEach(({ key }, i) => {
             const scaled = exported[i];
@@ -262,7 +230,7 @@ function rowHeaderPercent(
     const onScreen = (ROW_HEADER_PIXELS / totalPixels) * 100;
     const numDigits = String(Math.max(numRows, 1)).length;
     const inPrint =
-        COLUMN_PADDING_PERCENT +
+        columnPaddingPercent() +
         (rowNumberPoints(numDigits) / LINE_POINTS) * 100;
     return Math.max(onScreen, inPrint);
 }

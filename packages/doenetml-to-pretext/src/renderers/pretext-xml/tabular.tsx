@@ -1,5 +1,8 @@
 import React from "react";
 import { BasicComponentWithPassthroughChildren } from "../types";
+import { useAppSelector } from "../../state/hooks";
+import { elementsArraySelector } from "../../state/redux-slices/dast";
+import { printedColumnWidths } from "./column-widths";
 
 /**
  * `<tabular>`, `<row>` and `<cell>` carry the same names in DoenetML and in
@@ -23,7 +26,9 @@ import { BasicComponentWithPassthroughChildren } from "../types";
  *  - **Columns.** DoenetML's `<col>` children have no renderer of their own;
  *    the `<tabular>` carries their settings in `columnSpecs`, and the `<col>`
  *    elements are written back out here, ahead of the rows, which is where
- *    PreTeXt's schema wants them.
+ *    PreTeXt's schema wants them. Their widths are rescaled for print, and
+ *    the cells in columns with widths are set as paragraphs, so that PreTeXt
+ *    applies them (see `Tabular` and `Cell`).
  *
  * `TableSettingsContext` exists because the props are *resolved* values: a
  * `<tabular halign="center">` leaves every cell reporting `"center"`, so
@@ -43,6 +48,13 @@ import { BasicComponentWithPassthroughChildren } from "../types";
  * — it sees only the flat DAST the worker produces.
  */
 const MAX_COLSPAN = 1000;
+
+/**
+ * Elements the PreTeXt renderers write out as just their children, with no
+ * tag of their own (`PassThroughWithoutTagConverter` in `../renderers.ts`),
+ * so whatever they hold lands directly in the enclosing element.
+ */
+const TAGLESS_ELEMENTS = new Set(["div", "cascade"]);
 
 /** A `colSpan` prop as a number of columns, the way the worker counts them. */
 function effectiveColSpan(colSpan: number | undefined): number {
@@ -75,6 +87,12 @@ type TableSettings = {
     /** The enclosing `<tabular>`'s columns, for cells to consult. */
     columnSpecs: ColumnSpec[];
     /**
+     * The `<col>` width printed for each column, as a percentage of the line
+     * (see `printedColumnWidths`), or `null`/0 for a column printed with
+     * none. A cell in columns that all have one is set as a paragraph.
+     */
+    printedWidths: (number | null)[];
+    /**
      * Whether the enclosing `<row>` set an alignment of its own. A row
      * outranks a column in PreTeXt, so when it did, a cell compares itself
      * against the row and ignores its column.
@@ -90,6 +108,7 @@ const DEFAULT_TABLE_SETTINGS: TableSettings = {
     startBorder: "none",
     endBorder: "none",
     columnSpecs: [],
+    printedWidths: [],
     rowOverridesColumnHalign: false,
 };
 
@@ -148,13 +167,36 @@ export const Tabular: BasicComponentWithPassthroughChildren<TabularData> = ({
 }) => {
     const props = node.data.props;
 
+    const columnSpecs = props.columnSpecs ?? [];
+
+    // On screen a column's percentage is a share of the `<tabular>`, padding
+    // included; in print PreTeXt reads it as a share of the line and LaTeX
+    // pads outside it, so the widths are rescaled to fit
+    // (`printedColumnWidths`). A `<tabular width>` needs no rescaling of its
+    // own: PreTeXt sets the table in a box that wide, and reads the column
+    // widths as shares of the box. The padding is a larger share of a
+    // narrower box, though, which is what `lineFraction` accounts for. A
+    // width in pixels is not written out (see below), so it counts as the
+    // full line.
+    const percents = columnSpecs.map(({ width }) =>
+        width && !width.isAbsolute && width.size > 0 ? width.size : null,
+    );
+    const lineFraction =
+        props.width && !props.width.isAbsolute && props.width.size > 0
+            ? Math.min(props.width.size, 100) / 100
+            : 1;
+    const printedWidths = percents.some((percent) => percent)
+        ? printedColumnWidths(percents, { lineFraction })
+        : percents;
+
     const settings: TableSettings = {
         halign: props.halign ?? DEFAULT_TABLE_SETTINGS.halign,
         valign: props.valign ?? DEFAULT_TABLE_SETTINGS.valign,
         bottomBorder: props.bottomBorder ?? DEFAULT_TABLE_SETTINGS.bottomBorder,
         startBorder: props.startBorder ?? DEFAULT_TABLE_SETTINGS.startBorder,
         endBorder: props.endBorder ?? DEFAULT_TABLE_SETTINGS.endBorder,
-        columnSpecs: props.columnSpecs ?? [],
+        columnSpecs,
+        printedWidths,
         rowOverridesColumnHalign: false,
     };
 
@@ -176,14 +218,16 @@ export const Tabular: BasicComponentWithPassthroughChildren<TabularData> = ({
             left={ifChanged(settings.startBorder, "none")}
             right={ifChanged(settings.endBorder, "none")}
         >
-            {settings.columnSpecs.map((spec, index) =>
+            {columnSpecs.map((spec, index) =>
                 // Written with `createElement` rather than as `<col ... />`
                 // because `col` is one of the few PreTeXt element names that
                 // is also an HTML one, so in JSX it picks up React's HTML
                 // typing and rejects PreTeXt's attributes.
                 React.createElement("col", {
                     key: index,
-                    width: componentSizeToPretextWidth(spec.width),
+                    width: printedWidths[index]
+                        ? `${printedWidths[index]}%`
+                        : undefined,
                     halign:
                         spec.halign == null
                             ? undefined
@@ -288,6 +332,45 @@ export const Cell: BasicComponentWithPassthroughChildren<CellData> = ({
     // A cell whose content did not survive as children still has its text —
     // the same fallback the HTML renderer uses.
     const hasChildren = React.Children.count(children) > 0;
+    const content = hasChildren ? children : (props.text ?? "");
+
+    // PreTeXt applies a column's width only to a cell holding a `<p>`, which
+    // it sets as a paragraph box that wide; any other cell keeps its natural
+    // width and can push the column wider. So a cell whose columns all have
+    // a printed width is wrapped in a `<p>`. A spanning cell needs every
+    // column it covers to have one, since PreTeXt counts a column with none
+    // as 20% of the line. A cell that already holds paragraphs is left as it
+    // is: a PreTeXt cell holds either paragraphs or inline content. A
+    // `<p>` inside an element written out with no tag of its own (see
+    // `TAGLESS_ELEMENTS`) lands directly in the cell, so it counts too.
+    const hasParagraphChild = useAppSelector((state) => {
+        const elementsArray = elementsArraySelector(state);
+        const holdsParagraph = (
+            elementChildren: typeof node.children,
+        ): boolean =>
+            elementChildren.some((child) => {
+                if (typeof child === "string") {
+                    return false;
+                }
+                const element = elementsArray[child.id];
+                return (
+                    element?.name === "p" ||
+                    (element != null &&
+                        TAGLESS_ELEMENTS.has(element.name) &&
+                        holdsParagraph(element.children))
+                );
+            });
+        return holdsParagraph(node.children);
+    });
+    let inWidthColumns = columnIndex != null && lastColumnIndex != null;
+    for (
+        let i = columnIndex ?? 0;
+        inWidthColumns && i <= lastColumnIndex!;
+        i++
+    ) {
+        inWidthColumns = Boolean(inherited.printedWidths[i]);
+    }
+    const asParagraph = inWidthColumns && !hasParagraphChild;
 
     return (
         <cell
@@ -308,7 +391,7 @@ export const Cell: BasicComponentWithPassthroughChildren<CellData> = ({
             bottom={ifChanged(props.bottomBorder, inherited.bottomBorder)}
             right={ifChanged(props.endBorder, inheritedEndBorder)}
         >
-            {hasChildren ? children : (props.text ?? "")}
+            {asParagraph ? <p>{content}</p> : content}
         </cell>
     );
 };
