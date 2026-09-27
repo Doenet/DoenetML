@@ -44,7 +44,7 @@ export default class Col extends BaseComponent {
         let attributes = super.createAttributesObject();
         attributes.width = {
             description:
-                "Display width of this column, as a percentage of the width of the tabular layout or spreadsheet. In a tabular layout, a percentage survives conversion to PreTeXt.",
+                "Display width of this column. Expressed as a percentage of the width of the tabular layout or spreadsheet so that it survives conversion to PreTeXt.",
             createComponentOfType: "componentSize",
             createStateVariable: "width",
             defaultValue: null,

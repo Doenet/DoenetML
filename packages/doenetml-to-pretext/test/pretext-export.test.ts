@@ -480,6 +480,10 @@ describe("Pretext export", async () => {
         // One `<col>` per drawn column: none for the hidden column C, an empty
         // one for the generated row-number column, and a percentage for each
         // column that has one. The pixel width of D has no PreTeXt spelling.
+        // With the default row labels and a percentage width, 50px of an
+        // assumed 600px page (8.33%) goes to the labels and 3.65% to LaTeX's
+        // padding around each of the two columns with a width, and 30% and
+        // 50% are shares of the rest. The A/B labels stay bare.
         source = `<spreadsheet minNumRows="1" minNumColumns="4" hiddenColumns="3">
   <col width="30%" />
   <col />
@@ -491,8 +495,32 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<tabular><col></col><col width="30%"></col><col width="50%"></col><col></col><row header="yes" bottom="minor"><cell right="minor"><em></em></cell><cell right="minor">A</cell><cell right="minor">B</cell><cell right="minor">D</cell></row><row bottom="minor"><cell right="minor"><em>1</em></cell><cell right="minor">a</cell><cell right="minor"></cell><cell right="minor"></cell></row></tabular>"`,
+            `"<tabular><col></col><col width="25.31%"></col><col width="42.18%"></col><col></col><row header="yes" bottom="minor"><cell right="minor"><em></em></cell><cell right="minor">A</cell><cell right="minor">B</cell><cell right="minor">D</cell></row><row bottom="minor"><cell right="minor"><em>1</em></cell><cell right="minor"><p>a</p></cell><cell right="minor"><p></p></cell><cell right="minor"></cell></row></tabular>"`,
         );
+    });
+
+    it("spreadsheet column widths print as they are drawn", async () => {
+        // On screen the percentages are shares of the width beside a 50px
+        // row-label strip, padding included. In print LaTeX pads each column
+        // outside its width (3.65% of the default line), so the columns
+        // divide what is left after that and, on a 400px spreadsheet with
+        // row labels, after the labels' 12.5%. Every cell of a column with a
+        // width is a paragraph, which is what makes PreTeXt apply the width.
+        source = `<spreadsheet minNumRows="1" minNumColumns="2" columnHeaders="false" rowHeaders="false">
+  <col width="35%" />
+  <col width="65%" />
+  <row><cell>Candidates:</cell></row>
+</spreadsheet>
+<spreadsheet minNumRows="1" minNumColumns="2" columnHeaders="false" width="400px">
+  <col width="40%" />
+  <col width="60%" />
+  <row><cell>Candidates:</cell></row>
+</spreadsheet>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source))
+            .toMatchInlineSnapshot(`
+          "<tabular><col width="32.44%"></col><col width="60.25%"></col><row bottom="minor"><cell right="minor"><p>Candidates:</p></cell><cell right="minor"><p></p></cell></row></tabular>
+          <tabular><col></col><col width="32.08%"></col><col width="48.12%"></col><row bottom="minor"><cell right="minor"><em>1</em></cell><cell right="minor"><p>Candidates:</p></cell><cell right="minor"><p></p></cell></row></tabular>"
+        `);
     });
 
     it("spreadsheet widths over 100% are scaled to fit", async () => {
@@ -506,23 +534,21 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<tabular><col></col><col width="40%"></col><col width="20%"></col><col width="40%"></col><row bottom="minor"><cell right="minor"><em>1</em></cell><cell right="minor">a</cell><cell right="minor"></cell><cell right="minor"></cell></row></tabular>"`,
+            `"<tabular><col></col><col width="32.29%"></col><col width="16.14%"></col><col width="32.29%"></col><row bottom="minor"><cell right="minor"><em>1</em></cell><cell right="minor"><p>a</p></cell><cell right="minor"><p></p></cell><cell right="minor"><p></p></cell></row></tabular>"`,
         );
     });
 
-    it("spreadsheet widths scaled to exactly 100% are nudged under PreTeXt's check", async () => {
-        // 88/37 scales to 70.4 and 29.6, but PreTeXt computes 100 - 70.4 as
-        // 29.599999999999994 and rejects 29.6.
-        source = `<spreadsheet minNumRows="1" minNumColumns="2" columnHeaders="false" rowHeaders="false">
-  <col width="88%" />
-  <col width="37%" />
+    it("spreadsheet widths are dropped when padding alone fills the line", async () => {
+        // Thirty columns with widths need 30 x 3.65% of the line for LaTeX's
+        // padding alone, leaving the widths nothing; they are written as
+        // plain columns rather than as zero or negative widths.
+        source = `<spreadsheet minNumRows="1" minNumColumns="30" columnHeaders="false" rowHeaders="false">
+  ${Array(30).fill('<col width="3%" />').join("")}
   <row><cell>a</cell></row>
 </spreadsheet>`;
-        expect(
-            await coreRunner.processToFlatDastAsFragment(source),
-        ).toMatchInlineSnapshot(
-            `"<tabular><col width="70.39%"></col><col width="29.59%"></col><row bottom="minor"><cell right="minor">a</cell><cell right="minor"></cell></row></tabular>"`,
-        );
+        const result = await coreRunner.processToFlatDastAsFragment(source);
+        expect(result).not.toMatch(/width=/);
+        expect(result).not.toMatch(/<p>/);
     });
 
     it("spreadsheet without a percentage width writes no <col>", async () => {

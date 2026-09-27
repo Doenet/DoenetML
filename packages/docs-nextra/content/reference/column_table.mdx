@@ -92,4 +92,6 @@ The `width` attribute sets the width of the column as a percentage of the width
 of the spreadsheet; the columns without one share out the rest. It is the same
 attribute, with the same values, as the `width` of a [`<col>{:dn}`](col), so
 the width of a column is written the same way whether or not it has a
-`<column>{:dn}` of its own.
+`<column>{:dn}` of its own. As with `<col>{:dn}`, express it as a percentage
+rather than as a number of pixels: a percentage is what survives conversion of
+the document to PreTeXt, so a printed spreadsheet keeps its column widths.

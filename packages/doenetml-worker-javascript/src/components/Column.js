@@ -35,7 +35,7 @@ export default class Column extends BaseComponent {
         // The LSP still warns about it there (it checks `matrixColumn`).
         attributes.width = {
             description:
-                "Display width of this column, as a percentage of the width of the spreadsheet.",
+                "Display width of this column. Expressed as a percentage of the width of the spreadsheet so that it survives conversion to PreTeXt.",
             createComponentOfType: "componentSize",
             createStateVariable: "width",
             defaultValue: null,
