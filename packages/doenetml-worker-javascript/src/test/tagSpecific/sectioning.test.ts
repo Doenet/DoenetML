@@ -2470,6 +2470,26 @@ describe("Sectioning tag tests @group3", async () => {
             expect(numbers).eqls(["3", "4", "5", "6"]);
         });
 
+        it("the counter a hosting page initializes applies to top-level divisions inside a container", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<div><section name="a"/><section name="b"/></div>`,
+                initializeCounters: { section: 5 },
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const numbers: string[] = [];
+            for (const name of ["a", "b"]) {
+                numbers.push(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .sectionNumber,
+                );
+            }
+            expect(numbers).eqls(["5", "6"]);
+        });
+
         it("the types of division share one sequence through a container", async () => {
             expect(
                 await numbersOf(
@@ -2499,6 +2519,33 @@ describe("Sectioning tag tests @group3", async () => {
                     ["second", "a", "b", "c", "d", "e"],
                 ),
             ).eqls(["2", "2.1", "2.2", "2.3", "2.4", "2.5"]);
+        });
+
+        it("a division inside a container without includeParentNumber keeps its place in the sequence", async () => {
+            expect(
+                await numbersOf(
+                    `
+<section name="first"/>
+<section name="second">
+  <subsection name="a"/>
+  <div><subsection name="b" includeParentNumber="false"/></div>
+</section>`,
+                    ["a", "b"],
+                ),
+            ).eqls(["2.1", "2"]);
+        });
+
+        it("a <statement> is a container like <div>", async () => {
+            expect(
+                await numbersOf(
+                    `
+<problem name="p">
+  <statement><subsection name="a"/></statement>
+  <subsection name="b"/>
+</problem>`,
+                    ["p", "a", "b"],
+                ),
+            ).eqls(["1", "1.1", "1.2"]);
         });
 
         it("<introduction> and <conclusion> are containers like <div>", async () => {
@@ -2566,6 +2613,117 @@ describe("Sectioning tag tests @group3", async () => {
                 ).eqls(["1.1", "1.1", "1.2", "1.3", "1.2"]);
             });
         }
+
+        // A solution creates its children only once it is revealed.
+        it("a <solution> numbers its divisions from 1, through a container among them", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="s">
+  <subsection name="a"/>
+  <solution name="sol">
+    <subsection name="x"/>
+    <div><subsection name="y"/></div>
+  </solution>
+  <subsection name="b"/>
+</section>`,
+            });
+            await core.requestAction({
+                actionName: "revealSolution",
+                componentIdx: await resolvePathToNodeIdx("sol"),
+                args: {},
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const numbers: string[] = [];
+            for (const name of ["a", "x", "y", "b"]) {
+                numbers.push(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .sectionNumber,
+                );
+            }
+            expect(numbers).eqls(["1.1", "1.1", "1.2", "1.2"]);
+        });
+
+        // The divisions a `<select>` or `<shuffle>` puts in a container are
+        // numbered in the order they are shown.
+        it("divisions selected or shuffled into a container are numbered in the order shown", async () => {
+            for (const composite of ["select", "shuffle"]) {
+                const children =
+                    composite === "select"
+                        ? `<select numToSelect="3">
+    <option><section><title>X</title></section></option>
+    <option><section><title>Y</title></section></option>
+    <option><section><title>Z</title></section></option>
+  </select>`
+                        : `<shuffle>
+    <section><title>X</title></section>
+    <section><title>Y</title></section>
+    <section><title>Z</title></section>
+  </shuffle>`;
+                const orders = new Set<string>();
+                for (const requestedVariantIndex of [1, 2, 3]) {
+                    const { core, resolvePathToNodeIdx } = await createTestCore(
+                        {
+                            doenetML: `
+<section name="a"/>
+<div name="d">
+  ${children}
+</div>
+<section name="b"/>`,
+                            requestedVariantIndex,
+                        },
+                    );
+                    const stateVariables = await core.returnAllStateVariables(
+                        false,
+                        true,
+                    );
+                    const shown = stateVariables[
+                        await resolvePathToNodeIdx("d")
+                    ].activeChildren
+                        .filter((child: any) => typeof child === "object")
+                        .map(
+                            (child: any) =>
+                                stateVariables[child.componentIdx].stateValues,
+                        )
+                        .filter((sv: any) => sv.sectionNumber !== undefined);
+                    orders.add(shown.map((sv: any) => sv.title).join(""));
+                    expect(shown.map((sv: any) => sv.sectionNumber)).eqls([
+                        "2",
+                        "3",
+                        "4",
+                    ]);
+                    expect(
+                        stateVariables[await resolvePathToNodeIdx("b")]
+                            .stateValues.sectionNumber,
+                    ).eq("5");
+                }
+                // The variants put the divisions in different orders.
+                expect(orders.size).greaterThan(1);
+            }
+        });
+
+        // Regression guard: inside a `<problems>`, the problems are numbered
+        // as items of its list, through a cascade, while the `<problems>`
+        // itself keeps its place among the divisions beside it.
+        it("a list inside a section keeps its items' numbers apart from the divisions around it", async () => {
+            expect(
+                await numbersOf(
+                    `
+<section name="s">
+  <subsection name="s1"/>
+  <problems name="ps">
+    <problem name="p1"/>
+    <cascade><problem name="p2"/></cascade>
+    <problem name="p3"/>
+  </problems>
+  <subsection name="s2"/>
+</section>`,
+                    ["s1", "ps", "p1", "p2", "p3", "s2"],
+                ),
+            ).eqls(["1.1", "2", "1", "2", "3", "1.3"]);
+        });
 
         it("figures and tables are numbered in their own sequence, around the containers too", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({

@@ -388,8 +388,9 @@ export class FlagDependency extends ValueDependency {
 }
 
 /**
- * The `initializeCounters` the hosting page passed in: for a component type,
- * the number the first of its kind at the top level of the document takes.
+ * The `initializeCounters` the hosting page passed in: a map from a component
+ * type to the number the document's count of that type starts at. (All the
+ * types of division share one count, so an entry for any of them starts it.)
  *
  * Fixed for a core's lifetime, like flags.
  */

@@ -178,9 +178,10 @@ function numberChildren({
 
 /**
  * The counters a document starts from, given the `initializeCounters` the
- * hosting page passed in: an entry for a type of item starts that item's
- * counter so that the first such item takes the entry's value. As with the
- * sibling count, the first entry found for a counter wins.
+ * hosting page passed in: an entry for a type of item starts the counter that
+ * type advances, so that the first item on that counter, of whatever type,
+ * takes the entry's value. As with the sibling count, the first entry found for
+ * a counter wins.
  */
 function initialOffset({ sequence, initializeCounters, componentInfoObjects }) {
     const offset = {};
