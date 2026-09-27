@@ -878,4 +878,36 @@ describe("Sectioning Tag Tests", { tags: ["@group4"] }, function () {
         cy.get("#p1").should("be.visible");
         cy.get("#p2").should("not.exist");
     });
+
+    // A container that shows no number of its own passes the numbering of the
+    // divisions around it through, and so does the heading drawn from it.
+    it("headings number the divisions in a div or cascade among the ones beside it", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <section name="s1" />
+    <section name="s2">
+      <subsection name="a" />
+      <div><subsection name="b" /></div>
+      <cascade><subsection name="c" /></cascade>
+      <subsection name="d" />
+    </section>
+    <div><section name="s3" /></div>
+    <p name="pref"><ref name="r" to="$c" /></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#s1_title").should("have.text", "Section 1");
+        cy.get("#s2_title").should("have.text", "Section 2");
+        cy.get("#a_title").should("have.text", "Section 2.1");
+        cy.get("#b_title").should("have.text", "Section 2.2");
+        cy.get("#c_title").should("have.text", "Section 2.3");
+        cy.get("#d_title").should("have.text", "Section 2.4");
+        cy.get("#s3_title").should("have.text", "Section 3");
+        cy.get("#pref").should("have.text", "Section 2.3");
+    });
 });

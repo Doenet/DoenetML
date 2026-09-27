@@ -33,10 +33,12 @@ import {
 import { composeTitlePrefix, sectionNameWord } from "../../utils/sectionWords";
 import { returnCascadeStepStateVariableDefinitions } from "../../utils/cascadeStep";
 import {
-    listItemNumberDependencies,
-    listItemNumberFromParent,
-    returnListItemNumbersOfChildrenDefinition,
-} from "../../utils/listItemNumbering";
+    DIVISION_SEQUENCE,
+    LIST_ITEM_SEQUENCE,
+    returnSequenceNumbersOfChildrenDefinition,
+    sequenceNumberDependencies,
+    sequenceNumberFromParent,
+} from "../../utils/sequenceNumbering";
 import {
     childRendersSomething,
     listItemChildVisibilityDependency,
@@ -383,9 +385,11 @@ export class SectioningComponent extends BlockComponent {
         };
 
         // How this section numbers the children that are its list items,
-        // counting through any `<cascade>` among them.
+        // counting through any `<cascade>` among them. (It numbers the
+        // divisions among its children as every block does; see
+        // `BlockComponent` and `utils/sequenceNumbering.js`.)
         stateVariableDefinitions.listItemNumbersOfChildren =
-            returnListItemNumbersOfChildrenDefinition();
+            returnSequenceNumbersOfChildrenDefinition(LIST_ITEM_SEQUENCE);
 
         // The numbering of a container: a sectioning component that shows no
         // number of its own, such as the wrapper a copy from an external URI
@@ -395,12 +399,15 @@ export class SectioningComponent extends BlockComponent {
         // enclose it. The enclosing section's enumeration passes through in
         // place of a number of its own, so that a division written inside such
         // a wrapper with `includeParentNumber` is prefixed with the number of
-        // the section its author sees around the wrapper. The exception is a
-        // wrapper that a list-producing parent numbers as one of its items.
+        // the section its author sees around the wrapper. The divisions inside
+        // it are numbered among the divisions beside it (see
+        // `returnSequencePassThroughDefinitions`, which `<externalContent>` and
+        // `<standinForFutureLayoutTag>` add). The exception is a wrapper that a
+        // list-producing parent numbers as one of its items.
         //
         // A division that does carry a number overrides this:
-        // `SectioningComponentNumberWithSiblings` numbers among its siblings,
-        // and `UnnumberedSectioningComponent` has no number at all.
+        // `SectioningComponentNumberWithSiblings` numbers among its sibling
+        // divisions, and `UnnumberedSectioningComponent` has no number at all.
         stateVariableDefinitions.enumeration = {
             additionalStateVariablesDefined: [
                 {
@@ -419,7 +426,9 @@ export class SectioningComponent extends BlockComponent {
                     dependencyType: "stateVariable",
                     variableName: "isListItem",
                 },
-                ...(stateValues.isListItem ? listItemNumberDependencies() : {}),
+                ...(stateValues.isListItem
+                    ? sequenceNumberDependencies(LIST_ITEM_SEQUENCE)
+                    : {}),
                 sectionAncestor: {
                     dependencyType: "ancestor",
                     componentType: "_sectioningComponent",
@@ -428,11 +437,9 @@ export class SectioningComponent extends BlockComponent {
             }),
             definition({ dependencyValues, componentIdx }) {
                 if (dependencyValues.isListItem) {
-                    const listItemNumber = listItemNumberFromParent({
-                        parentListItemNumbers:
-                            dependencyValues.parentListItemNumbers,
-                        countAmongSiblings:
-                            dependencyValues.countAmongSiblingsForListItem,
+                    const listItemNumber = sequenceNumberFromParent({
+                        sequence: LIST_ITEM_SEQUENCE,
+                        dependencyValues,
                         componentIdx,
                     });
                     return {
@@ -1709,11 +1716,6 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
             ],
             stateVariablesDeterminingDependencies: ["isListItem"],
             returnDependencies: ({ stateValues }) => ({
-                countAmongSiblings: {
-                    dependencyType: "countAmongSiblings",
-                    componentType: "_sectioningComponentNumberWithSiblings",
-                    includeInheritedComponentTypes: true,
-                },
                 sectionAncestor: {
                     dependencyType: "ancestor",
                     componentType: "_sectioningComponent",
@@ -1727,17 +1729,21 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
                     dependencyType: "stateVariable",
                     variableName: "isListItem",
                 },
-                ...(stateValues.isListItem ? listItemNumberDependencies() : {}),
+                // A list item is numbered in the list and a division among
+                // the divisions, never both.
+                ...sequenceNumberDependencies(
+                    stateValues.isListItem
+                        ? LIST_ITEM_SEQUENCE
+                        : DIVISION_SEQUENCE,
+                ),
             }),
             definition({ dependencyValues, componentIdx }) {
                 let enumeration = [];
                 if (dependencyValues.isListItem) {
                     enumeration.push(
-                        listItemNumberFromParent({
-                            parentListItemNumbers:
-                                dependencyValues.parentListItemNumbers,
-                            countAmongSiblings:
-                                dependencyValues.countAmongSiblingsForListItem,
+                        sequenceNumberFromParent({
+                            sequence: LIST_ITEM_SEQUENCE,
+                            dependencyValues,
                             componentIdx,
                         }),
                     );
@@ -1751,7 +1757,13 @@ export class SectioningComponentNumberWithSiblings extends SectioningComponent {
                                 .enumeration,
                         );
                     }
-                    enumeration.push(dependencyValues.countAmongSiblings);
+                    enumeration.push(
+                        sequenceNumberFromParent({
+                            sequence: DIVISION_SEQUENCE,
+                            dependencyValues,
+                            componentIdx,
+                        }),
+                    );
                 }
 
                 return {

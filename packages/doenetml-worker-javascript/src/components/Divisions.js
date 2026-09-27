@@ -4,6 +4,10 @@ import {
     submitAllAnswers,
 } from "../utils/scoredSection";
 import { returnPassThroughListItemChildStateVariableDefinitions } from "../utils/listItemChild";
+import {
+    DIVISION_SEQUENCE,
+    returnSequencePassThroughDefinitions,
+} from "../utils/sequenceNumbering";
 import BlockComponent from "./abstract/BlockComponent";
 import InlineComponent from "./abstract/InlineComponent";
 
@@ -56,6 +60,13 @@ export class Div extends BlockComponent {
         Object.assign(
             stateVariableDefinitions,
             returnPassThroughListItemChildStateVariableDefinitions(),
+        );
+
+        // A div shows no number, so the divisions inside it are numbered
+        // among the divisions beside it. See `utils/sequenceNumbering.js`.
+        Object.assign(
+            stateVariableDefinitions,
+            returnSequencePassThroughDefinitions(DIVISION_SEQUENCE),
         );
 
         return stateVariableDefinitions;

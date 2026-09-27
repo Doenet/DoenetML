@@ -49,9 +49,11 @@ never when the cascade advances. The cascade's `completedColor`,
 `inProgressColor` and `notStartedColor` set the colors of its steps' heading
 bars; when it sets none, its steps use the colors of the section around it.
 
-Inside a [`<problems>{:dn}`](problems), the problems in a cascade are numbered
-as items of the list, just as if they were written in the `<problems>{:dn}`
-directly.
+The sections in a cascade are numbered along with the sections beside it, just
+as if they were written there directly, and the sections after the cascade
+continue the count. Inside a [`<problems>{:dn}`](problems), the problems in a
+cascade are likewise numbered as items of the list. Revealing a step never
+changes a number.
 
 
 <AttrPropDisplay name='cascade'/>

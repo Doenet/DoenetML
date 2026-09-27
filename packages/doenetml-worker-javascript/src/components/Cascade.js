@@ -2,9 +2,10 @@ import BlockComponent from "./abstract/BlockComponent";
 import { returnCascadeStepStateVariableDefinitions } from "../utils/cascadeStep";
 import { codedDiagnostic } from "../utils/diagnostics";
 import {
-    returnCascadeListItemCountDefinitions,
-    returnListItemNumbersOfChildrenDefinition,
-} from "../utils/listItemNumbering";
+    DIVISION_SEQUENCE,
+    LIST_ITEM_SEQUENCE,
+    returnSequencePassThroughDefinitions,
+} from "../utils/sequenceNumbering";
 import { returnScoredSectionStateVariableDefinition } from "../utils/scoredSection";
 import {
     returnSectionTitleStateColorAttributes,
@@ -17,10 +18,8 @@ import {
  *
  * It is not a section. It has no heading, no number, no heading level, no box
  * and no score of its own, and it seeds no variants, so a section inside it is
- * leveled and scored exactly as it would be beside it. (Its number among
- * sibling divisions is another matter: a cascade, like a `<div>`, does not
- * pass the count of the divisions around it on to the ones inside it.) An
- * author who wants any of those wraps the cascade in a `<section>`.
+ * leveled, numbered and scored exactly as it would be beside it. An author who
+ * wants any of those wraps the cascade in a `<section>`.
  *
  * What it keeps of a section is what its steps read off their parent: the
  * `childrenToHideChildren` and `sectionToShowCascadeMessage` that hold a step
@@ -250,15 +249,14 @@ export default class Cascade extends BlockComponent {
             },
         };
 
-        // A cascade is transparent to list-item numbering: the sections inside
-        // it continue the sequence of the list around it rather than starting
-        // one of their own. See `utils/listItemNumbering.js`.
+        // A cascade is transparent to numbering: the divisions and list items
+        // inside it continue the sequences around it rather than starting
+        // their own. See `utils/sequenceNumbering.js`.
         Object.assign(
             stateVariableDefinitions,
-            returnCascadeListItemCountDefinitions(),
+            returnSequencePassThroughDefinitions(DIVISION_SEQUENCE),
+            returnSequencePassThroughDefinitions(LIST_ITEM_SEQUENCE),
         );
-        stateVariableDefinitions.listItemNumbersOfChildren =
-            returnListItemNumbersOfChildrenDefinition({ hasOffset: true });
 
         stateVariableDefinitions.childrenAggregateScores = {
             returnDependencies: () => ({}),

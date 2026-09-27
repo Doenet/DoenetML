@@ -3597,4 +3597,120 @@ describe("Cascade tag tests @group4", async () => {
             }
         });
     });
+
+    describe("divisions are numbered through a cascade", () => {
+        // Revealing a step changes what is shown, never a number, and the
+        // number agrees wherever it is read: the heading, a copy of
+        // `sectionNumber`, and a reference.
+        it("numbers stay put as steps reveal and agree everywhere they are read", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<section name="s"><title>S</title>
+  <subsection name="a"><p>1: <answer name="ans1">1</answer></p></subsection>
+  <cascade name="c">
+    <subsection name="b"><p>2: <answer name="ans2">2</answer></p></subsection>
+    <cascadeMessage>Finish the subsection above to continue.</cascadeMessage>
+    <subsection name="d"><p>3: <answer name="ans3">3</answer></p></subsection>
+    <example name="x"><p>An example</p></example>
+  </cascade>
+  <subsection name="e"><p>5</p></subsection>
+</section>
+<p name="copied">$d.sectionNumber</p>
+<p name="reffed"><ref name="r" to="$d" /></p>
+`,
+            });
+
+            let stateVariables = await getStateVariables(core);
+
+            async function check(numCompleted: number) {
+                stateVariables = await getStateVariables(core);
+                const numbers: string[] = [];
+                for (const name of ["a", "b", "d", "x", "e"]) {
+                    numbers.push(
+                        stateVariables[await resolvePathToNodeIdx(name)]
+                            .stateValues.sectionNumber,
+                    );
+                }
+                expect(numbers).eqls(["1.1", "1.2", "1.3", "4", "1.5"]);
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("c")].stateValues
+                        .numCompleted,
+                ).eq(numCompleted);
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("d")].stateValues
+                        .hideChildren,
+                ).eq(numCompleted < 1);
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("d")].stateValues
+                        .title,
+                ).eq("Section 1.3");
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("copied")]
+                        .stateValues.text,
+                ).eq("1.3");
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("r")].stateValues
+                        .linkText,
+                ).eq("Section 1.3");
+            }
+
+            await check(0);
+
+            const ans2Idx = await resolvePathToNodeIdx("ans2");
+            await submitMathAnswer({
+                core,
+                latex: "2",
+                answerIdx: ans2Idx,
+                mathInputIdx: getMathInputIdx(stateVariables, ans2Idx),
+            });
+            await check(1);
+
+            const ans3Idx = await resolvePathToNodeIdx("ans3");
+            await submitMathAnswer({
+                core,
+                latex: "3",
+                answerIdx: ans3Idx,
+                mathInputIdx: getMathInputIdx(stateVariables, ans3Idx),
+            });
+            await check(3);
+        });
+
+        it("numbers follow a count of steps that changes at runtime", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<mathInput name="n" prefill="2" />
+<section name="a"/>
+<cascade>
+  <section name="b"/>
+  <repeatForSequence name="r" length="$n"><section name="p"/></repeatForSequence>
+  <cascade><section name="c"/></cascade>
+</cascade>
+<section name="d"/>
+`,
+            });
+
+            async function numberOf(name: string) {
+                const stateVariables = await getStateVariables(core);
+                return stateVariables[await resolvePathToNodeIdx(name)]
+                    .stateValues.sectionNumber;
+            }
+
+            const nIdx = await resolvePathToNodeIdx("n");
+
+            for (const n of [2, 4, 0, 1]) {
+                await updateMathInputValue({
+                    latex: String(n),
+                    componentIdx: nIdx,
+                    core,
+                });
+                expect(await numberOf("a")).eq("1");
+                expect(await numberOf("b")).eq("2");
+                expect(await numberOf("c")).eq(String(3 + n));
+                expect(await numberOf("d")).eq(String(4 + n));
+                if (n > 0) {
+                    expect(await numberOf(`r[${n}].p`)).eq(String(2 + n));
+                }
+            }
+        });
+    });
 });

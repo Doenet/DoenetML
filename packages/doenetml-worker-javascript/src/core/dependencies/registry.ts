@@ -42,6 +42,7 @@ import {
     CountAmongSiblingsDependency,
     ValueDependency,
     FlagDependency,
+    InitializeCountersDependency,
     LocaleDependency,
     TranslatorDependency,
 } from "./siblingAndValueDependencies";
@@ -105,6 +106,7 @@ export const dependencyTypeClasses: ReadonlyArray<DependencyClass> = [
     CountAmongSiblingsDependency,
     ValueDependency,
     FlagDependency,
+    InitializeCountersDependency,
     LocaleDependency,
     TranslatorDependency,
     DoenetAttributeDependency,
