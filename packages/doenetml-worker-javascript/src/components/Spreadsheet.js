@@ -177,9 +177,10 @@ export default class Spreadsheet extends BlockComponent {
             },
         };
 
-        // One entry per column that has been given a width setting, left to
-        // right: a `componentSize`, or `null` for a column left alone. Widths
-        // come from two places, which spell the attribute identically:
+        // One entry per column, left to right, through the last column that
+        // has a `<col>` or a `<column>` with a width: a `componentSize`, or
+        // `null` for a column with no width. Widths come from two places,
+        // which spell the attribute identically:
         //  - `<col width="…">` children, as in a `<tabular>`, the nth `<col>`
         //    applying to the nth column. Every `<col>` counts, including an
         //    empty placeholder, because that is how one reaches column 3.
@@ -313,8 +314,9 @@ export default class Spreadsheet extends BlockComponent {
                 if (!Number.isFinite(numColumns)) {
                     numColumns = 4;
                 }
-                // A column given a width exists even if it is still empty,
-                // as a `<col>` makes a column of a `<tabular>`.
+                // Every column `columnWidths` reaches exists even if it is
+                // still empty, an empty `<col />` placeholder included, as a
+                // `<col>` makes a column of a `<tabular>`.
                 numColumns = Math.max(
                     numColumns,
                     dependencyValues.columnWidths.length,

@@ -185,9 +185,13 @@ Without widths, each column is sized to fit its contents, so a column left
 empty for students to type into is drawn narrow. A [`<col>{:dn}`](col) per
 column sets the widths, exactly as it does in a [`<tabular>{:dn}`](tabular):
 the `<col>{:dn}` components apply to the columns in order, and each `width` is
-a percentage of the width of the spreadsheet. A column that is already written
-out as a [`<column>{:dn}`](column_table) can instead take the same `width`
-attribute itself.
+a percentage of the width of the spreadsheet (beside the row numbers, when they
+are shown). A column that is already written out as a
+[`<column>{:dn}`](column_table) can instead take the same `width` attribute
+itself. The spreadsheet still has at least `minNumColumns` columns, $4$ by
+default, so set `minNumColumns` when the widths are meant to share the
+spreadsheet among fewer columns; otherwise the extra columns are added beyond
+the widths and the spreadsheet scrolls sideways.
 
 
 
