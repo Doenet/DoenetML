@@ -510,6 +510,21 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("spreadsheet widths scaled to exactly 100% are nudged under PreTeXt's check", async () => {
+        // 88/37 scales to 70.4 and 29.6, but PreTeXt computes 100 - 70.4 as
+        // 29.599999999999994 and rejects 29.6.
+        source = `<spreadsheet minNumRows="1" minNumColumns="2" columnHeaders="false" rowHeaders="false">
+  <col width="88%" />
+  <col width="37%" />
+  <row><cell>a</cell></row>
+</spreadsheet>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular><col width="70.39%"></col><col width="29.59%"></col><row bottom="minor"><cell right="minor">a</cell><cell right="minor"></cell></row></tabular>"`,
+        );
+    });
+
     it("spreadsheet without a percentage width writes no <col>", async () => {
         source = `<spreadsheet minNumRows="1" minNumColumns="2" columnHeaders="false" rowHeaders="false">
   <col width="80px" />

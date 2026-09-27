@@ -45,6 +45,9 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
     // column that is drawn (the generated row-number column included) as
     // soon as any column has a percentage width. A width in pixels has no
     // PreTeXt equivalent and is dropped, as it is for a `<tabular>`.
+    // PreTeXt currently applies a `<col>` width only to cells holding a `<p>`,
+    // not to plain-text cells like these, so the widths are kept in the XML
+    // but do not change how PreTeXt draws the table.
     const columnWidths = node.data.props.columnWidths ?? [];
     const hasPretextWidth = columnWidths.some(
         (width) => width != null && !width.isAbsolute,
@@ -72,19 +75,25 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
         // PreTeXt stops the whole build if a tabular's `<col>` widths add up
         // to more than 100%, while the spreadsheet itself just scrolls. So
         // widths that overflow are scaled down, keeping their proportions,
-        // and rounded down so rounding cannot push the total back over.
-        const total = drawnColumns.reduce(
-            (sum, { percent }) => sum + (percent ?? 0),
-            0,
-        );
-        const scale = total > 100 ? 100 / total : 1;
-        for (const { key, percent } of drawnColumns) {
-            const scaled =
-                percent === null
+        // and rounded down to hundredths. PreTeXt checks by subtracting each
+        // width from 100 in floating point, so widths totalling exactly 100%
+        // (70.4% and 29.6%) can still fail; shrink the target until they pass.
+        const percents = drawnColumns.map(({ percent }) => percent);
+        const total = percents.reduce<number>((sum, p) => sum + (p ?? 0), 0);
+        let exported = percents;
+        for (
+            let target = 100;
+            !fitsPretextCap(exported) && target > 0;
+            target -= 0.01
+        ) {
+            exported = percents.map((p) =>
+                p === null
                     ? null
-                    : scale === 1
-                      ? percent
-                      : Math.floor(percent * scale * 100) / 100;
+                    : Math.floor((p * target * 100) / total) / 100,
+            );
+        }
+        drawnColumns.forEach(({ key }, i) => {
+            const scaled = exported[i];
             // `createElement` because `col` is also an HTML element, whose
             // React typing rejects PreTeXt's attributes (see `tabular.tsx`).
             cols.push(
@@ -93,7 +102,7 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
                     width: scaled ? `${scaled}%` : undefined,
                 }),
             );
-        }
+        });
     }
 
     return (
@@ -152,6 +161,25 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
         </tabular>
     );
 };
+
+/**
+ * Whether PreTeXt accepts these `<col>` percentages, checked the way its
+ * `cap-width-at-one-hundred-percent` template does: each width in turn must
+ * not exceed what is left of 100 after subtracting the ones before it.
+ */
+function fitsPretextCap(percents: (number | null)[]): boolean {
+    let cap = 100;
+    for (const p of percents) {
+        if (!p) {
+            continue; // written as a `<col>` with no width
+        }
+        if (p > cap) {
+            return false;
+        }
+        cap -= p;
+    }
+    return true;
+}
 
 /**
  * Convert a 0-indexed value into a spreadsheet column label. For example, 0 -> "A", 1 -> "B", ..., 25 -> "Z", 26 -> "AA", etc.

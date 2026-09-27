@@ -104046,7 +104046,7 @@
                 },
                 {
                     "name": "width",
-                    "description": "Display width of this column. Expressed as a percentage of the width of the spreadsheet so that it survives conversion to PreTeXt.",
+                    "description": "Display width of this column, as a percentage of the width of the spreadsheet.",
                     "highlighted": true,
                     "defaultValue": null,
                     "type": "componentSize"
@@ -104113,7 +104113,7 @@
                     "name": "width",
                     "type": "componentSize",
                     "isArray": false,
-                    "description": "Display width of this column. Expressed as a percentage of the width of the spreadsheet so that it survives conversion to PreTeXt.",
+                    "description": "Display width of this column, as a percentage of the width of the spreadsheet.",
                     "fromAttribute": true,
                     "highlighted": true
                 },
@@ -104237,7 +104237,7 @@
                 },
                 {
                     "name": "width",
-                    "description": "Display width of this column. Expressed as a percentage of the width of the tabular layout or spreadsheet so that it survives conversion to PreTeXt.",
+                    "description": "Display width of this column, as a percentage of the width of the tabular layout or spreadsheet. In a tabular layout, a percentage survives conversion to PreTeXt.",
                     "highlighted": true,
                     "defaultValue": null,
                     "type": "componentSize"
@@ -104362,7 +104362,7 @@
                     "name": "width",
                     "type": "componentSize",
                     "isArray": false,
-                    "description": "Display width of this column. Expressed as a percentage of the width of the tabular layout or spreadsheet so that it survives conversion to PreTeXt.",
+                    "description": "Display width of this column, as a percentage of the width of the tabular layout or spreadsheet. In a tabular layout, a percentage survives conversion to PreTeXt.",
                     "fromAttribute": true,
                     "highlighted": true
                 },
