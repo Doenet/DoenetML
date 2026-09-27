@@ -2534,6 +2534,39 @@ describe("Sectioning tag tests @group3", async () => {
             ).eqls(["1.1", "1", "1.2"]);
         });
 
+        // A container that is not a division bounds the sequence too: it
+        // numbers its own divisions from 1, and counts through a container
+        // among them just as a section does.
+        for (const boundary of [
+            "li",
+            "sideBySide",
+            "paginator",
+            "hint",
+            "blockQuote",
+        ]) {
+            const [open, close] =
+                boundary === "li"
+                    ? ["<ol><li>", "</li></ol>"]
+                    : [`<${boundary}>`, `</${boundary}>`];
+            it(`a <${boundary}> numbers its divisions from 1, through a container among them`, async () => {
+                expect(
+                    await numbersOf(
+                        `
+<section name="s">
+  <subsection name="a"/>
+  ${open}
+    <subsection name="x"/>
+    <div><subsection name="y"/></div>
+    <cascade><subsection name="z"/></cascade>
+  ${close}
+  <subsection name="b"/>
+</section>`,
+                        ["a", "x", "y", "z", "b"],
+                    ),
+                ).eqls(["1.1", "1.1", "1.2", "1.3", "1.2"]);
+            });
+        }
+
         it("figures and tables are numbered in their own sequence, around the containers too", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `

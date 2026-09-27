@@ -35,7 +35,9 @@
  * inside it from 1, and so does a `<proof>`, which shows no number but has a
  * heading of its own and starts closed, so that numbering through it would
  * skip numbers the reader cannot see. So does a container a sequence does not
- * pass through, such as a `<blockQuote>`, a `<sideBySide>` or a `<solution>`.
+ * pass through, such as a `<blockQuote>`, a `<sideBySide>` or a `<solution>`:
+ * every block component and `<li>` numbers the divisions among its children,
+ * counting through the pass-throughs among them.
  * A composite such as a `<group>` or a `<conditionalContent>` is no container
  * at all: its replacements are the children of its parent.
  *
