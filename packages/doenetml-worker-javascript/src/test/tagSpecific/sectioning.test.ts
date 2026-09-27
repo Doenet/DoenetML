@@ -2361,9 +2361,14 @@ describe("Sectioning tag tests @group3", async () => {
     // divisions around it through: the divisions inside it are numbered among
     // the divisions beside it, and the count continues after it.
     describe("divisions are numbered through the containers that show no number", () => {
-        async function numbersOf(doenetML: string, names: string[]) {
+        async function numbersOf(
+            doenetML: string,
+            names: string[],
+            initializeCounters?: Record<string, number>,
+        ) {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML,
+                initializeCounters,
             });
             const stateVariables = await core.returnAllStateVariables(
                 false,
@@ -2449,45 +2454,42 @@ describe("Sectioning tag tests @group3", async () => {
         });
 
         it("the counter a hosting page initializes continues through a container", async () => {
-            const { core, resolvePathToNodeIdx } = await createTestCore({
-                doenetML: `
+            expect(
+                await numbersOf(
+                    `
 <section name="a"/>
 <div><section name="b"/><cascade><section name="c"/></cascade></div>
 <section name="d"/>`,
-                initializeCounters: { section: 3 },
-            });
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
-            const numbers: string[] = [];
-            for (const name of ["a", "b", "c", "d"]) {
-                numbers.push(
-                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
-                        .sectionNumber,
-                );
-            }
-            expect(numbers).eqls(["3", "4", "5", "6"]);
+                    ["a", "b", "c", "d"],
+                    { section: 3 },
+                ),
+            ).eqls(["3", "4", "5", "6"]);
         });
 
         it("the counter a hosting page initializes applies to top-level divisions inside a container", async () => {
-            const { core, resolvePathToNodeIdx } = await createTestCore({
-                doenetML: `
+            expect(
+                await numbersOf(
+                    `
 <div><section name="a"/><section name="b"/></div>`,
-                initializeCounters: { section: 5 },
-            });
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
-            const numbers: string[] = [];
-            for (const name of ["a", "b"]) {
-                numbers.push(
-                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
-                        .sectionNumber,
-                );
-            }
-            expect(numbers).eqls(["5", "6"]);
+                    ["a", "b"],
+                    { section: 5 },
+                ),
+            ).eqls(["5", "6"]);
+        });
+
+        // The types of division share one counter, so an entry for one of
+        // them starts it for all.
+        it("the counter a hosting page initializes is shared by every type of division", async () => {
+            expect(
+                await numbersOf(
+                    `
+<example name="a"/>
+<section name="b"/>
+<div><problem name="c"/></div>`,
+                    ["a", "b", "c"],
+                    { section: 5 },
+                ),
+            ).eqls(["5", "6", "7"]);
         });
 
         it("the types of division share one sequence through a container", async () => {

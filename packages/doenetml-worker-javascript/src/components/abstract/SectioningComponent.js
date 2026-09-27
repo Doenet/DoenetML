@@ -385,13 +385,11 @@ export class SectioningComponent extends BlockComponent {
         };
 
         // How this section numbers the children that are its list items,
-        // counting through any `<cascade>` among them, and the divisions among
-        // its children, counting through any `<div>` or `<cascade>` among them.
-        // See `utils/sequenceNumbering.js`.
+        // counting through any `<cascade>` among them. (It numbers the
+        // divisions among its children as every block does; see
+        // `BlockComponent` and `utils/sequenceNumbering.js`.)
         stateVariableDefinitions.listItemNumbersOfChildren =
             returnSequenceNumbersOfChildrenDefinition(LIST_ITEM_SEQUENCE);
-        stateVariableDefinitions.divisionNumbersOfChildren =
-            returnSequenceNumbersOfChildrenDefinition(DIVISION_SEQUENCE);
 
         // The numbering of a container: a sectioning component that shows no
         // number of its own, such as the wrapper a copy from an external URI

@@ -13,8 +13,8 @@ export default class BlockComponent extends BaseComponent {
         // A block that bounds the division sequence — a `<sideBySide>`, a
         // `<paginator>`, a `<hint>`, … — numbers the divisions among its
         // children from 1, counting through any `<div>` or `<cascade>` among
-        // them. A block the sequence passes through, and a section, replaces
-        // this. See `utils/sequenceNumbering.js`.
+        // them. So does a section. A block the sequence passes through
+        // replaces this. See `utils/sequenceNumbering.js`.
         stateVariableDefinitions.divisionNumbersOfChildren =
             returnSequenceNumbersOfChildrenDefinition(DIVISION_SEQUENCE);
 
