@@ -1106,7 +1106,9 @@ describe("Pretext export", async () => {
 
     it("tabular column widths are rescaled for padding and to fit", async () => {
         // In a half-width tabular the padding is twice the share of the box;
-        // widths over 100% are scaled down, as PreTeXt refuses them.
+        // widths over 100% are scaled down, as PreTeXt refuses them. In a
+        // tenth-width tabular the padding of three columns alone fills the
+        // box, so the widths are dropped and the cells left bare.
         source = `<tabular width="50%">
   <col width="50%" />
   <col width="50%" />
@@ -1116,11 +1118,18 @@ describe("Pretext export", async () => {
   <col width="80%" />
   <col width="40%" />
   <row><cell>a</cell><cell>b</cell></row>
+</tabular>
+<tabular width="10%">
+  <col width="30%" />
+  <col width="30%" />
+  <col width="30%" />
+  <row><cell>a</cell><cell>b</cell><cell>c</cell></row>
 </tabular>`;
         expect(await coreRunner.processToFlatDastAsFragment(source))
             .toMatchInlineSnapshot(`
           "<tabular width="50%"><col width="42.7%"></col><col width="42.7%"></col><row><cell><p>a</p></cell><cell><p>b</p></cell></row></tabular>
-          <tabular><col width="61.8%"></col><col width="30.9%"></col><row><cell><p>a</p></cell><cell><p>b</p></cell></row></tabular>"
+          <tabular><col width="61.8%"></col><col width="30.9%"></col><row><cell><p>a</p></cell><cell><p>b</p></cell></row></tabular>
+          <tabular width="10%"><col></col><col></col><col></col><row><cell>a</cell><cell>b</cell><cell>c</cell></row></tabular>"
         `);
     });
 
