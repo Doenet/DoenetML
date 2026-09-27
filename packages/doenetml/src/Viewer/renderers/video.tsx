@@ -461,8 +461,9 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
             let time = SVs.time ?? 0;
             let duration = player.current.getDuration();
 
-            // An unready player reports a duration of 0; clamping to it would
-            // overwrite the viewer's saved position with 0.
+            // Until the video's metadata loads, the player reports a duration
+            // of 0; clamping to it would overwrite the viewer's saved position
+            // with 0.
             if (duration > 0 && time > duration) {
                 time = Math.floor(duration);
                 callAction({
@@ -477,13 +478,15 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
                     player.current.getPlayerState() === PlayerState.CUED &&
                     SVs.state !== "playing"
                 ) {
-                    // Seeking a cued player drops it to UNSTARTED: a black
-                    // frame with no poster and no controls, which is what a
-                    // viewer restoring a saved position would be left with.
-                    // Cue the video at the offset instead, which keeps the
-                    // player CUED and usable. (Not when it has just been told
-                    // to play above: re-cueing would cancel that play, and a
-                    // seek into a starting video is harmless.)
+                    // Seeking a cued player starts playing it. Where the
+                    // browser blocks autoplay, as it can before the viewer
+                    // clicks the page, it stalls in UNSTARTED: a black frame
+                    // with no poster and no controls, which is what a viewer
+                    // restoring a saved position would be left with. Cue the
+                    // video at the offset instead, which keeps the player
+                    // CUED and usable. (Not when it has been told to play:
+                    // re-cueing would cancel that play, and a seek into a
+                    // starting video is what was asked for.)
                     player.current.cueVideoById({
                         videoId: SVs.youtube,
                         startSeconds: time,

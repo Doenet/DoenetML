@@ -629,15 +629,21 @@ describe("Video Tag Tests", { tags: ["@group2"] }, function () {
                     }
                     seekTo(seconds) {
                         win.fakeYouTubeCalls.push(["seekTo", seconds]);
-                        // What the real player does to a cued video.
+                        // A seek takes the real player out of CUED.
                         this.state = -1;
                     }
                     cueVideoById(args) {
                         win.fakeYouTubeCalls.push(["cueVideoById", args]);
                         this.state = CUED;
                     }
-                    playVideo() {}
-                    pauseVideo() {}
+                    playVideo() {
+                        // Stays CUED, like a real player whose play has not
+                        // taken effect yet.
+                        win.fakeYouTubeCalls.push(["playVideo"]);
+                    }
+                    pauseVideo() {
+                        win.fakeYouTubeCalls.push(["pauseVideo"]);
+                    }
                     destroy() {}
                 }
                 win.YT = {
@@ -661,6 +667,7 @@ describe("Video Tag Tests", { tags: ["@group2"] }, function () {
   <p>Time: <number extend="$v.time" name="time" /></p>
   <p>Duration: <number extend="$v.duration" name="duration" /></p>
   <p>Change time: <mathInput bindValueTo="$v.time" name="mi" /></p>
+  <callAction target="$v" actionName="playVideo" name="playAction"><label>Play</label></callAction>
   `,
                 },
                 "*",
@@ -680,6 +687,28 @@ describe("Video Tag Tests", { tags: ["@group2"] }, function () {
         cy.window().then((win) => {
             expect(win.fakeYouTubeCalls).to.deep.eq([
                 ["cueVideoById", { videoId: "tJ4ypc5L6uU", startSeconds: 60 }],
+            ]);
+        });
+    });
+
+    it("moving a cued youtube video that was asked to play seeks it rather than cueing it", () => {
+        visitWithFakeYouTube({ duration: 300 });
+
+        cy.get("#playAction").click();
+        cy.window().should((win) => {
+            expect(win.fakeYouTubeCalls).to.deep.eq([["playVideo"]]);
+        });
+
+        cy.get("#mi textarea").type("{end}{backspace}60{enter}", {
+            force: true,
+        });
+        cy.get("#time").should("have.text", "60");
+
+        // Cueing here would cancel the play that was just requested.
+        cy.window().then((win) => {
+            expect(win.fakeYouTubeCalls).to.deep.eq([
+                ["playVideo"],
+                ["seekTo", 60],
             ]);
         });
     });
