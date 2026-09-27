@@ -49,6 +49,13 @@ import { printedColumnWidths } from "./column-widths";
  */
 const MAX_COLSPAN = 1000;
 
+/**
+ * Elements the PreTeXt renderers write out as just their children, with no
+ * tag of their own (`PassThroughWithoutTagConverter` in `../renderers.ts`),
+ * so whatever they hold lands directly in the enclosing element.
+ */
+const TAGLESS_ELEMENTS = new Set(["div", "cascade"]);
+
 /** A `colSpan` prop as a number of columns, the way the worker counts them. */
 function effectiveColSpan(colSpan: number | undefined): number {
     return Number.isInteger(colSpan) && colSpan! > 0
@@ -333,14 +340,27 @@ export const Cell: BasicComponentWithPassthroughChildren<CellData> = ({
     // a printed width is wrapped in a `<p>`. A spanning cell needs every
     // column it covers to have one, since PreTeXt counts a column with none
     // as 20% of the line. A cell that already holds paragraphs is left as it
-    // is: a PreTeXt cell holds either paragraphs or inline content.
+    // is: a PreTeXt cell holds either paragraphs or inline content. A
+    // `<p>` inside an element written out with no tag of its own (see
+    // `TAGLESS_ELEMENTS`) lands directly in the cell, so it counts too.
     const hasParagraphChild = useAppSelector((state) => {
         const elementsArray = elementsArraySelector(state);
-        return node.children.some(
-            (child) =>
-                typeof child !== "string" &&
-                elementsArray[child.id]?.name === "p",
-        );
+        const holdsParagraph = (
+            elementChildren: typeof node.children,
+        ): boolean =>
+            elementChildren.some((child) => {
+                if (typeof child === "string") {
+                    return false;
+                }
+                const element = elementsArray[child.id];
+                return (
+                    element?.name === "p" ||
+                    (element != null &&
+                        TAGLESS_ELEMENTS.has(element.name) &&
+                        holdsParagraph(element.children))
+                );
+            });
+        return holdsParagraph(node.children);
     });
     let inWidthColumns = columnIndex != null && lastColumnIndex != null;
     for (

@@ -1087,7 +1087,7 @@ describe("Pretext export", async () => {
     it("tabular cells in columns with widths print as paragraphs", async () => {
         // A cell spanning a column with no width stays bare, since PreTeXt
         // would count that column as 20%; a cell that already holds a
-        // paragraph is left as it is.
+        // paragraph, directly or through a `<div>`, is left as it is.
         source = `<tabular>
   <col width="30%" />
   <col width="70%" />
@@ -1095,11 +1095,12 @@ describe("Pretext export", async () => {
   <row><cell>a</cell><cell><p>b</p></cell><cell>c</cell></row>
   <row><cell colSpan="2">ab</cell><cell>c</cell></row>
   <row><cell>a</cell><cell colSpan="2">bc</cell></row>
+  <row><cell><div><p>a</p></div></cell><cell>b</cell><cell>c</cell></row>
 </tabular>`;
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<tabular><col width="27.81%"></col><col width="64.89%"></col><col></col><row><cell><p>a</p></cell><cell><p>b</p></cell><cell>c</cell></row><row><cell colspan="2"><p>ab</p></cell><cell>c</cell></row><row><cell><p>a</p></cell><cell colspan="2">bc</cell></row></tabular>"`,
+            `"<tabular><col width="27.81%"></col><col width="64.89%"></col><col></col><row><cell><p>a</p></cell><cell><p>b</p></cell><cell>c</cell></row><row><cell colspan="2"><p>ab</p></cell><cell>c</cell></row><row><cell><p>a</p></cell><cell colspan="2">bc</cell></row><row><cell><p>a</p></cell><cell><p>b</p></cell><cell>c</cell></row></tabular>"`,
         );
     });
 
