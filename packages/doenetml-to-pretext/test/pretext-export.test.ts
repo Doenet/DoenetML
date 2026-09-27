@@ -1080,8 +1080,47 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<tabular><col width="25%" top="major"></col><col width="15%" halign="right" right="minor"></col><col></col><row><cell>Pennsylvania</cell><cell>19</cell><cell>Rust Belt</cell></row></tabular>"`,
+            `"<tabular><col width="23.17%" top="major"></col><col width="13.9%" halign="right" right="minor"></col><col></col><row><cell><p>Pennsylvania</p></cell><cell><p>19</p></cell><cell>Rust Belt</cell></row></tabular>"`,
         );
+    });
+
+    it("tabular cells in columns with widths print as paragraphs", async () => {
+        // A cell spanning a column with no width stays bare, since PreTeXt
+        // would count that column as 20%; a cell that already holds a
+        // paragraph is left as it is.
+        source = `<tabular>
+  <col width="30%" />
+  <col width="70%" />
+  <col />
+  <row><cell>a</cell><cell><p>b</p></cell><cell>c</cell></row>
+  <row><cell colSpan="2">ab</cell><cell>c</cell></row>
+  <row><cell>a</cell><cell colSpan="2">bc</cell></row>
+</tabular>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular><col width="27.81%"></col><col width="64.89%"></col><col></col><row><cell><p>a</p></cell><cell><p>b</p></cell><cell>c</cell></row><row><cell colspan="2"><p>ab</p></cell><cell>c</cell></row><row><cell><p>a</p></cell><cell colspan="2">bc</cell></row></tabular>"`,
+        );
+    });
+
+    it("tabular column widths are rescaled for padding and to fit", async () => {
+        // In a half-width tabular the padding is twice the share of the box;
+        // widths over 100% are scaled down, as PreTeXt refuses them.
+        source = `<tabular width="50%">
+  <col width="50%" />
+  <col width="50%" />
+  <row><cell>a</cell><cell>b</cell></row>
+</tabular>
+<tabular>
+  <col width="80%" />
+  <col width="40%" />
+  <row><cell>a</cell><cell>b</cell></row>
+</tabular>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source))
+            .toMatchInlineSnapshot(`
+          "<tabular width="50%"><col width="42.7%"></col><col width="42.7%"></col><row><cell><p>a</p></cell><cell><p>b</p></cell></row></tabular>
+          <tabular><col width="61.8%"></col><col width="30.9%"></col><row><cell><p>a</p></cell><cell><p>b</p></cell></row></tabular>"
+        `);
     });
 
     it("a setting a cell only inherited is written once, on the element that set it", async () => {
