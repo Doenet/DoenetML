@@ -187,6 +187,10 @@ export default class Spreadsheet extends BlockComponent {
         //    (`colNum`, or one past the previous `<column>`, matching
         //    `determineCellMapping`). These win over a `<col>` for the same
         //    column. A `<column>` inside a `<cellBlock>` is not consulted.
+        // A width that is not positive counts as no width. Handsontable reads
+        // a zero width as "use the default" and draws a negative one at some
+        // other size, while stretching still sizes the other columns around
+        // the authored value, so either would scroll the table sideways.
         stateVariableDefinitions.columnWidths = {
             forRenderer: true,
             returnDependencies: () => ({
@@ -202,8 +206,10 @@ export default class Spreadsheet extends BlockComponent {
                 },
             }),
             definition({ dependencyValues }) {
-                const columnWidths = dependencyValues.colChildren.map(
-                    (col) => col.stateValues.width ?? null,
+                const usable = (width) =>
+                    width != null && width.size > 0 ? width : null;
+                const columnWidths = dependencyValues.colChildren.map((col) =>
+                    usable(col.stateValues.width),
                 );
                 let nextColIndex = 0;
                 for (const column of dependencyValues.columnChildren) {
@@ -212,7 +218,7 @@ export default class Spreadsheet extends BlockComponent {
                         colIndex = nextColIndex;
                     }
                     nextColIndex = colIndex + 1;
-                    const width = column.stateValues.width;
+                    const width = usable(column.stateValues.width);
                     if (
                         width != null &&
                         Number.isInteger(colIndex) &&

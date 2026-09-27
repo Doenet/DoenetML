@@ -2533,6 +2533,31 @@ describe("Spreadsheet tag tests @group1", async () => {
         }
     });
 
+    it("a width that is not positive counts as no width", async () => {
+        // Handsontable cannot draw a zero or negative width at that size, so
+        // such a column is sized automatically instead.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <spreadsheet name="ss" minNumColumns="4">
+    <col width="0" />
+    <col width="-10%" />
+    <col width="0%" />
+    <col width="20%" />
+    <column colNum="4" width="-5px" />
+  </spreadsheet>
+  `,
+        });
+
+        const ssIdx = await resolvePathToNodeIdx("ss");
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ssIdx].stateValues.columnWidths).eqls([
+            null,
+            null,
+            null,
+            { size: 20, isAbsolute: false },
+        ]);
+    });
+
     it("a column's width is available as a property", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
