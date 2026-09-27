@@ -129922,6 +129922,9 @@
                 },
                 {
                     "ref": "cellBlock"
+                },
+                {
+                    "ref": "col"
                 }
             ],
             "textChildrenAllowed": false,
@@ -131528,6 +131531,12 @@
                         "string"
                     ]
                 },
+                "width": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
                 "functionSymbols": {
                     "optional": true,
                     "type": [
@@ -131618,6 +131627,13 @@
                     "type": "text",
                     "isArray": false,
                     "description": "Column number where this column is placed (1-based).",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "width",
+                    "type": "componentSize",
+                    "isArray": false,
+                    "description": "Display width of this column. Expressed as a percentage of the width of the spreadsheet so that it survives conversion to PreTeXt.",
                     "fromAttribute": true
                 },
                 {
@@ -131777,7 +131793,7 @@
                     "name": "width",
                     "type": "componentSize",
                     "isArray": false,
-                    "description": "Display width of this column. Expressed as a percentage of the width of the tabular layout so that it survives conversion to PreTeXt.",
+                    "description": "Display width of this column. Expressed as a percentage of the width of the tabular layout or spreadsheet so that it survives conversion to PreTeXt.",
                     "fromAttribute": true
                 },
                 {
