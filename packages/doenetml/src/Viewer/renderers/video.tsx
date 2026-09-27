@@ -478,15 +478,15 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
                     player.current.getPlayerState() === PlayerState.CUED &&
                     SVs.state !== "playing"
                 ) {
-                    // Seeking a cued player starts playing it. Where the
-                    // browser blocks autoplay, as it can before the viewer
-                    // clicks the page, it stalls in UNSTARTED: a black frame
-                    // with no poster and no controls, which is what a viewer
-                    // restoring a saved position would be left with. Cue the
-                    // video at the offset instead, which keeps the player
-                    // CUED and usable. (Not when it has been told to play:
-                    // re-cueing would cancel that play, and a seek into a
-                    // starting video is what was asked for.)
+                    // Seeking a cued player starts playing it (YouTube
+                    // documents this). Viewers restoring a saved position
+                    // this way were left with a black frame with no poster
+                    // and no controls. A browser blocking that autoplay is
+                    // the likely cause, but it has not been reproduced. Cue
+                    // the video at the offset instead, which keeps the
+                    // player CUED and usable. (Not when it has been told to
+                    // play: re-cueing would cancel that play, and a seek into
+                    // a starting video is what was asked for.)
                     player.current.cueVideoById({
                         videoId: SVs.youtube,
                         startSeconds: time,
