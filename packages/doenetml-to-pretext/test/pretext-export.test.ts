@@ -523,6 +523,20 @@ describe("Pretext export", async () => {
         `);
     });
 
+    it("spreadsheet row numbers get the room they need in print", async () => {
+        // On a 1000px spreadsheet the 50px row-label strip is only 5%, less
+        // than LaTeX needs for the number "10" and the padding around it, so
+        // the row-number column gets what it needs instead.
+        source = `<spreadsheet minNumRows="10" minNumColumns="2" columnHeaders="false" width="1000px">
+  <col width="35%" />
+  <col width="65%" />
+</spreadsheet>`;
+        const result = await coreRunner.processToFlatDastAsFragment(source);
+        expect(result).toMatch(
+            /^<tabular><col><\/col><col width="29.97%"><\/col><col width="55.67%"><\/col>/,
+        );
+    });
+
     it("spreadsheet widths over 100% are scaled to fit", async () => {
         // PreTeXt refuses a tabular whose `<col>` widths add up to over 100%.
         source = `<spreadsheet minNumRows="1" minNumColumns="3" columnHeaders="false">

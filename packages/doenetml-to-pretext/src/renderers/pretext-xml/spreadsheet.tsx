@@ -27,6 +27,9 @@ const ROW_HEADER_PIXELS = 50;
  */
 const ASSUMED_PAGE_PIXELS = 600;
 
+/** The width, in points, of the line in PreTeXt's default LaTeX article. */
+const LINE_POINTS = 340;
+
 /**
  * The share of the printed line, as a percentage, that LaTeX spends on the
  * padding and rule around each column: 6pt of `\tabcolsep` on each side and a
@@ -34,7 +37,16 @@ const ASSUMED_PAGE_PIXELS = 600;
  * it outside a paragraph cell's width, where the viewer counts a cell's
  * padding inside it, so widths totalling 100% would overrun the line by it.
  */
-const COLUMN_PADDING_PERCENT = (12.4 / 340) * 100;
+const COLUMN_PADDING_PERCENT = (12.4 / LINE_POINTS) * 100;
+
+/**
+ * The width, in points, of a row number in PreTeXt's default LaTeX font: the
+ * numbers are emphasized, and measure 5.11pt a digit plus 1.35pt of italic
+ * correction (11.57pt for "10", 21.80pt for "1000").
+ */
+function rowNumberPoints(numDigits: number) {
+    return 5.11 * numDigits + 1.35;
+}
 
 export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
     const clonedCellData = node.data.props.cells.map((row) => [...row]);
@@ -118,7 +130,10 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
             0,
             100 -
                 (includeRowHeaders
-                    ? rowHeaderPercent(node.data.props.width)
+                    ? rowHeaderPercent(
+                          node.data.props.width,
+                          node.data.props.cells.length,
+                      )
                     : 0) -
                 numWithWidth * COLUMN_PADDING_PERCENT,
         );
@@ -230,15 +245,26 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
  * of the table they have on screen: the row-label strip's fixed pixels as a
  * fraction of the spreadsheet's width, or of an assumed page width when the
  * spreadsheet's width is itself a percentage.
+ *
+ * Never less than the column needs in print, though. LaTeX sets it at its
+ * natural width, its widest number plus the padding around it, whatever
+ * share it was left, so a wide spreadsheet (where 50px is a small share)
+ * would otherwise overrun the line.
  */
 function rowHeaderPercent(
     width: { size: number; isAbsolute: boolean } | undefined,
+    numRows: number,
 ): number {
     const totalPixels =
         width?.isAbsolute && width.size > ROW_HEADER_PIXELS
             ? width.size
             : ASSUMED_PAGE_PIXELS;
-    return (ROW_HEADER_PIXELS / totalPixels) * 100;
+    const onScreen = (ROW_HEADER_PIXELS / totalPixels) * 100;
+    const numDigits = String(Math.max(numRows, 1)).length;
+    const inPrint =
+        COLUMN_PADDING_PERCENT +
+        (rowNumberPoints(numDigits) / LINE_POINTS) * 100;
+    return Math.max(onScreen, inPrint);
 }
 
 /**
