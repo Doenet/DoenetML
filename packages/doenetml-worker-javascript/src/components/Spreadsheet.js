@@ -126,6 +126,10 @@ export default class Spreadsheet extends BlockComponent {
                 componentTypes: ["cellBlock"],
             },
             {
+                group: "cols",
+                componentTypes: ["col"],
+            },
+            {
                 group: "dataFrames",
                 componentTypes: ["dataFrame"],
             },
@@ -170,6 +174,57 @@ export default class Spreadsheet extends BlockComponent {
                         cellIndicesByRowCol: result.cellIndicesByRowCol,
                     },
                 };
+            },
+        };
+
+        // One entry per column that has been given a width setting, left to
+        // right: a `componentSize`, or `null` for a column left alone. Widths
+        // come from two places, which spell the attribute identically:
+        //  - `<col width="…">` children, as in a `<tabular>`, the nth `<col>`
+        //    applying to the nth column. Every `<col>` counts, including an
+        //    empty placeholder, because that is how one reaches column 3.
+        //  - `<column width="…">` children, at the column they are placed in
+        //    (`colNum`, or one past the previous `<column>`, matching
+        //    `determineCellMapping`). These win over a `<col>` for the same
+        //    column. A `<column>` inside a `<cellBlock>` is not consulted.
+        stateVariableDefinitions.columnWidths = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                colChildren: {
+                    dependencyType: "child",
+                    childGroups: ["cols"],
+                    variableNames: ["width"],
+                },
+                columnChildren: {
+                    dependencyType: "child",
+                    childGroups: ["columns"],
+                    variableNames: ["colNum", "width"],
+                },
+            }),
+            definition({ dependencyValues }) {
+                const columnWidths = dependencyValues.colChildren.map(
+                    (col) => col.stateValues.width ?? null,
+                );
+                let nextColIndex = 0;
+                for (const column of dependencyValues.columnChildren) {
+                    let colIndex = normalizeIndex(column.stateValues.colNum);
+                    if (colIndex === undefined) {
+                        colIndex = nextColIndex;
+                    }
+                    nextColIndex = colIndex + 1;
+                    const width = column.stateValues.width;
+                    if (
+                        width != null &&
+                        Number.isInteger(colIndex) &&
+                        colIndex >= 0
+                    ) {
+                        while (columnWidths.length < colIndex) {
+                            columnWidths.push(null);
+                        }
+                        columnWidths[colIndex] = width;
+                    }
+                }
+                return { setValue: { columnWidths } };
             },
         };
 
@@ -242,12 +297,22 @@ export default class Spreadsheet extends BlockComponent {
                     childGroups: ["dataFrames"],
                     variableNames: ["numColumns"],
                 },
+                columnWidths: {
+                    dependencyType: "stateVariable",
+                    variableName: "columnWidths",
+                },
             }),
             definition({ dependencyValues }) {
                 let numColumns = dependencyValues.minNumColumns;
                 if (!Number.isFinite(numColumns)) {
                     numColumns = 4;
                 }
+                // A column given a width exists even if it is still empty,
+                // as a `<col>` makes a column of a `<tabular>`.
+                numColumns = Math.max(
+                    numColumns,
+                    dependencyValues.columnWidths.length,
+                );
                 for (let row of dependencyValues.cellIndicesByRowCol) {
                     if (row) {
                         numColumns = Math.max(numColumns, row.length);

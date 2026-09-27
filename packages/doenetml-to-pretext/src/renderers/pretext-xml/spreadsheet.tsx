@@ -9,6 +9,7 @@ type SpreadsheetData = {
         hiddenRows: number[];
         hiddenColumns: number[];
         cellsInHeader: boolean[][];
+        columnWidths?: ({ size: number; isAbsolute: boolean } | null)[];
     };
 };
 
@@ -39,8 +40,46 @@ export const Spreadsheet: BasicComponent<SpreadsheetData> = ({ node }) => {
         });
     }
 
+    // PreTeXt takes column widths only as percentages, and once one `<col>`
+    // is written it wants one per column, so write a `<col>` for every
+    // column that is drawn (the generated row-number column included) as
+    // soon as any column has a percentage width. A width in pixels has no
+    // PreTeXt equivalent and is dropped, as it is for a `<tabular>`.
+    const columnWidths = node.data.props.columnWidths ?? [];
+    const hasPretextWidth = columnWidths.some(
+        (width) => width != null && !width.isAbsolute,
+    );
+    const cols: React.ReactNode[] = [];
+    if (hasPretextWidth) {
+        const numColumns = clonedCellData[0]?.length ?? 0;
+        for (let colIndex = 0; colIndex < numColumns; colIndex++) {
+            const spreadsheetColIndex = includeRowHeaders
+                ? colIndex
+                : colIndex + 1;
+            if (hiddenColumns.includes(spreadsheetColIndex)) {
+                continue;
+            }
+            const width =
+                spreadsheetColIndex === 0
+                    ? null
+                    : columnWidths[spreadsheetColIndex - 1];
+            // `createElement` because `col` is also an HTML element, whose
+            // React typing rejects PreTeXt's attributes (see `tabular.tsx`).
+            cols.push(
+                React.createElement("col", {
+                    key: colIndex,
+                    width:
+                        width && !width.isAbsolute
+                            ? `${width.size}%`
+                            : undefined,
+                }),
+            );
+        }
+    }
+
     return (
         <tabular>
+            {cols}
             {clonedCellData.map((row, rowIndex) => {
                 const inHeaderRow = includeColumnHeaders && rowIndex === 0;
                 const spreadsheetRowIndex = includeColumnHeaders

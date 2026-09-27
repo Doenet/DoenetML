@@ -25,6 +25,19 @@ export default class Column extends BaseComponent {
             defaultValue: null,
             public: true,
         };
+        // The same attribute as `<col width>` in a `<tabular>`, so that a
+        // column width is spelled one way everywhere. A `<spreadsheet>`
+        // accepts `<col>` children too; this is the shorthand for a column
+        // that is already written out as a `<column>`.
+        attributes.width = {
+            description:
+                "Display width of this column. Expressed as a percentage of the width of the spreadsheet so that it survives conversion to PreTeXt.",
+            createComponentOfType: "componentSize",
+            createStateVariable: "width",
+            defaultValue: null,
+            public: true,
+            highlighted: true,
+        };
 
         // Workaround for <column> in matrix, which is sugared into
         // <matrixColumn>. The runtime validates attributes in

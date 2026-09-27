@@ -25,13 +25,17 @@ import {
  *
  * `<col>` contributes settings, not content, so it has no renderer of its own
  * — the `<tabular>` draws the `<colgroup>` from `columnSpecs`.
+ *
+ * A `<spreadsheet>` accepts `<col>` too, so that a column width is written
+ * the same way in both, but reads only its `width` (into `columnWidths`):
+ * Handsontable draws a spreadsheet's alignment and borders itself.
  */
 export default class Col extends BaseComponent {
     static componentType = "col";
 
     static componentDocs = {
         summary:
-            "Width, alignment, and border settings for one column of a tabular layout",
+            "Width, alignment, and border settings for one column of a tabular layout, or the width of one column of a spreadsheet",
     };
 
     static rendererType = undefined;
@@ -40,7 +44,7 @@ export default class Col extends BaseComponent {
         let attributes = super.createAttributesObject();
         attributes.width = {
             description:
-                "Display width of this column. Expressed as a percentage of the width of the tabular layout so that it survives conversion to PreTeXt.",
+                "Display width of this column. Expressed as a percentage of the width of the tabular layout or spreadsheet so that it survives conversion to PreTeXt.",
             createComponentOfType: "componentSize",
             createStateVariable: "width",
             defaultValue: null,

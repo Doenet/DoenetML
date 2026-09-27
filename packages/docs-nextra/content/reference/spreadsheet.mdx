@@ -166,6 +166,33 @@ individual `<cell>{:dn}` children.
 
 ---
 
+### Example: setting column widths
+
+
+```doenet-editor-horiz
+<spreadsheet columnHeaders="false" rowHeaders="false" minNumColumns="2">
+  <col width="35%" />
+  <col width="65%" />
+  <row><cell fixed>Candidates:</cell></row>
+  <row><cell fixed>Voters:</cell></row>
+  <row><cell fixed>Outcome:</cell></row>
+</spreadsheet>
+```
+
+
+
+Without widths, each column is sized to fit its contents, so a column left
+empty for students to type into is drawn narrow. A [`<col>{:dn}`](col) per
+column sets the widths, exactly as it does in a [`<tabular>{:dn}`](tabular):
+the `<col>{:dn}` components apply to the columns in order, and each `width` is
+a percentage of the width of the spreadsheet. A column that is already written
+out as a [`<column>{:dn}`](column_table) can instead take the same `width`
+attribute itself.
+
+
+
+---
+
 ### Example: using spreadsheets for computations
 
 

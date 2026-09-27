@@ -476,6 +476,37 @@ describe("Pretext export", async () => {
         `);
     });
 
+    it("spreadsheet column widths become <col> widths", async () => {
+        // One `<col>` per drawn column: none for the hidden column C, an empty
+        // one for the generated row-number column, and a percentage for each
+        // column that has one. The pixel width of D has no PreTeXt spelling.
+        source = `<spreadsheet minNumRows="1" minNumColumns="4" hiddenColumns="3">
+  <col width="30%" />
+  <col />
+  <col width="10%" />
+  <column colNum="B" width="50%" />
+  <column colNum="D" width="80px" />
+  <row><cell>a</cell></row>
+</spreadsheet>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular><col></col><col width="30%"></col><col width="50%"></col><col></col><row header="yes" bottom="minor"><cell right="minor"><em></em></cell><cell right="minor">A</cell><cell right="minor">B</cell><cell right="minor">D</cell></row><row bottom="minor"><cell right="minor"><em>1</em></cell><cell right="minor">a</cell><cell right="minor"></cell><cell right="minor"></cell></row></tabular>"`,
+        );
+    });
+
+    it("spreadsheet without a percentage width writes no <col>", async () => {
+        source = `<spreadsheet minNumRows="1" minNumColumns="2" columnHeaders="false" rowHeaders="false">
+  <col width="80px" />
+  <row><cell>a</cell></row>
+</spreadsheet>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<tabular><row bottom="minor"><cell right="minor">a</cell><cell right="minor"></cell></row></tabular>"`,
+        );
+    });
+
     it("spreadsheet header row is emphasized", async () => {
         source = `<spreadsheet minNumRows="2" minNumColumns="2" columnHeaders="false" rowHeaders="false">
   <row header>
