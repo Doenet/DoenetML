@@ -133,8 +133,12 @@ export default class Feedback extends BlockComponent {
         // `$award.feedback` for an award with no feedback, so it is hidden.
         // A plain copy (from `extend`, a reference, or `<shuffle>`) has no
         // prop variable of its own and inherits the value from its source,
-        // so a copy of an empty prop is hidden too.
+        // so a copy of an empty prop is hidden too. A `copy` of a feedback
+        // does not follow its source, so it keeps the value its source had
+        // when it was copied, from its essential state.
         stateVariableDefinitions.fromEmptyProp = {
+            defaultValue: false,
+            hasEssential: true,
             returnDependencies: () => ({
                 propShadowSource: {
                     dependencyType: "shadowSource",
@@ -158,13 +162,19 @@ export default class Feedback extends BlockComponent {
                     };
                 }
 
+                if (dependencyValues.copySource) {
+                    return {
+                        setValue: {
+                            fromEmptyProp: Boolean(
+                                dependencyValues.copySource.stateValues
+                                    ?.fromEmptyProp,
+                            ),
+                        },
+                    };
+                }
+
                 return {
-                    setValue: {
-                        fromEmptyProp: Boolean(
-                            dependencyValues.copySource?.stateValues
-                                ?.fromEmptyProp,
-                        ),
-                    },
+                    useEssentialOrDefaultValue: { fromEmptyProp: true },
                 };
             },
         };
