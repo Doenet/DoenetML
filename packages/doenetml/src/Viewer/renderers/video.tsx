@@ -55,6 +55,24 @@ export default React.memo(function Video(props: UseDoenetRendererProps) {
     // network request to youtube.com.
     const ytReady = useYouTubeApi(Boolean(SVs.youtube));
 
+    // Tell the core when the video itself is replaced, so it can drop the
+    // playback state belonging to the old one (see `recordVideoSourceChanged`).
+    // Declared before the player effect below so the reset is dispatched before
+    // a player for the new source can exist to be seeked.
+    const lastVideoSource = useRef<string | null | undefined>(undefined);
+    useEffect(() => {
+        const videoSource = SVs.youtube ?? SVs.source ?? null;
+        const previous = lastVideoSource.current;
+        lastVideoSource.current = videoSource;
+        // `undefined` is the first render for this component: whatever is in
+        // `time`/`segmentsWatched` came from saved state and describes the
+        // video about to be shown, so a reload still resumes where the viewer
+        // left off.
+        if (previous !== undefined && previous !== videoSource) {
+            callAction({ action: actions.recordVideoSourceChanged });
+        }
+    }, [SVs.youtube, SVs.source]);
+
     useEffect(() => {
         if (!SVs.youtube || !ytReady || !window.YT) {
             return;
