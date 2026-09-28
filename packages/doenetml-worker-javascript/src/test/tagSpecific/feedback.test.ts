@@ -2528,4 +2528,90 @@ describe("Feedback tag tests @group1", async () => {
         });
         await check_hidden(false);
     });
+    it("copies of an award's feedback hide when the award has none", async () => {
+        // A copy of `$award.feedback` is not itself a prop shadow, so it
+        // must inherit the hiding from its source rather than showing an
+        // empty feedback.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <p><answer name="ans">
+    <mathInput name="mi" />
+    <award name="award1" feedbackText="good"><math>x</math></award>
+    <award credit="0.5"><math>y</math></award>
+  </answer></p>
+  <feedback extend="$award1.feedback" name="f1" />
+  <feedback extend="$f1" name="f2" />
+  <feedback extend="$f2" name="f3" />
+  <p name="p">$f1</p>
+  <div name="d"><shuffle><feedback extend="$f1" /><p>A</p></shuffle></div>
+  `,
+        });
+
+        async function check_hidden(hidden: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const copies = [
+                ...["f1", "f2", "f3"].map(
+                    async (name) =>
+                        stateVariables[await resolvePathToNodeIdx(name)],
+                ),
+                ...["p", "d"].map(async (name) =>
+                    componentChildren(
+                        stateVariables[await resolvePathToNodeIdx(name)],
+                        stateVariables,
+                    ).find((comp) => comp.componentType === "feedback"),
+                ),
+            ];
+            for (const comp of await Promise.all(copies)) {
+                expect(comp.stateValues.hidden).eq(hidden);
+            }
+        }
+
+        await check_hidden(true);
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
+        // The shuffled copy is checked only above: once the award's feedback
+        // changes, the shuffle no longer renders that copy, which is a
+        // separate problem from hiding.
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["f1", "f2", "f3"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .hidden,
+            ).eq(false);
+        }
+        expect(
+            componentChildren(
+                stateVariables[await resolvePathToNodeIdx("p")],
+                stateVariables,
+            )[0].stateValues.hidden,
+        ).eq(false);
+
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
+        const stateVariables2 = await core.returnAllStateVariables(false, true);
+        for (const name of ["f1", "f2", "f3"]) {
+            expect(
+                stateVariables2[await resolvePathToNodeIdx(name)].stateValues
+                    .hidden,
+            ).eq(true);
+        }
+    });
 });

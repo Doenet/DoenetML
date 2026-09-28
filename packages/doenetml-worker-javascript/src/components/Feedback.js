@@ -129,6 +129,46 @@ export default class Feedback extends BlockComponent {
             },
         };
 
+        // True when this feedback comes from an empty prop, such as
+        // `$award.feedback` for an award with no feedback, so it is hidden.
+        // A plain copy (from `extend`, a reference, or `<shuffle>`) has no
+        // prop variable of its own and inherits the value from its source,
+        // so a copy of an empty prop is hidden too.
+        stateVariableDefinitions.fromEmptyProp = {
+            returnDependencies: () => ({
+                propShadowSource: {
+                    dependencyType: "shadowSource",
+                    givePropVariableValue: true,
+                },
+                copySource: {
+                    dependencyType: "shadowSource",
+                    variableNames: ["fromEmptyProp"],
+                },
+            }),
+            definition: function ({ dependencyValues }) {
+                // Only a prop shadow gets the prop variable's value
+                const propValues =
+                    dependencyValues.propShadowSource?.stateValues;
+                if (propValues && Object.keys(propValues).length > 0) {
+                    return {
+                        setValue: {
+                            fromEmptyProp:
+                                Object.values(propValues)[0] == undefined,
+                        },
+                    };
+                }
+
+                return {
+                    setValue: {
+                        fromEmptyProp: Boolean(
+                            dependencyValues.copySource?.stateValues
+                                ?.fromEmptyProp,
+                        ),
+                    },
+                };
+            },
+        };
+
         stateVariableDefinitions.hide = {
             forRenderer: true,
             defaultValue: true,
@@ -147,9 +187,9 @@ export default class Feedback extends BlockComponent {
                     dependencyType: "flag",
                     flagName: "showFeedback",
                 },
-                shadowSource: {
-                    dependencyType: "shadowSource",
-                    givePropVariableValue: true,
+                fromEmptyProp: {
+                    dependencyType: "stateVariable",
+                    variableName: "fromEmptyProp",
                 },
             }),
             definition: function ({ dependencyValues }) {
@@ -163,16 +203,7 @@ export default class Feedback extends BlockComponent {
                     return { setValue: { hide: true } };
                 }
 
-                // A prop shadow (e.g., `$award.feedback`) is hidden when the
-                // prop is empty. A plain copy (from `extend` or `<shuffle>`)
-                // has no prop variable, so `stateValues` is absent and the
-                // copy falls through to its own condition.
-                const shadowValues = dependencyValues.shadowSource?.stateValues;
-                if (
-                    shadowValues &&
-                    Object.keys(shadowValues).length > 0 &&
-                    Object.values(shadowValues)[0] == undefined
-                ) {
+                if (dependencyValues.fromEmptyProp) {
                     return { setValue: { hide: true } };
                 }
 
