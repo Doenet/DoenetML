@@ -8,4 +8,4 @@
 
 Viewer: show a `<mathInput>`'s empty slots in dark mode.
 
-When a `<mathInput>` is prefilled with a template that has empty slots — an empty fraction, say, or an empty exponent — each slot is drawn as a shaded box showing the reader where to type. The box was a fixed translucent black, which disappeared against the dark canvas. It is now tinted with the text color, so it shows in both themes, and it is shaded more strongly than before so that it meets WCAG's 3:1 non-text contrast against the canvas in light mode as well as dark.
+When a `<mathInput>` is prefilled with a template that has empty slots — an empty fraction, say, or an empty exponent — each slot is drawn as a shaded box showing the reader where to type. The box was a fixed translucent black, which disappeared against the dark canvas. It is now tinted with the text color, so it shows in both themes. In light mode it looks almost as it did before, only slightly darker.
