@@ -401,6 +401,53 @@ describe("v06 to v07 update", () => {
         expect(await updateSyntax(source)).toEqual(correctSource);
     });
 
+    it("puts the copy for a macro in an attribute inside the module it is in", async () => {
+        // A module's attributes cannot be seen from outside it, so the copy has to be
+        // inside for `$initialValue` to mean the module's own.
+        source = `<module name="m"><setup><customAttribute componentType="number" attribute="initialValue" defaultValue="0" assignNames="initialValue" /></setup><point x="$(initialValue{link='false'})" /></module>`;
+        correctSource = `<module name="m"><setup><number copy="$initialValue" name="ref1" /></setup><moduleAttributes><number name="initialValue">0</number></moduleAttributes><point x="$ref1" /></module>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("puts the copy for a macro in an attribute inside the repeat it is in", async () => {
+        // Each iteration needs its own copy of its own `$v`.
+        source = `<map><template><point x="$(v{link='false'})" /></template><sources alias="v"><sequence from="1" to="2" /></sources></map>`;
+        correctSource = `<repeatForSequence from="1" to="2" valueName="v"><setup><number copy="$v" name="ref1" /></setup><point x="$ref1" /></repeatForSequence>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // An attribute of the repeat itself is evaluated outside it.
+        source = `<number name="n">3</number><map><template><p>$v</p></template><sources alias="v"><sequence from="1" to="$(n{link='false'})" /></sources></map>`;
+        correctSource = `<setup><number copy="$n" name="ref1" /></setup><number name="n">3</number><repeatForSequence from="1" to="$ref1" valueName="v"><p>$v</p></repeatForSequence>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("copy of a whole array prop keeps every entry", async () => {
+        const poly = `<polygon name="poly" vertices="(1,2) (3,4)" />`;
+
+        // `<point extend="$poly.vertices" />` would be a single point.
+        source = `${poly}<copy prop="vertices" source="poly" />`;
+        correctSource = `${poly}$poly.vertices`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // With something more to say, it becomes the matching list.
+        source = `${poly}<copy prop="vertices" source="poly" assignNames="vs" />`;
+        correctSource = `${poly}<pointList extend="$poly.vertices" name="vs" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        source = `${poly}<copy prop="vertices" source="poly" link="false" />`;
+        correctSource = `${poly}<pointList copy="$poly.vertices" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        source = `<point name="P">(1,2)</point>$(P.xs{displayDigits="3"})`;
+        correctSource = `<point name="P">(1,2)</point><mathList displayDigits="3" extend="$P.xs" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // A single entry is still a single component.
+        source = `${poly}<copy prop="vertex2" source="poly" />`;
+        correctSource = `${poly}<point extend="$poly.vertex2" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
     it("can convert function macros", async () => {
         source = `$$f(2)`;
         correctSource = `$$f(2)`;
@@ -473,6 +520,50 @@ describe("v06 to v07 update", () => {
         correctSource = `
         <setup><group name="group"><number>3</number><number>4</number></group></setup><repeat for="$group" name="items" valueName="v" indexName="i"><math name="m">$v^2</math><number name="n">$i^2</number></repeat>
         $items[1].m $items[1].n $items[2].m $items[2].n`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("map over references iterates over them directly", async () => {
+        const cobweb = `<graph><cobwebPolyline name="c" function="x(4-x)" /></graph>`;
+
+        // A copy of a whole list goes straight into `for`, and the `valueName`
+        // then has the type of the list's entries.
+        source = `${cobweb}<map><template><p>$(x{displayDigits="5"}) $(i{displayDigits="2"})</p></template><sources alias="x" indexAlias="i"><copy prop="iterateValues" source="c" /></sources></map>`;
+        correctSource = `${cobweb}<repeat for="$c.iterateValues" valueName="x" indexName="i"><p><math displayDigits="5" extend="$x" /> <number displayDigits="2" extend="$i" /></p></repeat>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // Several references, written bare or as a copy of a component.
+        source = `<mathList name="l">1 2</mathList><math name="m">3</math><map><template><p>$(x{displayDigits="5"})</p></template><sources alias="x"><copy source="l" /> $m</sources></map>`;
+        correctSource = `<mathList name="l">1 2</mathList><math name="m">3</math><repeat for="$l $m" valueName="x"><p><copy displayDigits="5" source="$x" /></p></repeat>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // The entries of a single list have its item type.
+        source = `<mathList name="l">1 2</mathList><map><template><p>$(x{displayDigits="5"})</p></template><sources alias="x"><copy source="l" /></sources></map>`;
+        correctSource = `<mathList name="l">1 2</mathList><repeat for="$l" valueName="x"><p><math displayDigits="5" extend="$x" /></p></repeat>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // Written components still need the group.
+        source = `<map><template><p>$x</p></template><sources alias="x"><math>1</math>$y</sources></map>`;
+        correctSource = `<setup><group name="group"><math>1</math>$y</group></setup><repeat for="$group" valueName="x"><p>$x</p></repeat>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // So does a copy that says more than what it refers to.
+        source = `<mathList name="l">1 2</mathList><map><template><p>$x</p></template><sources alias="x"><copy source="l" displayDigits="2" /></sources></map>`;
+        correctSource = `<mathList name="l">1 2</mathList><setup><group name="group"><mathList extend="$l" displayDigits="2" /></group></setup><repeat for="$group" valueName="x"><p>$x</p></repeat>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // Without resolving copies, sources that were bare references still fold in.
+        source = `<map><template><p>$x</p></template><sources alias="x">$c.iterateValues</sources></map>`;
+        correctSource = `<repeat for="$c.iterateValues" valueName="x"><p>$x</p></repeat>`;
+        expect(
+            await updateSyntax(source, { doNotUpgradeCopyTags: true }),
+        ).toEqual(correctSource);
+    });
+
+    it("a repeat alias hides a component of the same name", async () => {
+        // `$x` in the template is the repeat's value, not the `<text>` outside.
+        source = `<text name="x">hi</text><mathList name="l">1 2</mathList><map><template><p>$(x{displayDigits="5"})</p></template><sources alias="x"><copy source="l" /></sources></map>`;
+        correctSource = `<text name="x">hi</text><mathList name="l">1 2</mathList><repeat for="$l" valueName="x"><p><math displayDigits="5" extend="$x" /></p></repeat>`;
         expect(await updateSyntax(source)).toEqual(correctSource);
     });
 

@@ -90,7 +90,10 @@ export const upgradeAttributeSyntax: Plugin<
 
         // If macros with attributes appear in an element's attribute,
         // we need to create a setup tag for them.
-        const macrosInAttributes: { node: DastMacro }[] = [];
+        const macrosInAttributes: {
+            node: DastMacro;
+            container: DastElement | undefined;
+        }[] = [];
         visit(tree, (node, info) => {
             if (!isDastElement(node)) {
                 return;
@@ -103,6 +106,9 @@ export const upgradeAttributeSyntax: Plugin<
                     ) {
                         macrosInAttributes.push({
                             node: n,
+                            container: findSetupContainer(
+                                info.parents as DastElement[],
+                            ),
                         });
                     }
                 }
@@ -150,13 +156,20 @@ export const upgradeAttributeSyntax: Plugin<
             usedNames.add(name);
             return name;
         }
-        const setupTag: DastElement = {
-            type: "element",
-            name: "setup",
-            attributes: {},
-            children: [],
-        };
-        for (const { node: macroNode } of macrosInAttributes) {
+        // One `<setup>` per container, so each copy lands where the attribute that
+        // used it could see the same names. `undefined` stands for the document.
+        const setupTags = new Map<DastElement | undefined, DastElement>();
+        for (const { node: macroNode, container } of macrosInAttributes) {
+            let setupTag = setupTags.get(container);
+            if (!setupTag) {
+                setupTag = {
+                    type: "element",
+                    name: "setup",
+                    attributes: {},
+                    children: [],
+                };
+                setupTags.set(container, setupTag);
+            }
             const copy: DastElement = {
                 type: "element",
                 name: "copy",
@@ -200,9 +213,32 @@ export const upgradeAttributeSyntax: Plugin<
             documentElement = tree;
         }
 
-        documentElement.children.unshift(setupTag);
+        for (const [container, setupTag] of setupTags) {
+            (container ?? documentElement).children.unshift(setupTag);
+        }
     };
 };
+
+/**
+ * Elements whose names cannot be seen from outside them, so a copy made for an
+ * attribute inside one has to be put inside it too. A `<module>` keeps its attributes
+ * and setup to itself, and each iteration of a `<repeat>` has its own `valueName`, which
+ * the copy may well refer to.
+ */
+const SCOPING_CONTAINERS = new Set(["module", "repeat", "repeatForSequence"]);
+
+/**
+ * The nearest ancestor that scopes names, or `undefined` for the document.
+ *
+ * `parents` runs nearest first and leaves out the element carrying the attribute, which
+ * is right: `<repeat for="$(x{...})">` evaluates `for` from outside the repeat.
+ */
+function findSetupContainer(parents: DastElement[]): DastElement | undefined {
+    return parents.find(
+        (parent) =>
+            isDastElement(parent) && SCOPING_CONTAINERS.has(parent.name),
+    );
+}
 
 /**
  * Report an assigned name that the generated copy could not take.
