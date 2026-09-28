@@ -2728,4 +2728,75 @@ describe("Feedback tag tests @group1", async () => {
         });
         await check_hidden(false);
     });
+
+    it("an index into a shuffle follows its items after a copy is recreated", async () => {
+        // The recreated copy takes the place of the deleted one among the
+        // shuffle's indices, so `$sh[n]` still refers to the nth item shown.
+        // Variant 4 shuffles both feedbacks ahead of the texts.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <p><answer name="ans">
+    <mathInput name="mi" />
+    <award name="award1" feedbackText="good"><math>x</math></award>
+  </answer></p>
+  <div name="d"><shuffle name="sh">
+    <text>A</text>
+    <feedback extend="$award1.feedback" />
+    <text>B</text>
+    <feedback extend="$award1.feedback" />
+    <text>C</text>
+  </shuffle></div>
+  <div name="d2"><shuffle name="sh2" extend="$sh" /></div>
+  <div name="r">$sh[1] $sh[2] $sh[3] $sh[4] $sh[5]</div>
+  <div name="r2">$sh2[1] $sh2[2] $sh2[3] $sh2[4] $sh2[5]</div>
+  `,
+            requestedVariantIndex: 4,
+        });
+
+        async function check_indices(feedbackText: string | null) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const describeItems = async (name: string) =>
+                componentChildren(
+                    stateVariables[await resolvePathToNodeIdx(name)],
+                    stateVariables,
+                ).map((comp) =>
+                    comp.componentType === "feedback"
+                        ? comp.stateValues.hidden
+                            ? "hidden"
+                            : comp.stateValues.feedbackText
+                        : comp.stateValues.value,
+                );
+
+            const shown = await describeItems("d");
+            expect(shown.slice(0, 2)).eqls([
+                feedbackText ?? "hidden",
+                feedbackText ?? "hidden",
+            ]);
+            expect(shown.slice(2).sort()).eqls(["A", "B", "C"]);
+            for (const name of ["d2", "r", "r2"]) {
+                expect(await describeItems(name)).eqls(shown);
+            }
+        }
+
+        await check_indices(null);
+
+        for (const [latex, feedbackText] of [
+            ["x", "good"],
+            ["y", null],
+        ] as const) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+            await submitAnswer({
+                componentIdx: await resolvePathToNodeIdx("ans"),
+                core,
+            });
+            await check_indices(feedbackText);
+        }
+    });
 });

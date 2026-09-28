@@ -447,12 +447,15 @@ export default class Shuffle extends CompositeComponent {
             });
             nComponents = res.nComponents;
 
-            // Earlier changes have already filled every position before `ind`
+            // Earlier changes have already filled every position before `ind`.
+            // Nothing is left to delete, but the deleted copy still holds
+            // its place in the resolver, so `$sh[n]` would still count it.
             replacementChanges.push({
                 changeType: "add",
                 changeTopLevelReplacements: true,
                 firstReplacementInd: ind,
                 numberReplacementsToReplace: 0,
+                numberDeletedReplacementsToReplace: 1,
                 serializedReplacements: res.replacements,
             });
         }
