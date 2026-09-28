@@ -212,7 +212,10 @@
     box-sizing: border-box;
 }
 .mq-math-mode .mq-empty {
-    background: rgba(0, 0, 0, 0.2);
+    /* Tint empty slots with the text color so they show in both themes. At 45%
+       the slot meets WCAG's 3:1 non-text contrast against the canvas in light
+       and dark mode. */
+    background: color-mix(in srgb, currentColor 45%, transparent);
 }
 .mq-math-mode .mq-empty.mq-root-block {
     background: transparent;
