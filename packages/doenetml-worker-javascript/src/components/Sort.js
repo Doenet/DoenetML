@@ -85,6 +85,25 @@ function worthRearranging(arrangement) {
     return stayed * 2 >= arrangement.length;
 }
 
+/**
+ * Whether each of `replacements` is still the copy of the component at the
+ * same position of `componentsCopied`.
+ *
+ * A source can be rebuilt under the same component index, such as
+ * `<math extend="$ans.submittedResponse1" />` when the answer is first
+ * submitted. Deleting the old source also deletes its copy here, so the
+ * indices copied are unchanged but a replacement is gone.
+ */
+function replacementsMatchCopied(replacements, componentsCopied) {
+    return (
+        replacements.length === componentsCopied.length &&
+        componentsCopied.every(
+            (componentIdx, ind) =>
+                replacements[ind]?.shadows?.componentIdx === componentIdx,
+        )
+    );
+}
+
 export default class Sort extends CompositeComponent {
     static componentType = "sort";
 
@@ -364,7 +383,15 @@ export default class Sort extends CompositeComponent {
             }
         }
 
+        // A replacement deleted along with its source can be neither kept nor
+        // moved, so if one is gone, rebuild them all.
+        const replacementsIntact = replacementsMatchCopied(
+            component.replacements,
+            workspace.componentsCopied,
+        );
+
         if (
+            replacementsIntact &&
             componentsToCopy.length == workspace.componentsCopied.length &&
             workspace.componentsCopied.every(
                 (x, i) => x === componentsToCopy[i],
@@ -387,7 +414,11 @@ export default class Sort extends CompositeComponent {
             componentsToCopy,
         );
 
-        if (arrangement && worthRearranging(arrangement)) {
+        if (
+            replacementsIntact &&
+            arrangement &&
+            worthRearranging(arrangement)
+        ) {
             workspace.componentsCopied = componentsToCopy;
 
             return {
