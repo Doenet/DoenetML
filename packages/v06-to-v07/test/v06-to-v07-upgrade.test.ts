@@ -402,8 +402,8 @@ describe("v06 to v07 update", () => {
     });
 
     it("puts the copy for a macro in an attribute inside the module it is in", async () => {
-        // A module's attributes cannot be seen from outside it, so the copy has to be
-        // inside for `$initialValue` to mean the module's own.
+        // Each instance of a module has its own attribute values, so the copy has to be
+        // inside for `$initialValue` to mean the instance's own, not the default.
         source = `<module name="m"><setup><customAttribute componentType="number" attribute="initialValue" defaultValue="0" assignNames="initialValue" /></setup><point x="$(initialValue{link='false'})" /></module>`;
         correctSource = `<module name="m"><setup><number copy="$initialValue" name="ref1" /></setup><moduleAttributes><number name="initialValue">0</number></moduleAttributes><point x="$ref1" /></module>`;
         expect(await updateSyntax(source)).toEqual(correctSource);
