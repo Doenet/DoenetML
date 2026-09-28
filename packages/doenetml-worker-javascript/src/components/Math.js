@@ -53,7 +53,7 @@ export default class MathComponent extends InlineComponent {
     // used when creating new component via adapter or copy prop
     static primaryStateVariableForDefinition = "unnormalizedValue";
 
-    // for copying a property with link="false"
+    // for a `copy` of a property,
     // make sure it doesn't use the essential state variable unnormalizedValue
     static primaryEssentialStateVariable = "value";
 
