@@ -1,5 +1,16 @@
 ## v0.7.10
 
+## 0.7.28
+
+### Patch Changes
+
+- 0287523: Viewer: show a `<mathInput>`'s empty slots in dark mode.
+
+    When a `<mathInput>` is prefilled with a template that has empty slots — an empty fraction, say, or an empty exponent — each slot is drawn as a shaded box showing the reader where to type. The box was a fixed translucent black, which disappeared against the dark canvas. It is now tinted with the text color, so it shows in both themes. In light mode it looks almost as it did before, only slightly darker.
+
+- e253e92: When a `<video>` switches to a different video, such as when its `youtube` attribute is set from a `<choiceInput>`, the new video now starts from the beginning. Before, it could start partway through, at the position reached in the previous video, and the time watched in the previous video counted toward the new one.
+- e253e92: A YouTube `<video>` that resumes from a saved position, such as when a student comes back to an assignment, now shows the video ready to play at that point. Before, it could be left as a black box with no controls, so the video could not be restarted. A saved position is also no longer reset to the start while the video is still loading.
+
 ## 0.7.27
 
 ### Patch Changes
