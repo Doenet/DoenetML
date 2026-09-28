@@ -329,6 +329,13 @@ async function findReferentType(
     // inside the repeat, and it is not something the lookup core can find by name: it
     // only exists inside an iteration. What the repeat iterates over says its type.
     const alias = await findAliasType(core, path[0].name, parents);
+    if (alias === null) {
+        // Falling through to the name lookup would pick up a same-named component
+        // outside the repeat, whose type need not be the alias's.
+        throw new Error(
+            `"${path[0].name}" is the valueName of a repeat whose values' type cannot be determined`,
+        );
+    }
     if (alias) {
         referentType = alias;
         unresolvedIndex = path[0].index;
@@ -407,13 +414,14 @@ async function findReferentType(
 
 /**
  * The component type of `name` if it is the `valueName` or `indexName` of a repeat the
- * reference is inside; `undefined` if it is neither, or its type cannot be told.
+ * reference is inside; `null` if it is one but its type cannot be told; `undefined` if
+ * it is neither.
  */
 async function findAliasType(
     core: Awaited<ReturnType<typeof createCoreForLookup>>,
     name: string,
     parents: DastElement[],
-): Promise<string | undefined> {
+): Promise<string | null | undefined> {
     for (const [i, parent] of parents.entries()) {
         if (
             !isDastElement(parent) ||
@@ -444,7 +452,7 @@ async function findAliasType(
             (child) => !(child.type === "text" && child.value.trim() === ""),
         );
         if (forChildren.length !== 1 || forChildren[0].type !== "macro") {
-            return undefined;
+            return null;
         }
         let iterated: ReferentInfo;
         try {
@@ -455,7 +463,7 @@ async function findAliasType(
                 parents.slice(i + 1),
             );
         } catch (e) {
-            return undefined;
+            return null;
         }
         if (iterated.isMultiple) {
             return iterated.componentType;
@@ -464,7 +472,7 @@ async function findAliasType(
         if (itemType !== iterated.componentType && isComponentType(itemType)) {
             return itemType;
         }
-        return undefined;
+        return null;
     }
     return undefined;
 }

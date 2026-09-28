@@ -565,6 +565,12 @@ describe("v06 to v07 update", () => {
         source = `<text name="x">hi</text><mathList name="l">1 2</mathList><map><template><p>$(x{displayDigits="5"})</p></template><sources alias="x"><copy source="l" /></sources></map>`;
         correctSource = `<text name="x">hi</text><mathList name="l">1 2</mathList><repeat for="$l" valueName="x"><p><math displayDigits="5" extend="$x" /></p></repeat>`;
         expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // It still does when its type can't be told: the `<boolean>` outside would
+        // turn each math into `true`.
+        source = `<boolean name="x">true</boolean><map><template><p>$(x{displayDigits="5"})</p></template><sources alias="x"><math>1.123456</math></sources></map>`;
+        correctSource = `<boolean name="x">true</boolean><setup><group name="group"><math>1.123456</math></group></setup><repeat for="$group" valueName="x"><p><copy displayDigits="5" source="$x" /></p></repeat>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
     });
 
     it("map with assignNames and no name gets converted to a repeatForSequence", async () => {
