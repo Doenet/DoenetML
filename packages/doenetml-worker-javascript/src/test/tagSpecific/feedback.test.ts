@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
     submitAnswer,
+    updateBooleanInputValue,
     updateMathInputValue,
     updateSelectedIndices,
     updateTextInputValue,
@@ -2389,5 +2390,142 @@ describe("Feedback tag tests @group1", async () => {
             stateVariables[await resolvePathToNodeIdx("pSub")].stateValues
                 .hidden,
         ).eq(false);
+    });
+
+    // The component children of `comp`, skipping whitespace strings
+    function componentChildren(comp: any, stateVariables: any): any[] {
+        return comp.activeChildren
+            .filter((child: any) => typeof child === "object")
+            .map((child: any) => stateVariables[child.componentIdx]);
+    }
+
+    it("feedback inside shuffle", async () => {
+        // A shuffle renders shadow copies of its children, which have no
+        // prop variable. Such a copy used to crash the whole document.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <div name="d">
+    <shuffle>
+      <p>A</p>
+      <feedback condition="true"><p>shown</p></feedback>
+      <feedback condition="false"><p>hidden</p></feedback>
+    </shuffle>
+  </div>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const feedbacks = componentChildren(
+            stateVariables[await resolvePathToNodeIdx("d")],
+            stateVariables,
+        ).filter((comp) => comp.componentType === "feedback");
+
+        expect(feedbacks.length).eq(2);
+        const textToHidden = Object.fromEntries(
+            feedbacks.map((fb) => [
+                componentChildren(fb, stateVariables)[0].stateValues.text,
+                fb.stateValues.hidden,
+            ]),
+        );
+        expect(textToHidden).eqls({ shown: false, hidden: true });
+    });
+
+    it("feedback on an answer inside a shuffled problem", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <div name="d">
+    <shuffle>
+      <problem>
+        <answer name="a1">x</answer>
+        <feedback condition="$a1.responseHasBeenSubmitted"><p>submitted 1</p></feedback>
+      </problem>
+      <problem>
+        <answer name="a2">y</answer>
+        <feedback condition="$a2.responseHasBeenSubmitted"><p>submitted 2</p></feedback>
+      </problem>
+    </shuffle>
+  </div>
+  `,
+        });
+
+        async function getRendered() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const problems = componentChildren(
+                stateVariables[await resolvePathToNodeIdx("d")],
+                stateVariables,
+            );
+            expect(problems.map((prob) => prob.componentType)).eqls([
+                "problem",
+                "problem",
+            ]);
+            return problems.map((prob) => {
+                const children = componentChildren(prob, stateVariables);
+                const answer = children.find(
+                    (comp) => comp.componentType === "answer",
+                )!;
+                const feedback = children.find(
+                    (comp) => comp.componentType === "feedback",
+                )!;
+                return {
+                    answerIdx: answer.componentIdx,
+                    text: componentChildren(feedback, stateVariables)[0]
+                        .stateValues.text,
+                    hidden: feedback.stateValues.hidden,
+                };
+            });
+        }
+
+        let rendered = await getRendered();
+        expect(rendered.map((r) => r.hidden)).eqls([true, true]);
+
+        // Submit the first rendered problem's answer; only its feedback shows
+        await submitAnswer({ componentIdx: rendered[0].answerIdx, core });
+        rendered = await getRendered();
+        expect(rendered.map((r) => r.hidden)).eqls([false, true]);
+
+        await submitAnswer({ componentIdx: rendered[1].answerIdx, core });
+        rendered = await getRendered();
+        expect(rendered.map((r) => r.hidden)).eqls([false, false]);
+        expect(rendered.map((r) => r.text).sort()).eqls([
+            "submitted 1",
+            "submitted 2",
+        ]);
+    });
+
+    it("feedback copied with extend", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <booleanInput name="bi" />
+  <feedback name="fb" condition="$bi"><p>fb</p></feedback>
+  <feedback extend="$fb" name="fb2" />
+  `,
+        });
+
+        async function check_hidden(hidden: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("fb")].stateValues
+                    .hidden,
+            ).eq(hidden);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("fb2")].stateValues
+                    .hidden,
+            ).eq(hidden);
+        }
+
+        await check_hidden(true);
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        await check_hidden(false);
     });
 });

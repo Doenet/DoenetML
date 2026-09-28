@@ -163,11 +163,15 @@ export default class Feedback extends BlockComponent {
                     return { setValue: { hide: true } };
                 }
 
+                // A prop shadow (e.g., `$award.feedback`) is hidden when the
+                // prop is empty. A plain copy (from `extend` or `<shuffle>`)
+                // has no prop variable, so `stateValues` is absent and the
+                // copy falls through to its own condition.
+                const shadowValues = dependencyValues.shadowSource?.stateValues;
                 if (
-                    dependencyValues.shadowSource &&
-                    Object.values(
-                        dependencyValues.shadowSource.stateValues,
-                    )[0] == undefined
+                    shadowValues &&
+                    Object.keys(shadowValues).length > 0 &&
+                    Object.values(shadowValues)[0] == undefined
                 ) {
                     return { setValue: { hide: true } };
                 }
