@@ -255,8 +255,8 @@ async function resolveCopyTags(
                 }
                 elementType = `${referentType}List`;
                 if (!isComponentType(elementType)) {
-                    // Thrown before anything is changed, so the `<copy>` is left
-                    // exactly as the author wrote it.
+                    // Thrown before anything is changed, so the `<copy>` keeps its
+                    // `prop` and `link`.
                     throw new Error(
                         `"${referentName}" copies to several <${referentType}> components, and there is no <${elementType}> to hold them together with this copy's other attributes`,
                     );

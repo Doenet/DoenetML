@@ -415,6 +415,11 @@ describe("v06 to v07 update", () => {
         correctSource = `<repeatForSequence from="1" to="2" valueName="v"><setup><number copy="$v" name="ref1" /></setup><point x="$ref1" /></repeatForSequence>`;
         expect(await updateSyntax(source)).toEqual(correctSource);
 
+        // A copy the author named goes there too, and each iteration has its own.
+        source = `<map><template><point x="$(v{name='b' link='false'})" /><p>$b</p></template><sources alias="v"><sequence from="1" to="2" /></sources></map>`;
+        correctSource = `<repeatForSequence from="1" to="2" valueName="v"><setup><number copy="$v" name="b" /></setup><point x="$b" /><p>$b</p></repeatForSequence>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
         // An attribute of the repeat itself is evaluated outside it.
         source = `<number name="n">3</number><map><template><p>$v</p></template><sources alias="v"><sequence from="1" to="$(n{link='false'})" /></sources></map>`;
         correctSource = `<setup><number copy="$n" name="ref1" /></setup><number name="n">3</number><repeatForSequence from="1" to="$ref1" valueName="v"><p>$v</p></repeatForSequence>`;
@@ -438,6 +443,11 @@ describe("v06 to v07 update", () => {
         correctSource = `${poly}<pointList copy="$poly.vertices" />`;
         expect(await updateSyntax(source)).toEqual(correctSource);
 
+        // `link="true"` is what the bare reference does anyway.
+        source = `${poly}<copy prop="vertices" source="poly" link="true" />`;
+        correctSource = `${poly}$poly.vertices`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
         source = `<point name="P">(1,2)</point>$(P.xs{displayDigits="3"})`;
         correctSource = `<point name="P">(1,2)</point><mathList displayDigits="3" extend="$P.xs" />`;
         expect(await updateSyntax(source)).toEqual(correctSource);
@@ -446,6 +456,18 @@ describe("v06 to v07 update", () => {
         source = `${poly}<copy prop="vertex2" source="poly" />`;
         correctSource = `${poly}<point extend="$poly.vertex2" />`;
         expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // There is no `<functionList>`, so a named copy of several functions stays a
+        // `<copy>`, with its `prop`, and is reported.
+        const curve = `<curve name="c"><function>x</function><function>x^2</function></curve>`;
+        source = `${curve}<copy prop="fs" source="c" assignNames="g" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `${curve}<copy prop="fs" source="c" name="g" />`,
+        );
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "copy/unresolved-referent",
+        ]);
     });
 
     it("can convert function macros", async () => {
@@ -552,12 +574,31 @@ describe("v06 to v07 update", () => {
         correctSource = `<mathList name="l">1 2</mathList><setup><group name="group"><mathList extend="$l" displayDigits="2" /></group></setup><repeat for="$group" valueName="x"><p>$x</p></repeat>`;
         expect(await updateSyntax(source)).toEqual(correctSource);
 
+        // A generated group that something else refers to has to stay.
+        source = `<mathList name="l">1 2</mathList><map><template><p>$x</p></template><sources alias="x">$l</sources></map><p>$group</p>`;
+        correctSource = `<mathList name="l">1 2</mathList><setup><group name="group">$l</group></setup><repeat for="$group" valueName="x"><p>$x</p></repeat><p>$group</p>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
         // Without resolving copies, sources that were bare references still fold in.
         source = `<map><template><p>$x</p></template><sources alias="x">$c.iterateValues</sources></map>`;
         correctSource = `<repeat for="$c.iterateValues" valueName="x"><p>$x</p></repeat>`;
         expect(
             await updateSyntax(source, { doNotUpgradeCopyTags: true }),
         ).toEqual(correctSource);
+    });
+
+    it("a repeatForSequence alias has the type of the sequence", async () => {
+        source = `<map><template><p>$(x{displayDigits="3"})</p></template><sources alias="x"><sequence from="1" to="2" /></sources></map>`;
+        correctSource = `<repeatForSequence from="1" to="2" valueName="x"><p><number displayDigits="3" extend="$x" /></p></repeatForSequence>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        source = `<map><template><p>$(x{displayDigits="3"})</p></template><sources alias="x"><sequence type="math" from="x" length="2" /></sources></map>`;
+        correctSource = `<repeatForSequence type="math" from="x" length="2" valueName="x"><p><math displayDigits="3" extend="$x" /></p></repeatForSequence>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        source = `<map><template><p>$(x{hide="false"})</p></template><sources alias="x"><sequence type="letters" from="a" to="c" /></sources></map>`;
+        correctSource = `<repeatForSequence type="letters" from="a" to="c" valueName="x"><p><text hide="false" extend="$x" /></p></repeatForSequence>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
     });
 
     it("a repeat alias hides a component of the same name", async () => {

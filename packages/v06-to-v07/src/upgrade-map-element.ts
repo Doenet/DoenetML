@@ -222,7 +222,7 @@ export const upgradeMapElement: Plugin<
  * list, the type of each value can also be read off it when a later reference to the
  * `valueName` needs one.
  *
- * This runs once the `<copy>` tags are resolved, as a copy of a whole list such as
+ * This runs once the `<copy>` tags in the sources are resolved, as a copy of a whole list such as
  * `<copy prop="iterateValues" source="c" />` has only then become `$c.iterateValues`.
  * An element that does nothing but extend something, `<mathList extend="$l" />`, counts
  * as a reference to it too.
@@ -279,7 +279,7 @@ export function inlineMapSourceGroups(
 
 /**
  * `child` as a bare reference, if that is all it is: a macro without attributes, or an
- * element whose only attribute is an `extend` of a single macro.
+ * element with no children whose only attribute is an `extend` of a single macro.
  */
 function asReference(child: DastNodes): DastMacro | undefined {
     if (child.type === "macro") {

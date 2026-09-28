@@ -220,10 +220,10 @@ export const upgradeAttributeSyntax: Plugin<
 };
 
 /**
- * Elements whose names cannot be seen from outside them, so a copy made for an
- * attribute inside one has to be put inside it too. A `<module>` keeps its attributes
- * and setup to itself, and each iteration of a `<repeat>` has its own `valueName`, which
- * the copy may well refer to.
+ * Elements inside which a name can mean something it doesn't mean outside, so a copy
+ * made for an attribute inside one has to be put inside it too. Each instance of a
+ * `<module>` has its own attribute values (`<module copy="$m" iv="5" />`), and each
+ * iteration of a `<repeat>` has its own `valueName`, which the copy may well refer to.
  */
 const SCOPING_CONTAINERS = new Set(["module", "repeat", "repeatForSequence"]);
 
