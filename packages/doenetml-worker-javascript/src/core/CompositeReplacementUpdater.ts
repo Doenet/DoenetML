@@ -275,10 +275,16 @@ export class CompositeReplacementUpdater {
                     originalEffectiveLength,
                     firstIndex,
                 );
-                const updateOldReplacementsEnd = Math.min(
-                    originalEffectiveLength,
-                    firstIndex + (numberToDelete ?? 0),
-                );
+                // A replacement deleted along with its source is spliced out
+                // of `component.replacements` but keeps its place in the
+                // resolver, so `$composite[n]` still counts it. A change that
+                // recreates such replacements in place says how many of those
+                // places its new replacements take.
+                const updateOldReplacementsEnd =
+                    Math.min(
+                        originalEffectiveLength,
+                        firstIndex + (numberToDelete ?? 0),
+                    ) + (change.numberDeletedReplacementsToReplace ?? 0);
 
                 // determine which replacements are blank strings before deleting replacements
                 const blankStringReplacements = component.replacements!.map(

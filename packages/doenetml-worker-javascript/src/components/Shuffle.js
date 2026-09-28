@@ -323,23 +323,53 @@ export default class Shuffle extends CompositeComponent {
         let originalComponentIndices =
             await component.stateValues.originalComponentIndices;
 
+        const replacementSources = [];
         for (let ind of await component.stateValues.componentOrder) {
             let replacementSource =
                 components[originalComponentIndices[ind - 1]];
 
             if (replacementSource) {
                 componentsCopied.push(replacementSource.componentIdx);
-
-                const serializedComponent = await replacementSource.serialize();
-
-                const res = createNewComponentIndices(
-                    [serializedComponent],
-                    nComponents,
-                );
-                nComponents = res.nComponents;
-
-                replacements.push(...res.components);
+                replacementSources.push(replacementSource);
             }
+        }
+
+        ({ replacements, nComponents } = await this.copyReplacementSources({
+            component,
+            replacementSources,
+            nComponents,
+        }));
+
+        workspace.componentsCopied = componentsCopied;
+
+        return {
+            replacements,
+            diagnostics,
+            nComponents,
+        };
+    }
+
+    /**
+     * Serialize a copy of each of `replacementSources` to be a replacement of
+     * the shuffle, in order.
+     */
+    static async copyReplacementSources({
+        component,
+        replacementSources,
+        nComponents,
+    }) {
+        let replacements = [];
+
+        for (const replacementSource of replacementSources) {
+            const serializedComponent = await replacementSource.serialize();
+
+            const res = createNewComponentIndices(
+                [serializedComponent],
+                nComponents,
+            );
+            nComponents = res.nComponents;
+
+            replacements.push(...res.components);
         }
 
         replacements = postProcessCopy({
@@ -349,13 +379,65 @@ export default class Shuffle extends CompositeComponent {
             markAsPrimaryShadow: true,
         });
 
-        workspace.componentsCopied = componentsCopied;
+        return { replacements, nComponents };
+    }
 
-        return {
-            replacements,
-            diagnostics,
-            nComponents,
-        };
+    /**
+     * Recreate any replacement that was deleted while the shuffle still copies
+     * its source.
+     *
+     * A source can be rebuilt under the same component index, such as
+     * `<feedback extend="$award.feedback" />` when the award gains its first
+     * feedback. Deleting the old source also deletes its copy here, but the
+     * shuffle still copies the same indices, so only the missing copies are
+     * recreated, in place. The other replacements, and any state they hold,
+     * are kept.
+     */
+    static async recreateMissingReplacements({
+        component,
+        components,
+        workspace,
+        nComponents,
+        diagnostics,
+    }) {
+        const replacementChanges = [];
+
+        // Deleted replacements were spliced out of `component.replacements`,
+        // so the ones left are still in the order of `componentsCopied`.
+        let replacementInd = 0;
+        for (const [ind, sourceIdx] of workspace.componentsCopied.entries()) {
+            const replacement = component.replacements[replacementInd];
+            if (replacement?.shadows?.componentIdx === sourceIdx) {
+                replacementInd++;
+                continue;
+            }
+
+            const replacementSource = components[sourceIdx];
+            if (!replacementSource) {
+                continue;
+            }
+
+            const res = await this.copyReplacementSources({
+                component,
+                replacementSources: [replacementSource],
+                nComponents,
+            });
+            nComponents = res.nComponents;
+
+            // Earlier changes have already filled every position before `ind`.
+            // Nothing is left to delete, but the deleted copy still holds
+            // its place in the resolver, so `$sh[n]` would still count it.
+            replacementChanges.push({
+                changeType: "add",
+                changeTopLevelReplacements: true,
+                firstReplacementInd: ind,
+                numberReplacementsToReplace: 0,
+                numberDeletedReplacementsToReplace: 1,
+                serializedReplacements: res.replacements,
+            });
+        }
+
+        return { replacementChanges, diagnostics, nComponents };
     }
 
     static async calculateReplacementChanges({
@@ -387,7 +469,13 @@ export default class Shuffle extends CompositeComponent {
                 (x, i) => x === componentsToCopy[i],
             )
         ) {
-            return { replacementChanges: [], diagnostics, nComponents };
+            return await this.recreateMissingReplacements({
+                component,
+                components,
+                workspace,
+                nComponents,
+                diagnostics,
+            });
         }
 
         // for now, just recreate

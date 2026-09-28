@@ -7,6 +7,25 @@ import {
     returnListValueStateVariableDefinitions,
 } from "../utils/listValues";
 
+/**
+ * Whether each of `replacements` is still the copy of the component at the
+ * same position of `componentsCopied`.
+ *
+ * A source can be rebuilt under the same component index, such as
+ * `<math extend="$ans.submittedResponse1" />` when the answer is first
+ * submitted. Deleting the old source also deletes its copy here, so the
+ * indices copied are unchanged but a replacement is gone.
+ */
+function replacementsMatchCopied(replacements, componentsCopied) {
+    return (
+        replacements.length === componentsCopied.length &&
+        componentsCopied.every(
+            (componentIdx, ind) =>
+                replacements[ind]?.shadows?.componentIdx === componentIdx,
+        )
+    );
+}
+
 export default class Sort extends CompositeComponent {
     static componentType = "sort";
 
@@ -258,7 +277,13 @@ export default class Sort extends CompositeComponent {
             }
         }
 
+        // A replacement deleted along with its source can't be kept, so if one
+        // is gone, rebuild them all.
         if (
+            replacementsMatchCopied(
+                component.replacements,
+                workspace.componentsCopied,
+            ) &&
             componentsToCopy.length == workspace.componentsCopied.length &&
             workspace.componentsCopied.every(
                 (x, i) => x === componentsToCopy[i],

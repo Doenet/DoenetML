@@ -953,4 +953,54 @@ describe("Sort tag tests @group4", async () => {
             ),
         ).eq(true);
     });
+
+    it("keeps a copy whose source is rebuilt under the same index", async () => {
+        // The first submission rebuilds `$ans.submittedResponse1` under the
+        // same component index, deleting its sorted copy, while the indices
+        // sorted stay the same.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <answer name="ans"><mathInput name="mi" /><award><math>x</math></award></answer>
+    <p name="pList"><sort name="s">
+        <math>1</math><math>2</math><math>3</math>
+        <math extend="$ans.submittedResponse1" />
+        <math>4</math><math>5</math><math>6</math>
+    </sort></p>
+    <p name="pCopy">$s</p>
+  `,
+        });
+
+        async function submit(latex: string) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+            await submitAnswer({
+                componentIdx: await resolvePathToNodeIdx("ans"),
+                core,
+            });
+        }
+
+        async function check(sorted_result: string[]) {
+            for (const pName of ["pList", "pCopy"]) {
+                await test_sort({
+                    core,
+                    resolvePathToNodeIdx,
+                    sorted_result,
+                    pName,
+                    replacements_all_of_type: "math",
+                });
+            }
+        }
+
+        await submit("x");
+        await check(["1", "2", "3", "4", "5", "6", "x"]);
+
+        await submit("5.5");
+        await check(["1", "2", "3", "4", "5", "5.5", "6"]);
+
+        await submit("0");
+        await check(["0", "1", "2", "3", "4", "5", "6"]);
+    });
 });
