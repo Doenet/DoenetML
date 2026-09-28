@@ -1571,8 +1571,8 @@ export default class Copy extends CompositeComponent {
             return { serializedReplacements, diagnostics, nComponents };
         }
 
-        // when copying with link=false, ignore fixed if from essential state
-        // so that, for example, a copy from a sequence with link=false is not fixed
+        // for a `copy` (not an `extend`), ignore fixed if from essential state
+        // so that, for example, a `copy` from a sequence is not fixed
         // TODO: also now removing the `fixed` attribute. Is that the right choice?
         if (!link && serializedReplacements[0].state) {
             delete serializedReplacements[0].state.fixed;
@@ -3746,8 +3746,8 @@ export async function replacementFromProp({
                     for (let attrName in stateVarObj.shadowingInstructions
                         .addAttributeComponentsShadowingStateVariables) {
                         if (attrObj[attrName]?.createComponentOfType) {
-                            // when copying with link=false, don't copy fixed attribute
-                            // so that, for example, a copy from a sequence with link=false is not fixed
+                            // for a `copy` (not an `extend`), don't copy fixed attribute
+                            // so that, for example, a `copy` from a sequence is not fixed
                             if (attrName !== "fixed") {
                                 let vName =
                                     stateVarObj.shadowingInstructions
