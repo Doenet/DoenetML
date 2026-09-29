@@ -182,10 +182,48 @@ describe("calcStartEndIdx utility @group4", () => {
             ],
             copyComponentIdx: 42,
         });
-        // recursion's match is propagated; index is within the recursive
-        // (inner) flattened result, mirroring the legacy closure behaviour.
-        expect(result.startIdx).toBe(1);
-        expect(result.endIdx).toBe(2);
+        // the match is positioned in the whole flattened result, after
+        // the replacement that precedes the outer copy
+        expect(result.startIdx).toBe(2);
+        expect(result.endIdx).toBe(3);
+        expect(
+            result.flattenedReplacements.map((r: any) => r.componentIdx),
+        ).toEqual([1, 20, 42, 22]);
+    });
+
+    it("positions a copy nested inside an expanded copy after earlier expansions", async () => {
+        const result = await calcStartEndIdx({
+            replacements: [
+                copy({
+                    componentIdx: 5,
+                    isExpanded: true,
+                    replacements: [
+                        repl({ componentIdx: 10 }),
+                        repl({ componentIdx: 11 }),
+                    ],
+                }),
+                copy({
+                    componentIdx: 7,
+                    isExpanded: true,
+                    replacements: [
+                        copy({
+                            componentIdx: 42,
+                            isExpanded: true,
+                            replacements: [
+                                repl({ componentIdx: 30 }),
+                                repl({ componentIdx: 31 }),
+                            ],
+                        }),
+                    ],
+                }),
+            ],
+            copyComponentIdx: 42,
+            updateStart: 1,
+            updateEnd: 2,
+        });
+        // the nested copy starts at 2; its update range is offset from there
+        expect(result.startIdx).toBe(3);
+        expect(result.endIdx).toBe(4);
     });
 
     it("parent-level match overrides a recursive match (legacy semantics)", async () => {
