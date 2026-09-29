@@ -135426,7 +135426,7 @@
             "top": true,
             "acceptsStringChildren": true,
             "takesIndex": false,
-            "docsSlug": null,
+            "docsSlug": "page",
             "summary": "The content of one printed page",
             "layoutCategory": "block"
         },

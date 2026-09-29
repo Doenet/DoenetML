@@ -495,6 +495,40 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("the rows of an <mdn> are each an <mrow>, numbered by PreTeXt", async () => {
+        // PreTeXt numbers the equations itself, so the core's `\\tag{n}` is taken off
+        // and the display as a whole is marked numbered.
+        source = `<mdn><mrow>x \\amp = 1</mrow><mrow>y \\amp = 2</mrow></mdn>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<md number="yes"><mrow>x \\amp = 1</mrow><mrow>y \\amp = 2</mrow></md>"`,
+        );
+    });
+
+    it("a row numbered unlike its display says so", async () => {
+        source = `<mdn><mrow>x \\amp = 1</mrow><mrow number="false">y \\amp = 2</mrow></mdn>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<md number="yes"><mrow>x \\amp = 1</mrow><mrow number="no">y \\amp = 2</mrow></md>"`,
+        );
+
+        source = `<md><mrow>x \\amp = 1</mrow><mrow number>y \\amp = 2</mrow></md>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<md><mrow>x \\amp = 1</mrow><mrow number="yes">y \\amp = 2</mrow></md>"`,
+        );
+    });
+
+    it("a single-row <men> is a numbered <md> without the core's tag", async () => {
+        source = `<men>x = 1</men>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(`"<md number="yes">x = 1</md>"`);
+    });
+
     it("a row break inside an environment does not split a display", async () => {
         source = `<me>\\begin{array}{cc} a \\amp b \\\\ c \\amp d \\end{array}</me>`;
         const exported = await coreRunner.processToFlatDastAsFragment(source);
