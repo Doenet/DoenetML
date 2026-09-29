@@ -941,8 +941,8 @@ async function addAndLinkAliasComponents(
  * `<mathList>` in `<group><mathList>1 2 3</mathList></group>`, so iteration
  * `iter` gets the `iter`-th item that the group displays.
  *
- * A source that is text has no component to point at, so it is found by its
- * index in the `for` group.
+ * A source that is text has no component to point at, so it is looked up at
+ * position `iter + 1` in the `for` group's index.
  */
 function sourceRefForIter({ sourcesChildIndices, sourcesComponentIdx, iter }) {
     const sourceIdx = sourcesChildIndices[iter];

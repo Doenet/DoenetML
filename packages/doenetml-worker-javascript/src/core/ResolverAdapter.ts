@@ -314,8 +314,9 @@ export async function determineParentAndIndexResolutionForResolver({
                     },
                 };
             } else {
-                // if the copy was not found as a replacement of the composite,
-                // then it wasn't a top-level replacement and it doesn't affect the composite's index resolution
+                // If the copy is not one of the composite's active items (it is
+                // inside one of them, or withheld), it doesn't affect the
+                // composite's index resolution.
                 indexResolution = "None";
             }
         } else {
