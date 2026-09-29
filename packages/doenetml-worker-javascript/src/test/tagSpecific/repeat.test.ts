@@ -7,6 +7,7 @@ import {
     updateMathInputValue,
     updateValue,
 } from "../utils/actions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -2014,6 +2015,40 @@ describe("Repeat tag tests @group1", async () => {
                     .text,
                 children,
             ).eq(values.map((v, i) => `(${i + 1}, ${v})`).join(", "));
+        }
+    });
+
+    it("repeat over a group or sort whose items contain references", async () => {
+        const cases = [
+            {
+                setup: `<group name="c"><math>$a</math><math>$b</math><math>5</math></group>`,
+                values: ["3", "1", "5"],
+            },
+            {
+                setup: `<sort name="c"><math>$a</math><math>$b</math><math>5</math></sort>`,
+                values: ["1", "3", "5"],
+            },
+        ];
+
+        for (const { setup, values } of cases) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <math name="a">3</math><math name="b">1</math>
+    <setup>${setup}</setup>
+    <p name="p"><repeat for="$c" valueName="v" indexName="i"><math>($i, $v)</math></repeat></p>
+    `,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+                setup,
+            ).eq(values.map((v, i) => `(${i + 1}, ${v})`).join(", "));
+            expect(getDiagnosticsByType(core).warnings, setup).toHaveLength(0);
         }
     });
 

@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { cleanLatex } from "../utils/math";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
     moveMath,
     movePoint,
@@ -952,5 +953,22 @@ describe("Group tag tests @group2", async () => {
             core,
         });
         await check("7 8 1 9  ");
+    });
+
+    it("index into a group holding a reference to a group whose items contain references", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="a">3</math><math name="b">1</math>
+    <setup><group name="g"><math>$a</math><math>$b</math><math>5</math></group></setup>
+    <group name="h">$g</group>
+    <p name="p">$h[1] $h[2] $h[3]</p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("3 1 5");
+        expect(getDiagnosticsByType(core).warnings).toHaveLength(0);
     });
 });
