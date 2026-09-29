@@ -93,6 +93,8 @@ export const upgradeAttributeSyntax: Plugin<
         const macrosInAttributes: {
             node: DastMacro;
             container: DastElement | undefined;
+            /** The v0.6 namespaces the macro sat in, for its `assignNames`. */
+            ancestorNames: string[];
         }[] = [];
         visit(tree, (node, info) => {
             if (!isDastElement(node)) {
@@ -108,6 +110,10 @@ export const upgradeAttributeSyntax: Plugin<
                             node: n,
                             container: findSetupContainer(
                                 info.parents as DastElement[],
+                            ),
+                            ancestorNames: namespaceChainOf(
+                                info.parents as DastElement[],
+                                context,
                             ),
                         });
                     }
@@ -159,7 +165,11 @@ export const upgradeAttributeSyntax: Plugin<
         // One `<setup>` per container, so each copy lands where the attribute that
         // used it could see the same names. `undefined` stands for the document.
         const setupTags = new Map<DastElement | undefined, DastElement>();
-        for (const { node: macroNode, container } of macrosInAttributes) {
+        for (const {
+            node: macroNode,
+            container,
+            ancestorNames,
+        } of macrosInAttributes) {
             let setupTag = setupTags.get(container);
             if (!setupTag) {
                 setupTag = {
@@ -183,11 +193,20 @@ export const upgradeAttributeSyntax: Plugin<
                 },
                 children: [],
             };
-            // If the macro has a `name` attribute, we need to add it to the copy
-            const nameAttr = macroNode.attributes["name"];
+            // `$(a{assignNames="b"})` names the copy `b`, just as it does outside an
+            // attribute. The shared pass never saw it, so it is converted here, the same
+            // way as for a macro in the content above.
+            const assigned = readAssignNames(copy);
+            convertAssignNames(copy, ancestorNames, context, file);
+            warnIfNameCouldNotBeKept(copy, assigned, file);
+
+            // If the macro has a `name` attribute (or has just been given one), we need
+            // to add it to the copy
+            const nameAttr = copy.attributes["name"];
             let name = nameAttr
                 ? toXml(nameAttr.children).trim()
                 : generateUniqueName();
+            usedNames.add(name);
             copy.attributes["name"] = {
                 type: "attribute",
                 name: "name",
