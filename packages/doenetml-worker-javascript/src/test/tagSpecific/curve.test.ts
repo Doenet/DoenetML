@@ -1521,5 +1521,25 @@ describe("Curve tag tests @group2", async () => {
                     .text,
             ).eq("[-2, 5]");
         });
+
+        // `<evaluate>` reads the function's domain too, so this took the
+        // document down with no graph in it.
+        it("evaluated outside a graph", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <curve name="c" parMin="-2" parMax="5"><function>x^2</function></curve>
+    <p name="p"><evaluate function="$c.f1" input="3" /></p>
+    `,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq("9");
+        });
     });
 });
