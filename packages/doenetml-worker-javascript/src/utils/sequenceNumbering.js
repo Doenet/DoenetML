@@ -15,11 +15,11 @@
  * "Beside it" looks through the containers that show no number of their own,
  * the *pass-throughs* of the sequence. For divisions they are `<div>` (with
  * `<statement>`, `<introduction>` and `<conclusion>`, which are divs),
- * `<cascade>`, and the sectioning components that pass the numbering around
+ * `<cascade>`, `<page>`, and the sectioning components that pass the numbering around
  * them through in place of a number of their own: `<externalContent>`, the
  * wrapper a copy from an external URI arrives in, and
- * `<standinForFutureLayoutTag>`. For list items it is `<cascade>` alone, the one
- * container a list renders the items of. In
+ * `<standinForFutureLayoutTag>`. For list items it is `<cascade>` and `<page>`,
+ * the containers a list renders the items of. In
  *
  * ```xml
  * <section/>
@@ -80,6 +80,7 @@ function inherits(componentType, baseComponentType, componentInfoObjects) {
 const DIVISION_PASS_THROUGH_TYPES = [
     "div",
     "cascade",
+    "page",
     "externalContent",
     "standinForFutureLayoutTag",
 ];
@@ -127,9 +128,18 @@ export const LIST_ITEM_SEQUENCE = {
     // Every sectioning child counts, whether or not it is itself a list item.
     itemComponentType: "_sectioningComponent",
     isPassThrough: (componentType, componentInfoObjects) =>
-        inherits(componentType, "cascade", componentInfoObjects),
+        ["cascade", "page"].some((baseComponentType) =>
+            inherits(componentType, baseComponentType, componentInfoObjects),
+        ),
     counterOf: () => "listItem",
 };
+
+/**
+ * The children a list renders besides its `<introduction>` and `<conclusion>`:
+ * its items, and the containers that hold items without being one — a
+ * `<cascade>` that reveals them and a `<page>` that prints them.
+ */
+export const LIST_CONTAINER_TYPES = ["_sectioningComponent", "cascade", "page"];
 
 /**
  * Walk `children` in order, starting from `offset`: each item takes the next

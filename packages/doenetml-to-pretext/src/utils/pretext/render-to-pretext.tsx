@@ -18,6 +18,13 @@ export interface ConvertOptions {
      * Default: `false`.
      */
     fragment?: boolean;
+    /**
+     * Which variant of the document to convert, counting from 1. A document that selects
+     * or samples at random is a different printout for each variant.
+     *
+     * Default: `1`.
+     */
+    variantIndex?: number;
 }
 import { configureStore } from "@reduxjs/toolkit";
 import {
@@ -27,7 +34,9 @@ import {
 import { Provider } from "react-redux";
 import { Element } from "../../renderers";
 import { ensurePretextTag } from "./ensure-pretext-tag";
-import { addWritingSpace } from "./writing-space";
+import { addWritingSpace, leaveInputLabelsToAnswers } from "./writing-space";
+import { arrangePrintoutPages } from "./printout-pages";
+import { wrapLooseText } from "./loose-text";
 import { renderReactToXast } from "./xast-reconciler";
 import { normalizeAttrs } from "./normalize-attrs";
 
@@ -56,9 +65,14 @@ export function renderFlatDastToPretext(
     // We have no errors, so we can safely cast to FlatDastRoot
     const _flatDast: FlatDastRoot = flatDast as FlatDastRoot;
 
-    // Give expanded text inputs room to write in. This runs before the `<article>` is
-    // created so that a document needing space is wrapped in a printout first.
+    // Give text written beside blocks a paragraph, which PreTeXt needs to show it. Then
+    // lay a document written in pages out as a worksheet of them, and give expanded
+    // text inputs room to write in, inside that worksheet or a printout of their own.
+    // All run before the `<article>` is created so that the printout goes inside it.
+    wrapLooseText(_flatDast);
+    arrangePrintoutPages(_flatDast);
     addWritingSpace(_flatDast);
+    leaveInputLabelsToAnswers(_flatDast);
 
     if (!fragment) {
         ensurePretextTag(_flatDast);

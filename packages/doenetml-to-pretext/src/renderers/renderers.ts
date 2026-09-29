@@ -249,6 +249,9 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     aside: TheoremLikeConverter,
     note: TheoremLikeConverter,
     problem: TheoremLikeConverter,
+    // An item of a `<problems>` or `<exercises>` printed on a worksheet; see
+    // `arrangePrintoutPages`.
+    exercise: TheoremLikeConverter,
 
     // Inline text formatting elements. These are the same in Doenet and Pretext
     alert: NoProcessingConverter,
@@ -282,6 +285,16 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     // Inserted around a document that needs room for a reader to write; see
     // `addWritingSpace`.
     handout: {
+        component: PretextComponent._PassThroughWithTagAndNewline,
+        passthroughChildren: true,
+    },
+    // Inserted around a document written in pages, which are its children; see
+    // `arrangePrintoutPages`.
+    worksheet: {
+        component: PretextComponent._PassThroughWithTagAndNewline,
+        passthroughChildren: true,
+    },
+    page: {
         component: PretextComponent._PassThroughWithTagAndNewline,
         passthroughChildren: true,
     },

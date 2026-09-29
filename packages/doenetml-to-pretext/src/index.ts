@@ -53,7 +53,7 @@ export class DoenetMLToPretext {
     ): Promise<string[]> {
         const xastRoots: Xast.Root[] = [];
         for (const fragment of fragments) {
-            const flatDast = await this._getStaticDast(fragment);
+            const flatDast = await this._getStaticDast(fragment, options);
             const xastRoot = await this._flatDastToPretext(flatDast, {
                 ...options,
                 fragment: true,
@@ -83,7 +83,7 @@ export class DoenetMLToPretext {
     ): Promise<string> {
         await this._ensureWorker();
 
-        const flatDast = await this._getStaticDast(doenetML);
+        const flatDast = await this._getStaticDast(doenetML, options);
         const xastRoot = await this._flatDastToPretext(flatDast, options);
         const result = xastToXml(xastRoot);
 
@@ -141,6 +141,7 @@ export class DoenetMLToPretext {
     async _runDastThroughWorker(
         dast: DastRoot,
         source: string,
+        variantIndex = 1,
     ): Promise<FlatDastRootWithErrors> {
         await this._ensureWorker();
         if (!this._worker) {
@@ -150,7 +151,7 @@ export class DoenetMLToPretext {
         await this._worker.setSource({ dast, source });
         await this._worker.setFlags({ flags: defaultFlags });
 
-        const flatDast = await this._worker.returnDast();
+        const flatDast = await this._worker.returnDast({ variantIndex });
 
         return flatDast;
     }
@@ -159,7 +160,10 @@ export class DoenetMLToPretext {
      * Get a flat DAST representation of DoenetML source. This flat DAST has already been run through core,
      * so elements like references, etc. have all been resolved.
      */
-    async _getStaticDast(doenetML: string): Promise<FlatDastRootWithErrors> {
+    async _getStaticDast(
+        doenetML: string,
+        { variantIndex }: Pick<ConvertOptions, "variantIndex"> = {},
+    ): Promise<FlatDastRootWithErrors> {
         await this._ensureWorker();
 
         const normalizedDast = getNormalizedDast(doenetML);
@@ -170,6 +174,7 @@ export class DoenetMLToPretext {
         const flatDast = await this._runDastThroughWorker(
             preprocessedDast,
             doenetML,
+            variantIndex,
         );
 
         return flatDast;
