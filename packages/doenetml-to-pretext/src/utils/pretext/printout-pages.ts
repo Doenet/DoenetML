@@ -12,9 +12,10 @@
  *
  * A worksheet rather than a handout, because a problem that was an item of a list keeps the
  * look of one: it is written out as an `<exercise>`, which PreTeXt heads with its number
- * alone ("1.") only inside a worksheet (`worksheet//exercise` in `pretext-html.xsl`; inside
- * a handout the same exercise is headed like an inline exercise). The numbers run on from
- * page to page, since a page is not a division and so restarts no count.
+ * alone ("1.") only inside a worksheet (`worksheet//exercise` in `pretext-html.xsl`). Inside
+ * a handout's page no heading template matches it, and it is rendered as a collapsed knowl
+ * with an empty link, so it does not print at all. The numbers run on from page to page,
+ * since a page is not a division and so restarts no count.
  */
 import type { FlatDastElement, FlatDastRoot } from "@doenet/doenetml-worker";
 import {
