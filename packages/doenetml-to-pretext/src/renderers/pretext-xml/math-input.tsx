@@ -1,15 +1,16 @@
 import React from "react";
 import { BasicComponent } from "../types";
-import { inputLabelContent } from "./utils/input-label";
+import { useInputLabel } from "./use-input-label";
 
 type MathInputData = { props: { label?: string } };
 
 export const MathInput: BasicComponent<MathInputData> = ({ node }) => {
     const characters = 8;
+    const displayLabel = useInputLabel(node.data.props.label);
 
     return (
         <React.Fragment>
-            {inputLabelContent(node.data.props.label)}
+            {displayLabel}
             <m>
                 <fillin characters={characters} />
             </m>

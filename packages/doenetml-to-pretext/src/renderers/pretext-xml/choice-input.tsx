@@ -1,5 +1,7 @@
 import React from "react";
 import { BasicComponentWithPassthroughChildren } from "../types";
+import { TEXT_FILLIN_CHARACTERS } from "./fillin-width";
+import { useInputLabel } from "./use-input-label";
 
 type ChoiceInputData = {
     props: {
@@ -24,6 +26,7 @@ export const ChoiceInput: BasicComponentWithPassthroughChildren<
         label,
         inline,
     } = node.data.props;
+    const displayLabel = useInputLabel(label);
     const childrenArray: React.ReactNode[] = Array.isArray(children)
         ? children
         : [children];
@@ -36,7 +39,7 @@ export const ChoiceInput: BasicComponentWithPassthroughChildren<
             .filter((child) => child != null);
         return (
             <React.Fragment>
-                {label}{" "}
+                {displayLabel}
                 {selectedChoices.length > 0 ? (
                     selectedChoices.length === 1 ? (
                         <em>{selectedChoices[0]}</em>
@@ -49,7 +52,7 @@ export const ChoiceInput: BasicComponentWithPassthroughChildren<
                         ))
                     )
                 ) : (
-                    <fillin characters={5} />
+                    <fillin characters={TEXT_FILLIN_CHARACTERS} />
                 )}
             </React.Fragment>
         );

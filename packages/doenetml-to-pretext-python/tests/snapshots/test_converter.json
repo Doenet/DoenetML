@@ -9,7 +9,7 @@
     },
     "conversion_wraps_in_article": {
         "input": "<textInput />",
-        "expected": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<pretext>\n<article>\n<fillin characters=\"14\"></fillin>\n</article>\n</pretext>"
+        "expected": "<?xml version=\"1.0\" encoding=\"UTF-8\"?>\n<pretext>\n<article>\n<fillin characters=\"21\"></fillin>\n</article>\n</pretext>"
     },
     "convert_multiple_with_refs": {
         "input": [

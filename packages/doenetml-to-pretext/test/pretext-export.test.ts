@@ -176,7 +176,7 @@ describe("Pretext export", async () => {
         expect(await coreRunner.processToFlatDastAsFragment(source))
             .toMatchInlineSnapshot(`
               "<handout>
-              <title></title><p workspace="1.25in">Explain</p>
+              <title></title><p workspace="1.25in">Explain </p>
               </handout>"
             `);
     });
@@ -246,7 +246,7 @@ describe("Pretext export", async () => {
 
         source = `<ol><li>Pick: <choiceInput inline><choice>yes</choice><choice>no</choice></choiceInput> <answer type="text" handGraded expanded /></li></ol>`;
         expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
-            `<li xml:id="doenet-id-2"><p workspace="1.25in">Pick:  <fillin characters="5"></fillin> </p></li>`,
+            `<li xml:id="doenet-id-2"><p workspace="1.25in">Pick: <fillin characters="21"></fillin> </p></li>`,
         );
     });
 
@@ -294,7 +294,7 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<p>Short answer: <fillin characters="14"></fillin></p>"`,
+            `"<p>Short answer: <fillin characters="21"></fillin></p>"`,
         );
     });
 
@@ -619,7 +619,32 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<p>Value of <m>x</m>: <fillin characters="14"></fillin></p>"`,
+            `"<p>Value of <m>x</m>: <fillin characters="21"></fillin></p>"`,
+        );
+    });
+
+    it("an answer's label is kept apart from an input written inside it", async () => {
+        // An input written out inside an `<answer>` does not inherit its label, so the
+        // space after the label must come from the answer.
+        source = `<p><answer><label>Pick:</label><choiceInput inline preselectChoice="1"><choice credit="1">yes</choice><choice>no</choice></choiceInput></answer></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `Pick: <em>yes</em>`,
+        );
+
+        source = `<p><answer><label>A:</label><mathInput /><award>x</award></answer></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `A: <m><fillin`,
+        );
+
+        source = `<p><answer><label>A:</label><textInput /><award>x</award></answer></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `A: <fillin`,
+        );
+
+        // An input with a label of its own draws it after the answer's.
+        source = `<p><answer><label>A</label><textInput><label>B</label></textInput><award>x</award></answer></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `A B <fillin`,
         );
     });
 
@@ -628,6 +653,8 @@ describe("Pretext export", async () => {
         source = `<p><answer type="text"><label>Your word:</label>hello</answer></p>`;
         const exported = await coreRunner.processToFlatDastAsFragment(source);
         expect(exported.match(/Your word:/g)).toHaveLength(1);
+        // The space between the label and the blank is still the input's to supply.
+        expect(exported).toContain(`Your word: <fillin`);
     });
 
     it("converts the variant it is asked for", async () => {
@@ -703,6 +730,70 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("a label written on the answer is not repeated by its math input", async () => {
+        // An input inherits `label` from the answer around it, the same way it inherits
+        // `expanded`. The answer is the one that renders it — an expanded input is
+        // replaced by writing space before export, and the label has to survive that — so
+        // the input drops the copy it inherited.
+        source = `<answer><label>How many?</label>42</answer>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).toContain(
+            `How many? <m><fillin characters="8"></fillin></m>`,
+        );
+        expect(exported.match(/How many\?/g)).toHaveLength(1);
+    });
+
+    it("a label written on the answer is not repeated by its choice input", async () => {
+        source = `<answer inline><label>Pick one</label><choice credit="1">yes</choice><choice>no</choice></answer>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported.match(/Pick one/g)).toHaveLength(1);
+        expect(exported).toContain(`Pick one <fillin characters="21">`);
+    });
+
+    it("the math in a label written on the answer is written as <m>", async () => {
+        // The answer draws the label its input inherited, so it is the answer that has to
+        // write the math in it as `<m>`; left as text, the `\(` and `\)` print literally.
+        source = `<p><answer><label>Value of <m>x</m>:</label>42</answer></p>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<p>Value of <m>x</m>: <m><fillin characters="8"></fillin></m></p>"`,
+        );
+    });
+
+    it("a text input given a share of the page gets the default blank", async () => {
+        // A percentage says nothing about paper, so it gets the blank as long as a math one.
+        source = `<p><textInput width="50%" /></p>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(`"<p><fillin characters="21"></fillin></p>"`);
+    });
+
+    it("a footnote exports as PreTeXt's <fn>", async () => {
+        // PreTeXt spells a footnote `<fn>`. Left unmapped, `<footnote>` reaches the
+        // fallback renderer, which emits a literal `<footnote>` that PreTeXt has no
+        // template for — so the note's text runs on inside the citing sentence.
+        source = `<p>Claim<footnote>The source.</footnote></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<p>Claim<fn>The source.</fn></p>`,
+        );
+    });
+
+    it("textInput renders its label", async () => {
+        // A text input drew its blank and nothing else, so a label written on one was
+        // lost — including the question a stand-alone input asks.
+        source = `<p>x <textInput><label>Your name:</label></textInput></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<p>x Your name: <fillin characters="21"></fillin></p>`,
+        );
+    });
+
+    it("a label written on the answer is not repeated by its text input", async () => {
+        source = `<p><answer type="text"><label>Your name:</label>Ada</answer></p>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported.match(/Your name:/g)).toHaveLength(1);
+    });
+
     it("mathInput renders its label", async () => {
         source = `<answer><mathInput><label>My Label</label></mathInput></answer>`;
         expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
@@ -776,7 +867,7 @@ describe("Pretext export", async () => {
         source = `<text hide name="selectedChoices">Apple, Pear</text><choiceInput inline selectMultiple bindValueTo="$selectedChoices"><choice>Apple</choice><choice>Banana</choice><choice>Pear</choice></choiceInput>`;
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
-        ).toMatchInlineSnapshot(`" Apple, Pear"`);
+        ).toMatchInlineSnapshot(`"Apple, Pear"`);
     });
 
     it("asList renders setup number values as comma-separated text", async () => {
