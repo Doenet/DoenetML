@@ -164,4 +164,36 @@ ${ballotsTabular()}
                 expect(measureCell($td[0]).paddingStart).eq(10);
             });
     });
+    it("the padding follows the column widths the browser settles on when the `<col>` widths do not add up to the table", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+<tabular name="over" width="300px">${`<col width="15%" />`.repeat(10)}
+  <row>${"<cell>x</cell>".repeat(10)}</row>
+</tabular>
+<tabular name="under" width="600px">${`<col width="20px" />`.repeat(10)}
+  <row>${"<cell>x</cell>".repeat(10)}</row>
+</tabular>
+`,
+                },
+                "*",
+            );
+        });
+
+        // Widths adding up to 150% shrink to fit the table, 30px each, and
+        // absolute widths adding up to less than the table grow to fill it,
+        // 60px each.
+        for (const [name, width] of [
+            ["over", 30],
+            ["under", 60],
+        ]) {
+            cy.get(`#${name} td`).should("have.length", 10);
+            cy.get(`#${name} td`).each(($td) => {
+                const cell = measureCell($td[0]);
+                expect(cell.width).closeTo(width, 1);
+                expect(cell.paddingStart).closeTo(0.15 * width, 0.5);
+            });
+        }
+    });
 });
