@@ -20,7 +20,6 @@ import {
 } from "./assign-names/context";
 import { registerCompositeAssignNames } from "./assign-names/register-composite";
 import { makeTemplatePositionMap } from "./assign-names/composite-info";
-import { isCompositeComponentType } from "./core-info/determine-prop-type";
 
 /**
  * Upgrade the `<map>` element to the new syntax.
@@ -266,7 +265,6 @@ function makeLoop({
             group: groupTag,
             setup: setupTag,
             repeat: loop,
-            position: sourcesNode.position,
         });
     }
 
@@ -363,48 +361,6 @@ export function inlineMapSourceGroups(
         };
         setupParent.children.splice(setupParent.children.indexOf(setup), 1);
         entry.done = true;
-    }
-}
-
-/**
- * Report each `<map>` source group left in place that mixes a list, a composite or a
- * reference with other items.
- *
- * Such a group is the faithful conversion, but v0.7 does not yet iterate over most of
- * them correctly: the repeat gets the right number of values and the wrong ones
- * (https://github.com/Doenet/DoenetML/issues/2073). A composite that stands for a
- * single component, such as a `<select>` of one option, does iterate correctly, but
- * which composites those are can't be told before the document runs, so every
- * composite is reported. Run after the last fold.
- */
-export function warnAboutMixedSourceGroups(
-    context: AssignNamesContext,
-    file: VFile,
-) {
-    for (const { group, done, position } of context.mapSourceGroups) {
-        if (done) {
-            continue;
-        }
-        const items = group.children.filter(
-            (child) => !(child.type === "text" && child.value.trim() === ""),
-        );
-        const expands = (item: DastNodes) =>
-            item.type === "macro" ||
-            (isDastElement(item) &&
-                (item.name === "copy" ||
-                    /List$/.test(item.name) ||
-                    isCompositeComponentType(item.name)));
-        if (items.length < 2 || !items.some(expands)) {
-            continue;
-        }
-        file.message(
-            `The <repeat> made from this <sources> iterates over a <group> that mixes a list, composite or reference with other items, which v0.7 may not iterate over correctly yet (https://github.com/Doenet/DoenetML/issues/2073). Check the result, or split the sources.`,
-            {
-                place: position,
-                ruleId: "map/mixed-sources",
-                source: "v06-to-v07",
-            },
-        );
     }
 }
 
