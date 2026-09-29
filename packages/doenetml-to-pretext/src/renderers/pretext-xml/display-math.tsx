@@ -7,11 +7,29 @@ type MathData = { props: MathPropsInText };
 
 /** `<me>` and `<md>`: a display whose rows are unnumbered unless a row asks otherwise. */
 export const DisplayMath: BasicComponent<MathData> = ({ node }) =>
-    displayMath(node.data.props.latex, false);
+    node.name === "me"
+        ? singleEquation(node.data.props.latex, false)
+        : displayMath(node.data.props.latex, false);
 
 /** `<men>` and `<mdn>`: a display whose rows are numbered unless a row asks otherwise. */
 export const DisplayMathNumbered: BasicComponent<MathData> = ({ node }) =>
-    displayMath(node.data.props.latex, true);
+    node.name === "men"
+        ? singleEquation(node.data.props.latex, true)
+        : displayMath(node.data.props.latex, true);
+
+/**
+ * An `<me>` or `<men>`: one equation, with one number if any, however many lines an
+ * author breaks it into. A `\\` the author wrote is a line break inside the equation, as
+ * it is on screen, so the lines are gathered into one rather than split into rows that
+ * PreTeXt would number one by one.
+ */
+function singleEquation(latex: string, numbered: boolean) {
+    const mdAttrs = numbered ? { number: "yes" } : {};
+    const lines = splitAtTopLevelRowBreaks(latex);
+    const content =
+        lines.length > 1 ? `\\begin{gathered}${latex}\\end{gathered}` : latex;
+    return <md {...mdAttrs}>{mathContentWithBlanks(content)}</md>;
+}
 
 /**
  * A displayed expression as a PreTeXt `<md>`. PreTeXt aligns the rows of an `<md>` on
@@ -27,9 +45,6 @@ function displayMath(latex: string, numbered: boolean) {
     const differs = (row: DisplayRow) =>
         row.numbered !== undefined && row.numbered !== numbered;
 
-    if (rows.length === 0) {
-        return <md {...mdAttrs}>{mathContentWithBlanks(latex)}</md>;
-    }
     if (rows.length === 1 && !differs(rows[0])) {
         return <md {...mdAttrs}>{mathContentWithBlanks(rows[0].latex)}</md>;
     }
@@ -60,7 +75,8 @@ export type DisplayRow = {
  * prefixed by `\tag{n}` when it is numbered and by `\notag` when it is not. Only a `\\`
  * outside every group and environment ends a row — one inside an `array`, say, ends a row
  * of the array. The core's `\tag` and `\notag` are taken off the row and reported as
- * `numbered`, since PreTeXt numbers the rows itself.
+ * `numbered`, since PreTeXt numbers the rows itself. Every row is kept, empty or not, so
+ * the rows PreTeXt numbers are the rows DoenetML numbers.
  */
 export function parseDisplayRows(latex: string): DisplayRow[] {
     const rows: DisplayRow[] = [];
@@ -75,10 +91,8 @@ export function parseDisplayRows(latex: string): DisplayRow[] {
             numbered = true;
             row = row.replace(/\\tag\{[^{}]*\}/g, "");
         }
-        row = row.trim();
-        if (row !== "") {
-            rows.push({ latex: row, numbered });
-        }
+        // An empty row is kept: it is a row, and numbered, on screen as well.
+        rows.push({ latex: row.trim(), numbered });
     }
     return rows;
 }

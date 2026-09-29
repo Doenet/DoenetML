@@ -529,6 +529,32 @@ describe("Pretext export", async () => {
         ).toMatchInlineSnapshot(`"<md number="yes">x = 1</md>"`);
     });
 
+    it("a line break in an <men> keeps it one equation, with one number", async () => {
+        // On screen an `<men>` is one equation however many lines it has, so its lines
+        // are gathered rather than split into rows PreTeXt would number one by one.
+        source = `<men>a = 1 \\\\ b = 2</men>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).not.toContain(`<mrow`);
+        expect(exported).toMatch(
+            /^<md number="yes">\\begin\{gathered\}.*\\end\{gathered\}<\/md>$/,
+        );
+    });
+
+    it("an empty row is kept, and the core's tag never leaks", async () => {
+        // Each row DoenetML numbers is a row PreTeXt numbers.
+        source = `<mdn><mrow></mrow><mrow>y = 2</mrow></mdn>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<md number="yes"><mrow></mrow><mrow>y = 2</mrow></md>"`,
+        );
+
+        source = `<mdn><mrow></mrow></mdn>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).not.toContain(`\\tag`);
+        expect(exported).not.toContain(`\\notag`);
+    });
+
     it("a row break inside an environment does not split a display", async () => {
         source = `<me>\\begin{array}{cc} a \\amp b \\\\ c \\amp d \\end{array}</me>`;
         const exported = await coreRunner.processToFlatDastAsFragment(source);
