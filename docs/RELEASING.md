@@ -89,7 +89,11 @@ semver range matches a prerelease, so no range URL tracks one.
    accumulated changesets, bumps the six fixed-group manifests and writes the
    CHANGELOGs.
 2. Create a **GitHub Release** tagged `vX.Y.Z` on that merge commit, targeting the
-   right branch. Nothing automates this.
+   right branch. Nothing automates this. Choose **Latest** for a release of the
+   newest line that has shipped a stable release, and **None** for any older line.
+   So `v0.7.x` releases get Latest until 0.8.0 ships, and None from then on.
+   This radio button only sets what the repo's Releases page shows as latest.
+   It is independent of the npm dist-tags, and the release workflows ignore it.
 3. Watch `publish.yml` → `production-release`. It is gated on the `production`
    environment, so it waits for an approval; the step clock starts when the step
    starts, not when the job is queued, so a slow approval does not eat a timeout.
