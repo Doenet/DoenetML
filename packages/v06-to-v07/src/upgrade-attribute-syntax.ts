@@ -93,6 +93,8 @@ export const upgradeAttributeSyntax: Plugin<
         const macrosInAttributes: {
             node: DastMacro;
             container: DastElement | undefined;
+            /** The v0.6 namespaces the macro sat in, for its `assignNames`. */
+            ancestorNames: string[];
         }[] = [];
         visit(tree, (node, info) => {
             if (!isDastElement(node)) {
@@ -104,10 +106,20 @@ export const upgradeAttributeSyntax: Plugin<
                         n.type === "macro" &&
                         Object.keys(n.attributes).length > 0
                     ) {
+                        // A copy the author named has to sit in the namespace it
+                        // was named in, so `$(s/b)`, now `$s.b`, still finds it.
+                        const named =
+                            readAssignNames(n as unknown as DastElement) !==
+                                undefined || n.attributes["name"] !== undefined;
                         macrosInAttributes.push({
                             node: n,
                             container: findSetupContainer(
                                 info.parents as DastElement[],
+                                named ? context : undefined,
+                            ),
+                            ancestorNames: namespaceChainOf(
+                                info.parents as DastElement[],
+                                context,
                             ),
                         });
                     }
@@ -134,12 +146,22 @@ export const upgradeAttributeSyntax: Plugin<
         });
         // It is possible that names are assigned via the `{name="..."}` syntax in a macro.
         // We already have a list of all macros with attributes, so add any of those names.
+        // So can the names in its `assignNames`, which the copy takes below, after
+        // earlier copies have had generated names handed out.
         for (const { node: macroNode } of macrosInAttributes) {
             const nameAttr = toXml(
                 macroNode.attributes["name"]?.children,
             ).trim();
             if (nameAttr) {
                 usedNames.add(nameAttr);
+            }
+            const assigned = readAssignNames(
+                macroNode as unknown as DastElement,
+            );
+            for (const assignedName of assigned?.split(/\s+/) ?? []) {
+                if (assignedName) {
+                    usedNames.add(assignedName);
+                }
             }
         }
 
@@ -159,7 +181,11 @@ export const upgradeAttributeSyntax: Plugin<
         // One `<setup>` per container, so each copy lands where the attribute that
         // used it could see the same names. `undefined` stands for the document.
         const setupTags = new Map<DastElement | undefined, DastElement>();
-        for (const { node: macroNode, container } of macrosInAttributes) {
+        for (const {
+            node: macroNode,
+            container,
+            ancestorNames,
+        } of macrosInAttributes) {
             let setupTag = setupTags.get(container);
             if (!setupTag) {
                 setupTag = {
@@ -183,8 +209,16 @@ export const upgradeAttributeSyntax: Plugin<
                 },
                 children: [],
             };
-            // If the macro has a `name` attribute, we need to add it to the copy
-            const nameAttr = macroNode.attributes["name"];
+            // `$(a{assignNames="b"})` names the copy `b`, just as it does outside an
+            // attribute. The shared pass never saw it, so it is converted here, the same
+            // way as for a macro in the content above.
+            const assigned = readAssignNames(copy);
+            convertAssignNames(copy, ancestorNames, context, file);
+            warnIfNameCouldNotBeKept(copy, assigned, file);
+
+            // If the macro has a `name` attribute (or has just been given one), we need
+            // to add it to the copy
+            const nameAttr = copy.attributes["name"];
             let name = nameAttr
                 ? toXml(nameAttr.children).trim()
                 : generateUniqueName();
@@ -228,15 +262,21 @@ export const upgradeAttributeSyntax: Plugin<
 const SCOPING_CONTAINERS = new Set(["module", "repeat", "repeatForSequence"]);
 
 /**
- * The nearest ancestor that scopes names, or `undefined` for the document.
+ * The nearest ancestor that scopes names, or `undefined` for the document. Given the
+ * `context`, a v0.6 namespace (`newNamespace`) counts as one too.
  *
  * `parents` runs nearest first and leaves out the element carrying the attribute, which
  * is right: `<repeat for="$(x{...})">` evaluates `for` from outside the repeat.
  */
-function findSetupContainer(parents: DastElement[]): DastElement | undefined {
+function findSetupContainer(
+    parents: DastElement[],
+    context?: AssignNamesContext,
+): DastElement | undefined {
     return parents.find(
         (parent) =>
-            isDastElement(parent) && SCOPING_CONTAINERS.has(parent.name),
+            isDastElement(parent) &&
+            (SCOPING_CONTAINERS.has(parent.name) ||
+                context?.namespaceElements.has(parent)),
     );
 }
 
