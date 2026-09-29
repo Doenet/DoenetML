@@ -10,3 +10,4 @@ Convert more v0.6 `<copy>` and `<map>` forms:
 - A map's alias is typed when all its values share one type, including written components.
 - A `<sequence>` next to other sources is no longer dropped.
 - A `<map>` placed before a module's `<setup>` no longer breaks the module's attributes.
+- A `<sources>`'s `alias` and `indexAlias`, and a `<sequence>`'s `type`, are recognized however they are capitalized.

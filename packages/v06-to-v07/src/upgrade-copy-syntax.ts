@@ -115,6 +115,12 @@ async function resolveAllCopyTags(
         // and that has no type until the outer `for` is settled. The outer group is
         // outside the outer repeat and the inner one inside it, so the outer is always
         // nearer the root.
+        //
+        // Each pass takes the copies whose nearest group is the one being resolved, so
+        // a copy is tried once. A `<map>` inside another map's `<sources>` has its group
+        // inside that map's group; its template's copies go with the outer group,
+        // before its own `for` is settled, so a copy of its alias's prop stays a
+        // `<copy>`, as it did before the groups were resolved one at a time.
         const depths = new Map<DastElement, number>();
         visit(tree, (node, info) => {
             if (isDastElement(node)) {
@@ -124,12 +130,14 @@ async function resolveAllCopyTags(
         const groups = context.mapSourceGroups
             .map(({ group }) => group)
             .sort((a, b) => (depths.get(a) ?? 0) - (depths.get(b) ?? 0));
+        const groupSet = new Set(groups);
         for (const group of groups) {
             await resolveCopyTags(
                 core,
                 tree,
                 file,
-                (parents) => parents.includes(group),
+                (parents) =>
+                    parents.find((parent) => groupSet.has(parent)) === group,
                 context,
             );
             inlineMapSourceGroups(tree, context);
@@ -138,7 +146,7 @@ async function resolveAllCopyTags(
             core,
             tree,
             file,
-            (parents) => !groups.some((group) => parents.includes(group)),
+            (parents) => !parents.some((parent) => groupSet.has(parent)),
             context,
         );
     } finally {
@@ -620,9 +628,16 @@ async function referenceItemType(
 
 /**
  * The value of attribute `name` when it is plain text, trimmed; otherwise `undefined`.
+ * The name is matched however it was written: `type` on a `<repeatForSequence>` is
+ * carried over from the author's `<sequence>`, and v0.6 attribute names were
+ * case-insensitive.
  */
 function literalAttribute(node: DastElement, name: string): string | undefined {
-    const children = node.attributes[name]?.children;
+    const key = Object.keys(node.attributes).find(
+        (key) => key.toLowerCase() === name.toLowerCase(),
+    );
+    const children =
+        key === undefined ? undefined : node.attributes[key].children;
     if (!children || !children.every((child) => child.type === "text")) {
         return undefined;
     }

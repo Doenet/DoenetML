@@ -635,6 +635,14 @@ describe("v06 to v07 update", () => {
         correctSource = `${poly}<math extend="$poly.vertices[2][1]" /><math copy="$poly.vertices[$n][2]" /><number name="n">1</number>`;
         expect(await updateSyntax(source)).toEqual(correctSource);
 
+        // Empty entries add no index. An empty `componentIndex` is left as written.
+        source = `${poly}<copy prop="vertices" source="poly" propIndex="" /><copy prop="vertices" source="poly" propIndex="2," />`;
+        correctSource = `${poly}$poly.vertices<point extend="$poly.vertices[2]" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+        source = `<group name="g"><math>a</math></group><copy source="g" componentIndex="" />`;
+        correctSource = `<group name="g"><math>a</math></group><group extend="$g" componentIndex="" />`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
         source = `<group name="g"><math>a</math><point>(1,2)</point></group><copy source="g" componentIndex="2" /><copy source="g" componentIndex="2" prop="x" />`;
         correctSource = `<group name="g"><math>a</math><point>(1,2)</point></group><point extend="$g[2]" /><math extend="$g[2].x" />`;
         expect(await updateSyntax(source)).toEqual(correctSource);
@@ -681,7 +689,11 @@ describe("v06 to v07 update", () => {
 
         // Stepping through the sources together, or numbering the combinations in
         // one list, has no v0.7 form: the map is left for the author.
-        for (const attrs of [`behavior="parallel"`, `assignNames="a b c d"`]) {
+        for (const attrs of [
+            `behavior="parallel"`,
+            `Behavior="Parallel"`,
+            `assignNames="a b c d"`,
+        ]) {
             source = `<map ${attrs}><template><p>$x$y</p></template><sources alias="x"><sequence from="1" to="2" /></sources><sources alias="y"><sequence from="3" to="4" /></sources></map>`;
             res = await updateSyntaxFromV06toV07(source);
             expect(res.xml).toEqual(source);
@@ -703,6 +715,47 @@ describe("v06 to v07 update", () => {
         expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
             "map/mixed-sources",
         ]);
+
+        // So does a reference next to a written component.
+        source = `<math name="a">1</math><map><template><p>$v</p></template><sources alias="v">$a<number>2</number></sources></map>`;
+        expect(
+            (await updateSyntaxFromV06toV07(source)).vfile.messages.map(
+                (m) => m.ruleId,
+            ),
+        ).toEqual(["map/mixed-sources"]);
+
+        // Written components alone, or references alone, are not reported.
+        for (const sources of [
+            `<math>1</math><number>2</number>`,
+            `$a $a`,
+            `<copy source="a" /><copy source="a" />`,
+        ]) {
+            source = `<math name="a">1</math><map><template><p>$v</p></template><sources alias="v">${sources}</sources></map>`;
+            expect(
+                (await updateSyntaxFromV06toV07(source)).vfile.messages,
+            ).toEqual([]);
+        }
+    });
+
+    it("a map's alias and indexAlias are found however they are capitalized", async () => {
+        source = `<map><template><p>$v$i</p></template><sources alias="v" indexalias="i"><number>1</number></sources></map><map><template><p>$w$j</p></template><sources ALIAS="w" IndexAlias="j"><sequence from="1" to="2" /></sources></map>`;
+        correctSource = `<setup><group name="group"><number>1</number></group></setup><repeat for="$group" valueName="v" indexName="i"><p>$v$i</p></repeat><repeatForSequence from="1" to="2" valueName="w" indexName="j"><p>$w$j</p></repeatForSequence>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // So is the type of a sequence, which says the alias's type.
+        source = `<map><template><p>$(v{displayDigits='3'})</p></template><sources alias="v"><sequence Type="math" from="x" length="2" /></sources></map>`;
+        correctSource = `<repeatForSequence Type="math" from="x" length="2" valueName="v"><p><math displayDigits="3" extend="$v" /></p></repeatForSequence>`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+    });
+
+    it("a map inside another map's sources reports an unresolved copy once", async () => {
+        source = `<map><template><p>$y</p></template><sources alias="y"><map><template><p>$x</p></template><sources alias="x"><number>1</number><copy source="nada" /></sources></map></sources></map>`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(
+            res.vfile.messages.filter(
+                (m) => m.ruleId === "copy/unresolved-referent",
+            ),
+        ).toHaveLength(1);
     });
 
     it("a map before a module's setup leaves the module's attributes alone", async () => {
