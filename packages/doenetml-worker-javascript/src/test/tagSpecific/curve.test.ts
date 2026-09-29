@@ -1522,8 +1522,8 @@ describe("Curve tag tests @group2", async () => {
             ).eq("[-2, 5]");
         });
 
-        // `<evaluate>` reads the function's domain too, so this took the
-        // document down with no graph in it.
+        // `<evaluate>` itself gave 9 on main too. This test failed there only
+        // because `returnAllStateVariables` computes the function's `minima`.
         it("evaluated outside a graph", async () => {
             let { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `

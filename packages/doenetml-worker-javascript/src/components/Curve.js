@@ -753,10 +753,10 @@ export default class Curve extends GraphicalComponent {
                     ],
                     ["tuple", true, true],
                 ]);
-                // One interval, not a list: `fs` shadows this into the domain
-                // of each function it creates, and a shadow of an array state
-                // variable onto an ordinary one gives each entry — here the
-                // domain of the function's one input — the whole value.
+                // One interval, not a list: `fs` shadows this into the `domain`
+                // of each function it creates. That `domain` is an array state
+                // variable and this is not, so each of its entries — here the
+                // one, for the function's one input — gets this whole value.
                 return {
                     setValue: { domainForFunctions: interval },
                 };
