@@ -34,7 +34,7 @@ import {
 import { Provider } from "react-redux";
 import { Element } from "../../renderers";
 import { ensurePretextTag } from "./ensure-pretext-tag";
-import { addWritingSpace, leaveInputLabelsToAnswers } from "./writing-space";
+import { addWritingSpace } from "./writing-space";
 import { arrangePrintoutPages } from "./printout-pages";
 import { wrapLooseText } from "./loose-text";
 import { renderReactToXast } from "./xast-reconciler";
@@ -72,7 +72,6 @@ export function renderFlatDastToPretext(
     wrapLooseText(_flatDast);
     arrangePrintoutPages(_flatDast);
     addWritingSpace(_flatDast);
-    leaveInputLabelsToAnswers(_flatDast);
 
     if (!fragment) {
         ensurePretextTag(_flatDast);

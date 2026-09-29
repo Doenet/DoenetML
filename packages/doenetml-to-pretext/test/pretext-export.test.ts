@@ -628,6 +628,8 @@ describe("Pretext export", async () => {
         source = `<p><answer type="text"><label>Your word:</label>hello</answer></p>`;
         const exported = await coreRunner.processToFlatDastAsFragment(source);
         expect(exported.match(/Your word:/g)).toHaveLength(1);
+        // The space between the label and the blank is still the input's to supply.
+        expect(exported).toContain(`Your word: <fillin`);
     });
 
     it("converts the variant it is asked for", async () => {

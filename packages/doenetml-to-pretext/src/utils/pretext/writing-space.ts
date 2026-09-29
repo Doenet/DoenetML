@@ -236,27 +236,6 @@ export function addWritingSpace(flatDast: FlatDastRoot) {
     }
 }
 
-/**
- * Leave the label of each blank `<textInput>` to the `<answer>` it was sugared into, where
- * that answer draws it. An input inherits its answer's label, and both draw what they are
- * given, so a label written on the answer would otherwise print twice. A label written on
- * the input itself is its own, and is kept. `flatDast` is mutated in place.
- *
- * An expanded input is not a blank; its label is placed by {@link addWritingSpace}.
- */
-export function leaveInputLabelsToAnswers(flatDast: FlatDastRoot) {
-    const parents = buildParentMap(flatDast);
-    for (const element of flatDast.elements) {
-        if (
-            element?.name === "textInput" &&
-            !isExpandedTextInput(element) &&
-            labelLeftBehind(element, parents) === undefined
-        ) {
-            mutableProps(element).label = "";
-        }
-    }
-}
-
 function isExpandedTextInput(element: FlatDastElement | undefined) {
     if (element?.name !== "textInput") {
         return false;
