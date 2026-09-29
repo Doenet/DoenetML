@@ -49,8 +49,9 @@ export default React.memo(function SummaryStatistics(
         borderCollapse: "collapse",
     };
 
-    // Matches the padding `<cell>` gives the cells of a `<tabular>`, so a
-    // statistics table is spaced like the other tables in a document.
+    // Matches the full padding `<cell>` gives a `<tabular>` cell of ordinary
+    // width, so a statistics table is spaced like the other tables in a
+    // document.
     const cellStyle: React.CSSProperties = { padding: "3px 10px" };
 
     // That rule is the only border the table draws, and it carries its own

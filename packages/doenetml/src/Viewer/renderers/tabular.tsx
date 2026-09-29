@@ -1,10 +1,11 @@
-import React, { useRef } from "react";
+import React, { useLayoutEffect, useRef, useState } from "react";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { sizeToCSS } from "./utils/css";
 import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
 import { useRecordVisibilityChanges } from "../../utils/visibility";
+import { tabularColumnEdgeProperties } from "./utils/tabularCellPadding";
 
 /** One entry of `<tabular>`'s `columnSpecs`, i.e. one `<col>`'s settings. */
 interface ColumnSpec {
@@ -23,6 +24,7 @@ interface TabularSVs {
     height?: any;
     topBorder?: any;
     columnSpecs?: ColumnSpec[];
+    numColumns?: number;
 }
 
 /** Translate a DoenetML border weight into a CSS `border-*-width`. */
@@ -44,6 +46,29 @@ export default React.memo(function Tabular(props: UseDoenetRendererProps) {
 
     useRecordVisibilityChanges(ref, callAction, actions);
 
+    // The cells size their padding from the table's width (see
+    // `utils/tabularCellPadding.ts`), so measure it before the first paint
+    // and again whenever it changes.
+    const tableRef = useRef<HTMLTableElement>(null);
+    const [measuredTableWidth, setMeasuredTableWidth] = useState<number | null>(
+        null,
+    );
+    useLayoutEffect(() => {
+        const table = tableRef.current;
+        if (!table) {
+            return;
+        }
+        const measure = () =>
+            setMeasuredTableWidth(table.getBoundingClientRect().width);
+        measure();
+        if (typeof ResizeObserver === "undefined") {
+            return;
+        }
+        const observer = new ResizeObserver(measure);
+        observer.observe(table);
+        return () => observer.disconnect();
+    }, [SVs.hidden]);
+
     if (SVs.hidden) {
         return null;
     }
@@ -55,6 +80,11 @@ export default React.memo(function Tabular(props: UseDoenetRendererProps) {
         borderColor: "var(--canvasText)",
         borderRadius: "var(--mainBorderRadius)",
         tableLayout: "fixed",
+        ...(tabularColumnEdgeProperties({
+            columnWidths: (SVs.columnSpecs ?? []).map((spec) => spec.width),
+            numColumns: SVs.numColumns ?? 0,
+            measuredTableWidth,
+        }) as React.CSSProperties),
     };
     if (SVs.topBorder !== "none") {
         tableStyle.borderTopStyle = "solid";
@@ -107,7 +137,7 @@ export default React.memo(function Tabular(props: UseDoenetRendererProps) {
             }}
             ref={ref}
         >
-            <table id={id} style={tableStyle}>
+            <table id={id} style={tableStyle} ref={tableRef}>
                 {colGroup}
                 <tbody>{children}</tbody>
             </table>

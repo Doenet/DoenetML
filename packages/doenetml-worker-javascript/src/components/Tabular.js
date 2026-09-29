@@ -187,6 +187,7 @@ export default class Tabular extends BlockComponent {
             shadowingInstructions: {
                 createComponentOfType: "integer",
             },
+            forRenderer: true,
             returnDependencies: () => ({
                 rowChildren: {
                     dependencyType: "child",
