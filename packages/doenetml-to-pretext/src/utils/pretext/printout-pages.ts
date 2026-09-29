@@ -24,6 +24,7 @@ import {
     makeDocumentPrintout,
     propsOf,
 } from "./writing-space";
+import { wrapRuns } from "./loose-text";
 
 /** The lists whose items are problems. */
 const LISTS = new Set(["problems", "exercises"]);
@@ -108,7 +109,10 @@ export function arrangePrintoutPages(flatDast: FlatDastRoot) {
         }
     }
 
-    makeDocumentPrintout(container, flatDast, "worksheet");
+    const worksheet = makeDocumentPrintout(container, flatDast, "worksheet");
+    // Text the document or a dissolved container held beside the pages is now text in the
+    // worksheet, which PreTeXt drops unless it is in a paragraph.
+    wrapRuns(worksheet, flatDast);
 }
 
 /** Whether `element` has a page somewhere inside it. */

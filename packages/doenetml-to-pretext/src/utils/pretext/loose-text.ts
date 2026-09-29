@@ -57,7 +57,11 @@ export function wrapLooseText(flatDast: FlatDastRoot) {
     }
 }
 
-function wrapRuns(element: FlatDastElement, flatDast: FlatDastRoot) {
+/**
+ * Wrap each run of text in `element`, which holds blocks, in a paragraph of its own. For an
+ * element made after {@link wrapLooseText} has run, as the worksheet of a paged document is.
+ */
+export function wrapRuns(element: FlatDastElement, flatDast: FlatDastRoot) {
     // Displayed mathematics stands apart on the page but is written inside a paragraph.
     const isBlock = (child: FlatDastElementContent) =>
         !DISPLAY_MATH.has(elementOf(child, flatDast)?.name ?? "") &&

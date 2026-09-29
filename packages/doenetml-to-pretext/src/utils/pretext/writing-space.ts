@@ -421,6 +421,7 @@ export function makeDocumentPrintout(
     container.children = titleRef
         ? [titleRef, refTo(element)]
         : [refTo(element)];
+    return element;
 }
 
 /** Append a new element to `flatDast`, giving it the next available id. */

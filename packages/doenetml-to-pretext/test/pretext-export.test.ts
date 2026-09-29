@@ -454,6 +454,15 @@ describe("Pretext export", async () => {
         expect(exported).not.toContain(`<exercise`);
     });
 
+    it("text beside the pages of a worksheet is given a paragraph", async () => {
+        // Text written at the document level, or in a container dissolved to bring the
+        // pages up, ends up in the worksheet, where PreTeXt drops text not in a paragraph.
+        source = `<div>Before <page><p>A</p></page></div><page><p>B</p></page>After`;
+        const exported = await coreRunner.processToFlatDast(source);
+        expect(exported).toContain(`<p>Before</p><page>`);
+        expect(exported).toContain(`</page><p>After</p>`);
+    });
+
     it("a page inside a section exports as its children", async () => {
         // PreTeXt has no page but a printout's, and a section cannot be dissolved.
         source = `<section><title>S</title><page><p>Inside</p></page></section>`;
