@@ -148,6 +148,36 @@ describe("Page tag tests @group4", async () => {
         expect(renderedQ).toContain(await resolvePathToNodeIdx("shown"));
     });
 
+    it("a page in a cascade in a list is rendered, and its problems are items", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<problems>
+  <cascade name="c">
+    <page name="p1"><problem name="a"><p>a</p></problem></page>
+    <page name="p2"><problem name="b"><p>b</p></problem></page>
+  </cascade>
+</problems>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const c = stateVariables[await resolvePathToNodeIdx("c")];
+        const renderedC = c.stateValues.childIndicesToRender.map(
+            (ind: number) => c.activeChildren[ind]?.componentIdx,
+        );
+        expect(renderedC).toContain(await resolvePathToNodeIdx("p1"));
+        expect(renderedC).toContain(await resolvePathToNodeIdx("p2"));
+
+        for (const [name, number] of [
+            ["a", "1"],
+            ["b", "2"],
+        ]) {
+            const problem = stateVariables[await resolvePathToNodeIdx(name)];
+            expect(problem.stateValues.isListItem, name).eq(true);
+            expect(problem.stateValues.sectionNumber, name).eq(number);
+        }
+    });
+
     it("a section is scored on the answers inside a page", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

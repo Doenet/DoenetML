@@ -22,9 +22,10 @@ of the list, so a set of problems can be printed one per page by putting each
 `<problem>{:dn}` in a `<page>{:dn}` of its own.
 
 A document is printed in pages only when its `<page>{:dn}`s are written at its
-top level, or inside a `<problems>{:dn}` (or `<exercises>{:dn}`) there. A
-`<page>{:dn}` inside a [`<section>{:dn}`](section) prints as its content, with
-no page break.
+top level, or inside a `<problems>{:dn}`, [`<exercises>{:dn}`](exercises),
+`<div>{:dn}` or [`<cascade>{:dn}`](cascade) there; the title of such a
+`<problems>{:dn}` is not printed. A `<page>{:dn}` inside a
+[`<section>{:dn}`](section) prints as its content, with no page break.
 
 <AttrPropDisplay name='page'/>
 

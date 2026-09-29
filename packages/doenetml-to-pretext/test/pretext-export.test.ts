@@ -470,6 +470,18 @@ describe("Pretext export", async () => {
         expect(exported).not.toContain(`<page`);
         expect(exported).not.toContain(`<worksheet`);
         expect(exported).toContain(`<p>Inside</p>`);
+
+        // Nor is the list around such a section dissolved: with no page to bring up, the
+        // document is left as it was, its list and the list's title included.
+        source = `<problems><title>List</title><problem><p>Q</p></problem><section><page><p>Inside</p></page></section></problems>`;
+        const withPage = await coreRunner.processToFlatDast(source);
+        expect(withPage).not.toContain(`<worksheet`);
+        expect(withPage).toContain(`List`);
+        expect(withPage).toEqual(
+            await coreRunner.processToFlatDast(
+                source.replace(`<page>`, `<div>`).replace(`</page>`, `</div>`),
+            ),
+        );
     });
 
     it("the rows of an <md> are each an <mrow>", async () => {

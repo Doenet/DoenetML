@@ -115,7 +115,11 @@ export function arrangePrintoutPages(flatDast: FlatDastRoot) {
     wrapRuns(worksheet, flatDast);
 }
 
-/** Whether `element` has a page somewhere inside it. */
+/**
+ * Whether `element` has a page inside it that dissolving would bring up: one reached
+ * through dissolvable containers alone. A page behind a section stays where it is, so it
+ * is no reason to dissolve the list around that section.
+ */
 function containsPage(
     element: FlatDastElement,
     flatDast: FlatDastRoot,
@@ -124,7 +128,8 @@ function containsPage(
         const inner = elementOf(child, flatDast);
         return (
             inner !== undefined &&
-            (inner.name === "page" || containsPage(inner, flatDast))
+            (inner.name === "page" ||
+                (DISSOLVABLE.has(inner.name) && containsPage(inner, flatDast)))
         );
     });
 }

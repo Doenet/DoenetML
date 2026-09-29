@@ -90,9 +90,9 @@ export function preparePrintoutPages(tree: HastRoot) {
 }
 
 /**
- * Drop the heading of a printout that has no title. PreTeXt heads an untitled worksheet
- * with its number alone, and one given an empty title with an empty heading, a blank rule
- * across the top of the first sheet.
+ * Drop the heading of a printout that has no title. PreTeXt heads a worksheet whose title
+ * is empty, as the converter writes it, with its number alone: a bare "1" across the top
+ * of the first sheet.
  */
 function dropEmptyHeading(printout: HastElement) {
     printout.children = printout.children.filter((child) => {
