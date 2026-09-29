@@ -222,7 +222,6 @@ export const upgradeAttributeSyntax: Plugin<
             let name = nameAttr
                 ? toXml(nameAttr.children).trim()
                 : generateUniqueName();
-            usedNames.add(name);
             copy.attributes["name"] = {
                 type: "attribute",
                 name: "name",
