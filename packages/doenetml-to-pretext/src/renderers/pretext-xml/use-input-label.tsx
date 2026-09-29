@@ -2,6 +2,23 @@ import React from "react";
 import { AnswerLabelContext } from "./answer-label-context";
 
 /**
+ * A label as PreTeXt content, or `null` when it is empty. A label may hold math, written
+ * between `\(` and `\)`, which becomes `<m>`.
+ */
+export function labelContent(rawLabel: string | undefined): React.ReactNode {
+    const label = rawLabel?.trim() || "";
+    if (!label) {
+        return null;
+    }
+    // Every odd-indexed part lay between the delimiters, so it is math.
+    return label
+        .split(/\\\(|\\\)/)
+        .map((part, index) =>
+            index % 2 === 0 ? part : <m key={index}>{part}</m>,
+        );
+}
+
+/**
  * What an input draws in front of its blank: the label written on the input, or nothing
  * where an enclosing `<answer>` has already drawn the same one.
  *
@@ -10,8 +27,6 @@ import { AnswerLabelContext } from "./answer-label-context";
  * one that keeps it, since an expanded input is replaced by writing space before export
  * and the label has to survive that. A label written on the input itself never reaches the
  * answer, so comparing the two tells the inherited copy from the input's own.
- *
- * A label may hold math, written between `\(` and `\)`, which becomes `<m>`.
  */
 export function useInputLabel(rawLabel: string | undefined): React.ReactNode {
     const ownLabel = rawLabel?.trim() || "";
@@ -24,14 +39,6 @@ export function useInputLabel(rawLabel: string | undefined): React.ReactNode {
         return inheritedFromAnswer ? " " : null;
     }
 
-    // Every odd-indexed part lay between the delimiters, so it is math.
-    return [
-        ...ownLabel
-            .split(/\\\(|\\\)/)
-            .map((part, index) =>
-                index % 2 === 0 ? part : <m key={index}>{part}</m>,
-            ),
-        // Separate the label from the blank that follows it.
-        " ",
-    ];
+    // Separate the label from the blank that follows it.
+    return [labelContent(ownLabel), " "];
 }

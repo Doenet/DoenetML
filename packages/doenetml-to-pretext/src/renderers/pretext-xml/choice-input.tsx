@@ -1,7 +1,7 @@
 import React from "react";
 import { BasicComponentWithPassthroughChildren } from "../types";
-import { AnswerLabelContext } from "./answer-label-context";
 import { TEXT_FILLIN_CHARACTERS } from "./fillin-width";
+import { useInputLabel } from "./use-input-label";
 
 type ChoiceInputData = {
     props: {
@@ -23,13 +23,10 @@ export const ChoiceInput: BasicComponentWithPassthroughChildren<
         choicesOrder,
         choicesHidden,
         selectedIndices,
-        label: ownLabel,
+        label,
         inline,
     } = node.data.props;
-    // Drop the label the answer around it already rendered; keep one written here.
-    const answerLabel = React.useContext(AnswerLabelContext);
-    const label =
-        ownLabel?.trim() && ownLabel.trim() === answerLabel ? "" : ownLabel;
+    const displayLabel = useInputLabel(label);
     const childrenArray: React.ReactNode[] = Array.isArray(children)
         ? children
         : [children];
@@ -42,7 +39,7 @@ export const ChoiceInput: BasicComponentWithPassthroughChildren<
             .filter((child) => child != null);
         return (
             <React.Fragment>
-                {label}{" "}
+                {displayLabel}
                 {selectedChoices.length > 0 ? (
                     selectedChoices.length === 1 ? (
                         <em>{selectedChoices[0]}</em>

@@ -246,7 +246,7 @@ describe("Pretext export", async () => {
 
         source = `<ol><li>Pick: <choiceInput inline><choice>yes</choice><choice>no</choice></choiceInput> <answer type="text" handGraded expanded /></li></ol>`;
         expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
-            `<li xml:id="doenet-id-2"><p workspace="1.25in">Pick:  <fillin characters="21"></fillin> </p></li>`,
+            `<li xml:id="doenet-id-2"><p workspace="1.25in">Pick: <fillin characters="21"></fillin> </p></li>`,
         );
     });
 
@@ -722,6 +722,26 @@ describe("Pretext export", async () => {
         source = `<answer inline><label>Pick one</label><choice credit="1">yes</choice><choice>no</choice></answer>`;
         const exported = await coreRunner.processToFlatDastAsFragment(source);
         expect(exported.match(/Pick one/g)).toHaveLength(1);
+        expect(exported).toContain(`Pick one <fillin characters="21">`);
+    });
+
+    it("the math in a label written on the answer is written as <m>", async () => {
+        // The answer draws the label its input inherited, so it is the answer that has to
+        // write the math in it as `<m>`; left as text, the `\(` and `\)` print literally.
+        source = `<p><answer><label>Value of <m>x</m>:</label>42</answer></p>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<p>Value of <m>x</m>: <m><fillin characters="8"></fillin></m></p>"`,
+        );
+    });
+
+    it("a text input given a share of the page gets the default blank", async () => {
+        // A percentage says nothing about paper, so it gets the blank as long as a math one.
+        source = `<p><textInput width="50%" /></p>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(`"<p><fillin characters="21"></fillin></p>"`);
     });
 
     it("a footnote exports as PreTeXt's <fn>", async () => {
@@ -822,7 +842,7 @@ describe("Pretext export", async () => {
         source = `<text hide name="selectedChoices">Apple, Pear</text><choiceInput inline selectMultiple bindValueTo="$selectedChoices"><choice>Apple</choice><choice>Banana</choice><choice>Pear</choice></choiceInput>`;
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
-        ).toMatchInlineSnapshot(`" Apple, Pear"`);
+        ).toMatchInlineSnapshot(`"Apple, Pear"`);
     });
 
     it("asList renders setup number values as comma-separated text", async () => {
