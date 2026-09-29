@@ -18,10 +18,20 @@ import { isV06True } from "./utils";
 import { reparseAttribute } from "./reparse-attribute";
 import { parseReferencePath } from "./assign-names/apply-renames";
 import { createCoreForLookup } from "./core-info/core";
+import { AssignNamesContext } from "./assign-names/context";
+import { inlineMapSourceGroups } from "./upgrade-map-element";
 import {
-    determinePropType,
+    describeProp,
+    isComponentType,
     isModuleComponentType,
 } from "./core-info/determine-prop-type";
+
+type ReferentInfo = {
+    /** The component type of what the reference copies (of each piece, if several). */
+    componentType: string;
+    /** Whether the reference copies to several components, like `$poly.vertices`. */
+    isMultiple: boolean;
+};
 
 /**
  * Upgrade the type-less `<copy>` tag to have the same type as its referent.
@@ -33,49 +43,82 @@ import {
  *   <math name="m">5</math><math extend="$m" name="k" />
  * ```
  */
-export const upgradeCopySyntax: Plugin<[], DastRoot, DastRoot> = () => {
+export const upgradeCopySyntax: Plugin<
+    [AssignNamesContext],
+    DastRoot,
+    DastRoot
+> = (context) => {
     return async (tree, file) => {
-        // Shortcut if `copy` does not appear at all
-        let skip = true;
-        visit(tree, (node) => {
-            if (!isDastElement(node)) {
-                return;
-            }
-            if (node.name === "copy") {
-                skip = false;
-                // We can stop visiting, we found what we need
-                return EXIT;
-            }
-        });
-        if (skip) {
-            // No `copy` elements, nothing to do
-            return;
-        }
-
-        let core: Awaited<ReturnType<typeof createCoreForLookup>>;
-        try {
-            core = await createCoreForLookup({ dast: tree });
-        } catch (e) {
-            // Resolving `<copy>` means loading the document for real, which fails on a
-            // document that is already broken (a circular reference, say). Everything
-            // else about the conversion is still worth keeping, so report it and leave
-            // the `<copy>` tags for the author rather than losing the whole document.
-            file.message(
-                `Could not load the document to work out what the <copy> tags refer to, so they were left as they are: ${e}`,
-                {
-                    ruleId: "copy/could-not-load-document",
-                    source: "v06-to-v07",
-                },
-            );
-            return;
-        }
-        try {
-            await resolveCopyTags(core, tree, file);
-        } finally {
-            await core.dispose();
-        }
+        await resolveAllCopyTags(tree, file, context);
+        // A document with no `<copy>` skips the lookup entirely, but a `<map>` whose
+        // sources were references to begin with still folds them into its `for`.
+        inlineMapSourceGroups(tree, context);
     };
 };
+
+/**
+ * Resolve every `<copy>` in `tree`, folding `<map>` sources into their `<repeat>` along
+ * the way.
+ */
+async function resolveAllCopyTags(
+    tree: DastRoot,
+    file: VFile,
+    context: AssignNamesContext,
+) {
+    // Shortcut if `copy` does not appear at all
+    let skip = true;
+    visit(tree, (node) => {
+        if (!isDastElement(node)) {
+            return;
+        }
+        if (node.name === "copy") {
+            skip = false;
+            // We can stop visiting, we found what we need
+            return EXIT;
+        }
+    });
+    if (skip) {
+        // No `copy` elements, nothing to do
+        return;
+    }
+
+    let core: Awaited<ReturnType<typeof createCoreForLookup>>;
+    try {
+        core = await createCoreForLookup({ dast: tree });
+    } catch (e) {
+        // Resolving `<copy>` means loading the document for real, which fails on a
+        // document that is already broken (a circular reference, say). Everything
+        // else about the conversion is still worth keeping, so report it and leave
+        // the `<copy>` tags for the author rather than losing the whole document.
+        file.message(
+            `Could not load the document to work out what the <copy> tags refer to, so they were left as they are: ${e}`,
+            {
+                ruleId: "copy/could-not-load-document",
+                source: "v06-to-v07",
+            },
+        );
+        return;
+    }
+    try {
+        // A `<map>`'s sources go first so they can be folded into the `for` of its
+        // `<repeat>`. That `for` is what says the type of the repeat's `valueName`,
+        // which the copies in the rest of the document may need.
+        const inSourceGroup = (parents: DastElement[]) =>
+            context.mapSourceGroups.some(({ group }) =>
+                parents.includes(group),
+            );
+        await resolveCopyTags(core, tree, file, inSourceGroup);
+        inlineMapSourceGroups(tree, context);
+        await resolveCopyTags(
+            core,
+            tree,
+            file,
+            (parents) => !inSourceGroup(parents),
+        );
+    } finally {
+        await core.dispose();
+    }
+}
 
 /**
  * Rename every `<copy source="...">` to the component type of its referent.
@@ -84,17 +127,24 @@ async function resolveCopyTags(
     core: Awaited<ReturnType<typeof createCoreForLookup>>,
     tree: DastRoot,
     file: VFile,
+    /** Which `<copy>` tags to resolve in this pass, by their ancestors. */
+    include: (parents: DastElement[]) => boolean,
 ) {
     const referenced: {
         node: DastElement;
-        referentType: Promise<string>;
+        parent: DastElement | DastRoot;
+        referentType: Promise<ReferentInfo>;
         referentName: string;
         /** The `prop` attribute to drop, but only once the referent has resolved. */
         propKey?: string;
     }[] = [];
 
-    visit(tree, (node) => {
+    visit(tree, (node, info) => {
         if (!isDastElement(node) || node.name !== "copy") {
+            return;
+        }
+        const parents = info.parents as DastElement[];
+        if (!include(parents)) {
             return;
         }
         // A `uri` still on a `<copy>` means `upgradeCopyElements` declined to convert it
@@ -136,7 +186,8 @@ async function resolveCopyTags(
 
         referenced.push({
             node,
-            referentType: findReferentType(core, referentName),
+            parent: parents[0] ?? tree,
+            referentType: findReferentType(core, referentName, parents),
             referentName,
             propKey,
         });
@@ -145,18 +196,14 @@ async function resolveCopyTags(
     // Go through everything we've found and match the references up to their referent type
     for (let {
         node,
+        parent,
         referentType: referentPromise,
         referentName,
         propKey,
     } of referenced) {
         try {
-            const referentType = await referentPromise;
-
-            // Now that the conversion is going through, `prop` is carried by the
-            // reference itself and the attribute is redundant.
-            if (propKey) {
-                delete node.attributes[propKey];
-            }
+            const { componentType: referentType, isMultiple } =
+                await referentPromise;
 
             // v0.7 has no `link`: an `extend` attribute is always linked and a `copy`
             // attribute never is, so the choice between them says it instead.
@@ -175,6 +222,52 @@ async function resolveCopyTags(
                 : isModuleComponentType(referentType)
                   ? "copy"
                   : "extend";
+
+            // Build the reference from its parsed path rather than from the string, so
+            // that a name needing `$(...)` — a hyphenated one — is printed that way.
+            const bareName = referentName.startsWith("$")
+                ? referentName.slice(1)
+                : referentName;
+
+            // A reference such as `$poly.vertices` copies to several components, and
+            // an element can only stand for one: `<point extend="$poly.vertices" />`
+            // is a single point. Left bare, the reference still gives every piece, as
+            // the v0.6 `<copy>` did. With anything more to say — a name, `link="false"`,
+            // `displayDigits` — it becomes the matching list instead.
+            let elementType = referentType;
+            if (isMultiple) {
+                const hasOtherAttributes = Object.keys(node.attributes).some(
+                    (key) =>
+                        key !== "source" && key !== propKey && key !== linkKey,
+                );
+                if (!hasOtherAttributes && targetTag === "extend") {
+                    const macro: DastMacro = {
+                        type: "macro",
+                        path: parseReferencePath(bareName),
+                        attributes: {},
+                    };
+                    parent.children.splice(
+                        parent.children.indexOf(node),
+                        1,
+                        macro,
+                    );
+                    continue;
+                }
+                elementType = `${referentType}List`;
+                if (!isComponentType(elementType)) {
+                    // Thrown before anything is changed, so the `<copy>` keeps its
+                    // `prop` and `link`.
+                    throw new Error(
+                        `"${referentName}" copies to several <${referentType}> components, and there is no <${elementType}> to hold them together with this copy's other attributes`,
+                    );
+                }
+            }
+
+            // Now that the conversion is going through, `prop` is carried by the
+            // reference itself and the attribute is redundant.
+            if (propKey) {
+                delete node.attributes[propKey];
+            }
             // If there is a `link` attribute, delete it as it is no longer needed
             if (linkKey) {
                 delete node.attributes[linkKey];
@@ -182,11 +275,6 @@ async function resolveCopyTags(
 
             // Rename the `copy` tag to the same type as the referent
             renameAttrInPlace(node, "source", targetTag);
-            // Build the reference from its parsed path rather than from the string, so
-            // that a name needing `$(...)` — a hyphenated one — is printed that way.
-            const bareName = referentName.startsWith("$")
-                ? referentName.slice(1)
-                : referentName;
             node.attributes[targetTag].children = [
                 {
                     type: "macro",
@@ -194,7 +282,7 @@ async function resolveCopyTags(
                     attributes: {},
                 },
             ];
-            node.name = referentType;
+            node.name = elementType;
         } catch (e) {
             file.message(
                 `Could not resolve referent type for <copy> tag with source="${referentName}": ${e}`,
@@ -216,7 +304,9 @@ async function resolveCopyTags(
 async function findReferentType(
     core: Awaited<ReturnType<typeof createCoreForLookup>>,
     referentName: string,
-): Promise<string> {
+    /** The ancestors of the reference, nearest first, for finding repeat aliases. */
+    parents: DastElement[],
+): Promise<ReferentInfo> {
     // We need to parse `referentName` as a macro so we can pick apart its path. A
     // hyphenated name only parses inside `$(...)`, which `parseReferencePath` handles.
     const bare = referentName.startsWith("$")
@@ -234,7 +324,25 @@ async function findReferentType(
     let unresolvedIndex: DastMacroPathPart["index"] = [];
     let unresolvedProps: DastMacroPathPart[] = [];
     let referentType: string | undefined = undefined;
-    search: for (let i = path.length; i > 0; i--) {
+
+    // A repeat's `valueName` or `indexName` hides any other component of that name
+    // inside the repeat, and it is not something the lookup core can find by name: it
+    // only exists inside an iteration. What the repeat iterates over says its type.
+    const alias = await findAliasType(core, path[0].name, parents);
+    if (alias === null) {
+        // Falling through to the name lookup would pick up a same-named component
+        // outside the repeat, whose type need not be the alias's.
+        throw new Error(
+            `"${path[0].name}" is the valueName of a repeat whose values' type cannot be determined`,
+        );
+    }
+    if (alias) {
+        referentType = alias;
+        unresolvedIndex = path[0].index;
+        unresolvedProps = path.slice(1);
+    }
+
+    search: for (let i = alias ? 0 : path.length; i > 0; i--) {
         const pathParts = path.slice(0, i);
         // Try the path with its indices first. `$s[1]` names one replacement of the
         // composite `s`, and that replacement's type is the one we want; without the
@@ -281,6 +389,7 @@ async function findReferentType(
         );
     }
     // Now we delve into the properties, one by one.
+    let isMultiple = false;
     for (const part of unresolvedProps) {
         const nIndices = part.index.length;
         if (!referentType) {
@@ -289,14 +398,94 @@ async function findReferentType(
                 `Could not find referent type for "${referentName}"`,
             );
         }
-        referentType = determinePropType(referentType, part.name, nIndices);
+        ({ componentType: referentType, isMultiple } = describeProp(
+            referentType,
+            part.name,
+            nIndices,
+        ));
     }
 
     if (referentType) {
-        return referentType;
+        return { componentType: referentType, isMultiple };
     }
 
     throw new Error(`Could not find referent type for "${referentName}"`);
+}
+
+/**
+ * The component type of `name` if it is the `valueName` or `indexName` of a repeat the
+ * reference is inside; `null` if it is one but its type cannot be told; `undefined` if
+ * it is neither.
+ */
+async function findAliasType(
+    core: Awaited<ReturnType<typeof createCoreForLookup>>,
+    name: string,
+    parents: DastElement[],
+): Promise<string | null | undefined> {
+    for (const [i, parent] of parents.entries()) {
+        if (
+            !isDastElement(parent) ||
+            (parent.name !== "repeat" && parent.name !== "repeatForSequence")
+        ) {
+            continue;
+        }
+        if (literalAttribute(parent, "indexName") === name) {
+            return "number";
+        }
+        if (literalAttribute(parent, "valueName") !== name) {
+            continue;
+        }
+
+        if (parent.name === "repeatForSequence") {
+            const type = (literalAttribute(parent, "type") ?? "").toLowerCase();
+            return type === "math"
+                ? "math"
+                : type === "letters"
+                  ? "text"
+                  : "number";
+        }
+
+        // `for="$poly.vertices"` iterates over points, `for="$l"` over the items of a
+        // list. A `for` of anything else — several references, literal strings, a
+        // group — could hold a mix of types, so it is left unresolved.
+        const forChildren = (parent.attributes["for"]?.children ?? []).filter(
+            (child) => !(child.type === "text" && child.value.trim() === ""),
+        );
+        if (forChildren.length !== 1 || forChildren[0].type !== "macro") {
+            return null;
+        }
+        let iterated: ReferentInfo;
+        try {
+            // `for` is evaluated outside the repeat, so its own aliases don't apply.
+            iterated = await findReferentType(
+                core,
+                toXml(forChildren[0]),
+                parents.slice(i + 1),
+            );
+        } catch (e) {
+            return null;
+        }
+        if (iterated.isMultiple) {
+            return iterated.componentType;
+        }
+        const itemType = iterated.componentType.replace(/List$/, "");
+        if (itemType !== iterated.componentType && isComponentType(itemType)) {
+            return itemType;
+        }
+        return null;
+    }
+    return undefined;
+}
+
+/**
+ * The value of attribute `name` when it is plain text, trimmed; otherwise `undefined`.
+ */
+function literalAttribute(node: DastElement, name: string): string | undefined {
+    const children = node.attributes[name]?.children;
+    if (!children || !children.every((child) => child.type === "text")) {
+        return undefined;
+    }
+    return toXml(children).trim();
 }
 
 /**
