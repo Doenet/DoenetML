@@ -1421,4 +1421,105 @@ describe("Curve tag tests @group2", async () => {
         await test_items("light");
         await test_items("dark");
     });
+
+    // A function taken from a curve's `fs` shadows the curve's domain as the
+    // domain of its one input, so its `domain` must be a list of one interval,
+    // not a list holding a list. A graph computes the function's extrema from
+    // that domain, which is where a nested domain took the document down.
+    describe("functions from a curve's fs get the curve's domain", async () => {
+        const inGraph = [
+            `<curve name="c"><function name="orig">x^2</function></curve>$c.f1`,
+            `<curve name="c"><function name="orig">x^2</function></curve>$c.fs`,
+            `<curve name="c"><function name="orig">x^2</function></curve><function extend="$c.f1" />`,
+            `<curve name="c"><function name="orig">x^2</function></curve><function extend="$c.fs" />`,
+            `<equilibriumCurve name="c"><function name="orig">x^2</function></equilibriumCurve>$c.f1`,
+        ];
+
+        for (const content of inGraph) {
+            it(content, async () => {
+                let { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `<graph>${content}</graph><graph>$c.f1</graph>`,
+                });
+
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const origIdx = await resolvePathToNodeIdx("orig");
+                const fromCurve = Object.entries(stateVariables).filter(
+                    ([idx, sv]) =>
+                        sv.componentType === "function" &&
+                        Number(idx) !== origIdx,
+                );
+
+                // one from the first graph and one from the second
+                expect(fromCurve.length).eq(2);
+                for (const [, sv] of fromCurve) {
+                    expect(sv.stateValues.domain.map((x) => x.tree)).eqls([
+                        ["interval", ["tuple", -12, 12], ["tuple", true, true]],
+                    ]);
+                    expect(sv.stateValues.minima).eqls([[0, 0]]);
+                }
+            });
+        }
+
+        it("outside a graph, with more than one function and a parameter range", async () => {
+            let { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <curve name="c"><function>x</function><function>x^2</function></curve>
+    <function name="g1" extend="$c.f1" />
+    <function name="g2" extend="$c.f2" />
+    <p name="p">$$g2(3), $g2.minima</p>
+
+    <curve name="d" parMin="-2" parMax="5"><function>x^3</function></curve>
+    <function name="h" extend="$d.f1" />
+    <p name="q">$h.domain</p>
+    `,
+            });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+
+            const interval = (a: number, b: number) => [
+                ["interval", ["tuple", a, b], ["tuple", true, true]],
+            ];
+
+            for (const name of ["g1", "g2"]) {
+                expect(
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.domain.map((x) => x.tree),
+                ).eqls(interval(-10, 10));
+            }
+            // each function gets its own entry of the curve, not the first
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g1")].stateValues
+                    .fDefinitions[0].formula,
+            ).eq("x");
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                    .fDefinitions[0].formula,
+            ).eqls(["^", "x", 2]);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("g2")].stateValues
+                    .minima,
+            ).eqls([[0, 0]]);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq("9, (0, 0)");
+
+            expect(
+                stateVariables[
+                    await resolvePathToNodeIdx("h")
+                ].stateValues.domain.map((x) => x.tree),
+            ).eqls(interval(-2, 5));
+            expect(
+                stateVariables[await resolvePathToNodeIdx("q")].stateValues
+                    .text,
+            ).eq("[-2, 5]");
+        });
+    });
 });
