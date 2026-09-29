@@ -136,6 +136,23 @@ const BLOCK_ELEMENTS = new Set([
     "activity",
     "remark",
     "note",
+    // The parts of a statement, which PreTeXt reads as parts only when they stand on
+    // their own: a `<solution>` taken into a paragraph escapes the publisher's settings
+    // for solutions, and prints on a page that should hide it.
+    "statement",
+    "solution",
+    "givenAnswer",
+    "hint",
+    "feedback",
+    // Sectioning components that are not exported as a division.
+    "paragraphs",
+    "part",
+    "externalContent",
+    "standinForFutureLayoutTag",
+    // Other blocks.
+    "description",
+    "embed",
+    "chart",
 ]);
 
 /**

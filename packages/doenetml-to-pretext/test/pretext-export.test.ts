@@ -506,6 +506,32 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("the parts of a statement are not taken into a paragraph", async () => {
+        // A `<statement>` or `<solution>` inside a `<p>` is no longer read as a part of
+        // the problem: the solution escapes the publisher's settings for solutions.
+        source = `<problem><statement><p>What is 1+1?</p></statement><solution><p>2</p></solution></problem>`;
+        let exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).toMatch(/<problem[^>]*><statement>/);
+        expect(exported).not.toContain("<p><statement>");
+        expect(exported).not.toMatch(/<p>[^<]*<solution/);
+
+        source = `<theorem><statement><p>T</p></statement><proof><p>P</p></proof></theorem>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toMatch(
+            /<theorem[^>]*><statement>/,
+        );
+
+        // Text beside a hint is given a paragraph of its own, and the hint stands apart.
+        source = `<problem>What is 1+1? <hint><p>Count.</p></hint></problem>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toMatch(
+            /<p>What is 1\+1\?<\/p><hint>/,
+        );
+
+        source = `<section>Intro<paragraphs><title>P</title><p>x</p></paragraphs></section>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toMatch(
+            /<p>Intro<\/p><paragraphs>/,
+        );
+    });
+
     it("a blank text input prints its label and is as wide as on screen", async () => {
         // 200px at PreTeXt's 5/11 em a character, with 16px text: 28 characters.
         source = `<p><textInput width="200px"><label>Name (print):</label></textInput></p>`;
