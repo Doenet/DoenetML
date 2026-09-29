@@ -176,6 +176,7 @@ export default {
     orbitalDiagram: { title: "orbitalDiagram" },
     orbitalDiagramInput: { title: "orbitalDiagramInput" },
     p: { title: "p" },
+    page: { title: "page" },
     paginator: { title: "paginator" },
     paginatorControls: { title: "paginatorControls" },
     parabola: { title: "parabola" },

@@ -654,7 +654,14 @@ export class CoreWorker {
         }
     }
 
-    async returnDast(): Promise<FlatDastRootWithErrors> {
+    /**
+     * Return the document, run through core, as flat DAST. `variantIndex` picks which
+     * variant of the document to build (1 unless given); only the JavaScript core has
+     * variants.
+     */
+    async returnDast({
+        variantIndex = 1,
+    }: { variantIndex?: number } = {}): Promise<FlatDastRootWithErrors> {
         const isProcessingPromise = this.isProcessingPromise;
         let { promise, resolve } = promiseWithResolver();
         this.isProcessingPromise = promise;
@@ -667,7 +674,7 @@ export class CoreWorker {
 
         try {
             if (this.core_type === "javascript") {
-                return await this.returnFlatDastFromJS();
+                return await this.returnFlatDastFromJS(variantIndex);
             } else {
                 return this.doenetCore.return_dast();
             }
@@ -708,7 +715,7 @@ export class CoreWorker {
      * Transform the initial output of the JavaScript core into the flat data structure
      * produces by the rust core and expected by the `doenetml-prototype`
      */
-    private async returnFlatDastFromJS() {
+    private async returnFlatDastFromJS(variantIndex: number) {
         if (!this.javascriptCore || !this.doenetCore) {
             throw Error("Cannot return dast before setting source and flags");
         }
@@ -752,7 +759,7 @@ export class CoreWorker {
         await this.javascriptCore.initializeWorker({
             activityId: "a",
             docId: "a",
-            requestedVariantIndex: 1,
+            requestedVariantIndex: variantIndex,
             attemptNumber: 1,
             normalizedRoot,
             addNodesToResolver,

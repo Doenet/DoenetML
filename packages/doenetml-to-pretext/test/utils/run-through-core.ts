@@ -64,7 +64,12 @@ const WEDGED = Symbol("webdriver session wedged");
  * every helper it needs has to be written inside it, and was, three times over.
  */
 type PageJob =
-    | { kind: "convert"; source: string; fragment: boolean }
+    | {
+          kind: "convert";
+          source: string;
+          fragment: boolean;
+          variantIndex?: number;
+      }
     | { kind: "convertMultiple"; sources: string[] };
 
 /**
@@ -230,7 +235,10 @@ export class RunThroughCore {
                                 // @ts-ignore
                                 const dast = await sharedConverter().convert(
                                     theJob.source,
-                                    { fragment: theJob.fragment },
+                                    {
+                                        fragment: theJob.fragment,
+                                        variantIndex: theJob.variantIndex,
+                                    },
                                 );
                                 resolve(dast);
                             }
@@ -289,11 +297,15 @@ export class RunThroughCore {
      * Create a fragment of a PreTeXt document from DoenetML. The output will not be a complete PreTeXt document,
      * but should be suitable for embedding inside a larger PreTeXt document.
      */
-    async processToFlatDastAsFragment(input: string): Promise<FlatDastRoot> {
+    async processToFlatDastAsFragment(
+        input: string,
+        { variantIndex }: { variantIndex?: number } = {},
+    ): Promise<FlatDastRoot> {
         return (await this.run({
             kind: "convert",
             source: input,
             fragment: true,
+            variantIndex,
         })) as FlatDastRoot;
     }
 

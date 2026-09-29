@@ -1,6 +1,7 @@
 import { loadPyodide, PyodideInterface } from "pyodide";
 import { _PrefigBrowserApi } from "@doenet/prefigure";
 import { visit } from "unist-util-visit";
+import { preparePrintoutPages } from "./printout-pages";
 
 // The required python packages that are not part of pyodide's standard library.
 // @ts-ignore
@@ -340,6 +341,8 @@ export class PtxCompiler {
                     }
                 });
             })
+            // A printout written in pages prints one page per sheet.
+            .use(() => (tree: HastRoot) => preparePrintoutPages(tree))
             .use(rehypeStringify)
             .process(html);
         return processedHtml.toString();

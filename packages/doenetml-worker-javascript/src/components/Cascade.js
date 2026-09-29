@@ -3,6 +3,7 @@ import { returnCascadeStepStateVariableDefinitions } from "../utils/cascadeStep"
 import { codedDiagnostic } from "../utils/diagnostics";
 import {
     DIVISION_SEQUENCE,
+    LIST_CONTAINER_TYPES,
     LIST_ITEM_SEQUENCE,
     returnSequencePassThroughDefinitions,
 } from "../utils/sequenceNumbering";
@@ -134,7 +135,8 @@ export default class Cascade extends BlockComponent {
          *
          * Under `asList` (a cascade in a `<problems>`), only the children a
          * list shows are rendered, as when a cascade was a section: the
-         * sections, nested cascades, `<introduction>` and `<conclusion>`.
+         * sections, nested cascades, pages, `<introduction>` and
+         * `<conclusion>`.
          *
          * Also where a `<title>` is reported, since this is computed for every
          * cascade that renders.
@@ -183,12 +185,11 @@ export default class Cascade extends BlockComponent {
                     }
                     if (
                         dependencyValues.asList &&
-                        !["_sectioningComponent", "cascade"].some(
-                            (baseComponentType) =>
-                                componentInfoObjects.isInheritedComponentType({
-                                    inheritedComponentType: child.componentType,
-                                    baseComponentType,
-                                }),
+                        !LIST_CONTAINER_TYPES.some((baseComponentType) =>
+                            componentInfoObjects.isInheritedComponentType({
+                                inheritedComponentType: child.componentType,
+                                baseComponentType,
+                            }),
                         ) &&
                         !["introduction", "conclusion"].includes(
                             child.componentType,

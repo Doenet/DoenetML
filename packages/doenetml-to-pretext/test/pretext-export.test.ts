@@ -294,7 +294,7 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<p>Short answer: <fillin characters="8"></fillin></p>"`,
+            `"<p>Short answer: <fillin characters="14"></fillin></p>"`,
         );
     });
 
@@ -406,6 +406,147 @@ describe("Pretext export", async () => {
               </article>
               </pretext>"
             `);
+    });
+
+    it("a document in pages becomes a worksheet of them, its listed problems exercises", async () => {
+        // PreTeXt honors a `<page>` only as a child of a printout, so the `<problems>`
+        // holding the pages is dissolved to bring them up to the worksheet. Its problems
+        // print as worksheet exercises, which PreTeXt heads with their number alone, as
+        // the items of the list they were.
+        source = `<page><p>Intro</p></page>
+<problems>
+  <page><problem><p>A</p></problem></page>
+  <page><problem><p>B</p></problem></page>
+</problems>`;
+        expect(await coreRunner.processToFlatDast(source))
+            .toMatchInlineSnapshot(`
+              "<?xml version="1.0" encoding="UTF-8"?>
+              <pretext>
+              <article>
+              <worksheet>
+              <title></title><page>
+              <p>Intro</p>
+              </page>
+              <page>
+              <exercise xml:id="doenet-id-5"><p>A</p></exercise>
+              </page><page>
+              <exercise xml:id="doenet-id-9"><p>B</p></exercise>
+              </page>
+              </worksheet>
+              </article>
+              </pretext>"
+            `);
+    });
+
+    it("writing space on a page is served by the worksheet, not a handout of its own", async () => {
+        source = `<page><problem><p>Q <textInput expanded height="2in" /></p></problem></page>`;
+        const exported = await coreRunner.processToFlatDast(source);
+        expect(exported.match(/<worksheet>/g)).toHaveLength(1);
+        expect(exported).not.toContain(`<handout`);
+        expect(exported).toContain(`<p workspace="2in">Q </p>`);
+    });
+
+    it("a problem that is not a list item stays a problem on a page", async () => {
+        source = `<page><problem><p>A</p></problem></page>`;
+        const exported = await coreRunner.processToFlatDast(source);
+        expect(exported).toContain(`<page>`);
+        expect(exported).toContain(`<problem `);
+        expect(exported).not.toContain(`<exercise`);
+    });
+
+    it("a page inside a section exports as its children", async () => {
+        // PreTeXt has no page but a printout's, and a section cannot be dissolved.
+        source = `<section><title>S</title><page><p>Inside</p></page></section>`;
+        const exported = await coreRunner.processToFlatDast(source);
+        expect(exported).not.toContain(`<page`);
+        expect(exported).not.toContain(`<worksheet`);
+        expect(exported).toContain(`<p>Inside</p>`);
+    });
+
+    it("the rows of an <md> are each an <mrow>", async () => {
+        // Without their own `<mrow>`s, the rows have nothing to align in, and every
+        // `\\amp` is a "Misplaced &".
+        source = `<md><mrow>x \\amp = 1</mrow><mrow>y \\amp = 2</mrow></md>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<md><mrow>x \\amp = 1</mrow><mrow>y \\amp = 2</mrow></md>"`,
+        );
+    });
+
+    it("a row break inside an environment does not split a display", async () => {
+        source = `<me>\\begin{array}{cc} a \\amp b \\\\ c \\amp d \\end{array}</me>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).not.toContain(`<mrow>`);
+        expect(exported).toContain(`\\\\`);
+    });
+
+    it("text written straight into a problem is given a paragraph", async () => {
+        // PreTeXt drops text that is not in a paragraph. A display goes in with the text
+        // around it, since PreTeXt writes an `<md>` inside a paragraph.
+        source = `<problem>For the system <me>x=1</me> find the equilibria.<ol><li>Now</li></ol></problem>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).toMatch(
+            /<problem[^>]*><p>For the system <md>x=1<\/md> find the equilibria\.<\/p><ol>/,
+        );
+
+        // Without a block beside it, too.
+        source = `<problem>Only text</problem>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toMatch(
+            /<problem[^>]*><p>Only text<\/p><\/problem>/,
+        );
+    });
+
+    it("a blank text input prints its label and is as wide as on screen", async () => {
+        // 200px at PreTeXt's 5/11 em a character, with 16px text: 28 characters.
+        source = `<p><textInput width="200px"><label>Name (print):</label></textInput></p>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<p>Name (print): <fillin characters="28"></fillin></p>"`,
+        );
+    });
+
+    it("a text input's label with math writes the math as <m>", async () => {
+        source = `<p><textInput><label>Value of <m>x</m>:</label></textInput></p>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<p>Value of <m>x</m>: <fillin characters="14"></fillin></p>"`,
+        );
+    });
+
+    it("a text input leaves the label it inherits to its answer", async () => {
+        // The answer draws the label; the input it was sugared into must not repeat it.
+        source = `<p><answer type="text"><label>Your word:</label>hello</answer></p>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported.match(/Your word:/g)).toHaveLength(1);
+    });
+
+    it("converts the variant it is asked for", async () => {
+        source = `<select name="s">apple banana cherry</select><p>$s</p>`;
+        const variants = [];
+        for (const variantIndex of [1, 2, 3]) {
+            variants.push(
+                await coreRunner.processToFlatDastAsFragment(source, {
+                    variantIndex,
+                }),
+            );
+        }
+        // Each variant selects a different option, and asking again for one gives it back.
+        expect(new Set(variants).size).toBe(3);
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source, {
+                variantIndex: 2,
+            }),
+        ).toBe(variants[1]);
+    });
+
+    it("a list item holding only text is left without a paragraph", async () => {
+        source = `<ol><li>Plain</li></ol>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `>Plain</li>`,
+        );
     });
 
     it("an unfilled input inside an <m> becomes a fillin", async () => {

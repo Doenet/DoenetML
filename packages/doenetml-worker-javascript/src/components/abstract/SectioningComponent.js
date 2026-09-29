@@ -34,6 +34,7 @@ import { composeTitlePrefix, sectionNameWord } from "../../utils/sectionWords";
 import { returnCascadeStepStateVariableDefinitions } from "../../utils/cascadeStep";
 import {
     DIVISION_SEQUENCE,
+    LIST_CONTAINER_TYPES,
     LIST_ITEM_SEQUENCE,
     returnSequenceNumbersOfChildrenDefinition,
     sequenceNumberDependencies,
@@ -601,19 +602,18 @@ export class SectioningComponent extends BlockComponent {
 
                     const renderChild = dependencyValues.asList
                         ? // if asList, then only include titleChild, sections,
-                          // cascades, introduction, and conclusion. A cascade is
-                          // not a section, but the sections it reveals are this
-                          // list's items all the same (it passes `asList` down).
+                          // cascades, pages, introduction, and conclusion. A
+                          // cascade or a page is not a section, but the sections
+                          // it holds are this list's items all the same (it
+                          // passes `asList` down).
                           child.componentIdx ===
                               dependencyValues.titleChildName ||
-                          componentInfoObjects.isInheritedComponentType({
-                              inheritedComponentType: child.componentType,
-                              baseComponentType: "_sectioningComponent",
-                          }) ||
-                          componentInfoObjects.isInheritedComponentType({
-                              inheritedComponentType: child.componentType,
-                              baseComponentType: "cascade",
-                          }) ||
+                          LIST_CONTAINER_TYPES.some((baseComponentType) =>
+                              componentInfoObjects.isInheritedComponentType({
+                                  inheritedComponentType: child.componentType,
+                                  baseComponentType,
+                              }),
+                          ) ||
                           ["introduction", "conclusion"].includes(
                               child.componentType,
                           )
