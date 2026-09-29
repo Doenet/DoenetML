@@ -912,4 +912,45 @@ describe("Group tag tests @group2", async () => {
                 .text,
         ).eq("Bye");
     });
+
+    it("index into a group holding a reference to a group that mixes components and references", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="n" prefill="2" />
+    <sequence name="s" length="$n" />
+    <math name="m7">7</math>
+    <setup><group name="g">$m7 <math>8</math> $s <math>9</math></group></setup>
+    <group name="h">$g</group>
+    <p name="p">$h[1] $h[2] $h[3] $h[4] $h[5] $h[6]</p>
+    `,
+        });
+
+        async function check(text: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq(text);
+        }
+
+        await check("7 8 1 2 9 ");
+
+        // A longer sequence moves the items after it along.
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await check("7 8 1 2 3 9");
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await check("7 8 1 9  ");
+    });
 });

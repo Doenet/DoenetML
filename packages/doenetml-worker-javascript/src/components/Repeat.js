@@ -317,10 +317,12 @@ export default class Repeat extends CompositeComponent {
         }
 
         const numIterates = await component.stateValues.numIterates;
+        const sourcesChildIndices =
+            await component.stateValues.sourcesChildIndices;
 
         workspace.lastReplacementParameters = {
-            sourcesChildIndices:
-                await component.stateValues.sourcesChildIndices,
+            sourcesChildIndices,
+            sourcesOfReplacements: sourcesChildIndices.slice(0, numIterates),
             numIterates,
             replacementsToWithhold: 0,
             withheldSubstitutionChildNames: [],
@@ -458,9 +460,17 @@ export default class Repeat extends CompositeComponent {
             if (currentNIters !== prevNIters) {
                 allSameChildSubstitutionNames = false;
             }
-            let minNiters = Math.min(currentNIters, prevNIters);
-            for (let ind = 0; ind < minNiters; ind++) {
-                if (sourcesChildIndices[ind] != lrp.sourcesChildIndices[ind]) {
+            // Each replacement's `valueName` points at the source it was
+            // created for, so compare every replacement that will be shown,
+            // including withheld ones about to be shown again.
+            let numToCompare = Math.min(
+                currentNIters,
+                lrp.sourcesOfReplacements.length,
+            );
+            for (let ind = 0; ind < numToCompare; ind++) {
+                if (
+                    sourcesChildIndices[ind] != lrp.sourcesOfReplacements[ind]
+                ) {
                     recreateReplacements = true;
                     allSameChildSubstitutionNames = false;
                     break;
@@ -500,6 +510,10 @@ export default class Repeat extends CompositeComponent {
 
             workspace.lastReplacementParameters = {
                 sourcesChildIndices,
+                sourcesOfReplacements: sourcesChildIndices.slice(
+                    0,
+                    numIterates,
+                ),
                 numIterates,
                 replacementsToWithhold: 0,
                 withheldSubstitutionChildNames: [],
@@ -516,6 +530,7 @@ export default class Repeat extends CompositeComponent {
             currentReplacementsToWithhold = 0;
         }
         let withheldSubstitutionChildNames = lrp.withheldSubstitutionChildNames;
+        let sourcesOfReplacements = [...lrp.sourcesOfReplacements];
 
         // Check if any previous substitution child names
         // or any previously withheld child names
@@ -557,6 +572,10 @@ export default class Repeat extends CompositeComponent {
             replacementChanges.push(replacementInstruction);
 
             withheldSubstitutionChildNames = [];
+            sourcesOfReplacements = sourcesOfReplacements.slice(
+                0,
+                firstReplacementToDelete,
+            );
             currentReplacementsToWithhold = 0;
         }
 
@@ -631,6 +650,7 @@ export default class Repeat extends CompositeComponent {
                     replacements.push(...res.replacements);
                     diagnostics.push(...res.diagnostics);
                     nComponents = res.nComponents;
+                    sourcesOfReplacements[iter] = sourcesChildIndices[iter];
                 }
 
                 let replacementInstruction = {
@@ -646,6 +666,7 @@ export default class Repeat extends CompositeComponent {
 
         workspace.lastReplacementParameters = {
             sourcesChildIndices,
+            sourcesOfReplacements,
             numIterates,
             replacementsToWithhold: newReplacementsToWithhold,
             withheldSubstitutionChildNames,
@@ -860,17 +881,12 @@ async function addAndLinkAliasComponents(
             children: [],
             state: {},
             extending: {
-                Ref: {
-                    nodeIdx: sourcesComponentIdx,
-                    originalPath: [
-                        { name: "", index: [{ value: [`${iter + 1}`] }] },
-                    ],
-                    unresolvedPath: [
-                        // get the item from the sources
-                        { name: "", index: [{ value: [`${iter + 1}`] }] },
-                    ],
-                    nodesInResolvedPath: [sourcesComponentIdx],
-                },
+                Ref: sourceRefForIter({
+                    sourcesChildIndices:
+                        await component.stateValues.sourcesChildIndices,
+                    sourcesComponentIdx,
+                    iter,
+                }),
             },
         });
     }
@@ -914,6 +930,41 @@ async function addAndLinkAliasComponents(
     newRepl.children.push(setupComponent);
 
     return { replacement: newRepl, nComponents };
+}
+
+/**
+ * The reference that the `valueName` of iteration `iter` extends.
+ *
+ * It points straight at the item the iteration was counted from: entry `iter`
+ * of `sourcesChildIndices`. Every composite among the sources has been replaced
+ * by its items there, including one written inside a group, such as the
+ * `<mathList>` in `<group><mathList>1 2 3</mathList></group>`, so iteration
+ * `iter` gets the `iter`-th item that the group displays.
+ *
+ * A source that is text has no component to point at, so it is found by its
+ * index in the `for` group.
+ */
+function sourceRefForIter({ sourcesChildIndices, sourcesComponentIdx, iter }) {
+    const sourceIdx = sourcesChildIndices[iter];
+
+    if (typeof sourceIdx === "number") {
+        return {
+            nodeIdx: sourceIdx,
+            originalPath: [{ name: "", index: [] }],
+            unresolvedPath: null,
+            nodesInResolvedPath: [sourceIdx],
+        };
+    }
+
+    return {
+        nodeIdx: sourcesComponentIdx,
+        originalPath: [{ name: "", index: [{ value: [`${iter + 1}`] }] }],
+        unresolvedPath: [
+            // get the item from the sources
+            { name: "", index: [{ value: [`${iter + 1}`] }] },
+        ],
+        nodesInResolvedPath: [sourcesComponentIdx],
+    };
 }
 
 export function remapExtendIndices(components, extendIdxMapping) {

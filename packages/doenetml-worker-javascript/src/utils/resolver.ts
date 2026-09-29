@@ -364,12 +364,13 @@ export async function calcStartEndIdx({
         const recurFlattened = recursionResult.flattenedReplacements;
         const n = recurFlattened.length;
 
-        // The recursion may have produced a match. The current level's own
+        // The recursion may have produced a match, at a position within
+        // `recurFlattened`, which starts at `i` here. The current level's own
         // match (below) overrides it — preserving the closure-mutation
         // semantics of the original code.
         if (recursionResult.startIdx !== undefined) {
-            startIdx = recursionResult.startIdx;
-            endIdx = recursionResult.endIdx;
+            startIdx = i + recursionResult.startIdx;
+            endIdx = i + recursionResult.endIdx!;
         }
 
         if (repl.componentIdx === copyComponentIdx) {

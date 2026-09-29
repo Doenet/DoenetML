@@ -295,10 +295,13 @@ export async function determineParentAndIndexResolutionForResolver({
         if (copyComponent.replacementOf) {
             const indexParent = copyComponent.replacementOf;
 
-            // determine where the replacement will end up being spliced in
+            // Determine where the replacement will end up being spliced in.
+            // This is the span of `component` itself, which is only part of
+            // `copyComponent`'s when `component` is a replacement of another
+            // copy, as the copy of `$m7` is in a copy of `<group>$m7 $l</group>`.
             const { startIdx, endIdx } = await calcStartEndIdx({
                 replacements: indexParent.replacements,
-                copyComponentIdx: copyComponent.componentIdx,
+                copyComponentIdx: component.componentIdx,
                 updateStart: update_start,
                 updateEnd: update_end,
             });
