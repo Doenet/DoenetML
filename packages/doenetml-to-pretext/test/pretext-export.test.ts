@@ -176,7 +176,7 @@ describe("Pretext export", async () => {
         expect(await coreRunner.processToFlatDastAsFragment(source))
             .toMatchInlineSnapshot(`
               "<handout>
-              <title></title><p workspace="1.25in">Explain</p>
+              <title></title><p workspace="1.25in">Explain </p>
               </handout>"
             `);
     });
@@ -620,6 +620,31 @@ describe("Pretext export", async () => {
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
             `"<p>Value of <m>x</m>: <fillin characters="21"></fillin></p>"`,
+        );
+    });
+
+    it("an answer's label is kept apart from an input written inside it", async () => {
+        // An input written out inside an `<answer>` does not inherit its label, so the
+        // space after the label must come from the answer.
+        source = `<p><answer><label>Pick:</label><choiceInput inline preselectChoice="1"><choice credit="1">yes</choice><choice>no</choice></choiceInput></answer></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `Pick: <em>yes</em>`,
+        );
+
+        source = `<p><answer><label>A:</label><mathInput /><award>x</award></answer></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `A: <m><fillin`,
+        );
+
+        source = `<p><answer><label>A:</label><textInput /><award>x</award></answer></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `A: <fillin`,
+        );
+
+        // An input with a label of its own draws it after the answer's.
+        source = `<p><answer><label>A</label><textInput><label>B</label></textInput><award>x</award></answer></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `A B <fillin`,
         );
     });
 

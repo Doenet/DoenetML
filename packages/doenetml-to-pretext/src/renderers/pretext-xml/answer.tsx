@@ -12,7 +12,10 @@ export const Answer: BasicComponentWithPassthroughChildren<AnswerData> = ({
     const label = node.data.props.label?.trim() ?? "";
     return (
         <React.Fragment>
-            {labelContent(label)}
+            {/* The space after the label is the answer's to supply, whatever input
+                follows: one that inherited the label draws nothing of its own, and one
+                with a label of its own draws that after this space. */}
+            {label ? [labelContent(label), " "] : null}
             <AnswerLabelContext.Provider value={label}>
                 {children}
             </AnswerLabelContext.Provider>

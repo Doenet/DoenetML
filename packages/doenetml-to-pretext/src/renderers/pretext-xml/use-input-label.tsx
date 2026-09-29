@@ -34,9 +34,8 @@ export function useInputLabel(rawLabel: string | undefined): React.ReactNode {
     const inheritedFromAnswer = Boolean(ownLabel) && ownLabel === answerLabel;
 
     if (inheritedFromAnswer || !ownLabel) {
-        // The answer drew the label instead, but the space that separated it from the
-        // blank was this component's, so it still has to be supplied.
-        return inheritedFromAnswer ? " " : null;
+        // The answer drew the label, and the space after it, instead.
+        return null;
     }
 
     // Separate the label from the blank that follows it.
