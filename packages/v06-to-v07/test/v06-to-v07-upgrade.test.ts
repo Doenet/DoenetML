@@ -405,6 +405,16 @@ describe("v06 to v07 update", () => {
         source = `<number name="a">3</number><point x="$(a{assignNames='b' link='false'})" /> $b`;
         correctSource = `<setup><number copy="$a" name="b" /></setup><number name="a">3</number><point x="$b" /> $b`;
         expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // Named inside a namespace, the copy goes inside it, so `$(s/b)` finds it.
+        source = `<number name="a">3</number><section name="s" newNamespace><point x="$(a{assignNames='b'})" /></section> $(s/b)`;
+        correctSource = `<number name="a">3</number><section name="s"><setup><number extend="$a" name="b" /></setup><point x="$b" /></section> $s.b`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
+
+        // A generated name steers clear of a name assigned later on.
+        source = `<number name="a">3</number><point x="$(a{link='false'})" y="$(a{assignNames='ref1'})" /> $ref1`;
+        correctSource = `<setup><number copy="$a" name="ref2" /><number extend="$a" name="ref1" /></setup><number name="a">3</number><point x="$ref2" y="$ref1" /> $ref1`;
+        expect(await updateSyntax(source)).toEqual(correctSource);
     });
 
     it("puts the copy for a macro in an attribute inside the module it is in", async () => {

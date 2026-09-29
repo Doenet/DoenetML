@@ -106,10 +106,16 @@ export const upgradeAttributeSyntax: Plugin<
                         n.type === "macro" &&
                         Object.keys(n.attributes).length > 0
                     ) {
+                        // A copy the author named has to sit in the namespace it
+                        // was named in, so `$(s/b)`, now `$s.b`, still finds it.
+                        const named =
+                            readAssignNames(n as unknown as DastElement) !==
+                                undefined || n.attributes["name"] !== undefined;
                         macrosInAttributes.push({
                             node: n,
                             container: findSetupContainer(
                                 info.parents as DastElement[],
+                                named ? context : undefined,
                             ),
                             ancestorNames: namespaceChainOf(
                                 info.parents as DastElement[],
@@ -140,12 +146,22 @@ export const upgradeAttributeSyntax: Plugin<
         });
         // It is possible that names are assigned via the `{name="..."}` syntax in a macro.
         // We already have a list of all macros with attributes, so add any of those names.
+        // So can the names in its `assignNames`, which the copy takes below, after
+        // earlier copies have had generated names handed out.
         for (const { node: macroNode } of macrosInAttributes) {
             const nameAttr = toXml(
                 macroNode.attributes["name"]?.children,
             ).trim();
             if (nameAttr) {
                 usedNames.add(nameAttr);
+            }
+            const assigned = readAssignNames(
+                macroNode as unknown as DastElement,
+            );
+            for (const assignedName of assigned?.split(/\s+/) ?? []) {
+                if (assignedName) {
+                    usedNames.add(assignedName);
+                }
             }
         }
 
@@ -247,15 +263,21 @@ export const upgradeAttributeSyntax: Plugin<
 const SCOPING_CONTAINERS = new Set(["module", "repeat", "repeatForSequence"]);
 
 /**
- * The nearest ancestor that scopes names, or `undefined` for the document.
+ * The nearest ancestor that scopes names, or `undefined` for the document. Given the
+ * `context`, a v0.6 namespace (`newNamespace`) counts as one too.
  *
  * `parents` runs nearest first and leaves out the element carrying the attribute, which
  * is right: `<repeat for="$(x{...})">` evaluates `for` from outside the repeat.
  */
-function findSetupContainer(parents: DastElement[]): DastElement | undefined {
+function findSetupContainer(
+    parents: DastElement[],
+    context?: AssignNamesContext,
+): DastElement | undefined {
     return parents.find(
         (parent) =>
-            isDastElement(parent) && SCOPING_CONTAINERS.has(parent.name),
+            isDastElement(parent) &&
+            (SCOPING_CONTAINERS.has(parent.name) ||
+                context?.namespaceElements.has(parent)),
     );
 }
 
