@@ -164,6 +164,30 @@ ${ballotsTabular()}
                 expect(measureCell($td[0]).paddingStart).eq(10);
             });
     });
+
+    it("a tabular without `<col>` children sizes the padding of its narrow columns", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+<tabular name="t" width="300px">
+  <row>${"<cell>x</cell>".repeat(20)}</row>
+</tabular>
+`,
+                },
+                "*",
+            );
+        });
+
+        // Twenty columns share 300px, 15px each.
+        cy.get("#t td").should("have.length", 20);
+        cy.get("#t td").each(($td) => {
+            const cell = measureCell($td[0]);
+            expect(cell.width).closeTo(15, 1);
+            expect(cell.paddingStart).closeTo(0.15 * 15, 0.5);
+        });
+    });
+
     it("the padding follows the column widths the browser settles on when the `<col>` widths do not add up to the table", () => {
         cy.window().then(async (win) => {
             win.postMessage(
