@@ -6037,4 +6037,158 @@ describe("Evaluate tag tests @group2", async () => {
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(0);
     });
+
+    it("evaluating one function at several inputs uses that function's compiled form", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <mathInput name="mi" prefill="2600" />
+  <function name="func" symbolic="false">(8x sin($mi/(3.5*100^x)+5x), 5x cos($mi/(3.5*100^x)+5x))</function>
+  <function name="funcSym">(8x sin($mi/(3.5*100^x)+5x), 5x cos($mi/(3.5*100^x)+5x))</function>
+  <evaluate name="e1" function="$func" input="0.3" />
+  <evaluate name="e2" function="$func" input="0.4" />
+  <evaluate name="e3" function="$funcSym" input="0.5" />
+  <evaluate name="e4" function="$funcSym" input="0.6" />
+  <point name="P">$$func(1.2)</point>
+  `,
+        });
+
+        const inner = (core as any).core;
+        async function component(name: string) {
+            return inner._components[await resolvePathToNodeIdx(name)];
+        }
+
+        function expected(t: number, x: number) {
+            const angle = t / (3.5 * 100 ** x) + 5 * x;
+            return [8 * x * Math.sin(angle), 5 * x * Math.cos(angle)];
+        }
+
+        async function check(t: number) {
+            const func = await component("func");
+            const funcSym = await component("funcSym");
+            for (const [name, source, x] of [
+                ["e1", func, 0.3],
+                ["e2", func, 0.4],
+                ["e3", funcSym, 0.5],
+                ["e4", funcSym, 0.6],
+            ] as const) {
+                const evaluate = await component(name);
+                const value = (await evaluate.stateValues.value).tree;
+                expect(value[0]).eq("vector");
+                const [x1, x2] = expected(t, x);
+                expect(me.fromAst(value[1]).evaluate_to_constant()).closeTo(
+                    x1,
+                    1e-10,
+                );
+                expect(me.fromAst(value[2]).evaluate_to_constant()).closeTo(
+                    x2,
+                    1e-10,
+                );
+
+                // The copy of the function in the evaluate takes the
+                // function's compiled forms rather than compiling its own
+                const copy = evaluate.attributes.function.component;
+                for (const varName of ["numericalfs", "symbolicfs"]) {
+                    const fs = await copy.stateValues[varName];
+                    const sourceFs = await source.stateValues[varName];
+                    expect(fs.length).eq(2);
+                    expect(fs[0]).toBe(sourceFs[0]);
+                    expect(fs[1]).toBe(sourceFs[1]);
+                }
+            }
+
+            const P = await component("P");
+            const [x1, x2] = expected(t, 1.2);
+            expect(await P.stateValues.xs[0].evaluate_to_constant()).closeTo(
+                x1,
+                1e-10,
+            );
+            expect(await P.stateValues.xs[1].evaluate_to_constant()).closeTo(
+                x2,
+                1e-10,
+            );
+        }
+
+        await check(2600);
+
+        await updateMathInputValue({
+            latex: "3000",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await check(3000);
+    });
+
+    it("a copy of a function that changes it computes its own function", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <function name="f" symbolic="false">x^2</function>
+  <function name="plain" extend="$f" />
+  <function name="copyOfCopy" extend="$plain" />
+  <function name="unlinked" extend="$f" link="false" />
+  <function name="withDomain" extend="$f" domain="[0,1]" />
+  <function name="withVariables" extend="$f" variables="y" />
+  <function name="withVariable" extend="$f" variable="y" />
+  <function name="withNumInputs" extend="$f" numInputs="2" />
+  <function name="withSymbolic" extend="$f" symbolic />
+  <function name="withSimplify" extend="$f" simplify="none" />
+  <function name="interp" through="(0,0) (1,1) (2,0)" />
+  <function name="interpCopy" extend="$interp" />
+  <function name="interpThrough" extend="$interp" through="(0,1) (1,0) (2,1)" />
+  <function name="interpMaxima" extend="$interp" maxima="(1.5,3)" />
+  <graph>
+    <curve><function name="inCurve" extend="$f" /></curve>
+    <curve variable="t"><function name="inCurveT" extend="$f" /></curve>
+  </graph>
+  `,
+        });
+
+        const inner = (core as any).core;
+        async function sv(name: string) {
+            return inner._components[await resolvePathToNodeIdx(name)]
+                .stateValues;
+        }
+        async function numericalf(name: string) {
+            return (await (await sv(name)).numericalfs)[0];
+        }
+
+        const f = await numericalf("f");
+        expect(await numericalf("plain")).toBe(f);
+        expect(await numericalf("copyOfCopy")).toBe(f);
+        // A curve whose variable is the function's changes nothing
+        expect(await numericalf("inCurve")).toBe(f);
+
+        for (const name of [
+            "unlinked",
+            "withDomain",
+            "withVariables",
+            "withVariable",
+            "withNumInputs",
+            "withSymbolic",
+            "withSimplify",
+            "inCurveT",
+        ]) {
+            expect(await numericalf(name), name).not.toBe(f);
+        }
+
+        expect((await numericalf("unlinked"))(3)).eq(9);
+        expect((await numericalf("withDomain"))(0.5)).eq(0.25);
+        expect((await numericalf("withDomain"))(3)).eqls(NaN);
+        // With the variable renamed, `x` is a free symbol
+        expect((await numericalf("withVariables"))(3)).eqls(NaN);
+        expect((await numericalf("withVariable"))(3)).eqls(NaN);
+        expect(await (await sv("withNumInputs")).numInputs).eq(2);
+        expect(await (await sv("withSymbolic")).symbolic).eq(true);
+        expect((await numericalf("withSymbolic"))(3)).eq(9);
+        expect((await numericalf("withSimplify"))(3)).eq(9);
+        // The curve's variable `t` leaves `x` a free symbol
+        expect((await numericalf("inCurveT"))(3)).eqls(NaN);
+
+        const interp = await numericalf("interp");
+        expect(await numericalf("interpCopy")).toBe(interp);
+        expect((await numericalf("interpCopy"))(1)).closeTo(1, 1e-12);
+        expect(await numericalf("interpThrough")).not.toBe(interp);
+        expect((await numericalf("interpThrough"))(1)).closeTo(0, 1e-12);
+        expect(await numericalf("interpMaxima")).not.toBe(interp);
+        expect((await numericalf("interpMaxima"))(1.5)).closeTo(3, 1e-12);
+    });
 });

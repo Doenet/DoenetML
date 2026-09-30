@@ -35,6 +35,94 @@ import {
 } from "../utils/math";
 import { codedDiagnostic } from "../utils/diagnostics";
 
+/**
+ * The attributes that change what a function computes. A copy that sets any of
+ * them computes its own formula and functions.
+ */
+const attributesDefiningFunction = [
+    "simplify",
+    "expand",
+    "numInputs",
+    "numOutputs",
+    "domain",
+    "minima",
+    "maxima",
+    "extrema",
+    "through",
+    "throughSlopes",
+    "variables",
+    "variable",
+    "symbolic",
+];
+
+/**
+ * Make the state variable `varName` take the value of the same variable of the
+ * function this component copies whenever `forwardToShadowSource` is true,
+ * and be computed by its own definition otherwise.
+ */
+function forwardFromShadowSourceIfUnmodified(stateDef, varName) {
+    stateDef.stateVariablesDeterminingDependencies = [
+        ...(stateDef.stateVariablesDeterminingDependencies ?? []),
+        "forwardToShadowSource",
+    ];
+
+    let forwardingDependencies = {
+        forwardToShadowSource: {
+            dependencyType: "stateVariable",
+            variableName: "forwardToShadowSource",
+        },
+        shadowSourceValue: {
+            dependencyType: "shadowSourceStateVariable",
+            variableName: varName,
+        },
+    };
+
+    if (stateDef.isArray) {
+        let returnArrayDependenciesByKey =
+            stateDef.returnArrayDependenciesByKey;
+        let arrayDefinitionByKey = stateDef.arrayDefinitionByKey;
+
+        stateDef.returnArrayDependenciesByKey = function (args) {
+            if (args.stateValues.forwardToShadowSource) {
+                return { globalDependencies: forwardingDependencies };
+            }
+            return returnArrayDependenciesByKey.call(this, args);
+        };
+        stateDef.arrayDefinitionByKey = function (args) {
+            let { globalDependencyValues, arrayKeys } = args;
+            if (globalDependencyValues?.forwardToShadowSource) {
+                let values = {};
+                for (let arrayKey of arrayKeys) {
+                    values[arrayKey] =
+                        globalDependencyValues.shadowSourceValue[arrayKey];
+                }
+                return { setValue: { [varName]: values } };
+            }
+            return arrayDefinitionByKey.call(this, args);
+        };
+    } else {
+        let returnDependencies = stateDef.returnDependencies;
+        let definition = stateDef.definition;
+
+        stateDef.returnDependencies = function (args) {
+            if (args.stateValues.forwardToShadowSource) {
+                return forwardingDependencies;
+            }
+            return returnDependencies.call(this, args);
+        };
+        stateDef.definition = function (args) {
+            if (args.dependencyValues.forwardToShadowSource) {
+                return {
+                    setValue: {
+                        [varName]: args.dependencyValues.shadowSourceValue,
+                    },
+                };
+            }
+            return definition.call(this, args);
+        };
+    }
+}
+
 export default class Function extends InlineComponent {
     static componentType = "function";
 
@@ -4684,6 +4772,84 @@ export default class Function extends InlineComponent {
                 }
             },
         };
+
+        // A copy of a function that changes nothing, such as the function in
+        // each `$$f(a)`, takes its formula and compiled functions from the
+        // function it copies, so that function is compiled once per change,
+        // not once per copy. Components built on <function>, such as
+        // <piecewiseFunction> and the function operators, have children and
+        // attributes of their own, so they compute theirs.
+        if (this.componentType === "function") {
+            stateVariableDefinitions.forwardToShadowSource = {
+                returnDependencies() {
+                    let dependencies = {
+                        shadowInfo: {
+                            dependencyType: "shadowInfo",
+                        },
+                        childrenAdded: {
+                            dependencyType: "child",
+                            childGroups: ["maths", "functions"],
+                            dontRecurseToShadows: true,
+                        },
+                        variables: {
+                            dependencyType: "stateVariable",
+                            variableName: "variables",
+                        },
+                        shadowSourceVariables: {
+                            dependencyType: "shadowSourceStateVariable",
+                            variableName: "variables",
+                        },
+                    };
+                    for (let attributeName of attributesDefiningFunction) {
+                        dependencies[`${attributeName}AttrAdded`] = {
+                            dependencyType: "attributeComponent",
+                            attributeName,
+                            dontRecurseToShadows: true,
+                        };
+                    }
+                    return dependencies;
+                },
+                definition({ dependencyValues }) {
+                    let shadowInfo = dependencyValues.shadowInfo;
+                    let sourceVariables =
+                        dependencyValues.shadowSourceVariables;
+
+                    // The variables can come from the parent (e.g., a `<curve>`),
+                    // so a copy placed elsewhere may not share its source's.
+                    let forwardToShadowSource =
+                        shadowInfo !== null &&
+                        shadowInfo.propVariable === null &&
+                        dependencyValues.childrenAdded.length === 0 &&
+                        attributesDefiningFunction.every(
+                            (attributeName) =>
+                                dependencyValues[
+                                    `${attributeName}AttrAdded`
+                                ] === null,
+                        ) &&
+                        Array.isArray(sourceVariables) &&
+                        sourceVariables.length ===
+                            dependencyValues.variables.length &&
+                        sourceVariables.every((v, i) =>
+                            v.equalsViaSyntax(dependencyValues.variables[i]),
+                        );
+
+                    return { setValue: { forwardToShadowSource } };
+                },
+            };
+
+            for (let varName of [
+                "formula",
+                "numOutputs",
+                "symbolicfs",
+                "numericalfs",
+                "fDefinitions",
+            ]) {
+                forwardFromShadowSourceIfUnmodified(
+                    stateVariableDefinitions[varName],
+                    varName,
+                );
+            }
+        }
 
         return stateVariableDefinitions;
     }
