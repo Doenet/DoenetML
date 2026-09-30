@@ -9575,6 +9575,62 @@ What is the derivative of <function name="f">x^2</function>?
         }
     });
 
+    it("colorInputsSeparately: award credit above 1 with matchPartial gives each input the fraction satisfied", async () => {
+        const doenetML = `
+  <mathInput name="mi1" forAnswer="$ans" />
+  <mathInput name="mi2" forAnswer="$ans" />
+  <answer name="ans" colorInputsSeparately>
+    <award credit="2" matchPartial><when>$mi1 = x and $mi2 = y</when></award>
+  </answer>
+  `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        const mi1Idx = await resolvePathToNodeIdx("mi1");
+        const mi2Idx = await resolvePathToNodeIdx("mi2");
+
+        await updateMathInputValue({ latex: "x", componentIdx: mi1Idx, core });
+        await updateMathInputValue({ latex: "z", componentIdx: mi2Idx, core });
+        await submitAnswer({ componentIdx: ansIdx, core });
+
+        const sv = await core.returnAllStateVariables(false, true);
+        expect(sv[ansIdx].stateValues.creditAchieved).eq(0.5);
+        expect(sv[mi1Idx].stateValues.creditAchieved).eq(0.5);
+        expect(sv[mi2Idx].stateValues.creditAchieved).eq(0.5);
+    });
+
+    it("colorInputsSeparately: award with non-numeric credit does not block a later award's per-input credit", async () => {
+        // Before the clamp, the NaN credit stuck as mi1's maximum, so mi1 fell
+        // back to the overall credit (0.5) instead of its own credit (1).
+        const doenetML = `
+  <mathInput name="mi1" forAnswer="$ans" />
+  <mathInput name="mi2" forAnswer="$ans" />
+  <answer name="ans" numAwardsCredited="2" colorInputsSeparately>
+    <award credit="abc"><when>$mi1 = x</when></award>
+    <award credit="0.5"><when>$mi1 = y</when></award>
+    <award credit="0.5"><when>$mi2 = z</when></award>
+  </answer>
+  `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        const mi1Idx = await resolvePathToNodeIdx("mi1");
+        const mi2Idx = await resolvePathToNodeIdx("mi2");
+
+        await updateMathInputValue({ latex: "y", componentIdx: mi1Idx, core });
+        await updateMathInputValue({ latex: "w", componentIdx: mi2Idx, core });
+        await submitAnswer({ componentIdx: ansIdx, core });
+
+        const sv = await core.returnAllStateVariables(false, true);
+        expect(sv[ansIdx].stateValues.creditAchieved).eq(0.5);
+        expect(sv[mi1Idx].stateValues.creditAchieved).eq(1);
+        expect(sv[mi2Idx].stateValues.creditAchieved).eq(0);
+    });
+
     it("colorInputsSeparately: input with no covering award falls back to overall credit", async () => {
         // mi3 is not referenced by any award, so it should fall back to the
         // answer's overall creditAchieved rather than getting a per-input value.
