@@ -2838,6 +2838,58 @@ The animal is a <answer name="answer1">
         });
     });
 
+    it("answer with choiceInput, choice credit outside 0 to 1 is capped", async () => {
+        const doenetML = `
+The animal is a <answer name="answer1">
+<choiceInput>
+    <choice credit="2">cat</choice>
+    <choice credit="-1">dog</choice>
+    <choice>monkey</choice>
+</choiceInput>
+</answer>
+  `;
+
+        await test_choice_answer({
+            doenetML,
+            answers: [
+                { choices: ["cat"], credit: 1 },
+                { choices: ["dog"], credit: 0 },
+                { choices: ["monkey"], credit: 0 },
+            ],
+            indexByName: {
+                cat: 1,
+                dog: 2,
+                monkey: 3,
+            },
+        });
+    });
+
+    it("answer with select-multiple choiceInput, choice credit above 1 counts as correct", async () => {
+        const doenetML = `
+The animal is a <answer name="answer1">
+<choiceInput selectMultiple>
+    <choice credit="2">cat</choice>
+    <choice credit="1">dog</choice>
+    <choice>monkey</choice>
+</choiceInput>
+</answer>
+  `;
+
+        await test_choice_answer({
+            doenetML,
+            answers: [
+                { choices: ["dog"], credit: 0 },
+                { choices: ["dog", "cat"], credit: 1 },
+                { choices: ["monkey", "cat", "dog"], credit: 0 },
+            ],
+            indexByName: {
+                cat: 1,
+                dog: 2,
+                monkey: 3,
+            },
+        });
+    });
+
     it("answer with select-multiple sugared choices, fixed order", async () => {
         const doenetML = `
 The animal is a <answer name="answer1" selectMultiple matchPartial>
