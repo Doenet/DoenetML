@@ -16,6 +16,13 @@ import {
     listItemChildVisibilityDependency,
 } from "../utils/listItemChild";
 
+/**
+ * How far short of 1 a sum of award credits may fall and still count as full
+ * credit. Far larger than the round-off of any realistic number of additions,
+ * and far smaller than any credit an author would write.
+ */
+const CREDIT_ROUNDOFF_TOLERANCE = 1e-12;
+
 export default class Answer extends InlineComponent {
     constructor(args) {
         super(args);
@@ -2262,10 +2269,16 @@ export default class Answer extends InlineComponent {
                         }
                     }
 
-                    creditAchieved = Math.min(
-                        1,
-                        awardCredits.reduce((a, c) => a + c, 0),
-                    );
+                    const creditSum = awardCredits.reduce((a, c) => a + c, 0);
+
+                    // Credits that should add up to exactly 1, such as six
+                    // awards of credit="1/6", can fall short of it by
+                    // floating-point round-off. Count a total that close to 1
+                    // as full credit.
+                    creditAchieved =
+                        creditSum > 1 - CREDIT_ROUNDOFF_TOLERANCE
+                            ? 1
+                            : creditSum;
                 }
 
                 // remove any trailing null's in awardsUsed
