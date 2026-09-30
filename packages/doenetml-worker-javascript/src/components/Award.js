@@ -7,7 +7,10 @@ import {
 } from "../utils/booleanLogic";
 import { unwrapSource } from "../utils/dast/convertNormalizedDast";
 import { comparePathsIgnorePosition } from "../utils/dast/path";
-import { returnSimplifyExpandOnCompareWarning } from "../utils/answer";
+import {
+    returnCreditAttributeAndStateVariableDefinition,
+    returnSimplifyExpandOnCompareWarning,
+} from "../utils/answer";
 
 export default class Award extends BaseComponent {
     static componentType = "award";
@@ -25,15 +28,10 @@ export default class Award extends BaseComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        attributes.credit = {
-            createComponentOfType: "number",
-            createStateVariable: "credit",
+        attributes.credit = returnCreditAttributeAndStateVariableDefinition({
             defaultValue: 1,
-            public: true,
-            attributesForCreatedComponent: { convertBoolean: "true" },
-            description:
-                "Fraction of credit (0 to 1) granted when this award matches.",
-        };
+            componentDescription: "this award matches",
+        }).attribute;
         attributes.matchPartial = {
             createComponentOfType: "boolean",
             createStateVariable: "matchPartial",
@@ -384,6 +382,12 @@ export default class Award extends BaseComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        stateVariableDefinitions.credit =
+            returnCreditAttributeAndStateVariableDefinition({
+                defaultValue: 1,
+                componentDescription: "this award matches",
+            }).stateVariableDefinition;
+
         Object.assign(
             stateVariableDefinitions,
             returnSimplifyExpandOnCompareWarning(),
@@ -619,12 +623,9 @@ export default class Award extends BaseComponent {
                     Math.min(1, fractionSatisfiedIfSubmit),
                 );
 
-                let creditAchievedIfSubmit = 0;
-                if (Number.isFinite(dependencyValues.credit)) {
-                    creditAchievedIfSubmit =
-                        Math.max(0, Math.min(1, dependencyValues.credit)) *
-                        fractionSatisfiedIfSubmit;
-                }
+                // `credit` is already clamped to [0, 1].
+                const creditAchievedIfSubmit =
+                    dependencyValues.credit * fractionSatisfiedIfSubmit;
                 return {
                     setValue: {
                         fractionSatisfiedIfSubmit,

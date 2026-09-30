@@ -901,6 +901,72 @@ export function returnStandardAnswerStateVariableDefinition() {
     return stateVariableDefinitions;
 }
 
+/**
+ * The attribute and state variable for the `credit` of an `<award>` or a
+ * `<choice>`.
+ *
+ * The attribute is stored in `creditPrelim`; the public `credit` is that value
+ * clamped to [0, 1], with a non-finite value counting as 0. So `$aw.credit`
+ * reports the credit the component can actually grant, and every reader of
+ * `credit` gets the capped value.
+ *
+ * @param {object} args
+ * @param {number} args.defaultValue - the credit when the attribute is omitted
+ * @param {string} args.componentDescription - what the credit is granted for,
+ *   completing "Fraction of credit (0 to 1) granted when ..."
+ */
+export function returnCreditAttributeAndStateVariableDefinition({
+    defaultValue,
+    componentDescription,
+}) {
+    const description = `Fraction of credit (0 to 1) granted when ${componentDescription}. A value above 1 counts as 1, and a negative or non-numeric value as 0.`;
+
+    const attribute = {
+        createComponentOfType: "number",
+        createStateVariable: "creditPrelim",
+        defaultValue,
+        attributesForCreatedComponent: { convertBoolean: "true" },
+        description,
+    };
+
+    const stateVariableDefinition = {
+        public: true,
+        shadowingInstructions: {
+            createComponentOfType: "number",
+        },
+        description,
+        returnDependencies: () => ({
+            creditPrelim: {
+                dependencyType: "stateVariable",
+                variableName: "creditPrelim",
+            },
+        }),
+        definition({ dependencyValues }) {
+            const credit = dependencyValues.creditPrelim;
+            return {
+                setValue: {
+                    credit: Number.isFinite(credit)
+                        ? Math.max(0, Math.min(1, credit))
+                        : 0,
+                },
+            };
+        },
+        inverseDefinition({ desiredStateVariableValues }) {
+            return {
+                success: true,
+                instructions: [
+                    {
+                        setDependency: "creditPrelim",
+                        desiredValue: desiredStateVariableValues.credit,
+                    },
+                ],
+            };
+        },
+    };
+
+    return { attribute, stateVariableDefinition };
+}
+
 export function returnSimplifyExpandOnCompareWarning() {
     const stateVariableDefinitions = {};
 

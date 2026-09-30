@@ -2322,12 +2322,7 @@ export default class Answer extends InlineComponent {
                 for (const award of dependencyValues.awardChildren) {
                     const referencedInputStateVars =
                         award.stateValues.referencedInputStateVars;
-                    // Clamp as the award clamps its earned credit, so an
-                    // award with credit above 1 still divides out to 1 here.
-                    const rawCredit = award.stateValues.credit;
-                    const credit = Number.isFinite(rawCredit)
-                        ? Math.max(0, Math.min(1, rawCredit))
-                        : 0;
+                    const credit = award.stateValues.credit;
                     const awarded = award.stateValues.awarded;
                     const creditAchieved = award.stateValues.creditAchieved;
 

@@ -2838,6 +2838,51 @@ The animal is a <answer name="answer1">
         });
     });
 
+    it("award and choice credit state variables are capped to 0 to 1", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <answer>
+      <mathInput />
+      <award name="aw1" credit="2"><when>true</when></award>
+      <award name="aw2" credit="-1"><when>true</when></award>
+      <award name="aw3" credit="abc"><when>true</when></award>
+      <award name="aw4" credit="0.4"><when>true</when></award>
+      <award name="aw5"><when>true</when></award>
+    </answer>
+    <choiceInput>
+      <choice name="c1" credit="2">a</choice>
+      <choice name="c2" credit="-1">b</choice>
+      <choice name="c3" credit="0.4">c</choice>
+      <choice name="c4">d</choice>
+    </choiceInput>
+    <p name="p">$aw1.credit, $aw2.credit, $aw3.credit, $aw4.credit, $aw5.credit, $c1.credit, $c2.credit, $c3.credit, $c4.credit</p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const expected = {
+            aw1: 1,
+            aw2: 0,
+            aw3: 0,
+            aw4: 0.4,
+            aw5: 1,
+            c1: 1,
+            c2: 0,
+            c3: 0.4,
+            c4: 0,
+        };
+        for (const [name, credit] of Object.entries(expected)) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .credit,
+                name,
+            ).eq(credit);
+        }
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
+        ).eq("1, 0, 0, 0.4, 1, 1, 0, 0.4, 0");
+    });
+
     it("answer with choiceInput, choice credit outside 0 to 1 is capped", async () => {
         const doenetML = `
 The animal is a <answer name="answer1">
@@ -7728,6 +7773,43 @@ What is the derivative of <function name="f">x^2</function>?
         expect(stateVariables[answerIdx].stateValues.creditFactorUsed).eq(0.8);
         expect(stateVariables[answerIdx].stateValues.nextCreditFactor).eq(0.8);
         expect(stateVariables[answerIdx].stateValues.disabled).eq(true);
+    });
+
+    it("disable wrong choices disables a choice with non-numeric credit", async () => {
+        // A non-numeric credit counts as 0, so the choice is a wrong one.
+        const doenetML = `
+    <answer name="ans" disableWrongChoices>
+        <choice credit="abc">A</choice>
+        <choice credit="1">B</choice>
+    </answer>
+  `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const answerIdx = await resolvePathToNodeIdx("ans");
+        const choiceInputIdx =
+            stateVariables[answerIdx].stateValues.inputChildren[0].componentIdx;
+        const choiceIndices = stateVariables[choiceInputIdx].activeChildren.map(
+            (child) => child.componentIdx,
+        );
+
+        await updateSelectedIndices({
+            componentIdx: choiceInputIdx,
+            selectedIndices: [1],
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(0);
+        expect(
+            choiceIndices.map(
+                (idx) => stateVariables[idx].stateValues.disabled,
+            ),
+        ).eqls([true, false]);
     });
 
     it("disable wrong choices", async () => {

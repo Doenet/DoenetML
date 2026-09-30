@@ -1302,15 +1302,6 @@ export default class Choiceinput extends Input {
                 },
             }),
             definition: function ({ dependencyValues }) {
-                // Clamp as an award clamps its credit, so a choice with credit
-                // above 1 is worth full credit and never more.
-                const choiceCredit = (choiceChild) => {
-                    const credit = choiceChild.stateValues.credit;
-                    return Number.isFinite(credit)
-                        ? Math.max(0, Math.min(1, credit))
-                        : 0;
-                };
-
                 let creditAchievedIfSubmit = 0;
                 if (dependencyValues.selectMultiple) {
                     let nCorrectlySelected = 0;
@@ -1318,13 +1309,13 @@ export default class Choiceinput extends Input {
                     let nIncorrectlyUnselected = 0;
                     for (let choiceChild of dependencyValues.choiceChildren) {
                         if (choiceChild.stateValues.selected) {
-                            if (choiceCredit(choiceChild) === 1) {
+                            if (choiceChild.stateValues.credit === 1) {
                                 nCorrectlySelected++;
                             } else {
                                 nIncorrectlySelected++;
                             }
                         } else {
-                            if (choiceCredit(choiceChild) === 1) {
+                            if (choiceChild.stateValues.credit === 1) {
                                 nIncorrectlyUnselected++;
                             }
                         }
@@ -1351,7 +1342,8 @@ export default class Choiceinput extends Input {
                 } else {
                     for (let choiceChild of dependencyValues.choiceChildren) {
                         if (choiceChild.stateValues.selected) {
-                            creditAchievedIfSubmit = choiceCredit(choiceChild);
+                            creditAchievedIfSubmit =
+                                choiceChild.stateValues.credit;
                             break;
                         }
                     }
