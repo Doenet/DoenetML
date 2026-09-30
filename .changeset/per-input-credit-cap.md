@@ -13,4 +13,4 @@ The `credit` of an `<award>` or a `<choice>` is now capped to 0 to 1, and `$aw.c
 - With `colorInputsSeparately`, an input answered by an award with credit above 1 is now colored as fully correct, not partly correct.
 - Submitting a choice with a negative credit now shows that choice's own feedback, where before the previous submission's feedback stayed in place.
 - With `disableWrongChoices`, a submitted choice with non-numeric credit is now disabled like any other wrong choice.
-- An award whose credit is set by `<updateValue>` now grants that credit, where before it granted 0.
+- An award with no `credit` attribute whose credit is set by `<updateValue>` now grants that credit, where before it granted 0.
