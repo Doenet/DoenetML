@@ -19,6 +19,22 @@ export function determinePropType(
      */
     nIndices = 0,
 ) {
+    return describeProp(componentType, propName, nIndices).componentType;
+}
+
+/**
+ * Like `determinePropType`, but also says whether the prop copies to several components
+ * rather than one.
+ *
+ * `$poly.vertices` is a list of points and `$c.iterateValues` a list of maths, while
+ * `$poly.vertex1` is one point and `$m.matrix` one matrix. The component type alone does
+ * not tell these apart: it is the type of *each* component the prop copies to.
+ */
+export function describeProp(
+    componentType: string,
+    propName: string,
+    nIndices = 0,
+): { componentType: string; isMultiple: boolean } {
     const publicStateVariableInfo =
         componentInfoObjects.publicStateVariableInfo[componentType];
 
@@ -51,6 +67,12 @@ export function determinePropType(
                         arrayEntryPrefix
                     ];
 
+                const isMultiple = copiesToMultiple(
+                    prefixInfo.wrappingComponents,
+                    prefixInfo.numDimensions,
+                    nIndices,
+                );
+
                 // if the array entry is wrapped with a different component type, return that component type
                 const wrapResult = componentTypeFromWrapping(
                     prefixInfo.wrappingComponents,
@@ -58,14 +80,21 @@ export function determinePropType(
                     nIndices,
                 );
                 if (wrapResult.foundComponentType) {
-                    return wrapResult.componentType;
+                    return {
+                        componentType: wrapResult.componentType,
+                        isMultiple,
+                    };
                 }
 
                 if (nIndices <= prefixInfo.numDimensions) {
                     // otherwise, use the component type of the array itself
-                    return publicStateVariableInfo.stateVariableDescriptions[
-                        prefixInfo.arrayVariableName
-                    ].createComponentOfType;
+                    return {
+                        componentType: publicStateVariableInfo
+                            .stateVariableDescriptions[
+                            prefixInfo.arrayVariableName
+                        ].createComponentOfType as string,
+                        isMultiple,
+                    };
                 } else {
                     throw Error(
                         `"${propName}" with ${nIndices} indices is not a valid prop for a component of type ${componentType} as ${propName} has fewer than ${nIndices} dimensions`,
@@ -79,7 +108,13 @@ export function determinePropType(
         );
     }
 
+    let isMultiple = false;
     if (stateVarInfo.isArray) {
+        isMultiple = copiesToMultiple(
+            stateVarInfo.wrappingComponents ?? [],
+            stateVarInfo.numDimensions ?? 1,
+            nIndices,
+        );
         if (stateVarInfo.wrappingComponents) {
             const wrapResult = componentTypeFromWrapping(
                 stateVarInfo.wrappingComponents,
@@ -87,7 +122,7 @@ export function determinePropType(
                 nIndices,
             );
             if (wrapResult.foundComponentType) {
-                return wrapResult.componentType;
+                return { componentType: wrapResult.componentType, isMultiple };
             }
         }
 
@@ -110,7 +145,27 @@ export function determinePropType(
         );
     }
 
-    return stateVarInfo.createComponentOfType;
+    return { componentType: stateVarInfo.createComponentOfType, isMultiple };
+}
+
+/**
+ * Whether copying an array with `nIndices` of its `nDimensions` indexed gives several
+ * components.
+ *
+ * Copy wraps the outermost dimension left over only when `wrappingComponents` has a
+ * non-empty entry for it (see `wrappingComponents[numDimensionsLeft - 1]` in the worker's
+ * `Copy.js`); otherwise each entry along it becomes a component of its own.
+ */
+function copiesToMultiple(
+    wrappingComponents: unknown[][],
+    nDimensions: number,
+    nIndices: number,
+) {
+    const dimensionsLeft = nDimensions - nIndices;
+    if (dimensionsLeft < 1) {
+        return false;
+    }
+    return !(wrappingComponents[dimensionsLeft - 1]?.length > 0);
 }
 
 /**
@@ -151,6 +206,27 @@ function componentTypeFromWrapping(
     }
 
     return { foundComponentType: false as const };
+}
+
+/**
+ * Whether `componentType` names a component an author can write.
+ */
+export function isComponentType(componentType: string): boolean {
+    return (
+        !componentType.startsWith("_") &&
+        componentType in componentInfoObjects.allComponentClasses
+    );
+}
+
+/**
+ * Whether `componentType` is a composite, which stands for what it expands to rather
+ * than a component of its own type.
+ */
+export function isCompositeComponentType(componentType: string): boolean {
+    return componentInfoObjects.isCompositeComponent({
+        componentType,
+        includeNonStandard: true,
+    });
 }
 
 /**

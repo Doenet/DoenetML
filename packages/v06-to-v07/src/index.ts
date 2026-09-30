@@ -15,7 +15,11 @@ import { upgradePathSlashesToDots } from "./slash-to-dot";
 import { lezerToDastV6 } from "@doenet/parser/v06";
 import { upgradeCopySyntax } from "./upgrade-copy-syntax";
 import { upgradeAttributeSyntax } from "./upgrade-attribute-syntax";
-import { upgradeMapElement } from "./upgrade-map-element";
+import {
+    inlineMapSourceGroups,
+    upgradeMapElement,
+    warnAboutMixedSourceGroups,
+} from "./upgrade-map-element";
 import { upgradeModuleElement } from "./upgrade-module-element";
 import { renameAttrInPlace } from "./rename-attr-in-place";
 import { removeConstraintsElement } from "./remove-constraints-element";
@@ -81,7 +85,13 @@ export async function updateSyntaxFromV06toV07_root(
         processor = processor.use(upgradeAttributeSyntax, assignNamesContext);
     }
     if (!options.doNotUpgradeCopyTags) {
-        processor = processor.use(upgradeCopySyntax);
+        processor = processor.use(upgradeCopySyntax, assignNamesContext);
+    } else {
+        // Sources that were references to begin with still fold into the `for`.
+        processor = processor.use(() => (tree: DastRoot, file: VFile) => {
+            inlineMapSourceGroups(tree, assignNamesContext);
+            warnAboutMixedSourceGroups(assignNamesContext, file);
+        });
     }
 
     // Error messages are stored in a VFile

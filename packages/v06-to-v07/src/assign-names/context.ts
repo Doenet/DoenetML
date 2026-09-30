@@ -62,6 +62,20 @@ export type AssignNamesContext = {
      * component, which v0.6 resolved per namespace.
      */
     existingNameScopes: Map<string, string[][]>;
+    /**
+     * The `<group>`s made to hold a `<map>`'s `<sources>`, with the `<setup>` holding
+     * each and the `<repeat>` iterating over it. Once the copies inside are resolved, a
+     * group of nothing but references is folded into the repeat's `for`.
+     */
+    mapSourceGroups: {
+        group: DastElement;
+        setup: DastElement;
+        repeat: DastElement;
+        /** Where the `<sources>` it came from was written, for diagnostics. */
+        position?: DastElement["position"];
+        /** Set once the group has been folded into the repeat's `for`. */
+        done?: boolean;
+    }[];
 };
 
 export function createAssignNamesContext(
@@ -110,6 +124,7 @@ export function createAssignNamesContext(
         claimedNames: new Set(),
         namespaceElements,
         existingNameScopes: new Map(),
+        mapSourceGroups: [],
     };
     // A second pass, because working out a name's namespace chain needs the map of
     // namespace elements the first pass just built.
