@@ -4173,6 +4173,9 @@ Enter any letter:
             1e-14,
         );
         expect(stateVariables[answerIdx].stateValues.hasBeenCorrect).eq(false);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
 
         await updateBooleanInputValue({
             boolean: true,
@@ -4183,6 +4186,10 @@ Enter any letter:
         stateVariables = await core.returnAllStateVariables(false, true);
         expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
         expect(stateVariables[answerIdx].stateValues.hasBeenCorrect).eq(true);
+        // The full-credit submission is not counted as incorrect.
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
     });
 
     it("number of awards credited, zero credits are triggered", async () => {
