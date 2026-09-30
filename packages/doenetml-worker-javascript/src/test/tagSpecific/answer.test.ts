@@ -4140,6 +4140,58 @@ Enter any letter:
         });
     });
 
+    it("award credits adding up to 1 give full credit despite round-off", async () => {
+        // Six additions of 1/6 come to 0.9999999999999999 in floating point.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+        <booleanInput name="bi1" /> <booleanInput name="bi2" />
+        <booleanInput name="bi3" /> <booleanInput name="bi4" />
+        <booleanInput name="bi5" /> <booleanInput name="bi6" />
+        <answer name="a" numAwardsCredited="6">
+          <award credit="1/6"><when>$bi1</when></award>
+          <award credit="1/6"><when>$bi2</when></award>
+          <award credit="1/6"><when>$bi3</when></award>
+          <award credit="1/6"><when>$bi4</when></award>
+          <award credit="1/6"><when>$bi5</when></award>
+          <award credit="1/6"><when>$bi6</when></award>
+        </answer>
+  `,
+        });
+        const answerIdx = await resolvePathToNodeIdx("a");
+
+        for (let i = 1; i <= 5; i++) {
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx(`bi${i}`),
+                core,
+            });
+        }
+        await submitAnswer({ componentIdx: answerIdx, core });
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).closeTo(
+            5 / 6,
+            1e-14,
+        );
+        expect(stateVariables[answerIdx].stateValues.hasBeenCorrect).eq(false);
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("bi6"),
+            core,
+        });
+        await submitAnswer({ componentIdx: answerIdx, core });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[answerIdx].stateValues.creditAchieved).eq(1);
+        expect(stateVariables[answerIdx].stateValues.hasBeenCorrect).eq(true);
+        // The full-credit submission is not counted as incorrect.
+        expect(
+            stateVariables[answerIdx].stateValues.numIncorrectSubmissions,
+        ).eq(1);
+    });
+
     it("number of awards credited, zero credits are triggered", async () => {
         const doenetML = `
         <mathInput name="mi1" />
