@@ -710,7 +710,31 @@ describe("v06 to v07 update", () => {
         expect(res.xml).toEqual(
             `<setup><group name="group"><sequence from="1" to="2" /><number>9</number></group></setup><repeat for="$group" valueName="v"><p>$v</p></repeat>`,
         );
-        expect(res.vfile.messages).toEqual([]);
+        // A group mixing a composite with other items does not iterate correctly
+        // in v0.7 yet, so the author is told to check it.
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "map/mixed-sources",
+        ]);
+
+        // So does a reference next to a written component.
+        source = `<math name="a">1</math><map><template><p>$v</p></template><sources alias="v">$a<number>2</number></sources></map>`;
+        expect(
+            (await updateSyntaxFromV06toV07(source)).vfile.messages.map(
+                (m) => m.ruleId,
+            ),
+        ).toEqual(["map/mixed-sources"]);
+
+        // Written components alone, or references alone, are not reported.
+        for (const sources of [
+            `<math>1</math><number>2</number>`,
+            `$a $a`,
+            `<copy source="a" /><copy source="a" />`,
+        ]) {
+            source = `<math name="a">1</math><map><template><p>$v</p></template><sources alias="v">${sources}</sources></map>`;
+            expect(
+                (await updateSyntaxFromV06toV07(source)).vfile.messages,
+            ).toEqual([]);
+        }
     });
 
     it("a map's alias and indexAlias are found however they are capitalized", async () => {
