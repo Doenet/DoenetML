@@ -2980,6 +2980,65 @@ The animal is a <answer name="answer1">
         }
     });
 
+    it("award and choice credit written as a boolean or text become numbers", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <answer name="ans">
+      <mathInput name="x" />
+      <award name="aw"><when>true</when></award>
+    </answer>
+    <updateValue name="uv0" target="$aw.credit" newValue="0" type="number" />
+    <updateValue name="uvBool" target="$aw.credit" newValue="true" type="boolean" />
+    <choiceInput><choice name="c">a</choice></choiceInput>
+    <updateValue name="uvText" target="$c.credit" newValue="0.25" type="text" />
+    <p name="p">$aw.credit, $c.credit</p>
+    `,
+        });
+
+        async function check(text: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq(text);
+        }
+
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uv0"),
+            core,
+        });
+        await check("0, 0");
+
+        // true is full credit, as with `credit="true"`
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uvBool"),
+            core,
+        });
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uvText"),
+            core,
+        });
+        await check("1, 0.25");
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("x"),
+            core,
+        });
+        await submitAnswer({
+            componentIdx: await resolvePathToNodeIdx("ans"),
+            core,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("ans")].stateValues
+                .creditAchieved,
+        ).eq(1);
+    });
+
     it("answer with choiceInput, choice credit outside 0 to 1 is capped", async () => {
         const doenetML = `
 The animal is a <answer name="answer1">

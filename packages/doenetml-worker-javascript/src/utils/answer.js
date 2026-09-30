@@ -954,11 +954,14 @@ export function returnCreditAttributeAndStateVariableDefinition({
         },
         inverseDefinition({ desiredStateVariableValues }) {
             // With no `credit` attribute, `creditPrelim` is stored as given,
-            // so convert a math value (the default `type` of `<updateValue>`)
-            // to a number rather than storing an object that reads as 0.
+            // so convert to a number here: a math value (the default `type`
+            // of `<updateValue>`), a boolean (true is full credit, as with
+            // `credit="true"`) or a text value would otherwise read as 0.
             let desiredValue = desiredStateVariableValues.credit;
             if (typeof desiredValue?.evaluate_to_constant === "function") {
                 desiredValue = evaluateToNumber(desiredValue);
+            } else {
+                desiredValue = Number(desiredValue);
             }
             return {
                 success: true,
