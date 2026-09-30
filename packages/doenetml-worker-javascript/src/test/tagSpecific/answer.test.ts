@@ -10,6 +10,7 @@ import {
     updateMatrixInputValue,
     updateSelectedIndices,
     updateTextInputValue,
+    updateValue,
 } from "../utils/actions";
 import { latexToMathFactory, normalizeLatexString } from "../../utils/math";
 import { PublicDoenetMLCore } from "../../CoreWorker";
@@ -2881,6 +2882,102 @@ The animal is a <answer name="answer1">
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("1, 0, 0, 0.4, 1, 1, 0, 0.4, 0");
+    });
+
+    it("award and choice credit follow changes and writes, capped to 0 to 1", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi" prefill="0.5" />
+    <answer name="ans">
+      <mathInput name="x" />
+      <award name="aw1" credit="$mi"><when>true</when></award>
+    </answer>
+    <answer name="ans2">
+      <mathInput name="y" />
+      <award name="aw2"><when>true</when></award>
+    </answer>
+    <updateValue name="uv1" target="$aw2.credit" newValue="2" />
+    <updateValue name="uv2" target="$aw2.credit" newValue="0.3" />
+    <choiceInput><choice name="c">a</choice></choiceInput>
+    <mathInput name="bind" bindValueTo="$c.credit" />
+    <p name="p">$aw1.credit, $aw2.credit, $c.credit</p>
+    `,
+        });
+
+        async function check(text: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq(text);
+        }
+
+        await check("0.5, 1, 0");
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await check("1, 1, 0");
+
+        await updateMathInputValue({
+            latex: "0.2",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await check("0.2, 1, 0");
+
+        // `<updateValue>` writes a math value by default
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uv1"),
+            core,
+        });
+        await check("0.2, 1, 0");
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uv2"),
+            core,
+        });
+        await check("0.2, 0.3, 0");
+
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: await resolvePathToNodeIdx("bind"),
+            core,
+        });
+        await check("0.2, 0.3, 1");
+        await updateMathInputValue({
+            latex: "0.5",
+            componentIdx: await resolvePathToNodeIdx("bind"),
+            core,
+        });
+        await check("0.2, 0.3, 0.5");
+
+        for (const [input, answer, credit] of [
+            ["x", "ans", 0.2],
+            ["y", "ans2", 0.3],
+        ] as const) {
+            await updateMathInputValue({
+                latex: "1",
+                componentIdx: await resolvePathToNodeIdx(input),
+                core,
+            });
+            await submitAnswer({
+                componentIdx: await resolvePathToNodeIdx(answer),
+                core,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx(answer)].stateValues
+                    .creditAchieved,
+            ).eq(credit);
+        }
     });
 
     it("answer with choiceInput, choice credit outside 0 to 1 is capped", async () => {

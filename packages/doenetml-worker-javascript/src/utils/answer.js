@@ -5,6 +5,7 @@ import stringify from "json-stringify-deterministic";
 import { codedDiagnostic } from "./diagnostics";
 import { returnLocalizedDefaultStateVariableDefinition } from "./contentLocale";
 import { BLANK_PLACEHOLDER } from "./embeddedMathInputs";
+import { evaluateToNumber } from "./math";
 
 function returnScoredContainerAncestorDependency(...variableNames) {
     return {
@@ -952,12 +953,19 @@ export function returnCreditAttributeAndStateVariableDefinition({
             };
         },
         inverseDefinition({ desiredStateVariableValues }) {
+            // With no `credit` attribute, `creditPrelim` is stored as given,
+            // so convert a math value (the default `type` of `<updateValue>`)
+            // to a number rather than storing an object that reads as 0.
+            let desiredValue = desiredStateVariableValues.credit;
+            if (typeof desiredValue?.evaluate_to_constant === "function") {
+                desiredValue = evaluateToNumber(desiredValue);
+            }
             return {
                 success: true,
                 instructions: [
                     {
                         setDependency: "creditPrelim",
-                        desiredValue: desiredStateVariableValues.credit,
+                        desiredValue,
                     },
                 ],
             };
