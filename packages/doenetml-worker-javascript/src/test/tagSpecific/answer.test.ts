@@ -9544,6 +9544,37 @@ What is the derivative of <function name="f">x^2</function>?
         });
     });
 
+    it("colorInputsSeparately: award credit above 1 is capped for per-input credit", async () => {
+        // An award's earned credit is capped at 1, so the per-input maximum
+        // must be capped the same way or a correct input would get only 1/2.
+        const doenetML = `
+  <answer name="ans" colorInputsSeparately>
+    <mathInput name="mi" />
+    <award credit="2" referencesAreResponses="$mi"><when>$mi = x</when></award>
+    <award credit="0.5" referencesAreResponses="$mi"><when>$mi = y</when></award>
+  </answer>
+  `;
+
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        const miIdx = await resolvePathToNodeIdx("mi");
+
+        for (const [latex, expectedCredit] of [
+            ["x", 1],
+            ["y", 0.5],
+            ["z", 0],
+        ] as const) {
+            await updateMathInputValue({ latex, componentIdx: miIdx, core });
+            await submitAnswer({ componentIdx: ansIdx, core });
+
+            const sv = await core.returnAllStateVariables(false, true);
+            expect(sv[ansIdx].stateValues.creditAchieved).eq(expectedCredit);
+            expect(sv[miIdx].stateValues.creditAchieved).eq(expectedCredit);
+        }
+    });
+
     it("colorInputsSeparately: input with no covering award falls back to overall credit", async () => {
         // mi3 is not referenced by any award, so it should fall back to the
         // answer's overall creditAchieved rather than getting a per-input value.
