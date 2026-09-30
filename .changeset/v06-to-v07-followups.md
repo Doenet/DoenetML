@@ -9,5 +9,6 @@ Convert more v0.6 `<copy>` and `<map>` forms:
 - An inner `<map>` whose sources refer to the outer map's alias converts.
 - A map's alias is typed when all its values share one type, including written components.
 - A `<sequence>` next to other sources is no longer dropped.
+- A `<map>` whose sources mix a list, composite or reference with other items gets a `map/mixed-sources` warning, as 0.7 may not iterate over such a group correctly.
 - A `<map>` placed before a module's `<setup>` no longer breaks the module's attributes.
 - A `<sources>`'s `alias` and `indexAlias`, and a `<sequence>`'s `type`, are recognized however they are capitalized.

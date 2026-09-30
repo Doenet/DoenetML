@@ -20,7 +20,10 @@ import { reparseAttribute } from "./reparse-attribute";
 import { parseReferencePath } from "./assign-names/apply-renames";
 import { createCoreForLookup } from "./core-info/core";
 import { AssignNamesContext } from "./assign-names/context";
-import { inlineMapSourceGroups } from "./upgrade-map-element";
+import {
+    inlineMapSourceGroups,
+    warnAboutMixedSourceGroups,
+} from "./upgrade-map-element";
 import {
     describeProp,
     isComponentType,
@@ -55,6 +58,7 @@ export const upgradeCopySyntax: Plugin<
         // A document with no `<copy>` skips the lookup entirely, but a `<map>` whose
         // sources were references to begin with still folds them into its `for`.
         inlineMapSourceGroups(tree, context);
+        warnAboutMixedSourceGroups(context, file);
     };
 };
 
