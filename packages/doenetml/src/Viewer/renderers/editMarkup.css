@@ -6,12 +6,16 @@
  * all, and a line through a run of text skips the math in the middle of it.
  * Draw the line as a background on the math instead. Display math is left
  * alone: its container spans the whole line, so a background would too.
+ * Browsers leave backgrounds out when printing unless told to keep them, which
+ * would drop the line from a printed page.
  */
 .doenet-viewer del mjx-container:not([display="true"]),
 .doenet-viewer ins mjx-container:not([display="true"]) {
     background-image: linear-gradient(currentColor, currentColor);
     background-repeat: no-repeat;
     background-size: 100% max(1px, 0.06em);
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
 }
 
 .doenet-viewer del mjx-container:not([display="true"]) {

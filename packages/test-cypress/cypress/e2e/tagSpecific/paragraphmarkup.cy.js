@@ -93,6 +93,12 @@ describe("Paragraph Markup Tag Tests", { tags: ["@group4"] }, function () {
         cy.get("#insert1 mjx-container")
             .should("have.css", "background-image")
             .and("match", /linear-gradient/);
+        // Printing leaves out backgrounds by default, so the line is marked to be kept.
+        cy.get("#delete1 mjx-container").should(
+            "have.css",
+            "print-color-adjust",
+            "exact",
+        );
 
         // Display math spans the whole line, so it is left undecorated rather
         // than given a line across the page.
