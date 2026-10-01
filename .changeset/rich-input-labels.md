@@ -6,4 +6,4 @@
 "doenet-vscode-extension": patch
 ---
 
-The labels of inputs, answers, buttons, and sliders now show the markup inside them, such as `<em>`, `<c>`, `<delete>`, and `<insert>`, instead of only their text. A `<label>` on its own in the text shows its markup, too. Labels drawn in a graph still show only text.
+The labels of inputs, answers, buttons, and sliders now show the markup inside them, such as `<em>`, `<c>`, `<delete>`, and `<insert>`, instead of only their text. A `<label>` on its own in the text shows its markup, too. Labels drawn in a graph still show only their text and math.

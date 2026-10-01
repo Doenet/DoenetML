@@ -27,8 +27,8 @@ export const AnswerLabelContext = createContext<React.ReactNode>(null);
  * Return the rendered `<label>` that a component's `label` comes from, so
  * the label shows its markup (e.g., `<em>` or `<delete>`), which the `label`
  * string drops. Return `null` when the label does not come from a rendered
- * `<label>` (e.g., it comes from `labelIsName` or from a copy); the caller
- * then shows the `label` string.
+ * `<label>` (e.g., it comes from `labelIsName`, or from a copy without a
+ * `<label>` child); the caller then shows the `label` string.
  *
  * Set `inheritTextColor` when the label is shown on a colored background.
  *

@@ -21,9 +21,10 @@ graphical object such as a `<point>{:dn}`, or as a standalone annotation positio
 with the `anchor` attribute.
 
 A `<label>{:dn}` can contain math and text markup such as `<em>{:dn}`, `<c>{:dn}`,
-`<delete>{:dn}`, and `<insert>{:dn}`, which is shown wherever the label is. The
-exception is a label drawn on a `<graph>{:dn}` (the label of a `<point>{:dn}`, say),
-which shows only its text and math.
+`<delete>{:dn}`, and `<insert>{:dn}`, which is shown with the label, whether on the
+component it labels or on its own. A label drawn on a `<graph>{:dn}` (the label of a
+`<point>{:dn}`, say) shows only its text and math, as does a copy of a component's
+label, such as `$pointA.label`.
 
 A `<label>{:dn}` can be written as a child of the component it labels, or placed
 elsewhere in the document and linked to an input or answer with the `for` attribute.

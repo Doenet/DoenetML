@@ -126,4 +126,46 @@ describe("Label Tag Tests", { tags: ["@group4"] }, function () {
         cy.get("#l1").should("have.text", "Before gone");
         cy.get("label#l2 ins#i1").should("have.text", "Name");
     });
+    it("markup in more labels, and a copy of a label's value", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <p><answer name="ans"><label>Q <delete name="d1">q</delete></label><award><when>$mi=x</when></award></answer> <mathInput name="mi"/></p>
+  <p><booleanInput asToggleButton name="tb"><label>Toggle <m name="m1">x</m></label></booleanInput></p>
+  <p><fractionInput name="fi"><label>Fraction <insert name="i1">f</insert></label></fractionInput></p>
+  <p><callAction name="ca" actionName="nothing"><label><delete name="d2">Call</delete></label></callAction></p>
+  <p><booleanInput name="trim"><label>  Lead <em>x</em> trail  </label></booleanInput></p>
+  <p><textInput name="ti"><label>T <delete>A</delete></label></textInput></p>
+  <p name="pCopy">$ti.label</p>
+  `,
+                },
+                "*",
+            );
+        });
+
+        // an answer without an input shows its label beside its check-work button
+        cy.get("#ans del#d1").should("have.text", "q");
+        cy.get("#ans label #ans_button").should("exist");
+
+        // math in a toggle button's label takes the button's text color
+        cy.get("#m1 mjx-container").should("exist");
+        cy.get("#m1").then(($m) => {
+            cy.wrap($m.closest("label")).should(
+                "have.css",
+                "color",
+                $m.css("color"),
+            );
+        });
+
+        cy.get("#fi-label ins#i1").should("have.text", "f");
+        cy.get("#ca_button del#d2").should("have.text", "Call");
+
+        // the outer whitespace is trimmed, as it is from the label's value
+        cy.get("#trim-label").should("have.text", "Lead x trail");
+
+        // a copy of a label's value has only its text
+        cy.get("#pCopy").should("have.text", "T A");
+        cy.get("#pCopy del").should("not.exist");
+    });
 });

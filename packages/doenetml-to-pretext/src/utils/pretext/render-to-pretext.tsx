@@ -67,7 +67,7 @@ export function renderFlatDastToPretext(
     const _flatDast: FlatDastRoot = flatDast as FlatDastRoot;
 
     // Drop the `<label>` children that inputs, answers, sliders and buttons hand on only
-    // for the viewer; their renderers here draw the label from the `label` prop.
+    // for the viewer; their renderers here draw the label from the `label` prop, if at all.
     // Give text written beside blocks a paragraph, which PreTeXt needs to show it. Then
     // lay a document written in pages out as a worksheet of them, and give expanded
     // text inputs room to write in, inside that worksheet or a printout of their own.
