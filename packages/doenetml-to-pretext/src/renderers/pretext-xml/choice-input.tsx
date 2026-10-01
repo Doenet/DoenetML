@@ -10,6 +10,7 @@ type ChoiceInputData = {
         selectedIndices: number[];
         selectMultiple: boolean;
         label: string;
+        labelElementId?: number;
         inline: boolean;
     };
 };
@@ -24,9 +25,10 @@ export const ChoiceInput: BasicComponentWithPassthroughChildren<
         choicesHidden,
         selectedIndices,
         label,
+        labelElementId,
         inline,
     } = node.data.props;
-    const displayLabel = useInputLabel(label);
+    const displayLabel = useInputLabel(label, labelElementId);
     const childrenArray: React.ReactNode[] = Array.isArray(children)
         ? children
         : [children];

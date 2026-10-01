@@ -130,8 +130,9 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     isNumber: {
         component: PretextComponent.Boolean,
     },
-    // Labels should be inside of things and removed from the DAST tree, but if someone happens to put a top-level label, show something
-    label: showAttrOnly("value"),
+    // A label is printed by the input, answer, … it labels (see `detachLabelChildren`), or
+    // where it stands, if it was written on its own.
+    label: { component: PretextComponent.Label, passthroughChildren: true },
     latex: showAttrOnly("text"),
     matrix: {
         component: PretextComponent.Math,
