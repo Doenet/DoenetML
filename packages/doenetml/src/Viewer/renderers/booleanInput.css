@@ -5,7 +5,7 @@
     position: relative;
     padding-inline-start: 24px;
     margin-bottom: 4px;
-    margin-inline-end: 2px; /* 2px less than other components (6px inline-end margin) due to the 2px inline-start margin on label */
+    margin-inline-end: 2px; /* 2px less than other components (6px inline-end margin) because an end label adds 2px of its own (see labelStyle in booleanInput.tsx) */
     margin-inline-start: 4px;
     cursor: pointer;
     -webkit-user-select: none;
