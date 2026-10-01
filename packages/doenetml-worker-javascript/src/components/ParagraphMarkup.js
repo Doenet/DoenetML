@@ -16,6 +16,22 @@ export class Alert extends InlineRenderInlineChildren {
     };
 }
 
+export class Delete extends InlineRenderInlineChildren {
+    static componentType = "delete";
+
+    static componentDocs = {
+        summary: "Text marked as deleted (struck through by default)",
+    };
+}
+
+export class Insert extends InlineRenderInlineChildren {
+    static componentType = "insert";
+
+    static componentDocs = {
+        summary: "Text marked as inserted (underlined by default)",
+    };
+}
+
 export class Q extends InlineRenderInlineChildren {
     static componentType = "q";
 

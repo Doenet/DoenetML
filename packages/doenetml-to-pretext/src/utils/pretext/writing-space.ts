@@ -47,6 +47,8 @@ const INLINE_WRAPPERS = new Set([
     "attr",
     "c",
     "q",
+    "delete",
+    "insert",
 ]);
 
 /**

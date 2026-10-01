@@ -64,6 +64,8 @@
         "extractMathOperator",
         "em",
         "alert",
+        "delete",
+        "insert",
         "q",
         "sq",
         "term",
@@ -491,6 +493,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -2057,6 +2065,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -2775,6 +2789,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -3523,6 +3543,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -4528,6 +4554,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -5529,6 +5561,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -6759,6 +6797,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -7465,6 +7509,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -8347,6 +8397,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -9035,6 +9091,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -9721,6 +9783,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -10910,6 +10978,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -38963,6 +39037,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -40300,6 +40380,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -41521,6 +41607,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -42416,6 +42508,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -43315,6 +43413,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -44206,6 +44310,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -50169,6 +50279,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -50765,6 +50881,1220 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
+                    "ref": "q"
+                },
+                {
+                    "ref": "sq"
+                },
+                {
+                    "ref": "term"
+                },
+                {
+                    "ref": "c"
+                },
+                {
+                    "ref": "tag"
+                },
+                {
+                    "ref": "tage"
+                },
+                {
+                    "ref": "tagc"
+                },
+                {
+                    "ref": "attr"
+                },
+                {
+                    "ref": "ndash"
+                },
+                {
+                    "ref": "mdash"
+                },
+                {
+                    "ref": "nbsp"
+                },
+                {
+                    "ref": "ellipsis"
+                },
+                {
+                    "ref": "lq"
+                },
+                {
+                    "ref": "rq"
+                },
+                {
+                    "ref": "lsq"
+                },
+                {
+                    "ref": "rsq"
+                },
+                {
+                    "ref": "odeSystem"
+                },
+                {
+                    "ref": "equilibriumPoint"
+                },
+                {
+                    "ref": "equilibriumLine"
+                },
+                {
+                    "ref": "atom"
+                },
+                {
+                    "ref": "ion"
+                },
+                {
+                    "ref": "ionicCompound"
+                },
+                {
+                    "ref": "electronConfiguration"
+                },
+                {
+                    "ref": "span"
+                },
+                {
+                    "ref": "displayDoenetML"
+                },
+                {
+                    "ref": "matrixInput"
+                },
+                {
+                    "ref": "fractionInput"
+                },
+                {
+                    "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
+                    "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
+                },
+                {
+                    "ref": "collect"
+                },
+                {
+                    "ref": "ref"
+                },
+                {
+                    "ref": "point"
+                },
+                {
+                    "ref": "coords"
+                },
+                {
+                    "ref": "line"
+                },
+                {
+                    "ref": "bezierControls"
+                },
+                {
+                    "ref": "vector"
+                },
+                {
+                    "ref": "angle"
+                },
+                {
+                    "ref": "answer"
+                },
+                {
+                    "ref": "mathInput"
+                },
+                {
+                    "ref": "textInput"
+                },
+                {
+                    "ref": "booleanInput"
+                },
+                {
+                    "ref": "choiceInput"
+                },
+                {
+                    "ref": "choice"
+                },
+                {
+                    "ref": "number"
+                },
+                {
+                    "ref": "integer"
+                },
+                {
+                    "ref": "function"
+                },
+                {
+                    "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "interval"
+                },
+                {
+                    "ref": "sequence"
+                },
+                {
+                    "ref": "cell"
+                },
+                {
+                    "ref": "repeat"
+                },
+                {
+                    "ref": "repeatForSequence"
+                },
+                {
+                    "ref": "intersection"
+                },
+                {
+                    "ref": "conditionalContent"
+                },
+                {
+                    "ref": "asList"
+                },
+                {
+                    "ref": "selectFromSequence"
+                },
+                {
+                    "ref": "select"
+                },
+                {
+                    "ref": "group"
+                },
+                {
+                    "ref": "evaluate"
+                },
+                {
+                    "ref": "selectRandomNumbers"
+                },
+                {
+                    "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
+                    "ref": "selectPrimeNumbers"
+                },
+                {
+                    "ref": "samplePrimeNumbers"
+                },
+                {
+                    "ref": "substitute"
+                },
+                {
+                    "ref": "periodicSet"
+                },
+                {
+                    "ref": "intComma"
+                },
+                {
+                    "ref": "pluralize"
+                },
+                {
+                    "ref": "lorem"
+                },
+                {
+                    "ref": "updateValue"
+                },
+                {
+                    "ref": "callAction"
+                },
+                {
+                    "ref": "triggerSet"
+                },
+                {
+                    "ref": "functionIterates"
+                },
+                {
+                    "ref": "module"
+                },
+                {
+                    "ref": "setup"
+                },
+                {
+                    "ref": "footnote"
+                },
+                {
+                    "ref": "endpoint"
+                },
+                {
+                    "ref": "sort"
+                },
+                {
+                    "ref": "sortIndices"
+                },
+                {
+                    "ref": "shuffle"
+                },
+                {
+                    "ref": "solveEquations"
+                },
+                {
+                    "ref": "subsetOfReals"
+                },
+                {
+                    "ref": "split"
+                },
+                {
+                    "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "label"
+                },
+                {
+                    "ref": "matchesPattern"
+                },
+                {
+                    "ref": "matrix"
+                },
+                {
+                    "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
+                }
+            ],
+            "textChildrenAllowed": true,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "text",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The combined text content of this component's children, with optional begin/end delimiters."
+                }
+            ]
+        },
+        "delete": {
+            "type": "element",
+            "name": "delete",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                }
+            },
+            "children": [
+                {
+                    "ref": "title"
+                },
+                {
+                    "ref": "rightHandSide"
+                },
+                {
+                    "ref": "xLabel"
+                },
+                {
+                    "ref": "yLabel"
+                },
+                {
+                    "ref": "br"
+                },
+                {
+                    "ref": "m"
+                },
+                {
+                    "ref": "me"
+                },
+                {
+                    "ref": "men"
+                },
+                {
+                    "ref": "md"
+                },
+                {
+                    "ref": "mdn"
+                },
+                {
+                    "ref": "mrow"
+                },
+                {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
+                    "ref": "sum"
+                },
+                {
+                    "ref": "product"
+                },
+                {
+                    "ref": "clampNumber"
+                },
+                {
+                    "ref": "wrapNumberPeriodic"
+                },
+                {
+                    "ref": "round"
+                },
+                {
+                    "ref": "setSmallToZero"
+                },
+                {
+                    "ref": "convertSetToList"
+                },
+                {
+                    "ref": "ceil"
+                },
+                {
+                    "ref": "floor"
+                },
+                {
+                    "ref": "abs"
+                },
+                {
+                    "ref": "sign"
+                },
+                {
+                    "ref": "mean"
+                },
+                {
+                    "ref": "median"
+                },
+                {
+                    "ref": "variance"
+                },
+                {
+                    "ref": "standardDeviation"
+                },
+                {
+                    "ref": "count"
+                },
+                {
+                    "ref": "min"
+                },
+                {
+                    "ref": "max"
+                },
+                {
+                    "ref": "mod"
+                },
+                {
+                    "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
+                },
+                {
+                    "ref": "extractMath"
+                },
+                {
+                    "ref": "cumulativeSum"
+                },
+                {
+                    "ref": "cumulativeProduct"
+                },
+                {
+                    "ref": "cumulativeMin"
+                },
+                {
+                    "ref": "cumulativeMax"
+                },
+                {
+                    "ref": "differences"
+                },
+                {
+                    "ref": "argMin"
+                },
+                {
+                    "ref": "argMax"
+                },
+                {
+                    "ref": "indexOf"
+                },
+                {
+                    "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "clampFunction"
+                },
+                {
+                    "ref": "wrapFunctionPeriodic"
+                },
+                {
+                    "ref": "derivative"
+                },
+                {
+                    "ref": "extractMathOperator"
+                },
+                {
+                    "ref": "em"
+                },
+                {
+                    "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
+                    "ref": "q"
+                },
+                {
+                    "ref": "sq"
+                },
+                {
+                    "ref": "term"
+                },
+                {
+                    "ref": "c"
+                },
+                {
+                    "ref": "tag"
+                },
+                {
+                    "ref": "tage"
+                },
+                {
+                    "ref": "tagc"
+                },
+                {
+                    "ref": "attr"
+                },
+                {
+                    "ref": "ndash"
+                },
+                {
+                    "ref": "mdash"
+                },
+                {
+                    "ref": "nbsp"
+                },
+                {
+                    "ref": "ellipsis"
+                },
+                {
+                    "ref": "lq"
+                },
+                {
+                    "ref": "rq"
+                },
+                {
+                    "ref": "lsq"
+                },
+                {
+                    "ref": "rsq"
+                },
+                {
+                    "ref": "odeSystem"
+                },
+                {
+                    "ref": "equilibriumPoint"
+                },
+                {
+                    "ref": "equilibriumLine"
+                },
+                {
+                    "ref": "atom"
+                },
+                {
+                    "ref": "ion"
+                },
+                {
+                    "ref": "ionicCompound"
+                },
+                {
+                    "ref": "electronConfiguration"
+                },
+                {
+                    "ref": "span"
+                },
+                {
+                    "ref": "displayDoenetML"
+                },
+                {
+                    "ref": "matrixInput"
+                },
+                {
+                    "ref": "fractionInput"
+                },
+                {
+                    "ref": "text"
+                },
+                {
+                    "ref": "textList"
+                },
+                {
+                    "ref": "boolean"
+                },
+                {
+                    "ref": "booleanList"
+                },
+                {
+                    "ref": "math"
+                },
+                {
+                    "ref": "mathList"
+                },
+                {
+                    "ref": "tupleList"
+                },
+                {
+                    "ref": "numberList"
+                },
+                {
+                    "ref": "collect"
+                },
+                {
+                    "ref": "ref"
+                },
+                {
+                    "ref": "point"
+                },
+                {
+                    "ref": "coords"
+                },
+                {
+                    "ref": "line"
+                },
+                {
+                    "ref": "bezierControls"
+                },
+                {
+                    "ref": "vector"
+                },
+                {
+                    "ref": "angle"
+                },
+                {
+                    "ref": "answer"
+                },
+                {
+                    "ref": "mathInput"
+                },
+                {
+                    "ref": "textInput"
+                },
+                {
+                    "ref": "booleanInput"
+                },
+                {
+                    "ref": "choiceInput"
+                },
+                {
+                    "ref": "choice"
+                },
+                {
+                    "ref": "number"
+                },
+                {
+                    "ref": "integer"
+                },
+                {
+                    "ref": "function"
+                },
+                {
+                    "ref": "piecewiseFunction"
+                },
+                {
+                    "ref": "interval"
+                },
+                {
+                    "ref": "sequence"
+                },
+                {
+                    "ref": "cell"
+                },
+                {
+                    "ref": "repeat"
+                },
+                {
+                    "ref": "repeatForSequence"
+                },
+                {
+                    "ref": "intersection"
+                },
+                {
+                    "ref": "conditionalContent"
+                },
+                {
+                    "ref": "asList"
+                },
+                {
+                    "ref": "selectFromSequence"
+                },
+                {
+                    "ref": "select"
+                },
+                {
+                    "ref": "group"
+                },
+                {
+                    "ref": "evaluate"
+                },
+                {
+                    "ref": "selectRandomNumbers"
+                },
+                {
+                    "ref": "sampleRandomNumbers"
+                },
+                {
+                    "ref": "sampleMultivariateRandomNumber"
+                },
+                {
+                    "ref": "selectPrimeNumbers"
+                },
+                {
+                    "ref": "samplePrimeNumbers"
+                },
+                {
+                    "ref": "substitute"
+                },
+                {
+                    "ref": "periodicSet"
+                },
+                {
+                    "ref": "intComma"
+                },
+                {
+                    "ref": "pluralize"
+                },
+                {
+                    "ref": "lorem"
+                },
+                {
+                    "ref": "updateValue"
+                },
+                {
+                    "ref": "callAction"
+                },
+                {
+                    "ref": "triggerSet"
+                },
+                {
+                    "ref": "functionIterates"
+                },
+                {
+                    "ref": "module"
+                },
+                {
+                    "ref": "setup"
+                },
+                {
+                    "ref": "footnote"
+                },
+                {
+                    "ref": "endpoint"
+                },
+                {
+                    "ref": "sort"
+                },
+                {
+                    "ref": "sortIndices"
+                },
+                {
+                    "ref": "shuffle"
+                },
+                {
+                    "ref": "solveEquations"
+                },
+                {
+                    "ref": "subsetOfReals"
+                },
+                {
+                    "ref": "split"
+                },
+                {
+                    "ref": "bestFitLine"
+                },
+                {
+                    "ref": "hasSameFactoring"
+                },
+                {
+                    "ref": "label"
+                },
+                {
+                    "ref": "matchesPattern"
+                },
+                {
+                    "ref": "matrix"
+                },
+                {
+                    "ref": "latex"
+                },
+                {
+                    "ref": "pointList"
+                },
+                {
+                    "ref": "intervalList"
+                },
+                {
+                    "ref": "vectorList"
+                }
+            ],
+            "textChildrenAllowed": true,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "text",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The combined text content of this component's children, with optional begin/end delimiters."
+                }
+            ]
+        },
+        "insert": {
+            "type": "element",
+            "name": "insert",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                }
+            },
+            "children": [
+                {
+                    "ref": "title"
+                },
+                {
+                    "ref": "rightHandSide"
+                },
+                {
+                    "ref": "xLabel"
+                },
+                {
+                    "ref": "yLabel"
+                },
+                {
+                    "ref": "br"
+                },
+                {
+                    "ref": "m"
+                },
+                {
+                    "ref": "me"
+                },
+                {
+                    "ref": "men"
+                },
+                {
+                    "ref": "md"
+                },
+                {
+                    "ref": "mdn"
+                },
+                {
+                    "ref": "mrow"
+                },
+                {
+                    "ref": "not"
+                },
+                {
+                    "ref": "and"
+                },
+                {
+                    "ref": "or"
+                },
+                {
+                    "ref": "xor"
+                },
+                {
+                    "ref": "iff"
+                },
+                {
+                    "ref": "implies"
+                },
+                {
+                    "ref": "isInteger"
+                },
+                {
+                    "ref": "isNumber"
+                },
+                {
+                    "ref": "isBetween"
+                },
+                {
+                    "ref": "sum"
+                },
+                {
+                    "ref": "product"
+                },
+                {
+                    "ref": "clampNumber"
+                },
+                {
+                    "ref": "wrapNumberPeriodic"
+                },
+                {
+                    "ref": "round"
+                },
+                {
+                    "ref": "setSmallToZero"
+                },
+                {
+                    "ref": "convertSetToList"
+                },
+                {
+                    "ref": "ceil"
+                },
+                {
+                    "ref": "floor"
+                },
+                {
+                    "ref": "abs"
+                },
+                {
+                    "ref": "sign"
+                },
+                {
+                    "ref": "mean"
+                },
+                {
+                    "ref": "median"
+                },
+                {
+                    "ref": "variance"
+                },
+                {
+                    "ref": "standardDeviation"
+                },
+                {
+                    "ref": "count"
+                },
+                {
+                    "ref": "min"
+                },
+                {
+                    "ref": "max"
+                },
+                {
+                    "ref": "mod"
+                },
+                {
+                    "ref": "gcd"
+                },
+                {
+                    "ref": "lcm"
+                },
+                {
+                    "ref": "extractMath"
+                },
+                {
+                    "ref": "cumulativeSum"
+                },
+                {
+                    "ref": "cumulativeProduct"
+                },
+                {
+                    "ref": "cumulativeMin"
+                },
+                {
+                    "ref": "cumulativeMax"
+                },
+                {
+                    "ref": "differences"
+                },
+                {
+                    "ref": "argMin"
+                },
+                {
+                    "ref": "argMax"
+                },
+                {
+                    "ref": "indexOf"
+                },
+                {
+                    "ref": "searchSorted"
+                },
+                {
+                    "ref": "tally"
+                },
+                {
+                    "ref": "binCounts"
+                },
+                {
+                    "ref": "clampFunction"
+                },
+                {
+                    "ref": "wrapFunctionPeriodic"
+                },
+                {
+                    "ref": "derivative"
+                },
+                {
+                    "ref": "extractMathOperator"
+                },
+                {
+                    "ref": "em"
+                },
+                {
+                    "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -51365,6 +52695,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -51961,6 +53297,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -52561,6 +53903,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -53157,6 +54505,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -53757,6 +55111,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -54353,6 +55713,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -54953,6 +56319,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -55549,6 +56921,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -57401,6 +58779,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -58619,6 +60003,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -59841,6 +61231,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -61059,6 +62455,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -62288,6 +63690,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -63506,6 +64914,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -64735,6 +66149,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -65960,6 +67380,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -67189,6 +68615,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -68416,6 +69848,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -69634,6 +71072,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -70856,6 +72300,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -72074,6 +73524,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -73296,6 +74752,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -74516,6 +75978,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -75734,6 +77202,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -76962,6 +78436,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -78179,6 +79659,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -79405,6 +80891,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -81089,6 +82581,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -89444,6 +90942,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -90363,6 +91867,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -91368,6 +92878,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -92306,6 +93822,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -93160,6 +94682,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -94046,6 +95574,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -96279,6 +97813,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -97039,6 +98579,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -97894,6 +99440,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -98954,6 +100506,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -99906,6 +101464,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -104015,6 +105579,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -122081,6 +123651,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -128444,6 +130020,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -130842,6 +132424,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -132740,6 +134328,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -133532,6 +135126,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -134317,6 +135917,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -135264,6 +136870,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -138732,6 +140344,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -139580,6 +141198,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -140785,6 +142409,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -144030,6 +145660,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -146409,6 +148045,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -147422,6 +149064,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -148082,6 +149730,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -148573,6 +150227,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -149422,6 +151082,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -150285,6 +151951,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -151723,6 +153395,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -153136,6 +154814,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -154027,6 +155711,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -154898,6 +156588,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -155742,6 +157438,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -156344,6 +158046,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -158018,6 +159726,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -158965,6 +160679,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -159825,6 +161545,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -162457,6 +164183,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -165828,6 +167560,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -168299,6 +170037,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -171077,6 +172821,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -171620,6 +173370,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -172476,6 +174232,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"
@@ -174308,6 +176070,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -175159,6 +176927,12 @@
                     "ref": "alert"
                 },
                 {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
+                },
+                {
                     "ref": "q"
                 },
                 {
@@ -176004,6 +177778,12 @@
                 },
                 {
                     "ref": "alert"
+                },
+                {
+                    "ref": "delete"
+                },
+                {
+                    "ref": "insert"
                 },
                 {
                     "ref": "q"

@@ -256,7 +256,9 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     // Inline text formatting elements. These are the same in Doenet and Pretext
     alert: NoProcessingConverter,
     attr: NoProcessingConverter,
+    delete: NoProcessingConverter,
     em: NoProcessingConverter,
+    insert: NoProcessingConverter,
     c: NoProcessingConverter,
     q: NoProcessingConverter,
     pre: NoProcessingConverter,

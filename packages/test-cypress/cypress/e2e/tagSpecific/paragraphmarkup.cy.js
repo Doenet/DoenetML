@@ -36,6 +36,42 @@ describe("Paragraph Markup Tag Tests", { tags: ["@group4"] }, function () {
         cy.get("strong" + "#alert1").should("have.text", "This is bold");
     });
 
+    it("delete", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <p><delete name="delete1">This is struck through</delete></p>
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.log("find delete");
+        cy.get("del" + "#delete1")
+            .should("have.text", "This is struck through")
+            .should("have.css", "text-decoration-line", "line-through");
+    });
+
+    it("insert", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <p><insert name="insert1">This is underlined</insert></p>
+  `,
+                },
+                "*",
+            );
+        });
+
+        cy.log("find insert");
+        cy.get("ins" + "#insert1")
+            .should("have.text", "This is underlined")
+            .should("have.css", "text-decoration-line", "underline");
+    });
+
     it("q", () => {
         cy.window().then(async (win) => {
             win.postMessage(
