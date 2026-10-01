@@ -19,6 +19,7 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
+import { useRenderedLabel } from "./utils/inputLabel";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { useContentT } from "../../utils/i18n";
 
@@ -44,6 +45,11 @@ interface BooleanInputSVs {
 export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
     let { id, SVs, children, actions, ignoreUpdate, callAction } =
         useDoenetRenderer<BooleanInputSVs>(props);
+    const renderedLabel = useRenderedLabel({
+        SVs,
+        children,
+        inheritTextColor: SVs.asToggleButton,
+    });
 
     // The check-work button follows the document's language, not the
     // reader's — see `useContentT`.
@@ -516,14 +522,19 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
             </MathJax>
         );
     }
+    if (renderedLabel) {
+        label = renderedLabel;
+    }
 
     let shortDescription = SVs.shortDescription || undefined;
     const hasLabel =
         typeof SVs.label === "string" ? SVs.label.trim() !== "" : !!SVs.label;
     const labelId = `${id}-label`;
 
-    // description will be the one non-null child
-    const descriptionChild = children.find((child) => child);
+    // description will be the one non-null child other than the label
+    const descriptionChild = children.find(
+        (child, ind) => child && ind !== SVs.labelChildInd,
+    );
 
     let descriptionId: string | undefined = undefined;
     let description: React.ReactNode | null = null;

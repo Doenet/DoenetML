@@ -11,6 +11,7 @@ import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { DocContext } from "../DocViewer";
 import { JXGObject } from "./jsxgraph-distrib/types";
 import { ChoiceInputInlineContext } from "./choiceInput";
+import { InputLabelContext } from "./utils/inputLabel";
 import type { ResolvedStyleDefinition } from "@doenet/utils";
 import { usePointerDragState } from "./utils/pointerDragState";
 import { useDraggableRefs } from "./utils/useDraggableRefs";
@@ -81,6 +82,7 @@ export default React.memo(function MathComponent(
 
     const board = useContext(BoardContext);
     const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
+    const { inheritTextColor } = useContext(InputLabelContext);
 
     const pointerState = usePointerDragState();
     const pointAtDown = useRef<number[] | null>(null);
@@ -350,9 +352,10 @@ export default React.memo(function MathComponent(
         );
     }
 
-    const style = !choiceInputInlineContext.inOption
-        ? textRendererStyle(darkMode ?? "light", SVs.selectedStyle)
-        : undefined;
+    const style =
+        !choiceInputInlineContext.inOption && !inheritTextColor
+            ? textRendererStyle(darkMode ?? "light", SVs.selectedStyle)
+            : undefined;
 
     // Core's list, not the template's text, decides that there are inputs to
     // draw: an expression without any takes the plain path whatever its LaTeX

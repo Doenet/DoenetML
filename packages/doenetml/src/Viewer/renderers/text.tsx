@@ -9,6 +9,7 @@ import { textRendererStyle, toNumberOrNaN } from "@doenet/utils";
 import { getPositionFromAnchorByCoordinate } from "./utils/graph";
 import { DocContext } from "../DocViewer";
 import { ChoiceInputInlineContext } from "./choiceInput";
+import { InputLabelContext } from "./utils/inputLabel";
 import { JXGPoint, JXGText } from "./jsxgraph-distrib/types";
 import type { ResolvedStyleDefinition } from "@doenet/utils";
 import { usePointerDragState } from "./utils/pointerDragState";
@@ -46,6 +47,7 @@ export default React.memo(function Text(props: UseDoenetRendererProps) {
 
     const board = useContext(BoardContext);
     const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
+    const { inheritTextColor } = useContext(InputLabelContext);
 
     const pointerState = usePointerDragState();
     const pointAtDown = useRef<number[] | null>(null);
@@ -279,9 +281,10 @@ export default React.memo(function Text(props: UseDoenetRendererProps) {
         return null;
     }
 
-    const style = !choiceInputInlineContext.inOption
-        ? textRendererStyle(darkMode ?? "light", SVs.selectedStyle)
-        : undefined;
+    const style =
+        !choiceInputInlineContext.inOption && !inheritTextColor
+            ? textRendererStyle(darkMode ?? "light", SVs.selectedStyle)
+            : undefined;
 
     return (
         <>

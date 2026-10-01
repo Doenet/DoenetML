@@ -14,6 +14,7 @@ import {
     createCheckWorkComponent,
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
+import { useRenderedLabel } from "./utils/inputLabel";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { useContentT, useT } from "../../utils/i18n";
 
@@ -37,6 +38,7 @@ interface MatrixInputSVs {
 export default React.memo(function MatrixInput(props: UseDoenetRendererProps) {
     let { id, SVs, actions, children, callAction } =
         useDoenetRenderer<MatrixInputSVs>(props);
+    const renderedLabel = useRenderedLabel({ SVs, children });
 
     const t = useT();
 
@@ -194,6 +196,9 @@ export default React.memo(function MatrixInput(props: UseDoenetRendererProps) {
                 {label}
             </MathJax>
         );
+    }
+    if (renderedLabel) {
+        label = renderedLabel;
     }
 
     const shortDescription = SVs.shortDescription || undefined;

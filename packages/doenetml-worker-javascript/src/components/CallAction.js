@@ -7,6 +7,7 @@ import {
 import {
     returnLabelAttributes,
     returnLabelStateVariableDefinitions,
+    returnRenderOnlyLabelChildDefinitions,
 } from "../utils/label";
 import {
     addStandardTriggeringStateVariableDefinitions,
@@ -34,6 +35,7 @@ export default class CallAction extends InlineComponent {
             "Triggers an action when clicked or in response to a specified user interaction",
     };
     static rendererType = "button";
+    static renderChildren = true;
 
     // The children of a `<callAction>` are kept serialized (see
     // `keepChildrenSerialized`) and passed to the invoked action — e.g. as the
@@ -141,6 +143,10 @@ export default class CallAction extends InlineComponent {
 
         let labelDefinitions = returnLabelStateVariableDefinitions();
         Object.assign(stateVariableDefinitions, labelDefinitions);
+        Object.assign(
+            stateVariableDefinitions,
+            returnRenderOnlyLabelChildDefinitions(),
+        );
 
         let anchorDefinition = returnAnchorStateVariableDefinition();
         Object.assign(stateVariableDefinitions, anchorDefinition);

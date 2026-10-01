@@ -1846,7 +1846,7 @@ describe("TextInput tag tests @group1", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("ti")].stateValues
                 .childIndicesToRender,
-        ).eqls([1]);
+        ).eqls([1, 0]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ti")].activeChildren
                 .length,

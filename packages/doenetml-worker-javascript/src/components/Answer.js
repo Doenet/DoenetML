@@ -9,6 +9,7 @@ import {
 import {
     returnLabelAttributes,
     returnLabelStateVariableDefinitions,
+    returnLabelChildIndDefinition,
 } from "../utils/label";
 import { codedDiagnostic } from "../utils/diagnostics";
 import {
@@ -989,6 +990,10 @@ export default class Answer extends InlineComponent {
 
         const labelDefinitions = returnLabelStateVariableDefinitions();
         Object.assign(stateVariableDefinitions, labelDefinitions);
+        Object.assign(
+            stateVariableDefinitions,
+            returnLabelChildIndDefinition(),
+        );
 
         stateVariableDefinitions.haveAwardThatRequiresInput = {
             returnDependencies: () => ({
@@ -1190,6 +1195,10 @@ export default class Answer extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "descriptionChildInd",
                 },
+                labelChildInd: {
+                    dependencyType: "stateVariable",
+                    variableName: "labelChildInd",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 const childIndicesToRender = [
@@ -1200,6 +1209,9 @@ export default class Answer extends InlineComponent {
                     childIndicesToRender.push(
                         dependencyValues.descriptionChildInd,
                     );
+                }
+                if (dependencyValues.labelChildInd !== -1) {
+                    childIndicesToRender.push(dependencyValues.labelChildInd);
                 }
 
                 return {
