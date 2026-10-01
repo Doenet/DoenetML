@@ -606,17 +606,23 @@ export default React.memo(function BooleanInput(props: UseDoenetRendererProps) {
         input = checkboxControl;
     }
 
+    // The label's spacing from the checkbox is padding, so clicking anywhere
+    // between the label text and the checkbox toggles it. The negative margin
+    // pulls the label's edge onto the checkbox container's margin, leaving the
+    // visible gap unchanged (6px at the start, 4px at the end). An end label
+    // that follows a check-work button or description keeps a plain margin.
+    let labelStyle: React.CSSProperties;
+    if (SVs.labelPosition === "start") {
+        labelStyle = { paddingInlineEnd: "6px", marginInlineEnd: "-4px" };
+    } else if (!checkWorkComponent && !description) {
+        labelStyle = { paddingInlineStart: "4px", marginInlineStart: "-2px" };
+    } else {
+        labelStyle = { marginInlineStart: "2px" };
+    }
+
     const labelComponent =
         hasLabel && !SVs.asToggleButton ? (
-            <label
-                id={labelId}
-                htmlFor={inputKey}
-                style={
-                    SVs.labelPosition === "start"
-                        ? { marginInlineEnd: "2px" }
-                        : { marginInlineStart: "2px" }
-                }
-            >
+            <label id={labelId} htmlFor={inputKey} style={labelStyle}>
                 {label}
             </label>
         ) : null;
