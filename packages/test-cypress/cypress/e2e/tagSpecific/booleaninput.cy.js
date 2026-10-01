@@ -495,6 +495,50 @@ describe("BooleanInput Tag Tests", { tags: ["@group3"] }, function () {
         cy.get("#br").children().last().should("have.attr", "id", "br-label");
     });
 
+    it("label reaches the checkbox, so the space between them toggles it", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><booleanInput name="bl" labelPosition="start">
+      <label>start</label>
+    </booleanInput></p>
+    <p><booleanInput name="br">
+      <label>end</label>
+    </booleanInput></p>
+    <p name="values">$bl $br</p>
+                    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#values").should("have.text", "false false");
+
+        cy.log("Start label: its box ends where the checkbox begins");
+        cy.get("#bl-label").then((label) => {
+            cy.get("#bl-container").then((container) => {
+                const labelRect = label[0].getBoundingClientRect();
+                const containerRect = container[0].getBoundingClientRect();
+                expect(labelRect.right).to.be.closeTo(containerRect.left, 0.5);
+            });
+        });
+
+        cy.log("End label: its box begins where the checkbox ends");
+        cy.get("#br-label").then((label) => {
+            cy.get("#br-container").then((container) => {
+                const labelRect = label[0].getBoundingClientRect();
+                const containerRect = container[0].getBoundingClientRect();
+                expect(labelRect.left).to.be.closeTo(containerRect.right, 0.5);
+            });
+        });
+
+        cy.log("Clicking the label's edge next to the checkbox toggles it");
+        cy.get("#bl-label").click("right");
+        cy.get("#br-label").click("left");
+        cy.get("#values").should("have.text", "true true");
+    });
+
     it("focused state variable updates on focus and blur", () => {
         cy.window().then(async (win) => {
             win.postMessage(
