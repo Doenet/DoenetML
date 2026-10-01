@@ -4,7 +4,9 @@
        booleanInput.tsx so the checkbox flows beside a wrapping label (#1245). */
     position: relative;
     padding-inline-start: 24px;
-    margin-bottom: 4px;
+    /* No bottom margin: the container is inline content, so a bottom margin
+       would hang below the text and, in a table cell or anything else that
+       centers its content vertically, lift the label above neighboring text. */
     margin-inline-end: 2px; /* 2px less than other components (6px inline-end margin) because an end label adds 2px of its own (see labelStyle in booleanInput.tsx) */
     margin-inline-start: 4px;
     cursor: pointer;
