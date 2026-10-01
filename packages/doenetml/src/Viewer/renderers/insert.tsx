@@ -3,6 +3,7 @@ import useDoenetRenderer, {
     UseDoenetRendererProps,
 } from "../useDoenetRenderer";
 import { MarkupSVsBase, renderMarkupBody } from "./utils/markupRenderer";
+import "./editMarkup.css";
 
 interface InsertSVs extends MarkupSVsBase {
     [key: string]: any;

@@ -72,6 +72,28 @@ describe("Paragraph Markup Tag Tests", { tags: ["@group4"] }, function () {
             .should("have.css", "text-decoration-line", "underline");
     });
 
+    it("delete and insert draw their line through math too", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <p name="p1">The derivative is <delete name="delete1"><m>3x^3</m></delete> <insert name="insert1"><m>3x^2</m></insert>.</p>
+  `,
+                },
+                "*",
+            );
+        });
+
+        // A text decoration does not reach into MathJax's inline-block, so the
+        // line is drawn as a background on the math instead.
+        cy.get("#delete1 mjx-container")
+            .should("have.css", "background-image")
+            .and("match", /linear-gradient/);
+        cy.get("#insert1 mjx-container")
+            .should("have.css", "background-image")
+            .and("match", /linear-gradient/);
+    });
+
     it("q", () => {
         cy.window().then(async (win) => {
             win.postMessage(

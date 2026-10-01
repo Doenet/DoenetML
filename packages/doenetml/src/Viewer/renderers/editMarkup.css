@@ -1,0 +1,22 @@
+/*
+ * `text-decoration` does not reach into inline-block boxes, and MathJax lays
+ * out inline math as one (`mjx-container`, in both its CHTML and SVG output).
+ * Without this, math inside `<delete>` or `<insert>` is shown with no line at
+ * all, and a line through a run of text skips the math in the middle of it.
+ * Draw the line as a background on the math instead. Display math is left
+ * alone: its container spans the whole line, so a background would too.
+ */
+del mjx-container:not([display="true"]),
+ins mjx-container:not([display="true"]) {
+    background-image: linear-gradient(currentColor, currentColor);
+    background-repeat: no-repeat;
+    background-size: 100% max(1px, 0.06em);
+}
+
+del mjx-container:not([display="true"]) {
+    background-position: 0 55%;
+}
+
+ins mjx-container:not([display="true"]) {
+    background-position: 0 100%;
+}
