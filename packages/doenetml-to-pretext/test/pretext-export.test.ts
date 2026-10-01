@@ -766,6 +766,27 @@ describe("Pretext export", async () => {
         expect(exported).toContain(`Pick one <fillin characters="21">`);
     });
 
+    it("the label of a choice input is not one of its choices", async () => {
+        // The viewer is handed the `<label>` child to show its markup; the export draws
+        // the label from the input instead, so the child must not be counted as a choice.
+        source = `<choiceInput preselectChoice="2"><label>Pick one</label><choice>yes</choice><choice>no</choice></choiceInput>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(`"<ol><li>◯ yes</li><li>⦿ no</li></ol>"`);
+
+        source = `<p><choiceInput inline preselectChoice="2"><label>Pick one</label><choice>yes</choice><choice>no</choice></choiceInput></p>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(`"<p>Pick one <em>no</em></p>"`);
+    });
+
+    it("the label of a slider or a button is not written out", async () => {
+        source = `<p><slider><label>Slide</label></slider> <updateValue target="$n" newValue="$n+1"><label>Add one</label></updateValue> <number name="n">1</number></p>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).not.toContain("Slide");
+        expect(exported).not.toContain("Add one");
+    });
+
     it("the math in a label written on the answer is written as <m>", async () => {
         // The answer draws the label its input inherited, so it is the answer that has to
         // write the math in it as `<m>`; left as text, the `\(` and `\)` print literally.
