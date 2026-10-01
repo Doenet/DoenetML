@@ -1,4 +1,5 @@
 import React, { createContext, useContext } from "react";
+import { BoardContext } from "../graph";
 
 /**
  * Set inside the label of an input, button, slider, or answer.
@@ -31,6 +32,11 @@ export const AnswerLabelContext = createContext<React.ReactNode>(null);
  *
  * Set `inheritTextColor` when the label is shown on a colored background.
  *
+ * The label is rendered as HTML even for a component in a graph (a
+ * `<mathInput>` in a graph shows its label in a portal under the board), so
+ * `BoardContext` is cleared for it: otherwise the `<label>` and any text,
+ * math, or number in it would be drawn on the graph instead.
+ *
  * The component's worker class must render its label child: see
  * `returnLabelChildIndDefinition`.
  */
@@ -56,8 +62,12 @@ export function useRenderedLabel({
         return null;
     }
     return (
-        <InputLabelContext.Provider value={{ inLabel: true, inheritTextColor }}>
-            {label}
-        </InputLabelContext.Provider>
+        <BoardContext.Provider value={null}>
+            <InputLabelContext.Provider
+                value={{ inLabel: true, inheritTextColor }}
+            >
+                {label}
+            </InputLabelContext.Provider>
+        </BoardContext.Provider>
     );
 }

@@ -54,10 +54,7 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
     const anchorRel = useRef<[string, string] | null>(null);
 
     const { inLabel: inInputLabel } = useContext(InputLabelContext);
-    // The label of an input in a graph is rendered by the input as HTML, not
-    // as a graph's text.
-    const boardContext = useContext(BoardContext);
-    const board = inInputLabel ? null : boardContext;
+    const board = useContext(BoardContext);
     const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
 
     const pointerState = usePointerDragState();

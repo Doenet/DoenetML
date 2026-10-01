@@ -93,7 +93,7 @@ describe("Label Tag Tests", { tags: ["@group4"] }, function () {
                 {
                     doenetML: `
   <graph>
-    <mathInput name="mi"><label><delete name="d1">old</delete></label></mathInput>
+    <mathInput name="mi"><label><delete name="d1">old</delete> <m name="m1">w</m> <text name="t1">tt</text> <number name="n1">7</number></label></mathInput>
   </graph>
   `,
                 },
@@ -102,6 +102,11 @@ describe("Label Tag Tests", { tags: ["@group4"] }, function () {
         });
 
         cy.get("#mi-input-label del#d1").should("have.text", "old");
+        // math, text, and numbers in the label are shown in the label, not
+        // drawn on the graph
+        cy.get("#mi-input-label #m1 mjx-container").should("exist");
+        cy.get("#mi-input-label #t1").should("have.text", "tt");
+        cy.get("#mi-input-label #n1").should("have.text", "7");
     });
 
     it("markup in a label shown on its own", () => {
