@@ -4,6 +4,7 @@ import { cleanLatex } from "../utils/math";
 import {
     movePoint,
     submitAnswer,
+    updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
 import me from "math-expressions";
@@ -6226,5 +6227,81 @@ describe("Evaluate tag tests @group2", async () => {
         const diagnosticsByType = getDiagnosticsByType(core);
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(0);
+    });
+
+    it("a function whose inputs depend on its copy's outputs", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <function name="f" numInputs="$g.numOutputs" variables="x y">(x+y, x-y)</function>
+  <function name="g" extend="$f" />
+  <math name="m1">$$f(3,1)</math>
+  <math name="m2">$$g(5,2)</math>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                .numInputs,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
+        ).eqls(["vector", 4, 2]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
+        ).eqls(["vector", 7, 3]);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
+    });
+
+    it("evaluate switches form when the function's symbolic changes", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <booleanInput name="bi" prefill="true" />
+  <function name="f" symbolic="$bi">x^2</function>
+  <evaluate name="e" function="$f" input="y" />
+  <evaluate name="eNum" function="$f" input="3" />
+  <evaluate name="eSym" function="$f" input="y" forceSymbolic />
+  <evaluate name="eForceNum" function="$f" input="y" forceNumeric />
+  <math name="m">$$f(y)</math>
+  `,
+        });
+
+        async function check(symbolic: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const value = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .value.tree;
+            const y2 = symbolic ? ["^", "y", 2] : NaN;
+            expect(await value("e")).eqls(y2);
+            expect(await value("eNum")).eq(9);
+            expect(await value("eSym")).eqls(["^", "y", 2]);
+            expect(await value("eForceNum")).eqls(NaN);
+            expect(await value("m")).eqls(y2);
+        }
+
+        await check(true);
+
+        const biIdx = await resolvePathToNodeIdx("bi");
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: biIdx,
+            core,
+        });
+        await check(false);
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: biIdx,
+            core,
+        });
+        await check(true);
     });
 });

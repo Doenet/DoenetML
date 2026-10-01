@@ -59,19 +59,19 @@ const attributesDefiningFunction = [
 
 /**
  * Make the state variable `varName` take the value of the same variable of the
- * function this component copies whenever `forwardToShadowSource` is true,
- * and be computed by its own definition otherwise.
+ * function this component copies whenever the boolean state variable
+ * `conditionName` is true, and be computed by its own definition otherwise.
  */
-function forwardFromShadowSourceIfUnmodified(stateDef, varName) {
+function forwardFromShadowSourceIfUnmodified(stateDef, varName, conditionName) {
     stateDef.stateVariablesDeterminingDependencies = [
         ...(stateDef.stateVariablesDeterminingDependencies ?? []),
-        "forwardToShadowSource",
+        conditionName,
     ];
 
     let forwardingDependencies = {
-        forwardToShadowSource: {
+        forward: {
             dependencyType: "stateVariable",
-            variableName: "forwardToShadowSource",
+            variableName: conditionName,
         },
         shadowSourceValue: {
             dependencyType: "shadowSourceStateVariable",
@@ -85,14 +85,14 @@ function forwardFromShadowSourceIfUnmodified(stateDef, varName) {
         let arrayDefinitionByKey = stateDef.arrayDefinitionByKey;
 
         stateDef.returnArrayDependenciesByKey = function (args) {
-            if (args.stateValues.forwardToShadowSource) {
+            if (args.stateValues[conditionName]) {
                 return { globalDependencies: forwardingDependencies };
             }
             return returnArrayDependenciesByKey.call(this, args);
         };
         stateDef.arrayDefinitionByKey = function (args) {
             let { globalDependencyValues, arrayKeys } = args;
-            if (globalDependencyValues?.forwardToShadowSource) {
+            if (globalDependencyValues?.forward) {
                 let values = {};
                 for (let arrayKey of arrayKeys) {
                     values[arrayKey] =
@@ -107,13 +107,13 @@ function forwardFromShadowSourceIfUnmodified(stateDef, varName) {
         let definition = stateDef.definition;
 
         stateDef.returnDependencies = function (args) {
-            if (args.stateValues.forwardToShadowSource) {
+            if (args.stateValues[conditionName]) {
                 return forwardingDependencies;
             }
             return returnDependencies.call(this, args);
         };
         stateDef.definition = function (args) {
-            if (args.dependencyValues.forwardToShadowSource) {
+            if (args.dependencyValues.forward) {
                 return {
                     setValue: {
                         [varName]: args.dependencyValues.shadowSourceValue,
@@ -4856,9 +4856,16 @@ export default class Function extends InlineComponent {
                 },
             };
 
+            // The number of outputs doesn't depend on the variables, so a copy
+            // takes it from its source without depending on its variables,
+            // which can themselves depend on the copy's number of outputs.
+            forwardFromShadowSourceIfUnmodified(
+                stateVariableDefinitions.numOutputs,
+                "numOutputs",
+                "copiesWithoutChanges",
+            );
             for (let varName of [
                 "formula",
-                "numOutputs",
                 "symbolicfs",
                 "numericalfs",
                 "fDefinitions",
@@ -4866,6 +4873,7 @@ export default class Function extends InlineComponent {
                 forwardFromShadowSourceIfUnmodified(
                     stateVariableDefinitions[varName],
                     varName,
+                    "forwardToShadowSource",
                 );
             }
         }
