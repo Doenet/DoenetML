@@ -108,8 +108,44 @@ export default class Evaluate extends MathComponent {
             },
         };
 
-        stateVariableDefinitions.unnormalizedValue = {
+        stateVariableDefinitions.evaluateSymbolically = {
             returnDependencies() {
+                return {
+                    functionAttr: {
+                        dependencyType: "attributeComponent",
+                        attributeName: "function",
+                        variableNames: ["symbolic"],
+                    },
+                    forceSymbolic: {
+                        dependencyType: "stateVariable",
+                        variableName: "forceSymbolic",
+                    },
+                    forceNumeric: {
+                        dependencyType: "stateVariable",
+                        variableName: "forceNumeric",
+                    },
+                };
+            },
+            definition({ dependencyValues }) {
+                return {
+                    setValue: {
+                        evaluateSymbolically: Boolean(
+                            dependencyValues.functionAttr &&
+                            !dependencyValues.forceNumeric &&
+                            (dependencyValues.functionAttr.stateValues
+                                .symbolic ||
+                                dependencyValues.forceSymbolic),
+                        ),
+                    },
+                };
+            },
+        };
+
+        stateVariableDefinitions.unnormalizedValue = {
+            // Depend on only the function's symbolic or numerical form,
+            // whichever evaluates it, so the function computes just that one.
+            stateVariablesDeterminingDependencies: ["evaluateSymbolically"],
+            returnDependencies({ stateValues }) {
                 return {
                     inputMaths: {
                         dependencyType: "stateVariable",
@@ -119,19 +155,15 @@ export default class Evaluate extends MathComponent {
                         dependencyType: "attributeComponent",
                         attributeName: "function",
                         variableNames: [
-                            "symbolicfs",
-                            "numericalfs",
-                            "symbolic",
+                            stateValues.evaluateSymbolically
+                                ? "symbolicfs"
+                                : "numericalfs",
                             "numInputs",
                         ],
                     },
-                    forceSymbolic: {
+                    evaluateSymbolically: {
                         dependencyType: "stateVariable",
-                        variableName: "forceSymbolic",
-                    },
-                    forceNumeric: {
-                        dependencyType: "stateVariable",
-                        variableName: "forceNumeric",
+                        variableName: "evaluateSymbolically",
                     },
                 };
             },
@@ -147,11 +179,7 @@ export default class Evaluate extends MathComponent {
                 }
 
                 let f;
-                if (
-                    !dependencyValues.forceNumeric &&
-                    (functionComp.stateValues.symbolic ||
-                        dependencyValues.forceSymbolic)
-                ) {
+                if (dependencyValues.evaluateSymbolically) {
                     f = returnSymbolicFunctionForEvaluate({
                         numInputs: functionComp.stateValues.numInputs,
                         symbolicfs: functionComp.stateValues.symbolicfs,
@@ -164,9 +192,6 @@ export default class Evaluate extends MathComponent {
                 }
 
                 let unnormalizedValue = f(dependencyValues.inputMaths);
-
-                // console.log("unnormalizedValue")
-                // console.log(unnormalizedValue)
 
                 return {
                     setValue: { unnormalizedValue },
