@@ -29,6 +29,7 @@ export default class Label extends InlineComponent {
         summary: "A label for an input, answer, button, or graphical object",
     };
     static rendererType = "label";
+    static renderChildren = true;
 
     static includeBlankStringChildren = true;
 

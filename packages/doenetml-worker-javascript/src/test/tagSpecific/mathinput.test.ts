@@ -12201,7 +12201,7 @@ describe("MathInput tag tests @group2", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("mi")].stateValues
                 .childIndicesToRender,
-        ).eqls([1]);
+        ).eqls([1, 0]);
         expect(
             stateVariables[await resolvePathToNodeIdx("mi")].activeChildren
                 .length,

@@ -4037,7 +4037,7 @@ ${tagLine}
         expect(
             stateVariables[await resolvePathToNodeIdx("ci")].stateValues
                 .childIndicesToRender,
-        ).eqls([1, 2, 3]);
+        ).eqls([1, 2, 3, 0]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ci")].activeChildren
                 .length,
@@ -4069,7 +4069,7 @@ ${tagLine}
         expect(
             stateVariables[await resolvePathToNodeIdx("ci")].stateValues
                 .childIndicesToRender,
-        ).eqls([1, 2, 3]);
+        ).eqls([1, 2, 3, 0]);
         expect(
             stateVariables[await resolvePathToNodeIdx("ci")].activeChildren
                 .length,

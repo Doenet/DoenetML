@@ -483,6 +483,9 @@ function findAncestor(
     return undefined;
 }
 
+/** A label to leave behind: its string, and the `<label>` element it comes from, if any. */
+type KeptLabel = { label: string; labelElementId?: number };
+
 /**
  * The label on `input` that no one else will draw, or `undefined` when there is none.
  *
@@ -495,7 +498,7 @@ function findAncestor(
 function labelLeftBehind(
     input: FlatDastElement,
     parents: Map<number, FlatDastElement>,
-): string | undefined {
+): KeptLabel | undefined {
     const label = propsOf(input).label;
     if (typeof label !== "string" || !label.trim()) {
         return undefined;
@@ -512,17 +515,23 @@ function labelLeftBehind(
     ) {
         return undefined;
     }
-    return label.trim();
+    const labelElementId = propsOf(input).labelElementId;
+    return {
+        label: label.trim(),
+        labelElementId:
+            typeof labelElementId === "number" ? labelElementId : undefined,
+    };
 }
 
 /**
- * Take `element` out of the document, leaving `label` written where it stood. Returns
+ * Take `element` out of the document, leaving `label` written where it stood: the
+ * `<label>` element it comes from, so its markup is kept, or else its string. Returns
  * whether anything was left behind, since a slot that still holds the label is content the
  * paragraph has to take in rather than stand beside.
  */
 function replaceWithLabel(
     element: FlatDastElement,
-    label: string | undefined,
+    label: KeptLabel | undefined,
     parents: Map<number, FlatDastElement>,
 ): boolean {
     if (label == null) {
@@ -540,7 +549,16 @@ function replaceWithLabel(
         return false;
     }
     // A trailing space keeps the label off the blank that follows it.
-    parent.children.splice(index, 1, `${label} `);
+    if (label.labelElementId != null) {
+        parent.children.splice(
+            index,
+            1,
+            { id: label.labelElementId, annotation: "original" },
+            " ",
+        );
+    } else {
+        parent.children.splice(index, 1, `${label.label} `);
+    }
     return true;
 }
 
@@ -594,7 +612,9 @@ export function propsOf(element: FlatDastElement): Record<string, unknown> {
 }
 
 /** The props of `element`, to write into, created if the element has none. */
-function mutableProps(element: FlatDastElement): Record<string, unknown> {
+export function mutableProps(
+    element: FlatDastElement,
+): Record<string, unknown> {
     const data = element.data as DataWithProps;
     return (data.props ??= {});
 }

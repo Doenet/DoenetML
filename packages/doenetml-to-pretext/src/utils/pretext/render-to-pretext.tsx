@@ -37,6 +37,7 @@ import { ensurePretextTag } from "./ensure-pretext-tag";
 import { addWritingSpace } from "./writing-space";
 import { arrangePrintoutPages } from "./printout-pages";
 import { wrapLooseText } from "./loose-text";
+import { detachLabelChildren } from "./label-children";
 import { renderReactToXast } from "./xast-reconciler";
 import { normalizeAttrs } from "./normalize-attrs";
 
@@ -65,10 +66,13 @@ export function renderFlatDastToPretext(
     // We have no errors, so we can safely cast to FlatDastRoot
     const _flatDast: FlatDastRoot = flatDast as FlatDastRoot;
 
+    // Take the `<label>` children out of inputs, answers, sliders and buttons, noting
+    // which one each prints its label from, so the label is printed where it belongs.
     // Give text written beside blocks a paragraph, which PreTeXt needs to show it. Then
     // lay a document written in pages out as a worksheet of them, and give expanded
     // text inputs room to write in, inside that worksheet or a printout of their own.
     // All run before the `<article>` is created so that the printout goes inside it.
+    detachLabelChildren(_flatDast);
     wrapLooseText(_flatDast);
     arrangePrintoutPages(_flatDast);
     addWritingSpace(_flatDast);

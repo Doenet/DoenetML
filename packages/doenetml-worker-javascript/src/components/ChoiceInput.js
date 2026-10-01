@@ -1579,6 +1579,10 @@ export default class Choiceinput extends Input {
                     dependencyType: "stateVariable",
                     variableName: "descriptionChildInd",
                 },
+                labelChildInd: {
+                    dependencyType: "stateVariable",
+                    variableName: "labelChildInd",
+                },
             }),
             definition: function ({ dependencyValues }) {
                 const childIndicesToRender = [];
@@ -1596,6 +1600,9 @@ export default class Choiceinput extends Input {
                     childIndicesToRender.push(
                         dependencyValues.descriptionChildInd,
                     );
+                }
+                if (dependencyValues.labelChildInd !== -1) {
+                    childIndicesToRender.push(dependencyValues.labelChildInd);
                 }
 
                 return {

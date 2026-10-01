@@ -7,7 +7,11 @@ import { useInputLabel } from "./use-input-label";
 type ComponentSize = { size: number; isAbsolute: boolean };
 
 type TextInputData = {
-    props: TextInputPropsInText & { label?: string; width?: ComponentSize };
+    props: TextInputPropsInText & {
+        label?: string;
+        labelElementId?: number;
+        width?: ComponentSize;
+    };
 };
 
 /**
@@ -24,7 +28,12 @@ const PIXELS_PER_CHARACTER = (16 * 5) / 11;
 const DEFAULT_WIDTH_PIXELS = 100;
 
 export const TextInput: BasicComponent<TextInputData> = ({ node }) => {
-    const { immediateValue: value, width, label } = node.data.props;
+    const {
+        immediateValue: value,
+        width,
+        label,
+        labelElementId,
+    } = node.data.props;
     // An input given a width of its own prints that wide. One left at the default, or
     // given a share of the page, which says nothing about paper, gets the blank that is
     // as long as a math blank, so the two read as the same kind of answer space.
@@ -40,7 +49,7 @@ export const TextInput: BasicComponent<TextInputData> = ({ node }) => {
             : TEXT_FILLIN_CHARACTERS;
     // Wide enough, too, for what is already in it.
     const characters = Math.max(value?.length || 0, fromWidth);
-    const displayLabel = useInputLabel(label);
+    const displayLabel = useInputLabel(label, labelElementId);
 
     return (
         <React.Fragment>

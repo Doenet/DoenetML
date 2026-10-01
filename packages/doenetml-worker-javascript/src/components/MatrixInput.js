@@ -2847,6 +2847,10 @@ export class MatrixInput extends Input {
                     dependencyType: "stateVariable",
                     variableName: "descriptionChildInd",
                 },
+                labelChildInd: {
+                    dependencyType: "stateVariable",
+                    variableName: "labelChildInd",
+                },
             }),
             definition({ dependencyValues }) {
                 let nChildrenToRender =
@@ -2860,6 +2864,9 @@ export class MatrixInput extends Input {
                     childIndicesToRender.push(
                         dependencyValues.descriptionChildInd,
                     );
+                }
+                if (dependencyValues.labelChildInd !== -1) {
+                    childIndicesToRender.push(dependencyValues.labelChildInd);
                 }
 
                 return {

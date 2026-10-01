@@ -22,6 +22,8 @@ import {
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 import { resolveBackgroundColor, resolveTextColor } from "./utils/styleColors";
 import { computeLabelMaskCssStyle } from "./utils/labelMaskStyle";
+import { InputLabelContext } from "./utils/inputLabel";
+import { renderMarkupBody } from "./utils/markupRenderer";
 
 interface LabelSVs {
     hidden: boolean;
@@ -34,13 +36,14 @@ interface LabelSVs {
     value: string;
     hasLatex: boolean;
     maskLabel: boolean;
+    _compositeReplacementActiveRange?: any;
     forTargetRendererId?: string;
     forTargetIsGroup?: boolean;
     selectedStyle: ResolvedStyleDefinition;
 }
 
 export default React.memo(function Label(props: UseDoenetRendererProps) {
-    let { componentIdx, id, SVs, actions, callAction } =
+    let { componentIdx, id, SVs, children, actions, callAction } =
         useDoenetRenderer<LabelSVs>(props);
 
     // @ts-ignore
@@ -50,6 +53,7 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
     const anchorPointJXG = useRef<JXGPoint | null>(null);
     const anchorRel = useRef<[string, string] | null>(null);
 
+    const { inLabel: inInputLabel } = useContext(InputLabelContext);
     const board = useContext(BoardContext);
     const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
 
@@ -309,14 +313,28 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
         return null;
     }
 
-    const style = !choiceInputInlineContext.inOption
-        ? textRendererStyle(darkMode ?? "light", SVs.selectedStyle)
-        : undefined;
+    // The label of an input is styled by the input, as when the input showed
+    // the label's string.
+    const style =
+        !choiceInputInlineContext.inOption && !inInputLabel
+            ? textRendererStyle(darkMode ?? "light", SVs.selectedStyle)
+            : undefined;
 
     let label: React.ReactNode = SVs.value;
 
     if (SVs.hasLatex) {
         label = <DynamicMath latex={SVs.value} />;
+    }
+
+    // Render the children, so that their markup (e.g., `<em>` or `<delete>`)
+    // shows, except in a dropdown's option, which can hold only text. A label
+    // without children (e.g., one copied from another component's `label`)
+    // has only its value to show.
+    if (
+        !choiceInputInlineContext.inOption &&
+        children.some((child) => child !== null && child !== "")
+    ) {
+        label = trimOuterWhitespace(renderMarkupBody({ SVs, children }) ?? []);
     }
     if (SVs.forTargetRendererId) {
         if (SVs.forTargetIsGroup) {
@@ -344,3 +362,25 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
         </span>
     );
 });
+
+/**
+ * Trim the whitespace at the start of the first child and the end of the last
+ * child, as the label's value is trimmed.
+ */
+function trimOuterWhitespace(children: React.ReactNode[]): React.ReactNode[] {
+    const trimmed = [...children];
+    const first = trimmed.findIndex((child) => child !== null);
+    const firstChild = trimmed[first];
+    if (typeof firstChild === "string") {
+        trimmed[first] = firstChild.trimStart();
+    }
+    let last = trimmed.length - 1;
+    while (last >= 0 && trimmed[last] === null) {
+        last--;
+    }
+    const lastChild = trimmed[last];
+    if (typeof lastChild === "string") {
+        trimmed[last] = lastChild.trimEnd();
+    }
+    return trimmed;
+}

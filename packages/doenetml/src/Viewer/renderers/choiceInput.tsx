@@ -19,6 +19,7 @@ import {
     wantsFullCheckWorkButton,
 } from "./utils/checkWork";
 import { DescriptionPopover } from "./utils/Description";
+import { useRenderedLabel } from "./utils/inputLabel";
 import { addValidationStateToShortDescription } from "./utils/validationState";
 import { getBlockMarginWithOptionalTopSuppression } from "./utils/nonInlineMediaLayout";
 import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
@@ -98,6 +99,7 @@ interface ChoiceInputSVs {
 export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
     let { id, SVs, actions, children, ignoreUpdate, callAction } =
         useDoenetRenderer<ChoiceInputSVs>(props);
+    const renderedLabel = useRenderedLabel({ SVs, children });
 
     const t = useT();
 
@@ -328,6 +330,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                 {label}
             </MathJax>
         );
+    }
+    if (renderedLabel) {
+        label = renderedLabel;
     }
 
     let shortDescription = SVs.shortDescription || undefined;

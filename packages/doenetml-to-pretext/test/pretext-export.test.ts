@@ -766,6 +766,77 @@ describe("Pretext export", async () => {
         expect(exported).toContain(`Pick one <fillin characters="21">`);
     });
 
+    it("the label of a choice input is not one of its choices", async () => {
+        // The viewer is handed the `<label>` child to show its markup; the export draws
+        // the label from the input instead, so the child must not be counted as a choice.
+        source = `<choiceInput preselectChoice="2"><label>Pick one</label><choice>yes</choice><choice>no</choice></choiceInput>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(`"<ol><li>◯ yes</li><li>⦿ no</li></ol>"`);
+
+        source = `<p><choiceInput inline preselectChoice="2"><label>Pick one</label><choice>yes</choice><choice>no</choice></choiceInput></p>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(`"<p>Pick one <em>no</em></p>"`);
+    });
+
+    it("a label keeps its markup", async () => {
+        // The label is printed from the `<label>` element, not the `label` string, which
+        // has only the text.
+        source = `<p><textInput><label>Keep <delete>A</delete> <insert>B</insert> <em>C</em></label></textInput></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<p>Keep <delete>A</delete> <insert>B</insert> <em>C</em> <fillin`,
+        );
+
+        source = `<p><choiceInput inline preselectChoice="2"><label>Pick <em>one</em></label><choice>yes</choice><choice>no</choice></choiceInput></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<p>Pick <em>one</em> <em>no</em></p>`,
+        );
+
+        // A label written on its own
+        source = `<p><label>Before <delete>gone</delete> </label></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<p>Before <delete>gone</delete></p>`,
+        );
+    });
+
+    it("an answer's label keeps its markup and is printed once", async () => {
+        source = `<p><answer><label>Enter <delete>y</delete> <m>x</m>:</label>x</answer></p>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).toContain(
+            `<p>Enter <delete>y</delete> <m>x</m>: <m><fillin`,
+        );
+        expect(exported.match(/<delete>/g)).toHaveLength(1);
+    });
+
+    it("the label left in place of an expanded input keeps its markup", async () => {
+        source = `<textInput expanded height="0.5in"><label>Your <em>full</em> name:</label></textInput>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<p workspace="0.5in">Your <em>full</em> name: </p>`,
+        );
+
+        source = `<answer type="text" handGraded expanded><label>Explain <delete>why</delete></label></answer>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).toContain(
+            `<p workspace="1.25in">Explain <delete>why</delete> </p>`,
+        );
+        expect(exported.match(/<delete>/g)).toHaveLength(1);
+    });
+
+    it("a label that comes from no `<label>` is printed from its string", async () => {
+        source = `<p><textInput name="yourName" labelIsName /></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<p>your name <fillin`,
+        );
+    });
+
+    it("the label of a slider or a button is not written out", async () => {
+        source = `<p><slider><label>Slide</label></slider> <updateValue target="$n" newValue="$n+1"><label>Add one</label></updateValue> <number name="n">1</number></p>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported).not.toContain("Slide");
+        expect(exported).not.toContain("Add one");
+    });
+
     it("the math in a label written on the answer is written as <m>", async () => {
         // The answer draws the label its input inherited, so it is the answer that has to
         // write the math in it as `<m>`; left as text, the `\(` and `\)` print literally.

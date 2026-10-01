@@ -35,3 +35,4 @@ export * from "./tabular";
 export * from "./display-doenetml";
 export * from "./extract-math-operator";
 export * from "./image";
+export * from "./label";

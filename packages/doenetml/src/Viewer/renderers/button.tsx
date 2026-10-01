@@ -5,6 +5,8 @@ import useDoenetRenderer, {
 } from "../useDoenetRenderer";
 import { Button } from "@doenet/ui-components";
 import { BoardContext } from "./graph";
+import { useRenderedLabel } from "./utils/inputLabel";
+import "./button.css";
 import me from "math-expressions";
 import {
     getPositionFromAnchorByCoordinate,
@@ -35,10 +37,23 @@ interface ButtonSVs {
 export default React.memo(function ButtonComponent(
     props: UseDoenetRendererProps,
 ) {
-    let { id, SVs, actions, callAction } = useDoenetRenderer<ButtonSVs>(
-        props,
-        false,
-    );
+    let { id, SVs, actions, children, callAction } =
+        useDoenetRenderer<ButtonSVs>(props, false);
+    let renderedLabel = useRenderedLabel({
+        SVs,
+        children,
+        inheritTextColor: true,
+    });
+    if (!SVs.label) {
+        // An empty label leaves the default label
+        renderedLabel = null;
+    } else if (renderedLabel) {
+        // `button.css` keeps any math in the label from taking the clicks
+        // meant for the button, as `Button` does for a label with math.
+        renderedLabel = (
+            <span className="doenet-button-label">{renderedLabel}</span>
+        );
+    }
 
     // @ts-ignore
     ButtonComponent.ignoreActionsWithoutCore = (actionName) =>
@@ -449,10 +464,12 @@ export default React.memo(function ButtonComponent(
                 id={id + "_button"}
                 onClick={() => callAction({ action: actions[SVs.clickAction] })}
                 disabled={SVs.disabled}
-                value={label}
-                valueHasLatex={SVs.labelHasLatex as boolean}
+                value={renderedLabel ? undefined : label}
+                valueHasLatex={!renderedLabel && (SVs.labelHasLatex as boolean)}
                 fillColor={fillColor}
-            />
+            >
+                {renderedLabel}
+            </Button>
         </div>
     );
 });
