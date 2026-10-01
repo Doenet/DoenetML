@@ -45,7 +45,11 @@ export function useRenderedLabel({
     children,
     inheritTextColor = false,
 }: {
-    SVs: { labelChildInd?: number; labelFromParent?: boolean };
+    SVs: {
+        labelChildInd?: number;
+        labelFromParent?: boolean;
+        [key: string]: any;
+    };
     children: React.ReactNode[];
     inheritTextColor?: boolean;
 }): React.ReactNode {

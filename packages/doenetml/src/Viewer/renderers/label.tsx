@@ -370,12 +370,17 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
 function trimOuterWhitespace(children: React.ReactNode[]): React.ReactNode[] {
     const trimmed = [...children];
     const first = trimmed.findIndex((child) => child !== null);
-    if (typeof trimmed[first] === "string") {
-        trimmed[first] = trimmed[first].trimStart();
+    const firstChild = trimmed[first];
+    if (typeof firstChild === "string") {
+        trimmed[first] = firstChild.trimStart();
     }
-    const last = trimmed.findLastIndex((child) => child !== null);
-    if (typeof trimmed[last] === "string") {
-        trimmed[last] = trimmed[last].trimEnd();
+    let last = trimmed.length - 1;
+    while (last >= 0 && trimmed[last] === null) {
+        last--;
+    }
+    const lastChild = trimmed[last];
+    if (typeof lastChild === "string") {
+        trimmed[last] = lastChild.trimEnd();
     }
     return trimmed;
 }
