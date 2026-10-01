@@ -130,8 +130,9 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     isNumber: {
         component: PretextComponent.Boolean,
     },
-    // A label is printed by the input, answer, … it labels (see `detachLabelChildren`), or
-    // where it stands, if it was written on its own.
+    // The label of an input or answer is printed by that component (see
+    // `detachLabelChildren`); a slider's or button's is not printed. A label written on
+    // its own is printed where it stands.
     label: { component: PretextComponent.Label, passthroughChildren: true },
     latex: showAttrOnly("text"),
     matrix: {
