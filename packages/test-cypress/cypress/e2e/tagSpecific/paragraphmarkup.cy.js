@@ -78,13 +78,14 @@ describe("Paragraph Markup Tag Tests", { tags: ["@group4"] }, function () {
                 {
                     doenetML: `
   <p name="p1">The derivative is <delete name="delete1"><m>3x^3</m></delete> <insert name="insert1"><m>3x^2</m></insert>.</p>
+  <p><delete name="delete2"><me>y</me></delete></p>
   `,
                 },
                 "*",
             );
         });
 
-        // A text decoration does not reach into MathJax's inline-block, so the
+        // A text decoration does not reach into MathJax's inline-blocks, so the
         // line is drawn as a background on the math instead.
         cy.get("#delete1 mjx-container")
             .should("have.css", "background-image")
@@ -92,6 +93,14 @@ describe("Paragraph Markup Tag Tests", { tags: ["@group4"] }, function () {
         cy.get("#insert1 mjx-container")
             .should("have.css", "background-image")
             .and("match", /linear-gradient/);
+
+        // Display math spans the whole line, so it is left undecorated rather
+        // than given a line across the page.
+        cy.get("#delete2 mjx-container").should(
+            "have.css",
+            "background-image",
+            "none",
+        );
     });
 
     it("q", () => {

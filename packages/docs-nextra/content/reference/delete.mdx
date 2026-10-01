@@ -9,6 +9,8 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 The `<delete>{:dn}` component is a [Paragraph Markup](../concepts/essentialConcepts#component-types) 
 component which marks the enclosed text as deleted. It is rendered struck through.
+Inline math inside is struck through along with the text; display math and inputs
+inside are not.
 
 Use `<delete>{:dn}` together with [`<insert>{:dn}`](insert) to show an edit: what was 
 removed and what replaced it.
