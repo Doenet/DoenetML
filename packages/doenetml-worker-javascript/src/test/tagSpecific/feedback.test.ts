@@ -1610,6 +1610,50 @@ describe("Feedback tag tests @group1", async () => {
         );
     });
 
+    it("feedback defined in a choice with negative credit is shown when submitted", async () => {
+        // A negative credit counts as 0, so submitting that choice is recorded
+        // like any other wrong choice and shows its own feedback, rather than
+        // leaving the previous submission's feedback in place.
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <answer name="ans">
+      <choiceInput name="ci">
+      <choice feedbackText="meow" credit="0.5">cat</choice>
+      <choice feedbackText="grr" credit="-1">dog</choice>
+      </choiceInput>
+    </answer>
+
+    <feedback extend="$ans.feedback1" name="f1" />
+  `,
+        });
+
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        const ciIdx = await resolvePathToNodeIdx("ci");
+        const f1Idx = await resolvePathToNodeIdx("f1");
+
+        for (const [index, text] of [
+            [1, "meow"],
+            [2, "grr"],
+        ] as const) {
+            await updateSelectedIndices({
+                componentIdx: ciIdx,
+                selectedIndices: [index],
+                core,
+            });
+            await submitAnswer({ componentIdx: ansIdx, core });
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(stateVariables[ciIdx].stateValues.submittedIndices).eqls([
+                index,
+            ]);
+            expect(stateVariables[f1Idx].stateValues.feedbackText).eq(text);
+            expect(stateVariables[f1Idx].stateValues.hide).eq(false);
+        }
+    });
+
     it("feedback updated with target", async () => {
         let doenetML = `
     <mathInput name="mi" />

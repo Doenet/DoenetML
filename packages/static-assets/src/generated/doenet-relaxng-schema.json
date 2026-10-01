@@ -118193,13 +118193,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "credit",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Fraction of credit (0 to 1) granted when this award matches.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "matchPartial",
                     "type": "boolean",
                     "isArray": false,
@@ -118347,6 +118340,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "credit",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Fraction of credit (0 to 1) granted when this award matches. A value above 1 counts as 1, and a negative or non-numeric value as 0."
                 },
                 {
                     "name": "creditAchievedIfSubmit",
@@ -122649,13 +122648,6 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "credit",
-                    "type": "number",
-                    "isArray": false,
-                    "description": "Fraction of credit (0 to 1) granted when this choice is selected.",
-                    "fromAttribute": true
-                },
-                {
                     "name": "feedbackCodes",
                     "type": "textList",
                     "isArray": false,
@@ -122692,6 +122684,12 @@
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "credit",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Fraction of credit (0 to 1) granted when this choice is selected. A value above 1 counts as 1, and a negative or non-numeric value as 0."
                 },
                 {
                     "name": "text",
