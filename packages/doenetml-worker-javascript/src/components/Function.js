@@ -4782,7 +4782,7 @@ export default class Function extends InlineComponent {
         // <piecewiseFunction> and the function operators, have children and
         // attributes of their own, so they compute theirs.
         if (this.componentType === "function") {
-            stateVariableDefinitions.forwardToShadowSource = {
+            stateVariableDefinitions.copiesWithoutChanges = {
                 returnDependencies() {
                     let dependencies = {
                         shadowInfo: {
@@ -4792,14 +4792,6 @@ export default class Function extends InlineComponent {
                             dependencyType: "child",
                             childGroups: ["maths", "functions"],
                             dontRecurseToShadows: true,
-                        },
-                        variables: {
-                            dependencyType: "stateVariable",
-                            variableName: "variables",
-                        },
-                        shadowSourceVariables: {
-                            dependencyType: "shadowSourceStateVariable",
-                            variableName: "variables",
                         },
                     };
                     for (let attributeName of attributesDefiningFunction) {
@@ -4813,12 +4805,7 @@ export default class Function extends InlineComponent {
                 },
                 definition({ dependencyValues }) {
                     let shadowInfo = dependencyValues.shadowInfo;
-                    let sourceVariables =
-                        dependencyValues.shadowSourceVariables;
-
-                    // The variables can come from the parent (e.g., a `<curve>`),
-                    // so a copy placed elsewhere may not share its source's.
-                    let forwardToShadowSource =
+                    let copiesWithoutChanges =
                         shadowInfo !== null &&
                         shadowInfo.propVariable === null &&
                         dependencyValues.childrenAdded.length === 0 &&
@@ -4827,7 +4814,37 @@ export default class Function extends InlineComponent {
                                 dependencyValues[
                                     `${attributeName}AttrAdded`
                                 ] === null,
-                        ) &&
+                        );
+                    return { setValue: { copiesWithoutChanges } };
+                },
+            };
+
+            // Only a copy depends on its variables here, so a function that
+            // is not a copy can take its variables from its own properties.
+            stateVariableDefinitions.forwardToShadowSource = {
+                stateVariablesDeterminingDependencies: ["copiesWithoutChanges"],
+                returnDependencies({ stateValues }) {
+                    if (!stateValues.copiesWithoutChanges) {
+                        return {};
+                    }
+                    return {
+                        variables: {
+                            dependencyType: "stateVariable",
+                            variableName: "variables",
+                        },
+                        shadowSourceVariables: {
+                            dependencyType: "shadowSourceStateVariable",
+                            variableName: "variables",
+                        },
+                    };
+                },
+                definition({ dependencyValues }) {
+                    let sourceVariables =
+                        dependencyValues.shadowSourceVariables;
+
+                    // The variables can come from the parent (e.g., a `<curve>`),
+                    // so a copy placed elsewhere may not share its source's.
+                    let forwardToShadowSource =
                         Array.isArray(sourceVariables) &&
                         sourceVariables.length ===
                             dependencyValues.variables.length &&

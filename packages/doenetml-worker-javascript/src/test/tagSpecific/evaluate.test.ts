@@ -6198,4 +6198,33 @@ describe("Evaluate tag tests @group2", async () => {
         expect((await numericalf("interpXscale"))(-2)).closeTo(0.64, 1e-12);
         expect((await numericalf("interpYscale"))(-2)).closeTo(-44, 1e-12);
     });
+
+    it("a function whose inputs depend on its own outputs", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <function name="f" numInputs="$f.numOutputs" variables="x y">(x+y, x-y)</function>
+  <function name="g" extend="$f" />
+  <math name="m1">$$f(3,1)</math>
+  <math name="m2">$$g(5,2)</math>
+  `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("f")].stateValues
+                .numInputs,
+        ).eq(2);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m1")].stateValues.value
+                .tree,
+        ).eqls(["vector", 4, 2]);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2")].stateValues.value
+                .tree,
+        ).eqls(["vector", 7, 3]);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
+    });
 });
