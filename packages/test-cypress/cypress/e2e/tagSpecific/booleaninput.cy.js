@@ -539,6 +539,40 @@ describe("BooleanInput Tag Tests", { tags: ["@group3"] }, function () {
         cy.get("#values").should("have.text", "true true");
     });
 
+    it("label lines up with plain text in a neighboring table cell", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <tabular>
+      <row>
+        <cell><text name="plain">plain</text></cell>
+        <cell><booleanInput name="be"><label>end</label></booleanInput></cell>
+        <cell><booleanInput name="bs" labelPosition="start"><label>start</label></booleanInput></cell>
+      </row>
+    </tabular>
+    <p name="values">$be $bs</p>
+                    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#values").should("have.text", "false false");
+
+        cy.get("#plain").then((plain) => {
+            const plainTop = plain[0].getBoundingClientRect().top;
+            for (const labelId of ["#be-label", "#bs-label"]) {
+                cy.get(labelId).then((label) => {
+                    expect(label[0].getBoundingClientRect().top).to.be.closeTo(
+                        plainTop,
+                        0.5,
+                    );
+                });
+            }
+        });
+    });
+
     it("focused state variable updates on focus and blur", () => {
         cy.window().then(async (win) => {
             win.postMessage(
