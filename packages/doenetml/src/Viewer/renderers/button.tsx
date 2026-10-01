@@ -6,6 +6,7 @@ import useDoenetRenderer, {
 import { Button } from "@doenet/ui-components";
 import { BoardContext } from "./graph";
 import { useRenderedLabel } from "./utils/inputLabel";
+import "./button.css";
 import me from "math-expressions";
 import {
     getPositionFromAnchorByCoordinate,
@@ -47,10 +48,10 @@ export default React.memo(function ButtonComponent(
         // An empty label leaves the default label
         renderedLabel = null;
     } else if (renderedLabel) {
-        // As `Button` does for a label with math, keep any math in the label
-        // from taking the clicks meant for the button.
+        // `button.css` keeps any math in the label from taking the clicks
+        // meant for the button, as `Button` does for a label with math.
         renderedLabel = (
-            <span style={{ pointerEvents: "none" }}>{renderedLabel}</span>
+            <span className="doenet-button-label">{renderedLabel}</span>
         );
     }
 

@@ -44,6 +44,15 @@ describe("Label Tag Tests", { tags: ["@group4"] }, function () {
         });
         cy.get("#uv_button").click();
         cy.get("#n").should("have.text", "1");
+        // the label's text can be clicked; its math lets clicks through to
+        // the button
+        cy.get("#uv_button ins#i3").click();
+        cy.get("#n").should("have.text", "2");
+        cy.get("#m1 mjx-container").should(
+            "have.css",
+            "pointer-events",
+            "none",
+        );
     });
 
     it("markup in the label of an answer's input", () => {

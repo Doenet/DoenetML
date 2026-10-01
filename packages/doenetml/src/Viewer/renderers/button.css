@@ -1,0 +1,9 @@
+/*
+ * MathJax handles clicks on its math, so a click on math in a button's label
+ * would not reach the button. Only the math is made transparent to clicks:
+ * the rest of the label stays a target, as the label's text was when the
+ * button showed the label as a string.
+ */
+.doenet-viewer .doenet-button-label mjx-container {
+    pointer-events: none;
+}
