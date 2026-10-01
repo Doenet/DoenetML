@@ -6,17 +6,17 @@
  * Draw the line as a background on the math instead. Display math is left
  * alone: its container spans the whole line, so a background would too.
  */
-del mjx-container:not([display="true"]),
-ins mjx-container:not([display="true"]) {
+.doenet-viewer del mjx-container:not([display="true"]),
+.doenet-viewer ins mjx-container:not([display="true"]) {
     background-image: linear-gradient(currentColor, currentColor);
     background-repeat: no-repeat;
     background-size: 100% max(1px, 0.06em);
 }
 
-del mjx-container:not([display="true"]) {
+.doenet-viewer del mjx-container:not([display="true"]) {
     background-position: 0 55%;
 }
 
-ins mjx-container:not([display="true"]) {
+.doenet-viewer ins mjx-container:not([display="true"]) {
     background-position: 0 100%;
 }
