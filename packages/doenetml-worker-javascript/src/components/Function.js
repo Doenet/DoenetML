@@ -50,6 +50,8 @@ const attributesDefiningFunction = [
     "extrema",
     "through",
     "throughSlopes",
+    "xscale",
+    "yscale",
     "variables",
     "variable",
     "symbolic",

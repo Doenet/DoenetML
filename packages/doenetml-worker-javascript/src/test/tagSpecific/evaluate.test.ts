@@ -6135,6 +6135,9 @@ describe("Evaluate tag tests @group2", async () => {
   <function name="interpCopy" extend="$interp" />
   <function name="interpThrough" extend="$interp" through="(0,1) (1,0) (2,1)" />
   <function name="interpMaxima" extend="$interp" maxima="(1.5,3)" />
+  <function name="interpExtrema" maxima="(1,1)" minima="(3,0)" />
+  <function name="interpXscale" extend="$interpExtrema" xscale="5" />
+  <function name="interpYscale" extend="$interpExtrema" yscale="5" />
   <graph>
     <curve><function name="inCurve" extend="$f" /></curve>
     <curve variable="t"><function name="inCurveT" extend="$f" /></curve>
@@ -6190,5 +6193,9 @@ describe("Evaluate tag tests @group2", async () => {
         expect((await numericalf("interpThrough"))(1)).closeTo(0, 1e-12);
         expect(await numericalf("interpMaxima")).not.toBe(interp);
         expect((await numericalf("interpMaxima"))(1.5)).closeTo(3, 1e-12);
+        // The scales set the points added beyond the given extrema
+        expect((await numericalf("interpExtrema"))(-2)).closeTo(-8, 1e-12);
+        expect((await numericalf("interpXscale"))(-2)).closeTo(0.64, 1e-12);
+        expect((await numericalf("interpYscale"))(-2)).closeTo(-44, 1e-12);
     });
 });
