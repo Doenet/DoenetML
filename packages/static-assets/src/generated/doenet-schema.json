@@ -62,6 +62,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -161,7 +163,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
             "abstractAncestors": [
                 "_textOrInline",
                 "_inline",
@@ -1242,6 +1244,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -1341,7 +1345,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -1721,6 +1725,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -1820,7 +1826,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -2205,6 +2211,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -2387,7 +2395,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -2768,6 +2776,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -2950,7 +2960,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -3331,6 +3341,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -3513,7 +3525,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -4171,6 +4183,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -4272,7 +4286,7 @@
                 "ol",
                 "ul"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111221222211221111122200",
+            "childBuckets": "11111111111111111111111111111111111111111122222112222111111111111111111111111122111111111212122221212122111111111112222221222122222211121111221222211221111122200",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -4659,6 +4673,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -4841,7 +4857,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -5055,6 +5071,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -5154,7 +5172,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -5501,6 +5519,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -5600,7 +5620,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -5947,6 +5967,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -6046,7 +6068,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -6987,6 +7009,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -7086,7 +7110,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -32525,6 +32549,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -32707,7 +32733,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_listIndexOperator",
                 "_inline",
@@ -33555,6 +33581,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -33737,7 +33765,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_listIndexOperator",
                 "_inline",
@@ -34585,6 +34613,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -34767,7 +34797,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_listIndexListOperator",
                 "_composite",
@@ -35012,6 +35042,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -35194,7 +35226,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_listIndexListOperator",
                 "_composite",
@@ -35487,6 +35519,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -35669,7 +35703,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_countingListOperator",
                 "_composite",
@@ -35925,6 +35959,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -36107,7 +36143,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_countingListOperator",
                 "_composite",
@@ -40886,6 +40922,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -40985,7 +41023,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -41192,6 +41230,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -41291,7 +41331,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -41437,7 +41477,7 @@
             "layoutCategory": "inline"
         },
         {
-            "name": "q",
+            "name": "delete",
             "children": [
                 "title",
                 "rightHandSide",
@@ -41498,6 +41538,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -41597,7 +41639,623 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "abstractAncestors": [
+                "_inlineRenderInlineChildren",
+                "_inline",
+                "_base"
+            ],
+            "attributes": [
+                {
+                    "name": "name",
+                    "description": "The name used to reference this component from elsewhere in the document.",
+                    "type": "text"
+                },
+                {
+                    "name": "hide",
+                    "description": "Whether to hide this component from the rendered output.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "disabled",
+                    "description": "Whether this component is disabled and cannot be interacted with.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "fixed",
+                    "description": "Whether this component's value is fixed and cannot be modified.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "fixLocation",
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications).",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "styleNumber",
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "defaultValue": 1,
+                    "type": "integer"
+                },
+                {
+                    "name": "isResponse",
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "extend",
+                    "description": "Extend another component by reference, inheriting its children and attributes. Enter a reference as `$name`.",
+                    "type": "reference"
+                },
+                {
+                    "name": "copy",
+                    "description": "Create an independent copy of another component by reference. Enter a references a `$name`.",
+                    "type": "reference"
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "text",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The combined text content of this component's children, with optional begin/end delimiters."
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": true,
+            "takesIndex": false,
+            "docsSlug": "delete",
+            "summary": "Text marked as deleted (struck through by default)",
+            "layoutCategory": "inline"
+        },
+        {
+            "name": "insert",
+            "children": [
+                "title",
+                "rightHandSide",
+                "xLabel",
+                "yLabel",
+                "br",
+                "m",
+                "me",
+                "men",
+                "md",
+                "mdn",
+                "mrow",
+                "not",
+                "and",
+                "or",
+                "xor",
+                "iff",
+                "implies",
+                "isInteger",
+                "isNumber",
+                "isBetween",
+                "sum",
+                "product",
+                "clampNumber",
+                "wrapNumberPeriodic",
+                "round",
+                "setSmallToZero",
+                "convertSetToList",
+                "ceil",
+                "floor",
+                "abs",
+                "sign",
+                "mean",
+                "median",
+                "variance",
+                "standardDeviation",
+                "count",
+                "min",
+                "max",
+                "mod",
+                "gcd",
+                "lcm",
+                "extractMath",
+                "cumulativeSum",
+                "cumulativeProduct",
+                "cumulativeMin",
+                "cumulativeMax",
+                "differences",
+                "argMin",
+                "argMax",
+                "indexOf",
+                "searchSorted",
+                "tally",
+                "binCounts",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "extractMathOperator",
+                "em",
+                "alert",
+                "delete",
+                "insert",
+                "q",
+                "sq",
+                "term",
+                "c",
+                "tag",
+                "tage",
+                "tagc",
+                "attr",
+                "ndash",
+                "mdash",
+                "nbsp",
+                "ellipsis",
+                "lq",
+                "rq",
+                "lsq",
+                "rsq",
+                "odeSystem",
+                "equilibriumPoint",
+                "equilibriumLine",
+                "atom",
+                "ion",
+                "ionicCompound",
+                "electronConfiguration",
+                "span",
+                "displayDoenetML",
+                "matrixInput",
+                "fractionInput",
+                "text",
+                "textList",
+                "boolean",
+                "booleanList",
+                "math",
+                "mathList",
+                "tupleList",
+                "numberList",
+                "collect",
+                "ref",
+                "point",
+                "coords",
+                "line",
+                "bezierControls",
+                "vector",
+                "angle",
+                "answer",
+                "mathInput",
+                "textInput",
+                "booleanInput",
+                "choiceInput",
+                "choice",
+                "number",
+                "integer",
+                "function",
+                "piecewiseFunction",
+                "interval",
+                "sequence",
+                "cell",
+                "repeat",
+                "repeatForSequence",
+                "intersection",
+                "conditionalContent",
+                "asList",
+                "selectFromSequence",
+                "select",
+                "group",
+                "evaluate",
+                "selectRandomNumbers",
+                "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
+                "selectPrimeNumbers",
+                "samplePrimeNumbers",
+                "substitute",
+                "periodicSet",
+                "intComma",
+                "pluralize",
+                "lorem",
+                "updateValue",
+                "callAction",
+                "triggerSet",
+                "functionIterates",
+                "module",
+                "setup",
+                "footnote",
+                "endpoint",
+                "sort",
+                "sortIndices",
+                "shuffle",
+                "solveEquations",
+                "subsetOfReals",
+                "split",
+                "bestFitLine",
+                "hasSameFactoring",
+                "label",
+                "matchesPattern",
+                "matrix",
+                "latex",
+                "pointList",
+                "intervalList",
+                "vectorList"
+            ],
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "abstractAncestors": [
+                "_inlineRenderInlineChildren",
+                "_inline",
+                "_base"
+            ],
+            "attributes": [
+                {
+                    "name": "name",
+                    "description": "The name used to reference this component from elsewhere in the document.",
+                    "type": "text"
+                },
+                {
+                    "name": "hide",
+                    "description": "Whether to hide this component from the rendered output.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "disabled",
+                    "description": "Whether this component is disabled and cannot be interacted with.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "fixed",
+                    "description": "Whether this component's value is fixed and cannot be modified.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "fixLocation",
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications).",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "styleNumber",
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "defaultValue": 1,
+                    "type": "integer"
+                },
+                {
+                    "name": "isResponse",
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "extend",
+                    "description": "Extend another component by reference, inheriting its children and attributes. Enter a reference as `$name`.",
+                    "type": "reference"
+                },
+                {
+                    "name": "copy",
+                    "description": "Create an independent copy of another component by reference. Enter a references a `$name`.",
+                    "type": "reference"
+                }
+            ],
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "text",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The combined text content of this component's children, with optional begin/end delimiters."
+                }
+            ],
+            "top": true,
+            "acceptsStringChildren": true,
+            "takesIndex": false,
+            "docsSlug": "insert",
+            "summary": "Text marked as inserted (underlined by default)",
+            "layoutCategory": "inline"
+        },
+        {
+            "name": "q",
+            "children": [
+                "title",
+                "rightHandSide",
+                "xLabel",
+                "yLabel",
+                "br",
+                "m",
+                "me",
+                "men",
+                "md",
+                "mdn",
+                "mrow",
+                "not",
+                "and",
+                "or",
+                "xor",
+                "iff",
+                "implies",
+                "isInteger",
+                "isNumber",
+                "isBetween",
+                "sum",
+                "product",
+                "clampNumber",
+                "wrapNumberPeriodic",
+                "round",
+                "setSmallToZero",
+                "convertSetToList",
+                "ceil",
+                "floor",
+                "abs",
+                "sign",
+                "mean",
+                "median",
+                "variance",
+                "standardDeviation",
+                "count",
+                "min",
+                "max",
+                "mod",
+                "gcd",
+                "lcm",
+                "extractMath",
+                "cumulativeSum",
+                "cumulativeProduct",
+                "cumulativeMin",
+                "cumulativeMax",
+                "differences",
+                "argMin",
+                "argMax",
+                "indexOf",
+                "searchSorted",
+                "tally",
+                "binCounts",
+                "clampFunction",
+                "wrapFunctionPeriodic",
+                "derivative",
+                "extractMathOperator",
+                "em",
+                "alert",
+                "delete",
+                "insert",
+                "q",
+                "sq",
+                "term",
+                "c",
+                "tag",
+                "tage",
+                "tagc",
+                "attr",
+                "ndash",
+                "mdash",
+                "nbsp",
+                "ellipsis",
+                "lq",
+                "rq",
+                "lsq",
+                "rsq",
+                "odeSystem",
+                "equilibriumPoint",
+                "equilibriumLine",
+                "atom",
+                "ion",
+                "ionicCompound",
+                "electronConfiguration",
+                "span",
+                "displayDoenetML",
+                "matrixInput",
+                "fractionInput",
+                "text",
+                "textList",
+                "boolean",
+                "booleanList",
+                "math",
+                "mathList",
+                "tupleList",
+                "numberList",
+                "collect",
+                "ref",
+                "point",
+                "coords",
+                "line",
+                "bezierControls",
+                "vector",
+                "angle",
+                "answer",
+                "mathInput",
+                "textInput",
+                "booleanInput",
+                "choiceInput",
+                "choice",
+                "number",
+                "integer",
+                "function",
+                "piecewiseFunction",
+                "interval",
+                "sequence",
+                "cell",
+                "repeat",
+                "repeatForSequence",
+                "intersection",
+                "conditionalContent",
+                "asList",
+                "selectFromSequence",
+                "select",
+                "group",
+                "evaluate",
+                "selectRandomNumbers",
+                "sampleRandomNumbers",
+                "sampleMultivariateRandomNumber",
+                "selectPrimeNumbers",
+                "samplePrimeNumbers",
+                "substitute",
+                "periodicSet",
+                "intComma",
+                "pluralize",
+                "lorem",
+                "updateValue",
+                "callAction",
+                "triggerSet",
+                "functionIterates",
+                "module",
+                "setup",
+                "footnote",
+                "endpoint",
+                "sort",
+                "sortIndices",
+                "shuffle",
+                "solveEquations",
+                "subsetOfReals",
+                "split",
+                "bestFitLine",
+                "hasSameFactoring",
+                "label",
+                "matchesPattern",
+                "matrix",
+                "latex",
+                "pointList",
+                "intervalList",
+                "vectorList"
+            ],
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -41804,6 +42462,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -41903,7 +42563,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -42110,6 +42770,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -42209,7 +42871,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -42416,6 +43078,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -42515,7 +43179,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -42722,6 +43386,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -42821,7 +43487,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -43028,6 +43694,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -43127,7 +43795,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -43334,6 +44002,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -43433,7 +44103,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -43640,6 +44310,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -43739,7 +44411,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
             "abstractAncestors": [
                 "_inlineRenderInlineChildren",
                 "_inline",
@@ -45150,6 +45822,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -45321,7 +45995,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111101110110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11110111011000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -45956,6 +46630,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -46127,7 +46803,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111101110110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11110111011000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -46762,6 +47438,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -46933,7 +47611,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111101110110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11110111011000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -47568,6 +48246,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -47739,7 +48419,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111101110110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11110111011000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -48374,6 +49054,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -48545,7 +49227,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111101110110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11110111011000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -49189,6 +49871,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -49360,7 +50044,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111101110110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11110111011000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -49995,6 +50679,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -50166,7 +50852,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111101110110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11110111011000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -50810,6 +51496,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -50981,7 +51669,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111101110110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11110111011000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -51625,6 +52313,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -51796,7 +52486,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111101110110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11110111011000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -52440,6 +53130,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -52611,7 +53303,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111101110110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11110111011000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -53255,6 +53947,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -53426,7 +54120,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111101110110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11110111011000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -54061,6 +54755,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -54232,7 +54928,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111101110110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11110111011000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -54867,6 +55563,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -55038,7 +55736,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111101110110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11110111011000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -55673,6 +56371,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -55844,7 +56544,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111101110110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11110111011000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -56479,6 +57179,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -56650,7 +57352,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111101110110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11110111011000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -57285,6 +57987,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -57456,7 +58160,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111101110110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11110111011000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -58091,6 +58795,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -58262,7 +58968,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111101110110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11110111011000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_unnumberedSectioningComponent",
                 "_sectioningComponent",
@@ -58894,6 +59600,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -59065,7 +59773,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111101110110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11110111011000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -59705,6 +60413,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -59876,7 +60586,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "111101110110000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "11110111011000001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_sectioningComponentNumberWithSiblings",
                 "_sectioningComponent",
@@ -61223,6 +61933,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -61405,7 +62117,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -68950,6 +69662,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -69132,7 +69846,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -69337,6 +70051,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -69519,7 +70235,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -69900,6 +70616,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -70082,7 +70800,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -70463,6 +71181,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -70645,7 +71365,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -70850,6 +71570,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -71032,7 +71754,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -71261,6 +71983,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -71443,7 +72167,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -72976,6 +73700,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -73130,7 +73856,7 @@
                 "cascade",
                 "page"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111122222112222111111111111111111111112211111111121212222121212211111111111222222122212222221112111122122221122111112221111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111112211111111121212222121212211111111111222222122212222221112111122122221122111112221111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -73335,6 +74061,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -73489,7 +74217,7 @@
                 "cascade",
                 "page"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111122222112222111111111111111111111112211111111121212222121212211111111111222222122212222221112111122122221122111112221111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111112211111111121212222121212211111111111222222122212222221112111122122221122111112221111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -73713,6 +74441,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -73884,7 +74614,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11110111011000011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111011101100001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -75632,6 +76362,8 @@
                 "rsq",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -75641,7 +76373,7 @@
                 "tagc",
                 "attr"
             ],
-            "childBuckets": "222222222222222222222222222222222222222222222222212220222222222222222222222222222221122222222222212111111111111111111",
+            "childBuckets": "22222222222222222222222222222222222222222222222221222022222222222222222222222222222112222222222221211111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -76322,6 +77054,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -76423,7 +77157,7 @@
                 "ol",
                 "ul"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122221212122111111111112222221222122222211121111221222211221111122200",
+            "childBuckets": "11111111111111111111111111111111111111111122222112222111111111111111111111111122111111111212122221212122111111111112222221222122222211121111221222211221111122200",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -79395,6 +80129,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -79577,7 +80313,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -96034,6 +96770,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -96216,7 +96954,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -101529,6 +102267,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -101711,7 +102451,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -103197,6 +103937,8 @@
                 "chart",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -103318,7 +104060,7 @@
                 "cascade",
                 "page"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111110111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -105129,6 +105871,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -105273,7 +106017,7 @@
                 "cascade",
                 "page"
             ],
-            "childBuckets": "02222222222111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222121212211111111111222121222222111211111221122111112221111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "0222222222211111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222121212211111111111222121222222111211111221122111112221111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -105522,6 +106266,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -105665,7 +106411,7 @@
                 "cascade",
                 "page"
             ],
-            "childBuckets": "22222222022111111111111111111111111111111111111111111222221122221111111111111111111111122111111111212122212121221111111111122212122222211121111122112211111222111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "2222222202211111111111111111111111111111111111111111122222112222111111111111111111111111122111111111212122212121221111111111122212122222211121111122112211111222111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -105908,6 +106654,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -106112,7 +106860,7 @@
                 "description",
                 "shortDescription"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111112222222222222222222222",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111112222222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -106312,6 +107060,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -106516,7 +107266,7 @@
                 "description",
                 "shortDescription"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111112222222222222222222222",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111112222222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -108862,6 +109612,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -109055,7 +109807,7 @@
                 "description",
                 "shortDescription"
             ],
-            "childBuckets": "111111011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111022222222222222222222",
+            "childBuckets": "11111101111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111022222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -109240,6 +109992,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -109339,7 +110093,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -110186,6 +110940,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -110390,7 +111146,7 @@
                 "description",
                 "shortDescription"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111112222222222222222222222",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111112222222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -113400,6 +114156,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -113582,7 +114340,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -115836,6 +116594,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -116008,7 +116768,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "01111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "0111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -116270,6 +117030,8 @@
                 "rsq",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -116279,7 +117041,7 @@
                 "tagc",
                 "attr"
             ],
-            "childBuckets": "222222222222222222222222222222222222222222222222212220222222222222222222222222222221122222222222212111111111111111111",
+            "childBuckets": "22222222222222222222222222222222222222222222222221222022222222222222222222222222222112222222222221211111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -116759,6 +117521,8 @@
                 "rsq",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -116768,7 +117532,7 @@
                 "tagc",
                 "attr"
             ],
-            "childBuckets": "222222222222222222222222222222222222222222222222212220222222222222222222222222222221122222222222212111111111111111111",
+            "childBuckets": "22222222222222222222222222222222222222222222222221222022222222222222222222222222222112222222222221211111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -117229,6 +117993,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -117411,7 +118177,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -117613,6 +118379,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -117795,7 +118563,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -117999,6 +118767,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -118181,7 +118951,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_base"
             ],
@@ -118989,6 +119759,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -119160,7 +119932,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111101111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111110111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -120169,6 +120941,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -120373,7 +121147,7 @@
                 "description",
                 "shortDescription"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111112222222222222222222222",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111112222222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -120565,6 +121339,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -120747,7 +121523,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -120941,6 +121717,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -121132,7 +121910,7 @@
                 "description",
                 "shortDescription"
             ],
-            "childBuckets": "011111111110011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111112222222222222222222",
+            "childBuckets": "01111111111001111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111112222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -121308,6 +122086,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -121407,7 +122187,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -121619,6 +122399,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -121773,7 +122555,7 @@
                 "cascade",
                 "page"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111122222112222111111111111111111111112211111111121212222121212211111111111222222122212222221112111122122221122111112221111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111112211111111121212222121212211111111111222222122212222221112111122122221122111112221111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -122761,6 +123543,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -122965,7 +123749,7 @@
                 "description",
                 "shortDescription"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111112222222222222222222222",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111112222222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -123238,6 +124022,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -123420,7 +124206,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -123693,6 +124479,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -123897,7 +124685,7 @@
                 "description",
                 "shortDescription"
             ],
-            "childBuckets": "111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111112222222222222222222222",
+            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111112222222222222222222222",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -125658,6 +126446,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -125840,7 +126630,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_composite",
                 "_base"
@@ -128339,6 +129129,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -128521,7 +129313,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -130267,6 +131059,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -130366,7 +131160,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -132579,6 +133373,8 @@
                 "rsq",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -132610,7 +133406,7 @@
                 "md",
                 "mdn"
             ],
-            "childBuckets": "1220111222222222111111111111111111111122222112222122102220222212221222222221222222111222222122221121111111111111111112222222222222222222201",
+            "childBuckets": "122011122222222211111111111111111111112222211222212210222022221222122222222122222211122222212222112111111111111111111112222222222222222222201",
             "abstractAncestors": [
                 "_inline",
                 "_base"
@@ -133051,6 +133847,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -133233,7 +134031,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -133438,6 +134236,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -133620,7 +134420,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -134624,6 +135424,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -134796,7 +135598,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "011111110110111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "01111111011011111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -135102,6 +135904,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -135284,7 +136088,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "11111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
+            "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_block",
                 "_base"
@@ -135490,6 +136294,8 @@
                 "extractMathOperator",
                 "em",
                 "alert",
+                "delete",
+                "insert",
                 "q",
                 "sq",
                 "term",
@@ -135589,7 +136395,7 @@
                 "intervalList",
                 "vectorList"
             ],
-            "childBuckets": "1111111111111111111111111111111111111111112222211222211111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
+            "childBuckets": "111111111111111111111111111111111111111111222221122221111111111111111111111111221111111112121222212121221111111111122222212221222222111211112212222112211111222",
             "abstractAncestors": [
                 "_textOrInline",
                 "_inline",

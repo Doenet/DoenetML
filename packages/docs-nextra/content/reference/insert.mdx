@@ -1,0 +1,28 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<insert>{:dn}`
+
+<ComponentDisplay name='insert'/>
+
+The `<insert>{:dn}` component is a [Paragraph Markup](../concepts/essentialConcepts#component-types) 
+component which marks the enclosed text as inserted. It is rendered underlined.
+Inline math inside is underlined along with the text; display math and inputs
+inside are not.
+
+Use `<insert>{:dn}` together with [`<delete>{:dn}`](delete) to show an edit: what was 
+removed and what replaced it.
+
+<AttrPropDisplay name='insert'/>
+
+## Examples
+
+### Example: `<insert>{:dn}` adding a missing word
+
+```doenet-example
+<p>The potion <insert>only</insert> heals you if you drink all of it.</p>
+```
+
+The `<insert>{:dn}` component renders the enclosed text underlined.

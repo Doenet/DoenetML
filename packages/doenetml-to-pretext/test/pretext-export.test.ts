@@ -118,6 +118,15 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("<delete> and <insert> keep their PreTeXt names", async () => {
+        source = `<p>The answer is <delete>4</delete> <insert>5</insert>.</p>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<p>The answer is <delete>4</delete> <insert>5</insert>.</p>"`,
+        );
+    });
+
     it("an expanded input becomes room to write inside a handout", async () => {
         // A text area is a place to write a long answer, which on paper is blank
         // space. PreTeXt only leaves that space inside a printout division.
@@ -256,6 +265,13 @@ describe("Pretext export", async () => {
         source = `<ol><li><em>Why? <answer type="text" handGraded expanded /></em></li></ol>`;
         expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
             `<li xml:id="doenet-id-2"><p workspace="1.25in"><em>Why? </em></p></li>`,
+        );
+    });
+
+    it("room to write is placed outside a deletion around the question", async () => {
+        source = `<ol><li><delete>Why? <answer type="text" handGraded expanded /></delete></li></ol>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<li xml:id="doenet-id-2"><p workspace="1.25in"><delete>Why? </delete></p></li>`,
         );
     });
 
