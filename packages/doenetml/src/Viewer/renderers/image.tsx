@@ -545,6 +545,7 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
         isClickTarget ? (
             <ClickTargetButton
                 block={SVs.displayMode !== "inline"}
+                ariaDetails={descriptionId}
                 onClick={() =>
                     callAction({
                         action: actions.imageClicked,

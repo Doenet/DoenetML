@@ -116,7 +116,7 @@ describe("Click target tests", { tags: ["@group4"] }, function () {
                     doenetML: `
     <setup><text name="t">copied</text></setup>
     <p><number name="num">5</number> <label name="lab">a <m>x^2</m> label</label> <span name="s">$t</span></p>
-    <image name="img" source="./Doenet_Logo_Frontpage.png" width="100px"><shortDescription>The Doenet logo</shortDescription></image>
+    <image name="img" source="./Doenet_Logo_Frontpage.png" width="100px"><shortDescription>The Doenet logo</shortDescription><description><p>A large D.</p></description></image>
     <p>Count: <number name="n">0</number></p>
     <updateValue target="$n" newValue="$n+1" triggerWhenObjectsClicked="$num $lab $img $t" hide />
     `,
@@ -147,6 +147,17 @@ describe("Click target tests", { tags: ["@group4"] }, function () {
             .parent()
             .should("match", '.doenet-click-target[role="button"]')
             .and("have.class", "doenet-click-target--block");
+        cy.log(
+            "The button, whose content is presentational, carries the description",
+        );
+        cy.get("#img").then(($img) => {
+            const descriptionId = $img.attr("aria-details");
+            expect(descriptionId).to.be.a("string").and.not.empty;
+            cy.get("#img")
+                .parent()
+                .should("have.attr", "aria-details", descriptionId);
+            cy.get(`#${descriptionId}`).should("contain.text", "A large D.");
+        });
         cy.get("#img").click();
         cy.get("#n").should("have.text", "3");
 

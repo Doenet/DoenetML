@@ -31,14 +31,20 @@ export function useClickTargetAllowed(): boolean {
  *
  * Set `block` for content that is displayed as a block, such as an image
  * on its own line.
+ *
+ * Set `ariaDetails` to the id of the content's description. The button's
+ * content is presentational to assistive technology, so an `aria-details`
+ * on the content itself is not announced.
  */
 export function ClickTargetButton({
     onClick,
     block = false,
+    ariaDetails,
     children,
 }: {
     onClick: () => void;
     block?: boolean;
+    ariaDetails?: string;
     children: React.ReactNode;
 }) {
     const buttonRef = useRef<HTMLSpanElement>(null);
@@ -77,6 +83,7 @@ export function ClickTargetButton({
             ref={buttonRef}
             role="button"
             tabIndex={0}
+            aria-details={ariaDetails}
             className={
                 block
                     ? "doenet-click-target doenet-click-target--block"
