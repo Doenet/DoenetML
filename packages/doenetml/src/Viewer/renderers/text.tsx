@@ -295,7 +295,13 @@ export default React.memo(function Text(props: UseDoenetRendererProps) {
         </span>
     );
 
-    if (SVs.clickTarget && !SVs.fixed && clickTargetAllowed) {
+    // Blank content would make a button with no name.
+    if (
+        SVs.clickTarget &&
+        !SVs.fixed &&
+        clickTargetAllowed &&
+        SVs.text.trim() !== ""
+    ) {
         return (
             <ClickTargetButton
                 onClick={() =>

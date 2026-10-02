@@ -1,4 +1,10 @@
-import React, { createContext, useContext, useRef } from "react";
+import React, {
+    createContext,
+    useContext,
+    useLayoutEffect,
+    useRef,
+    useState,
+} from "react";
 import { useMathJaxOutOfTabOrder } from "./useMathJaxOutOfTabOrder";
 import "./clickTarget.css";
 
@@ -9,6 +15,13 @@ import "./clickTarget.css";
  * interactive element inside another.
  */
 export const NoClickTargetContext = createContext(false);
+
+/**
+ * Controls that content can bring into a click target, such as a `<ref>`
+ * link or an input in a `<label>`.
+ */
+const CONTROL_SELECTOR =
+    'a[href], button, input, select, textarea, [role="button"], [contenteditable="true"]';
 
 /**
  * Return whether a component that is a click target may render as a
@@ -35,6 +48,10 @@ export function useClickTargetAllowed(): boolean {
  * Set `ariaDetails` to the id of the content's description. The button's
  * content is presentational to assistive technology, so an `aria-details`
  * on the content itself is not announced.
+ *
+ * Content that holds a control of its own, such as a `<label>` with a
+ * `<ref>` in it, is shown plain instead: a control inside a button can't
+ * be reached, and its clicks would also activate the button.
  */
 export function ClickTargetButton({
     onClick,
@@ -54,6 +71,26 @@ export function ClickTargetButton({
 
     // Math inside the button must not add a tab stop of its own.
     useMathJaxOutOfTabOrder(buttonRef);
+
+    const [containsControl, setContainsControl] = useState(false);
+
+    // Check again whenever the content changes, since a child can render
+    // its control after this mounts.
+    useLayoutEffect(() => {
+        const root = buttonRef.current;
+        if (!root) {
+            return;
+        }
+        const check = () => {
+            setContainsControl(root.querySelector(CONTROL_SELECTOR) !== null);
+        };
+        check();
+        const observer = new MutationObserver(check);
+        observer.observe(root, { childList: true, subtree: true });
+        return () => {
+            observer.disconnect();
+        };
+    }, []);
 
     function onKeyDown(e: React.KeyboardEvent) {
         if (e.altKey || e.ctrlKey || e.metaKey) {
@@ -76,6 +113,16 @@ export function ClickTargetButton({
             spacePressed.current = false;
             onClick();
         }
+    }
+
+    if (containsControl) {
+        return (
+            <span ref={buttonRef}>
+                <NoClickTargetContext.Provider value={true}>
+                    {children}
+                </NoClickTargetContext.Provider>
+            </span>
+        );
     }
 
     return (

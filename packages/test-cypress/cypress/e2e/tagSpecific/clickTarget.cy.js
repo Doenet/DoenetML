@@ -109,6 +109,31 @@ describe("Click target tests", { tags: ["@group4"] }, function () {
         cy.get("#n").should("have.text", "0");
     });
 
+    it("a label holding a control, and blank text, stay plain", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p><label name="lab">see <ref name="r" to="#n">this</ref> and <booleanInput name="bi" /></label></p>
+    <p>x<text name="empty"></text>y <text name="blank">  </text>z</p>
+    <p>Count: <number name="n">0</number></p>
+    <updateValue target="$n" newValue="$n+1" triggerWhenObjectsClicked="$lab $empty $blank" hide />
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#bi_input").should("exist");
+        cy.get("#lab").closest('[role="button"]').should("not.exist");
+        cy.get(".doenet-click-target").should("not.exist");
+
+        cy.log("The checkbox in the label works and fires nothing");
+        cy.get("#bi").click();
+        cy.get("#bi_input").should("be.checked");
+        cy.get("#n").should("have.text", "0");
+    });
+
     it("number, label, image, and a reference to a text", () => {
         cy.window().then(async (win) => {
             win.postMessage(
