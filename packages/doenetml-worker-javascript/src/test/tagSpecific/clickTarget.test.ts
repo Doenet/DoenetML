@@ -104,6 +104,54 @@ describe("Click target tests @group1", async () => {
         ).eq(false);
     });
 
+    it("a click reference that is ignored does not make a click target", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p><text name="t1">one</text> <text name="t2">two</text> <text name="t3">three</text></p>
+    <number name="n">0</number>
+    <boolean name="b">false</boolean>
+    <triggerSet triggerWhenObjectsClicked="$t3">
+      <updateValue target="$n" newValue="$n+1" triggerWhenObjectsClicked="$t1" />
+    </triggerSet>
+    <updateValue target="$n" newValue="$n+10" triggerWhen="$b" triggerWhenObjectsClicked="$t2" />
+    `,
+        });
+
+        const nIdx = await resolvePathToNodeIdx("n");
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t1")].stateValues
+                .clickTarget,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t2")].stateValues
+                .clickTarget,
+        ).eq(false);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("t3")].stateValues
+                .clickTarget,
+        ).eq(true);
+
+        for (const name of ["t1", "t2"]) {
+            await clickComponent({
+                componentIdx: await resolvePathToNodeIdx(name),
+                actionName: "textClicked",
+                core,
+            });
+        }
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[nIdx].stateValues.value).eq(0);
+
+        await clickComponent({
+            componentIdx: await resolvePathToNodeIdx("t3"),
+            actionName: "textClicked",
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[nIdx].stateValues.value).eq(1);
+    });
+
     it("a bare reference to a click target is a click target, but an extension is not", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
