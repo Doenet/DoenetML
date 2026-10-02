@@ -262,7 +262,8 @@ export default React.memo(function subsetOfReals(
     }
 
     async function handleInput(e: React.MouseEvent, inputState: string) {
-        let mouseLeft = e.clientX - (bounds.current?.offsetLeft ?? 0);
+        let mouseLeft =
+            e.clientX - (bounds.current?.getBoundingClientRect().left ?? 0);
         let xPosition = xPositionToXValue(mouseLeft);
         let pointHitTolerance = 0.2;
 
