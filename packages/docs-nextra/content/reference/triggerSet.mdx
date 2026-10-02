@@ -200,7 +200,23 @@ component has a change in value, the actions within the `<triggerSet>{:dn}` are 
 
 
 
-The `triggerWhenObjectsClicked` attribute takes a list of target "objects" as its input. Objects are components that have been defined within the graph and can be clicked.
+The `triggerWhenObjectsClicked` attribute takes a list of target "objects" as its input. Objects are components that can be clicked: graphical components in a graph, and a `<text>{:dn}`, `<number>{:dn}`, `<label>{:dn}`, or `<image>{:dn}` outside a graph.
+
+```doenet-editor-horiz
+<setup>
+  <number name="clicks">0</number>
+  <number name="total">0</number>
+</setup>
+
+<p>Click the number <number name="five">5</number> to add it to the total.</p>
+
+<p>You have clicked $clicks times, for a total of $total.</p>
+
+<triggerSet triggerWhenObjectsClicked="$five">
+  <updateValue target="$clicks" newValue="$clicks + 1" />
+  <updateValue target="$total" newValue="$total + $five" />
+</triggerSet>
+```
 
 
 

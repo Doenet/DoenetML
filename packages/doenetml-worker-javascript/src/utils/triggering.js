@@ -189,3 +189,36 @@ export function addStandardTriggeringStateVariableDefinitions(
         }
     };
 }
+
+/**
+ * Add the `clickTarget` state variable, which tells the renderer whether
+ * clicking this component fires an action. It is true when another
+ * component lists this one in `triggerWhenObjectsClicked`, or when this
+ * component is a bare reference (such as `$t`) to a component that is a
+ * click target, since clicking the reference fires the same actions.
+ */
+export function addClickTargetStateVariableDefinition(
+    stateVariableDefinitions,
+) {
+    stateVariableDefinitions.clickTarget = {
+        forRenderer: true,
+        returnDependencies: () => ({
+            componentsTriggeredByClick: {
+                dependencyType: "componentsReferencingAttribute",
+                attributeName: "triggerWhenObjectsClicked",
+            },
+            shadowSourceClickTarget: {
+                dependencyType: "shadowSourceStateVariable",
+                variableName: "clickTarget",
+                onlyBareReferences: true,
+            },
+        }),
+        definition({ dependencyValues }) {
+            const clickTarget =
+                (dependencyValues.componentsTriggeredByClick ?? []).length >
+                    0 || dependencyValues.shadowSourceClickTarget === true;
+
+            return { setValue: { clickTarget } };
+        },
+    };
+}

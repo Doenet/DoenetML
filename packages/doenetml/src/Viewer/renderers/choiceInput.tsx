@@ -26,6 +26,7 @@ import { useSubmitActionWithDelay } from "./utils/useSubmitActionWithDelay";
 import { useContentT, useT } from "../../utils/i18n";
 import { useInMathSlot, useMathSlotEditing } from "./utils/mathInputSlots";
 import { useMathJaxOutOfTabOrder } from "./utils/useMathJaxOutOfTabOrder";
+import { NoClickTargetContext } from "./utils/ClickTarget";
 
 // type guard
 const isMultiValue = <T,>(
@@ -631,7 +632,10 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                     verticalAlign: "baseline",
                 }}
             >
-                {selectWithDynamicWidth}
+                {/* Every choice is shown inside the select, so none can be a click target. */}
+                <NoClickTargetContext.Provider value={true}>
+                    {selectWithDynamicWidth}
+                </NoClickTargetContext.Provider>
                 {checkWorkComponent}
                 {description}
             </span>
@@ -782,7 +786,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                                 />
                                 <span className={radioClassName} />
                                 <span style={{ marginInlineStart: "2px" }}>
-                                    {child}
+                                    <NoClickTargetContext.Provider value={true}>
+                                        {child}
+                                    </NoClickTargetContext.Provider>
                                 </span>
                             </label>
                         </li>
@@ -820,7 +826,9 @@ export default React.memo(function ChoiceInput(props: UseDoenetRendererProps) {
                                 />
                                 <span className={checkboxClassName} />
                                 <span style={{ marginInlineStart: "2px" }}>
-                                    {child}
+                                    <NoClickTargetContext.Provider value={true}>
+                                        {child}
+                                    </NoClickTargetContext.Provider>
                                 </span>
                             </label>
                         </li>

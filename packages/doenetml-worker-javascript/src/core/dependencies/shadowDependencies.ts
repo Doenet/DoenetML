@@ -289,6 +289,11 @@ export class ShadowSourceStateVariableDependency extends Dependency {
             ];
         }
 
+        // If `onlyBareReferences` is set, only follow a shadow created by a
+        // bare reference such as `$t`, not one created via `extend`/`copy`.
+        // This matches which shadows `triggerChainedActions` follows.
+        this.onlyBareReferences = this.definition.onlyBareReferences || false;
+
         this.returnSingleVariableValue = true;
 
         // for shadow source
@@ -350,6 +355,21 @@ export class ShadowSourceStateVariableDependency extends Dependency {
                 downstreamComponentIndices: [],
                 downstreamComponentTypes: [],
             };
+        }
+
+        if (this.onlyBareReferences) {
+            const compositeIdx = component.shadows.compositeIdx;
+            const composite =
+                compositeIdx === undefined
+                    ? undefined
+                    : this.dependencyHandler._components[compositeIdx];
+            if (composite?.attributes.createComponentOfType != null) {
+                return {
+                    success: true,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            }
         }
 
         let shadowSourceComponentIdx = component.shadows.componentIdx;

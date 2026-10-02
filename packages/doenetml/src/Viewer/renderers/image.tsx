@@ -26,11 +26,13 @@ import {
     toNumberOrNaN,
 } from "@doenet/utils";
 import { DocContext } from "../DocViewer";
+import { ClickTargetButton, useClickTargetAllowed } from "./utils/ClickTarget";
 
 interface ImageSVs {
     hidden: boolean;
     layer: number;
     fixed: boolean;
+    clickTarget: boolean;
     fixLocation: boolean;
     draggable: boolean;
     anchor: any;
@@ -90,6 +92,7 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
     let lastUrl = useRef<string>("");
 
     const board = useContext(BoardContext);
+    const clickTargetAllowed = useClickTargetAllowed();
 
     const pointerState = usePointerDragState();
     let pointAtDown = useRef<number[] | null>(null);
@@ -523,7 +526,7 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
             );
     }
 
-    const media = url ? (
+    const img = (
         <img
             id={id}
             src={url}
@@ -531,6 +534,29 @@ export default React.memo(function Image(props: UseDoenetRendererProps) {
             alt={shortDescription}
             aria-details={descriptionId}
         />
+    );
+
+    // The image's short description names the button, so an image without
+    // one is not made a button.
+    const isClickTarget =
+        SVs.clickTarget && !SVs.fixed && clickTargetAllowed && shortDescription;
+
+    const media = url ? (
+        isClickTarget ? (
+            <ClickTargetButton
+                block={SVs.displayMode !== "inline"}
+                onClick={() =>
+                    callAction({
+                        action: actions.imageClicked,
+                        args: { componentIdx },
+                    })
+                }
+            >
+                {img}
+            </ClickTargetButton>
+        ) : (
+            img
+        )
     ) : (
         <div id={id} style={imageStyle}>
             {SVs.shortDescription}

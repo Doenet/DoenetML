@@ -11,6 +11,7 @@ import { addCommasForCompositeRanges } from "./utils/composites";
 import { useChromeLangDir, useT } from "../../utils/i18n";
 import { clickToToggleLabel } from "./utils/disclosure";
 import "./hint.css";
+import { NoClickTargetContext } from "./utils/ClickTarget";
 
 interface HintSVs {
     [key: string]: any;
@@ -137,7 +138,11 @@ export default React.memo(function Hint(props: UseDoenetRendererProps) {
                 onKeyDown={onKeyPressFunction}
             >
                 {" "}
-                {icon} {title} <span {...chromeLangDir}>{openCloseText}</span>
+                {icon}{" "}
+                <NoClickTargetContext.Provider value={true}>
+                    {title}
+                </NoClickTargetContext.Provider>{" "}
+                <span {...chromeLangDir}>{openCloseText}</span>
             </span>
             <span style={infoBlockStyle}>{info}</span>
         </aside>

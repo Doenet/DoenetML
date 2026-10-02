@@ -18,6 +18,7 @@ import {
 } from "../utils/math";
 import InlineComponent from "./abstract/InlineComponent";
 import me from "math-expressions";
+import { addClickTargetStateVariableDefinition } from "../utils/triggering";
 
 export default class Text extends InlineComponent {
     constructor(args) {
@@ -379,6 +380,8 @@ export default class Text extends InlineComponent {
 
         let pieceDefs = returnTextPieceStateVariableDefinitions();
         Object.assign(stateVariableDefinitions, pieceDefs);
+
+        addClickTargetStateVariableDefinition(stateVariableDefinitions);
 
         return stateVariableDefinitions;
     }

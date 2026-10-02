@@ -23,11 +23,13 @@ import {
 } from "./utils/useAnchoredGraphDragHandler";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 import { resolveBackgroundColor, resolveTextColor } from "./utils/styleColors";
+import { ClickTargetButton, useClickTargetAllowed } from "./utils/ClickTarget";
 
 interface NumberSVs {
     hidden: boolean;
     layer: number;
     fixed: boolean;
+    clickTarget: boolean;
     fixLocation: boolean;
     draggable: boolean;
     anchor: any;
@@ -52,6 +54,7 @@ export default React.memo(function NumberComponent(
 
     const board = useContext(BoardContext);
     const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
+    const clickTargetAllowed = useClickTargetAllowed();
     const { inheritTextColor } = useContext(InputLabelContext);
 
     const pointerState = usePointerDragState();
@@ -295,9 +298,26 @@ export default React.memo(function NumberComponent(
             ? textRendererStyle(darkMode ?? "light", SVs.selectedStyle)
             : undefined;
 
-    return (
+    const content = (
         <span style={style} id={id}>
             <DynamicMath latex={number} />
         </span>
     );
+
+    if (SVs.clickTarget && !SVs.fixed && clickTargetAllowed) {
+        return (
+            <ClickTargetButton
+                onClick={() =>
+                    callAction({
+                        action: actions.numberClicked,
+                        args: { componentIdx },
+                    })
+                }
+            >
+                {content}
+            </ClickTargetButton>
+        );
+    }
+
+    return content;
 });

@@ -617,6 +617,17 @@ the `<callAction>{:dn}` is performed.
 
 
 The `triggerWhenObjectsClicked` attribute takes a component reference as input. Any
-graphical component that can be clicked can serve as a trigger.
+graphical component that can be clicked can serve as a trigger, as can a `<text>{:dn}`,
+`<number>{:dn}`, `<label>{:dn}`, or `<image>{:dn}` outside a graph.
+
+```doenet-editor-horiz
+<p>Click <text name="again">here</text> for a new number: <sampleRandomNumbers name="n" type="discreteUniform" from="1" to="100" /></p>
+
+<callAction 
+  actionName="resample" 
+  target="$n" 
+  triggerWhenObjectsClicked="$again"
+/>
+```
 
 

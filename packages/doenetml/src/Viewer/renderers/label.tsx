@@ -24,11 +24,17 @@ import { resolveBackgroundColor, resolveTextColor } from "./utils/styleColors";
 import { computeLabelMaskCssStyle } from "./utils/labelMaskStyle";
 import { InputLabelContext } from "./utils/inputLabel";
 import { renderMarkupBody } from "./utils/markupRenderer";
+import {
+    ClickTargetButton,
+    NoClickTargetContext,
+    useClickTargetAllowed,
+} from "./utils/ClickTarget";
 
 interface LabelSVs {
     hidden: boolean;
     layer: number;
     fixed: boolean;
+    clickTarget: boolean;
     fixLocation: boolean;
     draggable: boolean;
     anchor: any;
@@ -56,6 +62,7 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
     const { inLabel: inInputLabel } = useContext(InputLabelContext);
     const board = useContext(BoardContext);
     const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
+    const clickTargetAllowed = useClickTargetAllowed();
 
     const pointerState = usePointerDragState();
     const pointAtDown = useRef<number[] | null>(null);
@@ -351,16 +358,35 @@ export default React.memo(function Label(props: UseDoenetRendererProps) {
                 id={id}
                 htmlFor={`${SVs.forTargetRendererId}_input`}
             >
-                {label}
+                <NoClickTargetContext.Provider value={true}>
+                    {label}
+                </NoClickTargetContext.Provider>
             </label>
         );
     }
 
-    return (
+    const content = (
         <span style={style} id={id}>
             {label}
         </span>
     );
+
+    if (SVs.clickTarget && !SVs.fixed && clickTargetAllowed) {
+        return (
+            <ClickTargetButton
+                onClick={() =>
+                    callAction({
+                        action: actions.labelClicked,
+                        args: { componentIdx },
+                    })
+                }
+            >
+                {content}
+            </ClickTargetButton>
+        );
+    }
+
+    return content;
 });
 
 /**

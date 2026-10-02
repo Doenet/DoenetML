@@ -21,11 +21,13 @@ import {
 } from "./utils/useAnchoredGraphDragHandler";
 import { useJSXGraphCleanup } from "./utils/useJSXGraphCleanup";
 import { resolveBackgroundColor, resolveTextColor } from "./utils/styleColors";
+import { ClickTargetButton, useClickTargetAllowed } from "./utils/ClickTarget";
 
 interface TextSVs {
     hidden: boolean;
     layer: number;
     fixed: boolean;
+    clickTarget: boolean;
     fixLocation: boolean;
     draggable: boolean;
     anchor: any;
@@ -47,6 +49,7 @@ export default React.memo(function Text(props: UseDoenetRendererProps) {
 
     const board = useContext(BoardContext);
     const choiceInputInlineContext = useContext(ChoiceInputInlineContext);
+    const clickTargetAllowed = useClickTargetAllowed();
     const { inheritTextColor } = useContext(InputLabelContext);
 
     const pointerState = usePointerDragState();
@@ -286,11 +289,26 @@ export default React.memo(function Text(props: UseDoenetRendererProps) {
             ? textRendererStyle(darkMode ?? "light", SVs.selectedStyle)
             : undefined;
 
-    return (
-        <>
-            <span id={id} style={style}>
-                {SVs.text}
-            </span>
-        </>
+    const content = (
+        <span id={id} style={style}>
+            {SVs.text}
+        </span>
     );
+
+    if (SVs.clickTarget && !SVs.fixed && clickTargetAllowed) {
+        return (
+            <ClickTargetButton
+                onClick={() =>
+                    callAction({
+                        action: actions.textClicked,
+                        args: { componentIdx },
+                    })
+                }
+            >
+                {content}
+            </ClickTargetButton>
+        );
+    }
+
+    return content;
 });

@@ -432,6 +432,26 @@ export async function clickPoint({
     });
 }
 
+/**
+ * Click a component that has a `*Clicked` action, such as a `<text>`
+ * (`textClicked`) or an `<image>` (`imageClicked`).
+ */
+export async function clickComponent({
+    componentIdx,
+    actionName,
+    core,
+}: {
+    componentIdx: number;
+    actionName: string;
+    core: PublicDoenetMLCore;
+}) {
+    await core.requestAction({
+        componentIdx,
+        actionName,
+        args: { componentIdx },
+    });
+}
+
 export async function movePoint({
     componentIdx,
     x,
