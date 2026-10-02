@@ -1,13 +1,6 @@
-.doenet-viewer button.doenet-click-target {
-    display: inline;
+.doenet-viewer span.doenet-click-target {
     margin: 0 -2px;
     padding: 0 2px;
-    border: none;
-    background: none;
-    color: inherit;
-    font: inherit;
-    line-height: inherit;
-    text-align: inherit;
     cursor: pointer;
     text-decoration: underline dotted;
     text-underline-offset: 0.2em;
@@ -20,14 +13,20 @@
     }
 }
 
-.doenet-viewer button.doenet-click-target--block {
+@media (forced-colors: active) {
+    .doenet-viewer span.doenet-click-target:focus-visible {
+        outline-color: Highlight;
+    }
+}
+
+.doenet-viewer span.doenet-click-target--block {
     display: block;
     margin: 0;
     padding: 0;
 }
 
 /* An image has no text to underline, so a dotted outline marks it. */
-.doenet-viewer button.doenet-click-target img {
+.doenet-viewer span.doenet-click-target img {
     outline: 1px dotted var(--canvasText);
     outline-offset: 1px;
 }

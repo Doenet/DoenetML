@@ -4,7 +4,7 @@ describe("Click target tests", { tags: ["@group4"] }, function () {
         cy.visit("/");
     });
 
-    it("click a text in a paragraph, and tab to it", () => {
+    it("click a text in a paragraph with the mouse and the keyboard", () => {
         cy.window().then(async (win) => {
             win.postMessage(
                 {
@@ -21,25 +21,32 @@ describe("Click target tests", { tags: ["@group4"] }, function () {
 
         cy.get("#t")
             .parent()
-            .should("match", "button.doenet-click-target")
-            .and("have.attr", "type", "button");
-        cy.get("#t2").parent().should("not.match", "button");
+            .should("match", '.doenet-click-target[role="button"]')
+            .and("have.attr", "tabindex", "0");
+        cy.get("#t2").parent().should("not.match", '[role="button"]');
 
         cy.get("#t").click();
         cy.get("#n").should("have.text", "1");
 
-        cy.log(
-            "Tab from the button before it lands on the text's native button, which the browser activates with Enter and Space",
-        );
+        cy.log("Tab from the button before it lands on the text");
         cy.get("#before_button").focus().tab();
         cy.focused()
-            .should("match", 'button.doenet-click-target[type="button"]')
+            .should("match", '.doenet-click-target[role="button"]')
             .find("#t")
             .should("exist");
 
+        cy.focused().type("{enter}");
+        cy.get("#n").should("have.text", "2");
+
+        cy.focused().type(" ");
+        cy.get("#n").should("have.text", "3");
+
+        cy.log("Space does not scroll the page");
+        cy.window().its("scrollY").should("eq", 0);
+
         cy.log("Clicking the other text does nothing");
         cy.get("#t2").click();
-        cy.get("#n").should("have.text", "1");
+        cy.get("#n").should("have.text", "3");
     });
 
     it("no button for a fixed target or a text without a listener", () => {
@@ -57,10 +64,10 @@ describe("Click target tests", { tags: ["@group4"] }, function () {
         });
 
         cy.get("#n").should("have.text", "0");
-        cy.get("#fixedT").parent().should("not.match", "button");
-        cy.get("#plain").parent().should("not.match", "button");
-        cy.get("#other").parent().should("not.match", "button");
-        cy.get("button.doenet-click-target").should("not.exist");
+        cy.get("#fixedT").parent().should("not.match", '[role="button"]');
+        cy.get("#plain").parent().should("not.match", '[role="button"]');
+        cy.get("#other").parent().should("not.match", '[role="button"]');
+        cy.get(".doenet-click-target").should("not.exist");
     });
 
     it("a click target inside another control stays plain", () => {
@@ -85,7 +92,7 @@ describe("Click target tests", { tags: ["@group4"] }, function () {
         cy.get("#inButton").should("have.text", "ten");
         cy.get("#inRef").should("have.text", "link");
         cy.get("#inChoice").should("have.text", "cat");
-        cy.get("button.doenet-click-target").should("not.exist");
+        cy.get(".doenet-click-target").should("not.exist");
 
         cy.log("The button and the choice keep working");
         cy.get("#uv_button").click();
@@ -112,24 +119,55 @@ describe("Click target tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get("#num").parent().should("match", "button.doenet-click-target");
+        cy.get("#num")
+            .parent()
+            .should("match", '.doenet-click-target[role="button"]');
         cy.get("#num").click();
         cy.get("#n").should("have.text", "1");
 
-        cy.get("#lab").parent().should("match", "button.doenet-click-target");
+        cy.get("#lab")
+            .parent()
+            .should("match", '.doenet-click-target[role="button"]');
         cy.get("#lab").click();
         cy.get("#n").should("have.text", "2");
 
         cy.get("#img")
             .parent()
-            .should("match", "button.doenet-click-target")
+            .should("match", '.doenet-click-target[role="button"]')
             .and("have.class", "doenet-click-target--block");
         cy.get("#img").click();
         cy.get("#n").should("have.text", "3");
 
-        cy.get("#s button.doenet-click-target").should("have.text", "copied");
-        cy.get("#s button.doenet-click-target").click();
+        cy.get("#s .doenet-click-target").should("have.text", "copied");
+        cy.get("#s .doenet-click-target").click();
         cy.get("#n").should("have.text", "4");
+    });
+
+    it("a long clickable phrase wraps with the text around it", () => {
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+    <p name="p">Start <text name="t">a long clickable phrase that has to wrap across more than one line</text> end.</p>
+    <number name="n">0</number>
+    <updateValue target="$n" newValue="$n+1" triggerWhenObjectsClicked="$t" hide />
+    `,
+                },
+                "*",
+            );
+        });
+
+        cy.get("#p").invoke("css", "width", "150px");
+        cy.get("#t")
+            .parent()
+            .should("match", '.doenet-click-target[role="button"]')
+            .then(($button) => {
+                const rects = $button[0].getClientRects();
+                expect(rects.length).greaterThan(1);
+                // The phrase starts on the same line as "Start".
+                const pRect = $button[0].parentElement.getBoundingClientRect();
+                expect(rects[0].left).greaterThan(pRect.left + 10);
+            });
     });
 
     it("click targets pass accessibility checks", () => {
@@ -148,7 +186,9 @@ describe("Click target tests", { tags: ["@group4"] }, function () {
             );
         });
 
-        cy.get("#t").parent().should("match", "button.doenet-click-target");
+        cy.get("#t")
+            .parent()
+            .should("match", '.doenet-click-target[role="button"]');
         cy.get("#img").should("be.visible");
 
         cy.checkAccessibility([".doenet-viewer"], {
