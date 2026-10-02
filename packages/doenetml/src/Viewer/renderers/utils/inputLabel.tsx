@@ -1,5 +1,6 @@
 import React, { createContext, useContext } from "react";
 import { BoardContext } from "../graph";
+import { NoClickTargetContext } from "./ClickTarget";
 
 /**
  * Set inside the label of an input, button, slider, or answer.
@@ -70,7 +71,9 @@ export function useRenderedLabel({
             <InputLabelContext.Provider
                 value={{ inLabel: true, inheritTextColor }}
             >
-                {label}
+                <NoClickTargetContext.Provider value={true}>
+                    {label}
+                </NoClickTargetContext.Provider>
             </InputLabelContext.Provider>
         </BoardContext.Provider>
     );

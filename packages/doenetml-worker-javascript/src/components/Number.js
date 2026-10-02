@@ -24,6 +24,7 @@ import {
     plainComplex,
     roundForDisplay,
 } from "../utils/math";
+import { addClickTargetStateVariableDefinition } from "../utils/triggering";
 
 /**
  * The numeric value of an expression carrying a currency marker — `2$` is `2`.
@@ -1146,6 +1147,8 @@ export default class NumberComponent extends InlineComponent {
                 return { setValue: { canBeModified: true } };
             },
         };
+
+        addClickTargetStateVariableDefinition(stateVariableDefinitions);
 
         return stateVariableDefinitions;
     }

@@ -12,6 +12,7 @@ import {
 import { textFromChildren } from "../utils/text";
 import { latexToText, textToLatex } from "../utils/math";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { addClickTargetStateVariableDefinition } from "../utils/triggering";
 
 export default class Label extends InlineComponent {
     constructor(args) {
@@ -911,6 +912,8 @@ export default class Label extends InlineComponent {
                 return { setValue: { forTargetIsGroup } };
             },
         };
+
+        addClickTargetStateVariableDefinition(stateVariableDefinitions);
 
         return stateVariableDefinitions;
     }

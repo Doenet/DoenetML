@@ -31,6 +31,7 @@ import {
     useUiLocale,
 } from "../../utils/i18n";
 import { clickToToggleLabel } from "./utils/disclosure";
+import { NoClickTargetContext } from "./utils/ClickTarget";
 
 interface SectionSVs {
     [key: string]: any;
@@ -645,17 +646,20 @@ export default React.memo(function Section(props: UseDoenetRendererProps) {
                         })
                     }
                 >
-                    {heading ||
-                        (SVs.isListItem ? (
-                            <span
-                                style={{
-                                    minHeight: EMPTY_HEADING_MIN_HEIGHT,
-                                    display: "inline-block",
-                                }}
-                            >
-                                &nbsp;
-                            </span>
-                        ) : null)}
+                    {/* The heading is clickable, so nothing in it can be a click target. */}
+                    <NoClickTargetContext.Provider value={true}>
+                        {heading ||
+                            (SVs.isListItem ? (
+                                <span
+                                    style={{
+                                        minHeight: EMPTY_HEADING_MIN_HEIGHT,
+                                        display: "inline-block",
+                                    }}
+                                >
+                                    &nbsp;
+                                </span>
+                            ) : null)}
+                    </NoClickTargetContext.Provider>
                 </div>
                 {innerContent}
             </div>

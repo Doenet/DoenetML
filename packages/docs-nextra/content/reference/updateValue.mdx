@@ -265,3 +265,20 @@ The `triggerWith` attribute allows the update to occur based on interaction with
 
 Updates can be triggered by click interactions with graphical components defined within a `<graph>{:dn}` using the `triggerWhenObjectsClicked` attribute.
 
+A `<text>{:dn}`, `<number>{:dn}`, `<label>{:dn}`, or `<image>{:dn}` outside a graph can also be clicked. It is shown with a dotted underline (or a dotted outline, for an image), and readers can also reach it with the Tab key and press Enter or Space.
+
+```doenet-editor-horiz
+<setup><boolean name="hideDefinition">true</boolean></setup>
+
+<p>Click the word <text name="word">pressure</text> to show or hide its definition.</p>
+
+<p hide="$hideDefinition">Pressure is force per unit area.</p>
+
+<updateValue 
+  triggerWhenObjectsClicked="$word" 
+  target="$hideDefinition" 
+  newValue="not $hideDefinition"
+  type="boolean"
+/>
+```
+
