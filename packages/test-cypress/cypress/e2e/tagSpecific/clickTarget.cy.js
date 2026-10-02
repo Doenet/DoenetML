@@ -115,7 +115,7 @@ describe("Click target tests", { tags: ["@group4"] }, function () {
                 {
                     doenetML: `
     <setup><text name="t">copied</text></setup>
-    <p><number name="num">5</number> <label name="lab">a label</label> <span name="s">$t</span></p>
+    <p><number name="num">5</number> <label name="lab">a <m>x^2</m> label</label> <span name="s">$t</span></p>
     <image name="img" source="./Doenet_Logo_Frontpage.png" width="100px"><shortDescription>The Doenet logo</shortDescription></image>
     <p>Count: <number name="n">0</number></p>
     <updateValue target="$n" newValue="$n+1" triggerWhenObjectsClicked="$num $lab $img $t" hide />
@@ -134,6 +134,12 @@ describe("Click target tests", { tags: ["@group4"] }, function () {
         cy.get("#lab")
             .parent()
             .should("match", '.doenet-click-target[role="button"]');
+        cy.log("Math in the label is underlined too");
+        cy.get("#lab mjx-container").should(
+            "have.css",
+            "border-bottom-style",
+            "dotted",
+        );
         cy.get("#lab").click();
         cy.get("#n").should("have.text", "2");
 

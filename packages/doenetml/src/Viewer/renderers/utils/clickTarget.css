@@ -11,6 +11,11 @@
     & mjx-container {
         pointer-events: none;
     }
+    /* `text-decoration` does not reach into the inline-block pieces MathJax
+       builds inline math from, so math gets its own dotted line. */
+    & mjx-container:not([display="true"]) {
+        border-bottom: max(1px, 0.06em) dotted;
+    }
 }
 
 @media (forced-colors: active) {
