@@ -57,7 +57,7 @@ describe("Click target tests @group1", async () => {
     <number name="n">0</number>
     <number name="m">0</number>
     <callAction name="ca" target="$s" actionName="resample" triggerWhenObjectsClicked="$t1" />
-    <selectFromSequence name="s" from="1" to="1000" />
+    <sampleRandomNumbers name="s" from="0" to="1" />
     <triggerSet name="ts" triggerWhenObjectsClicked="$t2">
       <updateValue target="$n" newValue="$n+1" />
       <updateValue target="$m" newValue="$m+2" />
@@ -65,14 +65,24 @@ describe("Click target tests @group1", async () => {
     `,
         });
 
+        const t1Idx = await resolvePathToNodeIdx("t1");
         const t2Idx = await resolvePathToNodeIdx("t2");
+        const sIdx = await resolvePathToNodeIdx("s");
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("t1")].stateValues
-                .clickTarget,
-        ).eq(true);
+        expect(stateVariables[t1Idx].stateValues.clickTarget).eq(true);
         expect(stateVariables[t2Idx].stateValues.clickTarget).eq(true);
+        const sample = stateVariables[sIdx].stateValues.sampledValues[0];
+
+        await clickComponent({
+            componentIdx: t1Idx,
+            actionName: "textClicked",
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[sIdx].stateValues.sampledValues[0]).not.eq(
+            sample,
+        );
 
         await clickComponent({
             componentIdx: t2Idx,

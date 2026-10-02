@@ -38,11 +38,17 @@ describe("Click target tests", { tags: ["@group4"] }, function () {
         cy.focused().type("{enter}");
         cy.get("#n").should("have.text", "2");
 
+        cy.log("Space activates the text and does not scroll the page");
+        cy.window().then((win) => {
+            win.addEventListener("keydown", (e) => {
+                if (e.key === " ") {
+                    win.spaceDefaultPrevented = e.defaultPrevented;
+                }
+            });
+        });
         cy.focused().type(" ");
         cy.get("#n").should("have.text", "3");
-
-        cy.log("Space does not scroll the page");
-        cy.window().its("scrollY").should("eq", 0);
+        cy.window().its("spaceDefaultPrevented").should("eq", true);
 
         cy.log("Clicking the other text does nothing");
         cy.get("#t2").click();
