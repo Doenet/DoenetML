@@ -98,10 +98,11 @@ inside `addBlocker` / `deleteFromNeededToResolve` /
 
 **Strategy.** Do one table at a time, each as its own small PR:
 
-1. Pick a table (e.g. `resolveBlockers.neededToResolve`).
+1. Pick a table (e.g. the entries of `resolveBlockers.neededToResolve`).
 2. Define its shape as a named type (e.g.
-   `type NeededToResolve = Record<ComponentIdx, Record<TypeBlocked,
-   Record<StateVarKey, BlockerCode[]>>>`).
+   `type NeededToResolveEntry = Partial<Record<BlockerType,
+   BlockerCode[]>>`, in place of `Record<string, any[]>` in
+   `BlockerLedger`).
 3. Walk every writer and confirm it produces that shape.
 4. Walk every reader and adjust the index types it expects.
 
@@ -274,6 +275,9 @@ non-optional, drop the `!` here.
 written as `let foo = function (neededObj) { … }.bind(this);` in the JS
 source. The TS port rewrote them as arrow functions so `this` resolves
 lexically, and dropped the trailing `.bind(this)`. No behaviour change.
+Both closures have since been removed: when the blocker ledger moved to
+maps, the two deletes began delegating to the methods
+`_deleteFromNeededToResolveByCode` and `_deleteFromResolveBlockedByCode`.
 
 **Strategy.** No follow-up needed — listed here only so reviewers
 auditing the diff can see that the change is intentional and runtime-
