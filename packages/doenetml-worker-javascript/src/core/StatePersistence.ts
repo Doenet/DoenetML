@@ -365,6 +365,18 @@ export class StatePersistence {
             return;
         }
 
+        // A circular dependency has stopped the document (see
+        // `ProcessQueue.executeProcesses`). Building the payload and its
+        // credit evaluates state that can reach the cycle, which recurses
+        // until the worker runs out of memory, and a save is reached from
+        // outside the request queue: the debounce timer an earlier update
+        // scheduled, `saveImmediately`, `flushState` and `terminate`. A
+        // payload an earlier save already built is still delivered by
+        // `saveChangesToDatabase`.
+        if (core.processQueue.stoppedByError !== null) {
+            return;
+        }
+
         // Renderer updates held back for offscreen components haven't reached
         // `rendererState` yet; send them so the saved copy is complete. This
         // covers a save made between updates. `flushPendingRenderers` does

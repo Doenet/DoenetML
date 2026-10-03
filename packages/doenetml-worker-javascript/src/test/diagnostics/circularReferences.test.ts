@@ -406,6 +406,48 @@ describe("Circular references created after load @group2", async () => {
         });
     });
 
+    it("a stopped document evaluates nothing from outside the queue", async () => {
+        // The input's keystroke schedules the debounced save, which fires
+        // after the stop. Building the save evaluates `n`, which recursed
+        // until the worker ran out of memory (vitest reports the worker
+        // exiting unexpectedly). Terminating sends the visibility recorded
+        // below as an event, which the stopped queue rejects; a terminate
+        // that throws reads to the viewer as a wedged core.
+        vi.useFakeTimers();
+        try {
+            const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
+<p name="p"><mathInput name="i" prefill="1"/></p>
+<number name="n">
+  <conditionalContent condition="$i=1">1</conditionalContent>
+  <conditionalContent condition="$i=2">$n+1</conditionalContent>
+</number>`);
+            const iIdx = await resolvePathToNodeIdx("i");
+
+            await core.requestAction({
+                componentIdx: await resolvePathToNodeIdx("p"),
+                actionName: "recordVisibilityChange",
+                args: { isVisible: true },
+            });
+            await core.requestAction({
+                componentIdx: iIdx,
+                actionName: "updateRawValue",
+                args: { rawRendererValue: "2" },
+            });
+            await core.requestAction({
+                componentIdx: iIdx,
+                actionName: "updateValue",
+                args: {},
+            });
+            expect(stopped).toHaveLength(1);
+
+            await vi.advanceTimersByTimeAsync(5000);
+            await core.saveImmediately();
+            await core.terminate();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
     it("the same switch with no cycle leaves the document running", async () => {
         const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
 <booleanInput name="b"/>
