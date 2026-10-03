@@ -101,8 +101,8 @@ export class DependencyHandler {
     /**
      * The nodes on the current search path, root first, kept for the error
      * message. The searches are synchronous and never nested, so one stack
-     * each is enough; a search clears it on entry, which also discards what
-     * a search that threw left behind.
+     * each is enough; every visit pops in a `finally`, so the stack is
+     * empty again after a throw, and a search clears it on entry besides.
      */
     private circularPathComponents: ComponentIdx[];
     private circularBlockerPathCodes: string[];
@@ -1033,9 +1033,13 @@ export class DependencyHandler {
      * The walk stops at a variable that is not memoized: a search marks
      * everything it expands, so a memoized variable has every variable
      * downstream of it memoized too, and nothing memoized sits above an
-     * unmemoized one. (The exception is a search that threw: the variables
-     * on its path stay memoized, and whatever it had not yet expanded
-     * below them lies behind a cycle that has already been reported.)
+     * unmemoized one. The exception is a search that threw: the variables
+     * on its path stay memoized while whatever it had not yet expanded
+     * below them does not, so a reset coming up from below such a variable
+     * stops short of the path. A cycle's throw normally ends the load; when
+     * a composite guard swallows it instead, a stale mark can survive above
+     * the unexpanded variable. This has always been so; making the
+     * invariant hold after a throw as well is tracked under #2132.
      */
     resetCircularCheckPassed(componentIdx: ComponentIdx, varName: string) {
         if (this.circularCheckMarks.get(componentIdx, varName) !== PASSED) {

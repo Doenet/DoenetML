@@ -5,7 +5,7 @@
  *
  * Both checks are depth-first searches that memoize "this node's downstream
  * closure has been searched and holds no cycle", and both walk the memo back
- * upstream to clear it whenever an edge is added below a memoized node. The
+ * upstream to clear it whenever an edge changes below a memoized node. The
  * marks are keyed by the two parts of a node's identity so a lookup never
  * builds a combined key string.
  */
