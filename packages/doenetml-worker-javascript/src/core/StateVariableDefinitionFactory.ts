@@ -64,7 +64,16 @@ const classStateVariableDefinitionsCache: WeakMap<
     >
 > = new WeakMap();
 
-function getClassStateVariableDefinitions(core: Core, componentClass: any) {
+/**
+ * The state-variable definitions of `componentClass`, attribute-derived and
+ * class-declared, built once per core and shared by every instance. A value
+ * reference (`_ref`) borrows from here the definitions of the type it stands
+ * in for (`createOnDemandStateVariableDefinition`).
+ */
+export function getClassStateVariableDefinitions(
+    core: Core,
+    componentClass: any,
+) {
     let perCore = classStateVariableDefinitionsCache.get(core);
     if (!perCore) {
         perCore = new Map();

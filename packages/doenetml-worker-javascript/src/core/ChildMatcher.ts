@@ -265,8 +265,19 @@ export async function matchChildrenToChildGroups({
     for (let [ind, child] of parent.activeChildren.entries() as Iterable<
         [number, any]
     >) {
+        // A value reference (`_ref`) stands in for a component of its
+        // presented type. `Copy.js` chose that type so that a group takes it
+        // directly, and the reference has no adapters of its own, so it is
+        // matched without them.
+        const presentedType =
+            typeof child === "object"
+                ? child.presentedComponentType
+                : undefined;
+
         let childType =
-            typeof child !== "object" ? typeof child : child.componentType;
+            typeof child !== "object"
+                ? typeof child
+                : (presentedType ?? child.componentType);
 
         if (childType === undefined) {
             success = false;
@@ -274,11 +285,28 @@ export async function matchChildrenToChildGroups({
             continue;
         }
 
-        let result = findChildGroup({
-            core,
-            childType,
-            parentClass: parent.constructor,
-        });
+        let result;
+        if (presentedType !== undefined) {
+            result = findChildGroupNoAdapters({
+                core,
+                componentType: childType,
+                parentClass: parent.constructor,
+            });
+            if (!result.success) {
+                result = findChildGroupNoAdapters({
+                    core,
+                    componentType: childType,
+                    parentClass: parent.constructor,
+                    afterAdapters: true,
+                });
+            }
+        } else {
+            result = findChildGroup({
+                core,
+                childType,
+                parentClass: parent.constructor,
+            });
+        }
 
         if (result.success) {
             parent.childMatchesByGroup[result.group!].push(ind);

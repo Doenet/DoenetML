@@ -82,15 +82,24 @@ export class AdapterSourceStateVariableDependency extends Dependency {
             };
         }
 
-        if (!component.adaptedFrom) {
+        // A value reference (`_ref`) that presents as an adapter's type has
+        // no adapter component; the referent it reads is what the adapter
+        // would have been made from.
+        let sourceComposite = component.adaptedFrom;
+        if (!sourceComposite && component.presentsAsAdapter) {
+            sourceComposite =
+                this.dependencyHandler._components[
+                    component.shadows.componentIdx
+                ];
+        }
+
+        if (!sourceComposite) {
             return {
                 success: true,
                 downstreamComponentIndices: [],
                 downstreamComponentTypes: [],
             };
         }
-
-        let sourceComposite = component.adaptedFrom;
 
         return {
             success: true,
@@ -194,15 +203,24 @@ export class AdapterSourceDependency extends Dependency {
             };
         }
 
-        if (!component.adaptedFrom) {
+        // A value reference (`_ref`) that presents as an adapter's type has
+        // no adapter component; the referent it reads is what the adapter
+        // would have been made from.
+        let sourceComposite = component.adaptedFrom;
+        if (!sourceComposite && component.presentsAsAdapter) {
+            sourceComposite =
+                this.dependencyHandler._components[
+                    component.shadows.componentIdx
+                ];
+        }
+
+        if (!sourceComposite) {
             return {
                 success: true,
                 downstreamComponentIndices: [],
                 downstreamComponentTypes: [],
             };
         }
-
-        let sourceComposite = component.adaptedFrom;
 
         return {
             success: true,
