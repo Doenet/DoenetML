@@ -1,10 +1,10 @@
 /**
- * Visit marks for the two incremental cycle checks in `DependencyHandler`
- * (`checkForCircularDependency` over the state-variable graph and
- * `checkForCircularResolveBlocker` over the resolve-blocker graph).
+ * Visit marks for the cycle check over the state-variable graph in
+ * `DependencyHandler` (`checkForCircularDependency`). The resolve-blocker
+ * graph is checked through a topological order instead (`BlockerOrder`).
  *
- * Both checks are depth-first searches that memoize "this node's downstream
- * closure has been searched and holds no cycle", and both walk the memo back
+ * The check is a depth-first search that memoizes "this node's downstream
+ * closure has been searched and holds no cycle", and walks the memo back
  * upstream to clear it whenever an edge changes below a memoized node. The
  * marks are keyed by the two parts of a node's identity so a lookup never
  * builds a combined key string.
