@@ -1289,7 +1289,23 @@ export default class Core {
         if (documentIsVisible) {
             this.resumeVisibilityMeasuring();
         } else {
-            this.suspendVisibilityMeasuring();
+            // Not awaited: once the document has stopped, the visibility
+            // event this sends is rejected and would surface as an unhandled
+            // rejection.
+            this.suspendVisibilityMeasuring().catch((e) =>
+                this.ignoreIfStopped(e),
+            );
+        }
+    }
+
+    /**
+     * Rethrow `e` unless a circular dependency has stopped the document (see
+     * `ProcessQueue.executeProcesses`), in which case the request queue
+     * rejects whatever is sent to it and the rejection is expected.
+     */
+    ignoreIfStopped(e: unknown): void {
+        if (this.processQueue.stoppedByError === null) {
+            throw e;
         }
     }
 
@@ -1326,11 +1342,7 @@ export default class Core {
         // Both clear their timers before sending, so drop the rejection and
         // finish the teardown: a terminate that throws reads to the viewer
         // as a wedged core.
-        const ignoreIfStopped = (e: unknown) => {
-            if (this.processQueue.stoppedByError === null) {
-                throw e;
-            }
-        };
+        const ignoreIfStopped = (e: unknown) => this.ignoreIfStopped(e);
 
         // Suspend visibility measuring so remaining times collected are saved.
         await this.suspendVisibilityMeasuring().catch(ignoreIfStopped);

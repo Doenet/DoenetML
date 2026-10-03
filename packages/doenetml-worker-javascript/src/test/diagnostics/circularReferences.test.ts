@@ -535,6 +535,54 @@ describe("Circular references created after load @group2", async () => {
         }
     });
 
+    it("hiding a stopped document sends its visibility quietly", async () => {
+        // The browser tab is hidden after the stop: the core suspends
+        // visibility measuring, which sends the visibility recorded below as
+        // an event that the stopped queue rejects. Nobody awaits it.
+        const unhandled: unknown[] = [];
+        const onUnhandled = (reason: unknown) => unhandled.push(reason);
+        process.on("unhandledRejection", onUnhandled);
+        vi.useFakeTimers();
+        try {
+            const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
+<p name="p"><mathInput name="i" prefill="1"/></p>
+<number name="n">
+  <conditionalContent condition="$i=1">1</conditionalContent>
+  <conditionalContent condition="$i=2">$n+1</conditionalContent>
+</number>`);
+            const iIdx = await resolvePathToNodeIdx("i");
+
+            await core.requestAction({
+                componentIdx: await resolvePathToNodeIdx("p"),
+                actionName: "recordVisibilityChange",
+                args: { isVisible: true },
+            });
+            await vi.advanceTimersByTimeAsync(5000);
+            await core.requestAction({
+                componentIdx: iIdx,
+                actionName: "updateRawValue",
+                args: { rawRendererValue: "2" },
+            });
+            await core.requestAction({
+                componentIdx: iIdx,
+                actionName: "updateValue",
+                args: {},
+            });
+            expect(stopped).toHaveLength(1);
+
+            core.handleVisibilityChange(false);
+            await vi.advanceTimersByTimeAsync(100);
+        } finally {
+            vi.useRealTimers();
+        }
+        try {
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            expect(unhandled).toEqual([]);
+        } finally {
+            process.off("unhandledRejection", onUnhandled);
+        }
+    });
+
     it("the same switch with no cycle leaves the document running", async () => {
         const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
 <booleanInput name="b"/>
