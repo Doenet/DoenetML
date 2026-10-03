@@ -177,8 +177,8 @@ export function serializeValueReference({
             // Whether the referenced variable is the referent's own value,
             // so that what the referent says about its value (`isNumber`,
             // `unordered`, `canBeModified`) holds for this reference too.
-            // Not for an explicit prop or an entry (`$M.matrixEntry1_1` of an
-            // unordered `M` is a plain scalar).
+            // Not for an explicit prop or an entry (`$m.x` of an unordered
+            // `m` is a plain scalar, and an entry of a matrix is a number).
             referencedPrimaryValue:
                 referencedVariable === "value" ||
                 referencedVariable ===

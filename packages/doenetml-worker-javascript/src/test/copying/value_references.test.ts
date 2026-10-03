@@ -756,9 +756,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 doenetML: `
     <math name="m" unordered>(1,2)</math>
     <math name="m2">$m.value</math>
-    <matrix name="M" unordered><row>1 2</row></matrix>
-    <math name="e">$M.matrixEntry1_2</math>
-    <number name="k">$M.matrixEntry1_1</number>
+    <math name="e">$m.x</math>
+    <matrix name="M"><row>1 2</row></matrix>
+    <sum name="s">$M.matrixEntry1_1</sum>
     `,
             });
             const stateVariables = await core.returnAllStateVariables(
@@ -769,10 +769,12 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 stateVariables[await resolvePathToNodeIdx(name)].stateValues;
             // `$m.value` is `m`'s own value, so it is unordered as `m` is
             expect((await sv("m2")).unordered).eq(true);
-            // an entry of an unordered matrix is a plain scalar
+            // a component of an unordered tuple is a plain scalar
             expect((await sv("e")).unordered).eq(false);
-            expect((await sv("e")).value.tree).eq(2);
-            expect((await sv("k")).value).eq(1);
+            expect((await sv("e")).value.tree).eq(1);
+            // a matrix is not a number, but its entry is
+            expect((await sv("s")).isNumericOperator).eq(true);
+            expect((await sv("s")).value.tree).eq(1);
             const refs = valueRefs(core);
             expect(
                 refs.map((ref) => ref.doenetAttributes.referencedPrimaryValue),
