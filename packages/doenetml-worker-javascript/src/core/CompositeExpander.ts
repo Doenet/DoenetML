@@ -22,6 +22,7 @@ import {
     createComponentIndicesFromSerializedChildren,
     createNewComponentIndices,
 } from "../utils/componentIndices";
+import { rethrowIfCircular } from "./dependencies/CircularDependencyError";
 
 /**
  * Expands composite components into their replacements: walks descendants
@@ -811,6 +812,7 @@ export async function createAndSetReplacements({
             component,
         });
     } catch (e: any) {
+        rethrowIfCircular(e);
         registrationFailure = e;
     }
 
@@ -829,6 +831,7 @@ export async function createAndSetReplacements({
             });
             component.replacements = replacementResult.components;
         } catch (e: any) {
+            rethrowIfCircular(e);
             await setReplacementsToError(core, component, e);
         }
     }

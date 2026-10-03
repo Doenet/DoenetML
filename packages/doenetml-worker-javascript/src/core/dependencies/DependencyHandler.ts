@@ -24,6 +24,7 @@ import {
 } from "../../utils/descendants";
 import { dependencyTypeClasses } from "./registry";
 import { CircularCheckMarks, ON_PATH, PASSED } from "./circularCheckMarks";
+import { CircularDependencyError } from "./CircularDependencyError";
 
 /**
  * Shared result for `peekNeededToResolve` / `peekResolveBlockedBy` when no
@@ -1018,7 +1019,7 @@ export class DependencyHandler {
             // The path runs from the variable the search started at through
             // the variable reached twice (which is somewhere on it) to the
             // variable that closed the cycle.
-            throw Error(
+            throw new CircularDependencyError(
                 this.getCircularDependencyMessage(
                     this._circularPathComponents.map(
                         (idx) => this.components[idx],
@@ -1077,10 +1078,10 @@ export class DependencyHandler {
      * unmemoized one. The exception is a search that threw: the variables
      * on its path stay memoized while whatever it had not yet expanded
      * below them does not, so a reset coming up from below such a variable
-     * stops short of the path. A cycle's throw normally ends the load; when
-     * a composite guard swallows it instead, a stale mark can survive above
-     * the unexpanded variable. This has always been so; making the
-     * invariant hold after a throw as well is tracked under #2132.
+     * stops short of the path. That never matters: a cycle's throw is a
+     * `CircularDependencyError`, which no guard swallows, and it ends the
+     * document whether it is raised during load or by an update, so no check
+     * runs after it.
      */
     resetCircularCheckPassed(componentIdx: ComponentIdx, varName: string) {
         if (this.circularCheckMarks.get(componentIdx, varName) !== PASSED) {
@@ -2732,7 +2733,7 @@ export class DependencyHandler {
     _searchForCircularResolveBlocker(code: string, type: string) {
         const mark = this.circularBlockerMarks.get(type, code);
         if (mark === ON_PATH) {
-            throw Error(
+            throw new CircularDependencyError(
                 this.getCircularDependencyMessage(
                     this._circularBlockerPathCodes.map(
                         (pathCode) =>

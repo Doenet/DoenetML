@@ -302,3 +302,367 @@ describe("State-variable cycle check driven directly @group2", async () => {
         );
     });
 });
+
+/**
+ * Doenet/DoenetML#2137: a cycle that comes into existence after load. The
+ * blocker check found it all along and threw, but the request queue caught
+ * the error, the action reported a failure with an empty message, and the
+ * core carried on with a cycle in its graph: the next evaluation that reached
+ * it recursed until the worker ran out of memory.
+ *
+ * A circular dependency raised by an update now stops the document, as one
+ * found during load does: the request that raised it is rejected with the
+ * cycle's message, so is every later request, and the viewer is told to show
+ * the message in place of the document.
+ */
+describe("Circular references created after load @group2", async () => {
+    const circularError = "Circular dependency involving these components";
+
+    async function loadAndWatch(doenetML: string) {
+        const result = await createTestCore({ doenetML });
+        const stopped: string[] = [];
+        result.core.core!.updateRenderersCallback = (args: any) => {
+            if (args.documentStopped !== undefined) {
+                stopped.push(args.documentStopped);
+            }
+        };
+        return { ...result, stopped };
+    }
+
+    async function expectDocumentStopped({
+        core,
+        stopped,
+        laterAction,
+    }: {
+        core: Awaited<ReturnType<typeof createTestCore>>["core"];
+        stopped: string[];
+        laterAction: Parameters<typeof core.requestAction>[0];
+    }) {
+        expect(stopped).toHaveLength(1);
+        expect(stopped[0]).toContain(circularError);
+
+        // A later request is not run: running it is what used to exhaust the
+        // heap.
+        const later = await core.requestAction(laterAction);
+        expect(later.success).toBe(false);
+        expect(later.errMsg).toBe(stopped[0]);
+    }
+
+    it("a dependency re-pointed into a cycle stops the document", async () => {
+        const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
+<mathInput name="i" prefill="1"/>
+<number name="n">
+  <conditionalContent condition="$i=1">1</conditionalContent>
+  <conditionalContent condition="$i=2">$n+1</conditionalContent>
+</number>`);
+        const iIdx = await resolvePathToNodeIdx("i");
+
+        await core.requestAction({
+            componentIdx: iIdx,
+            actionName: "updateRawValue",
+            args: { rawRendererValue: "2" },
+        });
+        const result = await core.requestAction({
+            componentIdx: iIdx,
+            actionName: "updateValue",
+            args: {},
+        });
+        expect(result.success).toBe(false);
+        expect(result.errMsg).toContain(circularError);
+
+        await expectDocumentStopped({
+            core,
+            stopped,
+            laterAction: {
+                componentIdx: iIdx,
+                actionName: "updateRawValue",
+                args: { rawRendererValue: "1" },
+            },
+        });
+    });
+
+    it("a self-extending component switched on stops the document", async () => {
+        const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
+<booleanInput name="b"/>
+<conditionalContent condition="$b"><text name="t" extend="$t"/></conditionalContent>`);
+        const bIdx = await resolvePathToNodeIdx("b");
+
+        const result = await core.requestAction({
+            componentIdx: bIdx,
+            actionName: "updateBoolean",
+            args: { boolean: true },
+        });
+        expect(result.success).toBe(false);
+        expect(result.errMsg).toContain(circularError);
+
+        await expectDocumentStopped({
+            core,
+            stopped,
+            laterAction: {
+                componentIdx: bIdx,
+                actionName: "updateBoolean",
+                args: { boolean: false },
+            },
+        });
+    });
+
+    // `returnAllStateVariables` is reached outside the queue: `DocViewer`
+    // installs it as a `window` function on every page. Evaluating `n` after
+    // the stop is the recursion that ran the worker out of memory, so without
+    // the check this test kills the vitest worker.
+    it("a state dump of a stopped document is refused without evaluating", async () => {
+        const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
+<mathInput name="i" prefill="1"/>
+<number name="n">
+  <conditionalContent condition="$i=1">1</conditionalContent>
+  <conditionalContent condition="$i=2">$n+1</conditionalContent>
+</number>`);
+        const iIdx = await resolvePathToNodeIdx("i");
+
+        // a running document dumps its state as before
+        await expect(
+            core.returnAllStateVariables(false, true),
+        ).resolves.toBeTruthy();
+
+        await core.requestAction({
+            componentIdx: iIdx,
+            actionName: "updateRawValue",
+            args: { rawRendererValue: "2" },
+        });
+        await core.requestAction({
+            componentIdx: iIdx,
+            actionName: "updateValue",
+            args: {},
+        });
+        expect(stopped).toHaveLength(1);
+
+        await expect(core.returnAllStateVariables(false, true)).rejects.toThrow(
+            stopped[0],
+        );
+    });
+
+    it("a stopped document evaluates nothing from outside the queue", async () => {
+        // The input's keystroke schedules the debounced save, which fires
+        // after the stop. Building the save evaluates `n`, which recursed
+        // until the worker ran out of memory (vitest reports the worker
+        // exiting unexpectedly). Terminating sends the visibility recorded
+        // below as an event, which the stopped queue rejects; a terminate
+        // that throws reads to the viewer as a wedged core.
+        vi.useFakeTimers();
+        try {
+            const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
+<p name="p"><mathInput name="i" prefill="1"/></p>
+<number name="n">
+  <conditionalContent condition="$i=1">1</conditionalContent>
+  <conditionalContent condition="$i=2">$n+1</conditionalContent>
+</number>`);
+            const iIdx = await resolvePathToNodeIdx("i");
+
+            await core.requestAction({
+                componentIdx: await resolvePathToNodeIdx("p"),
+                actionName: "recordVisibilityChange",
+                args: { isVisible: true },
+            });
+            await core.requestAction({
+                componentIdx: iIdx,
+                actionName: "updateRawValue",
+                args: { rawRendererValue: "2" },
+            });
+            await core.requestAction({
+                componentIdx: iIdx,
+                actionName: "updateValue",
+                args: {},
+            });
+            expect(stopped).toHaveLength(1);
+
+            await vi.advanceTimersByTimeAsync(5000);
+            await core.saveImmediately();
+            await core.terminate();
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("a save built before the stop is still delivered on terminate", async () => {
+        // The second keystroke's save is built while the 60-second throttle
+        // holds it back. The stop skips building any new save, but the held
+        // one evaluates nothing to deliver, and `terminate` sends it.
+        vi.useFakeTimers();
+        try {
+            const {
+                core,
+                resolvePathToNodeIdx,
+                stopped,
+                lastStateReport,
+                pendingReports,
+            } = await loadAndWatch(`
+<mathInput name="i" prefill="1"/>
+<number name="n">
+  <conditionalContent condition="$i=1">1</conditionalContent>
+  <conditionalContent condition="$i=2">$n+1</conditionalContent>
+</number>`);
+            const iIdx = await resolvePathToNodeIdx("i");
+            async function enter(value: string) {
+                await core.requestAction({
+                    componentIdx: iIdx,
+                    actionName: "updateRawValue",
+                    args: { rawRendererValue: value },
+                });
+                await core.requestAction({
+                    componentIdx: iIdx,
+                    actionName: "updateValue",
+                    args: {},
+                });
+            }
+
+            await enter("3");
+            await vi.advanceTimersByTimeAsync(1500);
+            await enter("5");
+            await vi.advanceTimersByTimeAsync(1500);
+            const held = pendingReports.at(-1)?.state;
+            expect(held).toBeDefined();
+            expect(lastStateReport.payload).not.toEqual(held);
+
+            await enter("2");
+            expect(stopped).toHaveLength(1);
+
+            await core.terminate();
+            expect(lastStateReport.payload).toEqual(held);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
+    it("an event queued behind the stopping update is dropped quietly", async () => {
+        // The first update queues its "selected" event when it finishes, by
+        // which time the second update is ahead of it in the queue. The
+        // second raises the cycle, and the stop rejects the queued event,
+        // which nobody awaits.
+        const unhandled: unknown[] = [];
+        const onUnhandled = (reason: unknown) => unhandled.push(reason);
+        process.on("unhandledRejection", onUnhandled);
+        try {
+            const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
+<booleanInput name="b1"/>
+<booleanInput name="b"/>
+<conditionalContent condition="$b"><text name="t" extend="$t"/></conditionalContent>`);
+            const b1Idx = await resolvePathToNodeIdx("b1");
+            const bIdx = await resolvePathToNodeIdx("b");
+
+            const first = core.requestAction({
+                componentIdx: b1Idx,
+                actionName: "updateBoolean",
+                args: { boolean: true },
+            });
+            const second = core.requestAction({
+                componentIdx: bIdx,
+                actionName: "updateBoolean",
+                args: { boolean: true },
+            });
+            expect((await first).success).not.toBe(false);
+            expect((await second).success).toBe(false);
+            expect(stopped).toHaveLength(1);
+
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            expect(unhandled).toEqual([]);
+        } finally {
+            process.off("unhandledRejection", onUnhandled);
+        }
+    });
+
+    it("hiding a stopped document sends its visibility quietly", async () => {
+        // The browser tab is hidden after the stop: the core suspends
+        // visibility measuring, which sends the visibility recorded below as
+        // an event that the stopped queue rejects. Nobody awaits it.
+        const unhandled: unknown[] = [];
+        const onUnhandled = (reason: unknown) => unhandled.push(reason);
+        process.on("unhandledRejection", onUnhandled);
+        vi.useFakeTimers();
+        try {
+            const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
+<p name="p"><mathInput name="i" prefill="1"/></p>
+<number name="n">
+  <conditionalContent condition="$i=1">1</conditionalContent>
+  <conditionalContent condition="$i=2">$n+1</conditionalContent>
+</number>`);
+            const iIdx = await resolvePathToNodeIdx("i");
+
+            await core.requestAction({
+                componentIdx: await resolvePathToNodeIdx("p"),
+                actionName: "recordVisibilityChange",
+                args: { isVisible: true },
+            });
+            await vi.advanceTimersByTimeAsync(5000);
+            await core.requestAction({
+                componentIdx: iIdx,
+                actionName: "updateRawValue",
+                args: { rawRendererValue: "2" },
+            });
+            await core.requestAction({
+                componentIdx: iIdx,
+                actionName: "updateValue",
+                args: {},
+            });
+            expect(stopped).toHaveLength(1);
+
+            core.handleVisibilityChange(false);
+            await vi.advanceTimersByTimeAsync(100);
+        } finally {
+            vi.useRealTimers();
+        }
+        try {
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            expect(unhandled).toEqual([]);
+        } finally {
+            process.off("unhandledRejection", onUnhandled);
+        }
+    });
+
+    it("hiding a running document logs a failed visibility suspend", async () => {
+        // The rejection the stop produces is dropped (above); any other
+        // failure of the unawaited suspend is logged, not left unhandled.
+        const unhandled: unknown[] = [];
+        const onUnhandled = (reason: unknown) => unhandled.push(reason);
+        process.on("unhandledRejection", onUnhandled);
+        const logged: unknown[][] = [];
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation((...args) => {
+                logged.push(args);
+            });
+        try {
+            const { core } = await loadAndWatch(`<p>hello</p>`);
+            const failure = new Error("suspend failed");
+            (core.core as any).visibilityTracker.suspendVisibilityMeasuring =
+                async () => {
+                    throw failure;
+                };
+
+            core.handleVisibilityChange(false);
+            await new Promise((resolve) => setTimeout(resolve, 50));
+
+            expect(unhandled).toEqual([]);
+            expect(logged).toEqual([
+                ["Error in visibility suspend on hide:", failure],
+            ]);
+        } finally {
+            errorSpy.mockRestore();
+            process.off("unhandledRejection", onUnhandled);
+        }
+    });
+
+    it("the same switch with no cycle leaves the document running", async () => {
+        const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
+<booleanInput name="b"/>
+<conditionalContent condition="$b"><text name="t">hello</text></conditionalContent>`);
+        const bIdx = await resolvePathToNodeIdx("b");
+
+        const result = await core.requestAction({
+            componentIdx: bIdx,
+            actionName: "updateBoolean",
+            args: { boolean: true },
+        });
+        expect(result.success).not.toBe(false);
+        expect(stopped).toHaveLength(0);
+    });
+});

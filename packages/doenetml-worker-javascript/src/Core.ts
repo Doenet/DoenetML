@@ -1289,7 +1289,46 @@ export default class Core {
         if (documentIsVisible) {
             this.resumeVisibilityMeasuring();
         } else {
-            this.suspendVisibilityMeasuring();
+            // Not awaited, so a failure is logged here. Once the document
+            // has stopped, the queue rejects the visibility event this sends;
+            // that rejection is expected and dropped.
+            this.suspendVisibilityMeasuring().catch((e) => {
+                if (this.processQueue.stoppedByError === null) {
+                    reportTimerError(TimerLabels.visibilityHideSuspend)(e);
+                }
+            });
+        }
+    }
+
+    /**
+     * Rethrow `e` unless a circular dependency has stopped the document (see
+     * `ProcessQueue.executeProcesses`), in which case the request queue
+     * rejects whatever is sent to it and the rejection is expected.
+     */
+    ignoreIfStopped(e: unknown): void {
+        if (this.processQueue.stoppedByError === null) {
+            throw e;
+        }
+    }
+
+    /**
+     * Tell the viewer that an update after load raised a circular dependency
+     * and the document has stopped (see `ProcessQueue.executeProcesses`). The
+     * viewer shows `message` in place of the document, as it shows the cause
+     * of a document that could not be built.
+     */
+    reportDocumentStopped(message: string): void {
+        // The viewer's callback is a proxy across the worker boundary, so it
+        // can fail either way: by throwing or by rejecting.
+        try {
+            Promise.resolve(
+                this.updateRenderersCallback({
+                    updateInstructions: [],
+                    documentStopped: message,
+                }),
+            ).catch((e) => console.error(e));
+        } catch (e) {
+            console.error(e);
         }
     }
 
@@ -1300,10 +1339,17 @@ export default class Core {
             });
         };
 
-        // Suspend visibility measuring so remaining times collected are saved.
-        await this.suspendVisibilityMeasuring();
+        // Once a circular dependency has stopped the document, the request
+        // queue rejects the visibility events and auto-submits sent here.
+        // Both clear their timers before sending, so drop the rejection and
+        // finish the teardown: a terminate that throws reads to the viewer
+        // as a wedged core.
+        const ignoreIfStopped = (e: unknown) => this.ignoreIfStopped(e);
 
-        await this.autoSubmitManager.flush();
+        // Suspend visibility measuring so remaining times collected are saved.
+        await this.suspendVisibilityMeasuring().catch(ignoreIfStopped);
+
+        await this.autoSubmitManager.flush().catch(ignoreIfStopped);
 
         this.processQueue.stopProcessingRequests = true;
 

@@ -73,6 +73,7 @@ export type MessageKey =
     | "core-start-failed-retry"
     | "core-start-failed-busy-retry"
     | "core-start-failed-document"
+    | "document-stopped"
     | "core-start-retry"
     | "saved-state-unavailable"
     | "saved-state-from-older-version"
@@ -709,6 +710,7 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "core-start-failed-retry",
     "core-start-failed-busy-retry",
     "core-start-failed-document",
+    "document-stopped",
     "core-start-retry",
     "saved-state-unavailable",
     "saved-state-from-older-version",
