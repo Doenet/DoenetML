@@ -6,4 +6,4 @@
 "doenet-vscode-extension": patch
 ---
 
-Documents with many references load faster. While a document is built, core checks for circular dependencies each time a state variable starts depending on another; those checks took about 15% of the load time of large documents. They now run once per state variable instead of once per dependency, skip edges that cannot close a cycle, and keep their bookkeeping in maps instead of rebuilding key strings and path copies on every step. Which cycles are reported, and how, is unchanged.
+Documents with many references load faster. While a document is built, core checks for circular dependencies each time a state variable starts depending on another; on large documents those checks took about a seventh of the load time, nearly all of it spent rebuilding key strings and copying path arrays on every step. The checks now keep their bookkeeping in maps and reuse one path stack, and do the same searches as before, so which cycles are reported, and how, is unchanged.

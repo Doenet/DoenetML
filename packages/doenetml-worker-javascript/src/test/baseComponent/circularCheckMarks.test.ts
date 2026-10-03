@@ -3,7 +3,6 @@ import {
     CircularCheckMarks,
     ON_PATH,
     PASSED,
-    isEmptyObject,
 } from "../../core/dependencies/circularCheckMarks";
 
 describe("CircularCheckMarks", () => {
@@ -54,23 +53,5 @@ describe("CircularCheckMarks", () => {
         const marks = new CircularCheckMarks<number | string>();
         marks.set(3, "value", PASSED);
         expect(marks.get("3", "value")).toBeUndefined();
-    });
-});
-
-describe("isEmptyObject", () => {
-    it("matches Object.keys(x).length === 0 for plain objects", () => {
-        expect(isEmptyObject({})).toBe(true);
-        expect(isEmptyObject(Object.freeze({}))).toBe(true);
-        expect(isEmptyObject({ a: 1 })).toBe(false);
-        expect(isEmptyObject({ a: undefined })).toBe(false);
-        const grown: Record<string, number> = {};
-        grown.x = 1;
-        delete grown.x;
-        expect(isEmptyObject(grown)).toBe(true);
-    });
-
-    it("counts inherited enumerable properties, which the blocker maps never have", () => {
-        expect(isEmptyObject(Object.create({ a: 1 }))).toBe(false);
-        expect(isEmptyObject(Object.create(null))).toBe(true);
     });
 });

@@ -23,13 +23,7 @@ import {
     gatherDescendants,
 } from "../../utils/descendants";
 import { dependencyTypeClasses } from "./registry";
-import type { Dependency } from "./Dependency";
-import {
-    CircularCheckMarks,
-    ON_PATH,
-    PASSED,
-    isEmptyObject,
-} from "./circularCheckMarks";
+import { CircularCheckMarks, ON_PATH, PASSED } from "./circularCheckMarks";
 
 /**
  * Shared result for `peekNeededToResolve` / `peekResolveBlockedBy` when no
@@ -104,6 +98,14 @@ export class DependencyHandler {
      * so the blocker walks do not re-split a code on every visit.
      */
     private blockerCodeParts: Map<string, string[]>;
+    /**
+     * The nodes on the current search path, root first, kept for the error
+     * message. The searches are synchronous and never nested, so one stack
+     * each is enough; a search clears it on entry, which also discards what
+     * a search that threw left behind.
+     */
+    private circularPathComponents: ComponentIdx[];
+    private circularBlockerPathCodes: string[];
 
     dependencyTypes: Record<string, any>;
     updateTriggers: DependencyUpdateTriggers;
@@ -192,6 +194,8 @@ export class DependencyHandler {
         this.circularCheckMarks = new CircularCheckMarks();
         this.circularBlockerMarks = new CircularCheckMarks();
         this.blockerCodeParts = new Map();
+        this.circularPathComponents = [];
+        this.circularBlockerPathCodes = [];
 
         this.dependencyTypes = {};
         dependencyTypeClasses.forEach(
@@ -511,8 +515,6 @@ export class DependencyHandler {
             });
         }
 
-        const newDependencies: Dependency[] = [];
-
         for (let dependencyName in dependencies) {
             let dependencyDefinition = dependencies[dependencyName];
             if (
@@ -537,54 +539,8 @@ export class DependencyHandler {
 
             await dep.initialize();
 
-            newDependencies.push(dep);
+            dep.checkForCircular();
         }
-
-        // One cycle check for the whole group once every dependency is in
-        // place: all of them hang off the same upstream variables, so a
-        // search from each variable covers every new edge. The search can
-        // be skipped when no new edge leads to a variable that has
-        // dependencies of its own, as such an edge cannot close a cycle.
-        // (With lazy dependency setup that is the usual case: the
-        // variables this group reads are mostly not set up yet.)
-        if (
-            newDependencies.some((dep) =>
-                this.dependencyTargetsHaveDownstreamDependencies(dep),
-            )
-        ) {
-            for (const varName of allStateVariablesAffected) {
-                this.checkForCircularDependency({
-                    componentIdx: component.componentIdx,
-                    varName,
-                });
-            }
-        }
-    }
-
-    /**
-     * Whether any variable that `dep` reads has dependencies of its own,
-     * meaning an edge to it could be part of a cycle.
-     */
-    dependencyTargetsHaveDownstreamDependencies(dep: Dependency): boolean {
-        const mappedNames = dep.mappedDownstreamVariableNamesByComponent;
-        if (!mappedNames) {
-            return false;
-        }
-        const indices = dep.downstreamComponentIndices;
-        for (let ind = 0; ind < indices.length; ind++) {
-            const downDepsForComponent =
-                this.downstreamDependencies[indices[ind]];
-            if (!downDepsForComponent) {
-                continue;
-            }
-            for (const vName of mappedNames[ind]) {
-                const downDeps = downDepsForComponent[vName];
-                if (downDeps && !isEmptyObject(downDeps)) {
-                    return true;
-                }
-            }
-        }
-        return false;
     }
 
     deleteAllDownstreamDependencies({
@@ -997,9 +953,8 @@ export class DependencyHandler {
      * `resetCircularCheckPassed` drops the memo of a variable and of
      * everything upstream of it whenever a dependency is added or removed
      * below it, so a memo never outlives the graph it was computed on. A
-     * variable keeps its memo when the search throws, as the cycle found is
-     * reported once to the caller, so a later search does not report it
-     * again.
+     * variable is marked as it is entered and keeps the mark if the search
+     * throws, so a cycle is reported once, by the search that found it.
      */
     checkForCircularDependency({
         componentIdx,
@@ -1008,13 +963,13 @@ export class DependencyHandler {
         componentIdx: ComponentIdx;
         varName: string;
     }) {
-        this.searchForCircularDependency(componentIdx, varName, []);
+        this.circularPathComponents.length = 0;
+        this.searchForCircularDependency(componentIdx, varName);
     }
 
     private searchForCircularDependency(
         componentIdx: ComponentIdx,
         varName: string,
-        path: { componentIdx: ComponentIdx; varName: string }[],
     ) {
         const mark = this.circularCheckMarks.get(componentIdx, varName);
         if (mark === ON_PATH) {
@@ -1023,7 +978,9 @@ export class DependencyHandler {
             // variable that closed the cycle.
             throw Error(
                 this.getCircularDependencyMessage(
-                    path.map((entry) => this.components[entry.componentIdx]),
+                    this.circularPathComponents.map(
+                        (idx) => this.components[idx],
+                    ),
                 ),
             );
         }
@@ -1032,7 +989,7 @@ export class DependencyHandler {
         }
 
         this.circularCheckMarks.set(componentIdx, varName, ON_PATH);
-        path.push({ componentIdx, varName });
+        this.circularPathComponents.push(componentIdx);
         try {
             const downDeps =
                 this.downstreamDependencies[componentIdx]?.[varName];
@@ -1046,16 +1003,12 @@ export class DependencyHandler {
                 }
                 for (let ind = 0; ind < indices.length; ind++) {
                     for (const vName of mappedNames[ind]) {
-                        this.searchForCircularDependency(
-                            indices[ind],
-                            vName,
-                            path,
-                        );
+                        this.searchForCircularDependency(indices[ind], vName);
                     }
                 }
             }
         } finally {
-            path.pop();
+            this.circularPathComponents.pop();
             this.circularCheckMarks.set(componentIdx, varName, PASSED);
         }
     }
@@ -1077,9 +1030,12 @@ export class DependencyHandler {
     /**
      * Forget that `varName` of `componentIdx` passed the cycle check, and
      * likewise everything upstream of it, after an edge below it changed.
-     * The walk stops at a variable that is not memoized: a memoized
-     * variable has every variable downstream of it memoized too, so
-     * nothing memoized can sit above an unmemoized one.
+     * The walk stops at a variable that is not memoized: a search marks
+     * everything it expands, so a memoized variable has every variable
+     * downstream of it memoized too, and nothing memoized sits above an
+     * unmemoized one. (The exception is a search that threw: the variables
+     * on its path stay memoized, and whatever it had not yet expanded
+     * below them lies behind a cycle that has already been reported.)
      */
     resetCircularCheckPassed(componentIdx: ComponentIdx, varName: string) {
         if (this.circularCheckMarks.get(componentIdx, varName) !== PASSED) {
@@ -1229,8 +1185,10 @@ export class DependencyHandler {
 
         // console.log(`actually did change a dependency for ${stateVariable} of ${component.componentIdx}`)
 
-        // The new dependencies all hang off `allStateVariablesAffected`, so
-        // the searches below cover every new edge.
+        for (let dep of changeResult.newlyCreatedDependencies) {
+            dep.checkForCircular();
+        }
+
         for (let varName of allStateVariablesAffected) {
             this.checkForCircularDependency({
                 componentIdx: component.componentIdx,
@@ -2335,29 +2293,12 @@ export class DependencyHandler {
             dependency: dependencyBlocked,
         });
 
-        // A blocker that is itself waiting on nothing cannot lead back to
-        // the blocked item, so the new edge cannot close a cycle and the
-        // search is skipped. Every earlier edge was searched when it was
-        // added, so no cycle predates this one. (With lazy dependency setup
-        // the blocker usually is such a leaf: it is a state variable whose
-        // own dependencies have not been set up yet.)
-        if (
-            !isEmptyObject(
-                this.peekNeededToResolve({
-                    componentIdx: blockerComponentIdx,
-                    type: blockerType,
-                    stateVariable: blockerStateVariable,
-                    dependency: blockerDependency,
-                }),
-            )
-        ) {
-            this.checkForCircularResolveBlocker({
-                componentIdx: componentIdxBlocked,
-                type: typeBlocked,
-                stateVariable: stateVariableBlocked,
-                dependency: dependencyBlocked,
-            });
-        }
+        this.checkForCircularResolveBlocker({
+            componentIdx: componentIdxBlocked,
+            type: typeBlocked,
+            stateVariable: stateVariableBlocked,
+            dependency: dependencyBlocked,
+        });
     }
 
     async processNewlyResolved({
@@ -3030,27 +2971,23 @@ export class DependencyHandler {
         stateVariable?: string;
         dependency?: string;
     }) {
+        this.circularBlockerPathCodes.length = 0;
         this.searchForCircularResolveBlocker(
             blockerCodeFor(componentIdx, stateVariable, dependency),
             type,
-            [],
         );
     }
 
-    private searchForCircularResolveBlocker(
-        code: string,
-        type: string,
-        path: { code: string; type: string }[],
-    ) {
+    private searchForCircularResolveBlocker(code: string, type: string) {
         const mark = this.circularBlockerMarks.get(type, code);
         if (mark === ON_PATH) {
             throw Error(
                 this.getCircularDependencyMessage(
-                    path.map(
-                        (entry) =>
+                    this.circularBlockerPathCodes.map(
+                        (pathCode) =>
                             this.components[
                                 this.splitBlockerCode(
-                                    entry.code,
+                                    pathCode,
                                 )[0] as unknown as number
                             ],
                     ),
@@ -3062,7 +2999,7 @@ export class DependencyHandler {
         }
 
         this.circularBlockerMarks.set(type, code, ON_PATH);
-        path.push({ code, type });
+        this.circularBlockerPathCodes.push(code);
         try {
             const neededForItem = this.peekNeededToResolveByCode(code, type);
             for (const blockerType in neededForItem) {
@@ -3070,12 +3007,11 @@ export class DependencyHandler {
                     this.searchForCircularResolveBlocker(
                         normalizeBlockerCode(blockerCode),
                         blockerType,
-                        path,
                     );
                 }
             }
         } finally {
-            path.pop();
+            this.circularBlockerPathCodes.pop();
             this.circularBlockerMarks.set(type, code, PASSED);
         }
     }
@@ -3090,26 +3026,30 @@ export class DependencyHandler {
         return parts;
     }
 
+    /** `peekNeededToResolve` for an item given by code; same lookup. */
     private peekNeededToResolveByCode(code: string, type: string) {
-        const [componentIdx, stateVariable, dependency] =
-            this.splitBlockerCode(code);
-        return this.peekNeededToResolve({
-            componentIdx,
-            type,
-            stateVariable,
-            dependency,
-        });
+        const parts = this.splitBlockerCode(code);
+        let needed = this.resolveBlockers.neededToResolve[parts[0]]?.[type];
+        if (needed && parts.length > 1) {
+            needed = needed[parts[1]];
+            if (needed && parts.length > 2) {
+                needed = needed[parts[2]];
+            }
+        }
+        return needed ?? EMPTY_BLOCKERS;
     }
 
+    /** `peekResolveBlockedBy` for an item given by code; same lookup. */
     private peekResolveBlockedByByCode(code: string, type: string) {
-        const [componentIdx, stateVariable, dependency] =
-            this.splitBlockerCode(code);
-        return this.peekResolveBlockedBy({
-            componentIdx,
-            type,
-            stateVariable,
-            dependency,
-        });
+        const parts = this.splitBlockerCode(code);
+        let blocked = this.resolveBlockers.resolveBlockedBy[parts[0]]?.[type];
+        if (blocked && parts.length > 1) {
+            blocked = blocked[parts[1]];
+            if (blocked && parts.length > 2) {
+                blocked = blocked[parts[2]];
+            }
+        }
+        return blocked ?? EMPTY_BLOCKERS;
     }
 
     getCircularDependencyMessage(componentsInvolved: any[]) {

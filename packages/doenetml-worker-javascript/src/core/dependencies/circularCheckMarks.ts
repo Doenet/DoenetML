@@ -54,16 +54,3 @@ export class CircularCheckMarks<Outer> {
         return n;
     }
 }
-
-/**
- * `true` when `obj` has no own or inherited enumerable property. Unlike
- * `Object.keys(obj).length === 0` it allocates nothing for the small,
- * fast-mode objects it is used on (a variable's dependencies, an item's
- * blockers); on a large dictionary-mode object it costs the same.
- */
-export function isEmptyObject(obj: object): boolean {
-    for (const _ in obj) {
-        return false;
-    }
-    return true;
-}

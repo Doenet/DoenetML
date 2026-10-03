@@ -137,6 +137,8 @@ export class Dependency {
         this.returnSingleComponent = false;
 
         this.originalDownstreamVariableNames = [];
+
+        // this.checkForCircular();
     }
 
     get dependencyType() {
@@ -1183,6 +1185,21 @@ export class Dependency {
         // }
 
         return { value, changes, usedDefault };
+    }
+
+    checkForCircular() {
+        for (let varName of this.upstreamVariableNames) {
+            this.dependencyHandler.resetCircularCheckPassed(
+                this.upstreamComponentIdx,
+                varName,
+            );
+        }
+        for (let varName of this.upstreamVariableNames) {
+            this.dependencyHandler.checkForCircularDependency({
+                componentIdx: this.upstreamComponentIdx,
+                varName,
+            });
+        }
     }
 
     async recalculateDownstreamComponents({ force = false } = {}) {
