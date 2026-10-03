@@ -487,6 +487,43 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(stateVariables[btIdx].stateValues.value).eq("false");
         });
 
+        it("a collect gathers the referent where it stands, not the reference", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <section name="s">
+      <number name="n">5</number>
+      <math name="q">$n+1</math>
+      <text name="t">$n</text>
+      <boolean name="b">$n > 3</boolean>
+    </section>
+    <collect componentType="number" from="$s" name="cn" />
+    <collect componentType="math" from="$s" name="cm" />
+    <p name="pn">$cn</p>
+    <p name="pm">$cm</p>
+    `,
+            });
+            // the three references are `_ref`s, which a collect of numbers
+            // does not gather; the full copies of `n` they replace inside
+            // `q`, `t` and `b` were gathered, listing `n` four times. (The
+            // collect's copy of `q`, and the paragraph's copy of that, carry
+            // whole shadows of the reference in `q`, with no `propVariable`.)
+            expect(
+                valueRefs(core).filter((ref) => ref.shadows.propVariable),
+            ).toHaveLength(3);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("pn")].stateValues
+                    .text,
+            ).eq("5");
+            expect(
+                stateVariables[await resolvePathToNodeIdx("pm")].stateValues
+                    .text,
+            ).eq("5 + 1");
+        });
+
         it("a position that renders, or a list, still gets a full copy", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
