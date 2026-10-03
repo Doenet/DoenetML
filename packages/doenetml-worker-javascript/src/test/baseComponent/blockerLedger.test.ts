@@ -258,6 +258,65 @@ describe("Blocker ledger", () => {
 });
 
 /**
+ * A blocker on a resolved state variable also blocks everything upstream of
+ * it, through further `addBlocker` calls made while the first is still
+ * running. The blocker order reads every edge from the ledger and assumes
+ * each one already fits, so `addBlocker` has to fit its own edge before
+ * those calls begin. Fitted only after them, a blocker on `displayDigits` of
+ * `n` below leaves edges out of order.
+ */
+describe("Blocker order", () => {
+    const doenetML = `<number name="n">1</number><number name="m">$n+1</number>`;
+
+    it("fits every blocker that spreads upstream", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const nIdx = await resolvePathToNodeIdx("n");
+        const varNames = Object.keys(core.core._components[nIdx].state);
+
+        let mostEdges = 0;
+        for (const varName of varNames) {
+            // a fresh document each time, so each blocker spreads on its own
+            const { core } = await createTestCore({ doenetML });
+            const dependencies = core.core.dependencies;
+            if (!core.core._components[nIdx].state[varName].initiallyResolved) {
+                continue;
+            }
+            await dependencies.addBlocker({
+                blockerComponentIdx: 901,
+                blockerType: "componentIdentity",
+                componentIdxBlocked: nIdx,
+                typeBlocked: "stateVariable",
+                stateVariableBlocked: varName,
+            });
+
+            const order = dependencies.blockerOrder;
+            let edges = 0;
+            for (const [type, entries] of dependencies.resolveBlockers
+                .neededToResolve) {
+                for (const [code, blockers] of entries) {
+                    for (const blockerType in blockers) {
+                        for (const blockerCode of blockers[blockerType]) {
+                            edges++;
+                            expect(
+                                order._peek(type, code)!,
+                                `${varName}: ${code} before ${blockerCode}`,
+                            ).toBeLessThan(
+                                order._peek(blockerType, String(blockerCode))!,
+                            );
+                        }
+                    }
+                }
+            }
+            mostEdges = Math.max(mostEdges, edges);
+        }
+        // some blocker did spread
+        expect(mostEdges).toBeGreaterThan(10);
+    });
+});
+
+/**
  * A dependency value carries the source position of each component it read
  * from, for warnings that point at the component. Every read reports the
  * same frozen copy rather than a fresh one.
