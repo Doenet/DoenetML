@@ -524,6 +524,36 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             ).eq("5 + 1");
         });
 
+        it("a reference given a type by extend keeps the component it asks for", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <graph><point name="P">(1,2)</point></graph>
+    <math name="m" simplify><number extend="$P.x" name="px" />+1</math>
+    <p name="p">$px and $px.value</p>
+    `,
+            });
+            // `extend` sets `createComponentOfType`, so even under a parent
+            // that only reads values the reference is not a `_ref`: the
+            // `number` it asks for exists, carries the name, and can itself
+            // be referenced
+            expect(valueRefs(core)).toHaveLength(0);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const px = stateVariables[await resolvePathToNodeIdx("px")];
+            expect(px.componentType).eq("number");
+            expect(px.stateValues.value).eq(1);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                    .value.tree,
+            ).eq(2);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .text,
+            ).eq("1 and 1");
+        });
+
         it("a position that renders, or a list, still gets a full copy", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `

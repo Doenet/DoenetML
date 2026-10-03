@@ -2511,8 +2511,13 @@ export async function replacementFromProp({
     // The component that will hold the replacements. When it reads only
     // values from its children, a linked reference to one state variable can
     // be a value reference (`_ref`) instead of a full component with shadow
-    // attribute components (Doenet/DoenetML#2128).
+    // attribute components (Doenet/DoenetML#2128). Not when the reference was
+    // given a type: an `extend` or `copy` (`<number extend="$P.x" />`) and an
+    // index both set `createComponentOfType`, and the component they ask for
+    // is made as it always was.
     const parentClass = component.ancestors[0]?.componentClass;
+    const mayBeValueReference =
+        link && !component.attributes.createComponentOfType?.primitive;
 
     if (stateVarObj.isArray || stateVarObj.isArrayEntry) {
         let arrayStateVarObj, unflattenedArrayKeys, arraySize, arrayKeys;
@@ -2728,7 +2733,7 @@ export async function replacementFromProp({
                         }
                     }
 
-                    const valueReference = link
+                    const valueReference = mayBeValueReference
                         ? planValueReference({
                               parentClass,
                               target,
@@ -3683,7 +3688,7 @@ export async function replacementFromProp({
             const attributesFromComposite = res.attributes;
             nComponents = res.nComponents;
 
-            const valueReference = link
+            const valueReference = mayBeValueReference
                 ? planValueReference({
                       parentClass,
                       target,

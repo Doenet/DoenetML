@@ -67,9 +67,11 @@ export default class ValueRef extends BaseComponent {
      * names. When the component holding the reference is extended, the
      * copy's reference is made as a whole shadow of the original reference
      * rather than of the referent, so the chain is followed through any
-     * references to the component at its end.
+     * references to the component at its end. Also what the adapter-source
+     * dependencies take as the source of a reference that presents as an
+     * adapter's type.
      */
-    _ultimateReferent(components) {
+    ultimateReferent(components) {
         let referent = this.shadows && components[this.shadows.componentIdx];
         let referencedVariable = this.doenetAttributes.referencedVariable;
         while (referent?.componentType === "_ref") {
@@ -210,7 +212,7 @@ export default class ValueRef extends BaseComponent {
         classDefinitions,
     }) {
         const { referent: target, referencedVariable } =
-            this._ultimateReferent(components);
+            this.ultimateReferent(components);
         if (!target) {
             return [];
         }

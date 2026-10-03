@@ -87,10 +87,9 @@ export class AdapterSourceStateVariableDependency extends Dependency {
         // would have been made from.
         let sourceComposite = component.adaptedFrom;
         if (!sourceComposite && component.presentsAsAdapter) {
-            sourceComposite =
-                this.dependencyHandler._components[
-                    component.shadows.componentIdx
-                ];
+            sourceComposite = component.ultimateReferent(
+                this.dependencyHandler._components,
+            ).referent;
         }
 
         if (!sourceComposite) {
@@ -208,10 +207,9 @@ export class AdapterSourceDependency extends Dependency {
         // would have been made from.
         let sourceComposite = component.adaptedFrom;
         if (!sourceComposite && component.presentsAsAdapter) {
-            sourceComposite =
-                this.dependencyHandler._components[
-                    component.shadows.componentIdx
-                ];
+            sourceComposite = component.ultimateReferent(
+                this.dependencyHandler._components,
+            ).referent;
         }
 
         if (!sourceComposite) {
