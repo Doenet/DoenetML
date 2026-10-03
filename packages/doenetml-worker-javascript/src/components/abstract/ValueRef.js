@@ -31,6 +31,21 @@ export default class ValueRef extends BaseComponent {
     static excludeFromSchema = true;
     static primaryStateVariableForDefinition = "value";
 
+    constructor(args) {
+        super(args);
+
+        // When the referent's variable has no value (a `<choiceInput>`'s
+        // `selectedValue` once the selected choice is gone), a component of
+        // the presented type would hold its own default: `＿` for a math,
+        // `NaN` for a number. The shadow definition asks the type that holds
+        // values of this variable's kind for that empty value
+        // (`_emptyPrimaryValue` in `StateVariableDefinitionFactory`), and
+        // for a reference that type is the presented one.
+        this.state.value.shadowingInstructions = {
+            createComponentOfType: this.presentedComponentType,
+        };
+    }
+
     static createAttributesObject() {
         return {};
     }

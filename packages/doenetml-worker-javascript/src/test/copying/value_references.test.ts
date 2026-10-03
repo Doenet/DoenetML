@@ -420,6 +420,100 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             });
         });
 
+        it("a reference to an entry with no value holds what its type holds", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <boolean name="b">true</boolean>
+    <booleanInput name="bi" bindValueTo="$b" />
+    <choiceInput name="ci">
+      <choice><math>1</math></choice>
+      <conditionalContent condition="$b"><choice><math>2</math></choice></conditionalContent>
+    </choiceInput>
+    <choiceInput name="ct">
+      <choice>one</choice>
+      <conditionalContent condition="$b"><choice>two</choice></conditionalContent>
+    </choiceInput>
+    <number name="x">$ci.selectedValue</number>
+    <math name="z">$ci.selectedValue + 1</math>
+    <boolean name="y">$ci.selectedValue = 2</boolean>
+    <text name="w">$ct.selectedValue</text>
+    `,
+            });
+            const ciIdx = await resolvePathToNodeIdx("ci");
+            const ctIdx = await resolvePathToNodeIdx("ct");
+            const biIdx = await resolvePathToNodeIdx("bi");
+            const xIdx = await resolvePathToNodeIdx("x");
+            const zIdx = await resolvePathToNodeIdx("z");
+            const yIdx = await resolvePathToNodeIdx("y");
+            const wIdx = await resolvePathToNodeIdx("w");
+
+            async function state() {
+                const sv = await core.returnAllStateVariables(false, true);
+                return {
+                    x: sv[xIdx].stateValues.value,
+                    z: sv[zIdx].stateValues.value.tree,
+                    y: sv[yIdx].stateValues.value,
+                    w: sv[wIdx].stateValues.value,
+                };
+            }
+
+            await updateSelectedIndices({
+                componentIdx: ciIdx,
+                selectedIndices: [2],
+                core,
+            });
+            await updateSelectedIndices({
+                componentIdx: ctIdx,
+                selectedIndices: [2],
+                core,
+            });
+            expect(await state()).eqls({
+                x: 2,
+                z: ["+", 2, 1],
+                y: true,
+                w: "two",
+            });
+            expect(
+                valueRefs(core)
+                    .filter(
+                        (ref) => ref.shadows.propVariable === "selectedValue1",
+                    )
+                    .map((ref) => ref.presentedComponentType),
+            ).eqls(["math", "math", "math", "text"]);
+
+            // the selected choices are gone, and the selection stays: the
+            // referenced entry has no value, and each reference holds what
+            // a component of its type holds in that case, as the full copy did
+            await updateBooleanInputValue({
+                boolean: false,
+                componentIdx: biIdx,
+                core,
+            });
+            expect(await state()).eqls({
+                x: NaN,
+                z: ["+", "＿", 1],
+                y: false,
+                w: "",
+            });
+
+            await updateSelectedIndices({
+                componentIdx: ciIdx,
+                selectedIndices: [1],
+                core,
+            });
+            await updateSelectedIndices({
+                componentIdx: ctIdx,
+                selectedIndices: [1],
+                core,
+            });
+            expect(await state()).eqls({
+                x: 1,
+                z: ["+", 1, 1],
+                y: false,
+                w: "one",
+            });
+        });
+
         it("a reference as the content of an attribute", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
