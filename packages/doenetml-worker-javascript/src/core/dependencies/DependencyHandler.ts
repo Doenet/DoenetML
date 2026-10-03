@@ -33,6 +33,34 @@ import { CircularCheckMarks, ON_PATH, PASSED } from "./circularCheckMarks";
 const EMPTY_BLOCKERS: Record<string, any> = Object.freeze({});
 
 /**
+ * One direction of the blocker ledger. `neededToResolve` files each blocked
+ * item under its type and its code (`blockerCodeFor`), with the items that
+ * block it as `{ [blockerType]: blockerCodes }`; `resolveBlockedBy` files
+ * each blocker the same way, with the items it blocks as
+ * `{ [typeBlocked]: codesBlocked }`.
+ */
+type BlockerLedger = Map<string, Map<string, Record<string, any[]>>>;
+
+/** The ledger entry for an item, created empty if there is none. */
+function ledgerEntry(
+    ledger: BlockerLedger,
+    type: string,
+    code: string,
+): Record<string, any[]> {
+    let entriesForType = ledger.get(type);
+    if (!entriesForType) {
+        entriesForType = new Map();
+        ledger.set(type, entriesForType);
+    }
+    let entry = entriesForType.get(code);
+    if (!entry) {
+        entry = {};
+        entriesForType.set(code, entry);
+    }
+    return entry;
+}
+
+/**
  * The 9 trigger tables that `DependencyHandler` exposes for cross-component
  * change propagation. Each is an index over component identifiers or names
  * pointing at the dependent dependency records; the records themselves are
@@ -94,11 +122,6 @@ export class DependencyHandler {
      */
     circularBlockerMarks: CircularCheckMarks<string>;
     /**
-     * Item codes (`"idx|stateVariable|dependency"`) split into their parts,
-     * so the blocker walks do not re-split a code on every visit.
-     */
-    _blockerCodeParts: Map<string, string[]>;
-    /**
      * The nodes on the current search path, root first, kept for the error
      * message. The searches are synchronous and never nested, so one stack
      * each is enough; every visit pops in a `finally`, so the stack is
@@ -109,9 +132,10 @@ export class DependencyHandler {
 
     dependencyTypes: Record<string, any>;
     updateTriggers: DependencyUpdateTriggers;
+    /** The blocker ledger, one side in each direction; see `BlockerLedger`. */
     resolveBlockers: {
-        neededToResolve: Record<string, any>;
-        resolveBlockedBy: Record<string, any>;
+        neededToResolve: BlockerLedger;
+        resolveBlockedBy: BlockerLedger;
     };
     attributeRefResolutionDependenciesByReferenced: Record<ComponentIdx, any>;
 
@@ -169,6 +193,11 @@ export class DependencyHandler {
     _internedValuesChangedArrays: Map<string, Record<string, any>[]>;
     /** Shared frozen record for a fully-consumed `valuesChanged` entry. */
     emptyValuesChangedRecord: Record<string, any>;
+    /**
+     * Frozen copies of component positions, keyed by the position object;
+     * see `frozenPositionCopy`.
+     */
+    _frozenPositionCopies: WeakMap<object, any>;
 
     /**
      * Number of state-variable groups whose dependencies have been built
@@ -193,7 +222,6 @@ export class DependencyHandler {
 
         this.circularCheckMarks = new CircularCheckMarks();
         this.circularBlockerMarks = new CircularCheckMarks();
-        this._blockerCodeParts = new Map();
         this._circularPathComponents = [];
         this._circularBlockerPathCodes = [];
 
@@ -219,8 +247,8 @@ export class DependencyHandler {
         };
 
         this.resolveBlockers = {
-            neededToResolve: {},
-            resolveBlockedBy: {},
+            neededToResolve: new Map(),
+            resolveBlockedBy: new Map(),
         };
 
         this.numDependencySetups = 0;
@@ -237,6 +265,7 @@ export class DependencyHandler {
         this._internedValuesChangedRecords = new Map();
         this._internedValuesChangedArrays = new Map();
         this.emptyValuesChangedRecord = Object.freeze({});
+        this._frozenPositionCopies = new WeakMap();
         this._internedListIds.set(
             this.emptyValuesChangedRecord,
             this._nextInternedListId,
@@ -386,6 +415,22 @@ export class DependencyHandler {
             this._internedValuesChangedArrays.set(key, interned);
         }
         return interned;
+    }
+
+    /**
+     * The position a dependency value reports for a component (see
+     * `Dependency.getValue`): a deep copy, frozen and made once per position
+     * object, so that every read shares it rather than copying it again.
+     * Frozen so that a reader that writes to it throws instead of changing
+     * what every other reader sees.
+     */
+    frozenPositionCopy(position: object) {
+        let copy = this._frozenPositionCopies.get(position);
+        if (!copy) {
+            copy = deepFreeze(JSON.parse(JSON.stringify(position)));
+            this._frozenPositionCopies.set(position, copy);
+        }
+        return copy;
     }
 
     /**
@@ -1021,7 +1066,6 @@ export class DependencyHandler {
     clearCircularCheckMemos() {
         this.circularCheckMarks.clear();
         this.circularBlockerMarks.clear();
-        this._blockerCodeParts.clear();
     }
 
     /**
@@ -1643,12 +1687,10 @@ export class DependencyHandler {
     }
 
     /**
-     * Non-creating variant of `getNeededToResolve`: returns the nested entry
-     * if it exists, else `EMPTY_BLOCKERS`, without materializing intermediate
-     * levels. `getNeededToResolve` creates the whole nested chain on every
-     * lookup, and read-only callers used to leave tens of thousands of empty
-     * `{cIdx: {type: {stateVariable: {}}}}` chains behind — the bulk of
-     * `resolveBlockers`' retained memory.
+     * Read-only lookup in the blocker ledger: the entry for the item if it
+     * exists, else `EMPTY_BLOCKERS`. It creates nothing, so read-only
+     * callers leave no empty entries behind; `addBlocker` creates entries
+     * with `ledgerEntry`.
      */
     peekNeededToResolve({
         componentIdx,
@@ -1656,68 +1698,29 @@ export class DependencyHandler {
         stateVariable,
         dependency,
     }: any) {
-        let neededToResolve =
-            this.resolveBlockers.neededToResolve[componentIdx]?.[type];
-        if (neededToResolve && stateVariable) {
-            neededToResolve = neededToResolve[stateVariable];
-            if (neededToResolve && dependency) {
-                neededToResolve = neededToResolve[dependency];
-            }
-        }
-        return neededToResolve ?? EMPTY_BLOCKERS;
+        return (
+            this.resolveBlockers.neededToResolve
+                .get(type)
+                ?.get(
+                    blockerCodeFor(componentIdx, stateVariable, dependency),
+                ) ?? EMPTY_BLOCKERS
+        );
     }
 
-    /** Non-creating variant of `getResolveBlockedBy`; see `peekNeededToResolve`. */
+    /** `peekNeededToResolve` for the other side of the ledger. */
     peekResolveBlockedBy({
         componentIdx,
         type,
         stateVariable,
         dependency,
     }: any) {
-        let resolveBlockedBy =
-            this.resolveBlockers.resolveBlockedBy[componentIdx]?.[type];
-        if (resolveBlockedBy && stateVariable) {
-            resolveBlockedBy = resolveBlockedBy[stateVariable];
-            if (resolveBlockedBy && dependency) {
-                resolveBlockedBy = resolveBlockedBy[dependency];
-            }
-        }
-        return resolveBlockedBy ?? EMPTY_BLOCKERS;
-    }
-
-    getNeededToResolve({ componentIdx, type, stateVariable, dependency }: any) {
-        let neededToResolveForComponent =
-            this.resolveBlockers.neededToResolve[componentIdx];
-        if (!neededToResolveForComponent) {
-            neededToResolveForComponent = this.resolveBlockers.neededToResolve[
-                componentIdx
-            ] = {};
-        }
-
-        let neededToResolve = neededToResolveForComponent[type];
-        if (!neededToResolve) {
-            neededToResolve = neededToResolveForComponent[type] = {};
-        }
-
-        // have an extra level if include a state variable
-        if (stateVariable) {
-            let neededToResolveTemp = neededToResolve;
-            neededToResolve = neededToResolveTemp[stateVariable];
-            if (!neededToResolve) {
-                neededToResolve = neededToResolveTemp[stateVariable] = {};
-            }
-
-            // have yet another level if include a dependency
-            if (dependency) {
-                let neededToResolveTemp = neededToResolve;
-                neededToResolve = neededToResolveTemp[dependency];
-                if (!neededToResolve) {
-                    neededToResolve = neededToResolveTemp[dependency] = {};
-                }
-            }
-        }
-
-        return neededToResolve;
+        return (
+            this.resolveBlockers.resolveBlockedBy
+                .get(type)
+                ?.get(
+                    blockerCodeFor(componentIdx, stateVariable, dependency),
+                ) ?? EMPTY_BLOCKERS
+        );
     }
 
     deleteFromNeededToResolve({
@@ -1729,188 +1732,95 @@ export class DependencyHandler {
         blockerCode,
         deleteFromReciprocal = true,
     }: any) {
-        // console.log(`delete from needed to resolve ${componentIdxBlocked}, ${typeBlocked}, ${stateVariableBlocked}, ${dependencyBlocked}, ${blockerType}, ${blockerCode}`)
-        // console.log(JSON.parse(JSON.stringify(this.resolveBlockers)))
+        this._deleteFromNeededToResolveByCode(
+            typeBlocked,
+            blockerCodeFor(
+                componentIdxBlocked,
+                stateVariableBlocked,
+                dependencyBlocked,
+            ),
+            blockerType,
+            blockerCode,
+            deleteFromReciprocal,
+        );
+    }
 
-        let codeBlocked = componentIdxBlocked.toString();
-        if (stateVariableBlocked) {
-            codeBlocked += "|" + stateVariableBlocked;
-            if (dependencyBlocked) {
-                codeBlocked += "|" + dependencyBlocked;
-            }
+    /**
+     * `deleteFromNeededToResolve` for a blocked item given by its code. With
+     * a `blockerCode`, removes that one blocker; with a `blockerType` alone,
+     * every blocker of that type; with neither, the whole entry. Unless
+     * `deleteFromReciprocal` is false, each blocker removed also stops
+     * recording the item in `resolveBlockedBy`.
+     */
+    _deleteFromNeededToResolveByCode(
+        typeBlocked: string,
+        codeBlocked: string,
+        blockerType: string | undefined,
+        blockerCode: string | number | undefined,
+        deleteFromReciprocal: boolean,
+    ) {
+        const neededForType =
+            this.resolveBlockers.neededToResolve.get(typeBlocked);
+        const neededObj = neededForType?.get(codeBlocked);
+        if (!neededForType || !neededObj) {
+            return;
         }
 
-        // Arrow function so `this` resolves to the surrounding class
-        // instance (the original JS authored these as `function`
-        // expressions; the calls inside use `this.deleteFromResolveBlockedBy`,
-        // so the lexical-`this` form matches the runtime behavior the
-        // tests already exercise).
-        let deleteBlockerTypeAndCode = (neededObj: any) => {
-            if (blockerType) {
-                if (neededObj[blockerType]) {
-                    if (blockerCode) {
-                        let ind = neededObj[blockerType].indexOf(blockerCode);
-                        if (ind !== -1) {
-                            neededObj[blockerType].splice(ind, 1);
-                        }
-                        if (neededObj[blockerType].length === 0) {
-                            delete neededObj[blockerType];
-                        }
-                        if (deleteFromReciprocal) {
-                            let [
-                                blockerComponentIdx,
-                                blockerStateVariable,
-                                blockerDependency,
-                            ] =
-                                typeof blockerCode === "string"
-                                    ? blockerCode.split("|")
-                                    : [blockerCode];
-                            this.deleteFromResolveBlockedBy({
-                                blockerComponentIdx,
-                                blockerType,
-                                blockerStateVariable,
-                                blockerDependency,
-                                typeBlocked,
-                                codeBlocked,
-                                deleteFromReciprocal: false,
-                            });
-                        }
-                    } else {
-                        // no blockerCode given, so deleting all for blockerType
-                        // Just delete from reciprocal here
-                        // (can't actually delete originals in this function, as need access to parent object)
-                        if (deleteFromReciprocal) {
-                            for (let code of neededObj[blockerType]) {
-                                let [
-                                    blockerComponentIdx,
-                                    blockerStateVariable,
-                                    blockerDependency,
-                                ] =
-                                    typeof code === "string"
-                                        ? code.split("|")
-                                        : [code];
-                                this.deleteFromResolveBlockedBy({
-                                    blockerComponentIdx,
-                                    blockerType,
-                                    blockerStateVariable,
-                                    blockerDependency,
-                                    typeBlocked,
-                                    codeBlocked,
-                                    deleteFromReciprocal: false,
-                                });
-                            }
-                        }
-
+        if (blockerType) {
+            const blockerCodes = neededObj[blockerType];
+            if (blockerCodes) {
+                if (blockerCode) {
+                    let ind = blockerCodes.indexOf(blockerCode);
+                    if (ind !== -1) {
+                        blockerCodes.splice(ind, 1);
+                    }
+                    if (blockerCodes.length === 0) {
                         delete neededObj[blockerType];
                     }
-                }
-            } else {
-                // no blockerType given, so deleting all blockerCodes for all blockerTypes
-                if (deleteFromReciprocal) {
-                    for (let type in neededObj) {
-                        for (let code of neededObj[type]) {
-                            let [
-                                blockerComponentIdx,
-                                blockerStateVariable,
-                                blockerDependency,
-                            ] =
-                                typeof code === "string"
-                                    ? code.split("|")
-                                    : [code];
-                            this.deleteFromResolveBlockedBy({
-                                blockerComponentIdx,
-                                blockerType: type,
-                                blockerStateVariable,
-                                blockerDependency,
-                                typeBlocked,
-                                codeBlocked,
-                                deleteFromReciprocal: false,
-                            });
-                        }
-                    }
-                }
-            }
-        };
-
-        let neededToResolveForComponent =
-            this.resolveBlockers.neededToResolve[componentIdxBlocked];
-
-        if (neededToResolveForComponent) {
-            let neededToResolveForType =
-                neededToResolveForComponent[typeBlocked];
-
-            if (neededToResolveForType) {
-                // have an extra level if include a state variable
-                if (stateVariableBlocked) {
-                    let neededToResolveForStateVariable =
-                        neededToResolveForType[stateVariableBlocked];
-                    if (neededToResolveForStateVariable) {
-                        // have yet another level if include a dependency
-                        if (dependencyBlocked) {
-                            let neededToResolveForDependency =
-                                neededToResolveForStateVariable[
-                                    dependencyBlocked
-                                ];
-                            if (neededToResolveForDependency) {
-                                deleteBlockerTypeAndCode(
-                                    neededToResolveForDependency,
-                                );
-                                if (
-                                    !blockerType ||
-                                    Object.keys(neededToResolveForDependency)
-                                        .length === 0
-                                ) {
-                                    delete neededToResolveForStateVariable[
-                                        dependencyBlocked
-                                    ];
-                                }
-                            }
-                            if (
-                                Object.keys(neededToResolveForStateVariable)
-                                    .length === 0
-                            ) {
-                                delete neededToResolveForType[
-                                    stateVariableBlocked
-                                ];
-                            }
-                        } else {
-                            deleteBlockerTypeAndCode(
-                                neededToResolveForStateVariable,
-                            );
-                            if (
-                                !blockerType ||
-                                Object.keys(neededToResolveForStateVariable)
-                                    .length === 0
-                            ) {
-                                delete neededToResolveForType[
-                                    stateVariableBlocked
-                                ];
-                            }
-                        }
-                    }
-                    if (Object.keys(neededToResolveForType).length === 0) {
-                        delete neededToResolveForComponent[typeBlocked];
+                    if (deleteFromReciprocal) {
+                        this._deleteFromResolveBlockedByCode(
+                            blockerType,
+                            normalizeBlockerCode(blockerCode),
+                            typeBlocked,
+                            codeBlocked,
+                            false,
+                        );
                     }
                 } else {
-                    deleteBlockerTypeAndCode(neededToResolveForType);
-                    if (
-                        !blockerType ||
-                        Object.keys(neededToResolveForType).length === 0
-                    ) {
-                        delete neededToResolveForComponent[typeBlocked];
+                    // no blockerCode given, so deleting all for blockerType
+                    if (deleteFromReciprocal) {
+                        for (let code of blockerCodes) {
+                            this._deleteFromResolveBlockedByCode(
+                                blockerType,
+                                normalizeBlockerCode(code),
+                                typeBlocked,
+                                codeBlocked,
+                                false,
+                            );
+                        }
                     }
+                    delete neededObj[blockerType];
                 }
             }
-
-            if (Object.keys(neededToResolveForComponent).length === 0) {
-                delete this.resolveBlockers.neededToResolve[
-                    componentIdxBlocked
-                ];
+        } else if (deleteFromReciprocal) {
+            // no blockerType given, so deleting all blockerCodes for all
+            // blockerTypes (the entry itself is deleted below)
+            for (let type in neededObj) {
+                for (let code of neededObj[type]) {
+                    this._deleteFromResolveBlockedByCode(
+                        type,
+                        normalizeBlockerCode(code),
+                        typeBlocked,
+                        codeBlocked,
+                        false,
+                    );
+                }
             }
         }
 
-        // console.log(`done deleting from needed to resolve ${componentIdxBlocked}, ${typeBlocked}, ${stateVariableBlocked}, ${dependencyBlocked}, ${blockerType}, ${blockerCode}`)
-        // console.log(JSON.parse(JSON.stringify(this.resolveBlockers)))
+        if (!blockerType || Object.keys(neededObj).length === 0) {
+            neededForType.delete(codeBlocked);
+        }
     }
 
     checkIfHaveNeededToResolve({
@@ -1919,76 +1829,13 @@ export class DependencyHandler {
         stateVariable,
         dependency,
     }: any) {
-        let neededToResolveForComponent =
-            this.resolveBlockers.neededToResolve[componentIdx];
-        if (!neededToResolveForComponent) {
-            return false;
-        }
-
-        let neededToResolve = neededToResolveForComponent[type];
-        if (!neededToResolve) {
-            return false;
-        }
-
-        // have an extra level if include a state variable
-        if (stateVariable) {
-            let neededToResolveTemp = neededToResolve;
-            neededToResolve = neededToResolveTemp[stateVariable];
-            if (!neededToResolve) {
-                return false;
-            }
-
-            // have yet another level if include a dependency
-            if (dependency) {
-                let neededToResolveTemp = neededToResolve;
-                neededToResolve = neededToResolveTemp[dependency];
-                if (!neededToResolve) {
-                    return false;
-                }
-            }
-        }
-
-        return Object.keys(neededToResolve).length > 0;
-    }
-
-    getResolveBlockedBy({
-        componentIdx,
-        type,
-        stateVariable,
-        dependency,
-    }: any) {
-        let resolveBlockedByComponent =
-            this.resolveBlockers.resolveBlockedBy[componentIdx];
-        if (!resolveBlockedByComponent) {
-            resolveBlockedByComponent = this.resolveBlockers.resolveBlockedBy[
-                componentIdx
-            ] = {};
-        }
-
-        let resolveBlockedBy = resolveBlockedByComponent[type];
-        if (!resolveBlockedBy) {
-            resolveBlockedBy = resolveBlockedByComponent[type] = {};
-        }
-
-        // have an extra level if include a state variable
-        if (stateVariable) {
-            let resolveBlockedByTemp = resolveBlockedBy;
-            resolveBlockedBy = resolveBlockedByTemp[stateVariable];
-            if (!resolveBlockedBy) {
-                resolveBlockedBy = resolveBlockedByTemp[stateVariable] = {};
-            }
-
-            // have yet another level if include a dependency
-            if (dependency) {
-                let resolveBlockedByTemp = resolveBlockedBy;
-                resolveBlockedBy = resolveBlockedByTemp[dependency];
-                if (!resolveBlockedBy) {
-                    resolveBlockedBy = resolveBlockedByTemp[dependency] = {};
-                }
-            }
-        }
-
-        return resolveBlockedBy;
+        const neededToResolve = this.resolveBlockers.neededToResolve
+            .get(type)
+            ?.get(blockerCodeFor(componentIdx, stateVariable, dependency));
+        return (
+            neededToResolve !== undefined &&
+            Object.keys(neededToResolve).length > 0
+        );
     }
 
     deleteFromResolveBlockedBy({
@@ -2000,187 +1847,92 @@ export class DependencyHandler {
         codeBlocked,
         deleteFromReciprocal = true,
     }: any) {
-        // console.log(`delete from resolve blocked by ${blockerComponentIdx}, ${blockerType}, ${blockerStateVariable}, ${blockerDependency}, ${typeBlocked}, ${codeBlocked}`)
-        // console.log(JSON.parse(JSON.stringify(this.resolveBlockers)))
+        this._deleteFromResolveBlockedByCode(
+            blockerType,
+            blockerCodeFor(
+                blockerComponentIdx,
+                blockerStateVariable,
+                blockerDependency,
+            ),
+            typeBlocked,
+            codeBlocked,
+            deleteFromReciprocal,
+        );
+    }
 
-        let blockerCode = blockerComponentIdx.toString();
-        if (blockerStateVariable) {
-            blockerCode += "|" + blockerStateVariable;
-            if (blockerDependency) {
-                blockerCode += "|" + blockerDependency;
-            }
+    /**
+     * `deleteFromResolveBlockedBy` for a blocker given by its code; the
+     * mirror image of `_deleteFromNeededToResolveByCode`.
+     */
+    _deleteFromResolveBlockedByCode(
+        blockerType: string,
+        blockerCode: string,
+        typeBlocked: string | undefined,
+        codeBlocked: string | number | undefined,
+        deleteFromReciprocal: boolean,
+    ) {
+        const blockedForType =
+            this.resolveBlockers.resolveBlockedBy.get(blockerType);
+        const blockedObj = blockedForType?.get(blockerCode);
+        if (!blockedForType || !blockedObj) {
+            return;
         }
 
-        // Arrow form for the same reason as `deleteBlockerTypeAndCode`
-        // above — the body uses `this.<method>` so it must lexically
-        // capture the surrounding class instance.
-        let deleteTypeAndCodeBlocked = (neededObj: any) => {
-            if (typeBlocked) {
-                if (neededObj[typeBlocked]) {
-                    if (codeBlocked) {
-                        let ind = neededObj[typeBlocked].indexOf(codeBlocked);
-                        if (ind !== -1) {
-                            neededObj[typeBlocked].splice(ind, 1);
-                        }
-                        if (neededObj[typeBlocked].length === 0) {
-                            delete neededObj[typeBlocked];
-                        }
-                        if (deleteFromReciprocal) {
-                            let [
-                                componentIdxBlocked,
-                                stateVariableBlocked,
-                                dependencyBlocked,
-                            ] =
-                                typeof codeBlocked === "string"
-                                    ? codeBlocked.split("|")
-                                    : [codeBlocked];
-
-                            this.deleteFromNeededToResolve({
-                                componentIdxBlocked,
-                                typeBlocked,
-                                stateVariableBlocked,
-                                dependencyBlocked,
-                                blockerType,
-                                blockerCode,
-                                deleteFromReciprocal: false,
-                            });
-                        }
-                    } else {
-                        // no codeBlocked given, so deleting all for typeBlocked
-                        if (deleteFromReciprocal) {
-                            for (let code of neededObj[typeBlocked]) {
-                                let [
-                                    componentIdxBlocked,
-                                    stateVariableBlocked,
-                                    dependencyBlocked,
-                                ] =
-                                    typeof code === "string"
-                                        ? code.split("|")
-                                        : [code];
-                                this.deleteFromNeededToResolve({
-                                    componentIdxBlocked,
-                                    typeBlocked,
-                                    stateVariableBlocked,
-                                    dependencyBlocked,
-                                    blockerType,
-                                    blockerCode,
-                                    deleteFromReciprocal: false,
-                                });
-                            }
-                        }
-
-                        delete neededObj[typeBlocked];
+        if (typeBlocked) {
+            const codesBlocked = blockedObj[typeBlocked];
+            if (codesBlocked) {
+                if (codeBlocked) {
+                    let ind = codesBlocked.indexOf(codeBlocked);
+                    if (ind !== -1) {
+                        codesBlocked.splice(ind, 1);
                     }
-                }
-            } else {
-                // no typeBlocked given, so will delete all codeBlockeds for all typeBlockeds
-                // Just delete from reciprocal here
-                // (can't actually delete originals in this function, as need access to parent object)
-                if (deleteFromReciprocal) {
-                    for (let type in neededObj) {
-                        for (let code of neededObj[type]) {
-                            let [
-                                componentIdxBlocked,
-                                stateVariableBlocked,
-                                dependencyBlocked,
-                            ] =
-                                typeof code === "string"
-                                    ? code.split("|")
-                                    : [code];
-                            this.deleteFromNeededToResolve({
-                                componentIdxBlocked,
-                                typeBlocked: type,
-                                stateVariableBlocked,
-                                dependencyBlocked,
-                                blockerType,
-                                blockerCode,
-                                deleteFromReciprocal: false,
-                            });
-                        }
+                    if (codesBlocked.length === 0) {
+                        delete blockedObj[typeBlocked];
                     }
-                }
-            }
-        };
-
-        let resolveBlockedByForComponent =
-            this.resolveBlockers.resolveBlockedBy[blockerComponentIdx];
-
-        if (resolveBlockedByForComponent) {
-            let resolveBlockedByForType =
-                resolveBlockedByForComponent[blockerType];
-
-            if (resolveBlockedByForType) {
-                // have an extra level if include a state variable
-                if (blockerStateVariable) {
-                    let resolveBlockedByForStateVariable =
-                        resolveBlockedByForType[blockerStateVariable];
-                    if (resolveBlockedByForStateVariable) {
-                        // have yet another level if include a dependency
-                        if (blockerDependency) {
-                            let resolveBlockedByForDependency =
-                                resolveBlockedByForStateVariable[
-                                    blockerDependency
-                                ];
-                            if (resolveBlockedByForDependency) {
-                                deleteTypeAndCodeBlocked(
-                                    resolveBlockedByForDependency,
-                                );
-                                if (
-                                    !typeBlocked ||
-                                    Object.keys(resolveBlockedByForDependency)
-                                        .length === 0
-                                ) {
-                                    delete resolveBlockedByForStateVariable[
-                                        blockerDependency
-                                    ];
-                                }
-                            }
-                            if (
-                                Object.keys(resolveBlockedByForStateVariable)
-                                    .length === 0
-                            ) {
-                                delete resolveBlockedByForType[
-                                    blockerStateVariable
-                                ];
-                            }
-                        } else {
-                            deleteTypeAndCodeBlocked(
-                                resolveBlockedByForStateVariable,
-                            );
-                            if (
-                                !typeBlocked ||
-                                Object.keys(resolveBlockedByForStateVariable)
-                                    .length === 0
-                            ) {
-                                delete resolveBlockedByForType[
-                                    blockerStateVariable
-                                ];
-                            }
-                        }
-                    }
-                    if (Object.keys(resolveBlockedByForType).length === 0) {
-                        delete resolveBlockedByForComponent[blockerType];
+                    if (deleteFromReciprocal) {
+                        this._deleteFromNeededToResolveByCode(
+                            typeBlocked,
+                            normalizeBlockerCode(codeBlocked),
+                            blockerType,
+                            blockerCode,
+                            false,
+                        );
                     }
                 } else {
-                    deleteTypeAndCodeBlocked(resolveBlockedByForType);
-                    if (
-                        !typeBlocked ||
-                        Object.keys(resolveBlockedByForType).length === 0
-                    ) {
-                        delete resolveBlockedByForComponent[blockerType];
+                    // no codeBlocked given, so deleting all for typeBlocked
+                    if (deleteFromReciprocal) {
+                        for (let code of codesBlocked) {
+                            this._deleteFromNeededToResolveByCode(
+                                typeBlocked,
+                                normalizeBlockerCode(code),
+                                blockerType,
+                                blockerCode,
+                                false,
+                            );
+                        }
                     }
+                    delete blockedObj[typeBlocked];
                 }
             }
-
-            if (Object.keys(resolveBlockedByForComponent).length === 0) {
-                delete this.resolveBlockers.resolveBlockedBy[
-                    blockerComponentIdx
-                ];
+        } else if (deleteFromReciprocal) {
+            // no typeBlocked given, so deleting all codeBlockeds for all
+            // typeBlockeds (the entry itself is deleted below)
+            for (let type in blockedObj) {
+                for (let code of blockedObj[type]) {
+                    this._deleteFromNeededToResolveByCode(
+                        type,
+                        normalizeBlockerCode(code),
+                        blockerType,
+                        blockerCode,
+                        false,
+                    );
+                }
             }
         }
 
-        // console.log(`done deleting from resolve blocked by ${blockerComponentIdx}, ${blockerType}, ${blockerStateVariable}, ${blockerDependency}, ${typeBlocked}, ${codeBlocked}`)
-        // console.log(JSON.parse(JSON.stringify(this.resolveBlockers)))
+        if (!typeBlocked || Object.keys(blockedObj).length === 0) {
+            blockedForType.delete(blockerCode);
+        }
     }
 
     async addBlocker({
@@ -2209,12 +1961,11 @@ export class DependencyHandler {
             }
         }
 
-        let neededForBlocked = this.getNeededToResolve({
-            componentIdx: componentIdxBlocked,
-            type: typeBlocked,
-            stateVariable: stateVariableBlocked,
-            dependency: dependencyBlocked,
-        });
+        let neededForBlocked = ledgerEntry(
+            this.resolveBlockers.neededToResolve,
+            typeBlocked,
+            normalizeBlockerCode(codeBlocked),
+        );
 
         let neededToResolveBlocked = neededForBlocked[blockerType];
         if (!neededToResolveBlocked) {
@@ -2272,12 +2023,11 @@ export class DependencyHandler {
         }
 
         // record that blocked by blocker
-        let resolvedBlockedByBlocker = this.getResolveBlockedBy({
-            componentIdx: blockerComponentIdx,
-            type: blockerType,
-            stateVariable: blockerStateVariable,
-            dependency: blockerDependency,
-        });
+        let resolvedBlockedByBlocker = ledgerEntry(
+            this.resolveBlockers.resolveBlockedBy,
+            blockerType,
+            blockerCode,
+        );
 
         let blockedByBlocker = resolvedBlockedByBlocker[typeBlocked];
         if (!blockedByBlocker) {
@@ -2987,9 +2737,7 @@ export class DependencyHandler {
                     this._circularBlockerPathCodes.map(
                         (pathCode) =>
                             this.components[
-                                this._splitBlockerCode(
-                                    pathCode,
-                                )[0] as unknown as number
+                                pathCode.split("|")[0] as unknown as number
                             ],
                     ),
                 ),
@@ -3002,7 +2750,9 @@ export class DependencyHandler {
         this.circularBlockerMarks.set(type, code, ON_PATH);
         this._circularBlockerPathCodes.push(code);
         try {
-            const neededForItem = this._peekNeededToResolveByCode(code, type);
+            const neededForItem =
+                this.resolveBlockers.neededToResolve.get(type)?.get(code) ??
+                EMPTY_BLOCKERS;
             for (const blockerType in neededForItem) {
                 for (const blockerCode of neededForItem[blockerType]) {
                     this._searchForCircularResolveBlocker(
@@ -3015,42 +2765,6 @@ export class DependencyHandler {
             this._circularBlockerPathCodes.pop();
             this.circularBlockerMarks.set(type, code, PASSED);
         }
-    }
-
-    /** The parts of an item code, split once and cached. */
-    _splitBlockerCode(code: string): string[] {
-        let parts = this._blockerCodeParts.get(code);
-        if (!parts) {
-            parts = code.split("|");
-            this._blockerCodeParts.set(code, parts);
-        }
-        return parts;
-    }
-
-    /** `peekNeededToResolve` for an item given by code; same lookup. */
-    _peekNeededToResolveByCode(code: string, type: string) {
-        const parts = this._splitBlockerCode(code);
-        let needed = this.resolveBlockers.neededToResolve[parts[0]]?.[type];
-        if (needed && parts.length > 1) {
-            needed = needed[parts[1]];
-            if (needed && parts.length > 2) {
-                needed = needed[parts[2]];
-            }
-        }
-        return needed ?? EMPTY_BLOCKERS;
-    }
-
-    /** `peekResolveBlockedBy` for an item given by code; same lookup. */
-    _peekResolveBlockedByByCode(code: string, type: string) {
-        const parts = this._splitBlockerCode(code);
-        let blocked = this.resolveBlockers.resolveBlockedBy[parts[0]]?.[type];
-        if (blocked && parts.length > 1) {
-            blocked = blocked[parts[1]];
-            if (blocked && parts.length > 2) {
-                blocked = blocked[parts[2]];
-            }
-        }
-        return blocked ?? EMPTY_BLOCKERS;
     }
 
     getCircularDependencyMessage(componentsInvolved: any[]) {
@@ -3172,7 +2886,9 @@ export class DependencyHandler {
         }
         this.circularBlockerMarks.delete(type, code);
 
-        const resolveBlockedBy = this._peekResolveBlockedByByCode(code, type);
+        const resolveBlockedBy =
+            this.resolveBlockers.resolveBlockedBy.get(type)?.get(code) ??
+            EMPTY_BLOCKERS;
         for (const typeBlocked in resolveBlockedBy) {
             for (const codeBlocked of resolveBlockedBy[typeBlocked]) {
                 this._resetCircularResolveBlockerFrom(
@@ -3220,4 +2936,15 @@ function blockerCodeFor(
  */
 function normalizeBlockerCode(code: string | number): string {
     return typeof code === "string" ? code : String(code);
+}
+
+/** Freeze a JSON value and everything in it. */
+function deepFreeze<T>(value: T): T {
+    if (value !== null && typeof value === "object") {
+        for (const child of Object.values(value)) {
+            deepFreeze(child);
+        }
+        Object.freeze(value);
+    }
+    return value;
 }

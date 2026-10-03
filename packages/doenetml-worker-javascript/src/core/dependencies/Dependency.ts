@@ -1011,9 +1011,10 @@ export class Dependency {
                 }
 
                 if (depComponent.position) {
-                    componentObj.position = JSON.parse(
-                        JSON.stringify(depComponent.position),
-                    );
+                    componentObj.position =
+                        this.dependencyHandler.frozenPositionCopy(
+                            depComponent.position,
+                        );
 
                     componentObj.sourceDoc = depComponent.sourceDoc;
                 }
