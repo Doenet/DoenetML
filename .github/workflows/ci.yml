@@ -194,8 +194,11 @@ jobs:
 
     # The performance harness (packages/doenetml-worker-javascript/src/test/perf,
     # Doenet/DoenetML#2126): loads each benchmark fixture once and writes the
-    # component census and load time per fixture to the job summary. It
-    # reports; the census snapshot in the ordinary test groups is what gates.
+    # component census and load time per fixture to the job summary. Counts and
+    # times are reported, never asserted; the census snapshot in the ordinary
+    # test groups is what gates. The job's only assertion is that every fixture
+    # loads, so it fails when a fixture throws (or the test's 30-minute timeout
+    # is hit), not when a number moves.
     perf-bench:
         name: Perf Bench
         runs-on: ubuntu-latest

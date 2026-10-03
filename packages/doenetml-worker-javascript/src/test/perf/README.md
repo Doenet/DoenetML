@@ -6,7 +6,7 @@ Everything runs through the workspace test script, which rebuilds the Rust WASM 
 
 ## The gate: `census.test.ts`
 
-Twelve one-construct documents (`MICRO_DOCUMENTS` in `fixtures.ts`), each snapshotted in `__snapshots__/census.test.ts.snap`: components by type, shadowing components, attribute components, `_copy` count, state variables allocated and resolved, dependencies. Component counts are deterministic for a given build, so a snapshot change is a change to what the core creates for a reference, an attribute or a repeat iteration. It runs in the ordinary CI test groups.
+Twelve one-construct documents (`MICRO_DOCUMENTS` in `fixtures.ts`), each snapshotted in `__snapshots__/census.test.ts.snap`: components by type, shadowing components, attribute components, `_copy` count, state variables allocated and resolved, dependencies. Component counts are deterministic for a given build, so a snapshot change is a change to what the core creates for a reference, an attribute or a repeat iteration. A change to a base class or to dependency setup looks different: `stateVariables` or `dependencies` moves in all twelve entries at once while `components` and `byType` stay put. That is the expected shape of such a change, and the same update applies. It runs in the ordinary CI test groups.
 
 When the change is intended, update the snapshot deliberately and paste the before/after rows in the PR:
 
@@ -32,7 +32,7 @@ PERFBENCH_RESULT=/tmp/perf-bench.json \
 
 Fixtures (`benchFixtures()`): the [#2023](https://github.com/Doenet/DoenetML/issues/2023) dot plot at 1, 2 and 4 plots, the 150-iteration repeat document from `memory-bench.test.ts`, and the three author-reported slow documents of [#2101](https://github.com/Doenet/DoenetML/issues/2101) under `fixtures/`. The micro-documents are included as well, so one run gives the whole table.
 
-Times are wall-clock milliseconds in node, which is several times slower than the browser worker. Compare ratios between runs on the same machine; do not compare against absolute numbers quoted in an issue. CI runs the bench on every pull request and writes the table to the job summary (the `Perf Bench` job), with the JSON as an artifact.
+Times are wall-clock milliseconds in node, which is several times slower than the browser worker. Compare ratios between runs on the same machine; do not compare against absolute numbers quoted in an issue. CI runs the bench on every pull request and writes the table to the job summary (the `Perf Bench` job), with the JSON as an artifact. The job's only assertion is that every fixture loads; counts and times are never asserted.
 
 ## Reading a profile
 

@@ -15,6 +15,11 @@ import { MICRO_DOCUMENTS } from "./fixtures";
 // and paste the before/after rows in the PR. When it is not intended, the diff
 // says which construct silently started (or stopped) creating components.
 //
+// A change to a base class or to dependency setup looks different: it moves
+// `stateVariables` or `dependencies` in all twelve entries at once while
+// `components` and `byType` stay put. That is the expected shape of such a
+// change, and the same update applies.
+//
 // The census reads the JavaScript core's internals, so it does not run on the
 // Rust core.
 
