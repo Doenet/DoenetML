@@ -83,7 +83,9 @@ runtime-only.
   constructors; could be `Record<string, DependencyClass>` once the
   registry's `DependencyClass` is exported.
 - `resolveBlockers.neededToResolve` and `resolveBlockers.resolveBlockedBy`
-  — nested maps; runtime structure is well-known but never declared.
+  — declared as `BlockerLedger` (maps keyed by type and item code), but
+  each entry is still `Record<string, any[]>`: its keys are the blocker
+  types and its lists hold item codes, neither of which is named.
 - `attributeRefResolutionDependenciesByReferenced` — `Record<ComponentIdx,
   any>` today.
 - `DependencyUpdateTriggers` entries — every field is `Record<…, any>`.
@@ -122,7 +124,7 @@ first if both are scheduled — the typing on the leaf objects rolls up.
 - `resolveItem({ ... }: any)`
 - `resolveStateVariablesIfReady({ ... }: any)`
 - `resolveIfReady({ ... }: any)`
-- `getNeededToResolve({ ... }: any)` and the `delete*FromNeededToResolve`
+- `peekNeededToResolve({ ... }: any)` and the `delete*FromNeededToResolve`
   family
 - … plus the matching helpers around `ResolveBlockedBy`.
 
@@ -146,7 +148,7 @@ inventoried.
    covering every value passed at every call site.
 3. Replace `: any` with the typed shape on `addBlocker`,
    `deleteFromNeededToResolve`, `deleteFromResolveBlockedBy`, and the
-   `getNeededToResolve` / `getResolveBlockedBy` / `checkIfHaveNeededToResolve`
+   `peekNeededToResolve` / `peekResolveBlockedBy` / `checkIfHaveNeededToResolve`
    helpers.
 4. The other methods (`resolveItem`, `resolveIfReady`, etc.) get their
    own argument types in the same pass.
