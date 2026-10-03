@@ -95,17 +95,24 @@ function sortedByValue(record: Record<string, number>) {
     );
 }
 
-/** The dependency objects of component `idx`, over all its state variables. */
+/**
+ * The distinct dependency objects of component `idx`, over all its state
+ * variables. A dependency owned by a state variable that defines additional
+ * state variables is registered under each of their names
+ * (`Dependency.ts`, `upstreamVariableNames`); it is one object, counted once.
+ */
 function dependenciesOf(inner: any, idx: number): any[] {
     const bySv = inner.dependencies.downstreamDependencies[idx];
     if (!bySv) {
         return [];
     }
-    const deps: any[] = [];
+    const deps = new Set<any>();
     for (const svDeps of Object.values(bySv) as any[]) {
-        deps.push(...Object.values(svDeps));
+        for (const dep of Object.values(svDeps)) {
+            deps.add(dep);
+        }
     }
-    return deps;
+    return [...deps];
 }
 
 export function censusOfCore(core: PublicDoenetMLCore): Census {

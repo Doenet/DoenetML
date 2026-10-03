@@ -211,7 +211,11 @@ describe.runIf(Boolean(RESULT_PATH))("performance bench", () => {
             if (SUMMARY_PATH) {
                 fs.appendFileSync(SUMMARY_PATH, markdown + "\n");
             }
-            console.log(markdown);
+            // Not `console.log`: `test-core.ts` wraps it in `util.inspect`,
+            // which prints a multi-line string as quoted, `\n`-escaped
+            // fragments, and vitest's default reporter hides test console
+            // output anyway. Written straight to stdout it reads as markdown.
+            process.stdout.write(markdown + "\n");
 
             // Deliberately weak: this is an instrument, and its output is the
             // JSON and markdown it writes. The assertion exists only so that a
