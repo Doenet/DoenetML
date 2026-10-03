@@ -18,6 +18,7 @@ import { errorComponentState } from "../../utils/dast/errors";
 import {
     planValueReference,
     serializeValueReference,
+    valueReferenceDiffers,
 } from "../../utils/valueReference";
 
 export default class Copy extends CompositeComponent {
@@ -2231,9 +2232,17 @@ export default class Copy extends CompositeComponent {
                                     numReplacementsSoFar + ind
                                 ];
 
+                            // Two value references share the type `_ref`;
+                            // one that stands in for another type must be
+                            // remade all the same.
                             if (
                                 currentReplacement.componentType !==
-                                newSerializedReplacements[ind].componentType
+                                    newSerializedReplacements[ind]
+                                        .componentType ||
+                                valueReferenceDiffers(
+                                    currentReplacement,
+                                    newSerializedReplacements[ind],
+                                )
                             ) {
                                 foundDifference = true;
                             }

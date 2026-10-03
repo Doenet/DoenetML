@@ -2,7 +2,9 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import {
     movePoint,
+    updateBooleanInputValue,
     updateMathInputValue,
+    updateSelectedIndices,
     updateTextInputValue,
 } from "../utils/actions";
 import { censusOfCore } from "../perf/census";
@@ -315,6 +317,107 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             });
             expect(await xValue()).eq(1);
             expect(valueRefs(core)).toHaveLength(1);
+        });
+
+        it("a reference is remade when the referenced variable changes type", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <boolean name="b">false</boolean>
+    <booleanInput name="bi" bindValueTo="$b" />
+    <choiceInput name="ci">
+      <choice><math>1</math></choice>
+      <choice><math>2</math></choice>
+      <conditionalContent condition="$b"><choice>hello</choice></conditionalContent>
+    </choiceInput>
+    <number name="x">$ci.selectedValue</number>
+    <boolean name="y">$ci.selectedValue = 1</boolean>
+    <text name="w">$ci.selectedValue</text>
+    `,
+            });
+            const ciIdx = await resolvePathToNodeIdx("ci");
+            const biIdx = await resolvePathToNodeIdx("bi");
+            const xIdx = await resolvePathToNodeIdx("x");
+            const yIdx = await resolvePathToNodeIdx("y");
+            const wIdx = await resolvePathToNodeIdx("w");
+
+            /**
+             * What the holders show, and what the references to `ci`
+             * present as.
+             */
+            async function state() {
+                const sv = await core.returnAllStateVariables(false, true);
+                return {
+                    x: sv[xIdx].stateValues.value,
+                    y: sv[yIdx].stateValues.value,
+                    w: sv[wIdx].stateValues.value,
+                    presented: valueRefs(core)
+                        .filter(
+                            (ref) =>
+                                ref.shadows.propVariable === "selectedValue1",
+                        )
+                        .map((ref) => ref.presentedComponentType),
+                };
+            }
+
+            await updateSelectedIndices({
+                componentIdx: ciIdx,
+                selectedIndices: [1],
+                core,
+            });
+            // every choice is a math, so `selectedValue` is one: the
+            // `<number>` and the `<boolean>` take a math directly, the
+            // `<text>` would need an adapter and keeps a full copy
+            expect(await state()).eqls({
+                x: 1,
+                y: true,
+                w: "1",
+                presented: ["math", "math"],
+            });
+
+            // a text choice appears and `selectedValue` becomes a text: the
+            // references in the `<number>` and the `<boolean>` are remade as
+            // texts, though old and new are both `_ref`s, and the `<text>`
+            // now takes a reference directly
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: biIdx,
+                core,
+            });
+            expect(await state()).eqls({
+                x: 1,
+                y: true,
+                w: "1",
+                presented: ["text", "text", "text"],
+            });
+
+            await updateSelectedIndices({
+                componentIdx: ciIdx,
+                selectedIndices: [3],
+                core,
+            });
+            expect(await state()).eqls({
+                x: NaN,
+                y: false,
+                w: "hello",
+                presented: ["text", "text", "text"],
+            });
+
+            await updateSelectedIndices({
+                componentIdx: ciIdx,
+                selectedIndices: [2],
+                core,
+            });
+            await updateBooleanInputValue({
+                boolean: false,
+                componentIdx: biIdx,
+                core,
+            });
+            expect(await state()).eqls({
+                x: 2,
+                y: false,
+                w: "2",
+                presented: ["math", "math"],
+            });
         });
 
         it("a reference as the content of an attribute", async () => {

@@ -189,6 +189,30 @@ export function serializeValueReference({
     };
 }
 
+/**
+ * Whether `serialized`, about to take the place of the live replacement
+ * `current`, is a value reference that stands in for a different type or
+ * reads a different variable than `current` does. `Copy.js` otherwise tells
+ * a replacement that must be remade by its `componentType`, and two value
+ * references share `_ref`: the referenced variable can change type while the
+ * referent stays (a `<choiceInput>`'s `selectedValue` is a `math` until a
+ * text choice appears), and the reference then has to be remade as the new
+ * type.
+ */
+export function valueReferenceDiffers(current: any, serialized: any): boolean {
+    if (
+        current.componentType !== "_ref" ||
+        serialized.componentType !== "_ref"
+    ) {
+        return false;
+    }
+    const next = serialized.doenetAttributes;
+    return (
+        current.presentedComponentType !== next.presentedComponentType ||
+        current.doenetAttributes.refVariable !== next.refVariable
+    );
+}
+
 function isValueComponentType(
     componentType: string | undefined,
     componentInfoObjects: ComponentInfoObjects,
