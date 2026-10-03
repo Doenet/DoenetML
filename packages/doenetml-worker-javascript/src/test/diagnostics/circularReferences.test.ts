@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { Dependency } from "../../core/dependencies/Dependency";
 import { DependencyHandler } from "../../core/dependencies/DependencyHandler";
 import { PASSED } from "../../core/dependencies/circularCheckMarks";
 
@@ -275,8 +276,10 @@ function memoizedAboveUnmemoized(handler: any) {
  * and no document is known that reaches it. Except for one case that
  * inspects the memos a real load leaves, these cases add edges to the
  * handler's tables the way `Dependency.addDownstreamComponent` records them,
- * with the memo reset it performs, and call the check the way
- * `Dependency.checkForCircular` does.
+ * with the memo reset it performs. The cases that add edges with
+ * `addEdgeAndCheck` or at random then run `Dependency.checkForCircular`
+ * itself on a stand-in dependency; the others call the check the way it
+ * does.
  */
 describe("State-variable cycle check driven directly @group2", async () => {
     const circularError = "Circular dependency involving these components";
@@ -320,14 +323,18 @@ describe("State-variable cycle check driven directly @group2", async () => {
             });
         }
 
+        const search = vi.spyOn(dependencies, "checkForCircularDependency");
+
         /**
          * An edge added as `Dependency` adds one: recorded, then the memo
-         * reset and the search only if the edge can close a cycle, and
-         * otherwise its target marked as passed.
+         * reset if the edge can close a cycle, and otherwise its target
+         * marked as passed. Then `Dependency.checkForCircular` runs, as it
+         * does after a dependency is set up. Returns whether it searched.
          */
         function addEdgeAndCheck(from: string, to: string) {
             const dep = {
                 dependencyName: `${from}_to_${to}`,
+                dependencyHandler: dependencies,
                 upstreamComponentIdx: idx[from],
                 upstreamVariableNames: ["v"],
                 downstreamComponentIndices: [idx[to]],
@@ -340,11 +347,12 @@ describe("State-variable cycle check driven directly @group2", async () => {
             up.v = (up.v ?? []).concat(dep);
             if (dependencies.edgeCanCloseCycle(dep, idx[to], "v")) {
                 dependencies.resetCircularCheckPassed(idx[from], "v");
-                check(from);
-                return true;
+            } else {
+                dependencies.markLeafPassed(idx[to], "v");
             }
-            dependencies.markLeafPassed(idx[to], "v");
-            return false;
+            const searchesBefore = search.mock.calls.length;
+            Dependency.prototype.checkForCircular.call(dep);
+            return search.mock.calls.length > searchesBefore;
         }
 
         return { dependencies, idx, addEdge, addEdgeAndCheck, check };
@@ -418,6 +426,7 @@ describe("State-variable cycle check driven directly @group2", async () => {
         const addEdge = (from: [number, string], to: [number, string]) => {
             const dep = {
                 dependencyName: `${key(from)}>${key(to)}`,
+                dependencyHandler: dependencies,
                 upstreamComponentIdx: from[0],
                 upstreamVariableNames: [from[1]],
                 downstreamComponentIndices: [to[0]],
@@ -430,13 +439,10 @@ describe("State-variable cycle check driven directly @group2", async () => {
             edges.set(dep.dependencyName, dep);
             if (dependencies.edgeCanCloseCycle(dep, to[0], to[1])) {
                 dependencies.resetCircularCheckPassed(from[0], from[1]);
-                dependencies.checkForCircularDependency({
-                    componentIdx: from[0],
-                    varName: from[1],
-                });
             } else {
                 dependencies.markLeafPassed(to[0], to[1]);
             }
+            Dependency.prototype.checkForCircular.call(dep);
         };
 
         const removeEdge = (name: string) => {
