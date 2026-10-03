@@ -1289,12 +1289,14 @@ export default class Core {
         if (documentIsVisible) {
             this.resumeVisibilityMeasuring();
         } else {
-            // Not awaited: once the document has stopped, the visibility
-            // event this sends is rejected and would surface as an unhandled
-            // rejection.
-            this.suspendVisibilityMeasuring().catch((e) =>
-                this.ignoreIfStopped(e),
-            );
+            // Not awaited, so a failure is logged here. Once the document
+            // has stopped, the queue rejects the visibility event this sends;
+            // that rejection is expected and dropped.
+            this.suspendVisibilityMeasuring().catch((e) => {
+                if (this.processQueue.stoppedByError === null) {
+                    reportTimerError(TimerLabels.visibilityHideSuspend)(e);
+                }
+            });
         }
     }
 

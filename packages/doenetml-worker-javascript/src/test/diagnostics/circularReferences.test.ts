@@ -583,6 +583,39 @@ describe("Circular references created after load @group2", async () => {
         }
     });
 
+    it("hiding a running document logs a failed visibility suspend", async () => {
+        // The rejection the stop produces is dropped (above); any other
+        // failure of the unawaited suspend is logged, not left unhandled.
+        const unhandled: unknown[] = [];
+        const onUnhandled = (reason: unknown) => unhandled.push(reason);
+        process.on("unhandledRejection", onUnhandled);
+        const logged: unknown[][] = [];
+        const errorSpy = vi
+            .spyOn(console, "error")
+            .mockImplementation((...args) => {
+                logged.push(args);
+            });
+        try {
+            const { core } = await loadAndWatch(`<p>hello</p>`);
+            const failure = new Error("suspend failed");
+            (core.core as any).visibilityTracker.suspendVisibilityMeasuring =
+                async () => {
+                    throw failure;
+                };
+
+            core.handleVisibilityChange(false);
+            await new Promise((resolve) => setTimeout(resolve, 50));
+
+            expect(unhandled).toEqual([]);
+            expect(logged).toEqual([
+                ["Error in visibility suspend on hide:", failure],
+            ]);
+        } finally {
+            errorSpy.mockRestore();
+            process.off("unhandledRejection", onUnhandled);
+        }
+    });
+
     it("the same switch with no cycle leaves the document running", async () => {
         const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
 <booleanInput name="b"/>
