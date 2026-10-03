@@ -200,3 +200,105 @@ describe("Circular references through children and extend @group2", async () => 
         ).eq(6);
     });
 });
+
+/**
+ * The state-variable cycle check, driven directly. A cycle in a document
+ * closes in the resolve-blocker graph first, since the target of the edge
+ * that closes it cannot have resolved, so the cyclic documents above are all
+ * rejected by that check; this one reports a cycle only on the update path,
+ * when a dependency is re-pointed at a variable that has already resolved,
+ * and no document is known that reaches it. These cases add edges to the
+ * handler's tables the way `Dependency.addDownstreamComponent` records them,
+ * with the memo reset it performs, and call the check the way
+ * `Dependency.checkForCircular` does.
+ */
+describe("State-variable cycle check driven directly @group2", async () => {
+    const circularError = "Circular dependency involving these components";
+
+    // Four numbers on four lines, so the report's line numbers say which
+    // components it names and in what order.
+    async function handlerWithFourNumbers() {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `<number name="a">1</number>
+<number name="b">2</number>
+<number name="c">3</number>
+<number name="d">4</number>`,
+        });
+        const dependencies = core.core.dependencies;
+        const idx: Record<string, number> = {};
+        for (const name of ["a", "b", "c", "d"]) {
+            idx[name] = await resolvePathToNodeIdx(name);
+        }
+
+        /** An edge from `from` to `to` in a variable `v` of each. */
+        function addEdge(from: string, to: string) {
+            const dep = {
+                dependencyName: `${from}_to_${to}`,
+                upstreamComponentIdx: idx[from],
+                upstreamVariableNames: ["v"],
+                downstreamComponentIndices: [idx[to]],
+                mappedDownstreamVariableNamesByComponent: [["v"]],
+            };
+            const down = (dependencies.downstreamDependencies[idx[from]] ??=
+                {});
+            (down.v ??= {})[dep.dependencyName] = dep;
+            const up = (dependencies.upstreamDependencies[idx[to]] ??= {});
+            up.v = (up.v ?? []).concat(dep);
+            dependencies.resetCircularCheckPassed(idx[from], "v");
+        }
+
+        function check(name: string) {
+            dependencies.checkForCircularDependency({
+                componentIdx: idx[name],
+                varName: "v",
+            });
+        }
+
+        return { dependencies, idx, addEdge, check };
+    }
+
+    it("reports the path that closes a cycle, once", async () => {
+        const { addEdge, check } = await handlerWithFourNumbers();
+        addEdge("d", "a");
+        addEdge("a", "b");
+        addEdge("b", "c");
+        expect(() => check("d")).not.toThrow();
+
+        addEdge("c", "a");
+        // The path runs from the variable searched to the one that closed
+        // the cycle: c, a, b.
+        expect(() => check("c")).toThrow(
+            `${circularError}: <number> (line 3), <number> (line 1), <number> (line 2).`,
+        );
+        // The variables on that path keep their memo, so the cycle is not
+        // reported again, by a search at the same variable or from above it.
+        expect(() => check("c")).not.toThrow();
+        expect(() => check("d")).not.toThrow();
+    });
+
+    it("a reset below a cycle re-arms the report up to the top", async () => {
+        const { dependencies, idx, addEdge, check } =
+            await handlerWithFourNumbers();
+        addEdge("d", "a");
+        addEdge("a", "b");
+        addEdge("b", "c");
+        addEdge("c", "a");
+        expect(() => check("c")).toThrow(circularError);
+        expect(() => check("d")).not.toThrow();
+
+        // What a dependency change below c does: drop c's memo and every
+        // memo upstream of it, d's included.
+        dependencies.resetCircularCheckPassed(idx.c, "v");
+        expect(() => check("d")).toThrow(
+            `${circularError}: <number> (line 4), <number> (line 1), <number> (line 2), <number> (line 3).`,
+        );
+    });
+
+    it("a variable that depends on itself", async () => {
+        const { addEdge, check } = await handlerWithFourNumbers();
+        addEdge("a", "a");
+        expect(() => check("a")).toThrow(
+            `${circularError}: <number> (line 1).`,
+        );
+    });
+});

@@ -79,7 +79,6 @@ runtime-only.
 
 **Scope.** `DependencyHandler` declares several tables loosely:
 
-- `circularCheckPassed: Record<string, boolean>` — fine.
 - `dependencyTypes: Record<string, any>` — values are dependency-class
   constructors; could be `Record<string, DependencyClass>` once the
   registry's `DependencyClass` is exported.
