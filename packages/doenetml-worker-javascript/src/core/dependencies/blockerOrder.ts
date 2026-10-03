@@ -18,8 +18,10 @@ export type BlockerNode = { type: string; code: string };
  * item is placed before each item that blocks it. A new blocker that already
  * fits the order cannot close a cycle: following blockers only ever moves
  * forward in the order, so no chain of them leads back. A new item is placed
- * at the end, and a blocker is almost always older than what it blocks, so on
- * the Phase 0 fixtures only 1% to 6% of new blockers break the order.
+ * at the end, and a blocker is almost always new to the order or already
+ * after what it blocks, so on the Phase 0 fixtures only 1% to 6% of new
+ * blockers break the order (nearly all of them a new blocked item waiting on
+ * an existing blocker).
  *
  * When one does (Pearce and Kelly, "A dynamic topological sort algorithm for
  * directed acyclic graphs", 2007), only the items whose positions lie between
@@ -33,8 +35,12 @@ export type BlockerNode = { type: string; code: string };
  *
  * The order reads the edges from the ledger itself, so it assumes every edge
  * in the ledger has been added through `addBlocker`, in both directions,
- * before the next one is. A cycle ends the document (`CircularDependencyError`),
- * so the order is never needed again after `addBlocker` reports one.
+ * before the next one is, and that a removed edge leaves both directions. A
+ * `resolveBlockedBy` entry left without its `neededToResolve` counterpart
+ * would pull items into the backward search that do not belong there, and
+ * the reassigned positions could then tie or go out of order. A cycle ends
+ * the document (`CircularDependencyError`), so the order is never needed
+ * again after `addBlocker` reports one.
  */
 export class BlockerOrder {
     _positions = new Map<string, Map<string, number>>();
