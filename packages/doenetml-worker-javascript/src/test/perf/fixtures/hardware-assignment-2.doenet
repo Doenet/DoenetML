@@ -1,0 +1,820 @@
+<setup>
+  <textList name="hex">1 2 3 4 5 6 7 8 9 A B C D E F</textList>
+  
+  <module name="convert">
+    <!-- converts an unsigned binary integer to hexadecimal and decimal -->
+    <moduleAttributes>
+      <numberList name="x">0 0 0 0 0 0 0 0</numberList>
+    </moduleAttributes>
+    <textList name="binary" asList="false">0b $x[1] $x[2] $x[3] $x[4] $x[5] $x[6] $x[7] $x[8]</textList>
+    <integer name="decimal">
+      <math simplify>128*$x[1] + 64*$x[2] + 32*$x[3] + 16*$x[4] + 8*$x[5] + 4*$x[6] + 2*$x[7] + $x[8]</math>
+    </integer>
+    <integer name="hex2number">
+      <math simplify>8*$x[1] + 4*$x[2] + 2*$x[3] + $x[4]</math>
+    </integer>
+    <integer name="hex1number">
+      <math simplify>8*$x[5] + 4*$x[6] + 2*$x[7] + $x[8]</math>
+    </integer>
+    <text name="hex2"><conditionalContent>
+        <case condition="$hex2number > 9">$hex[$$hex2number]</case>
+        <else>$hex2number</else></conditionalContent></text>
+    <text name="hex1"><conditionalContent>
+        <case condition="$hex1number > 9">$hex[$$hex1number]</case>
+        <else>$hex1number</else></conditionalContent>
+    </text>
+    <textList name="hexadecimal" asList="false">0x $hex2 $hex1</textList>
+  </module>
+
+  <module name="signedConvert">
+    <!-- converts a signed binary integer to decimal if it is signed magnitude or two's complement -->
+    <moduleAttributes>
+      <numberList name="x">0 0 0 0 0 0 0 0</numberList>
+    </moduleAttributes>
+    <textList name="binary" asList="false">0b $x[1] $x[2] $x[3] $x[4] $x[5] $x[6] $x[7] $x[8]</textList>
+    <integer name="SMdecimal">
+      <!-- converts to decimal assuming representation is signed magnitude -->
+      <math simplify>-1^($x[1]) * (64*$x[2] + 32*$x[3] + 16*$x[4] + 8*$x[5] + 4*$x[6] + 2*$x[7] + $x[8])</math>
+    </integer>
+    <integer name="TCdecimal">
+      <!-- converts to decimal assuming representation is two's complement -->
+      <math simplify>-128*$x[1] + 64*$x[2] + 32*$x[3] + 16*$x[4] + 8*$x[5] + 4*$x[6] + 2*$x[7] + $x[8]</math>
+    </integer>
+    <numberList name="xFlip"><math simplify>1-$x[1]</math> <math simplify>1-$x[2]</math> <math simplify>1-$x[3]</math> <math simplify>1-$x[4]</math> <math simplify>1-$x[5]</math> <math simplify>1-$x[6]</math> <math simplify>1-$x[7]</math> <math simplify>1-$x[8]</math></numberList>
+    <numberList name="xNeg">
+      <mod><math simplify>$xFlip[1]+$xFlip[2]*$xFlip[3]*$xFlip[4]*$xFlip[5]*$xFlip[6]*$xFlip[7]*$xFlip[8]</math> 2</mod>
+      <mod><math simplify>$xFlip[2]+$xFlip[3]*$xFlip[4]*$xFlip[5]*$xFlip[6]*$xFlip[7]*$xFlip[8]</math> 2</mod>
+      <mod><math simplify>$xFlip[3]+$xFlip[4]*$xFlip[5]*$xFlip[6]*$xFlip[7]*$xFlip[8]</math> 2</mod>
+      <mod><math simplify>$xFlip[4]+$xFlip[5]*$xFlip[6]*$xFlip[7]*$xFlip[8]</math> 2</mod>
+      <mod><math simplify>$xFlip[5]+$xFlip[6]*$xFlip[7]*$xFlip[8]</math> 2</mod>
+      <mod><math simplify>$xFlip[6]+$xFlip[7]*$xFlip[8]</math> 2</mod>
+      <mod><math simplify>$xFlip[7]+$xFlip[8]</math> 2</mod>
+      <mod><math simplify>$xFlip[8]+1</math> 2</mod></numberList>
+  </module>
+
+  <numberList name="aChoice"><selectFromSequence from="0" to="1" numToSelect="8" withReplacement></selectFromSequence></numberList>
+  <numberList name="bChoice"><selectFromSequence from="0" to="1" numToSelect="8" withReplacement></selectFromSequence></numberList>
+  <numberList name="cChoice"><selectFromSequence from="0" to="1" numToSelect="8" withReplacement></selectFromSequence></numberList>
+  <numberList name="dChoice"><selectFromSequence from="0" to="1" numToSelect="8" withReplacement></selectFromSequence></numberList>
+  <numberList name="eChoice">1 <selectFromSequence from="0" to="1" numToSelect="7" withReplacement></selectFromSequence></numberList>
+  <numberList name="fChoice">1 <selectFromSequence from="0" to="1" numToSelect="7" withReplacement></selectFromSequence></numberList>
+  <numberList name="gChoice">1 <selectFromSequence from="0" to="1" numToSelect="7" withReplacement></selectFromSequence></numberList>
+  <numberList name="hChoice">1 <selectFromSequence from="0" to="1" numToSelect="7" withReplacement></selectFromSequence></numberList>
+  <numberList name="iChoice">1 <selectFromSequence from="0" to="1" numToSelect="7" withReplacement></selectFromSequence></numberList>
+  <numberList name="jChoice">1 <selectFromSequence from="0" to="1" numToSelect="7" withReplacement></selectFromSequence></numberList>
+  <numberList name="kChoice">1 <selectFromSequence from="0" to="1" numToSelect="7" withReplacement></selectFromSequence></numberList>
+  <numberList name="lChoice">1 <selectFromSequence from="0" to="1" numToSelect="7" withReplacement></selectFromSequence></numberList>
+
+  <module copy="$convert" x="$aChoice" name="a"></module>
+  <module copy="$convert" x="$bChoice" name="b"></module>
+  <module copy="$convert" x="$cChoice" name="c"></module>
+  <module copy="$convert" x="$dChoice" name="d"></module>
+  <module copy="$signedConvert" x="$eChoice" name="e"></module>
+  <module copy="$signedConvert" x="$fChoice" name="f"></module>
+  <module copy="$signedConvert" x="$gChoice" name="g"></module>
+  <module copy="$signedConvert" x="$hChoice" name="h"></module>
+  <module copy="$signedConvert" x="$iChoice" name="i"></module>
+  <module copy="$signedConvert" x="$jChoice" name="j"></module>
+  <module copy="$signedConvert" x="$kChoice" name="k"></module>
+  <module copy="$signedConvert" x="$lChoice" name="l"></module>
+</setup>
+
+<section>
+  <title>Hexadecimal</title>
+
+  <p>For each (unsigned) binary integer, complete the blanks to convert the integer to hexadecimal.</p>
+
+  <part>
+    <p>Convert $a.binary to hexadecimal.</p>
+    <p>The rightmost four digits of $a.binary are <textList asList="false">$aChoice[5] $aChoice[6] $aChoice[7] $aChoice[8]</textList>. This is equivalent to the decimal number <mathInput name="dec"></mathInput>, which can be represented by the single hexadecimal digit <mathInput name="hex"></mathInput>. <answer><award><when>
+      $dec=$a.hex1number and <text>$hex</text>=$a.hex1
+    </when></award></answer></p>
+    <p>The next four digits of $a.binary (from the right) are <textList asList="false">$aChoice[1] $aChoice[2] $aChoice[3] $aChoice[4]</textList>. This is equivalent to the decimal number <mathInput name="dec"></mathInput>, which can be represented by the single hexadecimal digit <mathInput name="hex"></mathInput>. <answer><award><when>
+      $dec=$a.hex2number and <text>$hex</text>=$a.hex2
+    </when></award></answer></p>
+    <p><answer type="text">
+        <label>Putting these together, $a.binary in hexadecimal is:</label><text>$a.hexadecimal</text></answer> (Don't forget the prefix 0x!)</p>
+  </part>
+
+  <part>
+    <p>Convert $b.binary to hexadecimal.</p>
+    <p>The rightmost four digits of $b.binary are <textList asList="false">$bChoice[5] $bChoice[6] $bChoice[7] $bChoice[8]</textList>. This is equivalent to the decimal number <mathInput name="dec"></mathInput>, which can be represented by the single hexadecimal digit <mathInput name="hex"></mathInput>. <answer><award><when>
+      $dec=$b.hex1number and <text>$hex</text>=$b.hex1
+    </when></award></answer></p>
+    <p>The next four digits of $b.binary (from the right) are <textList asList="false">$bChoice[1] $bChoice[2] $bChoice[3] $bChoice[4]</textList>. This is equivalent to the decimal number <mathInput name="dec"></mathInput>, which can be represented by the single hexadecimal digit <mathInput name="hex"></mathInput>. <answer><award><when>
+      $dec=$b.hex2number and <text>$hex</text>=$b.hex2
+    </when></award></answer></p>
+    <p><answer type="text">
+        <label>Putting these together, $b.binary in hexadecimal is:</label><text>$b.hexadecimal</text></answer> (Don't forget the prefix 0x!)</p>
+  </part>
+
+  <p>For each hexadecimal integer, complete the blanks to convert the integer to binary.</p>
+
+   <part>
+    <p>Convert $c.hexadecimal to binary.</p>
+    <p>The rightmost digit of $c.hexadecimal is $c.hex1. This is equivalent to the decimal number <mathInput name="dec"></mathInput>, which can be represented by the four binary digits <textInput name="bin"></textInput>. <answer><award><when>
+      $dec=$c.hex1number and $bin = <text><textList asList="false">$c.x[5] $c.x[6] $c.x[7] $c.x[8]</textList></text>
+    </when></award></answer></p>
+    <p>The next digit of $c.hexadecimal (from the right) is $c.hex2. This is equivalent to the decimal number <mathInput name="dec"></mathInput>, which can be represented by the four binary digits <textInput name="bin"></textInput>. <answer><award><when>
+      $dec=$c.hex2number and $bin = <text><textList asList="false">$c.x[1] $c.x[2] $c.x[3] $c.x[4]</textList></text>
+    </when></award></answer></p>
+    <p><answer type="text">
+        <label>Putting these together, $c.hexadecimal in binary is:</label><text>$c.binary</text></answer> (Don't forget the prefix 0b!)</p>
+  </part>
+  <part>
+    <p>Convert $d.hexadecimal to binary.</p>
+    <p>The rightmost digit of $d.hexadecimal is $d.hex1. This is equivalent to the decimal number <mathInput name="dec"></mathInput>, which can be represented by the four binary digits <textInput name="bin"></textInput>. <answer><award><when>
+      $dec=$d.hex1number and $bin = <text><textList asList="false">$d.x[5] $d.x[6] $d.x[7] $d.x[8]</textList></text>
+    </when></award></answer></p>
+    <p>The next digit of $d.hexadecimal (from the right) is $d.hex2. This is equivalent to the decimal number <mathInput name="dec"></mathInput>, which can be represented by the four binary digits <textInput name="bin"></textInput>. <answer><award><when>
+      $dec=$d.hex2number and $bin = <text><textList asList="false">$d.x[1] $d.x[2] $d.x[3] $d.x[4]</textList></text>
+    </when></award></answer></p>
+    <p><answer type="text">
+        <label>Putting these together, $d.hexadecimal in binary is:</label><text>$d.binary</text></answer> (Don't forget the prefix 0b!)</p>
+  </part>
+</section>
+
+<section>
+  <title>Signed Integers</title>
+
+  <p>For each signed magnitude binary integer, complete the blanks to convert the integer to decimal.</p>
+
+  <part>
+    <p>Convert $e.binary to decimal.</p>
+    <p>The left-most digit of $e.binary is <mathInput name="digit"></mathInput>, indicating the integer is 
+    <choiceInput name="sign" inline>
+      <choice>Positive</choice>
+      <choice>Negative</choice>
+    </choiceInput>.
+    <answer><award><when>
+      $digit=$e.x[1] and $sign.selectedIndex=($e.x[1]+1)
+    </when></award></answer></p>
+    <p>The remaining digits represent the magnitude, which is:</p>
+    <p><mathInput name="input1" minWidth="15"></mathInput><m>\times 64 + </m>
+    <mathInput name="input2" minWidth="15"></mathInput><m>\times 32 + </m>
+    <mathInput name="input3" minWidth="15"></mathInput><m>\times 16 + </m>
+    <mathInput name="input4" minWidth="15"></mathInput><m>\times 8 + </m>
+    <mathInput name="input5" minWidth="15"></mathInput><m>\times 4 + </m>
+    <mathInput name="input6" minWidth="15"></mathInput><m>\times 2 + </m>
+    <mathInput name="input7" minWidth="15"></mathInput><m>\times 1</m>
+    <answer><award><when>
+      $input1=$e.x[2] and
+      $input2=$e.x[3] and
+      $input3=$e.x[4] and
+      $input4=$e.x[5] and
+      $input5=$e.x[6] and
+      $input6=$e.x[7] and
+      $input7=$e.x[8]
+    </when></award></answer></p>
+    <p>Evaluating this expression, and putting these together,  <answer>
+      <label>$e.binary in decimal is</label>$e.SMdecimal</answer></p>
+  </part>
+  <part>
+    <p>Convert $f.binary to decimal.</p>
+    <p>The left-most digit of $f.binary is <mathInput name="digit"></mathInput>, indicating the integer is 
+    <choiceInput name="sign" inline>
+      <choice>Positive</choice>
+      <choice>Negative</choice>
+    </choiceInput>.
+    <answer><award><when>
+      $digit=$f.x[1] and $sign.selectedIndex=($f.x[1]+1)
+    </when></award></answer></p>
+    <p>The remaining digits represent the magnitude, which is:</p>
+    <p><mathInput name="input1" minWidth="15"></mathInput><m>\times 64 + </m>
+    <mathInput name="input2" minWidth="15"></mathInput><m>\times 32 + </m>
+    <mathInput name="input3" minWidth="15"></mathInput><m>\times 16 + </m>
+    <mathInput name="input4" minWidth="15"></mathInput><m>\times 8 + </m>
+    <mathInput name="input5" minWidth="15"></mathInput><m>\times 4 + </m>
+    <mathInput name="input6" minWidth="15"></mathInput><m>\times 2 + </m>
+    <mathInput name="input7" minWidth="15"></mathInput><m>\times 1</m>
+    <answer><award><when>
+      $input1=$f.x[2] and
+      $input2=$f.x[3] and
+      $input3=$f.x[4] and
+      $input4=$f.x[5] and
+      $input5=$f.x[6] and
+      $input6=$f.x[7] and
+      $input7=$f.x[8]
+    </when></award></answer></p>
+    <p>Evaluating this expression, and putting these together,  <answer>
+      <label>$f.binary in decimal is</label>$f.SMdecimal</answer></p>
+  </part>
+
+  <p>Complete the blanks to convert the following decimal number to signed magnitude binary.</p>
+
+  <part>
+    <p>Convert $g.SMdecimal to binary.</p>
+
+    <p>$g.SMdecimal is <choiceInput name="sign" inline>
+      <choice>Positive</choice>
+      <choice>Negative</choice>
+    </choiceInput>, so left-most digit of the signed magnitude binary representation is <mathInput name="digit"></mathInput>.
+    <answer><award><when>
+      $digit=$g.x[1] and $sign.selectedIndex=($g.x[1]+1)
+    </when></award></answer></p>
+    <p>The magnitude of $g.SMdecimal is <text><math simplify name="abs">abs($g.SMdecimal)</math></text>. Repeatedly dividing by two, we have:</p>
+    <tabular>
+    <row header>
+      <cell></cell><cell>Quotient</cell><cell>Remainder</cell><cell></cell>
+    </row>
+    <row>
+      <cell><m>$abs\div 2</m></cell>
+      <cell><mathInput name="q1a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r1" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q1a=<math simplify>($abs-$g.x[8])/2</math> and $r1=$g.x[8]</when></award></answer></cell>
+    </row>
+    <row>
+      <cell><mathInput name="q1b" minWidth="20"></mathInput><m>\div 2</m></cell>
+      <cell><mathInput name="q2a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r2" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q1b=($abs-$g.x[8])/2 and $q2a=($q1b-$g.x[7])/2 and $r2=$g.x[7]</when></award></answer></cell>
+    </row>
+    <row>
+      <cell><mathInput name="q2b" minWidth="20"></mathInput><m>\div 2</m></cell>
+      <cell><mathInput name="q3a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r3" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q2b=($q1b-$g.x[7])/2 and $q3a=($q2b-$g.x[6])/2 and $r3=$g.x[6]</when></award></answer></cell>
+    </row>
+    <row>
+      <cell><mathInput name="q3b" minWidth="20"></mathInput><m>\div 2</m></cell>
+      <cell><mathInput name="q4a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r4" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q3b=($q2b-$g.x[6])/2 and $q4a=($q3b-$g.x[5])/2 and $r4=$g.x[5]</when></award></answer></cell>
+    </row>
+    <row>
+      <cell><mathInput name="q4b" minWidth="20"></mathInput><m>\div 2</m></cell>
+      <cell><mathInput name="q5a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r5" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q4b=($q3b-$g.x[5])/2 and $q5a=($q4b-$g.x[4])/2 and $r5=$g.x[4]</when></award></answer></cell>
+    </row>
+    <row>
+      <cell><mathInput name="q5b" minWidth="20"></mathInput><m>\div 2</m></cell>
+      <cell><mathInput name="q6a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r6" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q5b=($q4b-$g.x[4])/2 and $q6a=($q5b-$g.x[3])/2 and $r6=$g.x[3]</when></award></answer></cell>
+    </row>
+    <row>
+      <cell><mathInput name="q6b" minWidth="20"></mathInput><m>\div 2</m></cell>
+      <cell><mathInput name="q7a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r7" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q6b=($q5b-$g.x[3])/2 and $q7a=($q6b-$g.x[2])/2 and $r7=$g.x[2]</when></award></answer></cell>
+    </row>
+  </tabular>
+    <p><answer>
+      <label>Reading off the remainders, and including the sign digit, $g.SMdecimal in binary is:</label>
+    <text>$g.binary</text></answer> (Don't forget the prefix 0b!)</p>
+  </part>
+
+  <p>For each two's complement binary integer, complete the blanks to convert the integer to decimal.</p>
+
+  <part>
+    <p>Convert the two's complement binary integer $h.binary to decimal.</p>
+
+    <p>$h.binary represents:</p>
+    <p><mathInput name="input1" minWidth="15"></mathInput><m>\times (-128) + </m>
+    <mathInput name="input2" minWidth="15"></mathInput><m>\times 64 + </m>
+    <mathInput name="input3" minWidth="15"></mathInput><m>\times 32 + </m>
+    <mathInput name="input4" minWidth="15"></mathInput><m>\times 16 + </m>
+    <mathInput name="input5" minWidth="15"></mathInput><m>\times 8 + </m>
+    <mathInput name="input6" minWidth="15"></mathInput><m>\times 4 + </m>
+    <mathInput name="input7" minWidth="15"></mathInput><m>\times 2 + </m>
+    <mathInput name="input8" minWidth="15"></mathInput><m>\times 1</m>
+    <answer>
+      <award>
+        <when>$input1 = $h.x[1] and
+          $input2 = $h.x[2] and
+          $input3 = $h.x[3] and
+          $input4 = $h.x[4] and
+          $input5 = $h.x[5] and
+          $input6 = $h.x[6] and
+          $input7 = $h.x[7] and
+          $input8 = $h.x[8]
+        </when>
+      </award>
+    </answer></p>
+    <p><answer>
+      <label>Evaluating this expression, $h.binary in decimal is:</label>
+      $h.TCdecimal
+    </answer></p>
+  </part>
+  <part>
+    <p>Convert the two's complement binary integer $i.binary to decimal.</p>
+
+    <p>$i.binary represents:</p>
+    <p><mathInput name="input1" minWidth="15"></mathInput><m>\times (-128) + </m>
+    <mathInput name="input2" minWidth="15"></mathInput><m>\times 64 + </m>
+    <mathInput name="input3" minWidth="15"></mathInput><m>\times 32 + </m>
+    <mathInput name="input4" minWidth="15"></mathInput><m>\times 16 + </m>
+    <mathInput name="input5" minWidth="15"></mathInput><m>\times 8 + </m>
+    <mathInput name="input6" minWidth="15"></mathInput><m>\times 4 + </m>
+    <mathInput name="input7" minWidth="15"></mathInput><m>\times 2 + </m>
+    <mathInput name="input8" minWidth="15"></mathInput><m>\times 1</m>
+    <answer>
+      <award>
+        <when>$input1 = $i.x[1] and
+          $input2 = $i.x[2] and
+          $input3 = $i.x[3] and
+          $input4 = $i.x[4] and
+          $input5 = $i.x[5] and
+          $input6 = $i.x[6] and
+          $input7 = $i.x[7] and
+          $input8 = $i.x[8]
+        </when>
+      </award>
+    </answer></p>
+    <p><answer>
+      <label>Evaluating this expression, $i.binary in decimal is:</label>
+      $i.TCdecimal
+    </answer></p>
+  </part>
+
+  <p>Complete the blanks to convert each decimal integer to two's complement binary.</p>
+
+  <part>
+    <p>Convert $k.TCdecimal to two's complement binary.</p>
+    <p>The magnitude of $k.TCdecimal is <text><math simplify name="abs">abs($k.TCdecimal)</math></text>. We find the 8-bit unsigned representation of <text>$abs</text> by repeatedly dividing by two:</p>
+    <tabular>
+    <row header>
+      <cell></cell><cell>Quotient</cell><cell>Remainder</cell><cell></cell>
+    </row>
+    <row>
+      <cell><m>$abs\div 2</m></cell>
+      <cell><mathInput name="q1a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r1" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q1a=<math simplify>($abs-$k.xNeg[8])/2</math> and $r1=$k.xNeg[8]</when></award></answer></cell>
+    </row>
+    <row>
+      <cell><mathInput name="q1b" minWidth="20"></mathInput><m>\div 2</m></cell>
+      <cell><mathInput name="q2a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r2" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q1b=($abs-$k.xNeg[8])/2 and $q2a=($q1b-$k.xNeg[7])/2 and $r2=$k.xNeg[7]</when></award></answer></cell>
+    </row>
+    <row>
+      <cell><mathInput name="q2b" minWidth="20"></mathInput><m>\div 2</m></cell>
+      <cell><mathInput name="q3a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r3" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q2b=($q1b-$k.xNeg[7])/2 and $q3a=($q2b-$k.xNeg[6])/2 and $r3=$k.xNeg[6]</when></award></answer></cell>
+    </row>
+    <row>
+      <cell><mathInput name="q3b" minWidth="20"></mathInput><m>\div 2</m></cell>
+      <cell><mathInput name="q4a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r4" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q3b=($q2b-$k.xNeg[6])/2 and $q4a=($q3b-$k.xNeg[5])/2 and $r4=$k.xNeg[5]</when></award></answer></cell>
+    </row>
+    <row>
+      <cell><mathInput name="q4b" minWidth="20"></mathInput><m>\div 2</m></cell>
+      <cell><mathInput name="q5a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r5" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q4b=($q3b-$k.xNeg[5])/2 and $q5a=($q4b-$k.xNeg[4])/2 and $r5=$k.xNeg[4]</when></award></answer></cell>
+    </row>
+    <row>
+      <cell><mathInput name="q5b" minWidth="20"></mathInput><m>\div 2</m></cell>
+      <cell><mathInput name="q6a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r6" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q5b=($q4b-$k.xNeg[4])/2 and $q6a=($q5b-$k.xNeg[3])/2 and $r6=$k.xNeg[3]</when></award></answer></cell>
+    </row>
+    <row>
+      <cell><mathInput name="q6b" minWidth="20"></mathInput><m>\div 2</m></cell>
+      <cell><mathInput name="q7a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r7" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q6b=($q5b-$k.xNeg[3])/2 and $q7a=($q6b-$k.xNeg[2])/2 and $r7=$k.xNeg[2]</when></award></answer></cell>
+    </row>
+    <row>
+      <cell><mathInput name="q7b" minWidth="20"></mathInput><m>\div 2</m></cell>
+      <cell><mathInput name="q8a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r8" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q7b=($q6b-$k.xNeg[2])/2 and $q8a=($q7b-$k.xNeg[1])/2 and $r8=$k.xNeg[1]</when></award></answer></cell>
+    </row>
+  </tabular>
+    <p><answer>
+      <label>Reading off the remainders, the 8-bit unsigned binary of representation of $abs is (remember the prefix 0b):</label>
+    <text><textList asList="false">0b $k.xNeg[1] $k.xNeg[2] $k.xNeg[3] $k.xNeg[4] $k.xNeg[5] $k.xNeg[6] $k.xNeg[7] $k.xNeg[8]</textList></text></answer></p>
+    <p>To negate this, we need flip the bits and then add one.</p>
+    <p><answer>
+      <label>Flipping the bits of the unsigned binary representation of $abs, we have (remember the prefix 0b):</label>
+      <text><textList asList="false">0b 1 <math simplify>1-$k.xNeg[2]</math> <math simplify>1-$k.xNeg[3]</math> <math simplify>1-$k.xNeg[4]</math> <math simplify>1-$k.xNeg[5]</math> <math simplify>1-$k.xNeg[6]</math> <math simplify>1-$k.xNeg[7]</math> <math simplify>1-$k.xNeg[8]</math></textList></text>
+    </answer></p>
+    <p><answer>
+      <label>Adding one to the result, we have that the two's complement binary representation of $k.TCdecimal is:</label>
+      <text>$k.binary</text>
+    </answer></p>
+  </part>
+
+  <part>
+    <p>Convert $l.TCdecimal to two's complement binary.</p>
+    <p>The magnitude of $l.TCdecimal is <text><math simplify name="abs">abs($l.TCdecimal)</math></text>. We find the 8-bit unsigned representation of <text>$abs</text> by repeatedly dividing by two:</p>
+    <tabular>
+    <row header>
+      <cell></cell><cell>Quotient</cell><cell>Remainder</cell><cell></cell>
+    </row>
+    <row>
+      <cell><m>$abs\div 2</m></cell>
+      <cell><mathInput name="q1a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r1" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q1a=<math simplify>($abs-$l.xNeg[8])/2</math> and $r1=$l.xNeg[8]</when></award></answer></cell>
+    </row>
+    <row>
+      <cell><mathInput name="q1b" minWidth="20"></mathInput><m>\div 2</m></cell>
+      <cell><mathInput name="q2a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r2" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q1b=($abs-$l.xNeg[8])/2 and $q2a=($q1b-$l.xNeg[7])/2 and $r2=$l.xNeg[7]</when></award></answer></cell>
+    </row>
+    <row>
+      <cell><mathInput name="q2b" minWidth="20"></mathInput><m>\div 2</m></cell>
+      <cell><mathInput name="q3a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r3" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q2b=($q1b-$l.xNeg[7])/2 and $q3a=($q2b-$l.xNeg[6])/2 and $r3=$l.xNeg[6]</when></award></answer></cell>
+    </row>
+    <row>
+      <cell><mathInput name="q3b" minWidth="20"></mathInput><m>\div 2</m></cell>
+      <cell><mathInput name="q4a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r4" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q3b=($q2b-$l.xNeg[6])/2 and $q4a=($q3b-$l.xNeg[5])/2 and $r4=$l.xNeg[5]</when></award></answer></cell>
+    </row>
+    <row>
+      <cell><mathInput name="q4b" minWidth="20"></mathInput><m>\div 2</m></cell>
+      <cell><mathInput name="q5a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r5" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q4b=($q3b-$l.xNeg[5])/2 and $q5a=($q4b-$l.xNeg[4])/2 and $r5=$l.xNeg[4]</when></award></answer></cell>
+    </row>
+    <row>
+      <cell><mathInput name="q5b" minWidth="20"></mathInput><m>\div 2</m></cell>
+      <cell><mathInput name="q6a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r6" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q5b=($q4b-$l.xNeg[4])/2 and $q6a=($q5b-$l.xNeg[3])/2 and $r6=$l.xNeg[3]</when></award></answer></cell>
+    </row>
+    <row>
+      <cell><mathInput name="q6b" minWidth="20"></mathInput><m>\div 2</m></cell>
+      <cell><mathInput name="q7a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r7" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q6b=($q5b-$l.xNeg[3])/2 and $q7a=($q6b-$l.xNeg[2])/2 and $r7=$l.xNeg[2]</when></award></answer></cell>
+    </row>
+    <row>
+      <cell><mathInput name="q7b" minWidth="20"></mathInput><m>\div 2</m></cell>
+      <cell><mathInput name="q8a" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r8" minWidth="20"></mathInput></cell>
+      <cell><answer><award><when>$q7b=($q6b-$l.xNeg[2])/2 and $q8a=($q7b-$l.xNeg[1])/2 and $r8=$l.xNeg[1]</when></award></answer></cell>
+    </row>
+  </tabular>
+    <p><answer>
+      <label>Reading off the remainders, the 8-bit unsigned binary of representation of $abs is (remember the prefix 0b):</label>
+    <text><textList asList="false">0b $l.xNeg[1] $l.xNeg[2] $l.xNeg[3] $l.xNeg[4] $l.xNeg[5] $l.xNeg[6] $l.xNeg[7] $l.xNeg[8]</textList></text></answer></p>
+    <p>To negate this, we need flip the bits and then add one.</p>
+    <p><answer>
+      <label>Flipping the bits of the unsigned binary representation of $abs, we have (remember the prefix 0b):</label>
+      <text><textList asList="false">0b 1 <math simplify>1-$l.xNeg[2]</math> <math simplify>1-$l.xNeg[3]</math> <math simplify>1-$l.xNeg[4]</math> <math simplify>1-$l.xNeg[5]</math> <math simplify>1-$l.xNeg[6]</math> <math simplify>1-$l.xNeg[7]</math> <math simplify>1-$l.xNeg[8]</math></textList></text>
+    </answer></p>
+    <p><answer>
+      <label>Adding one to the result, we have that the two's complement binary representation of $l.TCdecimal is:</label>
+      <text>$l.binary</text>
+    </answer></p>
+  </part>
+  
+</section>
+
+<section>
+  <setup>
+    <module name="binary">
+      <!-- module for binary integer -->
+      <moduleAttributes>
+        <numberList name="x">0 0 0 0 0 0 0 0</numberList>
+      </moduleAttributes>
+      <textList name="binary" asList="false">0b $x[1] $x[2] $x[3] $x[4] $x[5] $x[6] $x[7] $x[8]</textList>
+      <numberList name="xFlip"><math simplify>1-$x[1]</math> <math simplify>1-$x[2]</math> <math simplify>1-$x[3]</math> <math simplify>1-$x[4]</math> <math simplify>1-$x[5]</math> <math simplify>1-$x[6]</math> <math simplify>1-$x[7]</math> <math simplify>1-$x[8]</math></numberList>
+    <numberList name="xNeg">
+      <mod><math simplify>$xFlip[1]+$xFlip[2]*$xFlip[3]*$xFlip[4]*$xFlip[5]*$xFlip[6]*$xFlip[7]*$xFlip[8]</math> 2</mod>
+      <mod><math simplify>$xFlip[2]+$xFlip[3]*$xFlip[4]*$xFlip[5]*$xFlip[6]*$xFlip[7]*$xFlip[8]</math> 2</mod>
+      <mod><math simplify>$xFlip[3]+$xFlip[4]*$xFlip[5]*$xFlip[6]*$xFlip[7]*$xFlip[8]</math> 2</mod>
+      <mod><math simplify>$xFlip[4]+$xFlip[5]*$xFlip[6]*$xFlip[7]*$xFlip[8]</math> 2</mod>
+      <mod><math simplify>$xFlip[5]+$xFlip[6]*$xFlip[7]*$xFlip[8]</math> 2</mod>
+      <mod><math simplify>$xFlip[6]+$xFlip[7]*$xFlip[8]</math> 2</mod>
+      <mod><math simplify>$xFlip[7]+$xFlip[8]</math> 2</mod>
+      <mod><math simplify>$xFlip[8]+1</math> 2</mod></numberList>
+    </module>
+  </setup>
+  
+  <title>Binary Arithmetic</title>
+
+  <part>
+    <setup>
+      <numberList name="aChoice">0 <selectFromSequence from="0" to="1" numToSelect="7" withReplacement></selectFromSequence></numberList>
+      <numberList name="bChoice">0 <selectFromSequence from="0" to="1" numToSelect="7" withReplacement></selectFromSequence></numberList>
+      
+      <module copy="$binary" x="$aChoice" name="a"></module>
+      <module copy="$binary" x="$bChoice" name="b"></module>
+    </setup>
+    <p>Fill in the blanks to compute $a.binary + $b.binary.</p>
+
+  <tabular halign="center">
+    <row>
+      <cell>Carry digits:</cell>
+      <cell><mathInput name="c1" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c2" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c3" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c4" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c5" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c6" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c7" minWidth="20"></mathInput></cell>
+      <cell></cell>
+    </row>
+    <row>
+      <cell></cell>
+      <cell>$a.x[1]</cell>
+      <cell>$a.x[2]</cell>
+      <cell>$a.x[3]</cell>
+      <cell>$a.x[4]</cell>
+      <cell>$a.x[5]</cell>
+      <cell>$a.x[6]</cell>
+      <cell>$a.x[7]</cell>
+      <cell>$a.x[8]</cell>
+    </row>
+    <row bottomBorder="medium">
+      <cell>+</cell>
+      <cell>$b.x[1]</cell>
+      <cell>$b.x[2]</cell>
+      <cell>$b.x[3]</cell>
+      <cell>$b.x[4]</cell>
+      <cell>$b.x[5]</cell>
+      <cell>$b.x[6]</cell>
+      <cell>$b.x[7]</cell>
+      <cell>$b.x[8]</cell>
+    </row>
+    <row>
+      <cell>Result:</cell>
+      <cell><mathInput name="r1" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r2" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r3" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r4" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r5" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r6" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r7" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r8" minWidth="20"></mathInput></cell>
+    </row>
+    <row>
+      <cell></cell>
+      <cell><answer><award><when>$c1=<floor>($a.x[2]+$b.x[2]+$c2)/2</floor> and $r1=<mod><math simplify>$a.x[1]+$b.x[1]+$c1</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$c2=<floor>($a.x[3]+$b.x[3]+$c3)/2</floor> and $r2=<mod><math simplify>$a.x[2]+$b.x[2]+$c2</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$c3=<floor>($a.x[4]+$b.x[4]+$c4)/2</floor> and $r3=<mod><math simplify>$a.x[3]+$b.x[3]+$c3</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$c4=<floor>($a.x[5]+$b.x[5]+$c5)/2</floor> and $r4=<mod><math simplify>$a.x[4]+$b.x[4]+$c4</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$c5=<floor>($a.x[6]+$b.x[6]+$c6)/2</floor> and $r5=<mod><math simplify>$a.x[5]+$b.x[5]+$c5</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$c6=<floor>($a.x[7]+$b.x[7]+$c7)/2</floor> and $r6=<mod><math simplify>$a.x[6]+$b.x[6]+$c6</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$c7=$a.x[8]*$b.x[8] and $r7=<mod><math simplify>$a.x[7]+$b.x[7]+$c7</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$r8=<mod><math simplify>$a.x[8]+$b.x[8]</math> 2</mod></when></award></answer></cell>
+    </row>
+  </tabular>
+  <p><answer><label>Reading off the result, $a.binary + $b.binary is (remember the prefix 0b):</label>
+    <text><textList asList="false">0b $r1 $r2 $r3 $r4 $r5 $r6 $r7 $r8</textList></text>
+  </answer></p>
+    </part>
+
+  <part>
+    <setup>
+      <numberList name="aChoice">0 <selectFromSequence from="0" to="1" numToSelect="7" withReplacement></selectFromSequence></numberList>
+      <numberList name="bChoice">0 <selectFromSequence from="0" to="1" numToSelect="7" withReplacement></selectFromSequence></numberList>
+      
+      <module copy="$binary" x="$aChoice" name="a"></module>
+      <module copy="$binary" x="$bChoice" name="b"></module>
+    </setup>
+    <p>Fill in the blanks to compute $a.binary + $b.binary.</p>
+
+  <tabular halign="center">
+    <row>
+      <cell>Carry digits:</cell>
+      <cell><mathInput name="c1" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c2" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c3" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c4" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c5" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c6" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c7" minWidth="20"></mathInput></cell>
+      <cell></cell>
+    </row>
+    <row>
+      <cell></cell>
+      <cell>$a.x[1]</cell>
+      <cell>$a.x[2]</cell>
+      <cell>$a.x[3]</cell>
+      <cell>$a.x[4]</cell>
+      <cell>$a.x[5]</cell>
+      <cell>$a.x[6]</cell>
+      <cell>$a.x[7]</cell>
+      <cell>$a.x[8]</cell>
+    </row>
+    <row bottomBorder="medium">
+      <cell>+</cell>
+      <cell>$b.x[1]</cell>
+      <cell>$b.x[2]</cell>
+      <cell>$b.x[3]</cell>
+      <cell>$b.x[4]</cell>
+      <cell>$b.x[5]</cell>
+      <cell>$b.x[6]</cell>
+      <cell>$b.x[7]</cell>
+      <cell>$b.x[8]</cell>
+    </row>
+    <row>
+      <cell>Result:</cell>
+      <cell><mathInput name="r1" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r2" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r3" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r4" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r5" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r6" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r7" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r8" minWidth="20"></mathInput></cell>
+    </row>
+    <row>
+      <cell></cell>
+      <cell><answer><award><when>$c1=<floor>($a.x[2]+$b.x[2]+$c2)/2</floor> and $r1=<mod><math simplify>$a.x[1]+$b.x[1]+$c1</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$c2=<floor>($a.x[3]+$b.x[3]+$c3)/2</floor> and $r2=<mod><math simplify>$a.x[2]+$b.x[2]+$c2</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$c3=<floor>($a.x[4]+$b.x[4]+$c4)/2</floor> and $r3=<mod><math simplify>$a.x[3]+$b.x[3]+$c3</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$c4=<floor>($a.x[5]+$b.x[5]+$c5)/2</floor> and $r4=<mod><math simplify>$a.x[4]+$b.x[4]+$c4</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$c5=<floor>($a.x[6]+$b.x[6]+$c6)/2</floor> and $r5=<mod><math simplify>$a.x[5]+$b.x[5]+$c5</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$c6=<floor>($a.x[7]+$b.x[7]+$c7)/2</floor> and $r6=<mod><math simplify>$a.x[6]+$b.x[6]+$c6</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$c7=$a.x[8]*$b.x[8] and $r7=<mod><math simplify>$a.x[7]+$b.x[7]+$c7</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$r8=<mod><math simplify>$a.x[8]+$b.x[8]</math> 2</mod></when></award></answer></cell>
+    </row>
+  </tabular>
+  <p><answer><label>Reading off the result, $a.binary + $b.binary is (remember the prefix 0b):</label>
+    <text><textList asList="false">0b $r1 $r2 $r3 $r4 $r5 $r6 $r7 $r8</textList></text>
+  </answer></p>
+    </part>
+
+  <part>
+    <setup>
+      <numberList name="aChoice">0 <selectFromSequence from="0" to="1" numToSelect="7" withReplacement></selectFromSequence></numberList>
+      <numberList name="bChoice">0 <selectFromSequence from="0" to="1" numToSelect="7" withReplacement></selectFromSequence></numberList>
+
+      <module copy="$binary" x="$aChoice" name="a"></module>
+      <module copy="$binary" x="$bChoice" name="b"></module>
+    </setup>
+    
+    <p>Fill in the blanks to compute $a.binary - $b.binary.</p>
+
+    <p>To compute the difference, we will negate $b.binary and add $a.binary to the negation.</p>
+
+    <p><answer>
+      <label>To negate $b.binary, we flip the bits. This gives us (include the prefix 0b):</label>
+      <text><textList asList="false">0b $b.xFlip</textList></text>
+    </answer></p>
+
+    <p><answer>
+      <label>We add one to the result, to obtain the negation of $b.binary (include the prefix 0b):</label>
+      <text><textList asList="false">0b $b.xNeg</textList></text>
+    </answer></p>
+
+    <p>Now, we add $a.binary and the negation of $b.binary.</p>
+
+    <tabular halign="center">
+    <row>
+      <cell>Carry digits:</cell>
+      <cell><mathInput name="c1" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c2" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c3" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c4" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c5" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c6" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c7" minWidth="20"></mathInput></cell>
+      <cell></cell>
+    </row>
+    <row>
+      <cell></cell>
+      <cell>$a.x[1]</cell>
+      <cell>$a.x[2]</cell>
+      <cell>$a.x[3]</cell>
+      <cell>$a.x[4]</cell>
+      <cell>$a.x[5]</cell>
+      <cell>$a.x[6]</cell>
+      <cell>$a.x[7]</cell>
+      <cell>$a.x[8]</cell>
+    </row>
+    <row bottomBorder="medium">
+      <cell>+</cell>
+      <cell><mathInput name="b1" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="b2" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="b3" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="b4" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="b5" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="b6" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="b7" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="b8" minWidth="20"></mathInput></cell>
+    </row>
+    <row>
+      <cell>Result:</cell>
+      <cell><mathInput name="r1" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r2" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r3" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r4" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r5" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r6" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r7" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r8" minWidth="20"></mathInput></cell>
+    </row>
+    <row>
+      <cell></cell>
+      <cell><answer><award><when>$b1=$b.xNeg[1] and $c1=<floor>($a.x[2]+$b.xNeg[2]+$c2)/2</floor> and $r1=<mod><math simplify>$a.x[1]+$b.xNeg[1]+$c1</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$b2=$b.xNeg[2] and $c2=<floor>($a.x[3]+$b.xNeg[3]+$c3)/2</floor> and $r2=<mod><math simplify>$a.x[2]+$b.xNeg[2]+$c2</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$b3=$b.xNeg[3] and $c3=<floor>($a.x[4]+$b.xNeg[4]+$c4)/2</floor> and $r3=<mod><math simplify>$a.x[3]+$b.xNeg[3]+$c3</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$b4=$b.xNeg[4] and $c4=<floor>($a.x[5]+$b.xNeg[5]+$c5)/2</floor> and $r4=<mod><math simplify>$a.x[4]+$b.xNeg[4]+$c4</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$b5=$b.xNeg[5] and $c5=<floor>($a.x[6]+$b.xNeg[6]+$c6)/2</floor> and $r5=<mod><math simplify>$a.x[5]+$b.xNeg[5]+$c5</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$b6=$b.xNeg[6] and $c6=<floor>($a.x[7]+$b.xNeg[7]+$c7)/2</floor> and $r6=<mod><math simplify>$a.x[6]+$b.xNeg[6]+$c6</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$b7=$b.xNeg[7] and $c7=$a.x[8]*$b.xNeg[8] and $r7=<mod><math simplify>$a.x[7]+$b.xNeg[7]+$c7</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$b8=$b.xNeg[8] and $r8=<mod><math simplify>$a.x[8]+$b.xNeg[8]</math> 2</mod></when></award></answer></cell>
+    </row>
+  </tabular>
+
+    <p><answer><label>Reading off the answer, we have that $a.binary - $b.binary is (remember the prefix 0b):</label>
+      <text><textList asList="false">0b $r1 $r2 $r3 $r4 $r5 $r6 $r7 $r8</textList></text>
+    </answer></p>
+    
+  </part>
+
+  <part>
+    <setup>
+      <numberList name="aChoice">0 <selectFromSequence from="0" to="1" numToSelect="7" withReplacement></selectFromSequence></numberList>
+      <numberList name="bChoice">0 <selectFromSequence from="0" to="1" numToSelect="7" withReplacement></selectFromSequence></numberList>
+
+      <module copy="$binary" x="$aChoice" name="a"></module>
+      <module copy="$binary" x="$bChoice" name="b"></module>
+    </setup>
+    
+    <p>Fill in the blanks to compute $a.binary - $b.binary.</p>
+
+    <p>To compute the difference, we will negate $b.binary and add $a.binary to the negation.</p>
+
+    <p><answer>
+      <label>To negate $b.binary, we flip the bits. This gives us (include the prefix 0b):</label>
+      <text><textList asList="false">0b $b.xFlip</textList></text>
+    </answer></p>
+
+    <p><answer>
+      <label>We add one to the result, to obtain the negation of $b.binary (include the prefix 0b):</label>
+      <text><textList asList="false">0b $b.xNeg</textList></text>
+    </answer></p>
+
+    <p>Now, we add $a.binary and the negation of $b.binary.</p>
+
+    <tabular halign="center">
+    <row>
+      <cell>Carry digits:</cell>
+      <cell><mathInput name="c1" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c2" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c3" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c4" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c5" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c6" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="c7" minWidth="20"></mathInput></cell>
+      <cell></cell>
+    </row>
+    <row>
+      <cell></cell>
+      <cell>$a.x[1]</cell>
+      <cell>$a.x[2]</cell>
+      <cell>$a.x[3]</cell>
+      <cell>$a.x[4]</cell>
+      <cell>$a.x[5]</cell>
+      <cell>$a.x[6]</cell>
+      <cell>$a.x[7]</cell>
+      <cell>$a.x[8]</cell>
+    </row>
+    <row bottomBorder="medium">
+      <cell>+</cell>
+      <cell><mathInput name="b1" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="b2" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="b3" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="b4" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="b5" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="b6" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="b7" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="b8" minWidth="20"></mathInput></cell>
+    </row>
+    <row>
+      <cell>Result:</cell>
+      <cell><mathInput name="r1" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r2" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r3" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r4" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r5" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r6" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r7" minWidth="20"></mathInput></cell>
+      <cell><mathInput name="r8" minWidth="20"></mathInput></cell>
+    </row>
+    <row>
+      <cell></cell>
+      <cell><answer><award><when>$b1=$b.xNeg[1] and $c1=<floor>($a.x[2]+$b.xNeg[2]+$c2)/2</floor> and $r1=<mod><math simplify>$a.x[1]+$b.xNeg[1]+$c1</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$b2=$b.xNeg[2] and $c2=<floor>($a.x[3]+$b.xNeg[3]+$c3)/2</floor> and $r2=<mod><math simplify>$a.x[2]+$b.xNeg[2]+$c2</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$b3=$b.xNeg[3] and $c3=<floor>($a.x[4]+$b.xNeg[4]+$c4)/2</floor> and $r3=<mod><math simplify>$a.x[3]+$b.xNeg[3]+$c3</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$b4=$b.xNeg[4] and $c4=<floor>($a.x[5]+$b.xNeg[5]+$c5)/2</floor> and $r4=<mod><math simplify>$a.x[4]+$b.xNeg[4]+$c4</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$b5=$b.xNeg[5] and $c5=<floor>($a.x[6]+$b.xNeg[6]+$c6)/2</floor> and $r5=<mod><math simplify>$a.x[5]+$b.xNeg[5]+$c5</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$b6=$b.xNeg[6] and $c6=<floor>($a.x[7]+$b.xNeg[7]+$c7)/2</floor> and $r6=<mod><math simplify>$a.x[6]+$b.xNeg[6]+$c6</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$b7=$b.xNeg[7] and $c7=$a.x[8]*$b.xNeg[8] and $r7=<mod><math simplify>$a.x[7]+$b.xNeg[7]+$c7</math> 2</mod></when></award></answer></cell>
+      <cell><answer><award><when>$b8=$b.xNeg[8] and $r8=<mod><math simplify>$a.x[8]+$b.xNeg[8]</math> 2</mod></when></award></answer></cell>
+    </row>
+  </tabular>
+
+    <p><answer><label>Reading off the answer, we have that $a.binary - $b.binary is (remember the prefix 0b):</label>
+      <text><textList asList="false">0b $r1 $r2 $r3 $r4 $r5 $r6 $r7 $r8</textList></text>
+    </answer></p>
+    
+  </part>
+</section>
+
