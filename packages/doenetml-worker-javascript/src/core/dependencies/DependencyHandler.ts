@@ -1069,9 +1069,9 @@ export class DependencyHandler {
      * `varName` of `componentIdx` could close a cycle in the state-variable
      * graph. It cannot when that variable depends on no state variable: no
      * path leads out of it, so none leads back. Such an edge needs neither
-     * the memo reset nor the search. If the variable later gains a
-     * dependency, that edge runs both: the reset reaches back through this
-     * edge, and the search goes forward from there.
+     * the memo reset nor the search. If the variable later gains an edge
+     * that can close one, that edge's reset reaches back through this one,
+     * and the search that follows a new dependency goes forward from there.
      *
      * The upstream variables themselves are always treated as able to close
      * one, so a variable depending on itself is found however the edges are

@@ -1,5 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { DependencyHandler } from "../../core/dependencies/DependencyHandler";
+import { PASSED } from "../../core/dependencies/circularCheckMarks";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -217,12 +219,61 @@ describe("Circular references through children and extend @group2", async () => 
 });
 
 /**
+ * The edges from a memoized variable to a variable that is not memoized.
+ * Edges to a name the target does not have are left out: the
+ * `variablesOptional` filter records them on neither side, so no reset could
+ * climb through them anyway. So are edges to the placeholder a dependency on
+ * components alone records.
+ */
+function memoizedAboveUnmemoized(handler: any) {
+    const unmarkedBelow: string[] = [];
+    let passed = 0;
+    for (const [componentIdx, marks] of handler.circularCheckMarks._marks) {
+        for (const [varName, mark] of marks) {
+            if (mark !== PASSED) {
+                continue;
+            }
+            passed++;
+            const downDeps =
+                handler.downstreamDependencies[componentIdx]?.[varName];
+            for (const dependencyName in downDeps) {
+                const dep = downDeps[dependencyName];
+                const indices = dep.downstreamComponentIndices;
+                const mappedNames =
+                    dep.mappedDownstreamVariableNamesByComponent;
+                if (!indices || !mappedNames) {
+                    continue;
+                }
+                for (let ind = 0; ind < indices.length; ind++) {
+                    for (const name of mappedNames[ind]) {
+                        if (
+                            name !== dep.downstreamVariableNameIfNoVariables &&
+                            handler._components[indices[ind]]?.state?.[name] &&
+                            handler.circularCheckMarks.get(
+                                indices[ind],
+                                name,
+                            ) !== PASSED
+                        ) {
+                            unmarkedBelow.push(
+                                `${componentIdx}|${varName} -> ${indices[ind]}|${name}`,
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return { passed, unmarkedBelow };
+}
+
+/**
  * The state-variable cycle check, driven directly. A cycle in a document
  * closes in the resolve-blocker graph first, since the target of the edge
  * that closes it cannot have resolved, so the cyclic documents above are all
  * rejected by that check; this one reports a cycle only on the update path,
  * when a dependency is re-pointed at a variable that has already resolved,
- * and no document is known that reaches it. These cases add edges to the
+ * and no document is known that reaches it. Except for one case that
+ * inspects the memos a real load leaves, these cases add edges to the
  * handler's tables the way `Dependency.addDownstreamComponent` records them,
  * with the memo reset it performs, and call the check the way
  * `Dependency.checkForCircular` does.
@@ -308,7 +359,17 @@ describe("State-variable cycle check driven directly @group2", async () => {
     });
 
     it("a variable depending on itself is always searched", async () => {
-        const { addEdgeAndCheck } = await handlerWithFourNumbers();
+        const { dependencies, idx, addEdgeAndCheck } =
+            await handlerWithFourNumbers();
+        // Even before the dependency is recorded below `a`, when `a` still
+        // depends on nothing.
+        expect(
+            dependencies.edgeCanCloseCycle(
+                { upstreamComponentIdx: idx.a, upstreamVariableNames: ["v"] },
+                idx.a,
+                "v",
+            ),
+        ).toBe(true);
         expect(() => addEdgeAndCheck("a", "a")).toThrow(
             `${circularError}: <number> (line 1).`,
         );
@@ -449,6 +510,39 @@ describe("State-variable cycle check driven directly @group2", async () => {
         check("a"); // memoizes a and b as passed
         addEdgeAndCheck("b", "c"); // skipped: c depends on nothing
         expect(() => addEdgeAndCheck("c", "a")).toThrow(circularError);
+    });
+
+    // The handler tests above add edges themselves; this one checks what
+    // `Dependency` leaves behind over a real load. Each edge it skips must
+    // leave its target marked, or a memoized variable would sit above an
+    // unmemoized one and a later reset would stop short of it.
+    it("leaves no memoized variable above an unmemoized one after a load", async () => {
+        const found: { passed: number; unmarkedBelow: string[] }[] = [];
+        const clear = DependencyHandler.prototype.clearCircularCheckMemos;
+        const spy = vi
+            .spyOn(DependencyHandler.prototype, "clearCircularCheckMemos")
+            .mockImplementation(function (this: DependencyHandler) {
+                found.push(memoizedAboveUnmemoized(this));
+                return clear.call(this);
+            });
+        try {
+            await createTestCore({
+                doenetML: `<mathinput name="n" prefill="3"/>
+<graph>
+  <point name="P">(1,2)</point>
+  <line through="$P (3,4)"/>
+  <circle center="$P" radius="$P.x"/>
+</graph>
+<repeatForSequence from="1" to="$n" valueName="v">
+  <math simplify>$v^2+$n</math><point>($v, $v^2)</point>
+</repeatForSequence>`,
+            });
+        } finally {
+            spy.mockRestore();
+        }
+        expect(found).toHaveLength(1);
+        expect(found[0].passed).toBeGreaterThan(0);
+        expect(found[0].unmarkedBelow).toEqual([]);
     });
 
     it("reports the path that closes a cycle, once", async () => {
