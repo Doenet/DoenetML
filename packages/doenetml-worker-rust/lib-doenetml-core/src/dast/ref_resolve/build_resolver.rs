@@ -8,6 +8,11 @@ use crate::dast::flat_dast::{
 
 use super::{root_names::RootNameCache, *};
 
+/// The names each node can reach among its descendants, keyed by the node's index plus one
+/// (0 is the flat root). A node that reaches no name has no entry, so a fragment's table
+/// is the size of the fragment rather than the size of the document.
+type DescendantNames = FxHashMap<usize, FxHashMap<NameWithSource, Ref>>;
+
 impl Resolver {
     pub fn from_flat_root(flat_root: &FlatRoot) -> Self {
         let mut name_map = Self::build_name_map(&FlatRootOrFragment::Root(flat_root));
@@ -21,7 +26,7 @@ impl Resolver {
                 if idx_plus_1 == 0 {
                     NodeResolverData {
                         node_parent: NodeParent::None,
-                        name_map: NameMap(mem::take(&mut name_map[0])),
+                        name_map: NameMap(name_map.remove(&0).unwrap_or_default()),
                         index_resolutions: Vec::new(),
                         source_sequence: None,
                     }
@@ -32,7 +37,7 @@ impl Resolver {
                             .parent()
                             .map(NodeParent::Node)
                             .unwrap_or(NodeParent::FlatRoot),
-                        name_map: NameMap(mem::take(&mut name_map[idx_plus_1])),
+                        name_map: NameMap(name_map.remove(&idx_plus_1).unwrap_or_default()),
                         index_resolutions: Vec::new(),
                         source_sequence: extract_source_sequence(node),
                     }
@@ -116,7 +121,9 @@ impl Resolver {
         // Add new items to `name_map`.
         // If a node was already in the `name_map`, its value is replaced.
         for node in flat_fragment.nodes.iter() {
-            let names = mem::take(&mut subtree_name_map[node.idx() + 1]);
+            let Some(names) = subtree_name_map.remove(&(node.idx() + 1)) else {
+                continue;
+            };
             for (key, ref_) in names.into_iter() {
                 self.node_resolver_data[node.idx() + 1]
                     .name_map
@@ -124,12 +131,13 @@ impl Resolver {
             }
         }
 
-        if let Some(parent_idx) = flat_fragment.parent_idx {
+        if let Some(parent_idx) = flat_fragment.parent_idx
+            && let Some(new_parent_map) = subtree_name_map.remove(&(parent_idx + 1))
+        {
             // We will add items to the resolver for parent only if the parent does not already have items with that name,
             // i.e., the resolver will continue to resolve to descendants of parent as before,
             // and now will fall back to new items if there wasn't already a ref resolution.
             let parent_map = &mut self.node_resolver_data[parent_idx + 1].name_map;
-            let new_parent_map = mem::take(&mut subtree_name_map[parent_idx + 1]);
 
             for (key, ref_) in new_parent_map.into_iter() {
                 parent_map.entry(key).or_insert(ref_);
@@ -225,13 +233,8 @@ impl Resolver {
 
     /// Build a map of all the names that are accessible from a given node
     /// and the indices of the referents.
-    fn build_name_map(
-        flat_root_or_fragment: &FlatRootOrFragment,
-    ) -> Vec<FxHashMap<NameWithSource, Ref>> {
-        // Pre-populate with empty hashmaps for each element
-        let mut descendant_names = iter::repeat_with(FxHashMap::default)
-            .take(flat_root_or_fragment.len() + 1)
-            .collect::<Vec<_>>();
+    fn build_name_map(flat_root_or_fragment: &FlatRootOrFragment) -> DescendantNames {
+        let mut descendant_names = DescendantNames::default();
 
         // If we were given a flat root, then include root itself (with index 0),
         // else, for a flat fragment, include the fragment parent, where add one to the index
@@ -266,8 +269,9 @@ impl Resolver {
 
                 // Check to see if element's name map has a reference to its own `name_with_source`.
                 // If so, it's reference supersedes these descendants and should replace them in its ancestors' name maps.
-                let descendant_ref_of_own_name = descendant_names[element.idx + 1]
-                    .get(&name_with_source)
+                let descendant_ref_of_own_name = descendant_names
+                    .get(&(element.idx + 1))
+                    .and_then(|names| names.get(&name_with_source))
                     .cloned();
 
                 // We recurse (via a loop) outward through the ancestors of `element`, building the name map of each parent.
@@ -298,7 +302,8 @@ impl Resolver {
 
                     // Add `element` to the name map of `parent`, creating an ambiguous reference
                     // if its `name_with_source` is already in the name map
-                    match descendant_names[parent_idx_plus_1].get_mut(&name_with_source) {
+                    let parent_names = descendant_names.entry(parent_idx_plus_1).or_default();
+                    match parent_names.get_mut(&name_with_source) {
                         Some(x) => {
                             match x {
                                 // There is already something sharing the `name_with_source` with the current element
@@ -361,8 +366,7 @@ impl Resolver {
                         }
                         None => {
                             // There is no current match for the`name_with_source`, so we have a unique reference
-                            descendant_names[parent_idx_plus_1]
-                                .insert(name_with_source.clone(), Ref::Unique(element.idx));
+                            parent_names.insert(name_with_source.clone(), Ref::Unique(element.idx));
                         }
                     }
 
