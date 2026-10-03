@@ -42,7 +42,9 @@ export async function profileAsync<T>(
         const { profile } = await session.post("Profiler.stop");
         await session.post("Profiler.disable");
 
-        // Both are optional in the protocol types; an empty profile has neither.
+        // Both are optional in the protocol types; the fallback is for the
+        // typechecker. A profile stopped at once still had one sample of
+        // each under node 24.
         const samples = profile.samples ?? [];
         const timeDeltas = profile.timeDeltas ?? [];
         const selfByNode = new Map<number, number>();
