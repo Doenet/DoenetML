@@ -90,3 +90,113 @@ describe("Circular reference tests @group2", async () => {
         );
     });
 });
+
+/**
+ * Cycles that run through children and `extend` rather than through an
+ * attribute. They close in the resolve-blocker graph the moment the last
+ * reference is set up, and the report must name the authored components.
+ *
+ * The no-cycle cases guard the other side: the check memoizes what it has
+ * searched and drops the memo of everything upstream of a changed edge, and
+ * a reference that is set up before its target has any dependencies of its
+ * own must still be searched once the target gets them.
+ */
+describe("Circular references through children and extend @group2", async () => {
+    const circularError = "Circular dependency involving these components";
+
+    it("a text that contains a reference to itself", async () => {
+        await expect(
+            createTestCore({ doenetML: `<text name="t">$t</text>` }),
+        ).rejects.toThrow(`${circularError}: <text> (line 1)`);
+    });
+
+    it("two texts that reference each other", async () => {
+        await expect(
+            createTestCore({
+                doenetML: `
+    <text name="t1">$t2</text>
+    <text name="t2">$t1</text>
+    `,
+            }),
+        ).rejects.toThrow(
+            new RegExp(
+                `${circularError}:.*<text> \\(line 2\\).*<text> \\(line 3\\)`,
+                "s",
+            ),
+        );
+    });
+
+    it("a number and a math that reference each other", async () => {
+        await expect(
+            createTestCore({
+                doenetML: `
+    <number name="a">$m</number>
+    <math name="m">$a+1</math>
+    `,
+            }),
+        ).rejects.toThrow(
+            new RegExp(
+                `${circularError}:.*<number> \\(line 2\\).*<math> \\(line 3\\)`,
+                "s",
+            ),
+        );
+    });
+
+    it("two maths that extend each other", async () => {
+        await expect(
+            createTestCore({
+                doenetML: `
+    <math extend="$b1" name="b2" />
+    <math extend="$b2" name="b1" />
+    `,
+            }),
+        ).rejects.toThrow(circularError);
+    });
+
+    it("a mathInput prefilled with its own value", async () => {
+        await expect(
+            createTestCore({
+                doenetML: `<mathInput name="mi" prefill="$mi.value" />`,
+            }),
+        ).rejects.toThrow(`${circularError}:`);
+    });
+
+    it("a long chain of references is not a cycle", async () => {
+        const length = 60;
+        let doenetML = `<number name="n1">1</number>`;
+        for (let i = 2; i <= length; i++) {
+            doenetML += `<number name="n${i}">$n${i - 1}+1</number>`;
+        }
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+
+        // The memos cover only the load; they are dropped once it is done
+        // (and regrow for whatever a later evaluation sets up).
+        const dependencies = core.core.dependencies;
+        expect(dependencies.circularCheckMarks.size).eq(0);
+        expect(dependencies.circularBlockerMarks.size).eq(0);
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx(`n${length}`)].stateValues
+                .value,
+        ).eq(length);
+    });
+
+    it("a reference reached along two paths is not a cycle", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <number name="a">1</number>
+    <number name="b">$a+1</number>
+    <number name="c">$a+2</number>
+    <number name="d">$b+$c</number>
+    <number name="e">$d+$a</number>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("e")].stateValues.value,
+        ).eq(6);
+    });
+});
