@@ -1225,7 +1225,7 @@ function initializeStateVariablePlaceholder({
  * Give `component` a state variable it was not built with, as a placeholder
  * that materializes on first demand like every other. Used for the shadows a
  * value reference (`_ref`) makes when a dependency asks it for a variable it
- * does not define (`createOnDemandStateVariableDefinition`).
+ * does not define (`createOnDemandStateVariableDefinitions`).
  */
 export function addStateVariablePlaceholder({
     core,

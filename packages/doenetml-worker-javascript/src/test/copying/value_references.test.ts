@@ -576,5 +576,126 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     .maths[0].tree,
             ).eq(5);
         });
+
+        it("a referent that may not be modified indirectly is left alone, and the write goes to the other operand", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="a" modifyIndirectly="false">2</mathInput>
+    <mathInput name="b">3</mathInput>
+    <mathInput name="s" bindValueTo="$a+$b" />
+    <math name="p">2$a</math>
+    <mathInput name="sp" bindValueTo="$p" />
+    `,
+            });
+            const aIdx = await resolvePathToNodeIdx("a");
+            const bIdx = await resolvePathToNodeIdx("b");
+
+            // the reference to `a` answers `canBeModified` from `a`'s
+            // `modifyIndirectly`, so the sum's inverse writes `b`
+            await updateMathInputValue({
+                latex: "10",
+                componentIdx: await resolvePathToNodeIdx("s"),
+                core,
+            });
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(stateVariables[aIdx].stateValues.value.tree).eq(2);
+            expect(stateVariables[bIdx].stateValues.value.tree).eq(8);
+
+            // with no other operand to take it, the write is refused
+            await updateMathInputValue({
+                latex: "10",
+                componentIdx: await resolvePathToNodeIdx("sp"),
+                core,
+            });
+            stateVariables = await core.returnAllStateVariables(false, true);
+            expect(stateVariables[aIdx].stateValues.value.tree).eq(2);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                    .value.tree,
+            ).eqls(["*", 2, 2]);
+        });
+
+        it("an extended holder's reference follows the chain to the referent's settings and takes a write", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <number name="n" displayDigits="5">5.123456</number>
+    <number name="m">$n</number>
+    <number extend="$m" name="m2" />
+    <mathInput name="mi" bindValueTo="$m2" />
+    `,
+            });
+            const nIdx = await resolvePathToNodeIdx("n");
+            const m2Idx = await resolvePathToNodeIdx("m2");
+
+            // the reference in `m2` is a whole shadow of the one in `m`;
+            // its display settings come from `n`, at the end of the chain
+            const [inM, inM2] = valueRefs(core);
+            expect(inM.shadows.componentIdx).eq(nIdx);
+            expect(inM2.shadows.componentIdx).eq(inM.componentIdx);
+            expect(inM2.shadows.propVariable).eq(undefined);
+
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(stateVariables[m2Idx].stateValues.text).eq("5.1235");
+
+            await updateMathInputValue({
+                latex: "7.654321",
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+            stateVariables = await core.returnAllStateVariables(false, true);
+            expect(stateVariables[nIdx].stateValues.value).eq(7.654321);
+            expect(stateVariables[m2Idx].stateValues.text).eq("7.6543");
+        });
+
+        it("several references from one copy inside a math form a list", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <graph><point name="P">(1,2)</point></graph>
+    <math name="m">$P.xs</math>
+    <math name="m2">($P.xs)</math>
+    <math name="m3">f($P.xs)</math>
+    `,
+            });
+            // each coordinate is a reference; between them the copy puts the
+            // commas a list of inline components gets, so the math reads a
+            // list, not a product
+            expect(valueRefs(core)).toHaveLength(6);
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const value = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .value.tree;
+            expect(await value("m")).eqls(["list", 1, 2]);
+            expect(await value("m2")).eqls(["tuple", 1, 2]);
+            expect(await value("m3")).eqls(["apply", "f", ["tuple", 1, 2]]);
+        });
+
+        it("unordered follows the referent into a comparison and into the holder", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <math name="u" unordered>(1,2)</math>
+    <boolean name="b1">$u = (2,1)</boolean>
+    <boolean name="b2">(1,2) = (2,1)</boolean>
+    <math name="m">$u</math>
+    `,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect((await sv("b1")).value).eq(true);
+            expect((await sv("b2")).value).eq(false);
+            expect((await sv("m")).unordered).eq(true);
+        });
     },
 );

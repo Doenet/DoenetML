@@ -2,8 +2,8 @@ import BaseComponent from "./BaseComponent";
 
 /**
  * A value reference: the component a bare `$n` becomes when it stands where
- * only a value is read, such as inside `<math>$n+1</math>`, in the content of
- * an attribute (`displayDigits="$n"`), or between index brackets.
+ * only a value is read, such as inside `<math>$n+1</math>` or in the content
+ * of an attribute (`displayDigits="$n"`).
  *
  * It shadows one state variable of its referent (`shadows.propVariable`) and
  * takes the place, in its parent's child groups, of a component of
@@ -198,10 +198,10 @@ export default class ValueRef extends BaseComponent {
      * (`classDefinitions(presentedClass)`), so the reference derives `text`,
      * `latex`, `isNumber`, a `matrixEntry`, … from its value exactly as a
      * component of that type would, with no attributes and no children. When
-     * the referent has the variable too, under the same name or the name the
-     * referent's shadowing instructions give it, the definition is redirected
-     * to the referent instead, the way `modifyStateDefsToBeShadows` plans a
-     * shadow; the `displayDigits` of `$n` are then `n`'s, mirroring its
+     * the shadowing instructions of the referenced variable name a companion
+     * for it on the referent (`_referentVariableFor`), the definition is
+     * redirected to the referent instead, the way `modifyStateDefsToBeShadows`
+     * plans a shadow; the `displayDigits` of `$n` are then `n`'s, mirroring its
      * `usedDefault`, so a parent falling through to a sole child's display
      * settings sees what it would see on the referent. A variable only the
      * referent has becomes a plain shadow of it.

@@ -68,7 +68,7 @@ const classStateVariableDefinitionsCache: WeakMap<
  * The state-variable definitions of `componentClass`, attribute-derived and
  * class-declared, built once per core and shared by every instance. A value
  * reference (`_ref`) borrows from here the definitions of the type it stands
- * in for (`createOnDemandStateVariableDefinition`).
+ * in for (`createOnDemandStateVariableDefinitions`).
  */
 export function getClassStateVariableDefinitions(
     core: Core,
