@@ -1064,8 +1064,70 @@ export class DependencyHandler {
     }
 
     /**
+     * Whether an edge from the upstream variables of `dependency` to
+     * `varName` of `componentIdx` could close a cycle in the state-variable
+     * graph. It cannot when that variable depends on no state variable: no
+     * path leads out of it, so none leads back. Such an edge needs neither
+     * the memo reset nor the search. If the variable later gains a
+     * dependency, that edge runs both: the reset reaches back through this
+     * edge, and the search goes forward from there.
+     *
+     * The upstream variables themselves are always treated as able to close
+     * one, so a variable depending on itself is found however the edges are
+     * recorded.
+     *
+     * A skipped edge must not leave a memoized variable above an unmemoized
+     * one, which is what lets `resetCircularCheckPassed` stop early; the
+     * caller marks the target with `markLeafPassed`.
+     */
+    edgeCanCloseCycle(
+        dependency: {
+            upstreamComponentIdx: ComponentIdx;
+            upstreamVariableNames: readonly string[];
+        },
+        componentIdx: ComponentIdx,
+        varName: string,
+    ): boolean {
+        if (
+            componentIdx === dependency.upstreamComponentIdx &&
+            dependency.upstreamVariableNames.includes(varName)
+        ) {
+            return true;
+        }
+        const downDeps = this.downstreamDependencies[componentIdx]?.[varName];
+        for (const dependencyName in downDeps) {
+            const dep = downDeps[dependencyName];
+            if (
+                dep.downstreamComponentIndices?.length > 0 &&
+                dep.mappedDownstreamVariableNamesByComponent
+            ) {
+                return true;
+            }
+        }
+        return false;
+    }
+
+    /**
+     * Mark `varName` of `componentIdx`, which depends on no state variable,
+     * as having passed the cycle check, which is true of it: no cycle is
+     * reachable from a variable with no way out. Called for the target of an
+     * edge that `edgeCanCloseCycle` let skip the reset and the search, so
+     * that the upstream variable, if memoized, does not sit above an
+     * unmemoized one. When the target later gains a dependency that could
+     * close a cycle, the reset clears this mark and everything above it.
+     */
+    markLeafPassed(componentIdx: ComponentIdx, varName: string) {
+        if (this.circularCheckMarks.get(componentIdx, varName) === undefined) {
+            this.circularCheckMarks.set(componentIdx, varName, PASSED);
+        }
+    }
+
+    /**
      * Forget that `varName` of `componentIdx` passed the cycle check, and
-     * likewise everything upstream of it, after an edge below it changed.
+     * likewise everything upstream of it, after an edge that could close a
+     * cycle was added below it (see `edgeCanCloseCycle`). Removing an edge
+     * needs no reset: a memo says that no cycle is reachable, which stays
+     * true when edges go.
      * The walk stops at a variable that is not memoized: a search marks
      * everything it expands, so a memoized variable has every variable
      * downstream of it memoized too, and nothing memoized sits above an

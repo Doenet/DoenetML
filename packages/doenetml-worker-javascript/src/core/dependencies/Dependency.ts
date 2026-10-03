@@ -686,13 +686,27 @@ export class Dependency {
                     downCompUpDeps[varName] = existingUpDeps.concat(this);
                 }
 
-                if (varName !== this.downstreamVariableNameIfNoVariables) {
+                if (varName === this.downstreamVariableNameIfNoVariables) {
+                    continue;
+                }
+                if (
+                    this.dependencyHandler.edgeCanCloseCycle(
+                        this,
+                        downstreamComponentIdx,
+                        varName,
+                    )
+                ) {
                     for (let upstreamVarName of this.upstreamVariableNames) {
                         this.dependencyHandler.resetCircularCheckPassed(
                             this.upstreamComponentIdx,
                             upstreamVarName,
                         );
                     }
+                } else {
+                    this.dependencyHandler.markLeafPassed(
+                        downstreamComponentIdx,
+                        varName,
+                    );
                 }
             }
         }
@@ -794,16 +808,6 @@ export class Dependency {
                                 .slice(0, ind)
                                 .concat(downCompUpDeps.slice(ind + 1));
                         }
-                    }
-                }
-
-                if (vName !== this.downstreamVariableNameIfNoVariables) {
-                    for (let upstreamVarName of this.upstreamVariableNames) {
-                        // TODO: check why have to do this when remove a component from a dependency
-                        this.dependencyHandler.resetCircularCheckPassed(
-                            this.upstreamComponentIdx,
-                            upstreamVarName,
-                        );
                     }
                 }
             }
@@ -972,16 +976,6 @@ export class Dependency {
                         blockerType: "stateVariable",
                         blockerCode: downCompIdx + "|" + vName,
                     });
-                }
-
-                if (vName !== this.downstreamVariableNameIfNoVariables) {
-                    for (let upstreamVarName of this.upstreamVariableNames) {
-                        // TODO: check why have to do this when delete a dependency
-                        this.dependencyHandler.resetCircularCheckPassed(
-                            this.upstreamComponentIdx,
-                            upstreamVarName,
-                        );
-                    }
                 }
             }
         }
@@ -1237,7 +1231,37 @@ export class Dependency {
         return { value, changes, usedDefault };
     }
 
+    /**
+     * Check the edges this dependency has just added for a cycle (see
+     * `DependencyHandler.checkForCircularDependency`). If none of them can
+     * close one (`DependencyHandler.edgeCanCloseCycle`), there is nothing to
+     * check.
+     */
     checkForCircular() {
+        const indices = this.downstreamComponentIndices;
+        const mappedNames = this.mappedDownstreamVariableNamesByComponent;
+        if (!indices || !mappedNames) {
+            return;
+        }
+        let canCloseCycle = false;
+        for (let ind = 0; ind < indices.length && !canCloseCycle; ind++) {
+            for (const varName of mappedNames[ind]) {
+                if (
+                    this.dependencyHandler.edgeCanCloseCycle(
+                        this,
+                        indices[ind],
+                        varName,
+                    )
+                ) {
+                    canCloseCycle = true;
+                    break;
+                }
+            }
+        }
+        if (!canCloseCycle) {
+            return;
+        }
+
         for (let varName of this.upstreamVariableNames) {
             this.dependencyHandler.resetCircularCheckPassed(
                 this.upstreamComponentIdx,
