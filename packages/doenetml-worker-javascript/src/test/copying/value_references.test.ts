@@ -912,6 +912,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     <boolean name="b1">$u = (2,1)</boolean>
     <boolean name="b2">(1,2) = (2,1)</boolean>
     <math name="m">$u</math>
+    <boolean name="b3">$m = (2,1)</boolean>
+    <math name="m3">$m</math>
     `,
             });
             const stateVariables = await core.returnAllStateVariables(
@@ -923,6 +925,46 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect((await sv("b1")).value).eq(true);
             expect((await sv("b2")).value).eq(false);
             expect((await sv("m")).unordered).eq(true);
+            // `m` is unordered because of what it holds, not by an attribute
+            // of its own, and a reference to it is unordered all the same
+            expect((await sv("b3")).value).eq(true);
+            expect((await sv("m3")).unordered).eq(true);
+        });
+
+        it("a referent that cannot be changed leaves a write to the other operand", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="r" fixed>1</mathInput>
+    <math name="w">2</math>
+    <mathInput name="mi" bindValueTo="$r + $w" />
+    <math name="a" fixed>1</math>
+    <math name="r2">$a</math>
+    <math name="w2">2</math>
+    <mathInput name="mi2" bindValueTo="$r2 + $w2" />
+    `,
+            });
+            const value = async (name: string) =>
+                (await core.returnAllStateVariables(false, true))[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.value.tree;
+
+            // a fixed input
+            await updateMathInputValue({
+                latex: "10",
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+            expect(await value("r")).eq(1);
+            expect(await value("w")).eq(9);
+
+            // `r2` is not fixed, but all it holds is a fixed component
+            await updateMathInputValue({
+                latex: "10",
+                componentIdx: await resolvePathToNodeIdx("mi2"),
+                core,
+            });
+            expect(await value("r2")).eq(1);
+            expect(await value("w2")).eq(9);
         });
     },
 );
