@@ -231,6 +231,8 @@ export type CensusTableRow = {
     name: string;
     census: Census;
     loadMs?: number;
+    /** Median wall-clock milliseconds of one drag, where measured. */
+    dragMs?: number;
     error?: string;
 };
 
@@ -239,17 +241,19 @@ const fmt = new Intl.NumberFormat("en-US");
 /** A GitHub-flavored markdown table, one row per fixture. */
 export function censusMarkdownTable(rows: CensusTableRow[]): string {
     const lines = [
-        "| fixture | components | shadows | attribute comps | `_copy` | state vars | resolved | dependencies | load (ms) |",
-        "|---|---:|---:|---:|---:|---:|---:|---:|---:|",
+        "| fixture | components | shadows | attribute comps | `_copy` | state vars | resolved | dependencies | load (ms) | drag (ms) |",
+        "|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|",
     ];
     for (const row of rows) {
         if (row.error) {
-            lines.push(`| ${row.name} | failed: ${row.error} | | | | | | | |`);
+            lines.push(
+                `| ${row.name} | failed: ${row.error} | | | | | | | | |`,
+            );
             continue;
         }
         const c = row.census;
         lines.push(
-            `| ${row.name} | ${fmt.format(c.components)} | ${fmt.format(c.shadows)} | ${fmt.format(c.attributeComponents)} | ${fmt.format(c.copies)} | ${fmt.format(c.stateVariables)} | ${fmt.format(c.stateVariablesResolved)} | ${fmt.format(c.dependencies)} | ${row.loadMs === undefined ? "" : fmt.format(Math.round(row.loadMs))} |`,
+            `| ${row.name} | ${fmt.format(c.components)} | ${fmt.format(c.shadows)} | ${fmt.format(c.attributeComponents)} | ${fmt.format(c.copies)} | ${fmt.format(c.stateVariables)} | ${fmt.format(c.stateVariablesResolved)} | ${fmt.format(c.dependencies)} | ${row.loadMs === undefined ? "" : fmt.format(Math.round(row.loadMs))} | ${row.dragMs === undefined ? "" : fmt.format(Math.round(row.dragMs))} |`,
         );
     }
     return lines.join("\n");

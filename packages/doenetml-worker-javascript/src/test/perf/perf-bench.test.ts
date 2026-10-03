@@ -10,10 +10,13 @@ import {
 import { measureLoad, type CallTimings } from "./load-timing";
 import { benchFixtures, MICRO_DOCUMENTS, type Fixture } from "./fixtures";
 import { formatProfile, profileAsync, type ProfileSummary } from "./profile";
+import { measureDrag, type DragMeasurement } from "./drag-timing";
 
 // Load-time bench of the performance harness (Doenet/DoenetML#2126). For each
 // fixture it loads the document once and records the census, the wall-clock
-// load time, the core's per-phase timings and the resolver's call timings.
+// load time, the core's per-phase timings and the resolver's call timings; for
+// the drag fixture (the 50-point dot plot from `drag-bench.test.ts`) it then
+// drags the point it names and records the median cost of one `movePoint`.
 //
 //   PERFBENCH_RESULT=/tmp/perf-bench.json \
 //       npm run test -w @doenet/doenetml-worker-javascript -- --run src/test/perf/perf-bench.test.ts
@@ -28,7 +31,10 @@ import { formatProfile, profileAsync, type ProfileSummary } from "./profile";
 // It only runs when PERFBENCH_RESULT is set. The file carries no `@groupN`
 // tag, so it would otherwise land in the `test:group4` catch-all and spend
 // minutes measuring something no assertion depends on. Times are reported,
-// never asserted; the census snapshot in `census.test.ts` is the gate.
+// never asserted. The run fails only when a fixture fails to load, loads as
+// `_error` components, or the instrumentation comes back blank (a phase
+// missing, no resolver calls counted, no drag measured on the drag fixture); the
+// census snapshot in `census.test.ts` is the gate.
 
 const RESULT_PATH = process.env.PERFBENCH_RESULT;
 const SUMMARY_PATH = process.env.PERFBENCH_SUMMARY;
@@ -43,7 +49,10 @@ const BENCH_TIMEOUT_MS = 30 * 60 * 1000;
 type FixtureResult = {
     name: string;
     kind: Fixture["kind"];
+    /** Whether the fixture asked for a drag measurement. */
+    wantsDrag: boolean;
     loadMs?: number;
+    drag?: DragMeasurement;
     phases?: Record<string, number>;
     resolver?: CallTimings;
     census?: Census;
@@ -76,7 +85,11 @@ const ms = (x: number | undefined) =>
     x === undefined ? "" : fmt.format(Math.round(x));
 
 async function measureFixture(fixture: Fixture): Promise<FixtureResult> {
-    const base = { name: fixture.name, kind: fixture.kind };
+    const base = {
+        name: fixture.name,
+        kind: fixture.kind,
+        wantsDrag: Boolean(fixture.drag),
+    };
     try {
         const run = () => measureLoad(fixture.doenetML);
         let measurement;
@@ -89,17 +102,58 @@ async function measureFixture(fixture: Fixture): Promise<FixtureResult> {
             measurement = await run();
         }
         const census = censusOfCore(measurement.core.core);
+        let drag: DragMeasurement | undefined;
+        if (fixture.drag) {
+            drag = await measureDrag(measurement.core, fixture.drag.target);
+        }
         return {
             ...base,
             loadMs: measurement.loadMs,
             phases: measurement.phases,
             resolver: measurement.resolver,
             census,
+            drag,
             profile,
         };
     } catch (e) {
         return { ...base, error: e instanceof Error ? e.message : String(e) };
     }
+}
+
+/**
+ * What is missing from a fixture's instrumentation, as human-readable gaps.
+ * Structural checks only, no durations: a table of blanks must not pass.
+ */
+function instrumentationGaps(r: FixtureResult): string[] {
+    if (r.error) {
+        return [];
+    }
+    const gaps: string[] = [];
+    for (const phase of PHASES) {
+        if (!Number.isFinite(r.phases?.[phase])) {
+            gaps.push(`phase ${phase} not recorded`);
+        }
+    }
+    if (!r.resolver || Object.keys(r.resolver).length === 0) {
+        gaps.push("no resolver calls recorded");
+    } else if (
+        r.kind === "bench" &&
+        !(r.resolver.add_nodes_to_resolver?.calls! > 0)
+    ) {
+        gaps.push("no add_nodes_to_resolver calls recorded");
+    }
+    const errors = r.census?.byType._error ?? 0;
+    if (errors > 0) {
+        gaps.push(`loaded with ${errors} _error component(s)`);
+    }
+    if (r.wantsDrag && !Number.isFinite(r.drag?.medianMs)) {
+        gaps.push("no drag measured");
+    } else if (r.wantsDrag && !r.drag?.moved) {
+        gaps.push(
+            "the dragged point did not move (fixed, or the move was refused)",
+        );
+    }
+    return gaps;
 }
 
 function phaseTable(results: FixtureResult[]): string {
@@ -173,12 +227,13 @@ function summaryMarkdown(results: FixtureResult[]): string {
         name: r.name,
         census: r.census as Census,
         loadMs: r.loadMs,
+        dragMs: r.drag?.medianMs,
         error: r.error,
     }));
     return [
         "## Performance harness",
         "",
-        `Node ${process.version}, ${new Date().toISOString()}. Times are wall-clock milliseconds of \`createTestCore\` in node; compare ratios across runs on the same machine, not absolutes.`,
+        `Node ${process.version}, ${new Date().toISOString()}. Load is wall-clock milliseconds of \`createTestCore\` in node; drag is the median wall-clock milliseconds of one awaited transient \`movePoint\` over 25 moves of the fixture's named point (the deferred renderer remainder excluded). Compare ratios across runs on the same machine, not absolutes.`,
         "",
         censusMarkdownTable(rows),
         "",
@@ -218,14 +273,19 @@ describe.runIf(Boolean(RESULT_PATH))("performance bench", () => {
             process.stdout.write(markdown + "\n");
 
             // Deliberately weak: this is an instrument, and its output is the
-            // JSON and markdown it writes. The assertion exists only so that a
-            // run which measured nothing cannot pass quietly.
+            // JSON and markdown it writes. The assertions exist only so that a
+            // run which measured nothing, or whose instrumentation went blank,
+            // cannot pass quietly. No duration is asserted.
             expect(results.length).toBeGreaterThan(0);
             const failed = results.filter((r) => r.error);
             expect(
                 failed.map((r) => `${r.name}: ${r.error}`),
                 "every fixture should load",
             ).toEqual([]);
+            const gaps = results.flatMap((r) =>
+                instrumentationGaps(r).map((gap) => `${r.name}: ${gap}`),
+            );
+            expect(gaps, "the instrumentation should be populated").toEqual([]);
         },
         BENCH_TIMEOUT_MS,
     );

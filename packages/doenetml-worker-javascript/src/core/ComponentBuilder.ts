@@ -116,11 +116,15 @@ export async function addComponents({
     // Wall-clock phase timings of the initial document build, published as
     // `core.loadPhaseTimings` for the performance harness
     // (Doenet/DoenetML#2026, #2126). Diagnostic only.
+    // Only the initial build reads the clock; a later structural add skips it.
     const phaseTimings: Record<string, number> = {};
-    const loadStart = performance.now();
+    const loadStart = initialAdd ? performance.now() : 0;
     let phaseStart = loadStart;
     /** Add the time since the previous mark to `phaseTimings[name]`. */
     function markPhase(name: string) {
+        if (!initialAdd) {
+            return;
+        }
         const now = performance.now();
         phaseTimings[name] = (phaseTimings[name] ?? 0) + now - phaseStart;
         phaseStart = now;

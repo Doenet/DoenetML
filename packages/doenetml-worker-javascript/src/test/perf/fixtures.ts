@@ -7,9 +7,11 @@
  *   deliberate snapshot update.
  * - `benchFixtures()`: the documents whose load time matters. The dot plot
  *   is the Doenet/DoenetML#2023 document at a chosen number of plots; the
- *   repeat document is the shadow-heavy one from `memory-bench.test.ts`; the
- *   slow examples are the author-reported documents from
- *   Doenet/DoenetML#2101, checked in under `fixtures/`.
+ *   drag dot plot is the 50-point document `drag-bench.test.ts` drags, and is
+ *   the one fixture that is also dragged; the repeat document is the
+ *   shadow-heavy one from `memory-bench.test.ts`; the slow examples are the
+ *   author-reported documents from Doenet/DoenetML#2101, checked in under
+ *   `fixtures/`.
  */
 import fs from "node:fs";
 
@@ -17,6 +19,13 @@ export type Fixture = {
     name: string;
     doenetML: string;
     kind: "micro" | "bench";
+    /**
+     * Also measure the median cost of one drag of the named point. The name
+     * is a path for `resolvePathToNodeIdx`; the first `point` by index would
+     * be wrong here, since a hidden line segment's `endpoints` attribute
+     * creates points too.
+     */
+    drag?: { target: string };
 };
 
 function micro(name: string, doenetML: string): Fixture {
@@ -76,7 +85,10 @@ const DOT_PLOT_SAMPLES = [
 /**
  * The dot-plot document from Doenet/DoenetML#2023: a `<module>` holding a
  * `<repeatForSequence>` of constrained points with a computed stack height,
- * copied `numPlots` times with 50 random values each. One plot is about
+ * copied `numPlots` times with 50 random values each. Its points cannot be
+ * dragged (the module copies are `fixed`, and a point inside a repeat that
+ * indexes a module-attribute list refuses a move even when they are not), so
+ * it is a load fixture only; `dragDotPlotDocument` is the one that drags. One plot is about
  * 4,000 components on `main` at 00a3551fc; the count grows linearly.
  */
 export function dotPlotDocument(numPlots: number): string {
@@ -129,6 +141,45 @@ ${rows.join("\n")}
 }
 
 /**
+ * The 50-point dot plot that `drag-bench.test.ts` drags: no module, the
+ * sampled values carry `fixed="false"`, and each point's x is one of them, so
+ * a `movePoint` on a point writes through to the sample. It is the document
+ * the drag-cost issues measured (Doenet/DoenetML#1946, #1951, #1978, #1983).
+ */
+export function dragDotPlotDocument(numPoints = 50): string {
+    return `
+<setup>
+  <sampleRandomNumbers name="ns" type="gaussian" mean="20"
+      standardDeviation="10" numSamples="${numPoints}" fixed="false" />
+</setup>
+
+<graph displayYAxis="false" fixAxes aspectRatio="4" xMin="-2" xMax="102"
+    yMin="-3" size="full" showBorder="false">
+  <lineSegment name="axis" hide endpoints="(0,0) (100,0)" />
+  <repeatForSequence from="1" to="${numPoints}" indexName="i" name="Ps">
+    <point name="P" labelPosition="top">
+      ($ns[$i], <number fixed>0.5 ($sortedPos[$i] - $first[$i])</number>)
+      <constrainToGraph />
+      <constrainToGrid dx="2" dy="0.5" />
+    </point>
+  </repeatForSequence>
+</graph>
+
+<setup>
+  <numberList name="values">$Ps.x</numberList>
+  <sequence name="indices" from="1" to="${numPoints}" />
+  <sortIndices name="perm">$values</sortIndices>
+  <indexOf name="sortedPos" target="$indices">$perm</indexOf>
+  <searchSorted name="first" allowUnsorted target="$values">$values</searchSorted>
+  <tally name="tally">$values</tally>
+</setup>
+
+<p>Mean: <mean name="mean">$values</mean></p>
+<p>Median: <median name="median">$values</median></p>
+`;
+}
+
+/**
  * The shadow-heavy repeat document from `memory-bench.test.ts`. The
  * references in each iteration (`$i`, `$P.x`, `$n`, `$m`) make 35 of its 56
  * components shadows; the template's own `p`, `point`, `math`, `boolean`
@@ -167,6 +218,12 @@ export function benchFixtures(): Fixture[] {
         { name: "dot-plot-1", doenetML: dotPlotDocument(1), kind: "bench" },
         { name: "dot-plot-2", doenetML: dotPlotDocument(2), kind: "bench" },
         { name: "dot-plot-4", doenetML: dotPlotDocument(4), kind: "bench" },
+        {
+            name: "dot-plot-drag-50",
+            doenetML: dragDotPlotDocument(50),
+            kind: "bench",
+            drag: { target: "Ps[1].P" },
+        },
         { name: "repeat-150", doenetML: repeatDocument(150), kind: "bench" },
         ...SLOW_EXAMPLE_NAMES.map((name) => ({
             name,
