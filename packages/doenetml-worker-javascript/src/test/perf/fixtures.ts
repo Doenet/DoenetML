@@ -144,13 +144,18 @@ ${rows.join("\n")}
  * The 50-point dot plot that `drag-bench.test.ts` drags: no module, the
  * sampled values carry `fixed="false"`, and each point's x is one of them, so
  * a `movePoint` on a point writes through to the sample. It is the document
- * the drag-cost issues measured (Doenet/DoenetML#1946, #1951, #1978, #1983).
+ * the drag-cost issues measured (Doenet/DoenetML#1946, #1951, #1978, #1983),
+ * with one attribute added: `variantDeterminesSeed`, so the sample, and with
+ * it the tally's replacement count and the census, reproduce from run to run
+ * (without it the sample is date-seeded and the component count drifts by a
+ * few).
  */
 export function dragDotPlotDocument(numPoints = 50): string {
     return `
 <setup>
   <sampleRandomNumbers name="ns" type="gaussian" mean="20"
-      standardDeviation="10" numSamples="${numPoints}" fixed="false" />
+      standardDeviation="10" numSamples="${numPoints}" fixed="false"
+      variantDeterminesSeed />
 </setup>
 
 <graph displayYAxis="false" fixAxes aspectRatio="4" xMin="-2" xMax="102"

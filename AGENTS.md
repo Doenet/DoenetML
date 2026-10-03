@@ -7,29 +7,23 @@ Canonical guide for agents (and humans) working in this repository. Covers archi
 DoenetML is a semantic markup language for building interactive web activities. The system has three layers:
 
 ### Layer 1: Parsing (Input)
-
 The **parser** (`packages/parser`) converts DoenetML XML into a **DAST** (Document Abstract Syntax Tree). It handles XML parsing, validation, and normalization. Key exports: `stringToLezer()`, `lezerToDast()`, `normalizeDocumentDast()`.
 
 ### Layer 2: Computation (Worker)
-
 The **worker** (`packages/doenetml-worker`) runs in a Web Worker and manages document state and computation. It combines:
-
 - **JavaScript logic** (`packages/doenetml-worker-javascript`) for component evaluation, dependency tracking, and state updates
 - **Rust/WASM logic** (`packages/doenetml-worker-rust/lib-js-wasm-binding`). Reference-resolution paths run in Rust today; the rest of the worker is slowly being transitioned over.
 
 Communication between main thread and worker uses structured messages. The worker is responsible for evaluating components, tracking dependencies (DAG), and managing variants.
 
 ### Layer 3: UI (Viewer/Editor)
-
 The **main component** (`packages/doenetml/src/doenetml.tsx`) exports two top-level React components:
-
 - **`DoenetViewer`** — read-only rendering of DoenetML
 - **`DoenetEditor`** — editor UI with live preview
 
 Both use Redux for state management (`packages/doenetml/src/state/`) and share a Web Worker instance.
 
 ### Connected Packages
-
 - **`@doenet/prefigure`** — backend for executing Python/computation-heavy activities
 - **`@doenet/standalone`, `@doenet/doenetml-iframe`** — bundled variants of the main library for different hosting scenarios
 - **`@doenet/codemirror`** — code editor integration
@@ -40,11 +34,10 @@ Both use Redux for state management (`packages/doenetml/src/state/`) and share a
 ## Monorepo Structure
 
 This is an npm workspace monorepo. Key points:
-
 - All packages build via **Vite** and **Wireit** (a task orchestration tool that manages build dependencies)
 - **Wireit** is configured in each `package.json`'s `wireit` field; it automatically rebuilds dependencies when inputs change
 - Each package can be built/tested independently with `-w <package-name>` or `-w @scope/package-name` flags
-- **Every `@doenet/*` package exports only from its `dist/`.** Importing one _by package name_ gets the built code, never the other's `src/`. Nothing rebuilds it for you at test time — see [Cross-package edits need a rebuild](#cross-package-edits-need-a-rebuild-before-testing)
+- **Every `@doenet/*` package exports only from its `dist/`.** Importing one *by package name* gets the built code, never the other's `src/`. Nothing rebuilds it for you at test time — see [Cross-package edits need a rebuild](#cross-package-edits-need-a-rebuild-before-testing)
 
 ## Build & Development Commands
 
@@ -83,11 +76,11 @@ Builds prerequisites and serves docs (Nextra-based) at `http://localhost:3000`.
 
 Every `@doenet/*` package's `exports` point at `dist/`, and no vitest config aliases them back to `src/`. So a test in package B that imports `@doenet/A` gets A's last build. Almost no `test` script rebuilds anything — most are a bare `vitest` — so neither `npm run test -w B` nor `npx vitest` rebuilds A, and an edit-then-test loop across a package boundary reads stale code. Five `test` scripts run a Wireit build first: `doenetml-prototype` and `doenetml-to-pretext` rebuild `parser` and `doenetml-worker`, `doenetml-worker-rust` rebuilds `parser`, `doenetml-worker-javascript` rebuilds its own dependencies plus the Rust WASM (see below), and `math` rebuilds only itself.
 
-A _relative_ path is the exception, because it bypasses `exports` and resolves to whatever it points at. Where that is a sibling's `src/`, an edit is picked up with no rebuild: `packages/static-assets/scripts/get-schema.ts` and `check-docs-coverage.ts` read `doenetml-worker-javascript/src`, which is why the schema is generated from component source, and `doenetml-worker-javascript/src/test/utils/test-core.ts` — the harness under every worker test — reads `doenetml/src/flags`. It is not only tests and scripts; `packages/standalone/src/coordinator.ts` imports `doenetml-iframe/src` the same way. Where a relative path points at a `dist/` instead, the build is still needed: `doenetml-worker-rust/lib-doenetml-core/tests/parse-dast.ts` reads `parser/dist`.
+A *relative* path is the exception, because it bypasses `exports` and resolves to whatever it points at. Where that is a sibling's `src/`, an edit is picked up with no rebuild: `packages/static-assets/scripts/get-schema.ts` and `check-docs-coverage.ts` read `doenetml-worker-javascript/src`, which is why the schema is generated from component source, and `doenetml-worker-javascript/src/test/utils/test-core.ts` — the harness under every worker test — reads `doenetml/src/flags`. It is not only tests and scripts; `packages/standalone/src/coordinator.ts` imports `doenetml-iframe/src` the same way. Where a relative path points at a `dist/` instead, the build is still needed: `doenetml-worker-rust/lib-doenetml-core/tests/parse-dast.ts` reads `parser/dist`.
 
-A third route reaches neither a `dist/` nor a `src/`: `node_modules/lib-doenetml-worker` is a symlink into `doenetml-worker-rust/lib-js-wasm-binding/pkg`, the untracked output of `wasm-pack`. `doenetml-worker-javascript/src/test/utils/test-core.ts` imports the Rust core through it, so every Vitest test in that package runs against whatever WASM was last built — and nothing in the package's _build_ graph produces it, because the JavaScript worker only imports types from `@doenet/doenetml-worker`. A WASM older than the Rust sources fails silently and in the worst possible way: the core still runs and still answers, just with the behavior of the older build. That is how `statePersistenceKeying` and `statePersistenceShadows` came to fail locally while CI was green on the same commit (Doenet/DoenetML#1976) — CI builds `packages/doenetml-worker` before the test job, and a local run had no equivalent step. Its `test` scripts now depend on `../doenetml-worker-rust:build:rust`, so `npm run test -w @doenet/doenetml-worker-javascript` rebuilds the WASM; a bare `npx vitest` inside the package still does not, which is one more reason to use the workspace script.
+A third route reaches neither a `dist/` nor a `src/`: `node_modules/lib-doenetml-worker` is a symlink into `doenetml-worker-rust/lib-js-wasm-binding/pkg`, the untracked output of `wasm-pack`. `doenetml-worker-javascript/src/test/utils/test-core.ts` imports the Rust core through it, so every Vitest test in that package runs against whatever WASM was last built — and nothing in the package's *build* graph produces it, because the JavaScript worker only imports types from `@doenet/doenetml-worker`. A WASM older than the Rust sources fails silently and in the worst possible way: the core still runs and still answers, just with the behavior of the older build. That is how `statePersistenceKeying` and `statePersistenceShadows` came to fail locally while CI was green on the same commit (Doenet/DoenetML#1976) — CI builds `packages/doenetml-worker` before the test job, and a local run had no equivalent step. Its `test` scripts now depend on `../doenetml-worker-rust:build:rust`, so `npm run test -w @doenet/doenetml-worker-javascript` rebuilds the WASM; a bare `npx vitest` inside the package still does not, which is one more reason to use the workspace script.
 
-The same dependency closes a route back into the _JavaScript_ worker's own `dist/`. `@doenet/debug-hooks` is bundled with `@doenet/doenetml-worker-javascript` left external, so `resolvePathImmediatelyToNodeIdx` — which `test-core.ts` hands every test as `resolvePathToNodeIdx` — calls `expandCompositeComponent` out of the built worker while the test around it reads `src/`. `test:before` depends on `../debug-hooks:build`, which depends on this package's `build`, so an edit under `src/` is now rebuilt before the suite runs rather than half-ignored. That one build is why a test run straight after a source edit pays a `vite build` instead of a cache hit. It runs once per invocation of the script, though, so an `npm run test -w @doenet/doenetml-worker-javascript` left sitting in vitest's watch mode keeps re-running against the build it started with — pass `-- --run` and start a new one after an edit.
+The same dependency closes a route back into the *JavaScript* worker's own `dist/`. `@doenet/debug-hooks` is bundled with `@doenet/doenetml-worker-javascript` left external, so `resolvePathImmediatelyToNodeIdx` — which `test-core.ts` hands every test as `resolvePathToNodeIdx` — calls `expandCompositeComponent` out of the built worker while the test around it reads `src/`. `test:before` depends on `../debug-hooks:build`, which depends on this package's `build`, so an edit under `src/` is now rebuilt before the suite runs rather than half-ignored. That one build is why a test run straight after a source edit pays a `vite build` instead of a cache hit. It runs once per invocation of the script, though, so an `npm run test -w @doenet/doenetml-worker-javascript` left sitting in vitest's watch mode keeps re-running against the build it started with — pass `-- --run` and start a new one after an edit.
 
 The failure is usually silent and misleading. A missing export throws (`X is not a function`), which is at least obvious; more often the old code still runs and the test **passes against the previous behavior**, or a fix you just made appears not to work. Do not conclude a change had no effect until you have rebuilt.
 
@@ -103,7 +96,6 @@ Commonly edited packages that others consume: `utils`, `parser`, `i18n`, `static
 ### Running the tests
 
 Read [TEST_RUN_INSTRUCTIONS_FOR_AGENTS.md](TEST_RUN_INSTRUCTIONS_FOR_AGENTS.md) before running tests. Highlights:
-
 - For `@doenet/test-cypress`, rebuild before Cypress runs after code changes.
 - Follow the required sequence: `build -> preview -> cypress run`.
 - Run Cypress with `test-cypress-fast-fail` or `test-cypress-all`. **`npm run test-cypress`
@@ -162,8 +154,8 @@ npm run test-cypress-fast-fail -w @doenet/test-cypress -- --config specPattern=c
 
 - Format changed files with Prettier before committing: `npm run prettier:format`
 - Files that should never be staged or committed (local development / planning notes):
-    - `packages/doenetml/dev/testCode.doenet`
-    - Untracked `*.md` files in the repository root
+  - `packages/doenetml/dev/testCode.doenet`
+  - Untracked `*.md` files in the repository root
 
 If you edit these during development they will show as modified, but should not be staged. (`packages/doenetml/dev/main.tsx` is shared dev-harness infrastructure: intentional changes to it may be committed, but avoid committing throwaway local edits such as the `USE_LOCAL_PREFIGURE` toggle.)
 
@@ -195,14 +187,13 @@ When an agent posts a PR comment, opens an issue, or comments on an issue, end t
 ```
 🤖 Generated with [Claude Code](https://claude.com/claude-code)
 ```
-
 ```
 🤖 Generated with [GitHub Copilot](https://github.com/features/copilot)
 ```
 
 Match the footer to the agent that authored the content (and update the link/label accordingly for any other agent system).
 
-This includes review-comment replies posted via `gh api ... /replies`, full reviews (their summary body and any inline comments) posted via `gh api ... /reviews`, top-level PR comments, and any `gh issue create` / `gh issue comment` invocations. PR and issue _descriptions_ created via `gh pr create` / `gh issue create` already get the footer through their templated body — this rule is the catch for the smaller surfaces where it's easy to forget.
+This includes review-comment replies posted via `gh api ... /replies`, full reviews (their summary body and any inline comments) posted via `gh api ... /reviews`, top-level PR comments, and any `gh issue create` / `gh issue comment` invocations. PR and issue *descriptions* created via `gh pr create` / `gh issue create` already get the footer through their templated body — this rule is the catch for the smaller surfaces where it's easy to forget.
 
 ## Releasing
 
@@ -217,22 +208,18 @@ The repo uses Changesets for version management. Configuration is in `.changeset
 ## Key State & Data Flow
 
 ### Redux Store Structure
-
 Located in `packages/doenetml/src/state/`:
-
 - **`main` slice** — document state, component data, update queue
 - **`keyboard` slice** — virtual keyboard focus tracking
 
 Components dispatch actions to update UI state; the worker listens for changes and updates document computation.
 
 ### Worker Communication
-
 The worker receives serialized updates and returns rendered component states. Redux selectors provide derived state to UI components.
 
 ## Common Tasks
 
 ### Add a new component type
-
 1. Implement the **worker logic** in `packages/doenetml-worker-javascript` (component class, attributes, state variables, actions)
 2. Implement the **UI renderer** in `packages/doenetml/src/Viewer/renderers` or similar
 3. Register the component in `componentInfoObjects` so the worker knows about it; if the component appears in the DAST/normalized-DAST schema, update the relevant schema definitions too
@@ -240,7 +227,6 @@ The worker receives serialized updates and returns rendered component states. Re
 5. Add a **changeset** if user-facing (see the [`changesets`](.github/skills/changesets/SKILL.md) skill for which packages to list)
 
 ### Debug a rendering issue
-
 1. Start `npm run dev` and inspect the browser console
 2. Use Redux DevTools to inspect state changes
 3. Run `npm run test -w @doenet/test-cypress` to verify e2e tests still pass

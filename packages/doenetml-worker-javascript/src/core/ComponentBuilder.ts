@@ -1045,9 +1045,9 @@ async function _expandAllCompositesBothPasses(
     core: Core,
     phaseTimings?: Record<string, number>,
 ) {
-    const t0 = performance.now();
+    const t0 = phaseTimings ? performance.now() : 0;
     await expandAllComposites({ core, component: core.document });
-    const t1 = performance.now();
+    const t1 = phaseTimings ? performance.now() : 0;
     await expandAllComposites({ core, component: core.document, force: true });
     if (phaseTimings) {
         phaseTimings["expandAllComposites.pass1"] =

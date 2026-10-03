@@ -14,9 +14,10 @@ export type DragMeasurement = {
     numDrags: number;
     /**
      * Whether the point's first coordinate differs after the sweep. A move
-     * that is refused (a `fixed` point, or a write the core cannot invert)
-     * returns in well under a millisecond; this tells that apart from a fast
-     * drag.
+     * that is refused (a `fixed` point, or a write the core cannot invert) is
+     * reported as a success and takes a few milliseconds, which is also what
+     * a cheap move on the wrong point takes, so time alone cannot tell them
+     * apart; this can.
      */
     moved: boolean;
     /** Median wall-clock milliseconds of one awaited `movePoint` action. */

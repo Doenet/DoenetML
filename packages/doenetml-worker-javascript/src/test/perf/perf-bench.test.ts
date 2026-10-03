@@ -33,7 +33,8 @@ import { measureDrag, type DragMeasurement } from "./drag-timing";
 // minutes measuring something no assertion depends on. Times are reported,
 // never asserted. The run fails only when a fixture fails to load, loads as
 // `_error` components, or the instrumentation comes back blank (a phase
-// missing, no resolver calls counted, no drag measured on the drag fixture); the
+// missing, no resolver calls counted, no drag measured on the drag fixture, or
+// a drag whose point did not move); the
 // census snapshot in `census.test.ts` is the gate.
 
 const RESULT_PATH = process.env.PERFBENCH_RESULT;
