@@ -988,8 +988,9 @@ export class DependencyHandler {
      * A depth-first search that memoizes every variable whose downstream
      * closure it has searched. Memoized variables are not expanded again;
      * `resetCircularCheckPassed` drops the memo of a variable and of
-     * everything upstream of it whenever a dependency is added or removed
-     * below it, so a memo never outlives the graph it was computed on. A
+     * everything upstream of it whenever an edge that could close a cycle is
+     * added below it (see `edgeCanCloseCycle`); removing an edge cannot make
+     * a memo wrong, so it leaves them as they are. A
      * variable is marked as it is entered and keeps the mark if the search
      * throws, so a cycle is reported once, by the search that found it.
      */
