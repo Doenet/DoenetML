@@ -38,6 +38,12 @@ export type UpdateRenderersCallback = (arg: {
      * state but must not resolve the action a second time.
      */
     deferred?: boolean;
+    /**
+     * An update after load raised this circular dependency and the document
+     * has stopped: the core rejects every later request. The viewer shows the
+     * message in place of the document. Sent with no update instructions.
+     */
+    documentStopped?: string;
 }) => void | Promise<void>;
 export type ReportScoreAndStateCallback = (data: {
     score: number;
@@ -337,15 +343,19 @@ export class PublicDoenetMLCore {
             return await this.core.requestAction(actionArgs);
         } catch (e) {
             console.error(e);
+            // The request queue rejects with the error's message rather than
+            // the error itself.
             return {
                 success: false,
                 errMsg:
-                    typeof e === "object" &&
-                    e &&
-                    "message" in e &&
-                    typeof e.message === "string"
-                        ? e.message
-                        : "",
+                    typeof e === "string"
+                        ? e
+                        : typeof e === "object" &&
+                            e &&
+                            "message" in e &&
+                            typeof e.message === "string"
+                          ? e.message
+                          : "",
                 actionId: actionArgs.args?.actionId,
             };
         }

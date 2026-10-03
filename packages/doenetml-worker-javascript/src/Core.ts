@@ -1293,6 +1293,27 @@ export default class Core {
         }
     }
 
+    /**
+     * Tell the viewer that an update after load raised a circular dependency
+     * and the document has stopped (see `ProcessQueue.executeProcesses`). The
+     * viewer shows `message` in place of the document, as it shows the cause
+     * of a document that could not be built.
+     */
+    reportDocumentStopped(message: string): void {
+        // The viewer's callback is a proxy across the worker boundary, so it
+        // can fail either way: by throwing or by rejecting.
+        try {
+            Promise.resolve(
+                this.updateRenderersCallback({
+                    updateInstructions: [],
+                    documentStopped: message,
+                }),
+            ).catch((e) => console.error(e));
+        } catch (e) {
+            console.error(e);
+        }
+    }
+
     async terminate(): Promise<void> {
         let pause100 = function () {
             return new Promise<void>((resolve) => {

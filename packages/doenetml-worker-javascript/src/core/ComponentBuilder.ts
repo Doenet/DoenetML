@@ -13,6 +13,7 @@ import {
 import { addComponentsToResolver } from "./ResolverAdapter";
 import { createStateVariableDefinitions } from "./StateVariableDefinitionFactory";
 import { initializeComponentStateVariables } from "./StateVariableInitializer";
+import { CircularDependencyError } from "./dependencies/CircularDependencyError";
 import {
     convertToErrorComponent,
     errorComponentState,
@@ -546,7 +547,7 @@ export async function createChildrenThenComponent({
                 } catch (e: any) {
                     console.error(e);
                     if (e.message.includes("Circular dependency")) {
-                        throw Error(
+                        throw new CircularDependencyError(
                             core.dependencies.getCircularDependencyMessage([
                                 serializedComponent,
                             ]),
@@ -666,7 +667,7 @@ export async function createChildrenThenComponent({
         for (const idxStr in serializedComponent.downstreamDependencies) {
             const idx = Number(idxStr);
             if (idx === componentIdx) {
-                throw Error(
+                throw new CircularDependencyError(
                     core.dependencies.getCircularDependencyMessage([
                         serializedComponent,
                     ]),
@@ -676,7 +677,7 @@ export async function createChildrenThenComponent({
                 prescribedDependencies[idx] =
                     serializedComponent.downstreamDependencies[idx];
             } else {
-                throw Error(
+                throw new CircularDependencyError(
                     core.dependencies.getCircularDependencyMessage([
                         serializedComponent,
                     ]),

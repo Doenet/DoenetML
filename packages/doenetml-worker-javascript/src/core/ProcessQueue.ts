@@ -1,4 +1,5 @@
 import type Core from "../Core";
+import { CircularDependencyError } from "./dependencies/CircularDependencyError";
 type QueueEntry =
     | {
           type: "update";
@@ -41,12 +42,19 @@ export class ProcessQueue {
     queue: QueueEntry[];
     processing: boolean;
     stopProcessingRequests: boolean;
+    /**
+     * The message of the circular dependency that stopped the document after
+     * load, or `null` while it runs. Once set, every request is rejected with
+     * it; see `executeProcesses`.
+     */
+    stoppedByError: string | null;
 
     constructor({ core }: { core: Core }) {
         this.core = core;
         this.queue = [];
         this.processing = false;
         this.stopProcessingRequests = false;
+        this.stoppedByError = null;
     }
 
     /**
@@ -57,6 +65,7 @@ export class ProcessQueue {
         this.queue = [];
         this.processing = false;
         this.stopProcessingRequests = false;
+        this.stoppedByError = null;
     }
 
     /**
@@ -82,6 +91,11 @@ export class ProcessQueue {
      * `.catch(console.error)` so we don't drop them silently.
      */
     async executeProcesses(): Promise<void> {
+        if (this.stoppedByError !== null) {
+            this.rejectQueued(this.stoppedByError);
+            this.processing = false;
+            return;
+        }
         if (this.stopProcessingRequests) {
             return;
         }
@@ -116,6 +130,21 @@ export class ProcessQueue {
                 nextUpdateInfo.resolve(result);
             } catch (e) {
                 console.error(e);
+                if (e instanceof CircularDependencyError) {
+                    // The update left a cycle in the graph, and evaluating
+                    // anything that reaches it would recurse until the worker
+                    // runs out of memory (#2137). Stop the document, as a
+                    // cycle found during load does: this request and every
+                    // later one is rejected with the cycle's message, and the
+                    // viewer is told to show it in place of the document.
+                    this.stoppedByError = e.message;
+                    this.stopProcessingRequests = true;
+                    nextUpdateInfo.reject(e.message);
+                    this.rejectQueued(e.message);
+                    this.processing = false;
+                    this.core.reportDocumentStopped(e.message);
+                    return;
+                }
                 nextUpdateInfo.reject(
                     typeof e === "object" &&
                         e &&
@@ -128,6 +157,15 @@ export class ProcessQueue {
         }
 
         this.processing = false;
+    }
+
+    /** Reject every queued request with `message` and empty the queue. */
+    rejectQueued(message: string): void {
+        const queued = this.queue;
+        this.queue = [];
+        for (const entry of queued) {
+            entry.reject(message);
+        }
     }
 
     /**

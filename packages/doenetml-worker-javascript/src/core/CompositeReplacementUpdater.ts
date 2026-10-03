@@ -27,6 +27,7 @@ import {
     createComponentIndicesFromSerializedChildren,
     createNewComponentIndices,
 } from "../utils/componentIndices";
+import { rethrowIfCircular } from "./dependencies/CircularDependencyError";
 
 /**
  * Loose-typed bag describing one entry in the `componentChanges` array
@@ -363,6 +364,7 @@ export class CompositeReplacementUpdater {
 
                     newComponents = createResult.components;
                 } catch (e: any) {
+                    rethrowIfCircular(e);
                     console.error(e);
                     // throw e;
                     newComponents = await this.setErrorReplacements({
@@ -1065,6 +1067,7 @@ export class CompositeReplacementUpdater {
                         }
                     }
                 } catch (e: any) {
+                    rethrowIfCircular(e);
                     registrationFailure = e;
                 }
 
@@ -1099,6 +1102,7 @@ export class CompositeReplacementUpdater {
                         });
                         newComponents = createResult.components;
                     } catch (e: any) {
+                        rethrowIfCircular(e);
                         console.error(e);
                         // throw e;
                         newComponents = await this.setErrorReplacements({
@@ -1345,6 +1349,7 @@ export class CompositeReplacementUpdater {
                 }
             }
         } catch (e: any) {
+            rethrowIfCircular(e);
             console.error(e);
             this.markCompositeInError({
                 composite: component,
@@ -1501,6 +1506,7 @@ export class CompositeReplacementUpdater {
                     }
                 }
             } catch (e: any) {
+                rethrowIfCircular(e);
                 console.error(e);
                 this.markCompositeInError({
                     composite: component,
