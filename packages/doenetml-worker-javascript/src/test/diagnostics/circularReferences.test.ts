@@ -448,6 +448,56 @@ describe("Circular references created after load @group2", async () => {
         }
     });
 
+    it("a save built before the stop is still delivered on terminate", async () => {
+        // The second keystroke's save is built while the 60-second throttle
+        // holds it back. The stop skips building any new save, but the held
+        // one evaluates nothing to deliver, and `terminate` sends it.
+        vi.useFakeTimers();
+        try {
+            const {
+                core,
+                resolvePathToNodeIdx,
+                stopped,
+                lastStateReport,
+                pendingReports,
+            } = await loadAndWatch(`
+<mathInput name="i" prefill="1"/>
+<number name="n">
+  <conditionalContent condition="$i=1">1</conditionalContent>
+  <conditionalContent condition="$i=2">$n+1</conditionalContent>
+</number>`);
+            const iIdx = await resolvePathToNodeIdx("i");
+            async function enter(value: string) {
+                await core.requestAction({
+                    componentIdx: iIdx,
+                    actionName: "updateRawValue",
+                    args: { rawRendererValue: value },
+                });
+                await core.requestAction({
+                    componentIdx: iIdx,
+                    actionName: "updateValue",
+                    args: {},
+                });
+            }
+
+            await enter("3");
+            await vi.advanceTimersByTimeAsync(1500);
+            await enter("5");
+            await vi.advanceTimersByTimeAsync(1500);
+            const held = pendingReports.at(-1)?.state;
+            expect(held).toBeDefined();
+            expect(lastStateReport.payload).not.toEqual(held);
+
+            await enter("2");
+            expect(stopped).toHaveLength(1);
+
+            await core.terminate();
+            expect(lastStateReport.payload).toEqual(held);
+        } finally {
+            vi.useRealTimers();
+        }
+    });
+
     it("an event queued behind the stopping update is dropped quietly", async () => {
         // The first update queues its "selected" event when it finishes, by
         // which time the second update is ahead of it in the queue. The

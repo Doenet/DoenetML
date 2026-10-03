@@ -371,9 +371,13 @@ export class StatePersistence {
         // until the worker runs out of memory, and a save is reached from
         // outside the request queue: the debounce timer an earlier update
         // scheduled, `saveImmediately`, `flushState` and `terminate`. A
-        // payload an earlier save already built is still delivered by
-        // `saveChangesToDatabase`.
+        // payload an earlier save built before the stop evaluates nothing to
+        // deliver, so it still goes out (the one the throttle holds back,
+        // which `terminate` would otherwise drop).
         if (core.processQueue.stoppedByError !== null) {
+            if (core.flags.allowSaveState) {
+                await this.saveChangesToDatabase(overrideThrottle);
+            }
             return;
         }
 
