@@ -1,0 +1,242 @@
+// Vitest Snapshot v1, https://vitest.dev/guide/snapshot.html
+
+exports[`component census of the micro-documents > inline $n 1`] = `
+{
+  "attributeComponents": 6,
+  "byType": {
+    "_copy": 1,
+    "boolean": 3,
+    "document": 1,
+    "integer": 2,
+    "number": 3,
+  },
+  "components": 10,
+  "copies": 1,
+  "dependencies": 330,
+  "shadows": 7,
+  "stateVariables": 459,
+  "stateVariablesResolved": 143,
+}
+`;
+
+exports[`component census of the micro-documents > math displayDigits=$n 1`] = `
+{
+  "attributeComponents": 7,
+  "byType": {
+    "_copy": 1,
+    "boolean": 3,
+    "document": 1,
+    "integer": 3,
+    "math": 1,
+    "number": 3,
+  },
+  "components": 12,
+  "copies": 1,
+  "dependencies": 349,
+  "shadows": 7,
+  "stateVariables": 580,
+  "stateVariablesResolved": 150,
+}
+`;
+
+exports[`component census of the micro-documents > math displayDigits=5 1`] = `
+{
+  "attributeComponents": 1,
+  "byType": {
+    "document": 1,
+    "integer": 1,
+    "math": 1,
+    "number": 1,
+  },
+  "components": 4,
+  "copies": 0,
+  "dependencies": 294,
+  "shadows": 0,
+  "stateVariables": 228,
+  "stateVariablesResolved": 121,
+}
+`;
+
+exports[`component census of the micro-documents > number $n+1 1`] = `
+{
+  "attributeComponents": 6,
+  "byType": {
+    "_copy": 1,
+    "boolean": 3,
+    "document": 1,
+    "integer": 2,
+    "math": 2,
+    "number": 4,
+  },
+  "components": 13,
+  "copies": 1,
+  "dependencies": 423,
+  "shadows": 7,
+  "stateVariables": 650,
+  "stateVariablesResolved": 190,
+}
+`;
+
+exports[`component census of the micro-documents > number 2$mi 1`] = `
+{
+  "attributeComponents": 5,
+  "byType": {
+    "_copy": 1,
+    "boolean": 2,
+    "document": 1,
+    "integer": 2,
+    "math": 3,
+    "mathInput": 1,
+    "number": 2,
+  },
+  "components": 12,
+  "copies": 1,
+  "dependencies": 533,
+  "shadows": 6,
+  "stateVariables": 680,
+  "stateVariablesResolved": 242,
+}
+`;
+
+exports[`component census of the micro-documents > number alone 1`] = `
+{
+  "attributeComponents": 0,
+  "byType": {
+    "document": 1,
+    "number": 1,
+  },
+  "components": 2,
+  "copies": 0,
+  "dependencies": 172,
+  "shadows": 0,
+  "stateVariables": 107,
+  "stateVariablesResolved": 76,
+}
+`;
+
+exports[`component census of the micro-documents > number extend=$n 1`] = `
+{
+  "attributeComponents": 0,
+  "byType": {
+    "_copy": 1,
+    "document": 1,
+    "number": 2,
+  },
+  "components": 4,
+  "copies": 1,
+  "dependencies": 319,
+  "shadows": 1,
+  "stateVariables": 193,
+  "stateVariablesResolved": 135,
+}
+`;
+
+exports[`component census of the micro-documents > numberList $l[1] 1`] = `
+{
+  "attributeComponents": 6,
+  "byType": {
+    "_copy": 1,
+    "boolean": 3,
+    "document": 1,
+    "integer": 2,
+    "number": 11,
+    "numberList": 1,
+  },
+  "components": 19,
+  "copies": 1,
+  "dependencies": 673,
+  "shadows": 11,
+  "stateVariables": 887,
+  "stateVariablesResolved": 271,
+}
+`;
+
+exports[`component census of the micro-documents > point $P 1`] = `
+{
+  "attributeComponents": 1,
+  "byType": {
+    "_copy": 1,
+    "_dynamicChildren": 2,
+    "document": 1,
+    "graph": 2,
+    "math": 2,
+    "mathList": 1,
+    "point": 2,
+  },
+  "components": 11,
+  "copies": 1,
+  "dependencies": 783,
+  "shadows": 1,
+  "stateVariables": 645,
+  "stateVariablesResolved": 363,
+}
+`;
+
+exports[`component census of the micro-documents > point $P.x 1`] = `
+{
+  "attributeComponents": 6,
+  "byType": {
+    "_copy": 1,
+    "_dynamicChildren": 1,
+    "boolean": 2,
+    "document": 1,
+    "graph": 1,
+    "integer": 2,
+    "math": 3,
+    "mathList": 1,
+    "number": 1,
+    "p": 1,
+    "point": 1,
+  },
+  "components": 15,
+  "copies": 1,
+  "dependencies": 690,
+  "shadows": 6,
+  "stateVariables": 809,
+  "stateVariablesResolved": 318,
+}
+`;
+
+exports[`component census of the micro-documents > repeatForSequence $i^2 x4 1`] = `
+{
+  "attributeComponents": 26,
+  "byType": {
+    "_componentWithSelectableType": 2,
+    "_copy": 4,
+    "boolean": 12,
+    "document": 1,
+    "group": 4,
+    "integer": 8,
+    "math": 8,
+    "number": 18,
+    "repeatForSequence": 1,
+    "setup": 4,
+  },
+  "components": 62,
+  "copies": 4,
+  "dependencies": 1517,
+  "shadows": 28,
+  "stateVariables": 2776,
+  "stateVariablesResolved": 678,
+}
+`;
+
+exports[`component census of the micro-documents > repeatForSequence literal x4 1`] = `
+{
+  "attributeComponents": 2,
+  "byType": {
+    "_componentWithSelectableType": 2,
+    "document": 1,
+    "group": 4,
+    "number": 10,
+    "repeatForSequence": 1,
+    "setup": 4,
+  },
+  "components": 22,
+  "copies": 0,
+  "dependencies": 709,
+  "shadows": 0,
+  "stateVariables": 800,
+  "stateVariablesResolved": 298,
+}
+`;

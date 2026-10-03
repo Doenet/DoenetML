@@ -110,6 +110,7 @@ Read [TEST_RUN_INSTRUCTIONS_FOR_AGENTS.md](TEST_RUN_INSTRUCTIONS_FOR_AGENTS.md) 
 - **Cypress** for e2e tests, user interactions, and full rendering (files: `cypress/e2e/*.cy.js`)
 - **Cargo** for the Rust core in `packages/doenetml-worker-rust` — reference resolution, the flattener, the resolver and the name maps (files: `lib-doenetml-core/src/**/*.test.rs`, `lib-doenetml-core/tests/`)
 - **Rust-core parity**: `npm run parity -w @doenet/rust-parity` runs the worker's Vitest suite on the Rust core (`DOENET_TEST_CORE=rust`) and writes a dashboard of what the Rust core is missing to `packages/rust-parity/out/`. See that package's README.
+- **Performance harness** (`packages/doenetml-worker-javascript/src/test/perf/`): a component census of twelve one-construct documents, snapshotted in the ordinary test groups, and an opt-in bench (`PERFBENCH_RESULT=<path>`) over the slow-document fixtures, with drag timing on a 50-point dot plot, that CI writes to the `Perf Bench` job summary. A change to what a reference, attribute or repeat creates shows up as a snapshot change: update it deliberately and paste the before/after bench rows in the PR. See the README there.
 - Tests are grouped; run by group number to parallelize CI
 
 ### Common Test Commands

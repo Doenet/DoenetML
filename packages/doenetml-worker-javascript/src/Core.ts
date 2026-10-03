@@ -275,6 +275,11 @@ export default class Core {
      * evaluation to gate definition arguments during initial document
      * construction. */
     initialAddPhase?: boolean;
+    /** Wall-clock milliseconds of each phase of the initial document build,
+     * keyed by phase name with a `total`, recorded by
+     * `ComponentBuilder.addComponents` on `initialAdd`. Read by the
+     * performance harness (Doenet/DoenetML#2026, #2126); diagnostic only. */
+    loadPhaseTimings?: Record<string, number>;
 
     // ─── Manager instances ────────────────────────────────────────────────
     diagnosticsManager: DiagnosticsManager;

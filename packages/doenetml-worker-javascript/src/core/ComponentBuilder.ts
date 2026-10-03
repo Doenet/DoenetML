@@ -113,11 +113,28 @@ export async function addComponents({
             parentIdx: parentIdx!,
         });
     }
+    // Wall-clock phase timings of the initial document build, published as
+    // `core.loadPhaseTimings` for the performance harness
+    // (Doenet/DoenetML#2026, #2126). Diagnostic only.
+    // Only the initial build reads the clock; a later structural add skips it.
+    const phaseTimings: Record<string, number> = {};
+    const loadStart = initialAdd ? performance.now() : 0;
+    let phaseStart = loadStart;
+    /** Add the time since the previous mark to `phaseTimings[name]`. */
+    function markPhase(name: string) {
+        if (!initialAdd) {
+            return;
+        }
+        const now = performance.now();
+        phaseTimings[name] = (phaseTimings[name] ?? 0) + now - phaseStart;
+        phaseStart = now;
+    }
     let createResult = await createIsolatedComponents({
         core,
         serializedComponents,
         ancestors,
     });
+    markPhase("createIsolatedComponents");
     if (!initialAdd) {
         core.parameterStack.pop();
     }
@@ -136,16 +153,21 @@ export async function addComponents({
         }
         core.document = newComponents[0];
 
-        await _expandAllCompositesBothPasses(core);
+        phaseStart = performance.now();
+        await _expandAllCompositesBothPasses(core, phaseTimings);
+        phaseStart = performance.now();
         await _drainStateVariablesToEvaluate(core);
+        markPhase("drainStateVariablesToEvaluate");
 
         await addQueuedErrorComponentsFromStateVariables({ core });
 
         await core.replacementChangesFromCompositesToUpdate();
+        markPhase("errorsAndReplacementChanges");
 
         let results = await core.initializeRenderedComponentInstruction(
             core.document,
         );
+        markPhase("initializeRenderedComponentInstruction");
 
         if (core.errorComponentsToAdd.length > 0) {
             await addQueuedErrorComponentsFromStateVariables({ core });
@@ -153,10 +175,12 @@ export async function addComponents({
             // Adding queued _error components can touch composites and alter
             // what needs to be rendered from the document root.
             await core.replacementChangesFromCompositesToUpdate();
+            markPhase("errorsAndReplacementChanges");
 
             results = await core.initializeRenderedComponentInstruction(
                 core.document,
             );
+            markPhase("initializeRenderedComponentInstruction");
         }
 
         core.documentRendererInstructions = results.componentToRender;
@@ -187,9 +211,15 @@ export async function addComponents({
         // if so, make replacement changes and update renderer instructions again
         // TODO: should we check for child results earlier so we don't have to check them
         // when updating renderer instructions?
+        markPhase("callUpdateRenderers");
         await _drainCompositesToUpdateReplacements(core);
+        markPhase("drainCompositesToUpdateReplacements");
 
         await core.processStateVariableTriggers(true);
+        markPhase("processStateVariableTriggers");
+
+        phaseTimings.total = performance.now() - loadStart;
+        core.loadPhaseTimings = phaseTimings;
     } else {
         if (parent === undefined) {
             throw Error("Must specify parent when adding components.");
@@ -1011,9 +1041,22 @@ export async function addQueuedErrorComponentsFromStateVariables({
  * pending. Both branches of `addComponents` need this sequence after
  * mutating the tree.
  */
-async function _expandAllCompositesBothPasses(core: Core) {
+async function _expandAllCompositesBothPasses(
+    core: Core,
+    phaseTimings?: Record<string, number>,
+) {
+    const t0 = phaseTimings ? performance.now() : 0;
     await expandAllComposites({ core, component: core.document });
+    const t1 = phaseTimings ? performance.now() : 0;
     await expandAllComposites({ core, component: core.document, force: true });
+    if (phaseTimings) {
+        phaseTimings["expandAllComposites.pass1"] =
+            (phaseTimings["expandAllComposites.pass1"] ?? 0) + t1 - t0;
+        phaseTimings["expandAllComposites.pass2"] =
+            (phaseTimings["expandAllComposites.pass2"] ?? 0) +
+            performance.now() -
+            t1;
+    }
 }
 
 /**
