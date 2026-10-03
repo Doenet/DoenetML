@@ -751,6 +751,34 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             ).eq("1 and 1");
         });
 
+        it("what the referent says of its value applies only to a reference to that value", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <math name="m" unordered>(1,2)</math>
+    <math name="m2">$m.value</math>
+    <matrix name="M" unordered><row>1 2</row></matrix>
+    <math name="e">$M.matrixEntry1_2</math>
+    <number name="k">$M.matrixEntry1_1</number>
+    `,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            // `$m.value` is `m`'s own value, so it is unordered as `m` is
+            expect((await sv("m2")).unordered).eq(true);
+            // an entry of an unordered matrix is a plain scalar
+            expect((await sv("e")).unordered).eq(false);
+            expect((await sv("e")).value.tree).eq(2);
+            expect((await sv("k")).value).eq(1);
+            const refs = valueRefs(core);
+            expect(
+                refs.map((ref) => ref.doenetAttributes.referencedPrimaryValue),
+            ).eqls([true, false, false]);
+        });
+
         it("a position that renders, or a list, still gets a full copy", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `

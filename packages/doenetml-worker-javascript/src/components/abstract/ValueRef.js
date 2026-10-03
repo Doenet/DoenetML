@@ -140,9 +140,10 @@ export default class ValueRef extends BaseComponent {
             baseDefinitions.isInactiveCompositeReplacement;
 
         // Three variables a parent reads from every `math` or `number` child
-        // before using it. The referent answers when it has the variable;
-        // otherwise the reference answers as a component of the presented
-        // type holding this value would.
+        // before using it. When the reference is to the referent's own value
+        // and the referent has the variable, the referent answers; otherwise
+        // the reference answers as a component of the presented type holding
+        // this value would.
 
         // Whether a write through this reference can succeed. Inputs have no
         // `canBeModified`; a `math` standing in for one answers from the
@@ -186,8 +187,10 @@ export default class ValueRef extends BaseComponent {
                     variableName: "value",
                 },
             }),
-            fallback: (dependencyValues) =>
-                Number.isFinite(dependencyValues.value?.tree),
+            fallback: ({ value }) =>
+                Number.isFinite(
+                    typeof value === "number" ? value : value?.tree,
+                ),
         });
 
         return stateVariableDefinitions;
@@ -365,11 +368,12 @@ export default class ValueRef extends BaseComponent {
 
 /**
  * A state variable definition that answers with the referent's variable of
- * the same name when the referent has one, and with `fallback` otherwise.
- * `fallbackDependencies(targetIdx)` are the dependencies the fallback reads;
- * `fallback(dependencyValues)` computes it. Both are read through
- * `this.svComponent`, the component the state variable belongs to, since the
- * referent is only known once the component is built.
+ * the same name when the reference is to the referent's own value
+ * (`referencedPrimaryValue`) and the referent has the variable, and with
+ * `fallback` otherwise. `fallbackDependencies(targetIdx)` are the
+ * dependencies the fallback reads; `fallback(dependencyValues)` computes it.
+ * Both are read through `this.svComponent`, the component the state variable
+ * belongs to, since the referent is only known once the component is built.
  */
 function referentOrFallback({
     stateVariable,
@@ -378,9 +382,13 @@ function referentOrFallback({
 }) {
     return {
         returnDependencies() {
-            const targetIdx = this.svComponent?.shadows?.componentIdx;
+            const component = this.svComponent;
+            const targetIdx = component?.shadows?.componentIdx;
             const dependencies = fallbackDependencies(targetIdx);
-            if (targetIdx !== undefined) {
+            if (
+                targetIdx !== undefined &&
+                component.doenetAttributes.referencedPrimaryValue
+            ) {
                 dependencies.fromReferent = {
                     dependencyType: "stateVariable",
                     componentIdx: targetIdx,

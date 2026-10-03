@@ -174,6 +174,15 @@ export function serializeValueReference({
             presentedComponentType,
             referencedVariable,
             refVariable,
+            // Whether the referenced variable is the referent's own value,
+            // so that what the referent says about its value (`isNumber`,
+            // `unordered`, `canBeModified`) holds for this reference too.
+            // Not for an explicit prop or an entry (`$M.matrixEntry1_1` of an
+            // unordered `M` is a plain scalar).
+            referencedPrimaryValue:
+                referencedVariable === "value" ||
+                referencedVariable ===
+                    target.constructor.variableForImplicitProp,
         },
         state: {},
         children: [],
