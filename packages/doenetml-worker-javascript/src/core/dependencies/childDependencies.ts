@@ -449,7 +449,9 @@ export class ChildDependency extends Dependency {
                     ? child.componentIdx
                     : `__placeholder_${ind}`,
             );
-            downstreamComponentTypes.push(child.componentType);
+            downstreamComponentTypes.push(
+                child.presentedComponentType ?? child.componentType,
+            );
         }
 
         if (
