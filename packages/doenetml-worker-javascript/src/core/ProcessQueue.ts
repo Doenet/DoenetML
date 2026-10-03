@@ -284,7 +284,15 @@ export class ProcessQueue {
             return this.core.processVisibilityChangedEvent(event);
         }
 
-        return this.sendRecordEvent(event);
+        // Components and `UpdateExecutor` call this without awaiting it. Once
+        // a circular dependency has stopped the document, the queue rejects
+        // an event still queued or sent later, which would surface as an
+        // unhandled rejection. Mark it handled; a caller that awaits still
+        // sees the rejection, and `executeProcesses` has already logged any
+        // error the event itself raised.
+        const promise = this.sendRecordEvent(event);
+        promise.catch(() => {});
+        return promise;
     }
 
     /**

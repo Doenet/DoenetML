@@ -448,6 +448,43 @@ describe("Circular references created after load @group2", async () => {
         }
     });
 
+    it("an event queued behind the stopping update is dropped quietly", async () => {
+        // The first update queues its "selected" event when it finishes, by
+        // which time the second update is ahead of it in the queue. The
+        // second raises the cycle, and the stop rejects the queued event,
+        // which nobody awaits.
+        const unhandled: unknown[] = [];
+        const onUnhandled = (reason: unknown) => unhandled.push(reason);
+        process.on("unhandledRejection", onUnhandled);
+        try {
+            const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
+<booleanInput name="b1"/>
+<booleanInput name="b"/>
+<conditionalContent condition="$b"><text name="t" extend="$t"/></conditionalContent>`);
+            const b1Idx = await resolvePathToNodeIdx("b1");
+            const bIdx = await resolvePathToNodeIdx("b");
+
+            const first = core.requestAction({
+                componentIdx: b1Idx,
+                actionName: "updateBoolean",
+                args: { boolean: true },
+            });
+            const second = core.requestAction({
+                componentIdx: bIdx,
+                actionName: "updateBoolean",
+                args: { boolean: true },
+            });
+            expect((await first).success).not.toBe(false);
+            expect((await second).success).toBe(false);
+            expect(stopped).toHaveLength(1);
+
+            await new Promise((resolve) => setTimeout(resolve, 50));
+            expect(unhandled).toEqual([]);
+        } finally {
+            process.off("unhandledRejection", onUnhandled);
+        }
+    });
+
     it("the same switch with no cycle leaves the document running", async () => {
         const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
 <booleanInput name="b"/>
