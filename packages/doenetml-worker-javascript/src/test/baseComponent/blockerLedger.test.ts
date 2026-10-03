@@ -223,6 +223,97 @@ describe("Blocker ledger", () => {
         ).eq(false);
         expect(dependencies.peekResolveBlockedBy(readyToExpand)).toEqual({});
     });
+
+    // From the blocked item's side the item is named by its code, a string,
+    // while its blocker still holds the number. The blocker order follows
+    // both sides, so a removal must not leave the number behind.
+    it("an item with no state variable leaves both sides when removed by its code", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<number name="n">1</number>`,
+        });
+        const dependencies = core.core.dependencies;
+        const expand = (componentIdx: number) => ({
+            componentIdx,
+            type: "expandComposite",
+        });
+        await dependencies.addBlocker({
+            blockerComponentIdx: 901,
+            blockerType: "expandComposite",
+            componentIdxBlocked: 900,
+            typeBlocked: "expandComposite",
+        });
+        expect(dependencies.peekResolveBlockedBy(expand(901))).toEqual({
+            expandComposite: [900],
+        });
+
+        dependencies.deleteFromNeededToResolve({
+            componentIdxBlocked: 900,
+            typeBlocked: "expandComposite",
+            blockerType: "expandComposite",
+            blockerCode: "901",
+        });
+        expect(dependencies.checkIfHaveNeededToResolve(expand(900))).eq(false);
+        expect(dependencies.peekResolveBlockedBy(expand(901))).toEqual({});
+    });
+});
+
+/**
+ * A blocker on a resolved state variable also blocks everything upstream of
+ * it, through further `addBlocker` calls made while the first is still
+ * running. The blocker order reads every edge from the ledger and assumes
+ * each one already fits, so `addBlocker` has to fit its own edge before
+ * those calls begin. Fitted only after them, a blocker on `displayDigits` of
+ * `n` below leaves edges out of order.
+ */
+describe("Blocker order", () => {
+    const doenetML = `<number name="n">1</number><number name="m">$n+1</number>`;
+
+    it("fits every blocker that spreads upstream", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const nIdx = await resolvePathToNodeIdx("n");
+        const varNames = Object.keys(core.core._components[nIdx].state);
+
+        let mostEdges = 0;
+        for (const varName of varNames) {
+            // a fresh document each time, so each blocker spreads on its own
+            const { core } = await createTestCore({ doenetML });
+            const dependencies = core.core.dependencies;
+            if (!core.core._components[nIdx].state[varName].initiallyResolved) {
+                continue;
+            }
+            await dependencies.addBlocker({
+                blockerComponentIdx: 901,
+                blockerType: "componentIdentity",
+                componentIdxBlocked: nIdx,
+                typeBlocked: "stateVariable",
+                stateVariableBlocked: varName,
+            });
+
+            const order = dependencies.blockerOrder;
+            let edges = 0;
+            for (const [type, entries] of dependencies.resolveBlockers
+                .neededToResolve) {
+                for (const [code, blockers] of entries) {
+                    for (const blockerType in blockers) {
+                        for (const blockerCode of blockers[blockerType]) {
+                            edges++;
+                            expect(
+                                order._peek(type, code)!,
+                                `${varName}: ${code} before ${blockerCode}`,
+                            ).toBeLessThan(
+                                order._peek(blockerType, String(blockerCode))!,
+                            );
+                        }
+                    }
+                }
+            }
+            mostEdges = Math.max(mostEdges, edges);
+        }
+        // some blocker did spread
+        expect(mostEdges).toBeGreaterThan(10);
+    });
 });
 
 /**

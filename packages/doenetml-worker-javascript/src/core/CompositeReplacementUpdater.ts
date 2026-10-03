@@ -1443,8 +1443,8 @@ export class CompositeReplacementUpdater {
             // to report rather than the document's to die of.
             //
             // `addBlockersFromChangedReplacements` is deliberately *outside*
-            // the guard. It reaches `checkForCircularResolveBlocker`, whose
-            // throw is how a circular reference is reported today (#387) and
+            // the guard. It reaches `addBlocker`, whose cycle check throws
+            // the `CircularDependencyError` that reports a cycle (#387) and
             // is what several documents rely on to fail to build at all.
             // Catching that here would turn a reported cycle into a document
             // that carries on resolving one.

@@ -25,6 +25,7 @@ import {
 import { dependencyTypeClasses } from "./registry";
 import { CircularCheckMarks, ON_PATH, PASSED } from "./circularCheckMarks";
 import { CircularDependencyError } from "./CircularDependencyError";
+import { BlockerOrder, type BlockerLedger } from "./blockerOrder";
 
 /**
  * Shared result for `peekNeededToResolve` / `peekResolveBlockedBy` when no
@@ -32,15 +33,6 @@ import { CircularDependencyError } from "./CircularDependencyError";
  * would corrupt every other caller.
  */
 const EMPTY_BLOCKERS: Record<string, any> = Object.freeze({});
-
-/**
- * One direction of the blocker ledger. `neededToResolve` files each blocked
- * item under its type and its code (`blockerCodeFor`), with the items that
- * block it as `{ [blockerType]: blockerCodes }`; `resolveBlockedBy` files
- * each blocker the same way, with the items it blocks as
- * `{ [typeBlocked]: codesBlocked }`.
- */
-type BlockerLedger = Map<string, Map<string, Record<string, any[]>>>;
 
 /** The ledger entry for an item, created empty if there is none. */
 function ledgerEntry(
@@ -118,18 +110,18 @@ export class DependencyHandler {
      */
     circularCheckMarks: CircularCheckMarks<ComponentIdx>;
     /**
-     * Memo of the cycle check over the resolve-blocker graph, keyed by item
-     * type and item code; see `checkForCircularResolveBlocker`.
+     * A topological order of the resolve-blocker graph, which is how
+     * `addBlocker` finds a blocker that closes a cycle; see `BlockerOrder`.
      */
-    circularBlockerMarks: CircularCheckMarks<string>;
+    blockerOrder: BlockerOrder;
     /**
-     * The nodes on the current search path, root first, kept for the error
-     * message. The searches are synchronous and never nested, so one stack
-     * each is enough; every visit pops in a `finally`, so the stack is
-     * empty again after a throw, and a search clears it on entry besides.
+     * The nodes on the current search path of the state-variable cycle
+     * check, root first, kept for the error message. The search is
+     * synchronous and never nested, so one stack is enough; every visit pops
+     * in a `finally`, so the stack is empty again after a throw, and a search
+     * clears it on entry besides.
      */
     _circularPathComponents: ComponentIdx[];
-    _circularBlockerPathCodes: string[];
 
     dependencyTypes: Record<string, any>;
     updateTriggers: DependencyUpdateTriggers;
@@ -222,9 +214,7 @@ export class DependencyHandler {
         this.switchDependencies = {};
 
         this.circularCheckMarks = new CircularCheckMarks();
-        this.circularBlockerMarks = new CircularCheckMarks();
         this._circularPathComponents = [];
-        this._circularBlockerPathCodes = [];
 
         this.dependencyTypes = {};
         dependencyTypeClasses.forEach(
@@ -251,6 +241,7 @@ export class DependencyHandler {
             neededToResolve: new Map(),
             resolveBlockedBy: new Map(),
         };
+        this.blockerOrder = new BlockerOrder(this.resolveBlockers);
 
         this.numDependencySetups = 0;
         this.numMaterializedStateVariables = 0;
@@ -1057,16 +1048,19 @@ export class DependencyHandler {
     }
 
     /**
-     * Drop the circular-check memos. They are pure caches ("this node
-     * already passed the check"), so clearing costs only re-verification
-     * when a later dependency change re-triggers a check. Called once
-     * initial document construction finishes: at that point the memos
-     * cover every state variable created during the load, but they regrow
-     * only for the typically few components involved in subsequent updates.
+     * Drop the state-variable cycle check's memos and rebuild the blocker
+     * order from the blockers still outstanding. The memos are pure caches
+     * ("this node already passed the check"), so clearing costs only
+     * re-verification when a later dependency change re-triggers a check;
+     * the order keeps a position for every item that ever took part in a
+     * blocker, while few blockers outlast the build. Called once initial
+     * document construction finishes: at that point both cover everything
+     * created during the load, but they regrow only for the typically few
+     * components involved in subsequent updates.
      */
     clearCircularCheckMemos() {
         this.circularCheckMarks.clear();
-        this.circularBlockerMarks.clear();
+        this.blockerOrder.rebuild();
     }
 
     /**
@@ -1771,7 +1765,7 @@ export class DependencyHandler {
             const blockerCodes = neededObj[blockerType];
             if (blockerCodes) {
                 if (blockerCode) {
-                    let ind = blockerCodes.indexOf(blockerCode);
+                    let ind = indexOfCode(blockerCodes, blockerCode);
                     if (ind !== -1) {
                         blockerCodes.splice(ind, 1);
                     }
@@ -1883,7 +1877,7 @@ export class DependencyHandler {
             const codesBlocked = blockedObj[typeBlocked];
             if (codesBlocked) {
                 if (codeBlocked) {
-                    let ind = codesBlocked.indexOf(codeBlocked);
+                    let ind = indexOfCode(codesBlocked, codeBlocked);
                     if (ind !== -1) {
                         codesBlocked.splice(ind, 1);
                     }
@@ -1980,6 +1974,42 @@ export class DependencyHandler {
             neededToResolveBlocked.push(blockerCode);
         }
 
+        // record that blocked by blocker
+        let resolvedBlockedByBlocker = ledgerEntry(
+            this.resolveBlockers.resolveBlockedBy,
+            blockerType,
+            blockerCode,
+        );
+
+        let blockedByBlocker = resolvedBlockedByBlocker[typeBlocked];
+        if (!blockedByBlocker) {
+            // exact capacity, as for `neededToResolveBlocked` above
+            resolvedBlockedByBlocker[typeBlocked] = [codeBlocked];
+        } else if (!blockedByBlocker.includes(codeBlocked)) {
+            blockedByBlocker.push(codeBlocked);
+        }
+
+        // Fit the new blocker into the order before anything else can add
+        // one: the order reads its edges from the ledger and assumes each of
+        // them already fits. This is also where a blocker that closes a cycle
+        // is found.
+        const cycle = this.blockerOrder.addBlocker(
+            { type: typeBlocked, code: normalizeBlockerCode(codeBlocked) },
+            { type: blockerType, code: blockerCode },
+        );
+        if (cycle) {
+            throw new CircularDependencyError(
+                this.getCircularDependencyMessage(
+                    cycle.map(
+                        ({ code }) =>
+                            this.components[
+                                code.split("|")[0] as unknown as number
+                            ],
+                    ),
+                ),
+            );
+        }
+
         if (typeBlocked === "stateVariable") {
             let component = this._components[componentIdxBlocked];
             if (component) {
@@ -2022,35 +2052,6 @@ export class DependencyHandler {
                 }
             }
         }
-
-        // record that blocked by blocker
-        let resolvedBlockedByBlocker = ledgerEntry(
-            this.resolveBlockers.resolveBlockedBy,
-            blockerType,
-            blockerCode,
-        );
-
-        let blockedByBlocker = resolvedBlockedByBlocker[typeBlocked];
-        if (!blockedByBlocker) {
-            // exact capacity, as for `neededToResolveBlocked` above
-            resolvedBlockedByBlocker[typeBlocked] = [codeBlocked];
-        } else if (!blockedByBlocker.includes(codeBlocked)) {
-            blockedByBlocker.push(codeBlocked);
-        }
-
-        this.resetCircularResolveBlockerCheckPassed({
-            componentIdx: componentIdxBlocked,
-            type: typeBlocked,
-            stateVariable: stateVariableBlocked,
-            dependency: dependencyBlocked,
-        });
-
-        this.checkForCircularResolveBlocker({
-            componentIdx: componentIdxBlocked,
-            type: typeBlocked,
-            stateVariable: stateVariableBlocked,
-            dependency: dependencyBlocked,
-        });
     }
 
     async processNewlyResolved({
@@ -2700,74 +2701,6 @@ export class DependencyHandler {
         return { nFailures };
     }
 
-    /**
-     * Throw if a cycle in the resolve-blocker graph is reachable from the
-     * given item (a state variable, a `determineDependencies` entry, a
-     * composite waiting to expand, and so on; see `addBlocker`).
-     *
-     * The same memoized depth-first search as `checkForCircularDependency`,
-     * over the `neededToResolve` edges, with
-     * `resetCircularResolveBlockerCheckPassed` as the memo invalidation.
-     * Items are identified by their code (`"idx"`, `"idx|stateVariable"` or
-     * `"idx|stateVariable|dependency"`, as stored in the blocker lists) and
-     * their type.
-     */
-    checkForCircularResolveBlocker({
-        componentIdx,
-        type,
-        stateVariable,
-        dependency,
-    }: {
-        componentIdx: ComponentIdx | string;
-        type: string;
-        stateVariable?: string;
-        dependency?: string;
-    }) {
-        this._circularBlockerPathCodes.length = 0;
-        this._searchForCircularResolveBlocker(
-            blockerCodeFor(componentIdx, stateVariable, dependency),
-            type,
-        );
-    }
-
-    _searchForCircularResolveBlocker(code: string, type: string) {
-        const mark = this.circularBlockerMarks.get(type, code);
-        if (mark === ON_PATH) {
-            throw new CircularDependencyError(
-                this.getCircularDependencyMessage(
-                    this._circularBlockerPathCodes.map(
-                        (pathCode) =>
-                            this.components[
-                                pathCode.split("|")[0] as unknown as number
-                            ],
-                    ),
-                ),
-            );
-        }
-        if (mark === PASSED) {
-            return;
-        }
-
-        this.circularBlockerMarks.set(type, code, ON_PATH);
-        this._circularBlockerPathCodes.push(code);
-        try {
-            const neededForItem =
-                this.resolveBlockers.neededToResolve.get(type)?.get(code) ??
-                EMPTY_BLOCKERS;
-            for (const blockerType in neededForItem) {
-                for (const blockerCode of neededForItem[blockerType]) {
-                    this._searchForCircularResolveBlocker(
-                        normalizeBlockerCode(blockerCode),
-                        blockerType,
-                    );
-                }
-            }
-        } finally {
-            this._circularBlockerPathCodes.pop();
-            this.circularBlockerMarks.set(type, code, PASSED);
-        }
-    }
-
     getCircularDependencyMessage(componentsInvolved: any[]) {
         let uniqueComponentNames: any[] = [];
         let componentTypesForUniqueNames: any[] = [];
@@ -2859,47 +2792,6 @@ export class DependencyHandler {
         return `Circular dependency involving these components: ${message}.`;
     }
 
-    /**
-     * Forget that the given item passed the blocker cycle check, and
-     * likewise everything blocked by it, after a blocker was added to it;
-     * the counterpart of `resetCircularCheckPassed`.
-     */
-    resetCircularResolveBlockerCheckPassed({
-        componentIdx,
-        type,
-        stateVariable,
-        dependency,
-    }: {
-        componentIdx: ComponentIdx | string;
-        type: string;
-        stateVariable?: string;
-        dependency?: string;
-    }) {
-        this._resetCircularResolveBlockerFrom(
-            blockerCodeFor(componentIdx, stateVariable, dependency),
-            type,
-        );
-    }
-
-    _resetCircularResolveBlockerFrom(code: string, type: string) {
-        if (this.circularBlockerMarks.get(type, code) !== PASSED) {
-            return;
-        }
-        this.circularBlockerMarks.delete(type, code);
-
-        const resolveBlockedBy =
-            this.resolveBlockers.resolveBlockedBy.get(type)?.get(code) ??
-            EMPTY_BLOCKERS;
-        for (const typeBlocked in resolveBlockedBy) {
-            for (const codeBlocked of resolveBlockedBy[typeBlocked]) {
-                this._resetCircularResolveBlockerFrom(
-                    normalizeBlockerCode(codeBlocked),
-                    typeBlocked,
-                );
-            }
-        }
-    }
-
     get components() {
         return this._components;
         // return new Proxy(this._components, readOnlyProxyHandler);
@@ -2937,6 +2829,22 @@ function blockerCodeFor(
  */
 function normalizeBlockerCode(code: string | number): string {
     return typeof code === "string" ? code : String(code);
+}
+
+/**
+ * The index of `code` in a blocker list, or -1. A list can hold a bare
+ * component index as a number while the code asked for is the same index as
+ * a string (or the other way round), so they are compared as strings; a
+ * removal that missed one direction of the ledger would leave the other
+ * behind, which `BlockerOrder` depends on never happening.
+ */
+function indexOfCode(codes: (string | number)[], code: string | number) {
+    const ind = codes.indexOf(code);
+    if (ind !== -1) {
+        return ind;
+    }
+    const normalized = normalizeBlockerCode(code);
+    return codes.findIndex((c) => normalizeBlockerCode(c) === normalized);
 }
 
 /** Freeze a JSON value and everything in it. */

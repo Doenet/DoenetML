@@ -172,10 +172,25 @@ describe("Circular references through children and extend @group2", async () => 
         });
 
         // The memos cover only the load; they are dropped once it is done
-        // (and regrow for whatever a later evaluation sets up).
+        // (and regrow for whatever a later evaluation sets up). The blocker
+        // order is rebuilt then, keeping positions only for the items of the
+        // few blockers still outstanding.
         const dependencies = core.core.dependencies;
         expect(dependencies.circularCheckMarks.size).eq(0);
-        expect(dependencies.circularBlockerMarks.size).eq(0);
+        const outstanding = new Set<string>();
+        for (const [type, entries] of dependencies.resolveBlockers
+            .neededToResolve) {
+            for (const [code, blockers] of entries) {
+                outstanding.add(`${type}:${code}`);
+                for (const blockerType in blockers) {
+                    for (const blockerCode of blockers[blockerType]) {
+                        outstanding.add(`${blockerType}:${blockerCode}`);
+                    }
+                }
+            }
+        }
+        expect(outstanding.size).toBeLessThan(10);
+        expect(dependencies.blockerOrder.size).eq(outstanding.size);
 
         const stateVariables = await core.returnAllStateVariables(false, true);
         expect(
