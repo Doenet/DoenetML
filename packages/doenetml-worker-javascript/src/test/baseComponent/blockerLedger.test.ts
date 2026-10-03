@@ -223,6 +223,38 @@ describe("Blocker ledger", () => {
         ).eq(false);
         expect(dependencies.peekResolveBlockedBy(readyToExpand)).toEqual({});
     });
+
+    // From the blocked item's side the item is named by its code, a string,
+    // while its blocker still holds the number. The blocker order follows
+    // both sides, so a removal must not leave the number behind.
+    it("an item with no state variable leaves both sides when removed by its code", async () => {
+        const { core } = await createTestCore({
+            doenetML: `<number name="n">1</number>`,
+        });
+        const dependencies = core.core.dependencies;
+        const expand = (componentIdx: number) => ({
+            componentIdx,
+            type: "expandComposite",
+        });
+        await dependencies.addBlocker({
+            blockerComponentIdx: 901,
+            blockerType: "expandComposite",
+            componentIdxBlocked: 900,
+            typeBlocked: "expandComposite",
+        });
+        expect(dependencies.peekResolveBlockedBy(expand(901))).toEqual({
+            expandComposite: [900],
+        });
+
+        dependencies.deleteFromNeededToResolve({
+            componentIdxBlocked: 900,
+            typeBlocked: "expandComposite",
+            blockerType: "expandComposite",
+            blockerCode: "901",
+        });
+        expect(dependencies.checkIfHaveNeededToResolve(expand(900))).eq(false);
+        expect(dependencies.peekResolveBlockedBy(expand(901))).toEqual({});
+    });
 });
 
 /**

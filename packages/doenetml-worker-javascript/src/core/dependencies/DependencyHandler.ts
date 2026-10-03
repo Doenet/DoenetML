@@ -1765,7 +1765,7 @@ export class DependencyHandler {
             const blockerCodes = neededObj[blockerType];
             if (blockerCodes) {
                 if (blockerCode) {
-                    let ind = blockerCodes.indexOf(blockerCode);
+                    let ind = indexOfCode(blockerCodes, blockerCode);
                     if (ind !== -1) {
                         blockerCodes.splice(ind, 1);
                     }
@@ -1877,7 +1877,7 @@ export class DependencyHandler {
             const codesBlocked = blockedObj[typeBlocked];
             if (codesBlocked) {
                 if (codeBlocked) {
-                    let ind = codesBlocked.indexOf(codeBlocked);
+                    let ind = indexOfCode(codesBlocked, codeBlocked);
                     if (ind !== -1) {
                         codesBlocked.splice(ind, 1);
                     }
@@ -2829,6 +2829,22 @@ function blockerCodeFor(
  */
 function normalizeBlockerCode(code: string | number): string {
     return typeof code === "string" ? code : String(code);
+}
+
+/**
+ * The index of `code` in a blocker list, or -1. A list can hold a bare
+ * component index as a number while the code asked for is the same index as
+ * a string (or the other way round), so they are compared as strings; a
+ * removal that missed one direction of the ledger would leave the other
+ * behind, which `BlockerOrder` depends on never happening.
+ */
+function indexOfCode(codes: (string | number)[], code: string | number) {
+    const ind = codes.indexOf(code);
+    if (ind !== -1) {
+        return ind;
+    }
+    const normalized = normalizeBlockerCode(code);
+    return codes.findIndex((c) => normalizeBlockerCode(c) === normalized);
 }
 
 /** Freeze a JSON value and everything in it. */
