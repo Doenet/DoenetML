@@ -129,8 +129,10 @@ ${rows.join("\n")}
 }
 
 /**
- * The shadow-heavy repeat document from `memory-bench.test.ts`: every
- * iteration's components are reference shadows.
+ * The shadow-heavy repeat document from `memory-bench.test.ts`. The
+ * references in each iteration (`$i`, `$P.x`, `$n`, `$m`) make 35 of its 56
+ * components shadows; the template's own `p`, `point`, `math`, `boolean`
+ * and `coords` are not.
  */
 export function repeatDocument(iterations = 150): string {
     return `

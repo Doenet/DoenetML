@@ -37,7 +37,7 @@ const ONLY = process.env.PERFBENCH_ONLY
     : null;
 const PROFILE = Boolean(process.env.PERFBENCH_PROFILE);
 
-/** The slow examples take tens of seconds each in node; CI is slower still. */
+/** The slowest examples take tens of seconds in node; CI is slower still. */
 const BENCH_TIMEOUT_MS = 30 * 60 * 1000;
 
 type FixtureResult = {

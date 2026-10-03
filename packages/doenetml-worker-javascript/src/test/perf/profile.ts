@@ -42,12 +42,15 @@ export async function profileAsync<T>(
         const { profile } = await session.post("Profiler.stop");
         await session.post("Profiler.disable");
 
+        // Both are optional in the protocol types; an empty profile has neither.
+        const samples = profile.samples ?? [];
+        const timeDeltas = profile.timeDeltas ?? [];
         const selfByNode = new Map<number, number>();
-        for (let i = 0; i < profile.samples.length; i++) {
-            const id = profile.samples[i];
+        for (let i = 0; i < samples.length; i++) {
+            const id = samples[i];
             selfByNode.set(
                 id,
-                (selfByNode.get(id) ?? 0) + (profile.timeDeltas[i] ?? 0),
+                (selfByNode.get(id) ?? 0) + (timeDeltas[i] ?? 0),
             );
         }
         const nodeById = new Map<number, any>();

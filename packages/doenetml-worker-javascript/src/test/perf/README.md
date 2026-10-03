@@ -32,7 +32,7 @@ PERFBENCH_RESULT=/tmp/perf-bench.json \
 
 Fixtures (`benchFixtures()`): the [#2023](https://github.com/Doenet/DoenetML/issues/2023) dot plot at 1, 2 and 4 plots, the 150-iteration repeat document from `memory-bench.test.ts`, and the three author-reported slow documents of [#2101](https://github.com/Doenet/DoenetML/issues/2101) under `fixtures/`. The micro-documents are included as well, so one run gives the whole table.
 
-Times are wall-clock milliseconds in node, which is several times slower than the browser worker. Compare ratios between runs on the same machine; do not compare against absolute numbers quoted in an issue. CI runs the bench on every pull request and writes the table to the job summary (the `Perf Bench` job), with the JSON as an artifact. The job's only assertion is that every fixture loads; counts and times are never asserted.
+Times are wall-clock milliseconds in node, not the browser worker. Compare ratios between runs on the same machine; do not compare against absolute numbers quoted in an issue. CI runs the bench on every pull request and writes the table to the job summary (the `Perf Bench` job), with the JSON as an artifact. The job's only assertion is that every fixture loads; counts and times are never asserted.
 
 ## Reading a profile
 
