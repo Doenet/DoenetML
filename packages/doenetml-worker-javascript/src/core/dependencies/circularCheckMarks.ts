@@ -16,40 +16,40 @@ export const ON_PATH = 1;
 export const PASSED = 2;
 
 export class CircularCheckMarks<Outer> {
-    private marks = new Map<Outer, Map<string, number>>();
+    _marks = new Map<Outer, Map<string, number>>();
 
     get(outer: Outer, inner: string): number | undefined {
-        return this.marks.get(outer)?.get(inner);
+        return this._marks.get(outer)?.get(inner);
     }
 
     set(outer: Outer, inner: string, mark: number) {
-        let inner_marks = this.marks.get(outer);
-        if (!inner_marks) {
-            inner_marks = new Map();
-            this.marks.set(outer, inner_marks);
+        let innerMarks = this._marks.get(outer);
+        if (!innerMarks) {
+            innerMarks = new Map();
+            this._marks.set(outer, innerMarks);
         }
-        inner_marks.set(inner, mark);
+        innerMarks.set(inner, mark);
     }
 
     delete(outer: Outer, inner: string) {
-        const inner_marks = this.marks.get(outer);
-        if (inner_marks) {
-            inner_marks.delete(inner);
-            if (inner_marks.size === 0) {
-                this.marks.delete(outer);
+        const innerMarks = this._marks.get(outer);
+        if (innerMarks) {
+            innerMarks.delete(inner);
+            if (innerMarks.size === 0) {
+                this._marks.delete(outer);
             }
         }
     }
 
     clear() {
-        this.marks.clear();
+        this._marks.clear();
     }
 
     /** Number of marked nodes; for tests and diagnostics. */
     get size() {
         let n = 0;
-        for (const inner_marks of this.marks.values()) {
-            n += inner_marks.size;
+        for (const innerMarks of this._marks.values()) {
+            n += innerMarks.size;
         }
         return n;
     }

@@ -97,15 +97,15 @@ export class DependencyHandler {
      * Item codes (`"idx|stateVariable|dependency"`) split into their parts,
      * so the blocker walks do not re-split a code on every visit.
      */
-    private blockerCodeParts: Map<string, string[]>;
+    _blockerCodeParts: Map<string, string[]>;
     /**
      * The nodes on the current search path, root first, kept for the error
      * message. The searches are synchronous and never nested, so one stack
      * each is enough; every visit pops in a `finally`, so the stack is
      * empty again after a throw, and a search clears it on entry besides.
      */
-    private circularPathComponents: ComponentIdx[];
-    private circularBlockerPathCodes: string[];
+    _circularPathComponents: ComponentIdx[];
+    _circularBlockerPathCodes: string[];
 
     dependencyTypes: Record<string, any>;
     updateTriggers: DependencyUpdateTriggers;
@@ -193,9 +193,9 @@ export class DependencyHandler {
 
         this.circularCheckMarks = new CircularCheckMarks();
         this.circularBlockerMarks = new CircularCheckMarks();
-        this.blockerCodeParts = new Map();
-        this.circularPathComponents = [];
-        this.circularBlockerPathCodes = [];
+        this._blockerCodeParts = new Map();
+        this._circularPathComponents = [];
+        this._circularBlockerPathCodes = [];
 
         this.dependencyTypes = {};
         dependencyTypeClasses.forEach(
@@ -963,14 +963,11 @@ export class DependencyHandler {
         componentIdx: ComponentIdx;
         varName: string;
     }) {
-        this.circularPathComponents.length = 0;
-        this.searchForCircularDependency(componentIdx, varName);
+        this._circularPathComponents.length = 0;
+        this._searchForCircularDependency(componentIdx, varName);
     }
 
-    private searchForCircularDependency(
-        componentIdx: ComponentIdx,
-        varName: string,
-    ) {
+    _searchForCircularDependency(componentIdx: ComponentIdx, varName: string) {
         const mark = this.circularCheckMarks.get(componentIdx, varName);
         if (mark === ON_PATH) {
             // The path runs from the variable the search started at through
@@ -978,7 +975,7 @@ export class DependencyHandler {
             // variable that closed the cycle.
             throw Error(
                 this.getCircularDependencyMessage(
-                    this.circularPathComponents.map(
+                    this._circularPathComponents.map(
                         (idx) => this.components[idx],
                     ),
                 ),
@@ -989,7 +986,7 @@ export class DependencyHandler {
         }
 
         this.circularCheckMarks.set(componentIdx, varName, ON_PATH);
-        this.circularPathComponents.push(componentIdx);
+        this._circularPathComponents.push(componentIdx);
         try {
             const downDeps =
                 this.downstreamDependencies[componentIdx]?.[varName];
@@ -1003,12 +1000,12 @@ export class DependencyHandler {
                 }
                 for (let ind = 0; ind < indices.length; ind++) {
                     for (const vName of mappedNames[ind]) {
-                        this.searchForCircularDependency(indices[ind], vName);
+                        this._searchForCircularDependency(indices[ind], vName);
                     }
                 }
             }
         } finally {
-            this.circularPathComponents.pop();
+            this._circularPathComponents.pop();
             this.circularCheckMarks.set(componentIdx, varName, PASSED);
         }
     }
@@ -1024,7 +1021,7 @@ export class DependencyHandler {
     clearCircularCheckMemos() {
         this.circularCheckMarks.clear();
         this.circularBlockerMarks.clear();
-        this.blockerCodeParts.clear();
+        this._blockerCodeParts.clear();
     }
 
     /**
@@ -2975,22 +2972,22 @@ export class DependencyHandler {
         stateVariable?: string;
         dependency?: string;
     }) {
-        this.circularBlockerPathCodes.length = 0;
-        this.searchForCircularResolveBlocker(
+        this._circularBlockerPathCodes.length = 0;
+        this._searchForCircularResolveBlocker(
             blockerCodeFor(componentIdx, stateVariable, dependency),
             type,
         );
     }
 
-    private searchForCircularResolveBlocker(code: string, type: string) {
+    _searchForCircularResolveBlocker(code: string, type: string) {
         const mark = this.circularBlockerMarks.get(type, code);
         if (mark === ON_PATH) {
             throw Error(
                 this.getCircularDependencyMessage(
-                    this.circularBlockerPathCodes.map(
+                    this._circularBlockerPathCodes.map(
                         (pathCode) =>
                             this.components[
-                                this.splitBlockerCode(
+                                this._splitBlockerCode(
                                     pathCode,
                                 )[0] as unknown as number
                             ],
@@ -3003,36 +3000,36 @@ export class DependencyHandler {
         }
 
         this.circularBlockerMarks.set(type, code, ON_PATH);
-        this.circularBlockerPathCodes.push(code);
+        this._circularBlockerPathCodes.push(code);
         try {
-            const neededForItem = this.peekNeededToResolveByCode(code, type);
+            const neededForItem = this._peekNeededToResolveByCode(code, type);
             for (const blockerType in neededForItem) {
                 for (const blockerCode of neededForItem[blockerType]) {
-                    this.searchForCircularResolveBlocker(
+                    this._searchForCircularResolveBlocker(
                         normalizeBlockerCode(blockerCode),
                         blockerType,
                     );
                 }
             }
         } finally {
-            this.circularBlockerPathCodes.pop();
+            this._circularBlockerPathCodes.pop();
             this.circularBlockerMarks.set(type, code, PASSED);
         }
     }
 
     /** The parts of an item code, split once and cached. */
-    private splitBlockerCode(code: string): string[] {
-        let parts = this.blockerCodeParts.get(code);
+    _splitBlockerCode(code: string): string[] {
+        let parts = this._blockerCodeParts.get(code);
         if (!parts) {
             parts = code.split("|");
-            this.blockerCodeParts.set(code, parts);
+            this._blockerCodeParts.set(code, parts);
         }
         return parts;
     }
 
     /** `peekNeededToResolve` for an item given by code; same lookup. */
-    private peekNeededToResolveByCode(code: string, type: string) {
-        const parts = this.splitBlockerCode(code);
+    _peekNeededToResolveByCode(code: string, type: string) {
+        const parts = this._splitBlockerCode(code);
         let needed = this.resolveBlockers.neededToResolve[parts[0]]?.[type];
         if (needed && parts.length > 1) {
             needed = needed[parts[1]];
@@ -3044,8 +3041,8 @@ export class DependencyHandler {
     }
 
     /** `peekResolveBlockedBy` for an item given by code; same lookup. */
-    private peekResolveBlockedByByCode(code: string, type: string) {
-        const parts = this.splitBlockerCode(code);
+    _peekResolveBlockedByByCode(code: string, type: string) {
+        const parts = this._splitBlockerCode(code);
         let blocked = this.resolveBlockers.resolveBlockedBy[parts[0]]?.[type];
         if (blocked && parts.length > 1) {
             blocked = blocked[parts[1]];
@@ -3163,22 +3160,22 @@ export class DependencyHandler {
         stateVariable?: string;
         dependency?: string;
     }) {
-        this.resetCircularResolveBlockerFrom(
+        this._resetCircularResolveBlockerFrom(
             blockerCodeFor(componentIdx, stateVariable, dependency),
             type,
         );
     }
 
-    private resetCircularResolveBlockerFrom(code: string, type: string) {
+    _resetCircularResolveBlockerFrom(code: string, type: string) {
         if (this.circularBlockerMarks.get(type, code) !== PASSED) {
             return;
         }
         this.circularBlockerMarks.delete(type, code);
 
-        const resolveBlockedBy = this.peekResolveBlockedByByCode(code, type);
+        const resolveBlockedBy = this._peekResolveBlockedByByCode(code, type);
         for (const typeBlocked in resolveBlockedBy) {
             for (const codeBlocked of resolveBlockedBy[typeBlocked]) {
-                this.resetCircularResolveBlockerFrom(
+                this._resetCircularResolveBlockerFrom(
                     normalizeBlockerCode(codeBlocked),
                     typeBlocked,
                 );
