@@ -406,6 +406,41 @@ describe("Circular references created after load @group2", async () => {
         });
     });
 
+    // `returnAllStateVariables` is reached outside the queue: `DocViewer`
+    // installs it as a `window` function on every page. Evaluating `n` after
+    // the stop is the recursion that ran the worker out of memory, so without
+    // the check this test kills the vitest worker.
+    it("a state dump of a stopped document is refused without evaluating", async () => {
+        const { core, resolvePathToNodeIdx, stopped } = await loadAndWatch(`
+<mathInput name="i" prefill="1"/>
+<number name="n">
+  <conditionalContent condition="$i=1">1</conditionalContent>
+  <conditionalContent condition="$i=2">$n+1</conditionalContent>
+</number>`);
+        const iIdx = await resolvePathToNodeIdx("i");
+
+        // a running document dumps its state as before
+        await expect(
+            core.returnAllStateVariables(false, true),
+        ).resolves.toBeTruthy();
+
+        await core.requestAction({
+            componentIdx: iIdx,
+            actionName: "updateRawValue",
+            args: { rawRendererValue: "2" },
+        });
+        await core.requestAction({
+            componentIdx: iIdx,
+            actionName: "updateValue",
+            args: {},
+        });
+        expect(stopped).toHaveLength(1);
+
+        await expect(core.returnAllStateVariables(false, true)).rejects.toThrow(
+            stopped[0],
+        );
+    });
+
     it("a stopped document evaluates nothing from outside the queue", async () => {
         // The input's keystroke schedules the debounced save, which fires
         // after the stop. Building the save evaluates `n`, which recursed

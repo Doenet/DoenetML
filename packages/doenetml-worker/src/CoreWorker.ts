@@ -1184,7 +1184,10 @@ export class CoreWorker {
      */
     async submitAllAnswers() {
         if (this.javascriptCore) {
-            this.javascriptCore.submitAllAnswers();
+            // Awaited, so that a rejection (such as a document stopped by a
+            // circular dependency) reaches the caller rather than going
+            // unhandled.
+            await this.javascriptCore.submitAllAnswers();
         }
     }
 

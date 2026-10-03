@@ -380,6 +380,16 @@ export class PublicDoenetMLCore {
             return {};
         }
 
+        // Evaluating every state variable of a document that a circular
+        // dependency has stopped would recurse into the cycle until the worker
+        // runs out of memory (#2137). This entry point is reached outside the
+        // request queue (`DocViewer` installs it as a `window` function), so
+        // it checks for the stop itself.
+        const stoppedByError = this.core.processQueue.stoppedByError;
+        if (stoppedByError !== null) {
+            throw Error(stoppedByError);
+        }
+
         const componentsObj: Record<
             string,
             {
