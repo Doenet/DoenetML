@@ -151,6 +151,32 @@ describe("Blocker ledger", () => {
         expect(dependencies.peekResolveBlockedBy(blocker(902))).toEqual({});
     });
 
+    it("removing a blocked type from the blocker's side takes every item of that type", async () => {
+        const dependencies = await ledgerWithTwoBlockers();
+        // 901 also blocks a second item of the same type
+        const otherBlocked = { ...blocked, dependency: "e" };
+        await dependencies.addBlocker({
+            blockerComponentIdx: 901,
+            blockerType: "componentIdentity",
+            ...blockedArgs,
+            dependencyBlocked: "e",
+        });
+        expect(dependencies.peekResolveBlockedBy(blocker(901))).toEqual({
+            recalculateDownstreamComponents: ["900|v|d", "900|v|e"],
+        });
+
+        dependencies.deleteFromResolveBlockedBy({
+            blockerComponentIdx: 901,
+            blockerType: "componentIdentity",
+            typeBlocked: "recalculateDownstreamComponents",
+        });
+        expect(dependencies.peekResolveBlockedBy(blocker(901))).toEqual({});
+        expect(dependencies.peekNeededToResolve(blocked)).toEqual({
+            componentIdentity: ["902"],
+        });
+        expect(dependencies.checkIfHaveNeededToResolve(otherBlocked)).eq(false);
+    });
+
     // A composite waiting to expand is an item with no state variable, and
     // its blocker records it by its bare index, a number. Resolving the
     // blocker hands that number back to remove it, as `processNewlyResolved`
@@ -200,9 +226,9 @@ describe("Blocker ledger", () => {
 });
 
 /**
- * A dependency value names each component it read from by position, for
- * warnings that point at the component. Every read reports the same frozen
- * copy rather than a fresh one.
+ * A dependency value carries the source position of each component it read
+ * from, for warnings that point at the component. Every read reports the
+ * same frozen copy rather than a fresh one.
  */
 describe("Position in a dependency value", () => {
     it("is a frozen copy of the component's position, shared by every read", async () => {
