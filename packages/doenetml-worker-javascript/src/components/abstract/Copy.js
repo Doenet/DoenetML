@@ -15,6 +15,11 @@ import {
 import { createNewComponentIndices } from "../../utils/componentIndices";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import { errorComponentState } from "../../utils/dast/errors";
+import {
+    planValueReference,
+    serializeValueReference,
+    valueReferenceDiffers,
+} from "../../utils/valueReference";
 
 export default class Copy extends CompositeComponent {
     static componentType = "_copy";
@@ -2227,9 +2232,17 @@ export default class Copy extends CompositeComponent {
                                     numReplacementsSoFar + ind
                                 ];
 
+                            // Two value references share the type `_ref`;
+                            // one that stands in for another type must be
+                            // remade all the same.
                             if (
                                 currentReplacement.componentType !==
-                                newSerializedReplacements[ind].componentType
+                                    newSerializedReplacements[ind]
+                                        .componentType ||
+                                valueReferenceDiffers(
+                                    currentReplacement,
+                                    newSerializedReplacements[ind],
+                                )
                             ) {
                                 foundDifference = true;
                             }
@@ -2502,6 +2515,18 @@ export async function replacementFromProp({
     let stateVarValue = await stateVarObj.value;
 
     let link = await component.stateValues.link;
+    const implicitProp = await component.stateValues.implicitProp;
+
+    // The component that will hold the replacements. When it reads only
+    // values from its children, a linked reference to one state variable can
+    // be a value reference (`_ref`) instead of a full component with shadow
+    // attribute components (Doenet/DoenetML#2128). Not when the reference was
+    // given a type: an `extend` or `copy` (`<number extend="$P.x" />`) and an
+    // index both set `createComponentOfType`, and the component they ask for
+    // is made as it always was.
+    const parentClass = component.ancestors[0]?.componentClass;
+    const mayBeValueReference =
+        link && !component.attributes.createComponentOfType?.primitive;
 
     if (stateVarObj.isArray || stateVarObj.isArrayEntry) {
         let arrayStateVarObj, unflattenedArrayKeys, arraySize, arrayKeys;
@@ -2717,7 +2742,35 @@ export async function replacementFromProp({
                         }
                     }
 
-                    if (link) {
+                    const valueReference = mayBeValueReference
+                        ? planValueReference({
+                              parentClass,
+                              target,
+                              refVariable: propVariable,
+                              valueComponentType: createComponentOfType,
+                              // An adapter's variable lives on the referent
+                              // only for its implicit prop, never for an
+                              // entry of one of its arrays.
+                              fromImplicitProp: false,
+                              hasAttributes:
+                                  Object.keys(attributesFromComposite).length >
+                                  0,
+                              componentInfoObjects,
+                          })
+                        : undefined;
+
+                    if (valueReference) {
+                        serializedReplacements.push(
+                            serializeValueReference({
+                                ...valueReference,
+                                referencedVariable: propVariable,
+                                target,
+                                compositeIdx: component.componentIdx,
+                                componentIdx: nComponents++,
+                                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                            }),
+                        );
+                    } else if (link) {
                         let attributesForReplacement = {};
 
                         if (attributeComponentsShadowingStateVariables) {
@@ -3644,7 +3697,33 @@ export async function replacementFromProp({
             const attributesFromComposite = res.attributes;
             nComponents = res.nComponents;
 
-            if (link) {
+            const valueReference = mayBeValueReference
+                ? planValueReference({
+                      parentClass,
+                      target,
+                      refVariable: varName,
+                      valueComponentType:
+                          stateVarObj.shadowingInstructions
+                              .createComponentOfType,
+                      fromImplicitProp: Boolean(implicitProp),
+                      hasAttributes:
+                          Object.keys(attributesFromComposite).length > 0,
+                      componentInfoObjects,
+                  })
+                : undefined;
+
+            if (valueReference) {
+                serializedReplacements.push(
+                    serializeValueReference({
+                        ...valueReference,
+                        referencedVariable: varName,
+                        target,
+                        compositeIdx: component.componentIdx,
+                        componentIdx: nComponents++,
+                        stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                    }),
+                );
+            } else if (link) {
                 let attributesForReplacement = {};
 
                 if (
@@ -3865,8 +3944,15 @@ export async function replacementFromProp({
         }
     }
 
-    if (await component.stateValues.implicitProp) {
+    if (implicitProp) {
         for (let repl of serializedReplacements) {
+            // A value reference is never marked: the mark would make it
+            // shadow the referent's standard variables under its own names
+            // (reading `n.value` where it should read `n.math`) and have
+            // essential writes to the referent mirrored into it.
+            if (repl.componentType === "_ref") {
+                continue;
+            }
             if (!repl.doenetAttributes) {
                 repl.doenetAttributes = {};
             }

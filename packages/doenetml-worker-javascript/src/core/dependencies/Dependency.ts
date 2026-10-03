@@ -3,9 +3,11 @@ import type { ComponentIdx } from "@doenet/utils";
 import type { ComponentInstance } from "../../types/componentInstance";
 import type { DependencyHandler } from "./DependencyHandler";
 import {
+    addStateVariablePlaceholder,
     arrayEntryNamesFromPropIndex,
     ensureStateVariableMaterialized,
 } from "../StateVariableInitializer";
+import { getClassStateVariableDefinitions } from "../StateVariableDefinitionFactory";
 import { doenetMLStringForReference } from "../../utils/sourceLocation";
 
 /**
@@ -401,9 +403,16 @@ export class Dependency {
                     });
             }
 
+            // A value reference (`_ref`) answers to the aliases of the type it
+            // stands in for: `latex` asked of one presenting as a `latex` is
+            // its `value`.
+            const aliasClass = downComponent.presentedComponentType
+                ? this.dependencyHandler.componentInfoObjects
+                      .allComponentClasses[downComponent.presentedComponentType]
+                : downComponent.constructor;
             let mappedVarNames = this.dependencyHandler.core.substituteAliases({
                 stateVariables: originalVarNames,
-                componentClass: downComponent.constructor,
+                componentClass: aliasClass,
             });
 
             if ((this.constructor as typeof Dependency).convertToArraySize) {
@@ -530,6 +539,42 @@ export class Dependency {
             // variables that exist in the component.
             // (If not variablesOptional and variable doesn't exist, will eventually get an error)
             let downVarNames = mappedVarNames;
+
+            if (downComponent.createOnDemandStateVariableDefinitions) {
+                // A value reference (`_ref`) defines almost nothing itself. A
+                // variable asked of it that it lacks is made now, from the
+                // definitions of the type it stands in for and redirected to
+                // its referent, so that the reads and the optional-variable
+                // filter below find it like any other. For the name of an
+                // array entry, the array is what gets made; the entry then
+                // follows through `createFromArrayEntry` as usual.
+                const core = this.dependencyHandler.core;
+                for (const downVar of downVarNames) {
+                    if (downVar in downComponent.state) {
+                        continue;
+                    }
+                    const definitions =
+                        downComponent.createOnDemandStateVariableDefinitions({
+                            stateVariable: downVar,
+                            components: this.dependencyHandler._components,
+                            classDefinitions: (componentClass: any) =>
+                                getClassStateVariableDefinitions(
+                                    core,
+                                    componentClass,
+                                ).combined,
+                        });
+                    for (const [name, definition] of definitions) {
+                        if (!(name in downComponent.state)) {
+                            addStateVariablePlaceholder({
+                                core,
+                                component: downComponent,
+                                stateVariable: name,
+                                definition,
+                            });
+                        }
+                    }
+                }
+            }
 
             if (
                 originalVarNames.length > 0 ||
@@ -1002,8 +1047,12 @@ export class Dependency {
             usedDefault[componentInd] = false;
 
             if (depComponent) {
+                // The type recorded when the component was found, which for a
+                // value reference (`_ref`) is the type it stands in for.
                 let componentObj: any = {
-                    componentType: depComponent.componentType,
+                    componentType:
+                        this.downstreamComponentTypes[componentInd] ??
+                        depComponent.componentType,
                 };
 
                 if (!this.skipComponentIndices) {

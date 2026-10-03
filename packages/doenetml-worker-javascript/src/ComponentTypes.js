@@ -193,6 +193,7 @@ import * as ComponentSize from "./components/abstract/ComponentSize";
 import * as SectioningComponent from "./components/abstract/SectioningComponent";
 import BaseComponent from "./components/abstract/BaseComponent";
 import Copy from "./components/abstract/Copy";
+import ValueRef from "./components/abstract/ValueRef";
 import InlineComponent from "./components/abstract/InlineComponent";
 import BlockComponent from "./components/abstract/BlockComponent";
 import BlockScoredComponent from "./components/abstract/BlockScoredComponent";
@@ -261,6 +262,7 @@ const componentTypeArray = [
     TupleList,
     NumberList,
     Copy,
+    ValueRef,
     Collect,
     Ref,
     Point,

@@ -989,12 +989,14 @@ export async function replaceCompositeChildren({
             // then it may be turned into a list if all the components can be list elements.
 
             // All inline components and any components with canBeInList set
-            // are considered potential components for a list.
+            // are considered potential components for a list. A value
+            // reference (`_ref`) counts as the type it stands in for.
             let replacementsCanBeInList = replacements.map((repl: any) =>
                 Boolean(
                     typeof repl !== "object" ||
                     (core.componentInfoObjects.isInheritedComponentType({
-                        inheritedComponentType: repl.componentType,
+                        inheritedComponentType:
+                            repl.presentedComponentType ?? repl.componentType,
                         baseComponentType: "_inline",
                     }) &&
                         repl.constructor.canBeInList !== false) ||
