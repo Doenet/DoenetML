@@ -460,7 +460,8 @@ function childGroupAccepts(
  * awards reads as a response, lower-cased: the `isPotentialResponse` an
  * answer with no input of its own gives every reference in its awards
  * (`Answer.js`), and the `isResponse` an `<award referencesAreResponses>`
- * gives the references it names (`Award.js`). A value reference holds them
+ * gives the references it names (`Award.js`; `utils/dast/valueReferences.ts`
+ * for one the document makes a value reference). A value reference holds them
  * as primitives in its `attributes`, and the `isResponse` and
  * `isPotentialResponse` it makes on demand read them (`ValueRef.js`).
  */

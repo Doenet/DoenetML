@@ -1001,24 +1001,14 @@ function addResponsesToDescendantsWithReference(components, reference) {
                         .map((x) => x.toLowerCase())
                         .includes("isresponse");
                     if (!foundIsResponse) {
-                        if (component.componentType === "_ref") {
-                            // A value reference holds the attribute itself,
-                            // as the primitive it reads
-                            component.attributes.isResponse = {
-                                type: "primitive",
-                                name: "isResponse",
-                                primitive: { type: "boolean", value: true },
-                            };
-                        } else {
-                            // Make it an unresolved attribute
-                            // as the composite don't have the attribute isResponse
-                            // but pass it on to their replacements
-                            component.attributes.isResponse = {
-                                type: "unresolved",
-                                name: "isResponse",
-                                children: [],
-                            };
-                        }
+                        // Make it an unresolved attribute
+                        // as the composite don't have the attribute isResponse
+                        // but pass it on to their replacements
+                        component.attributes.isResponse = {
+                            type: "unresolved",
+                            name: "isResponse",
+                            children: [],
+                        };
                     }
                 }
             }

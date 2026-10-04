@@ -52,9 +52,11 @@ import {
  * A reference that an enclosing component names in one of its reference
  * attributes stays a `_copy`, as `<math referencesAreFunctionSymbols="$f">`
  * reads which of its children came from `$f` off the range of a composite's
- * replacements. The exception is `<award referencesAreResponses="$val">`,
- * which marks the `$val` inside it as a response when the award is built: a
- * `_ref` takes that mark as a `_copy` does.
+ * replacements. The exception is `<award referencesAreResponses="$val">`.
+ * When the award is built it gives each reference to `$val` among its
+ * descendants an unresolved `isResponse` (`Award.js`), which a copy resolves
+ * for its replacement and a `_ref` does not read; a `_ref` made from one is
+ * given the mark here, as a primitive.
  */
 export function convertCopiesToValueReferences({
     serializedComponents,
@@ -215,8 +217,8 @@ export function convertCopiesToValueReferences({
             return;
         }
 
-        // marked by the answer already, or to be marked by the award that
-        // names it when the award is built
+        // marked by the answer already, or named by an award, whose mark it
+        // is given below
         const isResponse =
             naming.length > 0 || Object.keys(component.attributes).length > 0;
         if (isResponse && target.readsEntry) {
@@ -246,16 +248,25 @@ export function convertCopiesToValueReferences({
         if (!plan) {
             return;
         }
-        // A copy keeps its attributes as written, for its replacements; a
-        // value reference holds its response marks as the type it presents
-        // as reads them. They are primitives, so the conversion makes no
-        // components.
-        component.attributes = convertUnresolvedAttributesForComponentType({
-            attributes: component.attributes,
-            componentType: plan.presentedComponentType,
-            componentInfoObjects,
-            nComponents: 0,
-        }).attributes;
+        if (isResponse) {
+            // A copy keeps its attributes as written, for its replacements;
+            // a value reference holds its response marks as the type it
+            // presents as reads them. They are primitives, so the conversion
+            // makes no components.
+            component.attributes = convertUnresolvedAttributesForComponentType({
+                attributes: component.attributes,
+                componentType: plan.presentedComponentType,
+                componentInfoObjects,
+                nComponents: 0,
+            }).attributes;
+            if (naming.length > 0 && !component.attributes.isResponse) {
+                component.attributes.isResponse = {
+                    type: "primitive",
+                    name: "isResponse",
+                    primitive: { type: "boolean", value: true },
+                };
+            }
+        }
         makeValueReference(component, {
             ...plan,
             valueComponentType: target.valueComponentType,
@@ -378,10 +389,20 @@ function walk(
         }
 
         walk(component.children, component, namedBelow, visit);
+        // an award marks the references it names among its descendants,
+        // not in attributes (`Award.js`)
+        const namedInAttributes = namedBelow.filter(
+            ({ marksResponse }) => !marksResponse,
+        );
         for (const attrName in component.attributes) {
             const attribute = component.attributes[attrName];
             if (attribute.type === "component") {
-                walk([attribute.component], component, namedBelow, visit);
+                walk(
+                    [attribute.component],
+                    component,
+                    namedInAttributes,
+                    visit,
+                );
             }
         }
         if (component.extending) {
