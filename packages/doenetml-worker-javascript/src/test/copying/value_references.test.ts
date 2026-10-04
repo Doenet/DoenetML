@@ -1805,14 +1805,71 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     numResponses: 4,
                 });
 
-                // the number inside the `<math>` keeps its copy, which makes
-                // the number the answer records
+                // The number inside the `<math>` keeps its copy, which makes
+                // the number the answer records. So does the entry of the
+                // list, which may be missing; its copy makes a value
+                // reference to the entry it finds.
                 const refs = valueRefs(core);
                 expect(refs).toHaveLength(3);
                 for (const ref of refs) {
                     expect(await ref.stateValues.isPotentialResponse).eq(true);
                 }
-                expect(censusOfCore(core).copies).eq(1);
+                expect(
+                    refs.filter((ref) => ref.doenetAttributes.fixedReferent),
+                ).toHaveLength(1);
+                expect(censusOfCore(core).copies).eq(2);
+            });
+
+            it("a missing entry is recorded and compared as an empty response", async () => {
+                // Neither choice is made and the index is past the end of
+                // the list, so each reference reads an entry that is not
+                // there. Each is recorded as an empty math, and no two of
+                // them are equal.
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <choiceInput name="c1"><choice>a</choice><choice>b</choice></choiceInput>
+    <choiceInput name="c2"><choice>a</choice><choice>b</choice></choiceInput>
+    <mathInput name="i" />
+    <numberList name="l">1 2 3</numberList>
+    <answer name="ans1">
+      <award><when>$c1.selectedIndex = $c2.selectedIndex</when></award>
+    </answer>
+    <answer name="ans2">
+      <award><when>$l[$i] = $l[$i+1]</when></award>
+    </answer>
+    `,
+                });
+                const ans1Idx = await resolvePathToNodeIdx("ans1");
+                const ans2Idx = await resolvePathToNodeIdx("ans2");
+
+                await submitAnswer({ componentIdx: ans1Idx, core });
+                await submitAnswer({ componentIdx: ans2Idx, core });
+                const empty = {
+                    responses: ["＿", "＿"],
+                    types: ["math", "math"],
+                    credit: 0,
+                    numResponses: 2,
+                };
+                expect(await submitted(core, ans1Idx)).eqls(empty);
+                expect(await submitted(core, ans2Idx)).eqls(empty);
+
+                await updateSelectedIndices({
+                    selectedIndices: [2],
+                    componentIdx: await resolvePathToNodeIdx("c1"),
+                    core,
+                });
+                await updateSelectedIndices({
+                    selectedIndices: [2],
+                    componentIdx: await resolvePathToNodeIdx("c2"),
+                    core,
+                });
+                await submitAnswer({ componentIdx: ans1Idx, core });
+                expect(await submitted(core, ans1Idx)).eqls({
+                    responses: [2, 2],
+                    types: ["number", "number"],
+                    credit: 1,
+                    numResponses: 2,
+                });
             });
 
             it("a reference an award names in referencesAreResponses is a response", async () => {

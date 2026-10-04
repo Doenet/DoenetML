@@ -189,6 +189,10 @@ export function planValueReference({
  * path that starts with one index into it (`$l[$i]` of a `<numberList>`)
  * reads one of its replacements, and the rest of the path is worked out on
  * that type.
+ *
+ * `readsEntry` is set when what is read is one entry of an array or one of
+ * a composite's replacements: an entry that may not be there, past the end
+ * of the list or before a `<choiceInput>` has a `selectedIndex`.
  */
 export function staticValueReferenceTarget({
     targetComponentType,
@@ -203,6 +207,7 @@ export function staticValueReferenceTarget({
           referentComponentType: string;
           valueComponentType: string;
           fromImplicitProp: boolean;
+          readsEntry: boolean;
       }
     | undefined {
     const targetClass =
@@ -225,11 +230,12 @@ export function staticValueReferenceTarget({
         ) {
             return undefined;
         }
-        return staticValueReferenceTarget({
+        const replacement = staticValueReferenceTarget({
             targetComponentType: replacementType,
             unresolvedPath: rest.length > 0 ? rest : null,
             componentInfoObjects,
         });
+        return replacement && { ...replacement, readsEntry: true };
     }
 
     let name: string | undefined;
@@ -316,6 +322,7 @@ export function staticValueReferenceTarget({
         referentComponentType: targetComponentType,
         valueComponentType,
         fromImplicitProp,
+        readsEntry: Boolean(description.isArray),
     };
 }
 
@@ -453,8 +460,9 @@ function childGroupAccepts(
  * awards reads as a response, lower-cased: the `isPotentialResponse` an
  * answer with no input of its own gives every reference in its awards
  * (`Answer.js`), and the `isResponse` an `<award referencesAreResponses>`
- * gives the references it names (`Award.js`). A value reference takes them
- * (`ValueRef.createAttributesObject`).
+ * gives the references it names (`Award.js`). A value reference holds them
+ * as primitives in its `attributes`, and the `isResponse` and
+ * `isPotentialResponse` it makes on demand read them (`ValueRef.js`).
  */
 export const RESPONSE_MARKS = new Set(["isresponse", "ispotentialresponse"]);
 
