@@ -1699,10 +1699,10 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             // An index past the end of a list, or a `<choiceInput>`'s
             // `selectedIndex` before a choice, leaves a reference nothing to
             // read. It shows the empty value of its type (`NaN`, `""`,
-            // `false`, `＿`), as the copy it replaced did. Where that copy
-            // gave a different result, the reference gives the copy's: a
-            // blank math in a comparison, so that no two missing values are
-            // equal, and nothing among a math operator's operands.
+            // `false`, `＿`). As with the copy it replaced at document
+            // level, a comparison takes it as a blank math, so that no two
+            // missing values are equal, and a math or boolean operator
+            // leaves it out of its operands.
 
             /** The `value` of each named component. */
             async function values(
@@ -1746,6 +1746,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     <boolean name="numBlank" matchBlanks>$l[$i] = $blank</boolean>
     <boolean name="textEq">$tl[$i] = $tl[$i+1]</boolean>
     <boolean name="textNe">$tl[$i] != $tl[$i+1]</boolean>
+    <boolean name="textNeText">$tl[$i] != <text>a</text></boolean>
     <boolean name="textEmpty">$tl[$i] = <text/></boolean>
     <boolean name="textInput">$tl[$i] = $ti</boolean>
     <boolean name="boolEq">$bl[$i] = $bl[$i+1]</boolean>
@@ -1767,6 +1768,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     "numBlank",
                     "textEq",
                     "textNe",
+                    "textNeText",
                     "textEmpty",
                     "textInput",
                     "boolEq",
@@ -1780,7 +1782,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
 
                 // `=` is false for every missing value, and `!=` true between
                 // two of them, except that `matchBlanks` matches a blank to a
-                // blank input
+                // blank input. A blank math and a text are not comparable, so
+                // `!=` with a text is false too.
                 expect(
                     await values(core, resolvePathToNodeIdx, [
                         ...comparisons,
@@ -1795,6 +1798,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     numBlank: true,
                     textEq: false,
                     textNe: true,
+                    textNeText: false,
                     textEmpty: false,
                     textInput: false,
                     boolEq: false,
@@ -1831,6 +1835,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     numBlank: false,
                     textEq: true,
                     textNe: false,
+                    textNeText: true,
                     textEmpty: false,
                     textInput: false,
                     boolEq: true,
