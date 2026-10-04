@@ -1,5 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { Dependency } from "../../core/dependencies/Dependency";
+import { DependencyHandler } from "../../core/dependencies/DependencyHandler";
+import { PASSED } from "../../core/dependencies/circularCheckMarks";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -217,15 +220,66 @@ describe("Circular references through children and extend @group2", async () => 
 });
 
 /**
+ * The edges from a memoized variable to a variable that is not memoized.
+ * Edges to a name the target does not have are left out: the
+ * `variablesOptional` filter records them on neither side, so no reset could
+ * climb through them anyway. So are edges to the placeholder a dependency on
+ * components alone records.
+ */
+function memoizedAboveUnmemoized(handler: any) {
+    const unmarkedBelow: string[] = [];
+    let passed = 0;
+    for (const [componentIdx, marks] of handler.circularCheckMarks._marks) {
+        for (const [varName, mark] of marks) {
+            if (mark !== PASSED) {
+                continue;
+            }
+            passed++;
+            const downDeps =
+                handler.downstreamDependencies[componentIdx]?.[varName];
+            for (const dependencyName in downDeps) {
+                const dep = downDeps[dependencyName];
+                const indices = dep.downstreamComponentIndices;
+                const mappedNames =
+                    dep.mappedDownstreamVariableNamesByComponent;
+                if (!indices || !mappedNames) {
+                    continue;
+                }
+                for (let ind = 0; ind < indices.length; ind++) {
+                    for (const name of mappedNames[ind]) {
+                        if (
+                            name !== dep.downstreamVariableNameIfNoVariables &&
+                            handler._components[indices[ind]]?.state?.[name] &&
+                            handler.circularCheckMarks.get(
+                                indices[ind],
+                                name,
+                            ) !== PASSED
+                        ) {
+                            unmarkedBelow.push(
+                                `${componentIdx}|${varName} -> ${indices[ind]}|${name}`,
+                            );
+                        }
+                    }
+                }
+            }
+        }
+    }
+    return { passed, unmarkedBelow };
+}
+
+/**
  * The state-variable cycle check, driven directly. A cycle in a document
  * closes in the resolve-blocker graph first, since the target of the edge
  * that closes it cannot have resolved, so the cyclic documents above are all
  * rejected by that check; this one reports a cycle only on the update path,
  * when a dependency is re-pointed at a variable that has already resolved,
- * and no document is known that reaches it. These cases add edges to the
+ * and no document is known that reaches it. Except for one case that
+ * inspects the memos a real load leaves, these cases add edges to the
  * handler's tables the way `Dependency.addDownstreamComponent` records them,
- * with the memo reset it performs, and call the check the way
- * `Dependency.checkForCircular` does.
+ * with the memo reset it performs. The cases that add edges with
+ * `addDependencyAndCheck` (on one or several variables) or at random then run
+ * `Dependency.checkForCircular` itself on a stand-in dependency; the others
+ * call the check the way it does.
  */
 describe("State-variable cycle check driven directly @group2", async () => {
     const circularError = "Circular dependency involving these components";
@@ -269,8 +323,302 @@ describe("State-variable cycle check driven directly @group2", async () => {
             });
         }
 
-        return { dependencies, idx, addEdge, check };
+        const search = vi.spyOn(dependencies, "checkForCircularDependency");
+
+        /**
+         * A dependency of `v` of `from` set up as `Dependency` sets one up:
+         * each edge, to each named variable of each target in turn,
+         * recorded, then the memo reset if the edge can close a cycle, and
+         * otherwise its target marked as passed. Then
+         * `Dependency.checkForCircular` runs, as it does after a dependency
+         * is set up. Returns whether it searched.
+         */
+        function addDependencyAndCheck(
+            from: string,
+            targets: [to: string, varNames: string[]][],
+        ) {
+            const dep = {
+                dependencyName: `${from}_to_${targets
+                    .map(([to, varNames]) => `${to}.${varNames.join(".")}`)
+                    .join("_")}`,
+                dependencyHandler: dependencies,
+                upstreamComponentIdx: idx[from],
+                upstreamVariableNames: ["v"],
+                downstreamComponentIndices: targets.map(([to]) => idx[to]),
+                mappedDownstreamVariableNamesByComponent: targets.map(
+                    ([, varNames]) => varNames,
+                ),
+            };
+            const down = (dependencies.downstreamDependencies[idx[from]] ??=
+                {});
+            (down.v ??= {})[dep.dependencyName] = dep;
+            for (const [to, varNames] of targets) {
+                const up = (dependencies.upstreamDependencies[idx[to]] ??= {});
+                for (const varName of varNames) {
+                    up[varName] = (up[varName] ?? []).concat(dep);
+                    if (dependencies.edgeCanCloseCycle(dep, idx[to], varName)) {
+                        dependencies.resetCircularCheckPassed(idx[from], "v");
+                    } else {
+                        dependencies.markLeafPassed(idx[to], varName);
+                    }
+                }
+            }
+            const searchesBefore = search.mock.calls.length;
+            Dependency.prototype.checkForCircular.call(dep);
+            return search.mock.calls.length > searchesBefore;
+        }
+
+        /** `addDependencyAndCheck` with one edge, to `v` of `to`. */
+        function addEdgeAndCheck(from: string, to: string) {
+            return addDependencyAndCheck(from, [[to, ["v"]]]);
+        }
+
+        return {
+            dependencies,
+            idx,
+            addEdge,
+            addEdgeAndCheck,
+            addDependencyAndCheck,
+            check,
+        };
     }
+
+    it("an edge to a variable with no dependencies is not searched", async () => {
+        const { addEdgeAndCheck } = await handlerWithFourNumbers();
+        expect(addEdgeAndCheck("a", "b")).toBe(false);
+        expect(addEdgeAndCheck("b", "c")).toBe(false);
+        // c now depends on nothing, but b does, so this one is searched
+        expect(addEdgeAndCheck("d", "b")).toBe(true);
+    });
+
+    // A dependency on several variables is searched if any one of its
+    // edges can close a cycle, wherever that edge comes among them.
+    it("a dependency on several variables is searched if any edge can close a cycle", async () => {
+        const { addEdgeAndCheck, addDependencyAndCheck } =
+            await handlerWithFourNumbers();
+        addEdgeAndCheck("b", "c");
+        // `w` of every number and `v` of `c` and `d` depend on nothing
+        expect(
+            addDependencyAndCheck("a", [
+                ["c", ["v", "w"]],
+                ["d", ["v"]],
+            ]),
+        ).toBe(false);
+        // only the second target can close a cycle
+        expect(
+            addDependencyAndCheck("d", [
+                ["c", ["v"]],
+                ["b", ["v"]],
+            ]),
+        ).toBe(true);
+        // only the second variable of the target can close a cycle
+        expect(addDependencyAndCheck("a", [["d", ["w", "v"]]])).toBe(true);
+        // only the first target can close a cycle
+        expect(
+            addDependencyAndCheck("a", [
+                ["b", ["v"]],
+                ["c", ["v"]],
+            ]),
+        ).toBe(true);
+    });
+
+    it("a cycle closed by a later edge of a dependency is found", async () => {
+        const { addEdgeAndCheck, addDependencyAndCheck } =
+            await handlerWithFourNumbers();
+        addEdgeAndCheck("a", "d");
+        expect(() =>
+            addDependencyAndCheck("d", [
+                ["b", ["v"]],
+                ["c", ["w", "v"]],
+                ["a", ["w", "v"]],
+            ]),
+        ).toThrow(circularError);
+    });
+
+    it("a variable depending on itself is always searched", async () => {
+        const { dependencies, idx, addEdgeAndCheck } =
+            await handlerWithFourNumbers();
+        // Even before the dependency is recorded below `a`, when `a` still
+        // depends on nothing.
+        expect(
+            dependencies.edgeCanCloseCycle(
+                { upstreamComponentIdx: idx.a, upstreamVariableNames: ["v"] },
+                idx.a,
+                "v",
+            ),
+        ).toBe(true);
+        expect(() => addEdgeAndCheck("a", "a")).toThrow(
+            `${circularError}: <number> (line 1).`,
+        );
+    });
+
+    // The skip relies on the edge that later leads out of the skipped
+    // variable: its reset reaches back through the skipped edge, and its
+    // search goes forward from there, so a cycle through it is still found.
+    // Against a plain reachability search, over random edges between 40
+    // variables, added the way `Dependency` adds them and removed with no
+    // reset at all: an added edge must be reported exactly when it closes a
+    // cycle, and a search from anywhere must pass while there is none.
+    it("agrees with a brute-force search over random edges", async () => {
+        const { dependencies, idx } = await handlerWithFourNumbers();
+        const nodes: [number, string][] = [];
+        for (const name of ["a", "b", "c", "d"]) {
+            for (let k = 0; k < 10; k++) {
+                nodes.push([idx[name], `x${k}`]);
+            }
+        }
+        const key = ([c, v]: [number, string]) => `${c}|${v}`;
+        const edges = new Map<string, any>();
+
+        const reaches = (from: string, to: string) => {
+            const seen = new Set<string>();
+            const stack = [from];
+            while (stack.length > 0) {
+                const node = stack.pop()!;
+                if (node === to) {
+                    return true;
+                }
+                if (seen.has(node)) {
+                    continue;
+                }
+                seen.add(node);
+                for (const [edgeKey] of edges) {
+                    const [a, b] = edgeKey.split(">");
+                    if (a === node) {
+                        stack.push(b);
+                    }
+                }
+            }
+            return false;
+        };
+
+        const addEdge = (from: [number, string], to: [number, string]) => {
+            const dep = {
+                dependencyName: `${key(from)}>${key(to)}`,
+                dependencyHandler: dependencies,
+                upstreamComponentIdx: from[0],
+                upstreamVariableNames: [from[1]],
+                downstreamComponentIndices: [to[0]],
+                mappedDownstreamVariableNamesByComponent: [[to[1]]],
+            };
+            const down = (dependencies.downstreamDependencies[from[0]] ??= {});
+            (down[from[1]] ??= {})[dep.dependencyName] = dep;
+            const up = (dependencies.upstreamDependencies[to[0]] ??= {});
+            up[to[1]] = (up[to[1]] ?? []).concat(dep);
+            edges.set(dep.dependencyName, dep);
+            if (dependencies.edgeCanCloseCycle(dep, to[0], to[1])) {
+                dependencies.resetCircularCheckPassed(from[0], from[1]);
+            } else {
+                dependencies.markLeafPassed(to[0], to[1]);
+            }
+            Dependency.prototype.checkForCircular.call(dep);
+        };
+
+        const removeEdge = (name: string) => {
+            const dep = edges.get(name);
+            edges.delete(name);
+            const from = dep.upstreamComponentIdx;
+            const fromVar = dep.upstreamVariableNames[0];
+            const to = dep.downstreamComponentIndices[0];
+            const toVar = dep.mappedDownstreamVariableNamesByComponent[0][0];
+            delete dependencies.downstreamDependencies[from][fromVar][name];
+            dependencies.upstreamDependencies[to][toVar] =
+                dependencies.upstreamDependencies[to][toVar].filter(
+                    (d: any) => d !== dep,
+                );
+        };
+
+        let seed = 2132;
+        const random = () => {
+            seed = (seed * 1103515245 + 12345) % 2 ** 31;
+            return seed / 2 ** 31;
+        };
+        const pick = () => nodes[Math.floor(random() * nodes.length)];
+
+        let cyclesFound = 0;
+        for (let step = 0; step < 3000; step++) {
+            const r = random();
+            // About as many removals as additions, which keeps the graph
+            // sparse enough that many targets depend on nothing.
+            if (edges.size > 0 && r < 0.4) {
+                const names = [...edges.keys()];
+                removeEdge(names[Math.floor(random() * names.length)]);
+            } else if (r < 0.55) {
+                const node = pick();
+                expect(() =>
+                    dependencies.checkForCircularDependency({
+                        componentIdx: node[0],
+                        varName: node[1],
+                    }),
+                ).not.toThrow();
+            } else {
+                const from = pick();
+                const to = pick();
+                const name = `${key(from)}>${key(to)}`;
+                if (edges.has(name)) {
+                    continue;
+                }
+                const closesCycle =
+                    key(from) === key(to) || reaches(key(to), key(from));
+                let threw = false;
+                try {
+                    addEdge(from, to);
+                } catch (e) {
+                    threw = true;
+                }
+                expect(threw, `adding ${name}`).toBe(closesCycle);
+                if (threw) {
+                    // A cycle ends the document; take the edge back out and
+                    // start the memos afresh to go on.
+                    cyclesFound++;
+                    removeEdge(name);
+                    dependencies.circularCheckMarks.clear();
+                }
+            }
+        }
+        expect(cyclesFound).toBeGreaterThan(10);
+    });
+
+    it("a cycle closed through a variable that had no dependencies is found", async () => {
+        const { addEdgeAndCheck, check } = await handlerWithFourNumbers();
+        addEdgeAndCheck("a", "b");
+        check("a"); // memoizes a and b as passed
+        addEdgeAndCheck("b", "c"); // skipped: c depends on nothing
+        expect(() => addEdgeAndCheck("c", "a")).toThrow(circularError);
+    });
+
+    // The handler tests above add edges themselves; this one checks what
+    // `Dependency` leaves behind over a real load. Each edge it skips must
+    // leave its target marked, or a memoized variable would sit above an
+    // unmemoized one and a later reset would stop short of it.
+    it("leaves no memoized variable above an unmemoized one after a load", async () => {
+        const found: { passed: number; unmarkedBelow: string[] }[] = [];
+        const clear = DependencyHandler.prototype.clearCircularCheckMemos;
+        const spy = vi
+            .spyOn(DependencyHandler.prototype, "clearCircularCheckMemos")
+            .mockImplementation(function (this: DependencyHandler) {
+                found.push(memoizedAboveUnmemoized(this));
+                return clear.call(this);
+            });
+        try {
+            await createTestCore({
+                doenetML: `<mathinput name="n" prefill="3"/>
+<graph>
+  <point name="P">(1,2)</point>
+  <line through="$P (3,4)"/>
+  <circle center="$P" radius="$P.x"/>
+</graph>
+<repeatForSequence from="1" to="$n" valueName="v">
+  <math simplify>$v^2+$n</math><point>($v, $v^2)</point>
+</repeatForSequence>`,
+            });
+        } finally {
+            spy.mockRestore();
+        }
+        expect(found).toHaveLength(1);
+        expect(found[0].passed).toBeGreaterThan(0);
+        expect(found[0].unmarkedBelow).toEqual([]);
+    });
 
     it("reports the path that closes a cycle, once", async () => {
         const { addEdge, check } = await handlerWithFourNumbers();
