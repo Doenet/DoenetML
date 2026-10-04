@@ -2314,6 +2314,40 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     present,
                 );
             });
+
+            it("a function's global minimum when it has none is missing", async () => {
+                // The function `x` has no global minimum, and `-x^2` none
+                // either. Their entries hold no value, so the references are
+                // missing: unequal, and left out of an operator. (The copy
+                // made a component holding `NaN` for them.)
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <function name="f">x</function>
+    <function name="g">-x^2</function>
+    <function name="h">x^2</function>
+    <boolean name="location">$f.globalMinimumLocation = $g.globalMinimumLocation</boolean>
+    <boolean name="value">$f.globalMinimumValue = $g.globalMinimumValue</boolean>
+    <boolean name="present">$h.globalMinimumLocation = 0</boolean>
+    <sum name="sum">$f.globalMinimumValue 5</sum>
+    <number name="num">$f.globalMinimumValue</number>
+    `,
+                });
+                expect(
+                    await values(core, resolvePathToNodeIdx, [
+                        "location",
+                        "value",
+                        "present",
+                        "sum",
+                        "num",
+                    ]),
+                ).eqls({
+                    location: false,
+                    value: false,
+                    present: true,
+                    sum: 5,
+                    num: NaN,
+                });
+            });
         });
 
         describe("references an answer counts as responses", () => {
