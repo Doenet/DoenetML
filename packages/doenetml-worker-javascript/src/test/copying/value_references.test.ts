@@ -9,6 +9,7 @@ import {
     updateTextInputValue,
 } from "../utils/actions";
 import { censusOfCore } from "../perf/census";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -1071,6 +1072,57 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 expect((await ref.stateValues.referentInfo).variableName).eq(
                     variableName,
                 );
+            }
+        });
+
+        it("a reference made from the document says when its index is not a number", async () => {
+            // An index that is not a number names no property. A reference
+            // that resolves itself says so as a copy does, at the reference
+            // and with the path the author wrote, whether the index is
+            // written (`x`) or is a component's value (`$i` while `i` is
+            // not a number), and says it once.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="i">x</mathInput>
+    <graph><point name="P">(3,4)</point></graph>
+    <math name="a">$P.xs[x]</math>
+    <math name="b">$P.xs[$i]</math>
+    `,
+            });
+            const iIdx = await resolvePathToNodeIdx("i");
+            const aIdx = await resolvePathToNodeIdx("a");
+            const bIdx = await resolvePathToNodeIdx("b");
+            const values = async () => {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                return [aIdx, bIdx].map(
+                    (idx) => stateVariables[idx].stateValues.value.tree,
+                );
+            };
+            const notFound = () =>
+                getDiagnosticsByType(core)
+                    .infos.filter((info) => info.code === "doenet-i0018")
+                    .map((info) => [info.message, info.position?.start.line]);
+            const expectedNotFound = [
+                ["Could not find prop xs[x] on a component of type point", 4],
+                ["Could not find prop xs[$i] on a component of type point", 5],
+            ];
+
+            // both are references of their own; the copy is the `$i`
+            expect(valueRefs(core).length).eq(2);
+            expect(censusOfCore(core).copies).eq(1);
+            expect(await values()).eqls(["\uff3f", "\uff3f"]);
+            expect(notFound()).eqls(expectedNotFound);
+
+            for (const [latex, expected] of [
+                ["2", 4],
+                ["y", "\uff3f"],
+            ] as const) {
+                await updateMathInputValue({ latex, componentIdx: iIdx, core });
+                expect(await values()).eqls(["\uff3f", expected]);
+                expect(notFound()).eqls(expectedNotFound);
             }
         });
 

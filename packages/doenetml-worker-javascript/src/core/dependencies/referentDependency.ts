@@ -7,6 +7,7 @@
 import { Dependency } from "./Dependency";
 import { arrayEntryNamesFromPropIndex } from "../StateVariableInitializer";
 import { doenetMLStringForReference } from "../../utils/sourceLocation";
+import { codedDiagnostic } from "../../utils/diagnostics";
 import {
     describeReferentVariable,
     type ReferentDescription,
@@ -112,18 +113,39 @@ export class ReferentDependency extends Dependency {
         }
 
         if (index.length > 0) {
-            const propIndex = index.map((indexPart: any) =>
-                Math.round(Number(indexPart.value[0])),
-            );
-            if (!propIndex.every(Number.isFinite)) {
-                return undefined;
-            }
-
             // The reference as the author wrote it, so a failure to apply
             // the index is reported in those terms (the upstream component
             // is the reference).
             const referringComponent =
                 core._components[this.upstreamComponentIdx];
+
+            const propIndex = index.map((indexPart: any) =>
+                Math.round(Number(indexPart.value[0])),
+            );
+            if (!propIndex.every(Number.isFinite)) {
+                // An index that is not a number (`$P.xs[x]`, or `$P.xs[$i]`
+                // while `i` is not one) names no property; the author is
+                // told so at the reference, with the path they wrote, as
+                // for a reference a copy resolves (`replacementFromProp`
+                // in `Copy.js`).
+                core.addDiagnostic(
+                    codedDiagnostic({
+                        type: "info",
+                        code: "doenet-i0018",
+                        args: {
+                            property: doenetMLStringForReference(
+                                unresolvedPath,
+                                core.allDoenetMLs,
+                            ),
+                            component: component.componentType,
+                        },
+                        position: referringComponent?.position,
+                        sourceDoc: referringComponent?.sourceDoc,
+                    }),
+                );
+                return undefined;
+            }
+
             const referenceText = doenetMLStringForReference(
                 referringComponent?.refResolution?.originalPath,
                 core.allDoenetMLs,
