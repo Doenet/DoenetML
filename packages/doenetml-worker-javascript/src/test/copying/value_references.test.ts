@@ -2672,6 +2672,106 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 });
             });
 
+            it("a variable that holds no value is recorded as the empty value of its type", async () => {
+                // A variable that is there but holds no value is recorded as
+                // the copy's component holding it was, with the empty value
+                // of its type: an attribute with no default holds `null`,
+                // and a `selectedValue` a copy made the reference for holds
+                // nothing once the selected choice is withheld. The answer
+                // cannot record either as it is: submitting it fails.
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <boolean name="b">true</boolean>
+    <booleanInput name="bi" bindValueTo="$b" />
+    <choiceInput name="ct1">
+      <choice>one</choice>
+      <conditionalContent condition="$b"><choice>two</choice></conditionalContent>
+    </choiceInput>
+    <choiceInput name="ct2">
+      <choice>one</choice>
+      <conditionalContent condition="$b"><choice>two</choice></conditionalContent>
+    </choiceInput>
+    <answer><mathInput /><award name="aw">1</award></answer>
+    <graph name="g"><point>(1,2)</point></graph>
+    <collect name="col" componentType="point" from="$g" />
+    <answer name="nulls"><award><when>$aw.feedbackText = hello and $col.maxNumber = 1</when></award></answer>
+    <answer name="noValue"><award><when>$ct1.selectedValue = $ct2.selectedValue</when></award></answer>
+    `,
+                });
+                const nullsIdx = await resolvePathToNodeIdx("nulls");
+                await submitAnswer({ componentIdx: nullsIdx, core });
+                expect(await submitted(core, nullsIdx)).eqls({
+                    responses: ["", NaN],
+                    types: ["text", "number"],
+                    credit: 0,
+                    numResponses: 2,
+                });
+
+                for (const name of ["ct1", "ct2"]) {
+                    await updateSelectedIndices({
+                        selectedIndices: [2],
+                        componentIdx: await resolvePathToNodeIdx(name),
+                        core,
+                    });
+                }
+                await updateBooleanInputValue({
+                    boolean: false,
+                    componentIdx: await resolvePathToNodeIdx("bi"),
+                    core,
+                });
+                const noValueIdx = await resolvePathToNodeIdx("noValue");
+                await submitAnswer({ componentIdx: noValueIdx, core });
+                expect(await submitted(core, noValueIdx)).eqls({
+                    responses: ["", ""],
+                    types: ["text", "text"],
+                    credit: 1,
+                    numResponses: 2,
+                });
+            });
+
+            it("a missing entry inside an operator, a text or an award's own content is one empty response", async () => {
+                // The copy made nothing for a missing entry directly in an
+                // `<award>` or in an operator such as `<sum>` or `<and>`, and
+                // an empty text in a `<text>`, at the top of the document
+                // too. A reference is one empty math in each.
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <numberList name="l">5 6</numberList>
+    <textList name="tl">a b</textList>
+    <booleanList name="bl">true false</booleanList>
+    <mathInput name="mi" />
+    <answer name="inSum"><award><when><sum>$l[3] 1</sum> = $mi</when></award></answer>
+    <answer name="inAnd"><award><when><and>$bl[3] true</and> and $mi = x</when></award></answer>
+    <answer name="inText"><award><when><text>$tl[3]</text> = $mi</when></award></answer>
+    <answer name="inAward" type="text"><textInput name="own" /><award referencesAreResponses="$tl[3]">$tl[3]</award></answer>
+    `,
+                });
+                const answers = ["inSum", "inAnd", "inText", "inAward"];
+                const results: Record<string, any> = {};
+                for (const name of answers) {
+                    const ansIdx = await resolvePathToNodeIdx(name);
+                    await submitAnswer({ componentIdx: ansIdx, core });
+                    results[name] = await submitted(core, ansIdx);
+                }
+                const missingAndBlank = {
+                    responses: ["＿", "＿"],
+                    types: ["math", "math"],
+                    credit: 0,
+                    numResponses: 2,
+                };
+                expect(results).eqls({
+                    inSum: missingAndBlank,
+                    inAnd: missingAndBlank,
+                    inText: missingAndBlank,
+                    inAward: {
+                        responses: ["", "＿"],
+                        types: ["text", "math"],
+                        credit: 0,
+                        numResponses: 2,
+                    },
+                });
+            });
+
             it("a reference named in referencesAreResponses is recorded from its referent", async () => {
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `

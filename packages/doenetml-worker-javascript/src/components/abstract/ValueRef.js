@@ -513,7 +513,13 @@ export default class ValueRef extends BaseComponent {
         }
         if (stateVariable === "valueAsResponse") {
             return [
-                [stateVariable, valueAsResponseDefinition(this.fixedReferent)],
+                [
+                    stateVariable,
+                    valueAsResponseDefinition(
+                        this.doenetAttributes.referencedComponentType,
+                        this.fixedReferent,
+                    ),
+                ],
             ];
         }
         if (stateVariable === "componentTypeAsResponse") {
@@ -702,8 +708,16 @@ function valueMissingDefinition() {
  * of responses does not depend on whether an entry is there. A reference a
  * copy made at run time has no `valueMissing` and is never missing: the copy
  * makes no reference for an entry that is not there.
+ *
+ * A variable that is there but holds no value is recorded as the empty value
+ * of the referenced type (`referencedComponentType`), as the copy's
+ * component holding it was: `null` for an attribute with no default (an
+ * `<award>`'s `feedbackText`), or `undefined` for a variable a copy made the
+ * reference for and that has lost its value since (`$c.selectedValue` once
+ * the selected choice is withheld). Submitting an answer fails on a
+ * response of `null` or `undefined`.
  */
-function valueAsResponseDefinition(fixedReferent) {
+function valueAsResponseDefinition(referencedComponentType, fixedReferent) {
     const definition = {
         returnDependencies({ stateValues = {} }) {
             const referentInfo = fixedReferent ?? stateValues.referentInfo;
@@ -725,14 +739,20 @@ function valueAsResponseDefinition(fixedReferent) {
             }
             return dependencies;
         },
-        definition({ dependencyValues }) {
-            return {
-                setValue: {
-                    valueAsResponse: dependencyValues.valueMissing
-                        ? me.fromAst("\uff3f")
-                        : dependencyValues.referenced,
-                },
-            };
+        definition({ dependencyValues, componentInfoObjects }) {
+            let valueAsResponse = dependencyValues.referenced;
+            if (dependencyValues.valueMissing) {
+                valueAsResponse = me.fromAst("\uff3f");
+            } else if (
+                valueAsResponse === undefined ||
+                valueAsResponse === null
+            ) {
+                valueAsResponse = emptyValueOfType(
+                    referencedComponentType,
+                    componentInfoObjects,
+                );
+            }
+            return { setValue: { valueAsResponse } };
         },
     };
     if (!fixedReferent) {
