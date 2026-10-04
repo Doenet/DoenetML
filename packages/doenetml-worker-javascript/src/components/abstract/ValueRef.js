@@ -634,9 +634,9 @@ function targetDependencies(fixedReferent, referentInfo) {
  * The parents for which a copy that made nothing gave a different result
  * ask for it. That copy gave a blank math in a comparison
  * (`returnChildrenByCodeStateVariableDefinitions` in `utils/booleanLogic.js`)
- * and nothing at all among a math operator's operands
- * (`MathBaseOperator.js`); everywhere else the empty value of the presented
- * type is what the copy showed, and nothing asks.
+ * and nothing at all among the operands of a math or boolean operator
+ * (`MathBaseOperator.js`, `BooleanBaseOperator.js`). Nothing else asks, and
+ * there the reference holds the empty value of the presented type.
  *
  * A reference a copy made at run time (`fixedReferent`) has no
  * `valueMissing`. The copy makes no reference for an entry that is not

@@ -2095,17 +2095,62 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 ).eqls({ n: 2, min: 2 });
             });
 
+            it("a boolean operator leaves it out of its operands", async () => {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <booleanList name="bl">true false</booleanList>
+    <mathInput name="k">5</mathInput>
+    <number name="i">$k</number>
+    <boolean name="t">true</boolean>
+    <and name="and">$bl[$i] true</and>
+    <and name="andOnly">$bl[$i]</and>
+    <and name="andNone">$bl[$i] $bl[$i+1]</and>
+    <iff name="iff">$bl[$i] true</iff>
+    <implies name="implies">$bl[$i] $t</implies>
+    `,
+                });
+                // `<or>` and `<xor>` count only the true operands, so an
+                // operand left out and one read as `false` agree there
+                const names = ["and", "andOnly", "andNone", "iff", "implies"];
+                expect(censusOfCore(core).copies).eq(0);
+                expect(await values(core, resolvePathToNodeIdx, names)).eqls({
+                    and: true,
+                    // with no operand left, as with no children
+                    andOnly: true,
+                    andNone: true,
+                    iff: true,
+                    // `<implies>` with one operand is its negation
+                    implies: false,
+                });
+
+                // once the entry is there, it is an operand again
+                await updateMathInputValue({
+                    latex: "2",
+                    componentIdx: await resolvePathToNodeIdx("k"),
+                    core,
+                });
+                expect(await values(core, resolvePathToNodeIdx, names)).eqls({
+                    and: false,
+                    andOnly: false,
+                    andNone: false,
+                    iff: false,
+                    implies: true,
+                });
+            });
+
             it("behaves the same in a repeat and a group as at document level", async () => {
                 const block = (prefix: string, i: string, j: string) => `
       <boolean name="${prefix}eq">$l[${i}] = $l[${j}]</boolean>
       <boolean name="${prefix}ne">$l[${i}] != $l[${j}]</boolean>
       <boolean name="${prefix}text">$tl[${i}] = $ti</boolean>
       <boolean name="${prefix}textNe">$tl[${i}] != $ti</boolean>
-      <sum name="${prefix}sum">$l[${i}] 5</sum>`;
+      <sum name="${prefix}sum">$l[${i}] 5</sum>
+      <and name="${prefix}and">$bl[${i}] true</and>`;
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
     <numberList name="l">5 6</numberList>
     <textList name="tl">a b</textList>
+    <booleanList name="bl">false false</booleanList>
     <textInput name="ti" />
     ${block("d", "3", "4")}
     <repeatForSequence name="r" from="3" to="3" valueName="v">${block("", "$v", "$v+1")}</repeatForSequence>
@@ -2115,7 +2160,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 // A blank math and a text are not comparable, so `textNe` is
                 // false. Inside a composite the copy made nothing, which
                 // made it true there and false at document level.
-                const expected = [false, true, false, false, 5];
+                const expected = [false, true, false, false, 5, true];
                 for (const name of [
                     (n: string) => "d" + n,
                     (n: string) => "r[1]." + n,
@@ -2124,7 +2169,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     const result = await values(
                         core,
                         resolvePathToNodeIdx,
-                        ["eq", "ne", "text", "textNe", "sum"].map(name),
+                        ["eq", "ne", "text", "textNe", "sum", "and"].map(name),
                     );
                     expect(Object.values(result)).eqls(expected);
                 }
