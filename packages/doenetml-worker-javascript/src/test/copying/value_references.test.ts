@@ -1200,5 +1200,49 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             }
             expect(censusOfCore(core).copies).eq(0);
         });
+
+        it("a parent reading a reference's adapter source follows a referent that is remade", async () => {
+            // `grid="$a $b"` holds two references presenting as texts for
+            // numbers. The graph reads each one's adapter source, which for a
+            // reference is its referent. `b` extends the second item of a
+            // sequence: with one item it is made with nothing to extend, and
+            // it is deleted and remade as the sequence grows past it. The
+            // graph's reading has to come back with it, also in a copy of
+            // the graph, whose references are whole shadows of these.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="k">1</mathInput>
+    <sequence name="s" from="1" to="$k" />
+    <number extend="$s[1]" name="a" />
+    <number extend="$s[2]" name="b" />
+    <graph name="g" grid="$a $b" />
+    <graph extend="$g" name="g2" />
+    `,
+            });
+            const kIdx = await resolvePathToNodeIdx("k");
+            const gIdx = await resolvePathToNodeIdx("g");
+            const g2Idx = await resolvePathToNodeIdx("g2");
+            const grids = async () => {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                return [
+                    stateVariables[gIdx].stateValues.grid,
+                    stateVariables[g2Idx].stateValues.grid,
+                ];
+            };
+
+            expect(await grids()).eqls(["none", "none"]);
+
+            for (const [latex, expected] of [
+                ["2", [1, 2]],
+                ["1", "none"],
+                ["3", [1, 2]],
+            ] as const) {
+                await updateMathInputValue({ latex, componentIdx: kIdx, core });
+                expect(await grids()).eqls([expected, expected]);
+            }
+        });
     },
 );

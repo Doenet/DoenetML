@@ -5,60 +5,39 @@
  */
 
 import { Dependency } from "./Dependency";
+import { referentVariableName } from "../../utils/valueReference";
 
 /**
- * The component `component` was adapted from, for a dependency of
- * `component` that asks about its adapter's source.
+ * Where a dependency of `component` that asks about its adapter's source
+ * reads from.
  *
- * A value reference (`_ref`) that presents as an adapter's type has no
- * adapter component; the referent it reads is what the adapter would have
- * been made from, and it is known once the reference's `referentInfo` has
- * resolved. Until then the dependency is blocked on that variable and
- * recalculated when it resolves.
+ * A component an adapter made reads the component it was adapted from. A
+ * value reference (`_ref`) that presents as an adapter's type has no adapter
+ * component; the referent it reads is what the adapter would have been made
+ * from, and the reference knows it (`referentInfo`) and follows it. The
+ * dependency then reads the reference itself rather than reaching past it
+ * to the referent: `referentInfo` for the source's identity, and for a
+ * variable of the source the variable the reference makes on demand under
+ * `referentVariableName`, which reads the referent's variable as it is
+ * there (`ValueRef.createOnDemandStateVariableDefinitions`). Those are
+ * determined by `referentInfo` and name the referent, so the dependency
+ * keeps up when the reference retargets and when its referent is deleted
+ * and remade; a dependency on the referent directly would be left with
+ * nothing downstream, since it names the reference and the deletion only
+ * re-registers dependencies that name the deleted component.
+ *
+ * `undefined` for a component that is neither adapted nor such a reference.
  */
-async function adapterSourceOf(
-    dependency: Dependency,
+function adapterSourceOf(
     component: any,
-): Promise<{ source?: any; blocked?: boolean }> {
+): { source: any; isReference: boolean } | undefined {
     if (component.adaptedFrom) {
-        return { source: component.adaptedFrom };
+        return { source: component.adaptedFrom, isReference: false };
     }
-    if (!component.presentsAsAdapter) {
-        return {};
+    if (component.presentsAsAdapter) {
+        return { source: component, isReference: true };
     }
-
-    const referentInfo = component.state.referentInfo;
-    if (!referentInfo?.isResolved) {
-        for (const varName of dependency.upstreamVariableNames) {
-            await dependency.dependencyHandler.addBlocker({
-                blockerComponentIdx: component.componentIdx,
-                blockerType: "stateVariable",
-                blockerStateVariable: "referentInfo",
-                componentIdxBlocked: dependency.upstreamComponentIdx,
-                typeBlocked: "recalculateDownstreamComponents",
-                stateVariableBlocked: varName,
-                dependencyBlocked: dependency.dependencyName,
-            });
-
-            await dependency.dependencyHandler.addBlocker({
-                blockerComponentIdx: dependency.upstreamComponentIdx,
-                blockerType: "recalculateDownstreamComponents",
-                blockerStateVariable: varName,
-                blockerDependency: dependency.dependencyName,
-                componentIdxBlocked: dependency.upstreamComponentIdx,
-                typeBlocked: "stateVariable",
-                stateVariableBlocked: varName,
-            });
-        }
-        return { blocked: true };
-    }
-
-    const info = await referentInfo.value;
-    return {
-        source: info
-            ? dependency.dependencyHandler._components[info.componentIdx]
-            : undefined,
-    };
+    return undefined;
 }
 
 export class AdapterSourceStateVariableDependency extends Dependency {
@@ -137,17 +116,9 @@ export class AdapterSourceStateVariableDependency extends Dependency {
             };
         }
 
-        const { source, blocked } = await adapterSourceOf(this, component);
+        const adapterSource = adapterSourceOf(component);
 
-        if (blocked) {
-            return {
-                success: false,
-                downstreamComponentIndices: [],
-                downstreamComponentTypes: [],
-            };
-        }
-
-        if (!source) {
+        if (!adapterSource) {
             return {
                 success: true,
                 downstreamComponentIndices: [],
@@ -155,10 +126,18 @@ export class AdapterSourceStateVariableDependency extends Dependency {
             };
         }
 
+        // The variable is the source's own on an adapted component, and the
+        // one a reference exposes it under
+        this.originalDownstreamVariableNames = [
+            adapterSource.isReference
+                ? referentVariableName(this.definition.variableName)
+                : this.definition.variableName,
+        ];
+
         return {
             success: true,
-            downstreamComponentIndices: [source.componentIdx],
-            downstreamComponentTypes: [source.componentType],
+            downstreamComponentIndices: [adapterSource.source.componentIdx],
+            downstreamComponentTypes: [adapterSource.source.componentType],
         };
     }
 
@@ -181,6 +160,12 @@ export class AdapterSourceStateVariableDependency extends Dependency {
 
 export class AdapterSourceDependency extends Dependency {
     static dependencyType = "adapterSource";
+
+    /**
+     * Set when the component is a value reference, whose source is read off
+     * its `referentInfo` (see `adapterSourceOf`).
+     */
+    readsReference = false;
 
     setUpParameters() {
         if (this.definition.componentIdx != undefined) {
@@ -257,17 +242,9 @@ export class AdapterSourceDependency extends Dependency {
             };
         }
 
-        const { source, blocked } = await adapterSourceOf(this, component);
+        const adapterSource = adapterSourceOf(component);
 
-        if (blocked) {
-            return {
-                success: false,
-                downstreamComponentIndices: [],
-                downstreamComponentTypes: [],
-            };
-        }
-
-        if (!source) {
+        if (!adapterSource) {
             return {
                 success: true,
                 downstreamComponentIndices: [],
@@ -275,11 +252,45 @@ export class AdapterSourceDependency extends Dependency {
             };
         }
 
+        const variableNames: string[] = this.definition.variableNames ?? [];
+        this.readsReference = adapterSource.isReference;
+        this.originalDownstreamVariableNames = this.readsReference
+            ? ["referentInfo", ...variableNames.map(referentVariableName)]
+            : variableNames;
+
         return {
             success: true,
-            downstreamComponentIndices: [source.componentIdx],
-            downstreamComponentTypes: [source.componentType],
+            downstreamComponentIndices: [adapterSource.source.componentIdx],
+            downstreamComponentTypes: [adapterSource.source.componentType],
         };
+    }
+
+    async getValue(args?: any) {
+        const result = await super.getValue(args);
+        if (!this.readsReference || !result.value) {
+            return result;
+        }
+
+        // Present the referent as the source, with the variables asked for
+        // under their own names
+        const { referentInfo, ...exposed } = result.value.stateValues ?? {};
+        if (!referentInfo) {
+            result.value = null;
+            return result;
+        }
+        const value: Record<string, any> = {
+            componentIdx: referentInfo.componentIdx,
+            componentType: referentInfo.componentType,
+        };
+        if (this.definition.variableNames) {
+            value.stateValues = {};
+            for (const variableName of this.definition.variableNames) {
+                value.stateValues[variableName] =
+                    exposed[referentVariableName(variableName)];
+            }
+        }
+        result.value = value;
+        return result;
     }
 
     deleteFromUpdateTriggers() {

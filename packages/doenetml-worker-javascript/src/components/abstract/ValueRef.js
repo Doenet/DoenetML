@@ -1,6 +1,7 @@
 import me from "math-expressions";
 import BaseComponent from "./BaseComponent";
 import { reportInternalError } from "../../utils/internalErrors";
+import { variableOfReferentVariable } from "../../utils/valueReference";
 
 /**
  * A value reference: the component a bare `$n` becomes when it stands where
@@ -499,11 +500,31 @@ export default class ValueRef extends BaseComponent {
      * does not take a write, whereas the borrowed `text` inverts to `value`
      * and so to the referent. Arrays and definitions of several variables
      * are borrowed as they are.
+     *
+     * A name made by `referentVariableName` (`utils/valueReference.ts`) asks
+     * instead for a variable of the referent as it is there
+     * (`readsReferentVariable`): what a dependency on this reference's
+     * adapter source reads (`adapterDependencies.ts`), since the referent is
+     * that source.
      */
     createOnDemandStateVariableDefinitions({
         stateVariable,
         classDefinitions,
     }) {
+        const referentVariable = variableOfReferentVariable(stateVariable);
+        if (referentVariable !== undefined) {
+            return [
+                [
+                    stateVariable,
+                    readsReferentVariable(
+                        stateVariable,
+                        referentVariable,
+                        this.fixedReferent,
+                    ),
+                ],
+            ];
+        }
+
         const presentedClass =
             this.componentInfoObjects.allComponentClasses[
                 this.presentedComponentType
@@ -727,5 +748,69 @@ function companionOrBorrowed(name, classDef, fixedReferent) {
         };
     };
 
+    return definition;
+}
+
+/**
+ * A definition of `name` that reads `variableName` of the referent as it is
+ * there, mirroring the referent's `usedDefault` and passing a write on to
+ * it; `null` while there is no referent or the referent lacks the variable.
+ * Made on demand under `referentVariableName(variableName)` for the
+ * adapter-source dependencies (`adapterDependencies.ts`), which read the
+ * source's variables through the reference. Its dependency is determined by
+ * `referentInfo`, so it follows a retargeting, and names the referent, so it
+ * is re-attached when the referent is deleted and remade.
+ */
+function readsReferentVariable(name, variableName, fixedReferent) {
+    const definition = {
+        // for `useEssentialOrDefaultValue`, which mirrors `usedDefault`
+        hasEssential: true,
+        defaultValue: null,
+        returnDependencies({ stateValues = {} }) {
+            const referentInfo = fixedReferent ?? stateValues.referentInfo;
+            if (!referentInfo) {
+                return {};
+            }
+            return {
+                fromReferent: {
+                    dependencyType: "stateVariable",
+                    componentIdx: referentInfo.componentIdx,
+                    variableName,
+                    variablesOptional: true,
+                },
+            };
+        },
+        definition({ dependencyValues, usedDefault }) {
+            const value = dependencyValues.fromReferent;
+            if (value === undefined || value === null) {
+                return { setValue: { [name]: null } };
+            }
+            if (usedDefault.fromReferent) {
+                return {
+                    useEssentialOrDefaultValue: {
+                        [name]: { defaultValue: value },
+                    },
+                };
+            }
+            return { setValue: { [name]: value } };
+        },
+        async inverseDefinition({ desiredStateVariableValues, stateValues }) {
+            if (!(await stateValues.referentInfo)) {
+                return { success: false };
+            }
+            return {
+                success: true,
+                instructions: [
+                    {
+                        setDependency: "fromReferent",
+                        desiredValue: desiredStateVariableValues[name],
+                    },
+                ],
+            };
+        },
+    };
+    if (!fixedReferent) {
+        definition.stateVariablesDeterminingDependencies = ["referentInfo"];
+    }
     return definition;
 }

@@ -400,3 +400,31 @@ function childGroupAccepts(
     }
     return false;
 }
+
+/**
+ * The prefix of the names under which a value reference (`_ref`) exposes
+ * the state variables of its referent as they are on the referent. The
+ * reference's own `value` is what it presents (`n.text` for `$n` standing
+ * in a `<text>`); `referentVariableName("value")` is `n.value`, the number.
+ * `ValueRef.createOnDemandStateVariableDefinitions` makes such a variable
+ * when asked for it, and the adapter-source dependencies
+ * (`core/dependencies/adapterDependencies.ts`) ask: a reference presenting
+ * as an adapter's type has no adapter component, and its referent is what
+ * the adapter would have been made from.
+ */
+const REFERENT_VARIABLE_PREFIX = "__referent_";
+
+/** The name under which a `_ref` exposes `variableName` of its referent. */
+export function referentVariableName(variableName: string): string {
+    return REFERENT_VARIABLE_PREFIX + variableName;
+}
+
+/**
+ * The referent's variable that `name` exposes, when `name` was made by
+ * `referentVariableName`; `undefined` otherwise.
+ */
+export function variableOfReferentVariable(name: string): string | undefined {
+    return name.startsWith(REFERENT_VARIABLE_PREFIX)
+        ? name.slice(REFERENT_VARIABLE_PREFIX.length)
+        : undefined;
+}
