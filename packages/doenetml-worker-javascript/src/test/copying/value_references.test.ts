@@ -2315,20 +2315,24 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 );
             });
 
-            it("a function's global minimum when it has none is missing", async () => {
+            it("a function's global extremum when none is found is missing", async () => {
                 // The function `x` has no global minimum, and `-x^2` none
-                // either. Their entries hold no value, so the references are
-                // missing: unequal, and left out of an operator. (The copy
-                // made a component holding `NaN` for them.)
+                // either. No global extremum is found for a function of two
+                // variables, such as `k`, even an infimum. Their entries hold
+                // no value, so the references are missing: unequal, and left
+                // out of an operator. (The copy made a component holding
+                // `NaN` for them.)
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
     <function name="f">x</function>
     <function name="g">-x^2</function>
     <function name="h">x^2</function>
+    <function name="k" variables="x y">x^2+y^2</function>
     <boolean name="location">$f.globalMinimumLocation = $g.globalMinimumLocation</boolean>
     <boolean name="value">$f.globalMinimumValue = $g.globalMinimumValue</boolean>
     <boolean name="present">$h.globalMinimumLocation = 0</boolean>
     <sum name="sum">$f.globalMinimumValue 5</sum>
+    <sum name="infimum">$k.globalInfimumValue 5</sum>
     <number name="num">$f.globalMinimumValue</number>
     `,
                 });
@@ -2338,6 +2342,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                         "value",
                         "present",
                         "sum",
+                        "infimum",
                         "num",
                     ]),
                 ).eqls({
@@ -2345,6 +2350,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     value: false,
                     present: true,
                     sum: 5,
+                    infimum: 5,
                     num: NaN,
                 });
             });

@@ -634,9 +634,10 @@ function targetDependencies(fixedReferent, referentInfo) {
  * the empty value `value` also holds. One case differs from the copy: an
  * array entry whose key is there but that holds no value is missing, where
  * the copy made a component holding the empty value. The known such entries
- * are those of a function's global minimum or maximum when it has none
- * (`$f.globalMinimumLocation`, `$f.globalMaximumValue`), whose arrays keep
- * their keys when empty (`Function.js`).
+ * are those of a function's global minimum, maximum, infimum or supremum
+ * when none is found (`$f.globalMinimumLocation` of `x`, any of them for a
+ * function of two variables), whose arrays keep their keys when empty
+ * (`Function.js`).
  *
  * The parents for which a copy that made nothing gave a different result
  * ask for it. That copy gave a blank math in a comparison
