@@ -72,6 +72,10 @@ export const MICRO_DOCUMENTS: Fixture[] = [
         "repeatForSequence literal x4",
         `<repeatForSequence from="1" to="4" valueName="i"><number>7</number></repeatForSequence>`,
     ),
+    micro(
+        "answer when $mi=x",
+        `<mathInput name="mi" /><answer><award><when>$mi = x</when></award></answer>`,
+    ),
 ];
 
 /** The four sample distributions of the Doenet/DoenetML#2023 document, cycled. */

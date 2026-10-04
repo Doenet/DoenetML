@@ -31,10 +31,14 @@ import { variableOfReferentVariable } from "../../utils/valueReference";
  * from the presented type's definitions, redirected to the referent for the
  * settings that travel with the referenced variable
  * (`createOnDemandStateVariableDefinitions`), so a reference costs the
- * variables that are actually read and nothing else. It has no attributes
- * and no `fixed` of its own: a write through it lands on the referent, whose
- * own `fixed` refuses it there. It has no renderer either; it is not made in
- * a position whose parent renders its children.
+ * variables that are actually read and nothing else. It has no `fixed` of
+ * its own: a write through it lands on the referent, whose own `fixed`
+ * refuses it there. It declares no attributes. The one kind it can hold are
+ * the marks by which an `<answer>` records what a reference in its awards
+ * reads as a response (`isPotentialResponse`, `isResponse`); the answer
+ * asks for them, and they are made on demand like the rest and read the
+ * reference's own marks. It has no renderer either; it is not made in a
+ * position whose parent renders its children.
  *
  * Part of Doenet/DoenetML#2128.
  */

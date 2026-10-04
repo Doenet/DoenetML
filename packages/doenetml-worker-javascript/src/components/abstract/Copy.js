@@ -17,6 +17,7 @@ import { codedDiagnostic } from "../../utils/diagnostics";
 import { errorComponentState } from "../../utils/dast/errors";
 import {
     planValueReference,
+    separateResponseMarks,
     serializeValueReference,
     valueReferenceDiffers,
 } from "../../utils/valueReference";
@@ -2742,6 +2743,8 @@ export async function replacementFromProp({
                         }
                     }
 
+                    const { responseMarks, otherAttributes } =
+                        separateResponseMarks(attributesFromComposite);
                     const valueReference = mayBeValueReference
                         ? planValueReference({
                               parentClass,
@@ -2752,8 +2755,8 @@ export async function replacementFromProp({
                               // entry of one of its arrays.
                               fromImplicitProp: false,
                               hasAttributes:
-                                  Object.keys(attributesFromComposite).length >
-                                  0,
+                                  Object.keys(otherAttributes).length > 0,
+                              isResponse: Object.keys(responseMarks).length > 0,
                               componentInfoObjects,
                           })
                         : undefined;
@@ -2767,6 +2770,7 @@ export async function replacementFromProp({
                                 target,
                                 componentIdx: nComponents++,
                                 stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                                responseMarks,
                             }),
                         );
                     } else if (link) {
@@ -3696,6 +3700,9 @@ export async function replacementFromProp({
             const attributesFromComposite = res.attributes;
             nComponents = res.nComponents;
 
+            const { responseMarks, otherAttributes } = separateResponseMarks(
+                attributesFromComposite,
+            );
             const valueReference = mayBeValueReference
                 ? planValueReference({
                       parentClass,
@@ -3704,8 +3711,8 @@ export async function replacementFromProp({
                           stateVarObj.shadowingInstructions
                               .createComponentOfType,
                       fromImplicitProp: Boolean(implicitProp),
-                      hasAttributes:
-                          Object.keys(attributesFromComposite).length > 0,
+                      hasAttributes: Object.keys(otherAttributes).length > 0,
+                      isResponse: Object.keys(responseMarks).length > 0,
                       componentInfoObjects,
                   })
                 : undefined;
@@ -3721,6 +3728,7 @@ export async function replacementFromProp({
                         target,
                         componentIdx: nComponents++,
                         stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                        responseMarks,
                     }),
                 );
             } else if (link) {

@@ -12,9 +12,13 @@
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent, SerializedRefResolution } from "./types";
 import { comparePathsIgnorePosition } from "./path";
-import { unwrapSource } from "./convertNormalizedDast";
+import {
+    convertUnresolvedAttributesForComponentType,
+    unwrapSource,
+} from "./convertNormalizedDast";
 import {
     planValueReference,
+    RESPONSE_MARKS,
     staticValueReferenceTarget,
 } from "../valueReference";
 
@@ -22,15 +26,16 @@ import {
  * Turn, in place, every `_copy` that can be a value reference into a `_ref`.
  *
  * A `_copy` qualifies when it is a bare reference (`$…`, not `extend` or
- * `copy`) with no attributes whose referent resolved, the component it sits
- * in is neither a composite nor one that renders its children, what it reads
- * is one value of a type known from the document
+ * `copy`) whose referent resolved, with no attributes but the marks by which
+ * an answer records it as a response (`RESPONSE_MARKS`), the component it
+ * sits in is neither a composite nor one that renders its children, what it
+ * reads is one value of a type known from the document
  * (`staticValueReferenceTarget`; this includes one entry of a list whose
  * class fixes the type of its entries, `$l[$i]` of a `<numberList>`), and
  * the parent takes that type in a child group (`planValueReference`). The
- * `_ref` keeps the `_copy`'s index, position and `extending`, so the
- * resolver, the state ids and the diagnostics about the reference are
- * unchanged.
+ * `_ref` keeps the `_copy`'s index, position, `extending` and response
+ * marks, so the resolver, the state ids, the diagnostics about the
+ * reference and the responses an answer records are unchanged.
  *
  * A bare reference written between the brackets of another reference's path
  * (`$i` of `$l[$i]`) has no parent's child groups to match. It qualifies when
@@ -43,11 +48,11 @@ import {
  * `<repeatForSequence>` makes for its `valueName`, the repeat's `type`.
  *
  * A reference that an enclosing component names in one of its reference
- * attributes stays a `_copy`: `<award referencesAreResponses="$val">` marks
- * the `$val` inside it as a response when the award is built, and `<math
- * referencesAreFunctionSymbols="$f">` reads which of its children came from
- * `$f` off the range of a composite's replacements. Both want the component
- * a copy makes.
+ * attributes stays a `_copy`, as `<math referencesAreFunctionSymbols="$f">`
+ * reads which of its children came from `$f` off the range of a composite's
+ * replacements. The exception is `<award referencesAreResponses="$val">`,
+ * which marks the `$val` inside it as a response when the award is built: a
+ * `_ref` takes that mark as a `_copy` does.
  */
 export function convertCopiesToValueReferences({
     serializedComponents,
@@ -146,7 +151,7 @@ export function convertCopiesToValueReferences({
     function convertReference(
         component: SerializedComponent,
         parent: SerializedComponent | undefined,
-        named: SerializedRefResolution[],
+        named: NamedReference[],
         betweenBrackets: boolean,
     ) {
         if (
@@ -156,7 +161,7 @@ export function convertCopiesToValueReferences({
             !("Ref" in component.extending) ||
             !(betweenBrackets
                 ? asksOnlyForAnInteger(component)
-                : Object.keys(component.attributes).length === 0)
+                : hasOnlyResponseMarks(component))
         ) {
             return;
         }
@@ -164,16 +169,15 @@ export function convertCopiesToValueReferences({
         if (refResolution.nodeIdx < 0) {
             return;
         }
-        if (
-            named.some(
-                (reference) =>
-                    reference.nodeIdx === refResolution.nodeIdx &&
-                    comparePathsIgnorePosition(
-                        reference.unresolvedPath,
-                        refResolution.unresolvedPath,
-                    ),
-            )
-        ) {
+        const naming = named.filter(
+            ({ reference }) =>
+                reference.nodeIdx === refResolution.nodeIdx &&
+                comparePathsIgnorePosition(
+                    reference.unresolvedPath,
+                    refResolution.unresolvedPath,
+                ),
+        );
+        if (naming.some(({ marksResponse }) => !marksResponse)) {
             return;
         }
         const targetComponentType = referentType(refResolution.nodeIdx);
@@ -220,11 +224,26 @@ export function convertCopiesToValueReferences({
             valueComponentType: target.valueComponentType,
             fromImplicitProp: target.fromImplicitProp,
             hasAttributes: false,
+            // marked by the answer already, or to be marked by the award
+            // that names it when the award is built
+            isResponse:
+                naming.length > 0 ||
+                Object.keys(component.attributes).length > 0,
             componentInfoObjects,
         });
         if (!plan) {
             return;
         }
+        // A copy keeps its attributes as written, for its replacements; a
+        // value reference holds its response marks as the type it presents
+        // as reads them. They are primitives, so the conversion makes no
+        // components.
+        component.attributes = convertUnresolvedAttributesForComponentType({
+            attributes: component.attributes,
+            componentType: plan.presentedComponentType,
+            componentInfoObjects,
+            nComponents: 0,
+        }).attributes;
         makeValueReference(component, {
             ...plan,
             valueComponentType: target.valueComponentType,
@@ -232,6 +251,28 @@ export function convertCopiesToValueReferences({
     }
 
     walk(serializedComponents, undefined, [], convertReference);
+}
+
+/**
+ * A reference an enclosing component names in one of its reference
+ * attributes, and whether that attribute marks it as a response
+ * (`<award referencesAreResponses>`).
+ */
+type NamedReference = {
+    reference: SerializedRefResolution;
+    marksResponse: boolean;
+};
+
+/**
+ * Whether the only attributes of `component` are the marks by which an
+ * answer records what it reads as a response: the `isPotentialResponse`
+ * an `<answer>` with no input of its own gives every reference in its
+ * awards (`Answer.js`), or an `isResponse`. A value reference takes them too.
+ */
+function hasOnlyResponseMarks(component: SerializedComponent) {
+    return Object.keys(component.attributes).every((name) =>
+        RESPONSE_MARKS.has(name.toLowerCase()),
+    );
 }
 
 /**
@@ -290,11 +331,11 @@ function makeValueReference(
 function walk(
     components: (SerializedComponent | string)[],
     parent: SerializedComponent | undefined,
-    named: SerializedRefResolution[],
+    named: NamedReference[],
     visit: (
         component: SerializedComponent,
         parent: SerializedComponent | undefined,
-        named: SerializedRefResolution[],
+        named: NamedReference[],
         betweenBrackets: boolean,
     ) => void,
     betweenBrackets = false,
@@ -314,7 +355,11 @@ function walk(
                         if (namedBelow === named) {
                             namedBelow = [...named];
                         }
-                        namedBelow.push(reference.extending.Ref);
+                        namedBelow.push({
+                            reference: reference.extending.Ref,
+                            marksResponse:
+                                attrName === "referencesAreResponses",
+                        });
                     }
                 }
             }
