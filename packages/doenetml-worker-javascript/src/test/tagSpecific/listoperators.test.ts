@@ -1800,9 +1800,10 @@ describe("List operator tag tests @group4", async () => {
     describe("renderers for values created later", async () => {
         // The viewer settles on the renderers to load when the document loads,
         // so an operator whose list is empty at that moment has to say what its
-        // results will be rendered as before it has any.
+        // results will be rendered as before it has any. Each operator renders
+        // its own results, with the list renderer, whether or not it has any.
 
-        it("cumulativeSum declares the math renderer with no children", async () => {
+        it("cumulativeSum declares its renderer with no children", async () => {
             let { core } = await createTestCore({
                 doenetML: `
     <numberList name="nl" />
@@ -1810,10 +1811,10 @@ describe("List operator tag tests @group4", async () => {
     `,
             });
 
-            expect(core.core!.rendererTypesInDocument).toContain("math");
+            expect(core.core!.rendererTypesInDocument).toContain("valueList");
         });
 
-        it("sortIndices declares the number renderer with no children", async () => {
+        it("sortIndices declares its renderer with no children", async () => {
             let { core } = await createTestCore({
                 doenetML: `
     <textList name="tl" />
@@ -1821,14 +1822,13 @@ describe("List operator tag tests @group4", async () => {
     `,
             });
 
-            expect(core.core!.rendererTypesInDocument).toContain("number");
+            expect(core.core!.rendererTypesInDocument).toContain("valueList");
         });
 
-        it("searchSorted declares the math renderer with no targets", async () => {
-            // An operator that searches for a list of targets starts with no
-            // replacements whenever that list is empty, so it too has to
-            // declare what its results will be rendered as. Nothing else here
-            // is a math, so the renderer can only have come from the operator.
+        it("searchSorted declares its renderer with no targets", async () => {
+            // An operator that searches for a list of targets has no results
+            // whenever that list is empty, so it too has to declare what its
+            // results will be rendered as.
             let { core } = await createTestCore({
                 doenetML: `
     <numberList name="cutoffs">10 20 30</numberList>
@@ -1837,7 +1837,7 @@ describe("List operator tag tests @group4", async () => {
     `,
             });
 
-            expect(core.core!.rendererTypesInDocument).toContain("math");
+            expect(core.core!.rendererTypesInDocument).toContain("valueList");
         });
     });
 });

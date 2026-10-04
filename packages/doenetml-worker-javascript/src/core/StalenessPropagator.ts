@@ -423,7 +423,11 @@ export class StalenessPropagator {
                         continue;
                     }
 
-                    if (upDep.mappedDownstreamVariableNamesByComponent) {
+                    if (
+                        upDep.mappedDownstreamVariableNamesByComponent?.[
+                            componentInd
+                        ]?.length > 0
+                    ) {
                         // if have multiple components, there must be multiple variables
                         // ensure that varName is one of them
                         let varInd =

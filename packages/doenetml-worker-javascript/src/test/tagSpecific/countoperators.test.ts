@@ -1327,10 +1327,10 @@ describe("Counting operator tag tests @group4", async () => {
     });
 
     describe("counts are numbers", async () => {
-        it("tally declares the number renderer with no children", async () => {
-            // A composite has to declare the renderer its replacements will
-            // need before it has any, or an empty list that later fills in
-            // would render nothing.
+        it("tally declares its renderer with no children", async () => {
+            // An operator has to declare the renderer its counts will need
+            // before it has any, or an empty list that later fills in would
+            // render nothing. It renders its counts itself, as numbers.
             let { core } = await createTestCore({
                 doenetML: `
     <textList name="tl" />
@@ -1338,11 +1338,11 @@ describe("Counting operator tag tests @group4", async () => {
     `,
             });
 
-            expect(core.core!.rendererTypesInDocument).toContain("number");
+            expect(core.core!.rendererTypesInDocument).toContain("valueList");
             expect(core.core!.rendererTypesInDocument).not.toContain("math");
         });
 
-        it("binCounts declares the number renderer with no children", async () => {
+        it("binCounts declares its renderer with no children", async () => {
             let { core } = await createTestCore({
                 doenetML: `
     <numberList name="nl" />
@@ -1350,7 +1350,7 @@ describe("Counting operator tag tests @group4", async () => {
     `,
             });
 
-            expect(core.core!.rendererTypesInDocument).toContain("number");
+            expect(core.core!.rendererTypesInDocument).toContain("valueList");
             expect(core.core!.rendererTypesInDocument).not.toContain("math");
         });
 

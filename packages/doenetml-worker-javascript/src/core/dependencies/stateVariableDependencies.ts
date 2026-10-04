@@ -60,7 +60,11 @@ export class StateVariableDependency extends Dependency {
         return {
             success: true,
             downstreamComponentIndices: [this.componentIdx],
-            downstreamComponentTypes: [component.componentType],
+            // A value reference (`_ref`) reads as the type it stands in for,
+            // as it does to a child dependency.
+            downstreamComponentTypes: [
+                component.presentedComponentType ?? component.componentType,
+            ],
         };
     }
 
@@ -339,7 +343,11 @@ export class MultipleStateVariablesDependency extends Dependency {
         return {
             success: true,
             downstreamComponentIndices: [this.componentIdx],
-            downstreamComponentTypes: [component.componentType],
+            // A value reference (`_ref`) reads as the type it stands in for,
+            // as it does to a child dependency.
+            downstreamComponentTypes: [
+                component.presentedComponentType ?? component.componentType,
+            ],
         };
     }
 

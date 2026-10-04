@@ -124,6 +124,32 @@ export class EssentialValueWriter {
         // If so, how would we end the loop?
     }
 
+    /**
+     * A list component (`ValueListComponent`) is queued here when its values
+     * change. Its `numEntries` stays fresh through such a change, so that
+     * what depends on the number of entries is left where it is, and is
+     * marked stale here only when the number of values did change.
+     */
+    async updateListEntryCount(list: any) {
+        if (list.state.numEntries.shadowOfComponentIdx !== undefined) {
+            // a reference's number is the list's, and follows it
+            return;
+        }
+        const computedNumEntries = await list.stateValues.computedNumEntries;
+        if (computedNumEntries === (await list.stateValues.numEntries)) {
+            return;
+        }
+        list.entryCountChanged = true;
+        try {
+            await this.core.markStateVariableAndUpstreamDependentsStale({
+                component: list,
+                varName: "numEntries",
+            });
+        } finally {
+            list.entryCountChanged = false;
+        }
+    }
+
     async replacementChangesFromCompositesToUpdate() {
         let compositesToUpdateReplacements = [
             ...this.core.updateInfo.compositesToUpdateReplacements,
@@ -179,6 +205,10 @@ export class EssentialValueWriter {
                     } else {
                         compositesNotReady.add(cIdx);
                     }
+                } else if (
+                    composite?.constructor.listEntryComponentType !== undefined
+                ) {
+                    await this.updateListEntryCount(composite);
                 }
             }
             // Is it possible that could ever get an infinite loop here?
@@ -1070,7 +1100,52 @@ export class EssentialValueWriter {
 
                     let childInd = newInstruction.childIndex;
 
-                    if (dep.downstreamPrimitives[childInd] !== null) {
+                    // With a list component among the children, child `k` of
+                    // the dependency's value is counted after the list was
+                    // expanded into its entries (`expandListChildren`).
+                    const childSource = dep.expandedChildSources?.[childInd];
+                    if (childSource?.primitiveInd !== undefined) {
+                        childInd = childSource.primitiveInd;
+                    }
+
+                    if (
+                        childSource?.primitiveInd === undefined &&
+                        childSource !== undefined
+                    ) {
+                        // A list entry writes to the list's array, at the
+                        // entry's index; any other child as below.
+                        const downstreamInd = childSource.downstreamInd;
+                        const cIdx =
+                            dep.downstreamComponentIndices[downstreamInd];
+                        const varName =
+                            dep.mappedDownstreamVariableNamesByComponent[
+                                downstreamInd
+                            ][newInstruction.variableIndex];
+                        if (cIdx == undefined || !varName) {
+                            throw Error(
+                                `Invalid inverse definition of ${stateVariable} of ${component.componentIdx}: ${dependencyName} child of index ${newInstruction.childIndex} does not exist.`,
+                            );
+                        }
+                        let arrayKey = newInstruction.arrayKey;
+                        if (
+                            childSource.entryIndex !== undefined &&
+                            this.core._components[cIdx].state[varName]?.isArray
+                        ) {
+                            arrayKey = String(childSource.entryIndex);
+                        }
+                        await this._recurseInto({
+                            inst: {
+                                componentIdx: cIdx,
+                                stateVariable: varName,
+                                value: newInstruction.desiredValue,
+                                overrideFixed: instruction.overrideFixed,
+                                arrayKey,
+                            },
+                            newInstruction,
+                            workspace,
+                            newStateVariableValues,
+                        });
+                    } else if (dep.downstreamPrimitives[childInd] !== null) {
                         // have a primitive child
                         // if desiredValue is same type of primitive, set it as a state variable
 

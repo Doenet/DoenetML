@@ -151,6 +151,36 @@ export default class BaseComponent {
      */
     static definitionEssentialValuesAreReproducible = true;
 
+    /**
+     * Set on a list component: one component that holds its entries as
+     * arrays and renders itself, but that a parent sees as one child of this
+     * type per entry. Its parent's child groups match it by this type, and a
+     * child dependency gives one record per entry (`childDependencies.ts`).
+     * Part of Doenet/DoenetML#2157.
+     */
+    static listEntryComponentType = undefined;
+
+    /**
+     * For a list component, the variable of its own that each variable of an
+     * entry reads. An entry variable not named
+     * here is absent from an entry, as an optional variable is.
+     *
+     * `listPerEntryVariables` names the variables of the list that hold one
+     * value per entry, in an array; entry `j` reads the `j`th. Every other
+     * variable is shared by all the entries. `listEntryCountVariable` names
+     * the variable that holds the number of entries.
+     */
+    static listEntryStateVariables = {};
+
+    /**
+     * Whether a linked copy of this component (a shadow, `serialize`
+     * without `copyAll`) is made without its children, since everything it
+     * shows is shadowed from the component it copies.
+     */
+    static serializeChildrenOnlyIfUnlinked = false;
+    static listPerEntryVariables = [];
+    static listEntryCountVariable = undefined;
+
     static get rendererType() {
         return this.componentType;
     }
@@ -1528,7 +1558,12 @@ export default class BaseComponent {
             );
         }
 
-        let includeDefiningChildren = true;
+        // A component whose linked copy reads everything it shows from the
+        // component it copies (`serializeChildrenOnlyIfUnlinked`) is copied
+        // without its children unless the copy is unlinked (`copyAll`).
+        let includeDefiningChildren =
+            !this.constructor.serializeChildrenOnlyIfUnlinked ||
+            Boolean(parameters.copyAll);
         // let stateVariablesToInclude = [];
 
         const serializedComponent = {

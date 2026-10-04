@@ -1,4 +1,4 @@
-import CompositeComponent from "./CompositeComponent";
+import ValueListComponent from "./ValueListComponent";
 import me from "math-expressions";
 import {
     returnBreakStringsIntoTypeSugarInstruction,
@@ -11,13 +11,6 @@ import {
     returnListTypeAttribute,
     returnTargetAttribute,
 } from "../../utils/listIndexOperators";
-import {
-    addReplacementRendererType,
-    calculateValueListReplacementChanges,
-    createValueListReplacements,
-    returnPassThroughAttributeDeclarations,
-    returnPassThroughAttributes,
-} from "../../utils/valueListReplacements";
 
 /**
  * Base class for the index-returning operators that search the list for a
@@ -27,23 +20,20 @@ import {
  * the manner of `np.searchsorted(a, v)` with an array `v` and R's `match()`.
  * One target in, one index out, so the common scalar reading still works; a
  * hundred targets in, a hundred indices out of one operator rather than a
- * hundred operators. The hundred indices are themselves a hundred `<math>`
- * replacements — what one operator saves is the searching, not the results.
+ * hundred operators, and the hundred indices are one array.
  *
- * Returning a list is what makes these composites rather than `<math>`
- * components, so they follow `MathBaseListOperator` (fresh `<math>`
- * replacements, in the manner of `<sequence>`) rather than
+ * Returning a list is what makes these list components (`ValueListComponent`)
+ * rather than `<math>` components, as `MathBaseListOperator` is, rather than
  * `ListIndexBaseOperator`, which stays the home of the operators that report a
  * single position and need no target — `<argMin>` and `<argMax>`.
  *
- * Being a composite is what makes `$which[2]`, `<sum>$which</sum>` and
- * `<numberList>$which</numberList>` all work on the result, and a single-target
- * operator still reads as one math wherever one is expected — including as a
- * path index, so `$pop[$which]` keeps working now that `<searchSorted>` is a
- * composite rather than a `<math>`.
+ * A parent sees one `<math>` per index, which is what makes `$which[2]`,
+ * `<sum>$which</sum>` and `<numberList>$which</numberList>` all work on the
+ * result, and a single-target operator still reads as one math wherever one
+ * is expected — including as a path index, so `$pop[$which]` keeps working.
  *
- * The replacements are `<math>` rather than the `<number>` that `<sortIndices>`
- * creates: an index is an integer either way, but these operators rendered as
+ * The entries are maths rather than the numbers of `<sortIndices>`: an index
+ * is an integer either way, but these operators rendered as
  * `<math>` before they returned a list, and their `<argMin>` / `<argMax>` /
  * `<count>` siblings still do, so `<math>` keeps one family rendering one way.
  *
@@ -59,17 +49,12 @@ import {
  * one target and returns `{ index, reason? }`, and may supply
  * `validateValues` to state a precondition on the list as a whole.
  */
-export default class ListIndexBaseListOperator extends CompositeComponent {
+export default class ListIndexBaseListOperator extends ValueListComponent {
     static componentType = "_listIndexListOperator";
 
-    static replacementComponentType = "math";
+    static listEntryComponentType = "math";
 
-    static takesIndex = true;
-
-    static stateVariableToEvaluateAfterReplacements =
-        "readyToExpandWhenResolved";
-
-    static allowInSchemaAsComponent = ["math"];
+    static listEntryValuesVariable = "operatorResults";
 
     // Since the operator treats each child as a separate argument,
     // composites with no replacement should be ignored.
@@ -112,19 +97,6 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
         };
 
         attributes.target = returnTargetAttribute(this.targetDescription);
-
-        // Not used by the composite itself; forwarded to each `<math>` it
-        // creates, so `displayDigits` on the operator rounds every index.
-        Object.assign(attributes, returnPassThroughAttributeDeclarations());
-
-        attributes.asList = {
-            createPrimitiveOfType: "boolean",
-            createStateVariable: "asList",
-            defaultValue: true,
-            highlighted: true,
-            description:
-                "Whether to render the items separated by commas (true) or with no separator (false).",
-        };
 
         return attributes;
     }
@@ -234,67 +206,6 @@ export default class ListIndexBaseListOperator extends CompositeComponent {
             },
         };
 
-        stateVariableDefinitions.readyToExpandWhenResolved = {
-            returnDependencies: () => ({
-                operatorResults: {
-                    dependencyType: "stateVariable",
-                    variableName: "operatorResults",
-                },
-            }),
-            // When this state variable is marked stale it indicates we should
-            // update replacements. For this to work, we must get its value in
-            // the replacement functions so that the variable is marked fresh.
-            markStale: () => ({ updateReplacements: true }),
-            definition: function () {
-                return { setValue: { readyToExpandWhenResolved: true } };
-            },
-        };
-
         return stateVariableDefinitions;
-    }
-
-    static async createSerializedReplacements({
-        component,
-        componentInfoObjects,
-        workspace,
-        nComponents,
-    }) {
-        return createValueListReplacements({
-            component,
-            values: await component.stateValues.operatorResults,
-            componentType: this.replacementComponentType,
-            attributesToConvert: returnPassThroughAttributes(component),
-            componentInfoObjects,
-            workspace,
-            nComponents,
-        });
-    }
-
-    static async calculateReplacementChanges({
-        component,
-        componentInfoObjects,
-        workspace,
-        nComponents,
-    }) {
-        return calculateValueListReplacementChanges({
-            component,
-            values: await component.stateValues.operatorResults,
-            componentType: this.replacementComponentType,
-            attributesToConvert: returnPassThroughAttributes(component),
-            componentInfoObjects,
-            workspace,
-            nComponents,
-        });
-    }
-
-    addOwnPotentialRendererTypes(rendererTypes, visited) {
-        super.addOwnPotentialRendererTypes(rendererTypes, visited);
-
-        // The replacements are `<math>` components whatever the children are.
-        addReplacementRendererType({
-            component: this,
-            componentType: this.constructor.replacementComponentType,
-            rendererTypes,
-        });
     }
 }

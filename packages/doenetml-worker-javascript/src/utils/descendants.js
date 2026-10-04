@@ -7,18 +7,30 @@ export function gatherDescendants({
     skipOverAdapters = false,
     ignoreReplacementsOfMatchedComposites = false,
     ignoreReplacementsOfEncounteredComposites = false,
+    matchListsByEntryType = false,
     init = true,
     componentInfoObjects,
 }) {
     // Note: ignoreReplacementsOfEncounteredComposites means ignore replacements
     // of all composites except copies of external content
 
+    // With `matchListsByEntryType`, a list component
+    // (`listEntryComponentType`) is matched by the type of its entries too,
+    // as the composite it replaced was matched by its replacements.
     let matchChildToTypes = (child) =>
-        descendantTypes.some((ct) =>
-            componentInfoObjects.isInheritedComponentType({
-                inheritedComponentType: child.componentType,
-                baseComponentType: ct,
-            }),
+        descendantTypes.some(
+            (ct) =>
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: child.componentType,
+                    baseComponentType: ct,
+                }) ||
+                (matchListsByEntryType &&
+                    child.constructor?.listEntryComponentType !== undefined &&
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType:
+                            child.constructor.listEntryComponentType,
+                        baseComponentType: ct,
+                    })),
         );
 
     let childrenToCheck = [];
@@ -175,6 +187,7 @@ export function gatherDescendants({
                 skipOverAdapters,
                 ignoreReplacementsOfMatchedComposites,
                 ignoreReplacementsOfEncounteredComposites,
+                matchListsByEntryType,
                 init: false,
                 componentInfoObjects,
             });

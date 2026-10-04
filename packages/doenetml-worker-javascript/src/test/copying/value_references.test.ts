@@ -435,16 +435,6 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 booleanList: `<booleanList name="c">true false</booleanList>`,
                 sampleRandomNumbers: `<sampleRandomNumbers name="c" numSamples="3" />`,
                 selectRandomNumbers: `<selectRandomNumbers name="c" numToSelect="3" />`,
-                sortIndices: `<sortIndices name="c">30 10 20</sortIndices>`,
-                tally: `<tally name="c">1 2 2 3</tally>`,
-                binCounts: `<binCounts name="c" bins="0 1 2">0 1/2 1 3/2</binCounts>`,
-                indexOf: `<indexOf name="c" target="5 6 7">6 7</indexOf>`,
-                searchSorted: `<searchSorted name="c" target="1 3 5">2 4</searchSorted>`,
-                cumulativeSum: `<cumulativeSum name="c">1 2 3</cumulativeSum>`,
-                cumulativeProduct: `<cumulativeProduct name="c">1 2 3</cumulativeProduct>`,
-                cumulativeMin: `<cumulativeMin name="c">3 1 2</cumulativeMin>`,
-                cumulativeMax: `<cumulativeMax name="c">1 3 2</cumulativeMax>`,
-                differences: `<differences name="c">1 4 9</differences>`,
             };
 
             let declared: string[] | undefined;
@@ -493,6 +483,73 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 expect(await ref.stateValues.value, listType).eqls(
                     await entries[1].stateValues.value,
                 );
+                expect(censusOfCore(core).copies, listType).eq(0);
+            }
+            expect(declared).eqls(Object.keys(lists).sort());
+        });
+
+        it("an index into each list component reads an entry of its array", async () => {
+            // Every class that declares `listEntryComponentType`, apart from
+            // those whose type starts with `_`, which no author writes. A list
+            // component holds its entries in one array, so the reference
+            // reads the list itself, at the entry's index, with no copy and
+            // no component per entry.
+            const lists: Record<string, string> = {
+                sortIndices: `<sortIndices name="c">30 10 20</sortIndices>`,
+                tally: `<tally name="c">1 2 2 3</tally>`,
+                binCounts: `<binCounts name="c" bins="0 1 2">0 1/2 1 3/2</binCounts>`,
+                indexOf: `<indexOf name="c" target="5 6 7">6 7</indexOf>`,
+                searchSorted: `<searchSorted name="c" target="1 3 5">2 4</searchSorted>`,
+                cumulativeSum: `<cumulativeSum name="c">1 2 3</cumulativeSum>`,
+                cumulativeProduct: `<cumulativeProduct name="c">1 2 3</cumulativeProduct>`,
+                cumulativeMin: `<cumulativeMin name="c">3 1 2</cumulativeMin>`,
+                cumulativeMax: `<cumulativeMax name="c">1 3 2</cumulativeMax>`,
+                differences: `<differences name="c">1 4 9</differences>`,
+            };
+
+            let declared: string[] | undefined;
+            for (const [listType, listDoenetML] of Object.entries(lists)) {
+                const { core: firstCore } = await createTestCore({
+                    doenetML: listDoenetML,
+                });
+                const allComponentClasses =
+                    firstCore.core!.componentInfoObjects.allComponentClasses;
+                const entryType =
+                    allComponentClasses[listType].listEntryComponentType;
+
+                // held by a component of the entries' own type
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `${listDoenetML}
+    <${entryType} name="x">$c[2]</${entryType}>
+    `,
+                });
+                declared ??= Object.entries(allComponentClasses)
+                    .filter(
+                        ([type, componentClass]: [string, any]) =>
+                            componentClass.listEntryComponentType !==
+                                undefined && !type.startsWith("_"),
+                    )
+                    .map(([type]) => type)
+                    .sort();
+
+                const list =
+                    core.core!._components[await resolvePathToNodeIdx("c")];
+                expect(list.replacements, listType).toBeUndefined();
+                const values =
+                    await list.stateValues[
+                        list.constructor.listEntryStateVariables.value
+                    ];
+
+                const xIdx = await resolvePathToNodeIdx("x");
+                const ref = valueRefs(core).find(
+                    (ref) => ref.parentIdx === xIdx,
+                );
+                expect(ref?.refResolution, listType).toBeDefined();
+                expect(
+                    (await ref.stateValues.referentInfo).componentIdx,
+                    listType,
+                ).eq(list.componentIdx);
+                expect(await ref.stateValues.value, listType).eqls(values[1]);
                 expect(censusOfCore(core).copies, listType).eq(0);
             }
             expect(declared).eqls(Object.keys(lists).sort());

@@ -1,12 +1,5 @@
-import CompositeComponent from "./CompositeComponent";
+import ValueListComponent from "./ValueListComponent";
 import me from "math-expressions";
-import {
-    addReplacementRendererType,
-    calculateValueListReplacementChanges,
-    createValueListReplacements,
-    returnPassThroughAttributeDeclarations,
-    returnPassThroughAttributes,
-} from "../../utils/valueListReplacements";
 import {
     mathOperatorInputsFromChildren,
     returnBreakStringsIntoMathsBySpacesSugarInstruction,
@@ -18,14 +11,10 @@ import {
  *
  * `MathBaseOperator` covers the reduce case (`<sum>`, `<min>`, `<mean>`, …).
  * This covers the scan case (`<cumulativeSum>`, `<differences>`, …), where the
- * result is itself a list. That difference forces a different shape: the result
- * has to become several components, so these are composites that create fresh
- * `<math>` replacements, in the manner of `<sequence>`. (`<sort>` is a composite
- * too, but it *copies* its children; here the values are newly computed and
- * there is nothing to copy.)
- *
- * Being a composite is what makes `$cum[2]`, `<sum>$cum</sum>` and
- * `<numberList>$cum</numberList>` all work on the result.
+ * result is itself a list. The results are a list component of maths
+ * (`ValueListComponent`), which a parent sees as one `<math>` per result, so
+ * `$cum[2]`, `<sum>$cum</sum>` and `<numberList>$cum</numberList>` all work on
+ * the result.
  *
  * Subclasses supply `numericListOperator` (numbers in, numbers out) and
  * `listOperator` (math-expressions in, math-expressions out). Which one runs is
@@ -33,17 +22,12 @@ import {
  * unless a math child is not a number, overridable with `forceSymbolic` /
  * `forceNumeric`.
  */
-export default class MathBaseListOperator extends CompositeComponent {
+export default class MathBaseListOperator extends ValueListComponent {
     static componentType = "_mathListOperator";
 
-    static replacementComponentType = "math";
+    static listEntryComponentType = "math";
 
-    static takesIndex = true;
-
-    static stateVariableToEvaluateAfterReplacements =
-        "readyToExpandWhenResolved";
-
-    static allowInSchemaAsComponent = ["math"];
+    static listEntryValuesVariable = "operatorResults";
 
     // Since the operator treats each child as a separate argument,
     // composites with no replacement should be ignored.
@@ -69,20 +53,6 @@ export default class MathBaseListOperator extends CompositeComponent {
             highlighted: true,
             description:
                 "Whether to force the operator to evaluate numerically rather than symbolically.",
-        };
-
-        // `fixed` and the rounding settings are not used by the composite
-        // itself; they are passed through to each of the <math> components it
-        // creates.
-        Object.assign(attributes, returnPassThroughAttributeDeclarations());
-
-        attributes.asList = {
-            createPrimitiveOfType: "boolean",
-            createStateVariable: "asList",
-            defaultValue: true,
-            highlighted: true,
-            description:
-                "Whether to render the items separated by commas (true) or with no separator (false).",
         };
 
         return attributes;
@@ -141,10 +111,9 @@ export default class MathBaseListOperator extends CompositeComponent {
                 } else if (dependencyValues.forceSymbolic) {
                     isNumericOperator = false;
                 } else if (dependencyValues.mathChildren.length === 0) {
-                    // Unlike `MathBaseOperator`, there is no shadow source to
-                    // fall back on: extending one of these composites copies
-                    // its children too, so a childless copy of a symbolic
-                    // operator cannot arise.
+                    // A reference to the whole operator reads its results
+                    // from the operator it references, so how a childless
+                    // copy would compute does not arise.
                     isNumericOperator = true;
                 } else {
                     // Have math children and aren't forced to be numeric or symbolic,
@@ -229,67 +198,6 @@ export default class MathBaseListOperator extends CompositeComponent {
             },
         };
 
-        stateVariableDefinitions.readyToExpandWhenResolved = {
-            returnDependencies: () => ({
-                operatorResults: {
-                    dependencyType: "stateVariable",
-                    variableName: "operatorResults",
-                },
-            }),
-            // When this state variable is marked stale it indicates we should
-            // update replacements. For this to work, we must get its value in
-            // the replacement functions so that the variable is marked fresh.
-            markStale: () => ({ updateReplacements: true }),
-            definition: function () {
-                return { setValue: { readyToExpandWhenResolved: true } };
-            },
-        };
-
         return stateVariableDefinitions;
-    }
-
-    static async createSerializedReplacements({
-        component,
-        componentInfoObjects,
-        workspace,
-        nComponents,
-    }) {
-        return createValueListReplacements({
-            component,
-            values: await component.stateValues.operatorResults,
-            componentType: this.replacementComponentType,
-            attributesToConvert: returnPassThroughAttributes(component),
-            componentInfoObjects,
-            workspace,
-            nComponents,
-        });
-    }
-
-    static async calculateReplacementChanges({
-        component,
-        componentInfoObjects,
-        workspace,
-        nComponents,
-    }) {
-        return calculateValueListReplacementChanges({
-            component,
-            values: await component.stateValues.operatorResults,
-            componentType: this.replacementComponentType,
-            attributesToConvert: returnPassThroughAttributes(component),
-            componentInfoObjects,
-            workspace,
-            nComponents,
-        });
-    }
-
-    addOwnPotentialRendererTypes(rendererTypes, visited) {
-        super.addOwnPotentialRendererTypes(rendererTypes, visited);
-
-        // The replacements are `<math>` components whatever the children are.
-        addReplacementRendererType({
-            component: this,
-            componentType: this.constructor.replacementComponentType,
-            rendererTypes,
-        });
     }
 }
