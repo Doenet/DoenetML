@@ -497,12 +497,12 @@ export default class ValueRef extends BaseComponent {
      * that source.
      *
      * `valueMissing`, whether the reference has nothing to read, is its own
-     * (`valueMissingDefinition`), and only the parents that treat such a
-     * reference differently ask for it. A reference a copy made at run time
-     * has none. So are `valueAsResponse` and `componentTypeAsResponse`,
-     * which only an `<answer>` (of the references in its awards) and a
-     * `<considerAsResponses>` (of its children) ask for
-     * (`valueAsResponseDefinition`).
+     * (`valueMissingDefinition`). The parents that treat such a reference
+     * differently ask for it, and so do the reference's own `valueAsResponse`
+     * and `componentTypeAsResponse` (`valueAsResponseDefinition`), which only
+     * an `<answer>` (of the references in its awards) and a
+     * `<considerAsResponses>` (of its children) ask for. A reference a copy
+     * made at run time has no `valueMissing`, but has the other two.
      */
     createOnDemandStateVariableDefinitions({
         stateVariable,
@@ -669,8 +669,10 @@ function targetDependencies(fixedReferent, referentInfo) {
  * ask for it. That copy gave a blank math in a comparison
  * (`returnChildrenByCodeStateVariableDefinitions` in `utils/booleanLogic.js`)
  * and nothing at all among the operands of a math or boolean operator
- * (`MathBaseOperator.js`, `BooleanBaseOperator.js`). Nothing else asks, and
- * there the reference holds the empty value of the presented type.
+ * (`MathBaseOperator.js`, `BooleanBaseOperator.js`). So does an `<answer>`
+ * that records the reference as a response, through `valueAsResponse` and
+ * `componentTypeAsResponse`: a blank math. Nothing else asks, and there the
+ * reference holds the empty value of the presented type.
  *
  * A reference a copy made at run time (`fixedReferent`) has no
  * `valueMissing`. The copy makes no reference for an entry that is not
@@ -706,11 +708,15 @@ function valueMissingDefinition() {
  * `<math>$n+1</math>` presents as a math and reads `n.math`, but is recorded
  * as `n`'s number, as the copy it replaced was, whose adapter the answer's
  * search skips over. A blank math when there is nothing to read
- * (`valueMissing`), as a copy with nothing to read made one: in a repeat
- * iteration or a copy too, where that copy made nothing, so that the number
- * of responses does not depend on whether an entry is there. A reference a
- * copy made at run time has no `valueMissing` and is never missing: the copy
- * makes no reference for an entry that is not there.
+ * (`valueMissing`), as a copy with nothing to read made in a comparison or a
+ * `<math>` at the top of the document. It is one too where that copy made
+ * nothing (in a repeat iteration, a `<group>` or a copy, directly in an
+ * `<award>`, among a `<considerAsResponses>`'s children, or among the
+ * operands of an operator such as `<sum>` or `<and>`) or an empty text (in a
+ * `<text>`), so that the number of responses does not depend on where the
+ * answer is or whether an entry is there. A reference a copy made at run
+ * time has no `valueMissing` and is never missing: the copy makes no
+ * reference for an entry that is not there.
  *
  * A variable that is there but holds no value is recorded as the empty value
  * of the referenced type (`referencedComponentType`), as the copy's

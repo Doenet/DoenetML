@@ -212,12 +212,11 @@ export function staticValueReferenceTarget({
         ) {
             return undefined;
         }
-        const replacement = staticValueReferenceTarget({
+        return staticValueReferenceTarget({
             targetComponentType: replacementType,
             unresolvedPath: rest.length > 0 ? rest : null,
             componentInfoObjects,
         });
-        return replacement;
     }
 
     let name: string | undefined;
