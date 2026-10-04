@@ -12,9 +12,13 @@
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent, SerializedRefResolution } from "./types";
 import { comparePathsIgnorePosition } from "./path";
-import { unwrapSource } from "./convertNormalizedDast";
+import {
+    convertUnresolvedAttributesForComponentType,
+    unwrapSource,
+} from "./convertNormalizedDast";
 import {
     planValueReference,
+    RESPONSE_MARKS,
     staticValueReferenceTarget,
 } from "../valueReference";
 
@@ -22,15 +26,18 @@ import {
  * Turn, in place, every `_copy` that can be a value reference into a `_ref`.
  *
  * A `_copy` qualifies when it is a bare reference (`$…`, not `extend` or
- * `copy`) with no attributes whose referent resolved, the component it sits
- * in is neither a composite nor one that renders its children, what it reads
- * is one value of a type known from the document
+ * `copy`) whose referent resolved, with no attributes but the marks by which
+ * an answer records it as a response (`RESPONSE_MARKS`), the component it
+ * sits in is neither a composite nor one that renders its children, what it
+ * reads is one value of a type known from the document
  * (`staticValueReferenceTarget`; this includes one entry of a list whose
  * class fixes the type of its entries, `$l[$i]` of a `<numberList>`), and
  * the parent takes that type in a child group (`planValueReference`). The
- * `_ref` keeps the `_copy`'s index, position and `extending`, so the
- * resolver, the state ids and the diagnostics about the reference are
- * unchanged.
+ * `_ref` keeps the `_copy`'s index, position, `extending` and response
+ * marks, so the resolver, the state ids, the diagnostics about the
+ * reference and the responses an answer records are unchanged. A response
+ * that reads one entry of an array or a list (`readsEntry`: `$l[2]`,
+ * `$ci.selectedIndex`) stays a `_copy`, for when the entry is missing.
  *
  * A bare reference written between the brackets of another reference's path
  * (`$i` of `$l[$i]`) has no parent's child groups to match. It qualifies when
@@ -43,11 +50,13 @@ import {
  * `<repeatForSequence>` makes for its `valueName`, the repeat's `type`.
  *
  * A reference that an enclosing component names in one of its reference
- * attributes stays a `_copy`: `<award referencesAreResponses="$val">` marks
- * the `$val` inside it as a response when the award is built, and `<math
- * referencesAreFunctionSymbols="$f">` reads which of its children came from
- * `$f` off the range of a composite's replacements. Both want the component
- * a copy makes.
+ * attributes stays a `_copy`, as `<math referencesAreFunctionSymbols="$f">`
+ * reads which of its children came from `$f` off the range of a composite's
+ * replacements. The exception is `<award referencesAreResponses="$val">`.
+ * When the award is built it gives each reference to `$val` among its
+ * descendants an unresolved `isResponse` (`Award.js`), which a copy resolves
+ * for its replacement and a `_ref` does not read; a `_ref` made from one is
+ * given the mark here, as a primitive.
  */
 export function convertCopiesToValueReferences({
     serializedComponents,
@@ -146,7 +155,7 @@ export function convertCopiesToValueReferences({
     function convertReference(
         component: SerializedComponent,
         parent: SerializedComponent | undefined,
-        named: SerializedRefResolution[],
+        named: NamedReference[],
         betweenBrackets: boolean,
     ) {
         if (
@@ -156,7 +165,7 @@ export function convertCopiesToValueReferences({
             !("Ref" in component.extending) ||
             !(betweenBrackets
                 ? asksOnlyForAnInteger(component)
-                : Object.keys(component.attributes).length === 0)
+                : hasOnlyResponseMarks(component))
         ) {
             return;
         }
@@ -164,16 +173,15 @@ export function convertCopiesToValueReferences({
         if (refResolution.nodeIdx < 0) {
             return;
         }
-        if (
-            named.some(
-                (reference) =>
-                    reference.nodeIdx === refResolution.nodeIdx &&
-                    comparePathsIgnorePosition(
-                        reference.unresolvedPath,
-                        refResolution.unresolvedPath,
-                    ),
-            )
-        ) {
+        const naming = named.filter(
+            ({ reference }) =>
+                reference.nodeIdx === refResolution.nodeIdx &&
+                comparePathsIgnorePosition(
+                    reference.unresolvedPath,
+                    refResolution.unresolvedPath,
+                ),
+        );
+        if (naming.some(({ marksResponse }) => !marksResponse)) {
             return;
         }
         const targetComponentType = referentType(refResolution.nodeIdx);
@@ -209,6 +217,20 @@ export function convertCopiesToValueReferences({
             return;
         }
 
+        // marked by the answer already, or named by an award, whose mark it
+        // is given below
+        const isResponse =
+            naming.length > 0 || Object.keys(component.attributes).length > 0;
+        if (isResponse && target.readsEntry) {
+            // The entry may be missing (past the end of a list, a
+            // `<choiceInput>`'s `selectedIndex` before a choice). The copy
+            // then makes an empty math or nothing, which the award does not
+            // find equal to another empty response; a value reference reads
+            // the empty value of its type, and two `NaN`s or two `""`s are
+            // equal.
+            return;
+        }
+
         const parentClass =
             componentInfoObjects.allComponentClasses[parent.componentType];
         if (!parentClass) {
@@ -220,10 +242,30 @@ export function convertCopiesToValueReferences({
             valueComponentType: target.valueComponentType,
             fromImplicitProp: target.fromImplicitProp,
             hasAttributes: false,
+            isResponse,
             componentInfoObjects,
         });
         if (!plan) {
             return;
+        }
+        if (isResponse) {
+            // A copy keeps its attributes as written, for its replacements;
+            // a value reference holds its response marks as the type it
+            // presents as reads them. They are primitives, so the conversion
+            // makes no components.
+            component.attributes = convertUnresolvedAttributesForComponentType({
+                attributes: component.attributes,
+                componentType: plan.presentedComponentType,
+                componentInfoObjects,
+                nComponents: 0,
+            }).attributes;
+            if (naming.length > 0 && !component.attributes.isResponse) {
+                component.attributes.isResponse = {
+                    type: "primitive",
+                    name: "isResponse",
+                    primitive: { type: "boolean", value: true },
+                };
+            }
         }
         makeValueReference(component, {
             ...plan,
@@ -232,6 +274,28 @@ export function convertCopiesToValueReferences({
     }
 
     walk(serializedComponents, undefined, [], convertReference);
+}
+
+/**
+ * A reference an enclosing component names in one of its reference
+ * attributes, and whether that attribute marks it as a response
+ * (`<award referencesAreResponses>`).
+ */
+type NamedReference = {
+    reference: SerializedRefResolution;
+    marksResponse: boolean;
+};
+
+/**
+ * Whether the only attributes of `component` are the marks by which an
+ * answer records what it reads as a response: the `isPotentialResponse`
+ * an `<answer>` with no input of its own gives every reference in its
+ * awards (`Answer.js`), or an `isResponse`. A value reference takes them too.
+ */
+function hasOnlyResponseMarks(component: SerializedComponent) {
+    return Object.keys(component.attributes).every((name) =>
+        RESPONSE_MARKS.has(name.toLowerCase()),
+    );
 }
 
 /**
@@ -290,11 +354,11 @@ function makeValueReference(
 function walk(
     components: (SerializedComponent | string)[],
     parent: SerializedComponent | undefined,
-    named: SerializedRefResolution[],
+    named: NamedReference[],
     visit: (
         component: SerializedComponent,
         parent: SerializedComponent | undefined,
-        named: SerializedRefResolution[],
+        named: NamedReference[],
         betweenBrackets: boolean,
     ) => void,
     betweenBrackets = false,
@@ -314,17 +378,31 @@ function walk(
                         if (namedBelow === named) {
                             namedBelow = [...named];
                         }
-                        namedBelow.push(reference.extending.Ref);
+                        namedBelow.push({
+                            reference: reference.extending.Ref,
+                            marksResponse:
+                                attrName === "referencesAreResponses",
+                        });
                     }
                 }
             }
         }
 
         walk(component.children, component, namedBelow, visit);
+        // an award marks the references it names among its descendants,
+        // not in attributes (`Award.js`)
+        const namedInAttributes = namedBelow.filter(
+            ({ marksResponse }) => !marksResponse,
+        );
         for (const attrName in component.attributes) {
             const attribute = component.attributes[attrName];
             if (attribute.type === "component") {
-                walk([attribute.component], component, namedBelow, visit);
+                walk(
+                    [attribute.component],
+                    component,
+                    namedInAttributes,
+                    visit,
+                );
             }
         }
         if (component.extending) {

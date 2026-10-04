@@ -48,7 +48,9 @@ export type ValueReferencePlan = {
  * the reference is to the implicit prop of a referent of the value's own type
  * (`implicitPropReturnsSameType`): the adapter's variable, with its inverse,
  * lives on the referent only then. A `<booleanInput>`'s `text` is not a
- * `<boolean>`'s, and does not take a write.
+ * `<boolean>`'s, and does not take a write. A reference an answer records as
+ * a response (`isResponse`) is never re-pointed, so that the answer records
+ * the referent's own type.
  *
  * Returns `undefined` for everything else, which keeps today's component.
  */
@@ -58,6 +60,7 @@ export function planValueReference({
     valueComponentType,
     fromImplicitProp,
     hasAttributes,
+    isResponse = false,
     componentInfoObjects,
 }: {
     parentClass: any;
@@ -65,6 +68,14 @@ export function planValueReference({
     valueComponentType: string | undefined;
     fromImplicitProp: boolean;
     hasAttributes: boolean;
+    /**
+     * Whether an answer records the reference as a response
+     * (`RESPONSE_MARKS`). It records what the reference reads, so the
+     * reference is not re-pointed to an adapter's variable: `$n` in a
+     * `<math>` gets no plan and keeps its copy, which the answer records as
+     * the number.
+     */
+    isResponse?: boolean;
     componentInfoObjects: ComponentInfoObjects;
 }): ValueReferencePlan | undefined {
     if (hasAttributes || !parentClass || parentClass.renderChildren) {
@@ -95,7 +106,11 @@ export function planValueReference({
     const targetClass =
         componentInfoObjects.allComponentClasses[targetComponentType];
 
-    if (fromImplicitProp && targetClass?.implicitPropReturnsSameType) {
+    if (
+        !isResponse &&
+        fromImplicitProp &&
+        targetClass?.implicitPropReturnsSameType
+    ) {
         const valueClass =
             componentInfoObjects.allComponentClasses[valueComponentType!];
         const targetVariables =
@@ -176,6 +191,10 @@ export function planValueReference({
  * path that starts with one index into it (`$l[$i]` of a `<numberList>`)
  * reads one of its replacements, and the rest of the path is worked out on
  * that type.
+ *
+ * `readsEntry` is set when what is read is one entry of an array or one of
+ * a composite's replacements: an entry that may not be there, past the end
+ * of the list or before a `<choiceInput>` has a `selectedIndex`.
  */
 export function staticValueReferenceTarget({
     targetComponentType,
@@ -190,6 +209,7 @@ export function staticValueReferenceTarget({
           referentComponentType: string;
           valueComponentType: string;
           fromImplicitProp: boolean;
+          readsEntry: boolean;
       }
     | undefined {
     const targetClass =
@@ -212,11 +232,12 @@ export function staticValueReferenceTarget({
         ) {
             return undefined;
         }
-        return staticValueReferenceTarget({
+        const replacement = staticValueReferenceTarget({
             targetComponentType: replacementType,
             unresolvedPath: rest.length > 0 ? rest : null,
             componentInfoObjects,
         });
+        return replacement && { ...replacement, readsEntry: true };
     }
 
     let name: string | undefined;
@@ -303,6 +324,7 @@ export function staticValueReferenceTarget({
         referentComponentType: targetComponentType,
         valueComponentType,
         fromImplicitProp,
+        readsEntry: Boolean(description.isArray),
     };
 }
 
@@ -322,6 +344,7 @@ export function serializeValueReference({
     target,
     componentIdx,
     stateId,
+    responseMarks = {},
 }: ValueReferencePlan & {
     /** The referent's variable the author's reference resolved to. */
     referencedVariable: string;
@@ -330,6 +353,8 @@ export function serializeValueReference({
     target: any;
     componentIdx: number;
     stateId: string;
+    /** The response marks the copy gives its replacement. */
+    responseMarks?: Record<string, any>;
 }) {
     const description = describeReferentVariable(target, referencedVariable);
     const doenetAttributes: Record<string, any> = {
@@ -352,7 +377,7 @@ export function serializeValueReference({
         componentType: "_ref",
         componentIdx,
         stateId,
-        attributes: {},
+        attributes: responseMarks,
         doenetAttributes,
         state: {},
         children: [],
@@ -430,6 +455,37 @@ function childGroupAccepts(
         }
     }
     return false;
+}
+
+/**
+ * The attributes by which an `<answer>` records what a reference in its
+ * awards reads as a response, lower-cased: the `isPotentialResponse` an
+ * answer with no input of its own gives every reference in its awards
+ * (`Answer.js`), and the `isResponse` an `<award referencesAreResponses>`
+ * gives the references it names (`Award.js`; `utils/dast/valueReferences.ts`
+ * for one the document makes a value reference). A value reference holds them
+ * as primitives in its `attributes`, and the `isResponse` and
+ * `isPotentialResponse` it makes on demand read them (`ValueRef.js`).
+ */
+export const RESPONSE_MARKS = new Set(["isresponse", "ispotentialresponse"]);
+
+/**
+ * Split `attributes` into the response marks among them and the rest.
+ */
+export function separateResponseMarks<T>(attributes: Record<string, T>): {
+    responseMarks: Record<string, T>;
+    otherAttributes: Record<string, T>;
+} {
+    const responseMarks: Record<string, T> = {};
+    const otherAttributes: Record<string, T> = {};
+    for (const name in attributes) {
+        if (RESPONSE_MARKS.has(name.toLowerCase())) {
+            responseMarks[name] = attributes[name];
+        } else {
+            otherAttributes[name] = attributes[name];
+        }
+    }
+    return { responseMarks, otherAttributes };
 }
 
 /**

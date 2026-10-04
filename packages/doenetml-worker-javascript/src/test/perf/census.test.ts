@@ -16,7 +16,7 @@ import { MICRO_DOCUMENTS } from "./fixtures";
 // says which construct silently started (or stopped) creating components.
 //
 // A change to a base class or to dependency setup looks different: it moves
-// `stateVariables` or `dependencies` in all twelve entries at once while
+// `stateVariables` or `dependencies` in every entry at once while
 // `components` and `byType` stay put. That is the expected shape of such a
 // change, and the same update applies.
 //

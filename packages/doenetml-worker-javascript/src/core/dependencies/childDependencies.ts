@@ -803,8 +803,11 @@ export class DescendantDependency extends Dependency {
             downstreamComponentIndices: descendants.map(
                 (x: any) => x.componentIdx,
             ),
+            // a value reference as the type it stands in for, as for a child
             downstreamComponentTypes: descendants.map(
-                (x: any) => x.componentType,
+                (x: any) =>
+                    this.dependencyHandler._components[x.componentIdx]
+                        ?.presentedComponentType ?? x.componentType,
             ),
         };
     }
