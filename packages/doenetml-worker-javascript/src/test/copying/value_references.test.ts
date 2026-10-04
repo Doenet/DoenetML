@@ -2772,6 +2772,70 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 });
             });
 
+            it("a missing entry among a considerAsResponses's children is one empty response", async () => {
+                // A `<considerAsResponses>` child that is a reference is
+                // recorded from its referent too: an empty math when there
+                // is nothing to read, at the top of the document and inside
+                // a `<group>` alike. (The reference used to record what it
+                // presents, a `NaN` number; the copy before it made nothing,
+                // so nothing was recorded.)
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <number name="n">3</number>
+    <numberList name="l">5 6</numberList>
+    <mathInput name="mi" prefill="3" />
+    <number name="i">$mi</number>
+    <choiceInput name="c"><choice>a</choice><choice>b</choice></choiceInput>
+    <answer name="doc"><considerAsResponses>$n $l[$i] $c.selectedIndex</considerAsResponses><award><when>$n = 3</when></award></answer>
+    <group name="g">
+      <answer name="ans"><considerAsResponses>$n $l[$i]</considerAsResponses><award><when>$n = 3</when></award></answer>
+    </group>
+    `,
+                });
+                const docIdx = await resolvePathToNodeIdx("doc");
+                const groupIdx = await resolvePathToNodeIdx("g.ans");
+                await submitAnswer({ componentIdx: docIdx, core });
+                await submitAnswer({ componentIdx: groupIdx, core });
+                expect(await submitted(core, docIdx)).eqls({
+                    responses: [3, "＿", "＿"],
+                    types: ["number", "math", "math"],
+                    credit: 1,
+                    numResponses: 3,
+                });
+                expect(await submitted(core, groupIdx)).eqls({
+                    responses: [3, "＿"],
+                    types: ["number", "math"],
+                    credit: 1,
+                    numResponses: 2,
+                });
+
+                // entries that are there are recorded as themselves
+                await updateMathInputValue({
+                    latex: "2",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+                await updateSelectedIndices({
+                    selectedIndices: [2],
+                    componentIdx: await resolvePathToNodeIdx("c"),
+                    core,
+                });
+                await submitAnswer({ componentIdx: docIdx, core });
+                await submitAnswer({ componentIdx: groupIdx, core });
+                expect(await submitted(core, docIdx)).eqls({
+                    responses: [3, 6, 2],
+                    types: ["number", "number", "number"],
+                    credit: 1,
+                    numResponses: 3,
+                });
+                expect(await submitted(core, groupIdx)).eqls({
+                    responses: [3, 6],
+                    types: ["number", "number"],
+                    credit: 1,
+                    numResponses: 2,
+                });
+            });
+
             it("a reference named in referencesAreResponses is recorded from its referent", async () => {
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `

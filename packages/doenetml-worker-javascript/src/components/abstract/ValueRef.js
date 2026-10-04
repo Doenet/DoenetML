@@ -500,7 +500,9 @@ export default class ValueRef extends BaseComponent {
      * (`valueMissingDefinition`), and only the parents that treat such a
      * reference differently ask for it. A reference a copy made at run time
      * has none. So are `valueAsResponse` and `componentTypeAsResponse`,
-     * which only an `<answer>` asks for (`valueAsResponseDefinition`).
+     * which only an `<answer>` (of the references in its awards) and a
+     * `<considerAsResponses>` (of its children) ask for
+     * (`valueAsResponseDefinition`).
      */
     createOnDemandStateVariableDefinitions({
         stateVariable,
@@ -698,7 +700,8 @@ function valueMissingDefinition() {
 /**
  * The definition of `valueAsResponse`, made on demand: the value an
  * `<answer>` records when it records this reference as a response
- * (`currentResponses` in `Answer.js`). That is the referenced variable as it
+ * (`currentResponses` in `Answer.js`), in an award or as a child of a
+ * `<considerAsResponses>`. That is the referenced variable as it
  * is on the referent, not what the reference presents: `$n` inside
  * `<math>$n+1</math>` presents as a math and reads `n.math`, but is recorded
  * as `n`'s number, as the copy it replaced was, whose adapter the answer's
