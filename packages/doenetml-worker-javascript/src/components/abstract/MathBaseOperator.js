@@ -86,6 +86,7 @@ export default class MathOperator extends MathComponent {
 
         let roundingDefinitions = returnNumberDisplayStateVariableDefinitions({
             childGroupsIfSingleMatch: ["maths", "numbers"],
+            skipChildrenWithNothingToRead: true,
         });
         Object.assign(stateVariableDefinitions, roundingDefinitions);
 

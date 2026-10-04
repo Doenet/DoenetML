@@ -2023,6 +2023,40 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 });
             });
 
+            it("a math operator takes the display settings of its one operand that is there", async () => {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <numberList name="l">1 2 3</numberList>
+    <mathInput name="i">5</mathInput>
+    <number name="n" displayDigits="6">3.14159265</number>
+    <sum name="sum">$l[$i] $n</sum>
+    `,
+                });
+                const sumIdx = await resolvePathToNodeIdx("sum");
+                async function shown() {
+                    const stateVariables = await core.returnAllStateVariables(
+                        false,
+                        true,
+                    );
+                    const { displayDigits, text } =
+                        stateVariables[sumIdx].stateValues;
+                    return { displayDigits, text };
+                }
+                // `n` is the only operand, and gives the sum its settings
+                expect(await shown()).eqls({
+                    displayDigits: 6,
+                    text: "3.14159",
+                });
+
+                // with two operands, the sum has its own
+                await updateMathInputValue({
+                    latex: "2",
+                    componentIdx: await resolvePathToNodeIdx("i"),
+                    core,
+                });
+                expect(await shown()).eqls({ displayDigits: 3, text: "5.14" });
+            });
+
             it("a write through a math operator goes to the operand that is there", async () => {
                 // `<min>` writes to its one operand that can be changed; a
                 // missing reference is not an operand, so `n` is the one

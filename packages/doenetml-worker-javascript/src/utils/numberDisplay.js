@@ -17,6 +17,11 @@
  *   whose sole member can donate its display settings to this component.
  * @param {string[]} [options.childGroupsToStopSingleMatch=[]] Child groups
  *   whose presence suppresses the single-child propagation above.
+ * @param {boolean} [options.skipChildrenWithNothingToRead=false] Whether a
+ *   value reference with nothing to read (`valueMissing`, `ValueRef.js`) is
+ *   left out when looking for a sole child, as a math operator leaves it out
+ *   of its operands: `<sum>$l[$i] $n</sum>` takes `n`'s settings while
+ *   `$l[$i]` is missing.
  * @param {string|null} [options.additionalAttributeComponent=null] Attribute
  *   name of a sibling attribute component whose number-display state variables
  *   should also be consulted (e.g. `"function"` in `<evaluate>`, so that
@@ -30,6 +35,7 @@
 export function returnNumberDisplayStateVariableDefinitions({
     childGroupsIfSingleMatch = [],
     childGroupsToStopSingleMatch = [],
+    skipChildrenWithNothingToRead = false,
     additionalAttributeComponent = null,
     displayDigitsDefault = 3,
     displaySmallAsZeroDefault = 1e-14,
@@ -49,6 +55,7 @@ export function returnNumberDisplayStateVariableDefinitions({
             stateVariable: "displayDigits",
             childGroupsIfSingleMatch,
             childGroupsToStopSingleMatch,
+            skipChildrenWithNothingToRead,
             ignoreShadowsIfHaveAttribute: "displayDecimals",
             additionalAttributeComponent,
         }),
@@ -71,6 +78,7 @@ export function returnNumberDisplayStateVariableDefinitions({
             stateVariable: "displayDecimals",
             childGroupsIfSingleMatch,
             childGroupsToStopSingleMatch,
+            skipChildrenWithNothingToRead,
             ignoreShadowsIfHaveAttribute: "displayDigits",
             additionalAttributeComponent,
         }),
@@ -92,6 +100,7 @@ export function returnNumberDisplayStateVariableDefinitions({
             stateVariable: "displaySmallAsZero",
             childGroupsIfSingleMatch,
             childGroupsToStopSingleMatch,
+            skipChildrenWithNothingToRead,
             additionalAttributeComponent,
         }),
         definition: numberDisplayDefinition({
@@ -112,6 +121,7 @@ export function returnNumberDisplayStateVariableDefinitions({
             stateVariable: "padZeros",
             childGroupsIfSingleMatch,
             childGroupsToStopSingleMatch,
+            skipChildrenWithNothingToRead,
             additionalAttributeComponent,
         }),
         definition: numberDisplayDefinition({
@@ -132,6 +142,7 @@ export function returnNumberDisplayStateVariableDefinitions({
             stateVariable: "avoidScientificNotation",
             childGroupsIfSingleMatch,
             childGroupsToStopSingleMatch,
+            skipChildrenWithNothingToRead,
             additionalAttributeComponent,
         }),
         definition: numberDisplayDefinition({
@@ -171,6 +182,7 @@ function numberDisplayDependencies({
     stateVariable,
     childGroupsIfSingleMatch,
     childGroupsToStopSingleMatch,
+    skipChildrenWithNothingToRead = false,
     ignoreShadowsIfHaveAttribute = null,
     additionalAttributeComponent = null,
 }) {
@@ -184,7 +196,9 @@ function numberDisplayDependencies({
             singleMatchChildren: {
                 dependencyType: "child",
                 childGroups: childGroupsIfSingleMatch,
-                variableNames: [stateVariable],
+                variableNames: skipChildrenWithNothingToRead
+                    ? [stateVariable, "valueMissing"]
+                    : [stateVariable],
                 variablesOptional: true,
             },
             stopSingleMatchChildren: {
@@ -281,28 +295,30 @@ function numberDisplayDefinition({ stateVariable, valueIfIgnore = null }) {
             }
         }
 
+        // `valueMissing` is read only with `skipChildrenWithNothingToRead`
+        const singleMatchIndices = [
+            ...dependencyValues.singleMatchChildren.keys(),
+        ].filter(
+            (ind) =>
+                !dependencyValues.singleMatchChildren[ind].stateValues
+                    .valueMissing,
+        );
         if (
-            dependencyValues.singleMatchChildren.length === 1 &&
+            singleMatchIndices.length === 1 &&
             dependencyValues.stopSingleMatchChildren.length === 0 &&
-            dependencyValues.singleMatchChildren[0].stateValues[
-                stateVariable
-            ] !== undefined
+            dependencyValues.singleMatchChildren[singleMatchIndices[0]]
+                .stateValues[stateVariable] !== undefined
         ) {
-            if (usedDefault.singleMatchChildren[0]?.[stateVariable]) {
+            const ind = singleMatchIndices[0];
+            const value =
+                dependencyValues.singleMatchChildren[ind].stateValues[
+                    stateVariable
+                ];
+            if (usedDefault.singleMatchChildren[ind]?.[stateVariable]) {
                 foundDefaultValue = true;
-                theDefaultValueFound =
-                    dependencyValues.singleMatchChildren[0].stateValues[
-                        stateVariable
-                    ];
+                theDefaultValueFound = value;
             } else {
-                return {
-                    setValue: {
-                        [stateVariable]:
-                            dependencyValues.singleMatchChildren[0].stateValues[
-                                stateVariable
-                            ],
-                    },
-                };
+                return { setValue: { [stateVariable]: value } };
             }
         }
 
