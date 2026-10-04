@@ -327,28 +327,10 @@ export default class ValueRef extends BaseComponent {
             // re-evaluate the referent's variable in the middle of a write
             excludeDependencyValuesInInverseDefinition: true,
             returnDependencies({ stateValues = {} }) {
-                const fixedReferent = this.svComponent.fixedReferent;
-                const referentInfo = fixedReferent ?? stateValues.referentInfo;
-                if (!referentInfo) {
-                    return {};
-                }
-                const dependencies = {
-                    target: {
-                        dependencyType: "stateVariable",
-                        componentIdx: referentInfo.componentIdx,
-                        variableName: referentInfo.variableName,
-                        variablesOptional: true,
-                    },
-                };
-                if (!fixedReferent) {
-                    dependencies.targetInactive = {
-                        dependencyType: "stateVariable",
-                        componentIdx: referentInfo.componentIdx,
-                        variableName: "isInactiveCompositeReplacement",
-                        variablesOptional: true,
-                    };
-                }
-                return dependencies;
+                return targetDependencies(
+                    this.svComponent.fixedReferent,
+                    stateValues.referentInfo,
+                );
             },
             definition({ dependencyValues, componentInfoObjects }) {
                 const target = dependencyValues.target;
@@ -512,11 +494,21 @@ export default class ValueRef extends BaseComponent {
      * (`readsReferentVariable`): what a dependency on this reference's
      * adapter source reads (`adapterDependencies.ts`), since the referent is
      * that source.
+     *
+     * `valueMissing`, whether the reference has nothing to read, is its own
+     * (`valueMissingDefinition`), and only the parents that treat such a
+     * reference differently ask for it. A reference a copy made at run time
+     * has none.
      */
     createOnDemandStateVariableDefinitions({
         stateVariable,
         classDefinitions,
     }) {
+        if (stateVariable === "valueMissing") {
+            return this.fixedReferent
+                ? []
+                : [[stateVariable, valueMissingDefinition()]];
+        }
         const referentVariable = variableOfReferentVariable(stateVariable);
         if (referentVariable !== undefined) {
             return [
@@ -594,6 +586,89 @@ function pathHasIndexComponents(refResolution) {
             ),
         ),
     );
+}
+
+/**
+ * The dependencies through which a reference reads its referent's variable:
+ * `target`, the variable, and, for a reference that resolves itself,
+ * `targetInactive`, whether the referent is a withheld replacement of a
+ * composite. None while there is no referent. `referentInfo` is the
+ * reference's own; `fixedReferent` replaces it for a reference a copy made.
+ */
+function targetDependencies(fixedReferent, referentInfo) {
+    referentInfo = fixedReferent ?? referentInfo;
+    if (!referentInfo) {
+        return {};
+    }
+    const dependencies = {
+        target: {
+            dependencyType: "stateVariable",
+            componentIdx: referentInfo.componentIdx,
+            variableName: referentInfo.variableName,
+            variablesOptional: true,
+        },
+    };
+    if (!fixedReferent) {
+        dependencies.targetInactive = {
+            dependencyType: "stateVariable",
+            componentIdx: referentInfo.componentIdx,
+            variableName: "isInactiveCompositeReplacement",
+            variablesOptional: true,
+        };
+    }
+    return dependencies;
+}
+
+/**
+ * The definition of `valueMissing`, made on demand for a reference that
+ * resolves itself: whether it has nothing to read where the copy it replaced
+ * made no component at all. That is so with no referent (an index past the
+ * end of a list), a referent without the variable (`$P.z` of a point in the
+ * plane, a `<choiceInput>`'s `selectedIndex` before a choice), or a withheld
+ * referent (a sample a `<sampleRandomNumbers>` withholds once its
+ * `numSamples` drops). Its `value` is then the empty value of the type it
+ * presents as (`NaN`, `""`, `false`, `＿`), and an empty value alone cannot
+ * say so, since a referent can hold `NaN` or `""` too. A variable that holds
+ * `null`, such as an attribute with no default (an `<award>`'s
+ * `feedbackText`), is not missing: the copy made a component for it, holding
+ * the empty value `value` also holds. One case differs from the copy: an
+ * array entry whose key is there but that holds no value is missing, where
+ * the copy made a component holding the empty value. The known such entries
+ * are those of a function's global minimum, maximum, infimum or supremum
+ * when none is found (`$f.globalMinimumLocation` of `x`, any of them for a
+ * function of two variables), whose arrays keep their keys when empty
+ * (`Function.js`).
+ *
+ * The parents for which a copy that made nothing gave a different result
+ * ask for it. That copy gave a blank math in a comparison
+ * (`returnChildrenByCodeStateVariableDefinitions` in `utils/booleanLogic.js`)
+ * and nothing at all among the operands of a math or boolean operator
+ * (`MathBaseOperator.js`, `BooleanBaseOperator.js`). Nothing else asks, and
+ * there the reference holds the empty value of the presented type.
+ *
+ * A reference a copy made at run time (`fixedReferent`) has no
+ * `valueMissing`. The copy makes no reference for an entry that is not
+ * there (`Copy.js`), and a reference it made stands for the component it
+ * made before value references, which held the empty value of its type once
+ * its variable held no value (`$c.selectedValue` after the selected choice
+ * is withheld).
+ */
+function valueMissingDefinition() {
+    return {
+        stateVariablesDeterminingDependencies: ["referentInfo"],
+        returnDependencies({ stateValues }) {
+            return targetDependencies(undefined, stateValues.referentInfo);
+        },
+        definition({ dependencyValues }) {
+            return {
+                setValue: {
+                    valueMissing:
+                        dependencyValues.target === undefined ||
+                        Boolean(dependencyValues.targetInactive),
+                },
+            };
+        },
+    };
 }
 
 /**
