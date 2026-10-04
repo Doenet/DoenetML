@@ -419,7 +419,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
         });
 
         it("an index into each list whose class fixes the type of its entries", async () => {
-            // Every class that declares `replacementComponentType`, with a
+            // Every class that declares `replacementComponentType`, apart
+            // from those whose type starts with `_`, which no author writes
+            // (the three operator bases and `_variableNameList`), with a
             // document whose replacements are checked against it: a class
             // that declares a type its replacements do not have would hand
             // a reference's parent a value of the wrong kind.

@@ -107,14 +107,14 @@ export class RefResolutionIndexDependencies extends Dependency {
     // Iterate through the index of all parts of `originalPath`.
     // If encounter unexpanded composites, set up resolve blockers
     // so that this dependency will be resolved again once the composites are expanded.
-    // Otherwise, gather all the component indices of the "integer" components into `componentList`.
+    // Otherwise, gather all the component indices of the index components (`isIndexComponent`) into `componentList`.
     // If encountered unexpanded composites, return
     // - success: false
-    // If successfully found all integer components return
+    // If successfully found all index components return
     // - success: true,
-    // - componentList: a list of the component indices of the "integer" components found in the unresolved path
+    // - componentList: a list of the component indices of the index components found in the unresolved path
     //
-    // An index that did not come out as a single integer component is simply left
+    // An index that did not come out as a single index component is simply left
     // out of `componentList`. It used to throw, which blanked the document
     // (#1917): the index of a component that had already been turned into an
     // `_error` is not an integer, so an ordinary authoring slip -- a mistyped
@@ -745,11 +745,11 @@ export class RefResolutionDependency extends Dependency {
 
     /**
      * Iterate through the index of all parts of `path`.
-     * If any component is found, it must be an "integer".
-     * Resolve its `value` state variable, which should be an integer,
-     * and use its string value instead of the component.
+     * If any component is found, it must be an index component
+     * (`isIndexComponent`), and its `value`, rounded where it is not an
+     * `integer`'s (`indexFromValue`), replaces it as a string.
      *
-     * A component that is not an integer -- or a composite that did not produce
+     * A component that is not an index component -- or a composite that did not produce
      * exactly one replacement -- means the index cannot be worked out at all.
      * That returns `indexIsNotANumber`, and the caller reports it and leaves the
      * reference resolving to nothing. It used to throw, and since nothing between
