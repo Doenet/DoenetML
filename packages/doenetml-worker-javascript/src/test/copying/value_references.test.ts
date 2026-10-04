@@ -2876,13 +2876,14 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 });
             });
 
-            it("a missing entry of a list with one type of entry is one empty response wherever the answer is", async () => {
+            it("a missing entry of a number or math list is one empty response wherever the answer is", async () => {
                 // At the top of the document, and inside a repeat iteration,
                 // a group, or a copy, a reference to a missing entry is one
                 // response, an empty math. The copy it replaced made nothing
                 // inside those, and the answer counted no response there. (A
-                // reference into a `<sequence>`, a `<collect>` or a list in a
-                // copied `<module>` is still a copy, and still does.)
+                // reference into a `<pointList>`, a `<split>`, a `<sequence>`,
+                // a `<collect>` or a list in a copied `<module>` is still a
+                // copy, and still does.)
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
     <numberList name="l">5 6</numberList>

@@ -669,10 +669,11 @@ function targetDependencies(fixedReferent, referentInfo) {
  * ask for it. That copy gave a blank math in a comparison
  * (`returnChildrenByCodeStateVariableDefinitions` in `utils/booleanLogic.js`)
  * and nothing at all among the operands of a math or boolean operator
- * (`MathBaseOperator.js`, `BooleanBaseOperator.js`). So does an `<answer>`
- * that records the reference as a response, through `valueAsResponse` and
- * `componentTypeAsResponse`: a blank math. Nothing else asks, and there the
- * reference holds the empty value of the presented type.
+ * (`MathBaseOperator.js`, `BooleanBaseOperator.js`). So do an `<answer>`, of
+ * every reference in its awards, and a `<considerAsResponses>`, of its
+ * children, through `valueAsResponse` and `componentTypeAsResponse`: the
+ * answer records such a reference as a blank math. Nothing else asks, and
+ * there the reference holds the empty value of the presented type.
  *
  * A reference a copy made at run time (`fixedReferent`) has no
  * `valueMissing`. The copy makes no reference for an entry that is not
