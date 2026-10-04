@@ -2605,6 +2605,73 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 });
             });
 
+            it("a response a copy makes at run time is recorded from its referent", async () => {
+                // The type of a list in a copied `<module>` is only known at
+                // run time, so `$mc.values[1]` keeps its copy, which makes a
+                // value reference with its referent fixed. That reference
+                // has no `valueMissing`: the copy makes none for an entry
+                // that is not there.
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <setup><module name="mod"><moduleAttributes><numberList name="values"/></moduleAttributes></module></setup>
+    <module copy="$mod" name="mc" values="1 2" />
+    <mathInput name="mi" />
+    <answer name="direct"><award><when>$mc.values[1] = $mi</when></award></answer>
+    <answer name="inMath"><award><when><math>$mc.values[2]+1</math> = 3 and $mi = 1</when></award></answer>
+    `,
+                });
+                await updateMathInputValue({
+                    latex: "1",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+                const directIdx = await resolvePathToNodeIdx("direct");
+                const inMathIdx = await resolvePathToNodeIdx("inMath");
+                await submitAnswer({ componentIdx: directIdx, core });
+                await submitAnswer({ componentIdx: inMathIdx, core });
+                expect(
+                    valueRefs(core).filter(
+                        (ref) => ref.doenetAttributes.fixedReferent,
+                    ),
+                ).toHaveLength(2);
+                expect(await submitted(core, directIdx)).eqls({
+                    responses: [1, 1],
+                    types: ["number", "math"],
+                    credit: 1,
+                    numResponses: 2,
+                });
+                // inside the `<math>` it presents as a math, and is recorded
+                // as the number it reads
+                expect(await submitted(core, inMathIdx)).eqls({
+                    responses: [2, 1],
+                    types: ["number", "math"],
+                    credit: 1,
+                    numResponses: 2,
+                });
+            });
+
+            it("a function's missing global minimum is an empty response", async () => {
+                // Neither function has a global minimum, so each reference
+                // has nothing to read: an empty response, unequal to the
+                // other (#2153 makes them missing; the copy made a `NaN`
+                // number for each, and the answer gave credit).
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <function name="f">x</function>
+    <function name="g">-x^2</function>
+    <answer name="ans"><award><when>$f.globalMinimumLocation = $g.globalMinimumLocation</when></award></answer>
+    `,
+                });
+                const ansIdx = await resolvePathToNodeIdx("ans");
+                await submitAnswer({ componentIdx: ansIdx, core });
+                expect(await submitted(core, ansIdx)).eqls({
+                    responses: ["＿", "＿"],
+                    types: ["math", "math"],
+                    credit: 0,
+                    numResponses: 2,
+                });
+            });
+
             it("a reference named in referencesAreResponses is recorded from its referent", async () => {
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
