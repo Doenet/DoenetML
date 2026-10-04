@@ -108,9 +108,12 @@ describe("Circular references through children and extend @group2", async () => 
     const circularError = "Circular dependency involving these components";
 
     it("a text that contains a reference to itself", async () => {
+        // The whole message, to its period: the `$t` is a value reference,
+        // which is not something the author wrote, and is not listed after
+        // the text.
         await expect(
             createTestCore({ doenetML: `<text name="t">$t</text>` }),
-        ).rejects.toThrow(`${circularError}: <text> (line 1)`);
+        ).rejects.toThrow(`${circularError}: <text> (line 1).`);
     });
 
     it("two texts that reference each other", async () => {

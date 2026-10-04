@@ -2745,8 +2745,7 @@ export async function replacementFromProp({
                     const valueReference = mayBeValueReference
                         ? planValueReference({
                               parentClass,
-                              target,
-                              refVariable: propVariable,
+                              targetComponentType: target.componentType,
                               valueComponentType: createComponentOfType,
                               // An adapter's variable lives on the referent
                               // only for its implicit prop, never for an
@@ -2764,8 +2763,8 @@ export async function replacementFromProp({
                             serializeValueReference({
                                 ...valueReference,
                                 referencedVariable: propVariable,
+                                valueComponentType: createComponentOfType,
                                 target,
-                                compositeIdx: component.componentIdx,
                                 componentIdx: nComponents++,
                                 stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                             }),
@@ -3700,8 +3699,7 @@ export async function replacementFromProp({
             const valueReference = mayBeValueReference
                 ? planValueReference({
                       parentClass,
-                      target,
-                      refVariable: varName,
+                      targetComponentType: target.componentType,
                       valueComponentType:
                           stateVarObj.shadowingInstructions
                               .createComponentOfType,
@@ -3717,8 +3715,10 @@ export async function replacementFromProp({
                     serializeValueReference({
                         ...valueReference,
                         referencedVariable: varName,
+                        valueComponentType:
+                            stateVarObj.shadowingInstructions
+                                .createComponentOfType,
                         target,
-                        compositeIdx: component.componentIdx,
                         componentIdx: nComponents++,
                         stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                     }),

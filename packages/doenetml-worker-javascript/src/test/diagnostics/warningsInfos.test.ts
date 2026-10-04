@@ -605,15 +605,20 @@ describe("Warning Tests @group4", async () => {
         );
         expect(diagnosticsByType.infos[5].position.start.line).eq(4);
 
-        expect(diagnosticsByType.infos[6].message).contain(
-            "Invalid value `try2` for attribute `format`",
-        );
-        expect(diagnosticsByType.infos[6].position.start.line).eq(5);
-
-        expect(diagnosticsByType.infos[7].message).contain(
-            "Invalid value `try2` for attribute `format`",
-        );
-        expect(diagnosticsByType.infos[7].position.start.line).eq(9);
+        // One write reaches both `m2` and the `m6` that extends it, and each
+        // reports the value it was given. Which of the two is evaluated
+        // first depends on the order the update touches them, so the pair
+        // is checked without an order.
+        const infosByLine = (indices: number[]) =>
+            indices
+                .map((i) => diagnosticsByType.infos[i].position.start.line)
+                .sort((a, b) => a - b);
+        for (const i of [6, 7]) {
+            expect(diagnosticsByType.infos[i].message).contain(
+                "Invalid value `try2` for attribute `format`",
+            );
+        }
+        expect(infosByLine([6, 7])).eqls([5, 9]);
 
         expect(diagnosticsByType.infos[8].message).contain(
             "Invalid value `try3` for attribute `format`",
@@ -630,15 +635,12 @@ describe("Warning Tests @group4", async () => {
         );
         expect(diagnosticsByType.infos[10].position.start.line).eq(8);
 
-        expect(diagnosticsByType.infos[11].message).contain(
-            "Invalid value `try6` for attribute `format`",
-        );
-        expect(diagnosticsByType.infos[11].position.start.line).eq(5);
-
-        expect(diagnosticsByType.infos[12].message).contain(
-            "Invalid value `try6` for attribute `format`",
-        );
-        expect(diagnosticsByType.infos[12].position.start.line).eq(9);
+        for (const i of [11, 12]) {
+            expect(diagnosticsByType.infos[i].message).contain(
+                "Invalid value `try6` for attribute `format`",
+            );
+        }
+        expect(infosByLine([11, 12])).eqls([5, 9]);
 
         expect(diagnosticsByType.infos[13].message).contain(
             "Invalid value `try7` for attribute `format`",

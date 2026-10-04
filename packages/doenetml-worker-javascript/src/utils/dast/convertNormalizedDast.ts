@@ -29,6 +29,7 @@ import { convertToErrorComponent, errorComponentState } from "./errors";
 import { decodeXMLEntities, removeBlankStringChildren } from "./convertUtils";
 import { applySugar } from "./sugar";
 import { convertRefsToCopies } from "./convertToCopy";
+import { convertCopiesToValueReferences } from "./valueReferences";
 import { DiagnosticRecord } from "@doenet/utils";
 import {
     codedDiagnostic,
@@ -328,6 +329,14 @@ export async function normalizedDastToSerializedComponents(
     //     JSON.parse(JSON.stringify(sugarResult.components)),
     //     nComponents,
     // );
+
+    // After sugar, so that each reference is judged by the parent it will
+    // have: the `$n` of `<number>$n+1</number>` sits in the `<math>` sugar
+    // made.
+    convertCopiesToValueReferences({
+        serializedComponents: sugarResult.components,
+        componentInfoObjects,
+    });
 
     const document = sugarResult.components[0] as SerializedComponent;
 

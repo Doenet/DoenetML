@@ -695,6 +695,11 @@ export class UnlinkedCopySourceDependency extends Dependency {
  * the component is not a shadow. `shadows` is set once at construction time
  * and never changes, so this dependency does not track any downstream
  * component changes — it simply reads the static metadata.
+ *
+ * A value reference (`_ref`) shadows nothing but reads one variable of its
+ * referent, which is what this dependency is asked about; for one, the
+ * value is that referent and variable, read from the reference's
+ * `referentInfo` state variable and tracked like any other.
  */
 export class ShadowInfoDependency extends Dependency {
     static dependencyType = "shadowInfo";
@@ -705,10 +710,45 @@ export class ShadowInfoDependency extends Dependency {
         } else {
             this.componentIdx = this.upstreamComponentIdx;
         }
+        this.originalDownstreamVariableNames = [];
+        this.returnSingleComponent = true;
     }
 
-    async getValue() {
+    isValueReference(component: any) {
+        return Boolean(component && "referentInfo" in component.state);
+    }
+
+    async determineDownstreamComponents() {
         const component = this.dependencyHandler._components[this.componentIdx];
+        if (this.isValueReference(component)) {
+            this.originalDownstreamVariableNames = ["referentInfo"];
+            return {
+                success: true,
+                downstreamComponentIndices: [this.componentIdx],
+                downstreamComponentTypes: [component.componentType],
+            };
+        }
+        this.originalDownstreamVariableNames = [];
+        return {
+            success: true,
+            downstreamComponentIndices: [],
+            downstreamComponentTypes: [],
+        };
+    }
+
+    async getValue(args?: any) {
+        const component = this.dependencyHandler._components[this.componentIdx];
+        if (this.isValueReference(component)) {
+            const result = await super.getValue(args);
+            const referentInfo = result.value?.stateValues?.referentInfo;
+            result.value = referentInfo
+                ? {
+                      componentIdx: referentInfo.componentIdx,
+                      propVariable: referentInfo.variableName,
+                  }
+                : null;
+            return result;
+        }
         if (!component?.shadows) {
             return { value: null, changes: {} };
         }

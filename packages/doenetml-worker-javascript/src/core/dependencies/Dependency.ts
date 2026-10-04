@@ -543,11 +543,11 @@ export class Dependency {
             if (downComponent.createOnDemandStateVariableDefinitions) {
                 // A value reference (`_ref`) defines almost nothing itself. A
                 // variable asked of it that it lacks is made now, from the
-                // definitions of the type it stands in for and redirected to
-                // its referent, so that the reads and the optional-variable
-                // filter below find it like any other. For the name of an
-                // array entry, the array is what gets made; the entry then
-                // follows through `createFromArrayEntry` as usual.
+                // definitions of the type it stands in for, so that the
+                // reads and the optional-variable filter below find it like
+                // any other. For the name of an array entry, the array is
+                // what gets made; the entry then follows through
+                // `createFromArrayEntry` as usual.
                 const core = this.dependencyHandler.core;
                 for (const downVar of downVarNames) {
                     if (downVar in downComponent.state) {
@@ -556,7 +556,6 @@ export class Dependency {
                     const definitions =
                         downComponent.createOnDemandStateVariableDefinitions({
                             stateVariable: downVar,
-                            components: this.dependencyHandler._components,
                             classDefinitions: (componentClass: any) =>
                                 getClassStateVariableDefinitions(
                                     core,
