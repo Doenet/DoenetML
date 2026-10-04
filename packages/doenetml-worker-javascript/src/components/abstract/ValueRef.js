@@ -327,36 +327,13 @@ export default class ValueRef extends BaseComponent {
             // re-evaluate the referent's variable in the middle of a write
             excludeDependencyValuesInInverseDefinition: true,
             returnDependencies({ stateValues = {} }) {
-                const fixedReferent = this.svComponent.fixedReferent;
-                const referentInfo = fixedReferent ?? stateValues.referentInfo;
-                if (!referentInfo) {
-                    return {};
-                }
-                const dependencies = {
-                    target: {
-                        dependencyType: "stateVariable",
-                        componentIdx: referentInfo.componentIdx,
-                        variableName: referentInfo.variableName,
-                        variablesOptional: true,
-                    },
-                };
-                if (!fixedReferent) {
-                    dependencies.targetInactive = {
-                        dependencyType: "stateVariable",
-                        componentIdx: referentInfo.componentIdx,
-                        variableName: "isInactiveCompositeReplacement",
-                        variablesOptional: true,
-                    };
-                }
-                return dependencies;
+                return targetDependencies(
+                    this.svComponent.fixedReferent,
+                    stateValues.referentInfo,
+                );
             },
             definition({ dependencyValues, componentInfoObjects }) {
-                const target = dependencyValues.target;
-                if (
-                    target === undefined ||
-                    target === null ||
-                    dependencyValues.targetInactive
-                ) {
+                if (hasNothingToRead(dependencyValues)) {
                     return {
                         setValue: {
                             value: emptyValueOfType(
@@ -366,7 +343,7 @@ export default class ValueRef extends BaseComponent {
                         },
                     };
                 }
-                return { setValue: { value: target } };
+                return { setValue: { value: dependencyValues.target } };
             },
             async inverseDefinition({
                 desiredStateVariableValues,
@@ -512,11 +489,20 @@ export default class ValueRef extends BaseComponent {
      * (`readsReferentVariable`): what a dependency on this reference's
      * adapter source reads (`adapterDependencies.ts`), since the referent is
      * that source.
+     *
+     * `valueMissing`, whether the reference has nothing to read, is its own
+     * (`valueMissingDefinition`), and only the parents that treat such a
+     * reference differently ask for it.
      */
     createOnDemandStateVariableDefinitions({
         stateVariable,
         classDefinitions,
     }) {
+        if (stateVariable === "valueMissing") {
+            return [
+                [stateVariable, valueMissingDefinition(this.fixedReferent)],
+            ];
+        }
         const referentVariable = variableOfReferentVariable(stateVariable);
         if (referentVariable !== undefined) {
             return [
@@ -594,6 +580,81 @@ function pathHasIndexComponents(refResolution) {
             ),
         ),
     );
+}
+
+/**
+ * The dependencies through which a reference reads its referent's variable:
+ * `target`, the variable, and, for a reference that resolves itself,
+ * `targetInactive`, whether the referent is a withheld replacement of a
+ * composite. None while there is no referent. `referentInfo` is the
+ * reference's own; `fixedReferent` replaces it for a reference a copy made.
+ */
+function targetDependencies(fixedReferent, referentInfo) {
+    referentInfo = fixedReferent ?? referentInfo;
+    if (!referentInfo) {
+        return {};
+    }
+    const dependencies = {
+        target: {
+            dependencyType: "stateVariable",
+            componentIdx: referentInfo.componentIdx,
+            variableName: referentInfo.variableName,
+            variablesOptional: true,
+        },
+    };
+    if (!fixedReferent) {
+        dependencies.targetInactive = {
+            dependencyType: "stateVariable",
+            componentIdx: referentInfo.componentIdx,
+            variableName: "isInactiveCompositeReplacement",
+            variablesOptional: true,
+        };
+    }
+    return dependencies;
+}
+
+/**
+ * Whether the values of `targetDependencies` leave the reference nothing to
+ * read: no referent, a referent without the variable (an index past the end
+ * of a list, a `<choiceInput>`'s `selectedIndex` before a choice), or a
+ * withheld referent.
+ */
+function hasNothingToRead(dependencyValues) {
+    return (
+        dependencyValues.target === undefined ||
+        dependencyValues.target === null ||
+        Boolean(dependencyValues.targetInactive)
+    );
+}
+
+/**
+ * The definition of `valueMissing`, made on demand: whether the reference
+ * has nothing to read, so that its `value` is the empty value of the type it
+ * presents as (`NaN`, `""`, `false`, `＿`) rather than one it read. An empty
+ * value alone cannot say so, since a referent can hold `NaN` or `""` too.
+ *
+ * The parents that the copy this reference replaced gave a different
+ * result ask for it. A copy with nothing to read made a blank math in a
+ * comparison (`returnChildrenByCodeStateVariableDefinitions` in
+ * `utils/booleanLogic.js`) and nothing at all among a math operator's
+ * operands (`MathBaseOperator.js`); everywhere else the empty value of the
+ * presented type is what the copy showed, and nothing asks.
+ */
+function valueMissingDefinition(fixedReferent) {
+    const definition = {
+        returnDependencies({ stateValues = {} }) {
+            return targetDependencies(fixedReferent, stateValues.referentInfo);
+        },
+        definition({ dependencyValues }) {
+            return {
+                setValue: { valueMissing: hasNothingToRead(dependencyValues) },
+            };
+        },
+    };
+    if (!fixedReferent) {
+        definition.stateVariablesDeterminingDependencies = ["referentInfo"];
+    }
+    return definition;
 }
 
 /**

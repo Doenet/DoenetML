@@ -1695,6 +1695,397 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             }
         });
 
+        describe("references with nothing to read", () => {
+            // An index past the end of a list, or a `<choiceInput>`'s
+            // `selectedIndex` before a choice, leaves a reference nothing to
+            // read. It shows the empty value of its type (`NaN`, `""`,
+            // `false`, `＿`), as the copy it replaced did. Where that copy
+            // gave a different result, the reference gives the copy's: a
+            // blank math in a comparison, so that no two missing values are
+            // equal, and nothing among a math operator's operands.
+
+            /** The `value` of each named component. */
+            async function values(
+                core: any,
+                resolvePathToNodeIdx: (name: string) => Promise<number>,
+                names: string[],
+            ) {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const result: Record<string, any> = {};
+                for (const name of names) {
+                    const value =
+                        stateVariables[await resolvePathToNodeIdx(name)]
+                            .stateValues.value;
+                    result[name] =
+                        value?.tree !== undefined ? value.tree : value;
+                }
+                return result;
+            }
+
+            it("is a blank math in a comparison, equal to nothing", async () => {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <choiceInput name="c1"><choice>a</choice><choice>b</choice></choiceInput>
+    <choiceInput name="c2"><choice>a</choice><choice>b</choice></choiceInput>
+    <numberList name="l">1 2 2</numberList>
+    <textList name="tl">a b b</textList>
+    <booleanList name="bl">true false false</booleanList>
+    <mathInput name="k">5</mathInput>
+    <number name="i">$k</number>
+    <mathInput name="blank" />
+    <textInput name="ti" />
+    <booleanInput name="bi" />
+    <number name="nan">0/0</number>
+
+    <boolean name="numEq">$l[$i] = $l[$i+1]</boolean>
+    <boolean name="numNe">$l[$i] != $l[$i+1]</boolean>
+    <boolean name="numNaN">$l[$i] = $nan</boolean>
+    <boolean name="numBlank" matchBlanks>$l[$i] = $blank</boolean>
+    <boolean name="textEq">$tl[$i] = $tl[$i+1]</boolean>
+    <boolean name="textNe">$tl[$i] != $tl[$i+1]</boolean>
+    <boolean name="textEmpty">$tl[$i] = <text/></boolean>
+    <boolean name="textInput">$tl[$i] = $ti</boolean>
+    <boolean name="boolEq">$bl[$i] = $bl[$i+1]</boolean>
+    <boolean name="boolNotEq">not ($bl[$i] = $bl[$i+1])</boolean>
+    <boolean name="boolFalse">$bl[$i] = false</boolean>
+    <boolean name="boolInput">$bl[$i] = $bi</boolean>
+    <boolean name="choiceEq">$c1.selectedIndex = $c2.selectedIndex</boolean>
+    <boolean name="choiceNe">$c1.selectedIndex != $c2.selectedIndex</boolean>
+
+    <number name="num">$l[$i]</number>
+    <text name="txt">$tl[$i]</text>
+    <boolean name="bool">$bl[$i]</boolean>
+    `,
+                });
+                const comparisons = [
+                    "numEq",
+                    "numNe",
+                    "numNaN",
+                    "numBlank",
+                    "textEq",
+                    "textNe",
+                    "textEmpty",
+                    "textInput",
+                    "boolEq",
+                    "boolNotEq",
+                    "boolFalse",
+                    "boolInput",
+                    "choiceEq",
+                    "choiceNe",
+                ];
+                expect(censusOfCore(core).copies).eq(0);
+
+                // `=` is false and `!=` true for every missing value, except
+                // that `matchBlanks` matches a blank to a blank input
+                expect(
+                    await values(core, resolvePathToNodeIdx, [
+                        ...comparisons,
+                        "num",
+                        "txt",
+                        "bool",
+                    ]),
+                ).eqls({
+                    numEq: false,
+                    numNe: true,
+                    numNaN: false,
+                    numBlank: true,
+                    textEq: false,
+                    textNe: true,
+                    textEmpty: false,
+                    textInput: false,
+                    boolEq: false,
+                    boolNotEq: true,
+                    boolFalse: false,
+                    boolInput: false,
+                    choiceEq: false,
+                    choiceNe: true,
+                    // what the references show is the empty value of each type
+                    num: NaN,
+                    txt: "",
+                    bool: false,
+                });
+
+                // with the entries there, they compare by their values
+                await updateMathInputValue({
+                    latex: "2",
+                    componentIdx: await resolvePathToNodeIdx("k"),
+                    core,
+                });
+                for (const name of ["c1", "c2"]) {
+                    await updateSelectedIndices({
+                        selectedIndices: [2],
+                        componentIdx: await resolvePathToNodeIdx(name),
+                        core,
+                    });
+                }
+                expect(
+                    await values(core, resolvePathToNodeIdx, comparisons),
+                ).eqls({
+                    numEq: true,
+                    numNe: false,
+                    numNaN: false,
+                    numBlank: false,
+                    textEq: true,
+                    textNe: false,
+                    textEmpty: false,
+                    textInput: false,
+                    boolEq: true,
+                    boolNotEq: false,
+                    boolFalse: true,
+                    boolInput: true,
+                    choiceEq: true,
+                    choiceNe: false,
+                });
+
+                // and are blanks again once the index is past the end
+                await updateMathInputValue({
+                    latex: "4",
+                    componentIdx: await resolvePathToNodeIdx("k"),
+                    core,
+                });
+                expect(
+                    await values(core, resolvePathToNodeIdx, [
+                        "numEq",
+                        "textEq",
+                        "boolEq",
+                        "boolFalse",
+                    ]),
+                ).eqls({
+                    numEq: false,
+                    textEq: false,
+                    boolEq: false,
+                    boolFalse: false,
+                });
+            });
+
+            it("an answer gives no credit for two missing values, or one and a blank input", async () => {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <choiceInput name="c1"><choice>a</choice><choice>b</choice></choiceInput>
+    <choiceInput name="c2"><choice>a</choice><choice>b</choice></choiceInput>
+    <numberList name="l">1 2 3</numberList>
+    <textList name="tl">a b</textList>
+    <booleanList name="bl">true false</booleanList>
+    <mathInput name="i">5</mathInput>
+    <answer name="a1"><mathInput />
+      <award><when>$c1.selectedIndex = $c2.selectedIndex</when></award>
+    </answer>
+    <answer name="a2"><mathInput />
+      <award><when>$l[$i] = $l[$i+1]</when></award>
+    </answer>
+    <answer name="a3"><textInput name="ti" />
+      <award><when>$tl[$i] = $ti</when></award>
+    </answer>
+    <answer name="a4"><booleanInput name="bi" />
+      <award><when>$bl[$i] = $bi</when></award>
+    </answer>
+    <answer name="s1"><mathInput /><award>$l[$i]</award></answer>
+    <answer name="s2"><textInput /><award>$tl[$i]</award></answer>
+    <answer name="s3"><booleanInput /><award>$bl[$i]</award></answer>
+    <answer name="s4" type="text"><award>$tl[$i]</award></answer>
+    `,
+                });
+                const names = ["a1", "a2", "a3", "a4", "s1", "s2", "s3", "s4"];
+                /** Submit every answer, and return the credit of each. */
+                async function credits() {
+                    for (const name of names) {
+                        await submitAnswer({
+                            componentIdx: await resolvePathToNodeIdx(name),
+                            core,
+                        });
+                    }
+                    const stateVariables = await core.returnAllStateVariables(
+                        false,
+                        true,
+                    );
+                    const result: Record<string, number> = {};
+                    for (const name of names) {
+                        result[name] =
+                            stateVariables[
+                                await resolvePathToNodeIdx(name)
+                            ].stateValues.creditAchieved;
+                    }
+                    return result;
+                }
+
+                expect(await credits()).eqls({
+                    a1: 0,
+                    a2: 0,
+                    a3: 0,
+                    a4: 0,
+                    s1: 0,
+                    s2: 0,
+                    s3: 0,
+                    s4: 0,
+                });
+
+                // a choice made in both is credited, as an entry that is there
+                for (const name of ["c1", "c2"]) {
+                    await updateSelectedIndices({
+                        selectedIndices: [1],
+                        componentIdx: await resolvePathToNodeIdx(name),
+                        core,
+                    });
+                }
+                await updateTextInputValue({
+                    text: "b",
+                    componentIdx: await resolvePathToNodeIdx("ti"),
+                    core,
+                });
+                await updateMathInputValue({
+                    latex: "2",
+                    componentIdx: await resolvePathToNodeIdx("i"),
+                    core,
+                });
+                const after = await credits();
+                expect([after.a1, after.a3]).eqls([1, 1]);
+            });
+
+            it("a math operator leaves it out of its operands", async () => {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <numberList name="l">1 2 3</numberList>
+    <mathList name="ml">x y z</mathList>
+    <textList name="tl">a b c</textList>
+    <mathInput name="i">5</mathInput>
+    <sum name="sum">$l[$i] 5</sum>
+    <product name="product">$l[$i] 5</product>
+    <min name="min">$l[$i] 5</min>
+    <max name="max">$l[$i] 5</max>
+    <mean name="mean">$l[$i] 5</mean>
+    <median name="median">$l[$i] 5 7</median>
+    <variance name="variance">$l[$i] 4 6</variance>
+    <count name="count">$l[$i] 5</count>
+    <gcd name="gcd">$l[$i] 6 4</gcd>
+    <mod name="mod">$l[$i] 3</mod>
+    <sum name="sumMath">$ml[$i] 5</sum>
+    <sum name="sumText">$tl[$i] 5</sum>
+    <mean name="meanNone">$l[$i] $l[$i+1]</mean>
+    `,
+                });
+                const names = [
+                    "sum",
+                    "product",
+                    "min",
+                    "max",
+                    "mean",
+                    "median",
+                    "variance",
+                    "count",
+                    "gcd",
+                    "mod",
+                    "sumMath",
+                    "sumText",
+                    "meanNone",
+                ];
+                expect(await values(core, resolvePathToNodeIdx, names)).eqls({
+                    sum: 5,
+                    product: 5,
+                    min: 5,
+                    max: 5,
+                    mean: 5,
+                    median: 6,
+                    variance: 2,
+                    count: 1,
+                    gcd: 2,
+                    // `<mod>` takes exactly two operands
+                    mod: NaN,
+                    sumMath: 5,
+                    sumText: 5,
+                    // with no operand left, an operator is blank, as one with
+                    // no children is
+                    meanNone: "＿",
+                });
+
+                // once the entry is there, it is an operand again
+                await updateMathInputValue({
+                    latex: "2",
+                    componentIdx: await resolvePathToNodeIdx("i"),
+                    core,
+                });
+                expect(await values(core, resolvePathToNodeIdx, names)).eqls({
+                    sum: 7,
+                    product: 10,
+                    min: 2,
+                    max: 5,
+                    mean: 3.5,
+                    median: 5,
+                    variance: 4,
+                    count: 2,
+                    gcd: 2,
+                    mod: 2,
+                    sumMath: ["+", "y", 5],
+                    sumText: ["+", "b", 5],
+                    meanNone: 2.5,
+                });
+            });
+
+            it("a write through a math operator goes to the operand that is there", async () => {
+                // `<min>` writes to its one operand that can be changed; a
+                // missing reference is not an operand, so `n` is the one
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <numberList name="l">1 2 3</numberList>
+    <mathInput name="i">5</mathInput>
+    <number name="n">4</number>
+    <min name="min">$l[$i] $n</min>
+    <mathInput name="mi" bindValueTo="$min" />
+    `,
+                });
+                const minIdx = await resolvePathToNodeIdx("min");
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                expect(stateVariables[minIdx].stateValues.canBeModified).eq(
+                    true,
+                );
+
+                await updateMathInputValue({
+                    latex: "2",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+                expect(
+                    await values(core, resolvePathToNodeIdx, ["n", "min"]),
+                ).eqls({ n: 2, min: 2 });
+            });
+
+            it("behaves the same in a repeat and a group as at document level", async () => {
+                const block = (prefix: string, i: string, j: string) => `
+      <boolean name="${prefix}eq">$l[${i}] = $l[${j}]</boolean>
+      <boolean name="${prefix}ne">$l[${i}] != $l[${j}]</boolean>
+      <boolean name="${prefix}text">$tl[${i}] = $ti</boolean>
+      <sum name="${prefix}sum">$l[${i}] 5</sum>`;
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <numberList name="l">5 6</numberList>
+    <textList name="tl">a b</textList>
+    <textInput name="ti" />
+    ${block("d", "3", "4")}
+    <repeatForSequence name="r" from="3" to="3" valueName="v">${block("", "$v", "$v+1")}</repeatForSequence>
+    <group name="g">${block("g", "3", "4")}</group>
+    `,
+                });
+                const expected = [false, true, false, 5];
+                for (const name of [
+                    (n: string) => "d" + n,
+                    (n: string) => "r[1]." + n,
+                    (n: string) => "g" + n,
+                ]) {
+                    const result = await values(
+                        core,
+                        resolvePathToNodeIdx,
+                        ["eq", "ne", "text", "sum"].map(name),
+                    );
+                    expect(Object.values(result)).eqls(expected);
+                }
+            });
+        });
+
         describe("references an answer counts as responses", () => {
             /** The submitted responses of `ansIdx` and their types. */
             async function submitted(core: any, ansIdx: number) {

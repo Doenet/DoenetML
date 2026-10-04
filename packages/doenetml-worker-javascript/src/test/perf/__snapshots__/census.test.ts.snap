@@ -13,10 +13,10 @@ exports[`component census of the micro-documents > answer when $mi=x 1`] = `
   },
   "components": 6,
   "copies": 0,
-  "dependencies": 504,
+  "dependencies": 507,
   "shadows": 0,
-  "stateVariables": 391,
-  "stateVariablesResolved": 258,
+  "stateVariables": 392,
+  "stateVariablesResolved": 259,
 }
 `;
 
