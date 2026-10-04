@@ -1821,16 +1821,17 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             });
 
             it("a missing entry is recorded and compared as an empty response", async () => {
-                // Neither choice is made and the index is past the end of
-                // the list, so each reference reads an entry that is not
-                // there. Each is recorded as an empty math, and no two of
-                // them are equal.
+                // Before a choice is made, and while the index is blank or
+                // past the end of the list, a reference reads an entry that
+                // is not there. It is recorded as an empty math, and no two
+                // of them are equal. Once an entry is there, it is recorded
+                // and compared by its value.
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
     <choiceInput name="c1"><choice>a</choice><choice>b</choice></choiceInput>
     <choiceInput name="c2"><choice>a</choice><choice>b</choice></choiceInput>
     <mathInput name="i" />
-    <numberList name="l">1 2 3</numberList>
+    <numberList name="l">1 2 2</numberList>
     <answer name="ans1">
       <award><when>$c1.selectedIndex = $c2.selectedIndex</when></award>
     </answer>
@@ -1870,6 +1871,29 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     credit: 1,
                     numResponses: 2,
                 });
+
+                // `$l[$i]` and `$l[$i+1]` follow the index: different
+                // entries, equal entries, and the last entry with one past
+                // the end
+                const iIdx = await resolvePathToNodeIdx("i");
+                for (const [i, responses, types, credit] of [
+                    ["1", [1, 2], ["number", "number"], 0],
+                    ["2", [2, 2], ["number", "number"], 1],
+                    ["3", [2, "＿"], ["number", "math"], 0],
+                ] as const) {
+                    await updateMathInputValue({
+                        latex: i,
+                        componentIdx: iIdx,
+                        core,
+                    });
+                    await submitAnswer({ componentIdx: ans2Idx, core });
+                    expect(await submitted(core, ans2Idx)).eqls({
+                        responses,
+                        types,
+                        credit,
+                        numResponses: 2,
+                    });
+                }
             });
 
             it("a reference an award names in referencesAreResponses is a response", async () => {
