@@ -1966,6 +1966,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     <mean name="meanMath">$ml[$i] 1 2</mean>
     <sum name="sumText">$tl[$i] 5</sum>
     <mean name="meanNone">$l[$i] $l[$i+1]</mean>
+    <boolean name="unorderedSum"><sum><math unordered>(1,2)</math> $ml[$i]</sum> = (2,1)</boolean>
     `,
                 });
                 const names = [
@@ -1983,6 +1984,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     "meanMath",
                     "sumText",
                     "meanNone",
+                    "unorderedSum",
                 ];
                 expect(await values(core, resolvePathToNodeIdx, names)).eqls({
                     sum: 5,
@@ -2004,6 +2006,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     // with no operand left, an operator is blank, as one with
                     // no children is
                     meanNone: "＿",
+                    // the sum of the one operand left is unordered, as it is
+                    unorderedSum: true,
                 });
 
                 // once the entry is there, it is an operand again
@@ -2027,6 +2031,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     meanMath: ["/", ["+", "y", 1, 2], 3],
                     sumText: ["+", "b", 5],
                     meanNone: 2.5,
+                    unorderedSum: false,
                 });
             });
 

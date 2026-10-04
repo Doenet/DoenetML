@@ -90,6 +90,37 @@ export default class MathOperator extends MathComponent {
         });
         Object.assign(stateVariableDefinitions, roundingDefinitions);
 
+        // `unordered` (`Math.js`): whether every math child is unordered,
+        // taken over the operands alone, so that a missing one does not make
+        // `<sum><math unordered>(1,2)</math> $ml[$i]</sum>` ordered
+        const unorderedDefinition = stateVariableDefinitions.unordered;
+        stateVariableDefinitions.unordered = {
+            ...unorderedDefinition,
+            returnDependencies(args) {
+                const dependencies =
+                    unorderedDefinition.returnDependencies.call(this, args);
+                return {
+                    ...dependencies,
+                    mathChildren: {
+                        ...dependencies.mathChildren,
+                        variableNames: ["unordered", "valueMissing"],
+                        variablesOptional: true,
+                    },
+                };
+            },
+            definition(args) {
+                return unorderedDefinition.definition.call(this, {
+                    ...args,
+                    dependencyValues: {
+                        ...args.dependencyValues,
+                        mathChildren: operandChildren(
+                            args.dependencyValues.mathChildren,
+                        ).map(({ child }) => child),
+                    },
+                });
+            },
+        };
+
         stateVariableDefinitions.isNumericOperator = {
             returnDependencies: () => ({
                 forceNumeric: {
