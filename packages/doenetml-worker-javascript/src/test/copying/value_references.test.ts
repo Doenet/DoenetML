@@ -496,7 +496,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(declared).eqls(Object.keys(lists).sort());
         });
 
-        it("a write through an index into a list lands on the entry", async () => {
+        it("a write through an index into a list lands on the entry, and one past its end is refused", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <numberList name="l">1 2 3</numberList>
@@ -504,19 +504,23 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     <number name="x">$l[2]</number>
     <numberList name="lf" fixed>1 2 3</numberList>
     <mathInput name="mif" bindValueTo="$lf[2]" />
+    <mathInput name="mip" bindValueTo="$l[5]" />
     `,
             });
-            await updateMathInputValue({
-                latex: "7",
-                componentIdx: await resolvePathToNodeIdx("mi"),
-                core,
-            });
-            await updateMathInputValue({
-                latex: "7",
-                componentIdx: await resolvePathToNodeIdx("mif"),
-                core,
-            });
+            for (const name of ["mi", "mif", "mip"]) {
+                await updateMathInputValue({
+                    latex: "7",
+                    componentIdx: await resolvePathToNodeIdx(name),
+                    core,
+                });
+            }
             const sv = await core.returnAllStateVariables(false, true);
+            // past the end there is no entry to take the value, so the input
+            // goes on showing nothing, as one bound to `$P.xs[$i]` past a
+            // point's last coordinate does
+            expect(
+                sv[await resolvePathToNodeIdx("mip")].stateValues.value.tree,
+            ).eq("\uff3f");
             expect(
                 sv[await resolvePathToNodeIdx("l")].stateValues.numbers,
             ).eqls([1, 7, 3]);
@@ -558,6 +562,18 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     valueRefs(core).find((ref) => ref.parentIdx === xIdx),
                 ).toBe(ref);
             }
+        });
+
+        it("an index that reads the component holding the reference is a circular dependency", async () => {
+            // `i`'s value is the entry its own value picks out: the document
+            // stops with the cycle, as `<number name="n">$n</number>` does
+            await expect(
+                createTestCore({
+                    doenetML: `<numberList name="l">1 2 3</numberList><number name="i">$l[$i]</number>`,
+                }),
+            ).rejects.toThrow(
+                "Circular dependency involving these components: <number> (line 1).",
+            );
         });
 
         it("a reference is remade when the referenced variable changes type", async () => {
