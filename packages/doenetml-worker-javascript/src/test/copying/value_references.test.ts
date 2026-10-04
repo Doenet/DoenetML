@@ -1161,5 +1161,44 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             }
             expect(censusOfCore(core).copies).toBeGreaterThanOrEqual(3);
         });
+
+        it("a repeatForSequence type the attribute does not allow makes numbers, and the references read them", async () => {
+            // `type="text"` is not a sequence type: the attribute falls back
+            // to `number`, so each `$v` must be planned as a number, not as
+            // the text the document names. `LETTERS` is allowed once
+            // lower-cased, and makes texts.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <repeatForSequence name="r" from="1" to="2" type="text" valueName="v" indexName="i">
+      <text name="t">$v</text>
+      <math name="m">$v+$i</math>
+    </repeatForSequence>
+    <repeatForSequence name="s" from="a" to="b" type="LETTERS" valueName="w">
+      <text name="t">$w!</text>
+    </repeatForSequence>
+    `,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect((await sv("r[1].t")).value).eq("1");
+            expect((await sv("r[2].t")).value).eq("2");
+            expect((await sv("r[1].m")).value.tree).eqls(["+", 1, 1]);
+            expect((await sv("r[2].m")).value.tree).eqls(["+", 2, 2]);
+            expect((await sv("s[1].t")).value).eq("a!");
+            expect((await sv("s[2].t")).value).eq("b!");
+
+            // every reference resolves itself and reads what the repeat made
+            const refs = valueRefs(core);
+            expect(refs).toHaveLength(8);
+            for (const ref of refs) {
+                expect(ref.refResolution).toBeDefined();
+                expect(await ref.stateValues.referentInfo).not.toBeNull();
+            }
+            expect(censusOfCore(core).copies).eq(0);
+        });
     },
 );

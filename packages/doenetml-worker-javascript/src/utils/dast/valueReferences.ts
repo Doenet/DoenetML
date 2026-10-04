@@ -87,19 +87,42 @@ export function convertCopiesToValueReferences({
             if (repeat?.componentType !== "repeatForSequence") {
                 return undefined;
             }
-            const typeAttribute = repeat.attributes.type;
-            let type =
-                typeAttribute?.type === "primitive"
-                    ? String(typeAttribute.primitive.value).toLowerCase()
-                    : "number";
-            if (type === "letters") {
-                type = "text";
-            }
-            return componentInfoObjects.allComponentClasses[type]
-                ? type
-                : undefined;
+            return sequenceValueType(repeat);
         }
         return node.componentType;
+    }
+
+    /**
+     * The type a `<repeatForSequence>` makes its value as: its `type`
+     * attribute, read as the attribute itself is (`validateAttributeValue`:
+     * lower-cased and trimmed, and a value the attribute does not allow,
+     * such as `type="text"`, falls back to its default, `number`), with
+     * `letters` making a `text`. `undefined` when the attribute is not a
+     * literal.
+     */
+    function sequenceValueType(
+        repeat: SerializedComponent,
+    ): string | undefined {
+        const spec =
+            componentInfoObjects.allComponentClasses[
+                repeat.componentType
+            ].createAttributesObject().type;
+        const typeAttribute = repeat.attributes.type;
+        let type: string;
+        if (typeAttribute === undefined) {
+            type = spec.defaultPrimitiveValue;
+        } else if (typeAttribute.type === "primitive") {
+            type = String(typeAttribute.primitive.value).toLowerCase().trim();
+        } else {
+            return undefined;
+        }
+        const allowed = spec.validValues?.map(
+            (entry: { value: string }) => entry.value,
+        );
+        if (allowed && !allowed.includes(type)) {
+            type = spec.defaultPrimitiveValue;
+        }
+        return type === "letters" ? "text" : type;
     }
 
     function typeMadeByCopy(copy: SerializedComponent | undefined) {
