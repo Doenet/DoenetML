@@ -48,8 +48,9 @@ export type ValueReferencePlan = {
  * the reference is to the implicit prop of a referent of the value's own type
  * (`implicitPropReturnsSameType`): the adapter's variable, with its inverse,
  * lives on the referent only then. A `<booleanInput>`'s `text` is not a
- * `<boolean>`'s, and does not take a write. Nor for a reference an answer
- * records as a response (`isResponse`).
+ * `<boolean>`'s, and does not take a write. A reference an answer records as
+ * a response (`isResponse`) is never re-pointed, so that the answer records
+ * the referent's own type.
  *
  * Returns `undefined` for everything else, which keeps today's component.
  */
@@ -70,8 +71,9 @@ export function planValueReference({
     /**
      * Whether an answer records the reference as a response
      * (`RESPONSE_MARKS`). It records what the reference reads, so the
-     * reference reads the referenced variable and does not present as an
-     * adapter's type: the answer records `$n` in a `<math>` as the number.
+     * reference is not re-pointed to an adapter's variable: `$n` in a
+     * `<math>` gets no plan and keeps its copy, which the answer records as
+     * the number.
      */
     isResponse?: boolean;
     componentInfoObjects: ComponentInfoObjects;
