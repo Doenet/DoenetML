@@ -534,6 +534,25 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(censusOfCore(core).copies).eq(0);
         });
 
+        it("a copy of a component holding an index past the end of a list shows what the original shows", async () => {
+            // `copy` remakes the reference inside the copy, which finds no
+            // entry there either and holds the empty value
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="l">1 2 3</numberList>
+    <p name="p"><math name="x">$l[5]+1</math></p>
+    <p name="q" copy="$p" />
+    `,
+            });
+            const sv = await core.returnAllStateVariables(false, true);
+            for (const name of ["x", "q.x"]) {
+                expect(
+                    sv[await resolvePathToNodeIdx(name)].stateValues.value.tree,
+                    name,
+                ).eqls(["+", "\uff3f", 1]);
+            }
+        });
+
         it("an index into a list follows the list as it shrinks and grows", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
@@ -573,6 +592,15 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 }),
             ).rejects.toThrow(
                 "Circular dependency involving these components: <number> (line 1).",
+            );
+            // the same where the reference into the list keeps its copy: the
+            // `$i` between its brackets is still read directly
+            await expect(
+                createTestCore({
+                    doenetML: `<sequence name="s" from="1" to="3" /><number name="i">$s[$i]</number>`,
+                }),
+            ).rejects.toThrow(
+                "Circular dependency involving these components: <number> (line 1), <_copy> (line 1).",
             );
         });
 
