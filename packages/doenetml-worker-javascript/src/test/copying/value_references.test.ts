@@ -1778,8 +1778,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 ];
                 expect(censusOfCore(core).copies).eq(0);
 
-                // `=` is false and `!=` true for every missing value, except
-                // that `matchBlanks` matches a blank to a blank input
+                // `=` is false for every missing value, and `!=` true between
+                // two of them, except that `matchBlanks` matches a blank to a
+                // blank input
                 expect(
                     await values(core, resolvePathToNodeIdx, [
                         ...comparisons,
@@ -1962,6 +1963,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     <gcd name="gcd">$l[$i] 6 4</gcd>
     <mod name="mod">$l[$i] 3</mod>
     <sum name="sumMath">$ml[$i] 5</sum>
+    <mean name="meanMath">$ml[$i] 1 2</mean>
     <sum name="sumText">$tl[$i] 5</sum>
     <mean name="meanNone">$l[$i] $l[$i+1]</mean>
     `,
@@ -1978,6 +1980,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     "gcd",
                     "mod",
                     "sumMath",
+                    "meanMath",
                     "sumText",
                     "meanNone",
                 ];
@@ -1994,6 +1997,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     // `<mod>` takes exactly two operands
                     mod: NaN,
                     sumMath: 5,
+                    // a missing math does not make the operator symbolic,
+                    // which would give `(1+2)/2`
+                    meanMath: 1.5,
                     sumText: 5,
                     // with no operand left, an operator is blank, as one with
                     // no children is
@@ -2018,6 +2024,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     gcd: 2,
                     mod: 2,
                     sumMath: ["+", "y", 5],
+                    meanMath: ["/", ["+", "y", 1, 2], 3],
                     sumText: ["+", "b", 5],
                     meanNone: 2.5,
                 });
@@ -2093,6 +2100,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
       <boolean name="${prefix}eq">$l[${i}] = $l[${j}]</boolean>
       <boolean name="${prefix}ne">$l[${i}] != $l[${j}]</boolean>
       <boolean name="${prefix}text">$tl[${i}] = $ti</boolean>
+      <boolean name="${prefix}textNe">$tl[${i}] != $ti</boolean>
       <sum name="${prefix}sum">$l[${i}] 5</sum>`;
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
@@ -2104,7 +2112,10 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     <group name="g">${block("g", "3", "4")}</group>
     `,
                 });
-                const expected = [false, true, false, 5];
+                // A blank math and a text are not comparable, so `textNe` is
+                // false. Inside a composite the copy made nothing, which
+                // made it true there and false at document level.
+                const expected = [false, true, false, false, 5];
                 for (const name of [
                     (n: string) => "d" + n,
                     (n: string) => "r[1]." + n,
@@ -2113,10 +2124,88 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     const result = await values(
                         core,
                         resolvePathToNodeIdx,
-                        ["eq", "ne", "text", "sum"].map(name),
+                        ["eq", "ne", "text", "textNe", "sum"].map(name),
                     );
                     expect(Object.values(result)).eqls(expected);
                 }
+            });
+
+            it("a reference to a variable that holds no value is not missing", async () => {
+                // A variable that is there but holds no value is not missing:
+                // the copy made a component for it, holding the empty value of
+                // its type, and the reference compares and adds as that
+                // component did. Two such references: one a copy makes at run
+                // time to a `<choiceInput>`'s `selectedValue`, once the
+                // selected choice is withheld, and one to an attribute with no
+                // default.
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <boolean name="b">true</boolean>
+    <booleanInput name="bi" bindValueTo="$b" />
+    <choiceInput name="ct1">
+      <choice>one</choice>
+      <conditionalContent condition="$b"><choice>two</choice></conditionalContent>
+    </choiceInput>
+    <choiceInput name="ct2">
+      <choice>one</choice>
+      <conditionalContent condition="$b"><choice>two</choice></conditionalContent>
+    </choiceInput>
+    <choiceInput name="ci">
+      <choice><math>1</math></choice>
+      <conditionalContent condition="$b"><choice><math>2</math></choice></conditionalContent>
+    </choiceInput>
+    <textInput name="ti" />
+    <answer><mathInput /><award name="aw1">1</award><award name="aw2">2</award></answer>
+    <graph name="g"><point>(1,2)</point></graph>
+    <collect name="col" componentType="point" from="$g" />
+
+    <boolean name="choiceEq">$ct1.selectedValue = $ct2.selectedValue</boolean>
+    <boolean name="choiceBlank">$ct1.selectedValue = $ti</boolean>
+    <sum name="choiceSum">$ci.selectedValue 5</sum>
+    <count name="choiceCount">$ci.selectedValue 5</count>
+    <boolean name="nullEq">$aw1.feedbackText = $aw2.feedbackText</boolean>
+    <boolean name="nullBlank">$aw1.feedbackText = $ti</boolean>
+    <sum name="nullSum">$col.maxNumber 5</sum>
+    `,
+                });
+                const names = [
+                    "choiceEq",
+                    "choiceBlank",
+                    "choiceSum",
+                    "choiceCount",
+                    "nullEq",
+                    "nullBlank",
+                    "nullSum",
+                ];
+                for (const name of ["ct1", "ct2", "ci"]) {
+                    await updateSelectedIndices({
+                        selectedIndices: [2],
+                        componentIdx: await resolvePathToNodeIdx(name),
+                        core,
+                    });
+                }
+                // the five references to `selectedValue` are made by copies
+                expect(
+                    valueRefs(core).filter(
+                        (ref) =>
+                            ref.doenetAttributes.fixedReferent?.variableName ===
+                            "selectedValue1",
+                    ),
+                ).toHaveLength(5);
+                await updateBooleanInputValue({
+                    boolean: false,
+                    componentIdx: await resolvePathToNodeIdx("bi"),
+                    core,
+                });
+                expect(await values(core, resolvePathToNodeIdx, names)).eqls({
+                    choiceEq: true,
+                    choiceBlank: true,
+                    choiceSum: ["+", "＿", 5],
+                    choiceCount: 2,
+                    nullEq: true,
+                    nullBlank: true,
+                    nullSum: NaN,
+                });
             });
         });
 

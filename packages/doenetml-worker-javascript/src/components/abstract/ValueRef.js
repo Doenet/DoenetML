@@ -333,7 +333,12 @@ export default class ValueRef extends BaseComponent {
                 );
             },
             definition({ dependencyValues, componentInfoObjects }) {
-                if (hasNothingToRead(dependencyValues)) {
+                const target = dependencyValues.target;
+                if (
+                    target === undefined ||
+                    target === null ||
+                    dependencyValues.targetInactive
+                ) {
                     return {
                         setValue: {
                             value: emptyValueOfType(
@@ -343,7 +348,7 @@ export default class ValueRef extends BaseComponent {
                         },
                     };
                 }
-                return { setValue: { value: dependencyValues.target } };
+                return { setValue: { value: target } };
             },
             async inverseDefinition({
                 desiredStateVariableValues,
@@ -492,16 +497,17 @@ export default class ValueRef extends BaseComponent {
      *
      * `valueMissing`, whether the reference has nothing to read, is its own
      * (`valueMissingDefinition`), and only the parents that treat such a
-     * reference differently ask for it.
+     * reference differently ask for it. A reference a copy made at run time
+     * has none.
      */
     createOnDemandStateVariableDefinitions({
         stateVariable,
         classDefinitions,
     }) {
         if (stateVariable === "valueMissing") {
-            return [
-                [stateVariable, valueMissingDefinition(this.fixedReferent)],
-            ];
+            return this.fixedReferent
+                ? []
+                : [[stateVariable, valueMissingDefinition()]];
         }
         const referentVariable = variableOfReferentVariable(stateVariable);
         if (referentVariable !== undefined) {
@@ -614,47 +620,47 @@ function targetDependencies(fixedReferent, referentInfo) {
 }
 
 /**
- * Whether the values of `targetDependencies` leave the reference nothing to
- * read: no referent, a referent without the variable (an index past the end
- * of a list, a `<choiceInput>`'s `selectedIndex` before a choice), or a
- * withheld referent.
- */
-function hasNothingToRead(dependencyValues) {
-    return (
-        dependencyValues.target === undefined ||
-        dependencyValues.target === null ||
-        Boolean(dependencyValues.targetInactive)
-    );
-}
-
-/**
- * The definition of `valueMissing`, made on demand: whether the reference
- * has nothing to read, so that its `value` is the empty value of the type it
- * presents as (`NaN`, `""`, `false`, `＿`) rather than one it read. An empty
- * value alone cannot say so, since a referent can hold `NaN` or `""` too.
+ * The definition of `valueMissing`, made on demand for a reference that
+ * resolves itself: whether it has nothing to read where the copy it replaced
+ * made no component at all. That is so with no referent, a referent without
+ * the variable (an index past the end of a list, a `<choiceInput>`'s
+ * `selectedIndex` before a choice), or a withheld referent. Its `value` is
+ * then the empty value of the type it presents as (`NaN`, `""`, `false`,
+ * `＿`), and an empty value alone cannot say so, since a referent can hold
+ * `NaN` or `""` too. A variable that holds `null`, such as an attribute with
+ * no default (an `<award>`'s `feedbackText`), is not missing: the copy made
+ * a component for it, holding the empty value `value` also holds.
  *
- * The parents that the copy this reference replaced gave a different
- * result ask for it. A copy with nothing to read made a blank math in a
- * comparison (`returnChildrenByCodeStateVariableDefinitions` in
- * `utils/booleanLogic.js`) and nothing at all among a math operator's
- * operands (`MathBaseOperator.js`); everywhere else the empty value of the
- * presented type is what the copy showed, and nothing asks.
+ * The parents for which a copy that made nothing gave a different result
+ * ask for it. That copy gave a blank math in a comparison
+ * (`returnChildrenByCodeStateVariableDefinitions` in `utils/booleanLogic.js`)
+ * and nothing at all among a math operator's operands
+ * (`MathBaseOperator.js`); everywhere else the empty value of the presented
+ * type is what the copy showed, and nothing asks.
+ *
+ * A reference a copy made at run time (`fixedReferent`) has no
+ * `valueMissing`. The copy makes no reference for an entry that is not
+ * there (`Copy.js`), and a reference it made stands for the component it
+ * made before value references, which held the empty value of its type once
+ * its variable held no value (`$c.selectedValue` after the selected choice
+ * is withheld).
  */
-function valueMissingDefinition(fixedReferent) {
-    const definition = {
-        returnDependencies({ stateValues = {} }) {
-            return targetDependencies(fixedReferent, stateValues.referentInfo);
+function valueMissingDefinition() {
+    return {
+        stateVariablesDeterminingDependencies: ["referentInfo"],
+        returnDependencies({ stateValues }) {
+            return targetDependencies(undefined, stateValues.referentInfo);
         },
         definition({ dependencyValues }) {
             return {
-                setValue: { valueMissing: hasNothingToRead(dependencyValues) },
+                setValue: {
+                    valueMissing:
+                        dependencyValues.target === undefined ||
+                        Boolean(dependencyValues.targetInactive),
+                },
             };
         },
     };
-    if (!fixedReferent) {
-        definition.stateVariablesDeterminingDependencies = ["referentInfo"];
-    }
-    return definition;
 }
 
 /**
