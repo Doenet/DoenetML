@@ -103,7 +103,10 @@ export default class MathOperator extends MathComponent {
                     ...dependencies,
                     mathChildren: {
                         ...dependencies.mathChildren,
-                        variableNames: ["unordered", "valueMissing"],
+                        variableNames: [
+                            ...dependencies.mathChildren.variableNames,
+                            "valueMissing",
+                        ],
                         variablesOptional: true,
                     },
                 };

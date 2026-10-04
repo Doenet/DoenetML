@@ -622,14 +622,21 @@ function targetDependencies(fixedReferent, referentInfo) {
 /**
  * The definition of `valueMissing`, made on demand for a reference that
  * resolves itself: whether it has nothing to read where the copy it replaced
- * made no component at all. That is so with no referent, a referent without
- * the variable (an index past the end of a list, a `<choiceInput>`'s
- * `selectedIndex` before a choice), or a withheld referent. Its `value` is
- * then the empty value of the type it presents as (`NaN`, `""`, `false`,
- * `＿`), and an empty value alone cannot say so, since a referent can hold
- * `NaN` or `""` too. A variable that holds `null`, such as an attribute with
- * no default (an `<award>`'s `feedbackText`), is not missing: the copy made
- * a component for it, holding the empty value `value` also holds.
+ * made no component at all. That is so with no referent (an index past the
+ * end of a list), a referent without the variable (`$P.z` of a point in the
+ * plane, a `<choiceInput>`'s `selectedIndex` before a choice), or a withheld
+ * referent (a sample a `<sampleRandomNumbers>` withholds once its
+ * `numSamples` drops). Its `value` is then the empty value of the type it
+ * presents as (`NaN`, `""`, `false`, `＿`), and an empty value alone cannot
+ * say so, since a referent can hold `NaN` or `""` too. A variable that holds
+ * `null`, such as an attribute with no default (an `<award>`'s
+ * `feedbackText`), is not missing: the copy made a component for it, holding
+ * the empty value `value` also holds. One case differs from the copy: an
+ * array entry whose key is there but that holds no value is missing, where
+ * the copy made a component holding the empty value. The known such entries
+ * are those of a function's global minimum or maximum when it has none
+ * (`$f.globalMinimumLocation`, `$f.globalMaximumValue`), whose arrays keep
+ * their keys when empty (`Function.js`).
  *
  * The parents for which a copy that made nothing gave a different result
  * ask for it. That copy gave a blank math in a comparison

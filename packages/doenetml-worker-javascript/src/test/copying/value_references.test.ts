@@ -2262,6 +2262,58 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     nullSum: NaN,
                 });
             });
+
+            it("is missing when its entry is withheld", async () => {
+                // When `numSamples` drops, `<sampleRandomNumbers>` withholds
+                // the samples it no longer has rather than removing them, so
+                // `$s[2]` still finds one. It is missing all the same, as the
+                // copy made nothing for a withheld entry.
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <mathInput name="n">3</mathInput>
+    <sampleRandomNumbers name="s" numSamples="$n" type="discreteUniform" from="5" to="5" />
+    <boolean name="eq">$s[2] = $s[3]</boolean>
+    <boolean name="ne">$s[2] != $s[3]</boolean>
+    <sum name="sum">$s[2] 5</sum>
+    <count name="count">$s[2] 5</count>
+    <number name="num">$s[2]</number>
+    `,
+                });
+                const names = ["eq", "ne", "sum", "count", "num"];
+                const present = {
+                    eq: true,
+                    ne: false,
+                    sum: 10,
+                    count: 2,
+                    num: 5,
+                };
+                expect(censusOfCore(core).copies).eq(0);
+                expect(await values(core, resolvePathToNodeIdx, names)).eqls(
+                    present,
+                );
+
+                await updateMathInputValue({
+                    latex: "1",
+                    componentIdx: await resolvePathToNodeIdx("n"),
+                    core,
+                });
+                expect(await values(core, resolvePathToNodeIdx, names)).eqls({
+                    eq: false,
+                    ne: true,
+                    sum: 5,
+                    count: 1,
+                    num: NaN,
+                });
+
+                await updateMathInputValue({
+                    latex: "3",
+                    componentIdx: await resolvePathToNodeIdx("n"),
+                    core,
+                });
+                expect(await values(core, resolvePathToNodeIdx, names)).eqls(
+                    present,
+                );
+            });
         });
 
         describe("references an answer counts as responses", () => {
