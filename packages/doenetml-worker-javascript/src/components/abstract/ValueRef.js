@@ -12,7 +12,9 @@ import { variableOfReferentVariable } from "../../utils/valueReference";
  * parent's child groups, of a component of `presentedComponentType`:
  * `number` for `$n` in a `<number>`, `math` for the same `$n` in a `<math>`,
  * where it reads `n.math` instead of `n.value`. `ChildMatcher` matches it by
- * the presented type.
+ * the presented type. Written between the brackets of another reference's
+ * path (`$i` of `$l[$i]`), it presents as an `integer` and gives that
+ * reference its index (`refResolutionDependencies.ts`).
  *
  * It resolves its own reference. Made from the document
  * (`utils/dast/valueReferences.ts`), it carries the reference's

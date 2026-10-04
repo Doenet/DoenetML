@@ -130,18 +130,17 @@ exports[`component census of the micro-documents > numberList $l[1] 1`] = `
 {
   "attributeComponents": 0,
   "byType": {
-    "_copy": 1,
     "_ref": 1,
     "document": 1,
     "number": 9,
     "numberList": 1,
   },
-  "components": 13,
-  "copies": 1,
-  "dependencies": 648,
+  "components": 12,
+  "copies": 0,
+  "dependencies": 612,
   "shadows": 4,
-  "stateVariables": 589,
-  "stateVariablesResolved": 263,
+  "stateVariables": 552,
+  "stateVariablesResolved": 243,
 }
 `;
 

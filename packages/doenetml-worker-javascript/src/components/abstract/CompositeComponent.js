@@ -10,6 +10,17 @@ export default class CompositeComponent extends BaseComponent {
 
     static rendererType = undefined;
 
+    /**
+     * The type of every replacement this composite makes, when its class
+     * alone decides it: `number` for a `<numberList>`, whatever the list
+     * holds. A reference to one replacement (`$l[$i]`) then reads a value of
+     * a type known from the document, before the composite expands, and can
+     * be a value reference (`utils/dast/valueReferences.ts`). `undefined`
+     * when the type of the replacements depends on what the composite holds
+     * or on its attributes.
+     */
+    static replacementComponentType = undefined;
+
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 

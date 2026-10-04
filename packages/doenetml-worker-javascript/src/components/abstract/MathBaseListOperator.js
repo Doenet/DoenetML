@@ -36,6 +36,8 @@ import {
 export default class MathBaseListOperator extends CompositeComponent {
     static componentType = "_mathListOperator";
 
+    static replacementComponentType = "math";
+
     static takesIndex = true;
 
     static stateVariableToEvaluateAfterReplacements =
@@ -255,7 +257,7 @@ export default class MathBaseListOperator extends CompositeComponent {
         return createValueListReplacements({
             component,
             values: await component.stateValues.operatorResults,
-            componentType: "math",
+            componentType: this.replacementComponentType,
             attributesToConvert: returnPassThroughAttributes(component),
             componentInfoObjects,
             workspace,
@@ -272,7 +274,7 @@ export default class MathBaseListOperator extends CompositeComponent {
         return calculateValueListReplacementChanges({
             component,
             values: await component.stateValues.operatorResults,
-            componentType: "math",
+            componentType: this.replacementComponentType,
             attributesToConvert: returnPassThroughAttributes(component),
             componentInfoObjects,
             workspace,
@@ -286,7 +288,7 @@ export default class MathBaseListOperator extends CompositeComponent {
         // The replacements are `<math>` components whatever the children are.
         addReplacementRendererType({
             component: this,
-            componentType: "math",
+            componentType: this.constructor.replacementComponentType,
             rendererTypes,
         });
     }

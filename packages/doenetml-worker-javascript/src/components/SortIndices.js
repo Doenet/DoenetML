@@ -22,6 +22,8 @@ import {
 export default class SortIndices extends Sort {
     static componentType = "sortIndices";
 
+    static replacementComponentType = "number";
+
     static componentDocs = {
         summary:
             "The indices that put a list in sorted order, rather than the sorted values",
@@ -101,7 +103,7 @@ export default class SortIndices extends Sort {
         return createValueListReplacements({
             component,
             values: await component.stateValues.sortedIndices,
-            componentType: "number",
+            componentType: this.replacementComponentType,
             componentInfoObjects,
             workspace,
             nComponents,
@@ -117,7 +119,7 @@ export default class SortIndices extends Sort {
         return calculateValueListReplacementChanges({
             component,
             values: await component.stateValues.sortedIndices,
-            componentType: "number",
+            componentType: this.replacementComponentType,
             componentInfoObjects,
             workspace,
             nComponents,
@@ -131,7 +133,7 @@ export default class SortIndices extends Sort {
         // children being ordered are typed.
         addReplacementRendererType({
             component: this,
-            componentType: "number",
+            componentType: this.constructor.replacementComponentType,
             rendererTypes,
         });
     }

@@ -25,6 +25,31 @@ function dropPathIndices(path: any[]): any[] {
     return path.map((pathPart) => ({ ...pathPart, index: [] }));
 }
 
+/**
+ * Whether `component`, written between the brackets of a reference's path,
+ * gives the index: an `integer`, or a value reference presenting as one
+ * (`$i` of `$l[$i]`, `utils/dast/valueReferences.ts`).
+ */
+function isIndexComponent(component: any): boolean {
+    return (
+        component.componentType === "integer" ||
+        (component.componentType === "_ref" &&
+            component.presentedComponentType === "integer")
+    );
+}
+
+/**
+ * The index that `component` (see `isIndexComponent`) gives when its
+ * `value` is `value`, as the literal string the resolver takes. A value
+ * reference reads its referent's number as it is, so it is rounded here,
+ * as the `integer` a copy would have made from it rounds.
+ */
+function indexFromValue(component: any, value: any): string {
+    return (
+        component.componentType === "_ref" ? Math.round(value) : value
+    ).toString();
+}
+
 export class RefResolutionIndexDependencies extends Dependency {
     static dependencyType = "refResolutionIndexDependencies";
 
@@ -135,10 +160,7 @@ export class RefResolutionIndexDependencies extends Dependency {
                         }
                     }
 
-                    if (
-                        !foundUnexpanded &&
-                        indexComponent.componentType !== "integer"
-                    ) {
+                    if (!foundUnexpanded && !isIndexComponent(indexComponent)) {
                         continue;
                     }
 
@@ -781,16 +803,19 @@ export class RefResolutionDependency extends Dependency {
                         indexComponent = indexComponent.replacements[0];
                     }
 
-                    if (indexComponent.componentType !== "integer") {
+                    if (!isIndexComponent(indexComponent)) {
                         return { success: true, indexIsNotANumber: true };
                     }
 
                     // save index as a literal string
                     index.push({
                         value: [
-                            this.indexDependencyValues[
-                                indexComponent.componentIdx
-                            ].toString(),
+                            indexFromValue(
+                                indexComponent,
+                                this.indexDependencyValues[
+                                    indexComponent.componentIdx
+                                ],
+                            ),
                         ],
                         position: index_part.position,
                         sourceDoc: index_part.sourceDoc,

@@ -283,7 +283,11 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(await ref.stateValues.hidden).eq(false);
         });
 
-        it("an index reference is remade when the index changes", async () => {
+        it("an index into a list resolves itself and re-resolves as the index changes", async () => {
+            // A `<numberList>` makes a `<number>` of each entry, so `$l[$i]`
+            // reads a number whatever the index, and is a reference of its
+            // own. The `$i` between its brackets reads a `<mathInput>`, a
+            // math, and stays a copy.
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <numberList name="l">1 2 3 4</numberList>
@@ -297,33 +301,263 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             const xValue = async () =>
                 (await core.returnAllStateVariables(false, true))[xIdx]
                     .stateValues.value;
+            const refInX = () =>
+                valueRefs(core).find((ref) => ref.parentIdx === xIdx);
 
+            const ref = refInX();
+            expect(ref.refResolution).toBeDefined();
+            expect(ref.doenetAttributes.fixedReferent).toBeUndefined();
             expect(await xValue()).eq(2);
-            expect(valueRefs(core)).toHaveLength(1);
+            expect(censusOfCore(core).copies).eq(1);
 
-            await updateMathInputValue({
-                latex: "3",
-                componentIdx: iIdx,
-                core,
+            for (const [latex, expected] of [
+                ["3", 3],
+                ["7", NaN],
+                ["1", 1],
+            ] as const) {
+                await updateMathInputValue({ latex, componentIdx: iIdx, core });
+                expect(await xValue()).eqls(expected);
+                expect(refInX()).toBe(ref);
+                expect(censusOfCore(core).copies).eq(1);
+            }
+
+            // past the last entry: the warning the copy gave, once, and no
+            // info about a property
+            const diagnostics = getDiagnosticsByType(core);
+            const noReferent = diagnostics.warnings.filter(
+                (w) => w.code === "doenet-w0104",
+            );
+            expect(noReferent).toHaveLength(1);
+            expect(noReferent[0].message).eq(
+                "No referent found for reference: `$l[$i]`",
+            );
+            expect(
+                diagnostics.infos.filter((i) => i.code === "doenet-i0018"),
+            ).toHaveLength(0);
+        });
+
+        it("an index between brackets that reads a number is a reference, rounded as an integer is", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="l">10 20 30 40</numberList>
+    <number name="i">2.6</number>
+    <mathInput name="mi" bindValueTo="$i" />
+    <number name="x">$l[$i]</number>
+    <math name="y">$l[$i-1]</math>
+    `,
             });
-            expect(await xValue()).eq(3);
-            expect(valueRefs(core)).toHaveLength(1);
+            const miIdx = await resolvePathToNodeIdx("mi");
+            const xIdx = await resolvePathToNodeIdx("x");
+            const values = async () => {
+                const sv = await core.returnAllStateVariables(false, true);
+                return [
+                    sv[xIdx].stateValues.value,
+                    sv[await resolvePathToNodeIdx("y")].stateValues.value.tree,
+                ];
+            };
 
+            // `$i` between the brackets of `$l[$i]`, and inside the
+            // `<integer>` that `$i-1` is wrapped in, are references too
+            expect(censusOfCore(core).copies).eq(0);
+            const outer = valueRefs(core).find((ref) => ref.parentIdx === xIdx);
+            const index = valueRefs(core).find(
+                (ref) => ref.parentIdx === outer.componentIdx,
+            );
+            expect(index.presentedComponentType).eq("integer");
+            expect((await index.stateValues.referentInfo).componentIdx).eq(
+                await resolvePathToNodeIdx("i"),
+            );
+
+            expect(await values()).eqls([30, 20]);
+            for (const [latex, expected] of [
+                ["1.5", [20, 10]],
+                ["-1", [NaN, "\uff3f"]],
+                ["4.4", [40, 30]],
+            ] as const) {
+                await updateMathInputValue({
+                    latex,
+                    componentIdx: miIdx,
+                    core,
+                });
+                expect(await values()).eqls(expected);
+            }
+        });
+
+        it("repeat iterations index lists with no copy", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="l">10 20 30</numberList>
+    <mathList name="ml">a b c</mathList>
+    <numberList name="perm">3 1 2</numberList>
+    <repeatForSequence from="1" to="3" indexName="i" name="r">
+      <math name="m">$l[$i] + $ml[$i]</math>
+      <number name="p">$l[$perm[$i]]</number>
+    </repeatForSequence>
+    `,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const letters = ["a", "b", "c"];
+            const permuted = [30, 10, 20];
+            for (let i = 1; i <= 3; i++) {
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(`r[${i}].m`)]
+                        .stateValues.value.tree,
+                ).eqls(["+", 10 * i, letters[i - 1]]);
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(`r[${i}].p`)]
+                        .stateValues.value,
+                ).eq(permuted[i - 1]);
+            }
+            const census = censusOfCore(core);
+            expect(census.copies).eq(0);
+            // the repeat's own index, one per iteration, and no integer made
+            // from an index between brackets
+            expect(census.byType.integer).eq(3);
+        });
+
+        it("an index into each list whose class fixes the type of its entries", async () => {
+            // Every class that declares `replacementComponentType`, with a
+            // document whose replacements are checked against it: a class
+            // that declares a type its replacements do not have would hand
+            // a reference's parent a value of the wrong kind.
+            const lists: Record<string, string> = {
+                numberList: `<numberList name="c">1 2 3</numberList>`,
+                mathList: `<mathList name="c">x y z</mathList>`,
+                matrixRow: `<matrixRow name="c">x y z</matrixRow>`,
+                matrixColumn: `<matrixColumn name="c">x y z</matrixColumn>`,
+                tupleList: `<tupleList name="c">(1,2) (3,4)</tupleList>`,
+                textList: `<textList name="c">a b c</textList>`,
+                booleanList: `<booleanList name="c">true false</booleanList>`,
+                sampleRandomNumbers: `<sampleRandomNumbers name="c" numSamples="3" />`,
+                selectRandomNumbers: `<selectRandomNumbers name="c" numToSelect="3" />`,
+                sortIndices: `<sortIndices name="c">30 10 20</sortIndices>`,
+                tally: `<tally name="c">1 2 2 3</tally>`,
+                binCounts: `<binCounts name="c" bins="0 1 2">0 1/2 1 3/2</binCounts>`,
+                indexOf: `<indexOf name="c" target="5 6 7">6 7</indexOf>`,
+                searchSorted: `<searchSorted name="c" target="1 3 5">2 4</searchSorted>`,
+                cumulativeSum: `<cumulativeSum name="c">1 2 3</cumulativeSum>`,
+                cumulativeProduct: `<cumulativeProduct name="c">1 2 3</cumulativeProduct>`,
+                cumulativeMin: `<cumulativeMin name="c">3 1 2</cumulativeMin>`,
+                cumulativeMax: `<cumulativeMax name="c">1 3 2</cumulativeMax>`,
+                differences: `<differences name="c">1 4 9</differences>`,
+            };
+
+            let declared: string[] | undefined;
+            for (const [listType, listDoenetML] of Object.entries(lists)) {
+                const { core: firstCore } = await createTestCore({
+                    doenetML: listDoenetML,
+                });
+                const allComponentClasses =
+                    firstCore.core!.componentInfoObjects.allComponentClasses;
+                const entryType =
+                    allComponentClasses[listType].replacementComponentType;
+                declared ??= Object.entries(allComponentClasses)
+                    .filter(
+                        ([type, componentClass]: [string, any]) =>
+                            componentClass.replacementComponentType !==
+                                undefined && !type.startsWith("_"),
+                    )
+                    .map(([type]) => type)
+                    .sort();
+
+                // held by a component of the entries' own type
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `${listDoenetML}
+    <${entryType} name="x">$c[2]</${entryType}>
+    `,
+                });
+                const list =
+                    core.core!._components[await resolvePathToNodeIdx("c")];
+                const entries = list.replacements.filter(
+                    (r: any) => typeof r === "object",
+                );
+                expect(
+                    entries.map((r: any) => r.componentType),
+                    listType,
+                ).eqls(entries.map(() => entryType));
+
+                const xIdx = await resolvePathToNodeIdx("x");
+                const ref = valueRefs(core).find(
+                    (ref) => ref.parentIdx === xIdx,
+                );
+                expect(ref?.refResolution, listType).toBeDefined();
+                expect(
+                    (await ref.stateValues.referentInfo).componentIdx,
+                    listType,
+                ).eq(entries[1].componentIdx);
+                expect(await ref.stateValues.value, listType).eqls(
+                    await entries[1].stateValues.value,
+                );
+                expect(censusOfCore(core).copies, listType).eq(0);
+            }
+            expect(declared).eqls(Object.keys(lists).sort());
+        });
+
+        it("a write through an index into a list lands on the entry", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="l">1 2 3</numberList>
+    <mathInput name="mi" bindValueTo="$l[2]" />
+    <number name="x">$l[2]</number>
+    <numberList name="lf" fixed>1 2 3</numberList>
+    <mathInput name="mif" bindValueTo="$lf[2]" />
+    `,
+            });
             await updateMathInputValue({
                 latex: "7",
-                componentIdx: iIdx,
+                componentIdx: await resolvePathToNodeIdx("mi"),
                 core,
             });
-            expect(await xValue()).eqls(NaN);
-            expect(valueRefs(core)).toHaveLength(0);
-
             await updateMathInputValue({
-                latex: "1",
-                componentIdx: iIdx,
+                latex: "7",
+                componentIdx: await resolvePathToNodeIdx("mif"),
                 core,
             });
-            expect(await xValue()).eq(1);
-            expect(valueRefs(core)).toHaveLength(1);
+            const sv = await core.returnAllStateVariables(false, true);
+            expect(
+                sv[await resolvePathToNodeIdx("l")].stateValues.numbers,
+            ).eqls([1, 7, 3]);
+            expect(sv[await resolvePathToNodeIdx("x")].stateValues.value).eq(7);
+            expect(
+                sv[await resolvePathToNodeIdx("lf")].stateValues.numbers,
+            ).eqls([1, 2, 3]);
+            expect(
+                sv[await resolvePathToNodeIdx("mif")].stateValues.value.tree,
+            ).eq(2);
+            expect(censusOfCore(core).copies).eq(0);
+        });
+
+        it("an index into a list follows the list as it shrinks and grows", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="n">3</mathInput>
+    <numberList name="l"><sequence length="$n" from="10" /></numberList>
+    <number name="x">$l[3]</number>
+    `,
+            });
+            const nIdx = await resolvePathToNodeIdx("n");
+            const xIdx = await resolvePathToNodeIdx("x");
+            const xValue = async () =>
+                (await core.returnAllStateVariables(false, true))[xIdx]
+                    .stateValues.value;
+            const ref = valueRefs(core).find((ref) => ref.parentIdx === xIdx);
+
+            expect(await xValue()).eq(12);
+            for (const [latex, expected] of [
+                ["2", NaN],
+                ["4", 12],
+                ["0", NaN],
+                ["3", 12],
+            ] as const) {
+                await updateMathInputValue({ latex, componentIdx: nIdx, core });
+                expect(await xValue()).eqls(expected);
+                expect(
+                    valueRefs(core).find((ref) => ref.parentIdx === xIdx),
+                ).toBe(ref);
+            }
         });
 
         it("a reference is remade when the referenced variable changes type", async () => {

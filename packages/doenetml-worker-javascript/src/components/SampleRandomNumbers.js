@@ -21,6 +21,8 @@ export default class SampleRandomNumbers extends CompositeComponent {
     }
     static componentType = "sampleRandomNumbers";
 
+    static replacementComponentType = "number";
+
     // `variantDeterminesSeed` is false by default, so these samples are drawn
     // from a date-seeded generator and a fresh build of the same document
     // under the same variant does not reproduce them. They exist nowhere but

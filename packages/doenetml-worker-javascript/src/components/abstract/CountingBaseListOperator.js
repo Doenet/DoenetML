@@ -46,6 +46,8 @@ import {
 export default class CountingBaseListOperator extends CompositeComponent {
     static componentType = "_countingListOperator";
 
+    static replacementComponentType = "number";
+
     static takesIndex = true;
 
     static stateVariableToEvaluateAfterReplacements =
@@ -174,7 +176,7 @@ export default class CountingBaseListOperator extends CompositeComponent {
         return createValueListReplacements({
             component,
             values: await component.stateValues.countingResults,
-            componentType: "number",
+            componentType: this.replacementComponentType,
             attributesToConvert: returnPassThroughAttributes(component),
             componentInfoObjects,
             workspace,
@@ -191,7 +193,7 @@ export default class CountingBaseListOperator extends CompositeComponent {
         return calculateValueListReplacementChanges({
             component,
             values: await component.stateValues.countingResults,
-            componentType: "number",
+            componentType: this.replacementComponentType,
             attributesToConvert: returnPassThroughAttributes(component),
             componentInfoObjects,
             workspace,
@@ -205,7 +207,7 @@ export default class CountingBaseListOperator extends CompositeComponent {
         // The replacements are `<number>` components whatever the children are.
         addReplacementRendererType({
             component: this,
-            componentType: "number",
+            componentType: this.constructor.replacementComponentType,
             rendererTypes,
         });
     }
