@@ -17,7 +17,7 @@ import { variableOfReferentVariable } from "../../utils/valueReference";
  * It resolves its own reference. Made from the document
  * (`utils/dast/valueReferences.ts`), it carries the reference's
  * `refResolution` and resolves it the way a `_copy` does, re-resolving as
- * the index of `$l[$i]` changes; made by a `_copy` that expanded
+ * the index of `$P.xs[$i]` changes; made by a `_copy` that expanded
  * (`replacementFromProp` in `Copy.js`, for the references whose type is
  * only known at run time), its target is fixed in `doenetAttributes`. Either
  * way `referentInfo` names the referent and the variable, and `value` reads
@@ -578,7 +578,7 @@ export default class ValueRef extends BaseComponent {
 
 /**
  * Whether the reference's path has a component written between its brackets
- * (`$l[$i]`), whose value the index is read from.
+ * (`$P.xs[$i]`), whose value the index is read from.
  */
 function pathHasIndexComponents(refResolution) {
     return Boolean(

@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import {
     movePoint,
+    submitAnswer,
     updateBooleanInputValue,
     updateMathInputValue,
     updateSelectedIndices,
@@ -992,6 +993,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     <graph><point name="P">(3,4)</point></graph>
     <number name="px">$P.x</number>
     <boolean name="b">$n > 3</boolean>
+    <mathInput name="mi">x</mathInput>
+    <mathInput name="mi2" bindValueTo="$mi.immediateValue" />
     `,
             });
             const stateVariables = await core.returnAllStateVariables(
@@ -1004,23 +1007,71 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect((await sv("d")).text).eq("3.1416");
             expect((await sv("px")).value).eq(3);
             expect((await sv("b")).value).eq(true);
+            expect((await sv("mi2")).value.tree).eq("x");
 
-            // four references, each carrying the reference it resolves, no
+            // five references, each carrying the reference it resolves, no
             // `_copy` to resolve it for it and nothing it shadows
             const census = censusOfCore(core);
             expect(census.copies).eq(0);
             expect(census.shadows).eq(0);
             const refs = valueRefs(core);
-            expect(refs).toHaveLength(4);
+            expect(refs).toHaveLength(5);
+            const infos = [];
             for (const ref of refs) {
                 expect(ref.refResolution).toBeDefined();
                 expect(ref.doenetAttributes.fixedReferent).toBeUndefined();
+                infos.push(await ref.stateValues.referentInfo);
             }
-            const pxIdx = await resolvePathToNodeIdx("px");
-            const pxRef = refs.find((ref) => ref.parentIdx === pxIdx);
-            expect((await pxRef.stateValues.referentInfo).variableName).eq(
-                "x1",
-            );
+            const pIdx = await resolvePathToNodeIdx("P");
+            const miIdx = await resolvePathToNodeIdx("mi");
+            expect(
+                infos.find((info) => info.componentIdx === pIdx).variableName,
+            ).eq("x1");
+            expect(
+                infos.find((info) => info.componentIdx === miIdx).variableName,
+            ).eq("immediateValue");
+        });
+
+        it("a reference made from the document re-resolves as its index changes", async () => {
+            // `$P.xs[$i]` reads one coordinate of a point, so the document
+            // fixes its type and it is a reference of its own, with the `$i`
+            // between its brackets (which stays a copy). As `i` changes, the
+            // same reference resolves to another entry; past the last
+            // coordinate it reads nothing.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="i">1</mathInput>
+    <graph><point name="P">(3,4)</point></graph>
+    <number name="a">$P.xs[$i]</number>
+    `,
+            });
+            const iIdx = await resolvePathToNodeIdx("i");
+            const aIdx = await resolvePathToNodeIdx("a");
+            const aValue = async () =>
+                (await core.returnAllStateVariables(false, true))[aIdx]
+                    .stateValues.value;
+            const refInA = () =>
+                valueRefs(core).find((ref) => ref.parentIdx === aIdx);
+
+            const ref = refInA();
+            expect(ref.refResolution).toBeDefined();
+            expect(ref.doenetAttributes.fixedReferent).toBeUndefined();
+            expect((await ref.stateValues.referentInfo).variableName).eq("x1");
+            expect(await aValue()).eq(3);
+            expect(censusOfCore(core).copies).eq(1);
+
+            for (const [latex, variableName, expected] of [
+                ["2", "x2", 4],
+                ["3", "x3", NaN],
+                ["1", "x1", 3],
+            ] as const) {
+                await updateMathInputValue({ latex, componentIdx: iIdx, core });
+                expect(await aValue()).eqls(expected);
+                expect(refInA()).toBe(ref);
+                expect((await ref.stateValues.referentInfo).variableName).eq(
+                    variableName,
+                );
+            }
         });
 
         it("a reference to the component an extend makes waits for it", async () => {
@@ -1199,6 +1250,65 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 expect(await ref.stateValues.referentInfo).not.toBeNull();
             }
             expect(censusOfCore(core).copies).eq(0);
+        });
+
+        it("a when reports the input a reference reads, for the answer's per-input coloring", async () => {
+            // `When.referencedStateVars`, which `colorInputsSeparately`
+            // colors by, asks each descendant what it shadows; a value
+            // reference shadows nothing and answers with its referent and
+            // the variable it reads. The inputs sit inside the answer, so
+            // the answer finds its responses there and does not mark the
+            // references as potential responses: they stay value references.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <answer name="ans" numAwardsCredited="2" colorInputsSeparately>
+      <mathInput name="mi1" /><mathInput name="mi2" />
+      <award credit="0.5"><when name="w1"><math>$mi1</math>=x</when></award>
+      <award credit="0.5"><when name="w2">$mi2.immediateValue=y</when></award>
+    </answer>
+    `,
+            });
+            const ansIdx = await resolvePathToNodeIdx("ans");
+            const mi1Idx = await resolvePathToNodeIdx("mi1");
+            const mi2Idx = await resolvePathToNodeIdx("mi2");
+            const w1Idx = await resolvePathToNodeIdx("w1");
+            const w2Idx = await resolvePathToNodeIdx("w2");
+
+            expect(censusOfCore(core).copies).eq(0);
+            const refs = valueRefs(core);
+            expect(refs).toHaveLength(2);
+            for (const ref of refs) {
+                expect(ref.refResolution).toBeDefined();
+            }
+
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(stateVariables[w1Idx].stateValues.referencedStateVars).eqls([
+                { componentIdx: mi1Idx, propVariable: "value" },
+            ]);
+            expect(stateVariables[w2Idx].stateValues.referencedStateVars).eqls([
+                { componentIdx: mi2Idx, propVariable: "immediateValue" },
+            ]);
+
+            // the inputs are credited apart: `mi1` wrong earns it nothing,
+            // while `mi2` keeps its award's share
+            await updateMathInputValue({
+                latex: "z",
+                componentIdx: mi1Idx,
+                core,
+            });
+            await updateMathInputValue({
+                latex: "y",
+                componentIdx: mi2Idx,
+                core,
+            });
+            await submitAnswer({ componentIdx: ansIdx, core });
+            stateVariables = await core.returnAllStateVariables(false, true);
+            expect(stateVariables[ansIdx].stateValues.creditAchieved).eq(0.5);
+            expect(stateVariables[mi1Idx].stateValues.creditAchieved).eq(0);
+            expect(stateVariables[mi2Idx].stateValues.creditAchieved).eq(0.5);
         });
 
         it("a parent reading a reference's adapter source follows a referent that is remade", async () => {
