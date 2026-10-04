@@ -1079,11 +1079,12 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             // An index that is not a number names no property. A reference
             // that resolves itself says so as a copy does, at the reference
             // and with the path the author wrote, whether the index is
-            // written (`x`) or is a component's value (`$i` while `i` is
-            // not a number), and says it once.
+            // written (`x`) or is a component's value (`$i` once `i` is not
+            // a number, also when that happens after load), and says it
+            // once.
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <mathInput name="i">x</mathInput>
+    <mathInput name="i">1</mathInput>
     <graph><point name="P">(3,4)</point></graph>
     <math name="a">$P.xs[x]</math>
     <math name="b">$P.xs[$i]</math>
@@ -1105,24 +1106,31 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 getDiagnosticsByType(core)
                     .infos.filter((info) => info.code === "doenet-i0018")
                     .map((info) => [info.message, info.position?.start.line]);
-            const expectedNotFound = [
-                ["Could not find prop xs[x] on a component of type point", 4],
-                ["Could not find prop xs[$i] on a component of type point", 5],
+            const notFoundX = [
+                "Could not find prop xs[x] on a component of type point",
+                4,
+            ];
+            const notFoundI = [
+                "Could not find prop xs[$i] on a component of type point",
+                5,
             ];
 
             // both are references of their own; the copy is the `$i`
             expect(valueRefs(core).length).eq(2);
             expect(censusOfCore(core).copies).eq(1);
-            expect(await values()).eqls(["\uff3f", "\uff3f"]);
-            expect(notFound()).eqls(expectedNotFound);
+            expect(await values()).eqls(["\uff3f", 3]);
+            expect(notFound()).eqls([notFoundX]);
 
+            // the report arrives when the index stops being a number, and
+            // a second such index says nothing more
             for (const [latex, expected] of [
+                ["x", "\uff3f"],
                 ["2", 4],
                 ["y", "\uff3f"],
             ] as const) {
                 await updateMathInputValue({ latex, componentIdx: iIdx, core });
                 expect(await values()).eqls(["\uff3f", expected]);
-                expect(notFound()).eqls(expectedNotFound);
+                expect(notFound()).eqls([notFoundX, notFoundI]);
             }
         });
 
