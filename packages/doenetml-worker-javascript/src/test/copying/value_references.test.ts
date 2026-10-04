@@ -2466,19 +2466,20 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     numResponses: 4,
                 });
 
-                // The number inside the `<math>` keeps its copy, which makes
-                // the number the answer records. So does the entry of the
-                // list, which may be missing; its copy makes a value
-                // reference to the entry it finds.
+                // Every reference is a value reference that resolves itself,
+                // with no copy. The number inside the `<math>` presents as a
+                // math and reads `n.math`; the answer records it from its
+                // referent, as the number.
                 const refs = valueRefs(core);
-                expect(refs).toHaveLength(3);
+                expect(refs).toHaveLength(4);
                 for (const ref of refs) {
                     expect(await ref.stateValues.isPotentialResponse).eq(true);
+                    expect(ref.doenetAttributes.fixedReferent).eq(undefined);
                 }
                 expect(
-                    refs.filter((ref) => ref.doenetAttributes.fixedReferent),
+                    refs.filter((ref) => ref.presentsAsAdapter),
                 ).toHaveLength(1);
-                expect(censusOfCore(core).copies).eq(2);
+                expect(censusOfCore(core).copies).eq(0);
             });
 
             it("a missing entry is recorded and compared as an empty response", async () => {
@@ -2555,6 +2556,181 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                         numResponses: 2,
                     });
                 }
+            });
+
+            it("a reference is recorded from its referent, with the referenced value's type", async () => {
+                // What the reference presents does not decide what is
+                // recorded: `$n` inside a `<math>` or a `<floor>` presents
+                // as a math, and is recorded as the number. A `selectedIndex`
+                // is recorded as a number once there is one, and as a blank
+                // math before.
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <mathInput name="mi" />
+    <number name="n">3</number>
+    <numberList name="l">1 2 3</numberList>
+    <choiceInput name="c"><choice>a</choice><choice>b</choice></choiceInput>
+    <answer name="ans">
+      <award><when>$mi = x and <math>$n+1</math> = 4 and <floor>$n</floor> = 3 and $l[2] = 2 and $c.selectedIndex = 1</when></award>
+    </answer>
+    `,
+                });
+                const ansIdx = await resolvePathToNodeIdx("ans");
+                expect(censusOfCore(core).copies).eq(0);
+
+                await submitAnswer({ componentIdx: ansIdx, core });
+                expect(await submitted(core, ansIdx)).eqls({
+                    responses: ["＿", 3, 3, 2, "＿"],
+                    types: ["math", "number", "number", "number", "math"],
+                    credit: 0,
+                    numResponses: 5,
+                });
+
+                await updateMathInputValue({
+                    latex: "x",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+                await updateSelectedIndices({
+                    selectedIndices: [1],
+                    componentIdx: await resolvePathToNodeIdx("c"),
+                    core,
+                });
+                await submitAnswer({ componentIdx: ansIdx, core });
+                expect(await submitted(core, ansIdx)).eqls({
+                    responses: ["x", 3, 3, 2, 1],
+                    types: ["math", "number", "number", "number", "number"],
+                    credit: 1,
+                    numResponses: 5,
+                });
+            });
+
+            it("a reference named in referencesAreResponses is recorded from its referent", async () => {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <number name="n">3</number>
+    <numberList name="l">1 2 3</numberList>
+    <choiceInput name="c"><choice>a</choice><choice>b</choice></choiceInput>
+    <answer name="ans"><mathInput name="own" />
+      <award referencesAreResponses="$n $l[2] $c.selectedIndex"><when>$own = x and <math>$n+1</math> = 4 and $l[2] = 2 and $c.selectedIndex = 1</when></award>
+    </answer>
+    `,
+                });
+                const ansIdx = await resolvePathToNodeIdx("ans");
+
+                await submitAnswer({ componentIdx: ansIdx, core });
+                expect(await submitted(core, ansIdx)).eqls({
+                    responses: ["＿", 3, 2, "＿"],
+                    types: ["math", "number", "number", "math"],
+                    credit: 0,
+                    numResponses: 4,
+                });
+
+                await updateMathInputValue({
+                    latex: "x",
+                    componentIdx: await resolvePathToNodeIdx("own"),
+                    core,
+                });
+                await updateSelectedIndices({
+                    selectedIndices: [1],
+                    componentIdx: await resolvePathToNodeIdx("c"),
+                    core,
+                });
+                await submitAnswer({ componentIdx: ansIdx, core });
+                expect(await submitted(core, ansIdx)).eqls({
+                    responses: ["x", 3, 2, 1],
+                    types: ["math", "number", "number", "number"],
+                    credit: 1,
+                    numResponses: 4,
+                });
+            });
+
+            it("a missing entry of a list with one type of entry is one empty response wherever the answer is", async () => {
+                // At the top of the document, and inside a repeat iteration,
+                // a group, or a copy, a reference to a missing entry is one
+                // response, an empty math. The copy it replaced made nothing
+                // inside those, and the answer counted no response there. (A
+                // reference into a `<sequence>`, a `<collect>` or a list in a
+                // copied `<module>` is still a copy, and still does.)
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <numberList name="l">5 6</numberList>
+    <mathList name="ml">x y</mathList>
+    <mathInput name="mi" />
+    <answer name="doc"><award><when>$l[3] = $mi</when></award></answer>
+    <repeatForSequence name="r" from="1" to="3" valueName="v">
+      <answer name="numbers"><award><when>$l[$v] = $mi</when></award></answer>
+      <answer name="maths"><award><when>$ml[$v] = $mi</when></award></answer>
+    </repeatForSequence>
+    <repeatForSequence name="r2" from="1" to="2" valueName="v">
+      <answer name="fixed"><award><when>$l[3] = 1</when></award></answer>
+    </repeatForSequence>
+    <group name="g">
+      <answer name="ans"><award><when>$l[3] = $mi</when></award></answer>
+    </group>
+    <section name="s">
+      <answer name="ans"><award><when>$l[3] = $mi</when></award></answer>
+    </section>
+    <section name="s2" copy="$s" />
+    `,
+                });
+                const answers = [
+                    "doc",
+                    "r[3].numbers",
+                    "r[3].maths",
+                    "r2[1].fixed",
+                    "g.ans",
+                    "s.ans",
+                    "s2.ans",
+                ];
+                for (const name of answers) {
+                    await submitAnswer({
+                        componentIdx: await resolvePathToNodeIdx(name),
+                        core,
+                    });
+                }
+                const results: Record<string, any> = {};
+                for (const name of answers) {
+                    results[name] = await submitted(
+                        core,
+                        await resolvePathToNodeIdx(name),
+                    );
+                }
+                const missingAndBlank = {
+                    responses: ["＿", "＿"],
+                    types: ["math", "math"],
+                    credit: 0,
+                    numResponses: 2,
+                };
+                expect(results).eqls({
+                    doc: missingAndBlank,
+                    "r[3].numbers": missingAndBlank,
+                    "r[3].maths": missingAndBlank,
+                    "r2[1].fixed": {
+                        responses: ["＿"],
+                        types: ["math"],
+                        credit: 0,
+                        numResponses: 1,
+                    },
+                    "g.ans": missingAndBlank,
+                    "s.ans": missingAndBlank,
+                    "s2.ans": missingAndBlank,
+                });
+
+                // an entry that is there is recorded as itself
+                await updateMathInputValue({
+                    latex: "5",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+                const firstIdx = await resolvePathToNodeIdx("r[1].numbers");
+                await submitAnswer({ componentIdx: firstIdx, core });
+                expect(await submitted(core, firstIdx)).eqls({
+                    responses: [5, 5],
+                    types: ["number", "math"],
+                    credit: 1,
+                    numResponses: 2,
+                });
             });
 
             it("a reference an award names in referencesAreResponses is a response", async () => {

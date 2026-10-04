@@ -37,8 +37,9 @@ import { variableOfReferentVariable } from "../../utils/valueReference";
  * hold are the marks by which an `<answer>` records what a reference in its
  * awards reads as a response (`isPotentialResponse`, `isResponse`); the
  * answer asks for them, and they are made on demand like the rest and read
- * the reference's own marks. It has no renderer either; it is not made in a
- * position whose parent renders its children.
+ * the reference's own marks. The answer then records the referenced value
+ * as it is on the referent (`valueAsResponse`). It has no renderer either;
+ * it is not made in a position whose parent renders its children.
  *
  * Part of Doenet/DoenetML#2128.
  */
@@ -498,7 +499,8 @@ export default class ValueRef extends BaseComponent {
      * `valueMissing`, whether the reference has nothing to read, is its own
      * (`valueMissingDefinition`), and only the parents that treat such a
      * reference differently ask for it. A reference a copy made at run time
-     * has none.
+     * has none. So are `valueAsResponse` and `componentTypeAsResponse`,
+     * which only an `<answer>` asks for (`valueAsResponseDefinition`).
      */
     createOnDemandStateVariableDefinitions({
         stateVariable,
@@ -508,6 +510,22 @@ export default class ValueRef extends BaseComponent {
             return this.fixedReferent
                 ? []
                 : [[stateVariable, valueMissingDefinition()]];
+        }
+        if (stateVariable === "valueAsResponse") {
+            return [
+                [stateVariable, valueAsResponseDefinition(this.fixedReferent)],
+            ];
+        }
+        if (stateVariable === "componentTypeAsResponse") {
+            return [
+                [
+                    stateVariable,
+                    componentTypeAsResponseDefinition(
+                        this.doenetAttributes.referencedComponentType,
+                        this.fixedReferent,
+                    ),
+                ],
+            ];
         }
         const referentVariable = variableOfReferentVariable(stateVariable);
         if (referentVariable !== undefined) {
@@ -665,6 +683,91 @@ function valueMissingDefinition() {
                     valueMissing:
                         dependencyValues.target === undefined ||
                         Boolean(dependencyValues.targetInactive),
+                },
+            };
+        },
+    };
+}
+
+/**
+ * The definition of `valueAsResponse`, made on demand: the value an
+ * `<answer>` records when it records this reference as a response
+ * (`currentResponses` in `Answer.js`). That is the referenced variable as it
+ * is on the referent, not what the reference presents: `$n` inside
+ * `<math>$n+1</math>` presents as a math and reads `n.math`, but is recorded
+ * as `n`'s number, as the copy it replaced was, whose adapter the answer's
+ * search skips over. A blank math when there is nothing to read
+ * (`valueMissing`), as a copy with nothing to read made one: in a repeat
+ * iteration or a copy too, where that copy made nothing, so that the number
+ * of responses does not depend on whether an entry is there. A reference a
+ * copy made at run time has no `valueMissing` and is never missing: the copy
+ * makes no reference for an entry that is not there.
+ */
+function valueAsResponseDefinition(fixedReferent) {
+    const definition = {
+        returnDependencies({ stateValues = {} }) {
+            const referentInfo = fixedReferent ?? stateValues.referentInfo;
+            const dependencies = fixedReferent
+                ? {}
+                : {
+                      valueMissing: {
+                          dependencyType: "stateVariable",
+                          variableName: "valueMissing",
+                      },
+                  };
+            if (referentInfo) {
+                dependencies.referenced = {
+                    dependencyType: "stateVariable",
+                    componentIdx: referentInfo.componentIdx,
+                    variableName: referentInfo.referencedVariable,
+                    variablesOptional: true,
+                };
+            }
+            return dependencies;
+        },
+        definition({ dependencyValues }) {
+            return {
+                setValue: {
+                    valueAsResponse: dependencyValues.valueMissing
+                        ? me.fromAst("\uff3f")
+                        : dependencyValues.referenced,
+                },
+            };
+        },
+    };
+    if (!fixedReferent) {
+        definition.stateVariablesDeterminingDependencies = ["referentInfo"];
+    }
+    return definition;
+}
+
+/**
+ * The definition of `componentTypeAsResponse`, made on demand: the type of
+ * `valueAsResponse`. That is the type of the referenced variable
+ * (`referencedComponentType`, `$P.x` a `math`), or `math` for the blank math
+ * recorded when there is nothing to read (never, for a reference a copy
+ * made at run time).
+ */
+function componentTypeAsResponseDefinition(
+    referencedComponentType,
+    fixedReferent,
+) {
+    return {
+        returnDependencies: () =>
+            fixedReferent
+                ? {}
+                : {
+                      valueMissing: {
+                          dependencyType: "stateVariable",
+                          variableName: "valueMissing",
+                      },
+                  },
+        definition({ dependencyValues }) {
+            return {
+                setValue: {
+                    componentTypeAsResponse: dependencyValues.valueMissing
+                        ? "math"
+                        : referencedComponentType,
                 },
             };
         },

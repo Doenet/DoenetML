@@ -34,10 +34,10 @@ import {
  * class fixes the type of its entries, `$l[$i]` of a `<numberList>`), and
  * the parent takes that type in a child group (`planValueReference`). The
  * `_ref` keeps the `_copy`'s index, position, `extending` and response
- * marks, so the resolver, the state ids, the diagnostics about the
- * reference and the responses an answer records are unchanged. A response
- * that reads one entry of an array or a list (`readsEntry`: `$l[2]`,
- * `$ci.selectedIndex`) stays a `_copy`, for when the entry is missing.
+ * marks, so the resolver, the state ids and the diagnostics about the
+ * reference are unchanged, and an answer that records it as a response
+ * records the referenced value as it is on the referent
+ * (`valueAsResponse` in `ValueRef.js`).
  *
  * A bare reference written between the brackets of another reference's path
  * (`$i` of `$l[$i]`) has no parent's child groups to match. It qualifies when
@@ -221,15 +221,6 @@ export function convertCopiesToValueReferences({
         // is given below
         const isResponse =
             naming.length > 0 || Object.keys(component.attributes).length > 0;
-        if (isResponse && target.readsEntry) {
-            // The entry may be missing (past the end of a list, a
-            // `<choiceInput>`'s `selectedIndex` before a choice). The copy
-            // then makes an empty math or nothing, which the award does not
-            // find equal to another empty response; a value reference reads
-            // the empty value of its type, and two `NaN`s or two `""`s are
-            // equal.
-            return;
-        }
 
         const parentClass =
             componentInfoObjects.allComponentClasses[parent.componentType];
@@ -242,7 +233,6 @@ export function convertCopiesToValueReferences({
             valueComponentType: target.valueComponentType,
             fromImplicitProp: target.fromImplicitProp,
             hasAttributes: false,
-            isResponse,
             componentInfoObjects,
         });
         if (!plan) {
