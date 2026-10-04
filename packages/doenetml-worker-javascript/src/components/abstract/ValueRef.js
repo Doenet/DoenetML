@@ -37,8 +37,9 @@ import { variableOfReferentVariable } from "../../utils/valueReference";
  * hold are the marks by which an `<answer>` records what a reference in its
  * awards reads as a response (`isPotentialResponse`, `isResponse`); the
  * answer asks for them, and they are made on demand like the rest and read
- * the reference's own marks. It has no renderer either; it is not made in a
- * position whose parent renders its children.
+ * the reference's own marks. The answer then records the referenced value
+ * as it is on the referent (`valueAsResponse`). It has no renderer either;
+ * it is not made in a position whose parent renders its children.
  *
  * Part of Doenet/DoenetML#2128.
  */
@@ -496,9 +497,12 @@ export default class ValueRef extends BaseComponent {
      * that source.
      *
      * `valueMissing`, whether the reference has nothing to read, is its own
-     * (`valueMissingDefinition`), and only the parents that treat such a
-     * reference differently ask for it. A reference a copy made at run time
-     * has none.
+     * (`valueMissingDefinition`). The parents that treat such a reference
+     * differently ask for it, and so do the reference's own `valueAsResponse`
+     * and `componentTypeAsResponse` (`valueAsResponseDefinition`), which only
+     * an `<answer>` (of the references in its awards) and a
+     * `<considerAsResponses>` (of its children) ask for. A reference a copy
+     * made at run time has no `valueMissing`, but has the other two.
      */
     createOnDemandStateVariableDefinitions({
         stateVariable,
@@ -508,6 +512,28 @@ export default class ValueRef extends BaseComponent {
             return this.fixedReferent
                 ? []
                 : [[stateVariable, valueMissingDefinition()]];
+        }
+        if (stateVariable === "valueAsResponse") {
+            return [
+                [
+                    stateVariable,
+                    valueAsResponseDefinition(
+                        this.doenetAttributes.referencedComponentType,
+                        this.fixedReferent,
+                    ),
+                ],
+            ];
+        }
+        if (stateVariable === "componentTypeAsResponse") {
+            return [
+                [
+                    stateVariable,
+                    componentTypeAsResponseDefinition(
+                        this.doenetAttributes.referencedComponentType,
+                        this.fixedReferent,
+                    ),
+                ],
+            ];
         }
         const referentVariable = variableOfReferentVariable(stateVariable);
         if (referentVariable !== undefined) {
@@ -643,7 +669,10 @@ function targetDependencies(fixedReferent, referentInfo) {
  * ask for it. That copy gave a blank math in a comparison
  * (`returnChildrenByCodeStateVariableDefinitions` in `utils/booleanLogic.js`)
  * and nothing at all among the operands of a math or boolean operator
- * (`MathBaseOperator.js`, `BooleanBaseOperator.js`). Nothing else asks, and
+ * (`MathBaseOperator.js`, `BooleanBaseOperator.js`). So do an `<answer>`, of
+ * every reference in its awards, and a `<considerAsResponses>`, of its
+ * children, through `valueAsResponse` and `componentTypeAsResponse`: the
+ * answer records such a reference as a blank math. Nothing else asks, and
  * there the reference holds the empty value of the presented type.
  *
  * A reference a copy made at run time (`fixedReferent`) has no
@@ -665,6 +694,110 @@ function valueMissingDefinition() {
                     valueMissing:
                         dependencyValues.target === undefined ||
                         Boolean(dependencyValues.targetInactive),
+                },
+            };
+        },
+    };
+}
+
+/**
+ * The definition of `valueAsResponse`, made on demand: the value an
+ * `<answer>` records when it records this reference as a response
+ * (`currentResponses` in `Answer.js`), in an award or as a child of a
+ * `<considerAsResponses>`. That is the referenced variable as it
+ * is on the referent, not what the reference presents: `$n` inside
+ * `<math>$n+1</math>` presents as a math and reads `n.math`, but is recorded
+ * as `n`'s number, as the copy it replaced was, whose adapter the answer's
+ * search skips over. A blank math when there is nothing to read
+ * (`valueMissing`), as a copy with nothing to read made in a comparison or a
+ * `<math>` at the top of the document. It is one too where that copy made
+ * nothing (in a repeat iteration, a `<group>` or a copy, directly in an
+ * `<award>`, among a `<considerAsResponses>`'s children, or among the
+ * operands of an operator such as `<sum>` or `<and>`) or an empty text (in a
+ * `<text>`), so that the number of responses does not depend on where the
+ * answer is or whether an entry is there. A reference a copy made at run
+ * time has no `valueMissing` and is never missing: the copy makes no
+ * reference for an entry that is not there.
+ *
+ * A variable that is there but holds no value is recorded as the empty value
+ * of the referenced type (`referencedComponentType`), as the copy's
+ * component holding it was: `null` for an attribute with no default (an
+ * `<award>`'s `feedbackText`), or `undefined` for a variable a copy made the
+ * reference for and that has lost its value since (`$c.selectedValue` once
+ * the selected choice is withheld). Submitting an answer fails on a
+ * response of `null` or `undefined`.
+ */
+function valueAsResponseDefinition(referencedComponentType, fixedReferent) {
+    const definition = {
+        returnDependencies({ stateValues = {} }) {
+            const referentInfo = fixedReferent ?? stateValues.referentInfo;
+            const dependencies = fixedReferent
+                ? {}
+                : {
+                      valueMissing: {
+                          dependencyType: "stateVariable",
+                          variableName: "valueMissing",
+                      },
+                  };
+            if (referentInfo) {
+                dependencies.referenced = {
+                    dependencyType: "stateVariable",
+                    componentIdx: referentInfo.componentIdx,
+                    variableName: referentInfo.referencedVariable,
+                    variablesOptional: true,
+                };
+            }
+            return dependencies;
+        },
+        definition({ dependencyValues, componentInfoObjects }) {
+            let valueAsResponse = dependencyValues.referenced;
+            if (dependencyValues.valueMissing) {
+                valueAsResponse = me.fromAst("\uff3f");
+            } else if (
+                valueAsResponse === undefined ||
+                valueAsResponse === null
+            ) {
+                valueAsResponse = emptyValueOfType(
+                    referencedComponentType,
+                    componentInfoObjects,
+                );
+            }
+            return { setValue: { valueAsResponse } };
+        },
+    };
+    if (!fixedReferent) {
+        definition.stateVariablesDeterminingDependencies = ["referentInfo"];
+    }
+    return definition;
+}
+
+/**
+ * The definition of `componentTypeAsResponse`, made on demand: the type of
+ * `valueAsResponse`. That is the type of the referenced variable
+ * (`referencedComponentType`, `$P.x` a `math`), or `math` for the blank math
+ * recorded when there is nothing to read (never, for a reference a copy
+ * made at run time).
+ */
+function componentTypeAsResponseDefinition(
+    referencedComponentType,
+    fixedReferent,
+) {
+    return {
+        returnDependencies: () =>
+            fixedReferent
+                ? {}
+                : {
+                      valueMissing: {
+                          dependencyType: "stateVariable",
+                          variableName: "valueMissing",
+                      },
+                  },
+        definition({ dependencyValues }) {
+            return {
+                setValue: {
+                    componentTypeAsResponse: dependencyValues.valueMissing
+                        ? "math"
+                        : referencedComponentType,
                 },
             };
         },

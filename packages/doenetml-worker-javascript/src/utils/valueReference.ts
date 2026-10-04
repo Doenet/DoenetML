@@ -48,9 +48,7 @@ export type ValueReferencePlan = {
  * the reference is to the implicit prop of a referent of the value's own type
  * (`implicitPropReturnsSameType`): the adapter's variable, with its inverse,
  * lives on the referent only then. A `<booleanInput>`'s `text` is not a
- * `<boolean>`'s, and does not take a write. A reference an answer records as
- * a response (`isResponse`) is never re-pointed, so that the answer records
- * the referent's own type.
+ * `<boolean>`'s, and does not take a write.
  *
  * Returns `undefined` for everything else, which keeps today's component.
  */
@@ -60,7 +58,6 @@ export function planValueReference({
     valueComponentType,
     fromImplicitProp,
     hasAttributes,
-    isResponse = false,
     componentInfoObjects,
 }: {
     parentClass: any;
@@ -68,14 +65,6 @@ export function planValueReference({
     valueComponentType: string | undefined;
     fromImplicitProp: boolean;
     hasAttributes: boolean;
-    /**
-     * Whether an answer records the reference as a response
-     * (`RESPONSE_MARKS`). It records what the reference reads, so the
-     * reference is not re-pointed to an adapter's variable: `$n` in a
-     * `<math>` gets no plan and keeps its copy, which the answer records as
-     * the number.
-     */
-    isResponse?: boolean;
     componentInfoObjects: ComponentInfoObjects;
 }): ValueReferencePlan | undefined {
     if (hasAttributes || !parentClass || parentClass.renderChildren) {
@@ -106,11 +95,7 @@ export function planValueReference({
     const targetClass =
         componentInfoObjects.allComponentClasses[targetComponentType];
 
-    if (
-        !isResponse &&
-        fromImplicitProp &&
-        targetClass?.implicitPropReturnsSameType
-    ) {
+    if (fromImplicitProp && targetClass?.implicitPropReturnsSameType) {
         const valueClass =
             componentInfoObjects.allComponentClasses[valueComponentType!];
         const targetVariables =
@@ -191,10 +176,6 @@ export function planValueReference({
  * path that starts with one index into it (`$l[$i]` of a `<numberList>`)
  * reads one of its replacements, and the rest of the path is worked out on
  * that type.
- *
- * `readsEntry` is set when what is read is one entry of an array or one of
- * a composite's replacements: an entry that may not be there, past the end
- * of the list or before a `<choiceInput>` has a `selectedIndex`.
  */
 export function staticValueReferenceTarget({
     targetComponentType,
@@ -209,7 +190,6 @@ export function staticValueReferenceTarget({
           referentComponentType: string;
           valueComponentType: string;
           fromImplicitProp: boolean;
-          readsEntry: boolean;
       }
     | undefined {
     const targetClass =
@@ -232,12 +212,11 @@ export function staticValueReferenceTarget({
         ) {
             return undefined;
         }
-        const replacement = staticValueReferenceTarget({
+        return staticValueReferenceTarget({
             targetComponentType: replacementType,
             unresolvedPath: rest.length > 0 ? rest : null,
             componentInfoObjects,
         });
-        return replacement && { ...replacement, readsEntry: true };
     }
 
     let name: string | undefined;
@@ -324,7 +303,6 @@ export function staticValueReferenceTarget({
         referentComponentType: targetComponentType,
         valueComponentType,
         fromImplicitProp,
-        readsEntry: Boolean(description.isArray),
     };
 }
 

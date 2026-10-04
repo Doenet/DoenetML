@@ -2756,7 +2756,6 @@ export async function replacementFromProp({
                               fromImplicitProp: false,
                               hasAttributes:
                                   Object.keys(otherAttributes).length > 0,
-                              isResponse: Object.keys(responseMarks).length > 0,
                               componentInfoObjects,
                           })
                         : undefined;
@@ -3712,7 +3711,6 @@ export async function replacementFromProp({
                               .createComponentOfType,
                       fromImplicitProp: Boolean(implicitProp),
                       hasAttributes: Object.keys(otherAttributes).length > 0,
-                      isResponse: Object.keys(responseMarks).length > 0,
                       componentInfoObjects,
                   })
                 : undefined;

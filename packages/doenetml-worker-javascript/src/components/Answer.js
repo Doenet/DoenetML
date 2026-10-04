@@ -1758,6 +1758,9 @@ export default class Answer extends InlineComponent {
                                 "values",
                                 "formula",
                                 "componentType",
+                                // only a value reference (`_ref`) has these
+                                "valueAsResponse",
+                                "componentTypeAsResponse",
                             ],
                             variablesOptional: true,
                             recurseToMatchedChildren: true,
@@ -1856,6 +1859,23 @@ export default class Answer extends InlineComponent {
                 }
 
                 for (let component of responseComponents) {
+                    if (
+                        component.stateValues.componentTypeAsResponse !==
+                        undefined
+                    ) {
+                        // A value reference: the referenced value as it is
+                        // on the referent, not what the reference presents
+                        // (`$n` in a `<math>` is the number), and a blank
+                        // math when it has nothing to read.
+                        currentResponses.push(
+                            component.stateValues.valueAsResponse,
+                        );
+                        componentType.push(
+                            component.stateValues.componentTypeAsResponse,
+                        );
+                        continue;
+                    }
+
                     let ct = component.stateValues.componentType;
                     if (!ct) {
                         ct = component.componentType;
