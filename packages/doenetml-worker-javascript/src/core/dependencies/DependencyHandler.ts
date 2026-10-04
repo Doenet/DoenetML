@@ -2772,6 +2772,11 @@ export class DependencyHandler {
         // remove internally created component names
         // and deduplicate while keeping order (so don't use Set)
         for (let comp of componentsInvolved) {
+            if (comp.componentType === "_ref") {
+                // a value reference is not something the author wrote; the
+                // component holding it is in the cycle too
+                continue;
+            }
             let name = comp.componentIdx;
             let relativeName = name;
             if (relativeName) {

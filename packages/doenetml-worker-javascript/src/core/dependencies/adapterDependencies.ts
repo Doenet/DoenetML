@@ -6,6 +6,61 @@
 
 import { Dependency } from "./Dependency";
 
+/**
+ * The component `component` was adapted from, for a dependency of
+ * `component` that asks about its adapter's source.
+ *
+ * A value reference (`_ref`) that presents as an adapter's type has no
+ * adapter component; the referent it reads is what the adapter would have
+ * been made from, and it is known once the reference's `referentInfo` has
+ * resolved. Until then the dependency is blocked on that variable and
+ * recalculated when it resolves.
+ */
+async function adapterSourceOf(
+    dependency: Dependency,
+    component: any,
+): Promise<{ source?: any; blocked?: boolean }> {
+    if (component.adaptedFrom) {
+        return { source: component.adaptedFrom };
+    }
+    if (!component.presentsAsAdapter) {
+        return {};
+    }
+
+    const referentInfo = component.state.referentInfo;
+    if (!referentInfo?.isResolved) {
+        for (const varName of dependency.upstreamVariableNames) {
+            await dependency.dependencyHandler.addBlocker({
+                blockerComponentIdx: component.componentIdx,
+                blockerType: "stateVariable",
+                blockerStateVariable: "referentInfo",
+                componentIdxBlocked: dependency.upstreamComponentIdx,
+                typeBlocked: "recalculateDownstreamComponents",
+                stateVariableBlocked: varName,
+                dependencyBlocked: dependency.dependencyName,
+            });
+
+            await dependency.dependencyHandler.addBlocker({
+                blockerComponentIdx: dependency.upstreamComponentIdx,
+                blockerType: "recalculateDownstreamComponents",
+                blockerStateVariable: varName,
+                blockerDependency: dependency.dependencyName,
+                componentIdxBlocked: dependency.upstreamComponentIdx,
+                typeBlocked: "stateVariable",
+                stateVariableBlocked: varName,
+            });
+        }
+        return { blocked: true };
+    }
+
+    const info = await referentInfo.value;
+    return {
+        source: info
+            ? dependency.dependencyHandler._components[info.componentIdx]
+            : undefined,
+    };
+}
+
 export class AdapterSourceStateVariableDependency extends Dependency {
     static dependencyType = "adapterSourceStateVariable";
 
@@ -82,17 +137,17 @@ export class AdapterSourceStateVariableDependency extends Dependency {
             };
         }
 
-        // A value reference (`_ref`) that presents as an adapter's type has
-        // no adapter component; the referent it reads is what the adapter
-        // would have been made from.
-        let sourceComposite = component.adaptedFrom;
-        if (!sourceComposite && component.presentsAsAdapter) {
-            sourceComposite = component.ultimateReferent(
-                this.dependencyHandler._components,
-            ).referent;
+        const { source, blocked } = await adapterSourceOf(this, component);
+
+        if (blocked) {
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
         }
 
-        if (!sourceComposite) {
+        if (!source) {
             return {
                 success: true,
                 downstreamComponentIndices: [],
@@ -102,8 +157,8 @@ export class AdapterSourceStateVariableDependency extends Dependency {
 
         return {
             success: true,
-            downstreamComponentIndices: [sourceComposite.componentIdx],
-            downstreamComponentTypes: [sourceComposite.componentType],
+            downstreamComponentIndices: [source.componentIdx],
+            downstreamComponentTypes: [source.componentType],
         };
     }
 
@@ -202,17 +257,17 @@ export class AdapterSourceDependency extends Dependency {
             };
         }
 
-        // A value reference (`_ref`) that presents as an adapter's type has
-        // no adapter component; the referent it reads is what the adapter
-        // would have been made from.
-        let sourceComposite = component.adaptedFrom;
-        if (!sourceComposite && component.presentsAsAdapter) {
-            sourceComposite = component.ultimateReferent(
-                this.dependencyHandler._components,
-            ).referent;
+        const { source, blocked } = await adapterSourceOf(this, component);
+
+        if (blocked) {
+            return {
+                success: false,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
         }
 
-        if (!sourceComposite) {
+        if (!source) {
             return {
                 success: true,
                 downstreamComponentIndices: [],
@@ -222,8 +277,8 @@ export class AdapterSourceDependency extends Dependency {
 
         return {
             success: true,
-            downstreamComponentIndices: [sourceComposite.componentIdx],
-            downstreamComponentTypes: [sourceComposite.componentType],
+            downstreamComponentIndices: [source.componentIdx],
+            downstreamComponentTypes: [source.componentType],
         };
     }
 

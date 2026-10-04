@@ -23,19 +23,18 @@ exports[`component census of the micro-documents > math displayDigits=$n 1`] = `
 {
   "attributeComponents": 1,
   "byType": {
-    "_copy": 1,
     "_ref": 1,
     "document": 1,
     "integer": 1,
     "math": 1,
     "number": 1,
   },
-  "components": 6,
-  "copies": 1,
-  "dependencies": 341,
-  "shadows": 1,
-  "stateVariables": 271,
-  "stateVariablesResolved": 147,
+  "components": 5,
+  "copies": 0,
+  "dependencies": 300,
+  "shadows": 0,
+  "stateVariables": 240,
+  "stateVariablesResolved": 127,
 }
 `;
 
@@ -61,18 +60,17 @@ exports[`component census of the micro-documents > number $n+1 1`] = `
 {
   "attributeComponents": 0,
   "byType": {
-    "_copy": 1,
     "_ref": 1,
     "document": 1,
     "math": 1,
     "number": 2,
   },
-  "components": 6,
-  "copies": 1,
-  "dependencies": 377,
-  "shadows": 1,
-  "stateVariables": 275,
-  "stateVariablesResolved": 167,
+  "components": 5,
+  "copies": 0,
+  "dependencies": 342,
+  "shadows": 0,
+  "stateVariables": 244,
+  "stateVariablesResolved": 147,
 }
 `;
 
@@ -80,19 +78,18 @@ exports[`component census of the micro-documents > number 2$mi 1`] = `
 {
   "attributeComponents": 0,
   "byType": {
-    "_copy": 1,
     "_ref": 1,
     "document": 1,
     "math": 2,
     "mathInput": 1,
     "number": 1,
   },
-  "components": 7,
-  "copies": 1,
-  "dependencies": 496,
-  "shadows": 1,
-  "stateVariables": 393,
-  "stateVariablesResolved": 228,
+  "components": 6,
+  "copies": 0,
+  "dependencies": 461,
+  "shadows": 0,
+  "stateVariables": 362,
+  "stateVariablesResolved": 208,
 }
 `;
 
@@ -142,8 +139,8 @@ exports[`component census of the micro-documents > numberList $l[1] 1`] = `
   "components": 13,
   "copies": 1,
   "dependencies": 648,
-  "shadows": 5,
-  "stateVariables": 583,
+  "shadows": 4,
+  "stateVariables": 589,
   "stateVariablesResolved": 263,
 }
 `;
@@ -199,7 +196,6 @@ exports[`component census of the micro-documents > repeatForSequence $i^2 x4 1`]
   "attributeComponents": 2,
   "byType": {
     "_componentWithSelectableType": 2,
-    "_copy": 4,
     "_ref": 4,
     "document": 1,
     "group": 4,
@@ -208,12 +204,12 @@ exports[`component census of the micro-documents > repeatForSequence $i^2 x4 1`]
     "repeatForSequence": 1,
     "setup": 4,
   },
-  "components": 34,
-  "copies": 4,
-  "dependencies": 1333,
-  "shadows": 4,
-  "stateVariables": 1276,
-  "stateVariablesResolved": 586,
+  "components": 30,
+  "copies": 0,
+  "dependencies": 1193,
+  "shadows": 0,
+  "stateVariables": 1152,
+  "stateVariablesResolved": 506,
 }
 `;
 

@@ -48,24 +48,26 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             const mIdx = await resolvePathToNodeIdx("m");
             expect(stateVariables[mIdx].stateValues.value).eq(6);
 
-            // the reference, its referent, the `_copy` that made it, the
-            // sugar `<math>` around `$n+1`, and nothing else
+            // the reference, its referent, the sugar `<math>` around `$n+1`,
+            // and nothing else: no `_copy` resolves the reference for it
             const census = censusOfCore(core);
             expect(census.byType).eqls({
                 document: 1,
                 number: 2,
                 math: 1,
-                _copy: 1,
                 _ref: 1,
             });
             expect(census.attributeComponents).eq(0);
+            expect(census.copies).eq(0);
 
             // it stands in for a `math` inside the `<math>`, reading `n.math`
             const [ref] = valueRefs(core);
-            expect(ref.shadows.componentIdx).eq(nIdx);
-            expect(ref.shadows.propVariable).eq("math");
+            expect(ref.shadows).eq(undefined);
+            const referentInfo = await ref.stateValues.referentInfo;
+            expect(referentInfo.componentIdx).eq(nIdx);
+            expect(referentInfo.variableName).eq("math");
+            expect(referentInfo.referencedVariable).eq("value");
             expect(ref.presentedComponentType).eq("math");
-            expect(ref.doenetAttributes.referencedVariable).eq("value");
         });
 
         it("follows the referent, and a write through it lands on the referent", async () => {
@@ -165,10 +167,13 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect((await value("m")).tree).eq(5);
             expect(await value("k")).eqls(NaN);
 
-            const refs = valueRefs(core).map((ref) => [
-                ref.presentedComponentType,
-                ref.shadows.propVariable,
-            ]);
+            const refs = [];
+            for (const ref of valueRefs(core)) {
+                refs.push([
+                    ref.presentedComponentType,
+                    (await ref.stateValues.referentInfo).variableName,
+                ]);
+            }
             expect(refs).eqls([
                 ["text", "text"],
                 ["number", "value"],
@@ -353,7 +358,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     presented: valueRefs(core)
                         .filter(
                             (ref) =>
-                                ref.shadows.propVariable === "selectedValue1",
+                                ref.doenetAttributes.fixedReferent
+                                    ?.variableName === "selectedValue1",
                         )
                         .map((ref) => ref.presentedComponentType),
                 };
@@ -476,7 +482,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(
                 valueRefs(core)
                     .filter(
-                        (ref) => ref.shadows.propVariable === "selectedValue1",
+                        (ref) =>
+                            ref.doenetAttributes.fixedReferent?.variableName ===
+                            "selectedValue1",
                     )
                     .map((ref) => ref.presentedComponentType),
             ).eqls(["math", "math", "math", "text"]);
@@ -703,10 +711,10 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             // does not gather; the full copies of `n` they replace inside
             // `q`, `t` and `b` were gathered, listing `n` four times. (The
             // collect's copy of `q`, and the paragraph's copy of that, carry
-            // whole shadows of the reference in `q`, with no `propVariable`.)
-            expect(
-                valueRefs(core).filter((ref) => ref.shadows.propVariable),
-            ).toHaveLength(3);
+            // whole shadows of the reference in `q`.)
+            expect(valueRefs(core).filter((ref) => !ref.shadows)).toHaveLength(
+                3,
+            );
             const stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
@@ -775,10 +783,13 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             // a matrix is not a number, but its entry is
             expect((await sv("s")).isNumericOperator).eq(true);
             expect((await sv("s")).value.tree).eq(1);
-            const refs = valueRefs(core);
-            expect(
-                refs.map((ref) => ref.doenetAttributes.referencedPrimaryValue),
-            ).eqls([true, false, false]);
+            const primary = [];
+            for (const ref of valueRefs(core)) {
+                primary.push(
+                    (await ref.stateValues.referentInfo).referencedPrimaryValue,
+                );
+            }
+            expect(primary).eqls([true, false, false]);
         });
 
         it("a position that renders, or a list, still gets a full copy", async () => {
@@ -857,12 +868,17 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             const nIdx = await resolvePathToNodeIdx("n");
             const m2Idx = await resolvePathToNodeIdx("m2");
 
-            // the reference in `m2` is a whole shadow of the one in `m`;
-            // its display settings come from `n`, at the end of the chain
-            const [inM, inM2] = valueRefs(core);
-            expect(inM.shadows.componentIdx).eq(nIdx);
+            // the reference in `m2` is a whole shadow of the one in `m`, so
+            // its referent, and with it its display settings, is `n`, at the
+            // end of the chain
+            const mIdx = await resolvePathToNodeIdx("m");
+            const inM = valueRefs(core).find((ref) => ref.parentIdx === mIdx);
+            const inM2 = valueRefs(core).find((ref) => ref.parentIdx === m2Idx);
+            expect(inM.shadows).eq(undefined);
+            expect((await inM.stateValues.referentInfo).componentIdx).eq(nIdx);
             expect(inM2.shadows.componentIdx).eq(inM.componentIdx);
             expect(inM2.shadows.propVariable).eq(undefined);
+            expect((await inM2.stateValues.referentInfo).componentIdx).eq(nIdx);
 
             let stateVariables = await core.returnAllStateVariables(
                 false,
@@ -965,6 +981,185 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             });
             expect(await value("r2")).eq(1);
             expect(await value("w2")).eq(9);
+        });
+
+        it("a reference made from the document resolves itself, with no copy", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <number name="n">5</number>
+    <math name="m">$n+1</math>
+    <math name="d" displayDigits="$n">3.14159265</math>
+    <graph><point name="P">(3,4)</point></graph>
+    <number name="px">$P.x</number>
+    <boolean name="b">$n > 3</boolean>
+    `,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect((await sv("m")).value.tree).eqls(["+", 5, 1]);
+            expect((await sv("d")).text).eq("3.1416");
+            expect((await sv("px")).value).eq(3);
+            expect((await sv("b")).value).eq(true);
+
+            // four references, each carrying the reference it resolves, no
+            // `_copy` to resolve it for it and nothing it shadows
+            const census = censusOfCore(core);
+            expect(census.copies).eq(0);
+            expect(census.shadows).eq(0);
+            const refs = valueRefs(core);
+            expect(refs).toHaveLength(4);
+            for (const ref of refs) {
+                expect(ref.refResolution).toBeDefined();
+                expect(ref.doenetAttributes.fixedReferent).toBeUndefined();
+            }
+            const pxIdx = await resolvePathToNodeIdx("px");
+            const pxRef = refs.find((ref) => ref.parentIdx === pxIdx);
+            expect((await pxRef.stateValues.referentInfo).variableName).eq(
+                "x1",
+            );
+        });
+
+        it("a reference to the component an extend makes waits for it", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <graph><point name="P">(3,4)</point></graph>
+    <number extend="$P.x" name="px" />
+    <math name="m" simplify>$px+1</math>
+    `,
+            });
+            const mIdx = await resolvePathToNodeIdx("m");
+            const pxIdx = await resolvePathToNodeIdx("px");
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(stateVariables[mIdx].stateValues.value.tree).eq(4);
+
+            const [ref] = valueRefs(core).filter(
+                (ref) => ref.parentIdx === mIdx,
+            );
+            expect(ref.refResolution).toBeDefined();
+            expect(await ref.stateValues.extendIdx).eq(pxIdx);
+
+            await movePoint({
+                componentIdx: await resolvePathToNodeIdx("P"),
+                x: 7,
+                y: 4,
+                core,
+            });
+            stateVariables = await core.returnAllStateVariables(false, true);
+            expect(stateVariables[mIdx].stateValues.value.tree).eq(8);
+        });
+
+        it("a referent that is remade is read again by the same reference", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="k">3</mathInput>
+    <sequence name="s" to="$k" />
+    <number extend="$s[2]" name="n2" />
+    <math name="m">$n2+1</math>
+    `,
+            });
+            const mIdx = await resolvePathToNodeIdx("m");
+            const kIdx = await resolvePathToNodeIdx("k");
+            const mValue = async () =>
+                (await core.returnAllStateVariables(false, true))[mIdx]
+                    .stateValues.value.tree;
+            const refInM = () =>
+                valueRefs(core).find((ref) => ref.parentIdx === mIdx);
+
+            expect(await mValue()).eqls(["+", 2, 1]);
+            const ref = refInM();
+            expect(ref.refResolution).toBeDefined();
+            expect((await ref.stateValues.referentInfo).componentIdx).eq(
+                await resolvePathToNodeIdx("n2"),
+            );
+
+            // the sequence shrinks below the second item: `n2` is made with
+            // nothing to extend and holds `NaN`, and the reference follows it
+            await updateMathInputValue({
+                latex: "1",
+                componentIdx: kIdx,
+                core,
+            });
+            expect(await mValue()).eqls(["+", NaN, 1]);
+            expect(refInM()).toBe(ref);
+
+            await updateMathInputValue({
+                latex: "5",
+                componentIdx: kIdx,
+                core,
+            });
+            expect(await mValue()).eqls(["+", 2, 1]);
+            expect(refInM()).toBe(ref);
+        });
+
+        it("an unlinked copy of a holder re-resolves its reference inside the copy", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <section name="s">
+      <mathInput name="mi">3</mathInput>
+      <math name="m" simplify>$mi+1</math>
+    </section>
+    <section copy="$s" name="s2" />
+    `,
+            });
+            const value = async (name: string) =>
+                (await core.returnAllStateVariables(false, true))[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.value.tree;
+            expect(await value("s.m")).eq(4);
+            expect(await value("s2.m")).eq(4);
+
+            await updateMathInputValue({
+                latex: "5",
+                componentIdx: await resolvePathToNodeIdx("s2.mi"),
+                core,
+            });
+            expect(await value("s2.m")).eq(6);
+            expect(await value("s.m")).eq(4);
+
+            await updateMathInputValue({
+                latex: "10",
+                componentIdx: await resolvePathToNodeIdx("s.mi"),
+                core,
+            });
+            expect(await value("s.m")).eq(11);
+            expect(await value("s2.m")).eq(6);
+        });
+
+        it("a reference whose type the document does not fix keeps its copy", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="l">1 2 3</numberList>
+    <repeat for="$l" valueName="v" name="r">
+      <number name="p">$v+1</number>
+    </repeat>
+    `,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (let i = 1; i <= 3; i++) {
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(`r[${i}].p`)]
+                        .stateValues.value,
+                ).eq(i + 1);
+            }
+            // the item a `<repeat>` iterates over is whatever its list holds,
+            // so each `$v` is resolved by a copy, which fixes its target
+            const refs = valueRefs(core);
+            expect(refs).toHaveLength(3);
+            for (const ref of refs) {
+                expect(ref.refResolution).toBeUndefined();
+                expect(ref.doenetAttributes.fixedReferent).toBeDefined();
+            }
+            expect(censusOfCore(core).copies).toBeGreaterThanOrEqual(3);
         });
     },
 );

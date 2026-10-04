@@ -38,6 +38,7 @@ import {
     AdapterSourceStateVariableDependency,
     AdapterSourceDependency,
 } from "./adapterDependencies";
+import { ReferentDependency } from "./referentDependency";
 import {
     CountAmongSiblingsDependency,
     ValueDependency,
@@ -90,6 +91,7 @@ export const dependencyTypeClasses: ReadonlyArray<DependencyClass> = [
     ReplacementDependency,
     RefResolutionIndexDependencies,
     RefResolutionDependency,
+    ReferentDependency,
     AttributeRefResolutions,
     ComponentsReferencingAttributeDependency,
     StringsFromReferenceAttribute,
