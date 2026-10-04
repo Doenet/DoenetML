@@ -12,6 +12,7 @@
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import type { SerializedComponent, SerializedRefResolution } from "./types";
 import { comparePathsIgnorePosition } from "./path";
+import { unwrapSource } from "./convertNormalizedDast";
 import {
     planValueReference,
     staticValueReferenceTarget,
@@ -24,10 +25,17 @@ import {
  * `copy`) with no attributes whose referent resolved, the component it sits
  * in is neither a composite nor one that renders its children, what it reads
  * is one value of a type known from the document
- * (`staticValueReferenceTarget`), and the parent takes that type in a child
- * group (`planValueReference`). The `_ref` keeps the `_copy`'s index,
- * position and `extending`, so the resolver, the state ids and the
- * diagnostics about the reference are unchanged.
+ * (`staticValueReferenceTarget`; this includes one entry of a list whose
+ * class fixes the type of its entries, `$l[$i]` of a `<numberList>`), and
+ * the parent takes that type in a child group (`planValueReference`). The
+ * `_ref` keeps the `_copy`'s index, position and `extending`, so the
+ * resolver, the state ids and the diagnostics about the reference are
+ * unchanged.
+ *
+ * A bare reference written between the brackets of another reference's path
+ * (`$i` of `$l[$i]`) has no parent's child groups to match. It qualifies when
+ * what it reads is a number: the reference it sits in reads the index from it
+ * directly, where it would otherwise read the `integer` a copy made.
  *
  * The referent's type is read from the document: the component under the
  * resolution's `nodeIdx`, the type an `extend` or `copy` will make for the
@@ -135,13 +143,20 @@ export function convertCopiesToValueReferences({
         ];
     }
 
-    walk(serializedComponents, undefined, [], (component, parent, named) => {
+    function convertReference(
+        component: SerializedComponent,
+        parent: SerializedComponent | undefined,
+        named: SerializedRefResolution[],
+        betweenBrackets: boolean,
+    ) {
         if (
             parent === undefined ||
             component.componentType !== "_copy" ||
             component.extending === undefined ||
             !("Ref" in component.extending) ||
-            Object.keys(component.attributes).length > 0
+            !(betweenBrackets
+                ? asksOnlyForAnInteger(component)
+                : Object.keys(component.attributes).length === 0)
         ) {
             return;
         }
@@ -161,10 +176,8 @@ export function convertCopiesToValueReferences({
         ) {
             return;
         }
-        const parentClass =
-            componentInfoObjects.allComponentClasses[parent.componentType];
         const targetComponentType = referentType(refResolution.nodeIdx);
-        if (!parentClass || targetComponentType === undefined) {
+        if (targetComponentType === undefined) {
             return;
         }
         const target = staticValueReferenceTarget({
@@ -175,9 +188,35 @@ export function convertCopiesToValueReferences({
         if (!target) {
             return;
         }
+
+        if (betweenBrackets) {
+            // The index is read from the reference directly, and
+            // rounded where it is read (`refResolutionDependencies.ts`)
+            // as the `integer` it asked for rounds.
+            if (
+                !componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: target.valueComponentType,
+                    baseComponentType: "number",
+                })
+            ) {
+                return;
+            }
+            component.attributes = {};
+            makeValueReference(component, {
+                presentedComponentType: "integer",
+                valueComponentType: target.valueComponentType,
+            });
+            return;
+        }
+
+        const parentClass =
+            componentInfoObjects.allComponentClasses[parent.componentType];
+        if (!parentClass) {
+            return;
+        }
         const plan = planValueReference({
             parentClass,
-            targetComponentType,
+            targetComponentType: target.referentComponentType,
             valueComponentType: target.valueComponentType,
             fromImplicitProp: target.fromImplicitProp,
             hasAttributes: false,
@@ -186,26 +225,67 @@ export function convertCopiesToValueReferences({
         if (!plan) {
             return;
         }
+        makeValueReference(component, {
+            ...plan,
+            valueComponentType: target.valueComponentType,
+        });
+    }
 
-        component.componentType = "_ref";
-        component.doenetAttributes = {
-            ...component.doenetAttributes,
-            presentedComponentType: plan.presentedComponentType,
-            referencedComponentType: target.valueComponentType,
-        };
-        if (plan.adapterVariable !== undefined) {
-            component.doenetAttributes.adapterVariable = plan.adapterVariable;
-        }
-    });
+    walk(serializedComponents, undefined, [], convertReference);
+}
+
+/**
+ * Whether the one attribute of `component` is the
+ * `createComponentOfType="integer"` that `convertRefsToCopies` gives a bare
+ * reference written between the brackets of another reference's path.
+ */
+function asksOnlyForAnInteger(component: SerializedComponent) {
+    const typeAttribute = component.attributes.createComponentOfType;
+    return (
+        Object.keys(component.attributes).length === 1 &&
+        typeAttribute?.type === "primitive" &&
+        typeAttribute.primitive.value === "integer"
+    );
+}
+
+/**
+ * Turn the `_copy` `component` into a `_ref` that presents as
+ * `presentedComponentType` and reads a value of `valueComponentType`.
+ */
+function makeValueReference(
+    component: SerializedComponent,
+    {
+        presentedComponentType,
+        adapterVariable,
+        valueComponentType,
+    }: {
+        presentedComponentType: string;
+        adapterVariable?: string;
+        valueComponentType: string;
+    },
+) {
+    component.componentType = "_ref";
+    component.doenetAttributes = {
+        ...component.doenetAttributes,
+        presentedComponentType,
+        referencedComponentType: valueComponentType,
+    };
+    if (adapterVariable !== undefined) {
+        component.doenetAttributes.adapterVariable = adapterVariable;
+    }
 }
 
 /**
  * Visit every component of the tree with its parent and with the references
  * that the components above it name in their reference attributes
- * (`named`). Visits children and attribute components; not the references
- * of a `createReferences` attribute themselves, which name a component
- * rather than read a value, and not the components in a reference's path
- * indices, which hang off the reference and are not children of anything.
+ * (`named`). Visits children, attribute components, and the components
+ * written between the brackets of a reference's path (`$i` of `$l[$i]`),
+ * which hang off the reference and are not children of anything: those are
+ * visited with the reference as `parent` and `betweenBrackets` set, and
+ * what is inside them (`$i` of `$l[$i+1]`, held by the `integer` that
+ * `convertRefsToCopies` wraps the index in) as ordinary children. Not the
+ * references of a `createReferences` attribute themselves, which name a
+ * component rather than read a value.
  */
 function walk(
     components: (SerializedComponent | string)[],
@@ -215,13 +295,15 @@ function walk(
         component: SerializedComponent,
         parent: SerializedComponent | undefined,
         named: SerializedRefResolution[],
+        betweenBrackets: boolean,
     ) => void,
+    betweenBrackets = false,
 ) {
     for (const component of components) {
         if (typeof component === "string") {
             continue;
         }
-        visit(component, parent, named);
+        visit(component, parent, named, betweenBrackets);
 
         let namedBelow = named;
         for (const attrName in component.attributes) {
@@ -243,6 +325,14 @@ function walk(
             const attribute = component.attributes[attrName];
             if (attribute.type === "component") {
                 walk([attribute.component], component, namedBelow, visit);
+            }
+        }
+        if (component.extending) {
+            for (const pathPart of unwrapSource(component.extending)
+                .originalPath) {
+                for (const indexPiece of pathPart.index) {
+                    walk(indexPiece.value, component, named, visit, true);
+                }
             }
         }
     }

@@ -158,18 +158,24 @@ export function planValueReference({
 /**
  * What a reference to a component of `targetComponentType` with the
  * remaining path `unresolvedPath` reads, worked out from the type alone:
- * the type of a component holding the value, and whether the reference is
- * to the referent's implicit prop. `undefined` when that cannot be known
- * from the type, or when what is read is not one value.
+ * the type of the component the value is read from (`referentComponentType`),
+ * the type of a component holding the value, and whether the reference is to
+ * the referent's implicit prop. `undefined` when that cannot be known from
+ * the type, or when what is read is not one value.
  *
- * Known when the target is not a composite (a composite's replacements are
- * only known once it expands) and the path is empty (the implicit prop) or
- * one part: a prop name, an array entry, a bare index into
+ * Known when the target is not a composite and the path is empty (the
+ * implicit prop) or one part: a prop name, an array entry, a bare index into
  * `variableForIndexAsProp`, or a name with as many indices as the array or
  * entry has dimensions, so that one value comes out. Names are matched as
  * they are at run time (case, aliases, public variables only). The variable
  * must declare the type of its values; one whose type depends on its value
  * (a `<choiceInput>`'s `selectedValue`) is left to be resolved at run time.
+ *
+ * A composite's replacements are only known once it expands, except for a
+ * composite whose class fixes their type (`replacementComponentType`): a
+ * path that starts with one index into it (`$l[$i]` of a `<numberList>`)
+ * reads one of its replacements, and the rest of the path is worked out on
+ * that type.
  */
 export function staticValueReferenceTarget({
     targetComponentType,
@@ -179,17 +185,38 @@ export function staticValueReferenceTarget({
     targetComponentType: string;
     unresolvedPath: { name: string; index: unknown[] }[] | null | undefined;
     componentInfoObjects: ComponentInfoObjects;
-}): { valueComponentType: string; fromImplicitProp: boolean } | undefined {
+}):
+    | {
+          referentComponentType: string;
+          valueComponentType: string;
+          fromImplicitProp: boolean;
+      }
+    | undefined {
     const targetClass =
         componentInfoObjects.allComponentClasses[targetComponentType];
+    if (!targetClass) {
+        return undefined;
+    }
     if (
-        !targetClass ||
         componentInfoObjects.isCompositeComponent({
             componentType: targetComponentType,
             includeNonStandard: true,
         })
     ) {
-        return undefined;
+        const replacementType = targetClass.replacementComponentType;
+        const [first, ...rest] = unresolvedPath ?? [];
+        if (
+            replacementType === undefined ||
+            first?.name !== "" ||
+            first.index.length !== 1
+        ) {
+            return undefined;
+        }
+        return staticValueReferenceTarget({
+            targetComponentType: replacementType,
+            unresolvedPath: rest.length > 0 ? rest : null,
+            componentInfoObjects,
+        });
     }
 
     let name: string | undefined;
@@ -272,7 +299,11 @@ export function staticValueReferenceTarget({
         return undefined;
     }
 
-    return { valueComponentType, fromImplicitProp };
+    return {
+        referentComponentType: targetComponentType,
+        valueComponentType,
+        fromImplicitProp,
+    };
 }
 
 /**

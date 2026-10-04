@@ -14,6 +14,8 @@ import { returnUnorderedListStateVariableDefinitions } from "../utils/unorderedL
 export default class NumberList extends CompositeComponent {
     static componentType = "numberList";
 
+    static replacementComponentType = "number";
+
     static componentDocs = {
         summary: "A list of numbers",
     };

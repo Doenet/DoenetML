@@ -6,6 +6,8 @@ import { convertUnresolvedAttributesForComponentType } from "../utils/dast/conve
 export default class TextList extends CompositeComponent {
     static componentType = "textList";
 
+    static replacementComponentType = "text";
+
     static componentDocs = {
         summary: "A list of texts",
     };
