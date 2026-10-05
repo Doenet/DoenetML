@@ -624,28 +624,44 @@ export default class ValueRef extends BaseComponent {
         // Whether a write through this reference can succeed. Inputs have no
         // `canBeModified`; a `math` standing in for one answers from the
         // referent's `fixed` and `modifyIndirectly`.
+        // An entry of a list component answers from the list's
+        // `entriesCanBeModified`: the entries of a `<sequence>` are fixed
+        // while the list's own `fixed` is not, and a `<math>` that holds
+        // one (`$q$s[1]^2`) must solve for its other operands, as it did
+        // for the fixed component a copy made for the entry.
         stateVariableDefinitions.canBeModified = referentOrFallback({
             stateVariable: "canBeModified",
-            fallbackDependencies: (referentIdx) =>
+            fallbackDependencies: (referentIdx, referentInfo) =>
                 referentIdx === undefined
                     ? {}
-                    : {
-                          targetFixed: {
-                              dependencyType: "stateVariable",
-                              componentIdx: referentIdx,
-                              variableName: "fixed",
-                              variablesOptional: true,
-                          },
-                          modifyIndirectly: {
-                              dependencyType: "stateVariable",
-                              componentIdx: referentIdx,
-                              variableName: "modifyIndirectly",
-                              variablesOptional: true,
-                          },
-                      },
+                    : referentInfo.listEntryPosition !== undefined
+                      ? {
+                            entriesCanBeModified: {
+                                dependencyType: "stateVariable",
+                                componentIdx: referentIdx,
+                                variableName: "entriesCanBeModified",
+                                variablesOptional: true,
+                            },
+                        }
+                      : {
+                            targetFixed: {
+                                dependencyType: "stateVariable",
+                                componentIdx: referentIdx,
+                                variableName: "fixed",
+                                variablesOptional: true,
+                            },
+                            modifyIndirectly: {
+                                dependencyType: "stateVariable",
+                                componentIdx: referentIdx,
+                                variableName: "modifyIndirectly",
+                                variablesOptional: true,
+                            },
+                        },
             fallback: (dependencyValues) =>
-                !dependencyValues.targetFixed &&
-                dependencyValues.modifyIndirectly !== false,
+                "entriesCanBeModified" in dependencyValues
+                    ? dependencyValues.entriesCanBeModified !== false
+                    : !dependencyValues.targetFixed &&
+                      dependencyValues.modifyIndirectly !== false,
         });
 
         // A `math` with no `unordered` attribute and no math children is
@@ -1357,6 +1373,7 @@ function referentOrFallback({
                 this.svComponent.fixedReferent ?? stateValues.referentInfo;
             const dependencies = fallbackDependencies(
                 referentInfo?.componentIdx,
+                referentInfo,
             );
             if (referentInfo?.referencedPrimaryValue) {
                 dependencies.fromReferent = {
