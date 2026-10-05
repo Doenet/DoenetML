@@ -1011,6 +1011,14 @@ export default class AuthoredValueList extends ValueListComponent {
                     dependencyType: "stateVariable",
                     variableName: "entryDisplaySettingsShadow",
                 },
+                copyListViaComposite: {
+                    dependencyType: "stateVariable",
+                    variableName: "copyListViaComposite",
+                },
+                extendListViaComposite: {
+                    dependencyType: "stateVariable",
+                    variableName: "extendListViaComposite",
+                },
                 ...Object.fromEntries(
                     displayNames.map((name) => [
                         name,
@@ -1043,10 +1051,27 @@ export default class AuthoredValueList extends ValueListComponent {
                         },
                     };
                 }
+                // The children a `copy=` or `extend=` of the list makes
+                // (`<mathList copy="$P.xs" displayDigits="3" />`) are what
+                // the list references, so its own settings win over theirs.
+                const referenceComposites = [
+                    dependencyValues.copyListViaComposite,
+                    dependencyValues.extendListViaComposite,
+                ].filter((idx) => idx != null);
+                const ranges = (
+                    dependencyValues.children.compositeReplacementRange ?? []
+                ).filter((range) =>
+                    referenceComposites.includes(range.compositeIdx),
+                );
                 const settingsByChild = dependencyValues.children.map(
                     (child, componentInd) =>
                         childDisplaySettings({
                             child,
+                            fromReference: ranges.some(
+                                (range) =>
+                                    range.firstInd <= componentInd &&
+                                    range.lastInd >= componentInd,
+                            ),
                             childUsedDefault:
                                 usedDefault.children?.[componentInd],
                             displayNames,
@@ -1220,6 +1245,7 @@ function blankValue(kind) {
  */
 function childDisplaySettings({
     child,
+    fromReference = false,
     childUsedDefault,
     displayNames,
     listSettings,
@@ -1229,6 +1255,7 @@ function childDisplaySettings({
         return null;
     }
     const isReference =
+        fromReference ||
         child.stateValues.referentInfo !== undefined ||
         Boolean(child.stateValues.entryOfReference);
     const settings = {};

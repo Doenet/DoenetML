@@ -1024,4 +1024,34 @@ describe("Value lists as list components @group4", async () => {
             await textsOf(core, resolvePathToNodeIdx, ["pm", "pn", "pAll"]),
         ).eqls({ pm: "2.7 3.14 2", pn: "2.7 3.14", pAll: "2.7, 3.14" });
     });
+
+    it("a copy of the values of a property takes the display settings it sets", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <point name="P" displayDigits="2">(1.23456, 2.34567)</point>
+    <p name="copyDigits"><mathList copy="$P.xs" displayDigits="3" /></p>
+    <p name="extendDigits"><mathList extend="$P.xs" displayDigits="3" /></p>
+    <p name="copyDecimals"><mathList copy="$P.xs" displayDecimals="3" /></p>
+    <p name="copyNumbers"><numberList copy="$P.xs" displayDigits="3" /></p>
+    <p name="copyNone"><mathList copy="$P.xs" /></p>
+    `,
+        });
+
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "copyDigits",
+                "extendDigits",
+                "copyDecimals",
+                "copyNumbers",
+                "copyNone",
+            ]),
+        ).eqls({
+            copyDigits: "1.23, 2.35",
+            extendDigits: "1.23, 2.35",
+            copyDecimals: "1.235, 2.346",
+            copyNumbers: "1.23, 2.35",
+            // the point's own settings, when the copy sets none
+            copyNone: "1.2, 2.3",
+        });
+    });
 });

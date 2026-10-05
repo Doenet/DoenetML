@@ -157,10 +157,10 @@ exports[`component census of the micro-documents > numberList $l[1] 1`] = `
   },
   "components": 4,
   "copies": 0,
-  "dependencies": 332,
+  "dependencies": 336,
   "shadows": 0,
   "stateVariables": 213,
-  "stateVariablesResolved": 142,
+  "stateVariablesResolved": 144,
 }
 `;
 
