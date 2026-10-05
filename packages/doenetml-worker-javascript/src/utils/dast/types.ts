@@ -22,10 +22,12 @@ export type SerializedComponent = {
     extending?: Source<SerializedRefResolution>;
     originalIdx?: number;
     /**
-     * Set by a serialization on a component it made with no live
-     * counterpart, to shadow one state variable of a live component
-     * (`ValueRef.serialize`); a linked copy turns it into a `referenceShadow`
-     * (`postProcessCopy`).
+     * Set by `ValueRef.serialize` on a component it makes to shadow one
+     * state variable of a live component instead of a live counterpart: the
+     * attribute components it adds, and the reference itself, serialized as
+     * a component, when its referent cannot move. A linked copy turns it
+     * into a `referenceShadow` (`postProcessCopy`); an unlinked one copies
+     * from `originalIdx`, if it has one.
      */
     shadowsVariableOf?: {
         componentIdx: number;

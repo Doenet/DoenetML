@@ -96,6 +96,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     <booleanInput name="bi"><label name="l">Check $n</label></booleanInput>
     <tabular><row><cell name="c">$m</cell></row></tabular>
     <section name="s">$t</section>
+    $b
     `,
             });
 
@@ -125,6 +126,10 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(await drawn(core, resolvePathToNodeIdx, "s")).eqls([
                 ["text", "text", "hi"],
             ]);
+            // the document's last child is the `$b` written in it
+            expect(
+                (await drawn(core, resolvePathToNodeIdx, "_document1")).at(-1),
+            ).eqls(["boolean", "boolean", "true"]);
         });
 
         it("what is drawn follows the referent", async () => {
@@ -381,13 +386,15 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(await textOf(core, resolvePathToNodeIdx, "pc")).eq("[7]");
         });
 
-        it("a click on a reference to a click target is a click on it", async () => {
+        it("a click on a reference to a click target is a click on it, and a focus a focus", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <number name="n">7</number>
     <number name="count">0</number>
     <p name="p">$n</p>
+    <number name="focusCount">0</number>
     <updateValue target="$count" newValue="$count+1" triggerWhenObjectsClicked="$n" />
+    <updateValue target="$focusCount" newValue="$focusCount+1" triggerWhenObjectsFocused="$n" />
     `,
             });
 
@@ -411,6 +418,18 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             );
             expect(
                 stateVariables[await resolvePathToNodeIdx("count")].stateValues
+                    .value,
+            ).eq(1);
+
+            // and a focus on it is a focus on it
+            await clickComponent({
+                componentIdx: instruction.actions.numberFocused.componentIdx,
+                actionName: "numberFocused",
+                core,
+            });
+            const afterFocus = await core.returnAllStateVariables(false, true);
+            expect(
+                afterFocus[await resolvePathToNodeIdx("focusCount")].stateValues
                     .value,
             ).eq(1);
         });

@@ -81,9 +81,9 @@ export function parentDrawsValueReferences(
  * no attributes of its own, and the parent accepts the type in a child
  * group. With `allowDrawn`, a parent that renders its children qualifies
  * too when it draws value references (`parentDrawsValueReferences`): the
- * reference is then drawn there, as the type it presents as, with no
- * component (`$n` in `<p>The value is $n.</p>`). When the parent does not accept the type but would accept one
- * of the type's adapters (`$n` in a `<math>`: `number` adapts to `math`
+ * reference is then drawn there as the type it presents as, in place of a
+ * full component (`$n` in `<p>The value is $n.</p>`). When the parent does
+ * not accept the type but would accept one of the type's adapters (`$n` in a `<math>`: `number` adapts to `math`
  * through its `math` variable), the reference presents as the adapter's type
  * and reads the adapter's variable on the referent instead, which is what the
  * adapter component would have done. That re-pointing is only possible when

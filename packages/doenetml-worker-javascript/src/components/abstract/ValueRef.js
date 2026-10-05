@@ -9,7 +9,8 @@ import {
 /**
  * A value reference: the component a bare `$n` becomes when it stands where
  * only a value is read, such as inside `<math>$n+1</math>` or in the content
- * of an attribute (`displayDigits="$n"`).
+ * of an attribute (`displayDigits="$n"`), or where its value is drawn, as in
+ * `<p>The value is $n.</p>` (below).
  *
  * It reads one state variable of its referent and takes the place, in its
  * parent's child groups, of a component of `presentedComponentType`:
@@ -36,7 +37,8 @@ import {
  * (`createOnDemandStateVariableDefinitions`), so a reference costs the
  * variables that are actually read and nothing else. It has no `fixed` of
  * its own: a write through it lands on the referent, whose own `fixed`
- * refuses it there. It declares no attributes. The only attributes it can
+ * refuses it there. (A drawn one that stands for a copy of its referent
+ * reads the referent's `fixed` for its renderer, below.) It declares no attributes. The only attributes it can
  * hold are the marks by which an `<answer>` records what a reference in its
  * awards reads as a response (`isPotentialResponse`, `isResponse`); the
  * answer asks for them, and they are made on demand like the rest and read
@@ -47,9 +49,12 @@ import {
  * `<p>The value is $n.</p>`, `parentDrawsValueReferences`), it is drawn by
  * the renderer of the type it presents as (`isDrawn`), from the few of its
  * variables that renderer reads outside a graph (`rendererVariables`):
- * `text` or `latex` with the referent's display settings, `selectedStyle`
- * and `hidden`. Everything else the renderer reads is sent at a value a
- * component of that type has by default (`rendererConstants`).
+ * `text` or `latex` with the referent's display settings, a boolean's
+ * `value`, `selectedStyle` and `hidden`. `renderAsMath`, `renderMode` and
+ * `clickTarget` are sent at the value a component of that type has by
+ * default (`rendererConstants`), unless it stands for a copy of its referent
+ * (`copiesReferent`), when they, `selectedStyle` and `fixed` are read from
+ * the referent. Nothing that places it in a graph is sent.
  *
  * Part of Doenet/DoenetML#2128.
  */
@@ -659,14 +664,16 @@ export default class ValueRef extends BaseComponent {
      * for as a component (`valueReferenceAsComponent`), when it is what a
      * `<collect>` found or what a reference names (`<text extend="$cc"/>` of
      * a composite that made it, `$s[2]` of a `<sort>`), it is copied as a
-     * component of the type it presents as, which a linked copy makes shadow
-     * this reference, as the copy of the component a `_copy` made for it
-     * did. That component took the settings that travel with the referenced
-     * value (`fixed`, the display settings) as attribute components
-     * shadowing the referent's (`addAttributeComponentsShadowingStateVariables`
-     * in `Copy.js`), and so does this copy: attribute components shadowing
-     * the variables of the referent this reference reads them from
-     * (`companions`; `shadowsVariableOf`, `utils/copy.js`).
+     * component of the type it presents as, as the component a `_copy` made
+     * for it was. What a linked copy of it shadows is set below: the
+     * referent's variable when the referent cannot move, this reference when
+     * it can. The component a `_copy` made took the settings that travel
+     * with the referenced value (`fixed`, the display settings) as attribute
+     * components shadowing the referent's
+     * (`addAttributeComponentsShadowingStateVariables` in `Copy.js`), and so
+     * does this copy: attribute components shadowing the variables of the
+     * referent this reference reads them from (`companions`;
+     * `shadowsVariableOf`, `utils/copy.js`).
      */
     async serialize(parameters = {}) {
         const serialized = await super.serialize(parameters);
