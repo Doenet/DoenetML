@@ -331,6 +331,23 @@ export function returnListValueStateVariableDefinitions({
                     cIdx,
                 ] of stateValues.componentIndicesForValues.entries()) {
                     if (typeof cIdx === "object") {
+                        // The property of an entry of a list component, read
+                        // as `$l[2].prop` reads it.
+                        dependencies[`component${ind}`] = {
+                            dependencyType: "stateVariableFromUnresolvedPath",
+                            componentIdx: cIdx.componentIdx,
+                            unresolvedPath: [
+                                {
+                                    name: "",
+                                    index: [{ value: [`${cIdx.listInd + 1}`] }],
+                                },
+                                { name: stateValues.propName, index: [] },
+                            ],
+                            variablesOptional: true,
+                            caseInsensitiveVariableMatch: true,
+                            publicStateVariablesOnly: true,
+                            returnAsComponentObject: true,
+                        };
                         continue;
                     }
                     dependencies[`component${ind}`] = {
@@ -377,7 +394,7 @@ export function returnListValueStateVariableDefinitions({
             for (let ind = 0; ind < numValues; ind++) {
                 const item = dependencyValues.componentIndicesForValues[ind];
                 let component = dependencyValues[`component${ind}`];
-                if (typeof item === "object") {
+                if (typeof item === "object" && !dependencyValues.propName) {
                     // An entry of a list component, which compares as a
                     // component of its type holding its value does.
                     const values =

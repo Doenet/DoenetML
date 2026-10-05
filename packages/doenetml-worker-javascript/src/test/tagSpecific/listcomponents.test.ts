@@ -501,6 +501,44 @@ describe("List operator results as children @group4", async () => {
         }
     });
 
+    it("a sort of the results keeps their display settings and sorts by a property", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="dd" prefill="2" />
+    <cumulativeSum name="c" displayDigits="$dd">9.1234 0.9 0.1</cumulativeSum>
+    <cumulativeSum name="c2" padZeros displayDecimals="2">3 -1 5</cumulativeSum>
+    <cumulativeSum name="c3">9.5 0.5 -2</cumulativeSum>
+    <p name="pSorted"><sort>$c</sort></p>
+    <p name="pPadded"><sort>$c2</sort></p>
+    <p name="pMixed"><sort>$c 5</sort></p>
+    <p name="pByNumber"><sort sortByProp="number">$c3</sort></p>
+    <p name="pIndicesByNumber"><sortIndices sortByProp="number">$c3</sortIndices></p>
+    <sort name="s">$c</sort>
+    <p name="pIndexed">$s[2]</p>
+    `,
+        });
+
+        await expectTexts(core, resolvePathToNodeIdx, {
+            pSorted: "9.1, 10, 10",
+            pPadded: "2.00, 3.00, 7.00",
+            pMixed: "5, 9.1, 10, 10",
+            pByNumber: "8, 9.5, 10",
+            pIndicesByNumber: "3, 1, 2",
+            pIndexed: "10",
+        });
+
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: await resolvePathToNodeIdx("dd"),
+            core,
+        });
+        await expectTexts(core, resolvePathToNodeIdx, {
+            pSorted: "9.123, 10.02, 10.12",
+            pMixed: "5, 9.123, 10.02, 10.12",
+            pIndexed: "10.02",
+        });
+    });
+
     it("a write through a result is refused", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

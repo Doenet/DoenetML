@@ -1,7 +1,6 @@
 import CompositeComponent from "./abstract/CompositeComponent";
 import { postProcessCopy } from "../utils/copy";
 import { createNewComponentIndices } from "../utils/componentIndices";
-import { createOneReplacement } from "../utils/valueListReplacements";
 import {
     compareExtractedValues,
     returnBreakStringsIntoTypeSugarInstruction,
@@ -108,9 +107,9 @@ function replacementsMatchCopied(replacements, componentsCopied) {
 
 /**
  * The entry of a list component that `valueObj` of `sortedValues` is, if it
- * is one: the list, and a key that names the entry and its value. An entry
- * has no component to copy, so its replacement is made from its value, and a
- * replacement can be kept only while that value is unchanged.
+ * is one: the list, the entry's index, and a key that names the entry. An
+ * entry has no component to copy, so its replacement is a reference to it
+ * (`listEntryReplacement`).
  */
 function listEntryOfValue(valueObj, components) {
     if (valueObj.listInd === undefined) {
@@ -122,7 +121,38 @@ function listEntryOfValue(valueObj, components) {
     }
     return {
         list,
-        key: `${valueObj.componentIdx}|${valueObj.listInd}|${valueObj.textValue}`,
+        listInd: valueObj.listInd,
+        key: `${valueObj.componentIdx}|${valueObj.listInd}`,
+    };
+}
+
+/**
+ * The replacement for entry `listInd` of the list component `list`: a
+ * reference to it, as `$list[2]` is, so that it shows the entry's value with
+ * the list's display settings and follows both as they change.
+ */
+function listEntryReplacement({ list, listInd, nComponents, stateIdInfo }) {
+    const index = [{ value: [`${listInd + 1}`] }];
+    return {
+        serializedComponent: {
+            type: "serialized",
+            componentType: "_copy",
+            componentIdx: nComponents++,
+            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+            attributes: {},
+            doenetAttributes: {},
+            children: [],
+            state: {},
+            extending: {
+                Ref: {
+                    nodeIdx: list.componentIdx,
+                    originalPath: [{ name: "", index }],
+                    unresolvedPath: [{ name: "", index }],
+                    nodesInResolvedPath: [list.componentIdx],
+                },
+            },
+        },
+        nComponents,
     };
 }
 
@@ -353,16 +383,9 @@ export default class Sort extends CompositeComponent {
 
             const listEntry = listEntryOfValue(valueObj, components);
             if (listEntry) {
-                const listClass = listEntry.list.constructor;
-                const values =
-                    await listEntry.list.stateValues[
-                        listClass.listEntryStateVariables.value
-                    ];
-                const res = createOneReplacement({
-                    value: values[valueObj.listInd],
-                    componentType: listClass.listEntryComponentType,
-                    attributesToConvert: {},
-                    componentInfoObjects,
+                const res = listEntryReplacement({
+                    list: listEntry.list,
+                    listInd: listEntry.listInd,
                     nComponents,
                     stateIdInfo,
                 });

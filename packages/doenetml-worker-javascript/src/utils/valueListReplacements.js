@@ -2,9 +2,8 @@ import { convertUnresolvedAttributesForComponentType } from "./dast/convertNorma
 import { returnNumberDisplayAttributes } from "./numberDisplay";
 
 /**
- * Replacement pieces for composites that create value-carrying components
- * rather than copying existing ones: `<sequence>`, and `<sort>` for an entry
- * of a list component (`ValueListComponent`), which has no component to copy.
+ * Replacement pieces for a composite that creates value-carrying components
+ * rather than copying existing ones: `<sequence>`.
  */
 
 /**
