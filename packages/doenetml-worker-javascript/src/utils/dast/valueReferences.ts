@@ -53,6 +53,16 @@ import { sequenceEntryComponentType } from "../sequence";
  * component it names (`createComponentIdx`), or, for the placeholder a
  * `<repeatForSequence>` makes for its `valueName`, the repeat's `type`.
  *
+ * A repeat's value and index (`$v` and `$i` in its template) are planned
+ * both ways: reading the component each iteration makes for them, and
+ * reading the iteration's entry of a list the repeat holds once
+ * (`_repeatValues`, `_repeatIndices`). When every reference to one of them
+ * qualifies as an entry of the list, and nothing names it from outside its
+ * iterations (`$r[2].i`), the placeholder the sugar made for it becomes that
+ * list, and the iterations make no component for it
+ * (`RepeatIterationLists.js`). Otherwise each reference is planned as it
+ * was.
+ *
  * A reference that an enclosing component names in one of its reference
  * attributes stays a `_copy`, as `<math referencesAreFunctionSymbols="$f">`
  * reads which of its children came from `$f` off the range of a composite's
@@ -155,12 +165,19 @@ export function convertCopiesToValueReferences({
         ];
     }
 
-    function convertReference(
+    /**
+     * Plan making the `_copy` `component` a value reference: the change to
+     * make, or `undefined` when it does not qualify. Read as an entry of the
+     * list `asEntryOf` when given, the list a repeat's value or index becomes
+     * (`iterationDummies`): an iteration reads its own entry of it.
+     */
+    function planReference(
         component: SerializedComponent,
         parent: SerializedComponent | undefined,
         named: NamedReference[],
         betweenBrackets: boolean,
-    ) {
+        asEntryOf?: IterationDummy,
+    ): (() => void) | undefined {
         if (
             parent === undefined ||
             component.componentType !== "_copy" ||
@@ -187,21 +204,30 @@ export function convertCopiesToValueReferences({
         if (naming.some(({ marksResponse }) => !marksResponse)) {
             return;
         }
-        const targetComponentType = referentType(refResolution.nodeIdx);
-        if (targetComponentType === undefined) {
-            return;
+        let targetComponentType: string | undefined;
+        let targetClass: any;
+        let unresolvedPath = refResolution.unresolvedPath;
+        if (asEntryOf) {
+            targetComponentType = asEntryOf.listComponentType;
+            targetClass = asEntryOf.listClass;
+            unresolvedPath = [ITERATION_ENTRY, ...(unresolvedPath ?? [])];
+        } else {
+            targetComponentType = referentType(refResolution.nodeIdx);
+            if (targetComponentType === undefined) {
+                return;
+            }
+            targetClass = referentClass(
+                refResolution.nodeIdx,
+                targetComponentType,
+            );
         }
-        const targetClass = referentClass(
-            refResolution.nodeIdx,
-            targetComponentType,
-        );
         if (targetClass === undefined) {
             return;
         }
         const target = staticValueReferenceTarget({
             targetComponentType,
             targetClass,
-            unresolvedPath: refResolution.unresolvedPath,
+            unresolvedPath,
             componentInfoObjects,
         });
         if (!target) {
@@ -220,12 +246,13 @@ export function convertCopiesToValueReferences({
             ) {
                 return;
             }
-            component.attributes = {};
-            makeValueReference(component, {
-                presentedComponentType: "integer",
-                valueComponentType: target.valueComponentType,
-            });
-            return;
+            return () => {
+                component.attributes = {};
+                makeValueReference(component, {
+                    presentedComponentType: "integer",
+                    valueComponentType: target.valueComponentType,
+                });
+            };
         }
 
         // marked by the answer already, or named by an award, whose mark it
@@ -270,41 +297,320 @@ export function convertCopiesToValueReferences({
         if (!plan) {
             return;
         }
-        if (isResponse) {
-            // A copy keeps its attributes as written, for its replacements;
-            // a value reference holds its response marks as the type it
-            // presents as reads them. They are primitives, so the conversion
-            // makes no components.
-            component.attributes = convertUnresolvedAttributesForComponentType({
-                attributes: component.attributes,
-                componentType: plan.presentedComponentType,
-                componentInfoObjects,
-                nComponents: 0,
-            }).attributes;
-            if (naming.length > 0 && !component.attributes.isResponse) {
-                component.attributes.isResponse = {
-                    type: "primitive",
-                    name: "isResponse",
-                    primitive: { type: "boolean", value: true },
-                };
+        const finalPlan = plan;
+        return () => {
+            if (isResponse) {
+                // A copy keeps its attributes as written, for its
+                // replacements; a value reference holds its response marks
+                // as the type it presents as reads them. They are
+                // primitives, so the conversion makes no components.
+                component.attributes =
+                    convertUnresolvedAttributesForComponentType({
+                        attributes: component.attributes,
+                        componentType: finalPlan.presentedComponentType,
+                        componentInfoObjects,
+                        nComponents: 0,
+                    }).attributes;
+                if (naming.length > 0 && !component.attributes.isResponse) {
+                    component.attributes.isResponse = {
+                        type: "primitive",
+                        name: "isResponse",
+                        primitive: { type: "boolean", value: true },
+                    };
+                }
+            }
+            makeValueReference(component, {
+                ...finalPlan,
+                valueComponentType,
+                copiesReferent: copiesReferent({
+                    fromImplicitProp: target.fromImplicitProp,
+                    targetClass,
+                    plan: finalPlan,
+                }),
+            });
+            if (listEntryAdapterProperty !== undefined) {
+                component.doenetAttributes.listEntryAdapterProperty =
+                    listEntryAdapterProperty;
+            }
+        };
+    }
+
+    const iterationDummies = findIterationDummies(
+        componentsByIdx,
+        parentByIdx,
+        componentInfoObjects,
+    );
+
+    // Plan every reference first, and a reference to a repeat's value or
+    // index both ways: as it reads the component named for it today, and as
+    // an entry of the list that component would become.
+    const planned: {
+        plain?: () => void;
+        asEntry?: () => void;
+        dummy?: IterationDummy;
+    }[] = [];
+    const readAsEntry = new Set<SerializedComponent>();
+    walk(
+        serializedComponents,
+        undefined,
+        [],
+        (component, parent, named, betweenBrackets) => {
+            const plain = planReference(
+                component,
+                parent,
+                named,
+                betweenBrackets,
+            );
+            const extending = component.extending;
+            const dummy =
+                extending && "Ref" in extending
+                    ? iterationDummies.get(extending.Ref.nodeIdx)
+                    : undefined;
+            const asEntry = dummy
+                ? planReference(
+                      component,
+                      parent,
+                      named,
+                      betweenBrackets,
+                      dummy,
+                  )
+                : undefined;
+            if (asEntry) {
+                readAsEntry.add(component);
+            }
+            if (plain || asEntry) {
+                planned.push({ plain, asEntry, dummy });
+            }
+        },
+    );
+
+    // A repeat's value or index becomes a list only when every reference to
+    // it reads it as an entry, and nothing names it from outside its
+    // iterations (`$r[2].v`), which only a component of its own answers.
+    const namesAfterAnIndex = new Set<string>();
+    forEachReference(serializedComponents, (component, refResolution) => {
+        const dummy = iterationDummies.get(refResolution.nodeIdx);
+        if (dummy) {
+            dummy.isRead = true;
+            if (!readAsEntry.has(component)) {
+                dummy.becomesList = false;
             }
         }
-        makeValueReference(component, {
-            ...plan,
-            valueComponentType,
-            copiesReferent: copiesReferent({
-                fromImplicitProp: target.fromImplicitProp,
-                targetClass,
-                plan,
-            }),
-        });
-        if (listEntryAdapterProperty !== undefined) {
-            component.doenetAttributes.listEntryAdapterProperty =
-                listEntryAdapterProperty;
+        let afterIndex = false;
+        for (const part of refResolution.originalPath) {
+            if (afterIndex) {
+                namesAfterAnIndex.add(part.name);
+            }
+            afterIndex ||= part.index.length > 0;
+        }
+    });
+    for (const dummy of iterationDummies.values()) {
+        if (namesAfterAnIndex.has(dummy.name)) {
+            dummy.becomesList = false;
         }
     }
 
-    walk(serializedComponents, undefined, [], convertReference);
+    for (const { plain, asEntry, dummy } of planned) {
+        if (dummy?.becomesList) {
+            asEntry!();
+        } else {
+            plain?.();
+        }
+    }
+    for (const dummy of iterationDummies.values()) {
+        if (dummy.becomesList) {
+            makeIterationList(dummy);
+        }
+    }
+}
+
+/**
+ * The path part by which a reference to a repeat's value or index is
+ * planned as one entry of the list it becomes. Which entry is only known
+ * when the iteration is made (`remapExtendIndices` in `Repeat.js`); every
+ * entry is of the same type.
+ */
+const ITERATION_ENTRY = { name: "", index: [{ value: ["1"] }] };
+
+/**
+ * A component the sugar of a `<repeat>` or `<repeatForSequence>` made for its
+ * `valueName` (a `_placeholder`) or `indexName` (an `integer`) in its
+ * `_repeatSetup`, which every reference to the name in the template resolved
+ * to. Today the repeat makes a component of its own for it in each iteration
+ * and points the iteration's references there. It can instead become one
+ * list for the whole repeat, `_repeatValues` (a `<repeatForSequence>`'s
+ * value, of the repeat's `type`) or `_repeatIndices`, whose entry for the
+ * iteration each reference reads. A `<repeat>`'s value is a copy of what it
+ * iterates over, and stays a component.
+ */
+type IterationDummy = {
+    node: SerializedComponent;
+    setup: SerializedComponent;
+    repeat: SerializedComponent;
+    name: string;
+    listComponentType: string;
+    listClass: any;
+    /** The repeat's `type`, given to `_repeatValues`. */
+    typeAttribute?: SerializedComponent["attributes"][string];
+    becomesList: boolean;
+    /** Whether any reference reads it. */
+    isRead?: boolean;
+};
+
+function findIterationDummies(
+    componentsByIdx: Map<number, SerializedComponent>,
+    parentByIdx: Map<number, SerializedComponent | undefined>,
+    componentInfoObjects: ComponentInfoObjects,
+) {
+    const dummies = new Map<number, IterationDummy>();
+    for (const setup of componentsByIdx.values()) {
+        if (setup.componentType !== "_repeatSetup") {
+            continue;
+        }
+        const repeat = parentByIdx.get(setup.componentIdx);
+        if (
+            repeat?.componentType !== "repeat" &&
+            repeat?.componentType !== "repeatForSequence"
+        ) {
+            continue;
+        }
+        for (const node of setup.children) {
+            if (typeof node === "string") {
+                continue;
+            }
+            const name = primitiveName(node);
+            if (name === undefined) {
+                continue;
+            }
+            if (node.componentType === "integer") {
+                dummies.set(node.componentIdx, {
+                    node,
+                    setup,
+                    repeat,
+                    name,
+                    listComponentType: "_repeatIndices",
+                    listClass:
+                        componentInfoObjects.allComponentClasses[
+                            "_repeatIndices"
+                        ],
+                    becomesList: true,
+                });
+            } else if (
+                node.componentType === "_placeholder" &&
+                repeat.componentType === "repeatForSequence"
+            ) {
+                const typeAttribute = repeat.attributes.type;
+                const entryType = sequenceEntryComponentType(typeAttribute);
+                if (entryType === undefined) {
+                    continue;
+                }
+                dummies.set(node.componentIdx, {
+                    node,
+                    setup,
+                    repeat,
+                    name,
+                    listComponentType: "_repeatValues",
+                    listClass: (
+                        componentInfoObjects.allComponentClasses[
+                            "_repeatValues"
+                        ] as any
+                    ).classForEntryType(entryType),
+                    typeAttribute,
+                    becomesList: true,
+                });
+            }
+        }
+    }
+    return dummies;
+}
+
+/** The name a component is given, when it is a literal. */
+function primitiveName(node: SerializedComponent): string | undefined {
+    const nameAttribute = node.attributes.name;
+    if (nameAttribute?.type === "primitive") {
+        return String(nameAttribute.primitive.value);
+    }
+    return undefined;
+}
+
+/**
+ * Turn a repeat's value or index into the list each iteration reads its
+ * entry of, and make it a child of the repeat (which creates it, keeping its
+ * template serialized), out of the `_repeatSetup`, which is dropped once
+ * nothing is left in it. One that nothing reads is not made at all: the
+ * repeat is told, in `unreadIterationNames`, to make no component for it
+ * in its iterations either (`hasIterationList` in `Repeat.js`).
+ */
+function makeIterationList(dummy: IterationDummy) {
+    const { node, setup, repeat } = dummy;
+    setup.children = setup.children.filter((child) => child !== node);
+    if (dummy.isRead) {
+        node.componentType = dummy.listComponentType;
+        if (dummy.typeAttribute !== undefined) {
+            node.attributes = {
+                ...node.attributes,
+                type: dummy.typeAttribute,
+            };
+        }
+        repeat.children.push(node);
+    } else {
+        repeat.doenetAttributes = {
+            ...repeat.doenetAttributes,
+            unreadIterationNames: [
+                ...(repeat.doenetAttributes?.unreadIterationNames ?? []),
+                dummy.listComponentType,
+            ],
+        };
+    }
+    if (!setup.children.some((child) => typeof child !== "string")) {
+        repeat.children = repeat.children.filter((child) => child !== setup);
+    }
+}
+
+/**
+ * Call `visit` for every component of the tree that extends a reference
+ * (`Ref`, `extend` or `copy`): children, attribute components, the
+ * references of a reference attribute, the children of an attribute not yet
+ * converted, and what is written between the brackets of a reference's path.
+ */
+function forEachReference(
+    components: (SerializedComponent | string)[],
+    visit: (
+        component: SerializedComponent,
+        refResolution: SerializedRefResolution,
+    ) => void,
+) {
+    for (const component of components) {
+        if (typeof component === "string") {
+            continue;
+        }
+        if (component.extending) {
+            const refResolution = unwrapSource(
+                component.extending,
+            ) as SerializedRefResolution;
+            visit(component, refResolution);
+            // as `walk` does: what is written between the brackets, which
+            // the planning saw, is in the path as written
+            for (const pathPart of refResolution.originalPath) {
+                for (const indexPiece of pathPart.index) {
+                    forEachReference(indexPiece.value, visit);
+                }
+            }
+        }
+        forEachReference(component.children, visit);
+        for (const attribute of Object.values(component.attributes)) {
+            if (attribute.type === "component") {
+                forEachReference([attribute.component], visit);
+            } else if (attribute.type === "references") {
+                forEachReference(attribute.references, visit);
+            } else if (attribute.type === "unresolved") {
+                forEachReference(
+                    attribute.children as (SerializedComponent | string)[],
+                    visit,
+                );
+            }
+        }
+    }
 }
 
 /**

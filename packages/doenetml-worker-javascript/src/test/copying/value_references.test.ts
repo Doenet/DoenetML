@@ -407,9 +407,10 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             }
             const census = censusOfCore(core);
             expect(census.copies).eq(0);
-            // the repeat's own index, one per iteration, and no integer made
-            // from an index between brackets
-            expect(census.byType.integer).eq(3);
+            // the repeat's indices, held once for the repeat, and no integer
+            // made from an index between brackets
+            expect(census.byType._repeatIndices).eq(1);
+            expect(census.byType.integer).eq(undefined);
         });
 
         it("an index into each list component reads an entry of its array", async () => {

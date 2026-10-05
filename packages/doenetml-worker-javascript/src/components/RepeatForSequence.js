@@ -11,7 +11,13 @@ import {
 } from "../utils/sequence";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../utils/componentIndices";
-import { copyStateFromUnlinkedSource, remapExtendIndices } from "./Repeat";
+import {
+    copyStateFromUnlinkedSource,
+    hasIterationList,
+    iterationEntryMapping,
+    remapExtendIndices,
+    templateChildIndices,
+} from "./Repeat";
 export default class RepeatForSequence extends CompositeComponent {
     static componentType = "repeatForSequence";
 
@@ -31,11 +37,7 @@ export default class RepeatForSequence extends CompositeComponent {
         "readyToExpandWhenResolved";
 
     static keepChildrenSerialized({ serializedComponent }) {
-        if (serializedComponent.children === undefined) {
-            return [];
-        } else {
-            return Object.keys(serializedComponent.children);
-        }
+        return templateChildIndices(serializedComponent);
     }
 
     // since don't have child groups, tell schema about children here
@@ -190,6 +192,85 @@ export default class RepeatForSequence extends CompositeComponent {
                         serializedChildren,
                         valueDummyIdx,
                         indexDummyIdx,
+                    },
+                };
+            },
+        };
+
+        // How many iterations the repeat has made, with the ones it withholds
+        // while it has fewer items: the entries the lists of its values and
+        // indices hold (`RepeatIterationLists.js`), so that a withheld
+        // iteration keeps reading its own while it waits to be shown again.
+        stateVariableDefinitions.numIterationsMade = {
+            returnDependencies: () => ({
+                iterations: {
+                    dependencyType: "replacement",
+                    includeWithheldReplacements: true,
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    numIterationsMade: dependencyValues.iterations.length,
+                },
+            }),
+        };
+
+        // The value of each iteration the repeat has made, which the list of
+        // its values holds (`RepeatValues`). An iteration it withholds, past
+        // its current length, keeps the value the sequence gives it there,
+        // which it will have when shown again. With values excluded, the
+        // repeat makes its iterations anew on every change and withholds
+        // none, so they are its values.
+        stateVariableDefinitions.iterationValues = {
+            returnDependencies: () => ({
+                forValues: {
+                    dependencyType: "stateVariable",
+                    variableName: "forValues",
+                },
+                numIterationsMade: {
+                    dependencyType: "stateVariable",
+                    variableName: "numIterationsMade",
+                },
+                validSequence: {
+                    dependencyType: "stateVariable",
+                    variableName: "validSequence",
+                },
+                type: {
+                    dependencyType: "stateVariable",
+                    variableName: "type",
+                },
+                from: {
+                    dependencyType: "stateVariable",
+                    variableName: "from",
+                },
+                step: {
+                    dependencyType: "stateVariable",
+                    variableName: "step",
+                },
+                exclude: {
+                    dependencyType: "stateVariable",
+                    variableName: "exclude",
+                },
+                lowercase: {
+                    dependencyType: "stateVariable",
+                    variableName: "lowercase",
+                },
+            }),
+            definition({ dependencyValues }) {
+                const { forValues, numIterationsMade } = dependencyValues;
+                if (
+                    numIterationsMade <= forValues.length ||
+                    !dependencyValues.validSequence ||
+                    dependencyValues.exclude.length > 0
+                ) {
+                    return { setValue: { iterationValues: forValues } };
+                }
+                return {
+                    setValue: {
+                        iterationValues: returnSequenceValues({
+                            ...dependencyValues,
+                            length: numIterationsMade,
+                        }),
                     },
                 };
             },
@@ -760,7 +841,7 @@ async function addAndLinkAliasComponents(
 
     let valueComponentIdx;
 
-    if (valueName) {
+    if (valueName && !hasIterationList(component, "_repeatValues")) {
         valueComponentIdx = nComponents++;
         const valueDummyIdx = await component.stateValues.valueDummyIdx;
         if (valueDummyIdx != null) {
@@ -796,7 +877,7 @@ async function addAndLinkAliasComponents(
 
     const indexName = await component.stateValues.indexName;
 
-    if (indexName) {
+    if (indexName && !hasIterationList(component, "_repeatIndices")) {
         const indexComponentIdx = nComponents++;
         const indexDummyIdx = await component.stateValues.indexDummyIdx;
         if (indexDummyIdx != null) {
@@ -823,14 +904,26 @@ async function addAndLinkAliasComponents(
 
     const newRepl = { ...thisRepl };
 
-    if (Object.keys(extendIdxMapping).length > 0) {
+    // The value and index that are lists of the repeat's own
+    // (`_repeatValues`, `_repeatIndices`) are read at this iteration's entry.
+    const entryIdxMapping = iterationEntryMapping(component, iter);
+
+    if (
+        Object.keys(extendIdxMapping).length > 0 ||
+        Object.keys(entryIdxMapping).length > 0
+    ) {
         newRepl.children = remapExtendIndices(
             thisRepl.children,
             extendIdxMapping,
+            entryIdxMapping,
         );
     }
 
-    newRepl.children.push(setupComponent);
+    // A `<setup>` only for the components named after the value and index
+    // that are not lists of the repeat's.
+    if (setupComponent.children.length > 0) {
+        newRepl.children.push(setupComponent);
+    }
 
     return { replacement: newRepl, nComponents, valueComponentIdx };
 }
