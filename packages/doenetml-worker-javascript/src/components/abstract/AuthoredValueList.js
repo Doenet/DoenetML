@@ -38,8 +38,9 @@ import { codedDiagnostic } from "../../utils/diagnostics";
  * `<point name="Q">(1, $P.x)</point>`, whose coordinates are such lists,
  * read each other's coordinates without a cycle. A value written to an
  * entry goes to that same place: the child, the list a nested entry belongs
- * to, or, for a piece of text, the list itself (`textPieceWrites`), which
- * keeps it and saves it.
+ * to, or, for a piece of text, the list itself (`textPieceWrites`, or
+ * `compositeTextPieceWrites` for text a composite among the children
+ * gives), which keeps it with that text and saves it.
  *
  * A list made by shadowing a variable that holds an array (a `<numberList>`
  * a reference to `matrixSize` makes) has no children, and its entries are
@@ -288,22 +289,68 @@ export default class AuthoredValueList extends ValueListComponent {
             },
         };
 
-        // A value written to the entry of a piece of text, by the piece's
-        // index, which stands for the piece's value from then on. A reader's
-        // writes are saved and read back on load.
+        // Where a value written to each piece of text is kept: for a piece
+        // of the list's own text, its index among those pieces, in
+        // `textPieceWrites`; for a piece of text a composite among the
+        // children gives (`<repeat>`, `<conditionalContent>`), a key in
+        // `compositeTextPieceWrites` made of the innermost such composite,
+        // the string's place among that composite's text, and the piece's
+        // place in the string. A write so stays with its own text as other
+        // text appears and disappears, and is saved and read back on load.
+        stateVariableDefinitions.textPieceWriteKeys = {
+            returnDependencies: () => ({
+                stringChildren: {
+                    dependencyType: "child",
+                    childGroups: ["strings"],
+                    reportCompositeChanges: true,
+                },
+            }),
+            definition({ dependencyValues }) {
+                const stringChildren = dependencyValues.stringChildren;
+                const ranges = stringChildren.compositeReplacementRange ?? [];
+                const textPieceWriteKeys = [];
+                let ownPieceInd = 0;
+                const numStringsOfComposite = {};
+                for (const [childInd, text] of stringChildren.entries()) {
+                    const stateId = innermostCompositeStateId(ranges, childInd);
+                    let stringKey = null;
+                    if (stateId !== undefined) {
+                        const stringInd = numStringsOfComposite[stateId] ?? 0;
+                        numStringsOfComposite[stateId] = stringInd + 1;
+                        stringKey = `${stateId}:${stringInd}`;
+                    }
+                    const pieces = listClass.splitTextIntoPieces(text) ?? [];
+                    for (const pieceInString of pieces.keys()) {
+                        textPieceWriteKeys.push(
+                            stringKey === null
+                                ? ownPieceInd++
+                                : `${stringKey}:${pieceInString}`,
+                        );
+                    }
+                }
+                return { setValue: { textPieceWriteKeys } };
+            },
+        };
+
+        // A value written to a piece of the list's own text, which stands
+        // for the piece's value from then on.
         stateVariableDefinitions.textPieceWrites = {
             isArray: true,
             entryPrefixes: ["textPieceWrite"],
             hasEssential: true,
             defaultValueByArrayKey: () => null,
             returnArraySizeDependencies: () => ({
-                textPieceValues: {
+                textPieceWriteKeys: {
                     dependencyType: "stateVariable",
-                    variableName: "textPieceValues",
+                    variableName: "textPieceWriteKeys",
                 },
             }),
             returnArraySize({ dependencyValues }) {
-                return [dependencyValues.textPieceValues.length];
+                return [
+                    dependencyValues.textPieceWriteKeys.filter(
+                        (key) => typeof key === "number",
+                    ).length,
+                ];
             },
             returnArrayDependenciesByKey: () => ({}),
             arrayDefinitionByKey({ arrayKeys }) {
@@ -328,6 +375,26 @@ export default class AuthoredValueList extends ValueListComponent {
             }),
         };
 
+        // A value written to a piece of text a composite among the children
+        // gives, by the piece's key (`textPieceWriteKeys`).
+        stateVariableDefinitions.compositeTextPieceWrites = {
+            hasEssential: true,
+            defaultValue: {},
+            returnDependencies: () => ({}),
+            definition: () => ({
+                useEssentialOrDefaultValue: { compositeTextPieceWrites: true },
+            }),
+            inverseDefinition: ({ desiredStateVariableValues }) => ({
+                success: true,
+                instructions: [
+                    {
+                        setEssentialValue: "compositeTextPieceWrites",
+                        value: desiredStateVariableValues.compositeTextPieceWrites,
+                    },
+                ],
+            }),
+        };
+
         // The value of each piece of text: what was written to it, or what
         // it is parsed as.
         stateVariableDefinitions.textPieceEntryValues = {
@@ -336,17 +403,31 @@ export default class AuthoredValueList extends ValueListComponent {
                     dependencyType: "stateVariable",
                     variableName: "textPieceValues",
                 },
+                textPieceWriteKeys: {
+                    dependencyType: "stateVariable",
+                    variableName: "textPieceWriteKeys",
+                },
                 textPieceWrites: {
                     dependencyType: "stateVariable",
                     variableName: "textPieceWrites",
+                },
+                compositeTextPieceWrites: {
+                    dependencyType: "stateVariable",
+                    variableName: "compositeTextPieceWrites",
                 },
             }),
             definition: ({ dependencyValues }) => ({
                 setValue: {
                     textPieceEntryValues: dependencyValues.textPieceValues.map(
                         (value, pieceInd) => {
+                            const writeKey =
+                                dependencyValues.textPieceWriteKeys[pieceInd];
                             const write =
-                                dependencyValues.textPieceWrites[pieceInd];
+                                typeof writeKey === "number"
+                                    ? dependencyValues.textPieceWrites[writeKey]
+                                    : dependencyValues.compositeTextPieceWrites[
+                                          writeKey
+                                      ];
                             return write === null || write === undefined
                                 ? value
                                 : restoredValue(write, kind);
@@ -394,7 +475,8 @@ export default class AuthoredValueList extends ValueListComponent {
         };
 
         // Where each entry's value comes from, without its value: a piece
-        // of text (`pieceInd`), a child (`componentInd`, among the children
+        // of text (`pieceInd`, with where a value written to it is kept,
+        // `writeKey`), a child (`componentInd`, among the children
         // that are not text, once a list among them is its entries), an
         // item of a piece or child whose value is a list, when the math
         // lists merge (`component` of `nComponents`), or the array the list
@@ -420,6 +502,10 @@ export default class AuthoredValueList extends ValueListComponent {
                               },
                           }
                         : {}),
+                    textPieceWriteKeys: {
+                        dependencyType: "stateVariable",
+                        variableName: "textPieceWriteKeys",
+                    },
                     shadow: {
                         dependencyType: "stateVariable",
                         variableName: "listValuesShadow",
@@ -475,7 +561,13 @@ export default class AuthoredValueList extends ValueListComponent {
                                 dependencyValues.textPieceEntryValues?.[
                                     pieceInd
                                 ],
-                                { pieceInd },
+                                {
+                                    pieceInd,
+                                    writeKey:
+                                        dependencyValues.textPieceWriteKeys[
+                                            pieceInd
+                                        ],
+                                },
                             );
                             pieceInd++;
                         }
@@ -571,6 +663,16 @@ export default class AuthoredValueList extends ValueListComponent {
                         variableName: "listValuesShadow",
                     };
                 }
+                if (
+                    stateValues.entryStructure.some(
+                        (source) => typeof source.writeKey === "string",
+                    )
+                ) {
+                    globalDependencies.compositeTextPieceWrites = {
+                        dependencyType: "stateVariable",
+                        variableName: "compositeTextPieceWrites",
+                    };
+                }
                 const dependenciesByKey = {};
                 for (const arrayKey of arrayKeys) {
                     const source = stateValues.entryStructure[arrayKey];
@@ -580,11 +682,13 @@ export default class AuthoredValueList extends ValueListComponent {
                                 dependencyType: "stateVariable",
                                 variableName: "textPieceValues",
                             },
-                            write: {
-                                dependencyType: "stateVariable",
-                                variableName: `textPieceWrite${source.pieceInd + 1}`,
-                            },
                         };
+                        if (typeof source.writeKey === "number") {
+                            dependenciesByKey[arrayKey].write = {
+                                dependencyType: "stateVariable",
+                                variableName: `textPieceWrite${source.writeKey + 1}`,
+                            };
+                        }
                     } else if (source?.componentInd !== undefined) {
                         dependenciesByKey[arrayKey] = {
                             child: {
@@ -612,6 +716,8 @@ export default class AuthoredValueList extends ValueListComponent {
                         source,
                         dependencyValues: dependencyValuesByKey[arrayKey],
                         shadow: globalDependencyValues.shadow,
+                        compositeTextPieceWrites:
+                            globalDependencyValues.compositeTextPieceWrites,
                         entryType,
                     });
                     entries[arrayKey] =
@@ -647,6 +753,7 @@ export default class AuthoredValueList extends ValueListComponent {
 
                 const instructions = [];
                 let wroteShadow = false;
+                let wroteCompositeText = false;
                 // The entries of one write can arrive one by one, so what
                 // was written to a source holding several of them is kept
                 // in the workspace until the write is done.
@@ -675,6 +782,8 @@ export default class AuthoredValueList extends ValueListComponent {
                                 dependencyValues:
                                     dependencyValuesByKey[arrayKey],
                                 shadow: globalDependencyValues.shadow,
+                                compositeTextPieceWrites:
+                                    globalDependencyValues.compositeTextPieceWrites,
                                 entryType,
                             });
                             items = workspace.itemsOfSources[sourceKey] =
@@ -690,7 +799,16 @@ export default class AuthoredValueList extends ValueListComponent {
                         ]);
                     }
 
-                    if (source.pieceInd !== undefined) {
+                    if (typeof source.writeKey === "string") {
+                        if (!workspace.compositeTextPieceWrites) {
+                            workspace.compositeTextPieceWrites = {
+                                ...globalDependencyValues.compositeTextPieceWrites,
+                            };
+                        }
+                        workspace.compositeTextPieceWrites[source.writeKey] =
+                            value;
+                        wroteCompositeText = true;
+                    } else if (source.pieceInd !== undefined) {
                         instructions.push({
                             setDependency: dependencyNamesByKey[arrayKey].write,
                             desiredValue: value,
@@ -722,6 +840,12 @@ export default class AuthoredValueList extends ValueListComponent {
                     instructions.push({
                         setDependency: "shadow",
                         desiredValue: workspace.shadowWrites,
+                    });
+                }
+                if (wroteCompositeText) {
+                    instructions.push({
+                        setDependency: "compositeTextPieceWrites",
+                        desiredValue: workspace.compositeTextPieceWrites,
                     });
                 }
 
@@ -896,9 +1020,18 @@ function isMathList(value) {
  * dependencies: the piece of text, the child, or the entry of the shadowed
  * array. For an item of a list, the whole list.
  */
-function entrySourceValue({ source, dependencyValues, shadow, entryType }) {
+function entrySourceValue({
+    source,
+    dependencyValues,
+    shadow,
+    compositeTextPieceWrites,
+    entryType,
+}) {
     if (source?.pieceInd !== undefined) {
-        const write = dependencyValues?.write;
+        const write =
+            typeof source.writeKey === "string"
+                ? compositeTextPieceWrites?.[source.writeKey]
+                : dependencyValues?.write;
         return write === null || write === undefined
             ? dependencyValues?.piece?.[source.pieceInd]
             : restoredValue(write, entryKind(entryType));
@@ -913,6 +1046,28 @@ function entrySourceValue({ source, dependencyValues, shadow, entryType }) {
             : restoredValue(value, entryKind(entryType));
     }
     return undefined;
+}
+
+/**
+ * The `stateId` of the innermost composite among a list's children whose
+ * replacements include string child `childInd`, given the ranges of the
+ * child dependency (`compositeReplacementRange`); `undefined` for the
+ * list's own text. Of nested composites, the inner one comes later.
+ */
+function innermostCompositeStateId(ranges, childInd) {
+    let innermost;
+    for (const range of ranges) {
+        if (
+            range.firstInd <= childInd &&
+            range.lastInd >= childInd &&
+            (innermost === undefined ||
+                range.lastInd - range.firstInd <=
+                    innermost.lastInd - innermost.firstInd)
+        ) {
+            innermost = range;
+        }
+    }
+    return innermost?.compositeStateId;
 }
 
 /** The value of an entry of `kind` that has none. */

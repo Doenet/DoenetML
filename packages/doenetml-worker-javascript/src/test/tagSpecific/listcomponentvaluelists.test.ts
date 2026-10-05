@@ -673,4 +673,103 @@ describe("Value lists as list components @group4", async () => {
             n: "0",
         });
     });
+
+    it("text from a composite among the children shows, and a value written to it stays with it", async () => {
+        const doenetML = `
+    <booleanInput name="b" />
+    <numberList name="nl">1 <conditionalContent><case condition="$b">2 3</case></conditionalContent> 4</numberList>
+    <textList name="tl">p <conditionalContent><case condition="$b">c</case><else>c</else></conditionalContent> d</textList>
+    <textList name="tr">x <repeat for="u v" valueName="w"><text>$w</text> q</repeat> y</textList>
+    <p name="pnl">$nl</p>
+    <p name="ptl">$tl</p>
+    <p name="ptr">$tr</p>
+    <mathInput name="mn" bindValueTo="$nl[2]" />
+    <textInput name="tt" bindValueTo="$tl[2]" />
+    <textInput name="tq" bindValueTo="$tr[5]" />
+    `;
+        const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
+            { doenetML },
+        );
+        const names = ["pnl", "ptl", "ptr"];
+
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls({
+            pnl: "1, 4",
+            ptl: "p, c, d",
+            ptr: "x, u, q, v, q, y",
+        });
+
+        // Written to `4`, to the `c` of the `<else>`, and to the second
+        // iteration's `q`.
+        await updateMathInputValue({
+            latex: "40",
+            componentIdx: await resolvePathToNodeIdx("mn"),
+            core,
+        });
+        await updateTextInputValue({
+            text: "X",
+            componentIdx: await resolvePathToNodeIdx("tt"),
+            core,
+        });
+        await updateTextInputValue({
+            text: "Q",
+            componentIdx: await resolvePathToNodeIdx("tq"),
+            core,
+        });
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls({
+            pnl: "1, 40",
+            ptl: "p, X, d",
+            ptr: "x, u, q, v, Q, y",
+        });
+
+        // The case's text appears; the writes stay with their own text.
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        const withCase = {
+            pnl: "1, 2, 3, 40",
+            ptl: "p, c, d",
+            ptr: "x, u, q, v, Q, y",
+        };
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls(withCase);
+
+        await core.core!.saveImmediately();
+        const reloaded = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        });
+        expect(
+            await textsOf(reloaded.core, reloaded.resolvePathToNodeIdx, names),
+        ).eqls(withCase);
+
+        // A value written to the case's text stays with it.
+        await updateTextInputValue({
+            text: "Y",
+            componentIdx: await reloaded.resolvePathToNodeIdx("tt"),
+            core: reloaded.core,
+        });
+        await updateMathInputValue({
+            latex: "20",
+            componentIdx: await reloaded.resolvePathToNodeIdx("mn"),
+            core: reloaded.core,
+        });
+        expect(
+            await textsOf(reloaded.core, reloaded.resolvePathToNodeIdx, names),
+        ).eqls({
+            pnl: "1, 20, 3, 40",
+            ptl: "p, Y, d",
+            ptr: "x, u, q, v, Q, y",
+        });
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await reloaded.resolvePathToNodeIdx("b"),
+            core: reloaded.core,
+        });
+        expect(
+            (await textsOf(reloaded.core, reloaded.resolvePathToNodeIdx, names))
+                .pnl,
+        ).eqls("1, 40");
+    });
 });

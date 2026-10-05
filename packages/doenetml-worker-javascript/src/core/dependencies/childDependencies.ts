@@ -54,6 +54,12 @@ export class ChildDependency extends Dependency {
             this.definition.proceedIfAllChildrenNotMatched;
 
         this.dontRecurseToShadows = this.definition.dontRecurseToShadows;
+
+        // Whether a change in the composites the children are replacements
+        // of (`compositeReplacementRange`) is a change of the dependency,
+        // as for a parent that keys its children's text by the composite
+        // the text came from.
+        this.reportCompositeChanges = this.definition.reportCompositeChanges;
     }
 
     async determineDownstreamComponents() {
@@ -415,6 +421,10 @@ export class ChildDependency extends Dependency {
                     if (translatedLastInd !== undefined) {
                         this.compositeReplacementRange.push({
                             compositeIdx: compositeInfo.compositeIdx,
+                            compositeStateId:
+                                this.dependencyHandler._components[
+                                    compositeInfo.compositeIdx
+                                ]?.stateId,
                             extendIdx: compositeInfo.extendIdx,
                             unresolvedPath: compositeInfo.unresolvedPath,
                             firstInd: translatedFirstInd,
@@ -587,6 +597,24 @@ export class ChildDependency extends Dependency {
         }
 
         result.value = resultValueWithPrimitives;
+
+        if (this.reportCompositeChanges) {
+            const compositeRanges = JSON.stringify(
+                (resultValueWithPrimitives.compositeReplacementRange ?? []).map(
+                    (range: any) => [
+                        range.compositeIdx,
+                        range.firstInd,
+                        range.lastInd,
+                    ],
+                ),
+            );
+            if (compositeRanges !== this.previousCompositeRanges) {
+                result.changes.componentIdentitiesChanged = true;
+                if (consumeChanges) {
+                    this.previousCompositeRanges = compositeRanges;
+                }
+            }
+        }
 
         if (
             this.downstreamPrimitives.length !==
