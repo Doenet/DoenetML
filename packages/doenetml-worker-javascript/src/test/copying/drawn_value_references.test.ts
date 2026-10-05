@@ -319,6 +319,26 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             ).eq(1);
         });
 
+        it("an index written as an element finds its entry in a paragraph and in a math", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="l">100 300 200 50</numberList>
+    <p name="p">$l[<indexOf target="200">$l</indexOf>]</p>
+    <math name="m">$l[<indexOf target="300">$l</indexOf>]</math>
+    `,
+            });
+
+            expect(await textOf(core, resolvePathToNodeIdx, "p")).eq("200");
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                    .value.tree,
+            ).eq(300);
+        });
+
         it("an answer in a repeat iteration with a drawn reference keeps its submission when the iteration is withheld", async () => {
             const doenetML = `
     <mathInput name="n" prefill="1" />

@@ -585,15 +585,17 @@ export default class ValueListComponent extends BaseComponent {
                         },
                     };
                 }
+                // Whether the entries are fixed is read only when one is
+                // written (`stateValues` in the inverse), so the values do
+                // not depend on `fixed`: an `<indexOf>` written between a
+                // reference's brackets (`$l[<indexOf>…</indexOf>]`) reads
+                // its parent's `fixed` from that reference, which finds its
+                // referent only from the index.
                 return {
                     globalDependencies: {
                         values: {
                             dependencyType: "stateVariable",
                             variableName: valuesVariable,
-                        },
-                        entriesFixed: {
-                            dependencyType: "stateVariable",
-                            variableName: "entriesFixed",
                         },
                         ...(writeBasisVariable === undefined
                             ? {}
@@ -643,12 +645,13 @@ export default class ValueListComponent extends BaseComponent {
                     checkForActualChange: { [arrayName]: unchangedChecks },
                 };
             },
-            inverseArrayDefinitionByKey({
+            async inverseArrayDefinitionByKey({
                 desiredStateVariableValues,
                 globalDependencyValues,
                 dependencyNamesByKey,
+                stateValues,
             }) {
-                if (!entriesTakeWrites || globalDependencyValues.entriesFixed) {
+                if (!entriesTakeWrites || (await stateValues.entriesFixed)) {
                     return { success: false };
                 }
                 const values = globalDependencyValues.values ?? [];
