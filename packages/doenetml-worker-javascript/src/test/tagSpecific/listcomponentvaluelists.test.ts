@@ -659,18 +659,26 @@ describe("Value lists as list components @group4", async () => {
         ).eqls(written);
     });
 
-    it("a maxNumber below zero leaves no entries", async () => {
+    it("a maxNumber below zero leaves no entries, and a fractional one keeps the whole entries below it", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <numberList name="nl" maxNumber="-1">1 2 3</numberList>
     <p name="p">$nl</p>
     <p name="n">$nl.numValues</p>
+    <numberList name="nlf" maxNumber="2.5">1 2 3 4</numberList>
+    <textList name="tlf" maxNumber="1.2">a b c</textList>
+    <p name="pf">$nlf; $tlf</p>
+    <p name="nf">$nlf.numValues $tlf.numValues</p>
     `,
         });
 
-        expect(await textsOf(core, resolvePathToNodeIdx, ["p", "n"])).eqls({
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, ["p", "n", "pf", "nf"]),
+        ).eqls({
             p: "",
             n: "0",
+            pf: "1, 2; a",
+            nf: "2 1",
         });
     });
 
