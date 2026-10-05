@@ -577,6 +577,32 @@ describe("Samplers and sequences as list components @group4", async () => {
         ).eqls({ p1: "1.2", p2: "2.2", p3: "1.2", p4: "1.2" });
     });
 
+    it("a list written in a group takes one of its positions", async () => {
+        // as a composite written there did; a reference to a list in a group
+        // takes one position per entry, as a reference to a composite did
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <sequence name="s0" from="4" to="6" />
+    <group name="g"><sequence from="1" to="3" /></group>
+    <group name="h"><group><sampleRandomNumbers numSamples="3" /></group></group>
+    <group name="k">$s0</group>
+    <p name="g1">$g[1]</p><p name="g2">$g[2]</p><p name="g3">$g[3]</p>
+    <p name="h2">$h[2]</p>
+    <p name="k2">$k[2]</p><p name="k4">$k[4]</p>
+    `,
+        });
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "g1",
+                "g2",
+                "g3",
+                "h2",
+                "k2",
+                "k4",
+            ]),
+        ).eqls({ g1: "1, 2, 3", g2: "", g3: "", h2: "", k2: "5", k4: "" });
+    });
+
     it("letters and primes are drawn by the renderers of their types", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
