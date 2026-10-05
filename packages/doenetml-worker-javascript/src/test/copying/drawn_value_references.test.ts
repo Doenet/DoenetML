@@ -507,5 +507,55 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 ].stateValues.text.trim(),
             ).eq("1 + 1 =");
         });
+
+        it("an unlinked copy of a drawn reference takes its value and settings as they are", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="l" displayDigits="2">5.1234 9.1234 7.1234</numberList>
+    <mathList name="ml">x y+1</mathList>
+    <textList name="tl">b a</textList>
+    <p><sort name="s">$l</sort> <sort name="sm">$ml</sort> <sort name="st">$tl</sort></p>
+    <number name="u1" copy="$s[2]" />
+    <math name="u2" copy="$sm[2]" />
+    <text name="u3" copy="$st[2]" />
+    <p name="pu">$u1 | $u2 | $u3</p>
+    `,
+            });
+
+            expect(await textOf(core, resolvePathToNodeIdx, "pu")).eq(
+                "7.1 | y + 1 | b",
+            );
+        });
+
+        it("a drawn reference is updated in place, not drawn anew, when its value changes", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="mi" prefill="x" />
+    <p name="p">A $mi B</p>
+    `,
+            });
+
+            const builder = (core as any).core.rendererInstructionBuilder;
+            const pIdx = await resolvePathToNodeIdx("p");
+            const instructions =
+                builder.rendererState[pIdx].childrenInstructions;
+
+            for (const latex of ["y", "z"]) {
+                await updateMathInputValue({
+                    latex,
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+            }
+
+            expect(builder.rendererState[pIdx].childrenInstructions).eq(
+                instructions,
+            );
+            expect(await drawn(core, resolvePathToNodeIdx, "p")).eqls([
+                "A ",
+                ["math", "math", "z"],
+                " B",
+            ]);
+        });
     },
 );

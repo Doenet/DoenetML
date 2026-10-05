@@ -1507,8 +1507,10 @@ export default class Copy extends CompositeComponent {
             serializedReplacements = [
                 await replacementSourceComponent.serialize({
                     // a value reference is copied as a component of its
-                    // type (`ValueRef.serialize`)
+                    // type (`ValueRef.serialize`); unlinked, it reads the
+                    // settings it takes from its referent here
                     valueReferenceAsComponent: true,
+                    components: link ? undefined : components,
                     copyAll: !link,
                     componentSourceAttributesToIgnore: ["labelIsName"],
                     copyVariants: !link,

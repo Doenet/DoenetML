@@ -1,6 +1,7 @@
 import me from "math-expressions";
 import BaseComponent from "./BaseComponent";
 import { reportInternalError } from "../../utils/internalErrors";
+import { currentReferentValue } from "../../utils/referentDescription";
 import {
     parentDrawsValueReferences,
     variableOfReferentVariable,
@@ -696,30 +697,48 @@ export default class ValueRef extends BaseComponent {
             this.componentInfoObjects.allComponentClasses[
                 this.presentedComponentType
             ]?.createAttributesObject() ?? {};
+        // An unlinked copy (`copyAll`) takes the settings as they are now,
+        // read from the referent among the `components` its caller passes.
+        const referent = parameters.copyAll
+            ? parameters.components?.[referentInfo?.componentIdx]
+            : undefined;
         for (const name in referentInfo?.companions ?? {}) {
             const attributeComponentType =
                 attributesObject[name]?.createComponentOfType;
             if (!attributeComponentType || name in serialized.attributes) {
                 continue;
             }
+            const component = {
+                type: "serialized",
+                componentType: attributeComponentType,
+                // no component of its own to copy; given an index with the
+                // copy's others (`createNewComponentIndices`)
+                componentIdx: -1,
+                attributes: {},
+                doenetAttributes: {},
+                state: {},
+                children: [],
+            };
+            if (parameters.copyAll) {
+                if (!referent) {
+                    continue;
+                }
+                component.state.value = await currentReferentValue(
+                    referent,
+                    referentInfo.companions[name],
+                );
+                // it has no original to be an unlinked copy of
+                component.dontShadowOriginalIndex = true;
+            } else {
+                component.shadowsVariableOf = {
+                    componentIdx: referentInfo.componentIdx,
+                    variableName: referentInfo.companions[name],
+                };
+            }
             serialized.attributes[name] = {
                 type: "component",
                 name,
-                component: {
-                    type: "serialized",
-                    componentType: attributeComponentType,
-                    // no component of its own to copy; given an index with
-                    // the copy's others (`createNewComponentIndices`)
-                    componentIdx: -1,
-                    shadowsVariableOf: {
-                        componentIdx: referentInfo.componentIdx,
-                        variableName: referentInfo.companions[name],
-                    },
-                    attributes: {},
-                    doenetAttributes: {},
-                    state: {},
-                    children: [],
-                },
+                component,
             };
         }
         // When what it reads cannot move to another referent or variable
@@ -743,6 +762,12 @@ export default class ValueRef extends BaseComponent {
                 serialized.shadowsVariableOf.fromImplicitProp = true;
                 serialized.doenetAttributes.fromImplicitProp = true;
             }
+        }
+        // An unlinked copy (`<number copy="$s[2]"/>`) shadows nothing, so it
+        // is given the value this reference reads now, as an unlinked copy
+        // of the component a `_copy` made for it was given that component's.
+        if (parameters.copyAll) {
+            serialized.state.value = await this.stateValues.value;
         }
         return serialized;
     }

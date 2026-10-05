@@ -296,8 +296,13 @@ export class RendererInstructionBuilder {
                         } else if (item.child === null) {
                             currentChildIdentifiers.push("");
                         } else if (item.child.rendererType) {
+                            // a value reference as the type it is drawn as,
+                            // which its instruction records
                             currentChildIdentifiers.push(
-                                `nameType:${item.child.componentIdx};${item.child.componentType}`,
+                                `nameType:${item.child.componentIdx};${
+                                    item.child.presentedComponentType ??
+                                    item.child.componentType
+                                }`,
                             );
                         } else if (typeof item.child === "string") {
                             currentChildIdentifiers.push(
