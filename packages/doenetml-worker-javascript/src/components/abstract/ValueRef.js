@@ -78,24 +78,13 @@ export default class ValueRef extends BaseComponent {
 
         // A drawn reference that stands for a copy of its referent is
         // clicked and focused as its referent is: the copy made for it was
-        // a click target when the referent was.
+        // a click target when the referent was. The action is passed to the
+        // referent the reference reads when it is performed, so it follows
+        // the reference if that changes.
         if (this.doenetAttributes.copiesReferent && this.isDrawn) {
-            this.externalActions = {};
             for (const actionName of this._referentActionNames()) {
-                Object.defineProperty(this.externalActions, actionName, {
-                    enumerable: true,
-                    get: async () => {
-                        const referentInfo =
-                            this.fixedReferent ??
-                            (await this.stateValues.referentInfo);
-                        return referentInfo
-                            ? {
-                                  componentIdx: referentInfo.componentIdx,
-                                  actionName,
-                              }
-                            : undefined;
-                    },
-                });
+                this.actions[actionName] = (args = {}) =>
+                    this._performOnReferent(actionName, args);
             }
         }
 
@@ -234,6 +223,33 @@ export default class ValueRef extends BaseComponent {
             }
         }
         return constants;
+    }
+
+    /**
+     * Do for `actionName` (a click or a focus) what the referent this
+     * reference reads now does for it (`numberClicked` in `Number.js`, …):
+     * nothing when the referent is fixed (`fixed`, which a drawn reference
+     * that stands for a copy of its referent reads from it), and otherwise
+     * trigger the actions chained to a click or focus on the referent.
+     */
+    async _performOnReferent(
+        actionName,
+        { actionId, sourceInformation = {}, skipRendererUpdate = false } = {},
+    ) {
+        const referentInfo =
+            this.fixedReferent ?? (await this.stateValues.referentInfo);
+        if (!referentInfo || (await this.stateValues.fixed)) {
+            return;
+        }
+        await this.coreFunctions.triggerChainedActions({
+            triggeringAction: actionName.endsWith("Clicked")
+                ? "click"
+                : "focus",
+            componentIdx: referentInfo.componentIdx,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+        });
     }
 
     /**
@@ -1018,7 +1034,7 @@ const COPIED_REFERENT_VARIABLES = new Set([
 /**
  * The actions by which the renderer of a type reports a click or a focus,
  * which a drawn reference that stands for a copy of its referent passes on
- * to the referent (`externalActions`).
+ * to the referent (`_performOnReferent`).
  */
 const REFERENT_ACTIONS = {
     number: ["numberClicked", "numberFocused"],

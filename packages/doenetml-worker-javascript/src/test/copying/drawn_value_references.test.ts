@@ -611,5 +611,67 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 " B",
             ]);
         });
+
+        it("a click on a reference goes to the referent it reads when clicked, and not to a fixed one", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="i" prefill="1" />
+    <repeatForSequence name="r" length="2" valueName="v"><number name="n">$v</number></repeatForSequence>
+    <number name="f" fixed>9</number>
+    <number name="c1">0</number>
+    <number name="c2">0</number>
+    <number name="cf">0</number>
+    <p name="p">$r[$i].n</p>
+    <p name="pf">$f</p>
+    <updateValue target="$c1" newValue="$c1+1" triggerWhenObjectsClicked="$r[1].n" />
+    <updateValue target="$c2" newValue="$c2+1" triggerWhenObjectsClicked="$r[2].n" />
+    <updateValue target="$cf" newValue="$cf+1" triggerWhenObjectsClicked="$f" />
+    `,
+            });
+
+            const rendererState = (core as any).core.rendererInstructionBuilder
+                .rendererState;
+            async function click(name: string) {
+                const instruction = rendererState[
+                    await resolvePathToNodeIdx(name)
+                ].childrenInstructions.find(
+                    (child: any) => child?.componentIdx,
+                );
+                await clickComponent({
+                    componentIdx:
+                        instruction.actions.numberClicked.componentIdx,
+                    actionName: "numberClicked",
+                    core,
+                });
+            }
+            async function counts() {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const counts = [];
+                for (const name of ["c1", "c2", "cf"]) {
+                    counts.push(
+                        stateVariables[await resolvePathToNodeIdx(name)]
+                            .stateValues.value,
+                    );
+                }
+                return counts;
+            }
+
+            await click("p");
+            expect(await counts()).eqls([1, 0, 0]);
+
+            await updateMathInputValue({
+                latex: "2",
+                componentIdx: await resolvePathToNodeIdx("i"),
+                core,
+            });
+            await click("p");
+            expect(await counts()).eqls([1, 1, 0]);
+
+            await click("pf");
+            expect(await counts()).eqls([1, 1, 0]);
+        });
     },
 );
