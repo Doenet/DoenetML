@@ -1,6 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
-import { updateMathInputValue } from "../utils/actions";
+import {
+    updateBooleanInputValue,
+    updateMathInputValue,
+} from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { renderedText } from "../utils/rendered-commas";
 
@@ -238,6 +241,70 @@ describe("List operator results as children @group4", async () => {
                 });
             }
             await expectTexts(core, resolvePathToNodeIdx, { pr, pr2, pc });
+        }
+    });
+
+    it("a collect gathers the results, not what they were computed from", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <numberList name="nl">3 1 2</numberList>
+    <section name="sNum"><cumulativeSum name="cum">$nl</cumulativeSum><number>9</number></section>
+    <section name="sMath"><sortIndices name="si"><math>30</math><math>10</math><math>20</math></sortIndices></section>
+    <p name="pNum"><collect componentType="number" from="$sNum" /></p>
+    <p name="pMath"><collect componentType="math" from="$sMath" /></p>
+    <p name="pFromCum"><collect componentType="math" from="$cum" /></p>
+    <p name="pFromSi"><collect componentType="number" from="$si" /></p>
+    <p name="pFromCumNum"><collect componentType="number" from="$cum" /></p>
+    <p name="pFromCumOwnType"><collect componentType="cumulativeSum" from="$cum" /></p>
+    `,
+        });
+
+        await expectTexts(core, resolvePathToNodeIdx, {
+            pNum: "9",
+            pMath: "",
+            pFromCum: "3, 4, 6",
+            pFromSi: "2, 3, 1",
+            pFromCumNum: "",
+            pFromCumOwnType: "",
+        });
+    });
+
+    it("a reference to a hidden operator shows its results", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="show" />
+    <section name="sec">
+      <cumulativeSum name="cum" hide="not $show">1 2</cumulativeSum>
+    </section>
+    <group name="g"><cumulativeSum name="cumG" hide>1 2</cumulativeSum></group>
+    <p name="pRef">$cum</p>
+    <p name="pCollect"><collect componentType="math" from="$sec" /></p>
+    <p name="pCollectList"><collect componentType="cumulativeSum" from="$sec" /></p>
+    <p name="pExtend"><cumulativeSum extend="$cum" /></p>
+    <p name="pGroup">$g</p>
+    <p name="pHidden" hide>$cum</p>
+    `,
+        });
+
+        for (const [show, pCollectList, pExtend] of [
+            [false, "", ""],
+            [true, "1, 3", "1, 3"],
+        ] as const) {
+            if (show) {
+                await updateBooleanInputValue({
+                    boolean: true,
+                    componentIdx: await resolvePathToNodeIdx("show"),
+                    core,
+                });
+            }
+            await expectTexts(core, resolvePathToNodeIdx, {
+                pRef: "1, 3",
+                pCollect: "1, 3",
+                pCollectList,
+                pExtend,
+                pGroup: "",
+                pHidden: "",
+            });
         }
     });
 

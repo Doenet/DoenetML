@@ -156,6 +156,84 @@ export default class ValueListComponent extends BaseComponent {
         const arrayName = this.listValuesArrayName;
         const entryPrefix = entryType;
 
+        // A reference to the whole list (`$l`, not a reference to something
+        // holding it), and a `<collect>` that
+        // gathers the list by the type of its entries, show the entries,
+        // which the list's own `hide` does not hide, as the copies of a
+        // composite's replacements were not hidden by the composite's `hide`.
+        // Such a copy is hidden only by a `hide` of its own, its parent or
+        // its source composite. A copy that is another list of this type
+        // (`<cumulativeSum extend="$l">`, `<collect componentType="cumulativeSum">`)
+        // is hidden with the list.
+        const listComponentType = this.componentType;
+        const baseHidden = stateVariableDefinitions.hidden;
+        stateVariableDefinitions.hidden = {
+            ...baseHidden,
+            returnDependencies: (args) => ({
+                ...baseHidden.returnDependencies(args),
+                ownHide: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "hide",
+                    variableNames: ["value"],
+                    dontRecurseToShadows: true,
+                },
+                shadowSource: {
+                    dependencyType: "shadowSource",
+                },
+                sourceComposite: {
+                    dependencyType: "sourceCompositeIdentity",
+                },
+                sourceCompositeExtends: {
+                    dependencyType: "sourceCompositeStateVariable",
+                    variableName: "extendIdx",
+                },
+                sourceCompositeCreatesType: {
+                    dependencyType: "sourceCompositeStateVariable",
+                    variableName: "createComponentOfType",
+                },
+                sourceCompositeCollectsType: {
+                    dependencyType: "sourceCompositeStateVariable",
+                    variableName: "componentTypeToCollect",
+                },
+            }),
+            definition(args) {
+                const { dependencyValues, componentInfoObjects } = args;
+                const sourceType =
+                    dependencyValues.sourceComposite?.componentType;
+                let showsEntries = false;
+                if (dependencyValues.shadowSource !== null) {
+                    if (sourceType === "_copy") {
+                        showsEntries =
+                            dependencyValues.sourceCompositeCreatesType ==
+                                null &&
+                            dependencyValues.sourceCompositeExtends ===
+                                dependencyValues.shadowSource.componentIdx;
+                    } else if (sourceType === "collect") {
+                        const collected =
+                            dependencyValues.sourceCompositeCollectsType;
+                        showsEntries =
+                            collected != null &&
+                            !componentInfoObjects.isInheritedComponentType({
+                                inheritedComponentType: listComponentType,
+                                baseComponentType: collected,
+                            });
+                    }
+                }
+                if (!showsEntries) {
+                    return baseHidden.definition(args);
+                }
+                return baseHidden.definition({
+                    ...args,
+                    dependencyValues: {
+                        ...dependencyValues,
+                        hide: Boolean(
+                            dependencyValues.ownHide?.stateValues.value,
+                        ),
+                    },
+                });
+            },
+        };
+
         Object.assign(
             stateVariableDefinitions,
             returnSelectedStyleStateVariableDefinition(),

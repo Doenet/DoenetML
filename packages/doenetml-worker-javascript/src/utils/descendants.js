@@ -33,6 +33,34 @@ export function gatherDescendants({
                     })),
         );
 
+    // With `useReplacementsForComposites`, a list component
+    // (`listEntryComponentType`) stands for its entries, as a composite
+    // stands for its replacements: its own children are not searched, and a
+    // search that starts at a list finds the list if it matches by the type
+    // of its entries.
+    let isList = (component) =>
+        component.constructor?.listEntryComponentType !== undefined;
+
+    if (useReplacementsForComposites && init && isList(ancestor)) {
+        const entryType = ancestor.constructor.listEntryComponentType;
+        const matchesByEntries =
+            matchListsByEntryType &&
+            descendantTypes.some((ct) =>
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: entryType,
+                    baseComponentType: ct,
+                }),
+            );
+        return matchesByEntries
+            ? [
+                  {
+                      componentIdx: ancestor.componentIdx,
+                      componentType: ancestor.componentType,
+                  },
+              ]
+            : [];
+    }
+
     let childrenToCheck = [];
 
     if (
@@ -175,7 +203,8 @@ export function gatherDescendants({
 
         if (
             (!matchedChild || recurseToMatchedChildren) &&
-            child.placeholderInd === undefined
+            child.placeholderInd === undefined &&
+            !(useReplacementsForComposites && isList(child))
         ) {
             // recurse
             let additionalDescendants = gatherDescendants({
