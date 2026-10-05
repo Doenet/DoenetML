@@ -155,3 +155,19 @@ export function entriesOrReplacements(
         listEntryRecord(core, stateVariables, idx, entryIndex),
     );
 }
+
+/**
+ * The type the component `idx` stands for among its parent's children: its
+ * own, or, for a value reference (`_ref`), the type it presents as (`$mi` in
+ * a `<p>` is drawn as a math).
+ */
+export function typeAsPresented(
+    core: PublicDoenetMLCore,
+    stateVariables: StateVariables,
+    idx: number,
+): string {
+    return (
+        (core as any).core?._components?.[idx]?.presentedComponentType ??
+        stateVariables[idx].componentType
+    );
+}

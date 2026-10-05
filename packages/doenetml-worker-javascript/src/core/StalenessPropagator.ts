@@ -198,10 +198,7 @@ export class StalenessPropagator {
     }) {
         // console.log(`mark state variable ${varName} of ${component.componentIdx} and updeps stale`)
 
-        if (
-            varName in
-            this.core.rendererVariablesByComponentType[component.componentType]
-        ) {
+        if (varName in this.core.rendererVariablesOf(component)) {
             this.core.updateInfo.componentsToUpdateRenderers.add(
                 component.componentIdx,
             );
@@ -500,9 +497,7 @@ export class StalenessPropagator {
                     for (const upstreamVar of upDep.upstreamVariableNames) {
                         if (
                             upstreamVar in
-                            this.core.rendererVariablesByComponentType[
-                                upDepComponent.componentType
-                            ]
+                            this.core.rendererVariablesOf(upDepComponent)
                         ) {
                             this.core.updateInfo.componentsToUpdateRenderers.add(
                                 upDep.upstreamComponentIdx,

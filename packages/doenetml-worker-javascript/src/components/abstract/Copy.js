@@ -17,6 +17,7 @@ import { codedDiagnostic } from "../../utils/diagnostics";
 import { isListEntryArrayVariable } from "../../utils/listEntryReference";
 import { errorComponentState } from "../../utils/dast/errors";
 import {
+    copiesReferent,
     planValueReference,
     separateResponseMarks,
     serializeValueReference,
@@ -1505,6 +1506,11 @@ export default class Copy extends CompositeComponent {
         try {
             serializedReplacements = [
                 await replacementSourceComponent.serialize({
+                    // a value reference is copied as a component of its
+                    // type (`ValueRef.serialize`); unlinked, it reads the
+                    // settings it takes from its referent here
+                    valueReferenceAsComponent: true,
+                    components: link ? undefined : components,
                     copyAll: !link,
                     componentSourceAttributesToIgnore: ["labelIsName"],
                     copyVariants: !link,
@@ -2546,9 +2552,10 @@ export async function replacementFromProp({
     const implicitProp = await component.stateValues.implicitProp;
 
     // The component that will hold the replacements. When it reads only
-    // values from its children, a linked reference to one state variable can
-    // be a value reference (`_ref`) instead of a full component with shadow
-    // attribute components (Doenet/DoenetML#2128). Not when the reference was
+    // values from its children, or draws them (`<p>`), a linked reference to
+    // one state variable can be a value reference (`_ref`) instead of a full
+    // component with shadow attribute components (Doenet/DoenetML#2128).
+    // Not when the reference was
     // given a type: an `extend` or `copy` (`<number extend="$P.x" />`) and an
     // index both set `createComponentOfType`, and the component they ask for
     // is made as it always was.
@@ -2812,6 +2819,7 @@ export async function replacementFromProp({
                               fromImplicitProp: false,
                               hasAttributes:
                                   Object.keys(otherAttributes).length > 0,
+                              allowDrawn: true,
                               componentInfoObjects,
                           })
                         : undefined;
@@ -3796,6 +3804,7 @@ export async function replacementFromProp({
                               .createComponentOfType,
                       fromImplicitProp: Boolean(implicitProp),
                       hasAttributes: Object.keys(otherAttributes).length > 0,
+                      allowDrawn: true,
                       componentInfoObjects,
                   })
                 : undefined;
@@ -3812,6 +3821,11 @@ export async function replacementFromProp({
                         componentIdx: nComponents++,
                         stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                         responseMarks,
+                        copiesReferent: copiesReferent({
+                            fromImplicitProp: Boolean(implicitProp),
+                            targetClass: target.constructor,
+                            plan: valueReference,
+                        }),
                     }),
                 );
             } else if (link) {

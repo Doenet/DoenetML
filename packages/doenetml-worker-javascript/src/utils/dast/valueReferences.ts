@@ -17,6 +17,7 @@ import {
     unwrapSource,
 } from "./convertNormalizedDast";
 import {
+    copiesReferent,
     planListEntryAdapterReference,
     planValueReference,
     RESPONSE_MARKS,
@@ -30,8 +31,9 @@ import { sequenceEntryComponentType } from "../sequence";
  * A `_copy` qualifies when it is a bare reference (`$…`, not `extend` or
  * `copy`) whose referent resolved, with no attributes but the marks by which
  * an answer records it as a response (`RESPONSE_MARKS`), the component it
- * sits in is neither a composite nor one that renders its children, what it
- * reads is one value of a type known from the document
+ * sits in is not a composite (one that renders its children then draws the
+ * reference, `parentDrawsValueReferences`), what it reads is one value of a
+ * type known from the document
  * (`staticValueReferenceTarget`; this includes one entry of a list whose
  * class fixes the type of its entries, `$l[$i]` of a `<numberList>`), and
  * the parent takes that type in a child group (`planValueReference`). The
@@ -242,6 +244,7 @@ export function convertCopiesToValueReferences({
             valueComponentType: target.valueComponentType,
             fromImplicitProp: target.fromImplicitProp,
             hasAttributes: false,
+            allowDrawn: true,
             componentInfoObjects,
         });
         let valueComponentType = target.valueComponentType;
@@ -289,6 +292,11 @@ export function convertCopiesToValueReferences({
         makeValueReference(component, {
             ...plan,
             valueComponentType,
+            copiesReferent: copiesReferent({
+                fromImplicitProp: target.fromImplicitProp,
+                targetClass,
+                plan,
+            }),
         });
         if (listEntryAdapterProperty !== undefined) {
             component.doenetAttributes.listEntryAdapterProperty =
@@ -345,10 +353,12 @@ function makeValueReference(
         presentedComponentType,
         adapterVariable,
         valueComponentType,
+        copiesReferent = false,
     }: {
         presentedComponentType: string;
         adapterVariable?: string;
         valueComponentType: string;
+        copiesReferent?: boolean;
     },
 ) {
     component.componentType = "_ref";
@@ -359,6 +369,9 @@ function makeValueReference(
     };
     if (adapterVariable !== undefined) {
         component.doenetAttributes.adapterVariable = adapterVariable;
+    }
+    if (copiesReferent) {
+        component.doenetAttributes.copiesReferent = true;
     }
 }
 

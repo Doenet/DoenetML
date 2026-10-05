@@ -4,6 +4,7 @@ import {
     returnActiveChildrenIndicesToRender,
 } from "./ChildMatcher";
 import { removeFunctionsMathExpressionClass } from "../utils/math";
+import { addOnDemandStateVariables } from "./StateVariableInitializer";
 
 /**
  * How long a drag must go quiet before the deferred half of its renderer
@@ -227,8 +228,27 @@ export class RendererInstructionBuilder {
             componentsWithChangedChildrenToRenderInProgress = new Set();
         }
 
-        //TODO: Figure out what we need from here
-        for (let componentIdx of componentsWithChangedChildrenToRenderInProgress) {
+        // Outermost first: a component whose children are redrawn has its
+        // descendants' renderers deleted and remade, so a descendant that
+        // was also waiting is either remade already or gone, and is skipped
+        // (`deleteFromComponentsToRender` drops it from the set). Redrawing
+        // it first would read the state of components about to be removed
+        // (a paragraph in a repeat iteration that was just withheld).
+        const changedOutermostFirst = [
+            ...componentsWithChangedChildrenToRenderInProgress,
+        ].sort(
+            (a, b) =>
+                (this.core._components[a]?.ancestors?.length ?? 0) -
+                (this.core._components[b]?.ancestors?.length ?? 0),
+        );
+        for (let componentIdx of changedOutermostFirst) {
+            if (
+                !componentsWithChangedChildrenToRenderInProgress.has(
+                    componentIdx,
+                )
+            ) {
+                continue;
+            }
             if (componentIdx in this.componentsToRender) {
                 // check to see if current children who render are
                 // different from last time rendered
@@ -276,8 +296,13 @@ export class RendererInstructionBuilder {
                         } else if (item.child === null) {
                             currentChildIdentifiers.push("");
                         } else if (item.child.rendererType) {
+                            // a value reference as the type it is drawn as,
+                            // which its instruction records
                             currentChildIdentifiers.push(
-                                `nameType:${item.child.componentIdx};${item.child.componentType}`,
+                                `nameType:${item.child.componentIdx};${
+                                    item.child.presentedComponentType ??
+                                    item.child.componentType
+                                }`,
                             );
                         } else if (typeof item.child === "string") {
                             currentChildIdentifiers.push(
@@ -407,15 +432,8 @@ export class RendererInstructionBuilder {
             ) {
                 let component = this.core._components[componentIdx];
                 if (component) {
-                    let stateValuesForRenderer: Record<string, any> = {};
-                    for (let stateVariable in component.state) {
-                        if (component.state[stateVariable].forRenderer) {
-                            let value = removeFunctionsMathExpressionClass(
-                                await component.state[stateVariable].value,
-                            );
-                            stateValuesForRenderer[stateVariable] = value;
-                        }
-                    }
+                    let { stateValues: stateValuesForRenderer } =
+                        await this.rendererStateValuesOf(component);
 
                     const compositeRanges =
                         await this.compositeRangesToRender(component);
@@ -505,20 +523,9 @@ export class RendererInstructionBuilder {
         let rendererStatesToUpdate: any[] = [];
         let rendererStatesToForceUpdate: any[] = [];
 
-        let stateValuesForRenderer: Record<string, any> = {};
         let stateValuesForRendererAlwaysUpdate: Record<string, any> = {};
-        let alwaysUpdate = false;
-        for (let stateVariable in component.state) {
-            if (component.state[stateVariable].forRenderer) {
-                stateValuesForRenderer[stateVariable] =
-                    removeFunctionsMathExpressionClass(
-                        await component.state[stateVariable].value,
-                    );
-                if (component.state[stateVariable].alwaysUpdateRenderer) {
-                    alwaysUpdate = true;
-                }
-            }
-        }
+        let { stateValues: stateValuesForRenderer, alwaysUpdate } =
+            await this.rendererStateValuesOf(component);
 
         const compositeRanges = await this.compositeRangesToRender(component);
         if (compositeRanges) {
@@ -597,7 +604,9 @@ export class RendererInstructionBuilder {
             componentIdx: componentIdx,
             effectiveIdx: component.componentOrAdaptedIdx,
             id: this.getRendererId(component),
-            componentType: component.componentType,
+            // a value reference as the type it is drawn as
+            componentType:
+                component.presentedComponentType ?? component.componentType,
             rendererType: component.rendererType,
             actions: requestActions,
             // Source range in the original DoenetML, used by hosts (e.g. the
@@ -621,6 +630,47 @@ export class RendererInstructionBuilder {
             rendererStatesToUpdate,
             rendererStatesToForceUpdate,
         };
+    }
+
+    /**
+     * The values `component`'s renderer is sent: those of its state
+     * variables marked `forRenderer`, and whether one of them is marked
+     * `alwaysUpdateRenderer`. A drawn value reference (`_ref`) sends instead
+     * the variables it names (`rendererVariables`), made on demand from the
+     * type it presents as, and constants for the rest
+     * (`rendererConstants`).
+     */
+    async rendererStateValuesOf(
+        component: any,
+    ): Promise<{ stateValues: Record<string, any>; alwaysUpdate: boolean }> {
+        const stateValues: Record<string, any> = {};
+        let alwaysUpdate = false;
+        if (component.rendererConstants) {
+            Object.assign(stateValues, component.rendererConstants);
+            const names = Object.keys(component.rendererVariables);
+            addOnDemandStateVariables({
+                core: this.core,
+                component,
+                stateVariables: names,
+            });
+            for (const name of names) {
+                stateValues[name] = removeFunctionsMathExpressionClass(
+                    await component.state[name].value,
+                );
+            }
+            return { stateValues, alwaysUpdate };
+        }
+        for (let stateVariable in component.state) {
+            if (component.state[stateVariable].forRenderer) {
+                stateValues[stateVariable] = removeFunctionsMathExpressionClass(
+                    await component.state[stateVariable].value,
+                );
+                if (component.state[stateVariable].alwaysUpdateRenderer) {
+                    alwaysUpdate = true;
+                }
+            }
+        }
+        return { stateValues, alwaysUpdate };
     }
 
     /**

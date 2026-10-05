@@ -3,11 +3,10 @@ import type { ComponentIdx } from "@doenet/utils";
 import type { ComponentInstance } from "../../types/componentInstance";
 import type { DependencyHandler } from "./DependencyHandler";
 import {
-    addStateVariablePlaceholder,
+    addOnDemandStateVariables,
     arrayEntryNamesFromPropIndex,
     ensureStateVariableMaterialized,
 } from "../StateVariableInitializer";
-import { getClassStateVariableDefinitions } from "../StateVariableDefinitionFactory";
 import { doenetMLStringForReference } from "../../utils/sourceLocation";
 
 /**
@@ -595,40 +594,15 @@ export class Dependency {
                 );
             }
 
-            if (downComponent.createOnDemandStateVariableDefinitions) {
-                // A value reference (`_ref`) defines almost nothing itself. A
-                // variable asked of it that it lacks is made now, from the
-                // definitions of the type it stands in for, so that the
-                // reads and the optional-variable filter below find it like
-                // any other. For the name of an array entry, the array is
-                // what gets made; the entry then follows through
-                // `createFromArrayEntry` as usual.
-                const core = this.dependencyHandler.core;
-                for (const downVar of downVarNames) {
-                    if (downVar in downComponent.state) {
-                        continue;
-                    }
-                    const definitions =
-                        downComponent.createOnDemandStateVariableDefinitions({
-                            stateVariable: downVar,
-                            classDefinitions: (componentClass: any) =>
-                                getClassStateVariableDefinitions(
-                                    core,
-                                    componentClass,
-                                ).combined,
-                        });
-                    for (const [name, definition] of definitions) {
-                        if (!(name in downComponent.state)) {
-                            addStateVariablePlaceholder({
-                                core,
-                                component: downComponent,
-                                stateVariable: name,
-                                definition,
-                            });
-                        }
-                    }
-                }
-            }
+            // A value reference (`_ref`) defines almost nothing itself. A
+            // variable asked of it that it lacks is made now, from the
+            // definitions of the type it stands in for, so that the reads
+            // and the optional-variable filter below find it like any other.
+            addOnDemandStateVariables({
+                core: this.dependencyHandler.core,
+                component: downComponent,
+                stateVariables: downVarNames,
+            });
 
             if (
                 originalVarNames.length > 0 ||

@@ -3,7 +3,10 @@ import { codedDiagnostic } from "../utils/diagnostics";
 import { reportInternalError } from "../utils/internalErrors";
 import { deepClone, flattenDeep, type Position } from "@doenet/utils";
 import type { ComponentInstance } from "../types/componentInstance";
-import { applyPendingShadowModification } from "./StateVariableDefinitionFactory";
+import {
+    applyPendingShadowModification,
+    getClassStateVariableDefinitions,
+} from "./StateVariableDefinitionFactory";
 import {
     returnDefaultArrayVarNameFromPropIndex,
     returnDefaultGetArrayKeysFromVarName,
@@ -1240,6 +1243,54 @@ export function addStateVariablePlaceholder({
 }) {
     component.state[stateVariable] = definition;
     initializeStateVariablePlaceholder({ core, component, stateVariable });
+}
+
+/**
+ * Give `component`, when it makes state variables on demand (a value
+ * reference, `_ref`), each of `stateVariables` it does not have yet, from the
+ * definitions it returns for it (`createOnDemandStateVariableDefinitions`),
+ * as placeholders that materialize on first demand. For the name of an array
+ * entry, the array is what gets made; the entry then follows through
+ * `createFromArrayEntry` as usual. Does nothing for any other component.
+ */
+export function addOnDemandStateVariables({
+    core,
+    component,
+    stateVariables,
+}: {
+    core: Core;
+    component: ComponentInstance;
+    stateVariables: string[];
+}) {
+    const onDemand = component as ComponentInstance & {
+        createOnDemandStateVariableDefinitions?: (args: {
+            stateVariable: string;
+            classDefinitions: (componentClass: any) => Record<string, any>;
+        }) => [string, Record<string, any>][];
+    };
+    if (!onDemand.createOnDemandStateVariableDefinitions) {
+        return;
+    }
+    for (const stateVariable of stateVariables) {
+        if (stateVariable in component.state) {
+            continue;
+        }
+        const definitions = onDemand.createOnDemandStateVariableDefinitions({
+            stateVariable,
+            classDefinitions: (componentClass: any) =>
+                getClassStateVariableDefinitions(core, componentClass).combined,
+        });
+        for (const [name, definition] of definitions) {
+            if (!(name in component.state)) {
+                addStateVariablePlaceholder({
+                    core,
+                    component,
+                    stateVariable: name,
+                    definition,
+                });
+            }
+        }
+    }
 }
 
 /**

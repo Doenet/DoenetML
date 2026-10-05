@@ -152,6 +152,37 @@ function listEntryPositionOf(
 }
 
 /**
+ * The value of `variableName` of `component` now: the variable's, or, for
+ * an entry of a one-dimensional array that has not been read yet
+ * (`entryDisplayDigits2`), that entry of its array. `undefined` when the
+ * component has neither.
+ */
+export async function currentReferentValue(
+    component: any,
+    variableName: string,
+): Promise<any> {
+    if (component?.state[variableName]) {
+        return await component.stateValues[variableName];
+    }
+    const prefixes: Record<string, string> =
+        component?.arrayEntryPrefixes ?? {};
+    const prefix = Object.keys(prefixes)
+        .sort((a, b) => b.length - a.length)
+        .find((prefix) => variableName.startsWith(prefix));
+    const index = prefix === undefined ? "" : variableName.slice(prefix.length);
+    const arrayName = prefix === undefined ? undefined : prefixes[prefix];
+    if (
+        arrayName === undefined ||
+        !/^[1-9]\d*$/.test(index) ||
+        (component.state[arrayName]?.numDimensions ?? 1) !== 1
+    ) {
+        return undefined;
+    }
+    const values = await component.stateValues[arrayName];
+    return Array.isArray(values) ? values[Number(index) - 1] : undefined;
+}
+
+/**
  * The array state variable of `component` that `variableName` names an
  * entry of, by the longest entry prefix it begins with, when that entry has
  * not been made yet; `undefined` otherwise.

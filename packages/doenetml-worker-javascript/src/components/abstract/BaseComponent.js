@@ -414,6 +414,19 @@ export default class BaseComponent {
                 this.componentInfoObjects.allComponentClasses[
                     comp.componentType
                 ];
+            // a value reference may be drawn as the type it presents as
+            const presentedClass =
+                comp.componentType === "_ref"
+                    ? this.componentInfoObjects.allComponentClasses[
+                          comp.doenetAttributes?.presentedComponentType
+                      ]
+                    : undefined;
+            if (
+                presentedClass?.rendererType &&
+                !potentialRendererTypes.includes(presentedClass.rendererType)
+            ) {
+                potentialRendererTypes.push(presentedClass.rendererType);
+            }
             if (compClass) {
                 let rendererType = compClass.rendererType;
                 if (
