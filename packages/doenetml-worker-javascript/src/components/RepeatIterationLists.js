@@ -11,8 +11,9 @@ import { sequenceEntryComponentType } from "../utils/sequence";
  * iteration otherwise names its value with a component of its own. The pass
  * that makes value references (`utils/dast/valueReferences.ts`) turns the
  * `_placeholder` the repeat's sugar made for `valueName` into this list when
- * every reference to it is a value reference and nothing names it from
- * outside the iterations (`$r[2].v`); the repeat creates it as a
+ * every reference to it is a value reference and no path names it past its
+ * first part, as one from outside the iterations does (`$r[2].v`, or `$g.v`
+ * for a `<group extend="$r[2]" name="g"/>`); the repeat creates it as a
  * child of its own, and points each iteration's references at its entry
  * (`remapExtendIndices` in `Repeat.js`). Its entries are of the repeat's
  * `type`, which the pass copies to it, and are fixed.

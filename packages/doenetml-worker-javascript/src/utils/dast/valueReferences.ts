@@ -57,11 +57,12 @@ import { sequenceEntryComponentType } from "../sequence";
  * both ways: reading the component each iteration makes for them, and
  * reading the iteration's entry of a list the repeat holds once
  * (`_repeatValues`, `_repeatIndices`). When every reference to one of them
- * qualifies as an entry of the list, and nothing names it from outside its
- * iterations (`$r[2].i`), the placeholder the sugar made for it becomes that
- * list, and the iterations make no component for it
- * (`RepeatIterationLists.js`). Otherwise each reference is planned as it
- * was.
+ * qualifies as an entry of the list, and no path names it past its first
+ * part, as one that reaches it from outside its iterations does (`$r[2].i`,
+ * or `$g.i` for a `<group extend="$r[2]" name="g"/>`), the placeholder the
+ * sugar made for it becomes that list, and the iterations make no component
+ * for it (`RepeatIterationLists.js`). Otherwise each reference is planned as
+ * it was.
  *
  * A reference that an enclosing component names in one of its reference
  * attributes stays a `_copy`, as `<math referencesAreFunctionSymbols="$f">`
@@ -386,8 +387,11 @@ export function convertCopiesToValueReferences({
 
     // A repeat's value or index becomes a list only when every reference to
     // it reads it as an entry, and nothing names it from outside its
-    // iterations (`$r[2].v`), which only a component of its own answers.
-    const namesAfterAnIndex = new Set<string>();
+    // iterations, which only a component of its own answers. Which iteration
+    // such a reference reaches is not known until it resolves: `$r[2].v`, or
+    // `$g.v` for a `<group extend="$r[2]" name="g"/>`. So any name that a path
+    // names past its first part keeps the component.
+    const namesPastFirstPart = new Set<string>();
     forEachReference(serializedComponents, (component, refResolution) => {
         const dummy = iterationDummies.get(refResolution.nodeIdx);
         if (dummy) {
@@ -396,16 +400,12 @@ export function convertCopiesToValueReferences({
                 dummy.becomesList = false;
             }
         }
-        let afterIndex = false;
-        for (const part of refResolution.originalPath) {
-            if (afterIndex) {
-                namesAfterAnIndex.add(part.name);
-            }
-            afterIndex ||= part.index.length > 0;
+        for (const part of refResolution.originalPath.slice(1)) {
+            namesPastFirstPart.add(part.name);
         }
     });
     for (const dummy of iterationDummies.values()) {
-        if (namesAfterAnIndex.has(dummy.name)) {
+        if (namesPastFirstPart.has(dummy.name)) {
             dummy.becomesList = false;
         }
     }

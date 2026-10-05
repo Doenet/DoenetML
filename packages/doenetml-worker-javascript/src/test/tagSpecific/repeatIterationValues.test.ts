@@ -184,6 +184,33 @@ describe("Repeat iteration values and indices @group3", async () => {
         expect(await value("v2e")).eq(6);
     });
 
+    it("value and index named through a component that extends an iteration", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="k" prefill="2" />
+    <repeatForSequence from="5" to="7" valueName="v" indexName="i" name="r">
+      <number>$v+$i</number>
+    </repeatForSequence>
+    <group extend="$r[3]" name="g" />
+    <setup><group extend="$r[$k]" name="h" /></setup>
+    <repeat for="a b c" valueName="w" indexName="j" name="s">
+      <text>$w$j</text>
+    </repeat>
+    <group extend="$s[2]" name="gs" />
+    <p name="p">$g.v $g.i, $h.v $h.i, $gs.w $gs.j</p>
+    `,
+        });
+        const text = () => textOf(core, resolvePathToNodeIdx, "p");
+        expect(await text()).eq("7 3, 6 2, b 2");
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("k"),
+            core,
+        });
+        expect(await text()).eq("7 3, 5 1, b 2");
+    });
+
     it("an extend of the value or index in the template", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
