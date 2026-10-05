@@ -2,6 +2,7 @@ import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { updateMathInputValue } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { renderedText } from "../utils/rendered-commas";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -238,6 +239,133 @@ describe("List operator results as children @group4", async () => {
             }
             await expectTexts(core, resolvePathToNodeIdx, { pr, pr2, pc });
         }
+    });
+
+    it("each result is drawn by the renderer of its type", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="n" prefill="3" />
+    <numberList name="nl">
+      <repeatForSequence from="1" to="$n" valueName="v"><number>$v</number></repeatForSequence>
+    </numberList>
+    <p name="p">Sums: <cumulativeSum name="cum">$nl</cumulativeSum>.</p>
+    <p name="pCopy">$cum</p>
+    <p name="pNoList"><cumulativeSum asList="false">1 2 3</cumulativeSum></p>
+    <p name="pIndices"><sortIndices name="indices">30 10 20</sortIndices></p>
+    <graph name="g"><cumulativeSum name="cumG">1 2</cumulativeSum></graph>
+    <mathInput name="m" prefill="5" />
+    <p name="pValue"><cumulativeSum name="cumV">$m 1</cumulativeSum></p>
+    `,
+        });
+
+        const rendererState = (core as any).core.rendererInstructionBuilder
+            .rendererState;
+        async function drawnChildren(name: string) {
+            return rendererState[
+                await resolvePathToNodeIdx(name)
+            ].childrenInstructions.filter(
+                (child: any) => typeof child === "object" && child !== null,
+            );
+        }
+        async function expectDrawn(
+            name: string,
+            rendererType: string,
+            ids: string[],
+            values: string[],
+        ) {
+            const children = await drawnChildren(name);
+            expect(
+                children.map((child: any) => child.rendererType),
+                name,
+            ).eqls(ids.map(() => rendererType));
+            expect(
+                children.map((child: any) => child.id),
+                name,
+            ).eqls(ids);
+            expect(
+                children.map((child: any) => {
+                    const stateValues =
+                        rendererState[child.componentIdx].stateValues;
+                    return rendererType === "math"
+                        ? stateValues.latex
+                        : stateValues.text;
+                }),
+                name,
+            ).eqls(values);
+        }
+        async function expectRenderedText() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const name of ["p", "pCopy", "pNoList", "pIndices"]) {
+                const idx = await resolvePathToNodeIdx(name);
+                expect(renderedText(core, stateVariables, idx), name).eq(
+                    stateVariables[idx].stateValues.text,
+                );
+            }
+        }
+
+        await expectDrawn(
+            "p",
+            "math",
+            ["cum:1", "cum:2", "cum:3"],
+            ["1", "3", "6"],
+        );
+        await expectDrawn(
+            "pIndices",
+            "number",
+            ["indices:1", "indices:2", "indices:3"],
+            ["2", "3", "1"],
+        );
+        // drawn in the graph, at the anchor a math has
+        await expectDrawn("g", "math", ["cumG:1", "cumG:2"], ["1", "3"]);
+        for (const child of await drawnChildren("g")) {
+            expect(rendererState[child.componentIdx].stateValues.anchor).eqls([
+                "vector",
+                0,
+                0,
+            ]);
+        }
+        await expectRenderedText();
+
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await expectDrawn(
+            "p",
+            "math",
+            ["cum:1", "cum:2", "cum:3", "cum:4"],
+            ["1", "3", "6", "10"],
+        );
+        await expectRenderedText();
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await expectDrawn("p", "math", ["cum:1"], ["1"]);
+        await expectRenderedText();
+
+        // a change of values alone redraws the same entries
+        await expectDrawn("pValue", "math", ["cumV:1", "cumV:2"], ["5", "6"]);
+        const before = (await drawnChildren("pValue")).map(
+            (child: any) => child.componentIdx,
+        );
+        await updateMathInputValue({
+            latex: "7",
+            componentIdx: await resolvePathToNodeIdx("m"),
+            core,
+        });
+        await expectDrawn("pValue", "math", ["cumV:1", "cumV:2"], ["7", "8"]);
+        expect(
+            (await drawnChildren("pValue")).map(
+                (child: any) => child.componentIdx,
+            ),
+        ).eqls(before);
     });
 
     it("a write through a result is refused", async () => {

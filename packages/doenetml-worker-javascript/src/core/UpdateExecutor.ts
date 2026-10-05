@@ -222,6 +222,24 @@ export class UpdateExecutor {
             this.core.recordRenderVisibility(componentIdx!, args);
         }
 
+        // An entry of a list component is drawn with a renderer of its own
+        // (`RendererInstructionBuilder.rendererIdxForListEntry`), and what
+        // that renderer sends goes to the list, with the entry's index.
+        const listEntry =
+            this.core.rendererInstructionBuilder.listEntryOfRenderer(
+                componentIdx!,
+            );
+        if (listEntry) {
+            const action = listEntry.list?.actions?.[actionName];
+            if (action) {
+                await action({
+                    ...args,
+                    listEntryIndex: listEntry.entryIndex,
+                });
+            }
+            return { actionId: args?.actionId };
+        }
+
         let component = this.core._components[componentIdx!];
         if (component && component.actions) {
             let action = component.actions[actionName];

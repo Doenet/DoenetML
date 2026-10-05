@@ -40,7 +40,12 @@ import {
  */
 export default class ValueListComponent extends BaseComponent {
     static componentType = "_valueList";
-    static rendererType = "valueList";
+    // The list is drawn as its entries, each by the renderer of its type
+    // (`RendererInstructionBuilder`), so it has no renderer of its own; this
+    // is the type its entries need.
+    static get rendererType() {
+        return this.listEntryComponentType;
+    }
 
     // `$l[2]` picks an entry.
     static takesIndex = true;
@@ -79,7 +84,13 @@ export default class ValueListComponent extends BaseComponent {
             fixed: "entriesFixed",
             canBeModified: "entriesCanBeModified",
             unordered: "entriesUnordered",
+            disabled: "disabled",
+            fixLocation: "fixLocation",
+            selectedStyle: "selectedStyle",
         };
+        for (const name in ENTRY_RENDERER_DEFAULTS) {
+            variables[name] = name;
+        }
         for (const name in returnNumberDisplayAttributes()) {
             variables[name] = name;
         }
@@ -194,10 +205,11 @@ export default class ValueListComponent extends BaseComponent {
             }),
             markStale() {
                 // A reference's `numEntries` is the shadow of the list's,
-                // which goes stale only when it changed.
+                // which goes stale only when it changed. Either way, the
+                // parent now renders another number of entries.
                 return this.svComponent.entryCountChanged ||
                     this.shadowOfComponentIdx !== undefined
-                    ? {}
+                    ? { updateParentRenderedChildren: true }
                     : { fresh: { numEntries: true } };
             },
             definition({ dependencyValues }) {
@@ -400,17 +412,34 @@ export default class ValueListComponent extends BaseComponent {
             },
         };
 
-        // A `<math>` entry renders its latex, and a `<number>` entry its
-        // text, as each does on its own.
-        stateVariableDefinitions.entryType = {
-            forRenderer: true,
-            returnDependencies: () => ({}),
-            definition: () => ({ setValue: { entryType } }),
-        };
+        // What the renderer of an entry reads beyond its value, at the
+        // values a `<math>` or `<number>` has by default.
+        for (const [name, value] of Object.entries(ENTRY_RENDERER_DEFAULTS)) {
+            stateVariableDefinitions[name] = {
+                forRenderer: true,
+                returnDependencies: () => ({}),
+                definition: () => ({ setValue: { [name]: value() } }),
+            };
+        }
 
         return stateVariableDefinitions;
     }
 }
+
+/**
+ * The variables the renderer of a `<math>` or `<number>` entry reads besides
+ * its `latex` or `text`, `hidden`, `disabled`, `fixed`, `fixLocation` and
+ * `selectedStyle`, with the values those components have by default.
+ */
+const ENTRY_RENDERER_DEFAULTS = {
+    anchor: () => me.fromAst(["vector", 0, 0]),
+    positionFromAnchor: () => "center",
+    draggable: () => true,
+    layer: () => 0,
+    renderMode: () => "inline",
+    renderAsMath: () => false,
+    clickTarget: () => false,
+};
 
 function mathValueForDisplay(value, displaySettings) {
     return normalizeMathExpression({
