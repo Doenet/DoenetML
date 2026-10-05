@@ -260,8 +260,7 @@ export default class ValueListComponent extends BaseComponent {
         if (derived !== undefined) {
             return derived;
         }
-        // `x1` and the other coordinates are listed here rather than in
-        // `MATH_ENTRY_DERIVED_PROPERTIES`, for any index.
+        // `x1`, `x2`, … are made here, one for each index asked for.
         const match = /^x([1-9]\d*)$/.exec(name);
         if (match && entryKind(this.listEntryComponentType) === "math") {
             return entryCoordinateProperty(Number(match[1]));

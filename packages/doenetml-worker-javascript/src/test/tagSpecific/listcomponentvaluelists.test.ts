@@ -792,4 +792,43 @@ describe("Value lists as list components @group4", async () => {
             p4: "true, false, true",
         });
     });
+
+    it("a second index reads a coordinate of a math entry", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <tupleList name="tl">(1, 2, 3) (4, 5, 6)</tupleList>
+    <mathList name="ml">(a, b) c</mathList>
+    <mathInput name="k" prefill="1"/>
+    <p name="p1">$tl[1][2] $tl[2][3] $ml[1][1] $ml[2][1]</p>
+    <p name="p2"><math>$ml[1][2]+1</math> <number>$tl[2][3]</number> $tl[2][$k]</p>
+    <p name="p3"><numberList>$tl[1][3] $tl[2][3]</numberList> <math extend="$tl[1][2]"/></p>
+    <p name="p4"><mathInput name="mi" bindValueTo="$tl[2][2]"/> $tl</p>
+    `,
+        });
+
+        const names = ["p1", "p2", "p3", "p4"];
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls({
+            p1: "2 6 a c",
+            p2: "b + 1 6 4",
+            p3: "3, 6 2",
+            p4: "5 (1, 2, 3), (4, 5, 6)",
+        });
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("k"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "9",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls({
+            p1: "2 6 a c",
+            p2: "b + 1 6 6",
+            p3: "3, 6 2",
+            p4: "9 (1, 2, 3), (4, 9, 6)",
+        });
+    });
 });

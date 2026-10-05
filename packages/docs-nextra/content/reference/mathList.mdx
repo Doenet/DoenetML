@@ -8,7 +8,7 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 <ComponentDisplay name='mathList'/>
 
 `<mathList>{:dn}` is a [Math](../concepts/essentialConcepts#component-types)
-component that defines a collection, or list, of [`<math>{:dn}`](math.mdx) components. 
+component that defines a list of math expressions, each like a [`<math>{:dn}`](math.mdx). 
 Some components that accept a `<mathList>{:dn}` as an input include functions, repeats, and awards.
 
 When creating a `<mathList>{:dn}`, separate items by **spaces**, not commas.
@@ -43,7 +43,7 @@ To split a math that already contains commas into separate entries, use the
 
 
 
-The `<mathList>{:dn}` component stores a list of "maths", or `<math>{:dn}` components. 
+The `<mathList>{:dn}` component stores a list of math expressions. 
 To access an individual element in the list, use array notation with the named `<mathList>{:dn}`.
 
 
@@ -321,11 +321,11 @@ All of the attributes of the `<mathList>{:dn}` component are also available as p
 
 
 
-The `numComponents` property returns the number of components stored 
+The `numComponents` property returns the number of items stored 
 in a `<mathList>{:dn}`. Note that the first math  listed in the definition 
-in the example above counts as one component, even when lists are merged, 
+in the example above counts as one item, even when lists are merged, 
 because it is specified as a <em>tuple</em> (enclosed by parentheses). The second 
-math in the definition counts as 1 component when lists are not merged, and 3 components if they are merged.
+math in the definition counts as 1 item when lists are not merged, and 3 items if they are merged.
 
 
 
@@ -349,7 +349,7 @@ math in the definition counts as 1 component when lists are not merged, and 3 co
 
 
 The `latex` property returns the LaTeX code required to render the maths in an array. The 
-LaTeX code for individual components can be accessed using array notation and then appending the `latex` property.
+LaTeX code for individual items can be accessed using array notation and then appending the `latex` property.
 
 
 
@@ -373,5 +373,5 @@ LaTeX code for individual components can be accessed using array notation and th
 
 
 The `text` property returns the maths in text format in an array. The text for individual 
-components can be accessed using array notation and then appending the `text` property.
+items can be accessed using array notation and then appending the `text` property.
 

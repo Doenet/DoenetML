@@ -285,8 +285,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
 
         it("an index into a list resolves itself and re-resolves as the index changes", async () => {
             // The entries of a `<numberList>` are numbers, so `$l[$i]` reads
-            // a number whatever the index, and is a reference of its own. The `$i` between its brackets reads a `<mathInput>`, a
-            // math, and stays a copy.
+            // a number whatever the index, and is a reference of its own. The
+            // `$i` between its brackets reads a `<mathInput>`, a math, and
+            // stays a copy.
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <numberList name="l">1 2 3 4</numberList>
