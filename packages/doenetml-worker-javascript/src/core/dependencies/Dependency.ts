@@ -44,6 +44,19 @@ export function cloneChangeMetadataIfNeeded({
  */
 export const INITIAL_CHANGE_RECORD = Object.freeze({ changed: true });
 
+/**
+ * A new mutable change record, with every field a record can hold, so that
+ * every record made here has the same shape. Records built up field by field
+ * (`{}`, then `potentialChange`, `freshnessInfo`, `changed`) or copied from
+ * the frozen initial record are ones on which V8 kept generalizing `changed`
+ * (from a constant field to a mutable one) as it was written, tens of
+ * thousands of times in a few dozen drags of `dot-plot-drag-50`
+ * (`--trace-generalization`), and those drags were slower.
+ */
+export function newChangeRecord(changed?: any): Record<string, any> {
+    return { changed, potentialChange: undefined, freshnessInfo: undefined };
+}
+
 export class Dependency {
     [key: string]: any;
 
@@ -1073,11 +1086,16 @@ export class Dependency {
         consumeChanges?: boolean;
     } = {}): Promise<any> {
         let value: any = [];
-        let changes: any = {};
+        // What changed, collected in locals and put on `changes` once at
+        // the end. Assigning `changes.valuesChanged` again as it is
+        // narrowed below is a write V8 kept generalizing the field for,
+        // as for the change records (`newChangeRecord`).
+        let componentIdentitiesChanged = false;
+        let valuesChanged: any = undefined;
         let usedDefault: any = [];
 
         if (this.componentIdentitiesChanged) {
-            changes.componentIdentitiesChanged = true;
+            componentIdentitiesChanged = true;
             if (consumeChanges) {
                 this.componentIdentitiesChanged = false;
             }
@@ -1160,19 +1178,17 @@ export class Dependency {
                                         mappedVarName
                                     ];
                                 if (valueChanged?.changed) {
-                                    if (!changes.valuesChanged) {
-                                        changes.valuesChanged = {};
+                                    if (!valuesChanged) {
+                                        valuesChanged = {};
                                     }
-                                    if (!changes.valuesChanged[componentInd]) {
-                                        changes.valuesChanged[componentInd] =
-                                            {};
+                                    if (!valuesChanged[componentInd]) {
+                                        valuesChanged[componentInd] = {};
                                     }
-                                    changes.valuesChanged[componentInd][
-                                        nameForOutput
-                                    ] = cloneChangeMetadataIfNeeded({
-                                        changeMetadata: valueChanged,
-                                        consumeChanges,
-                                    });
+                                    valuesChanged[componentInd][nameForOutput] =
+                                        cloneChangeMetadataIfNeeded({
+                                            changeMetadata: valueChanged,
+                                            consumeChanges,
+                                        });
                                 }
                                 if (consumeChanges) {
                                     this.consumeChangeRecord(
@@ -1226,11 +1242,7 @@ export class Dependency {
             if (this.returnSingleVariableValue) {
                 if (value.length === 1) {
                     value = value[0];
-                    if (changes.valuesChanged && changes.valuesChanged[0]) {
-                        changes.valuesChanged = changes.valuesChanged[0];
-                    } else {
-                        delete changes.valuesChanged;
-                    }
+                    valuesChanged = valuesChanged?.[0] || undefined;
                     usedDefault = usedDefault[0];
 
                     let stateVariables = Object.keys(value.stateValues);
@@ -1238,12 +1250,8 @@ export class Dependency {
                         let nameForOutput = stateVariables[0];
                         value = value.stateValues[nameForOutput];
 
-                        if (
-                            changes.valuesChanged &&
-                            changes.valuesChanged[nameForOutput]
-                        ) {
-                            changes.valuesChanged =
-                                changes.valuesChanged[nameForOutput];
+                        if (valuesChanged && valuesChanged[nameForOutput]) {
+                            valuesChanged = valuesChanged[nameForOutput];
                         }
 
                         if (usedDefault) {
@@ -1251,22 +1259,20 @@ export class Dependency {
                         }
                     } else {
                         value = null;
-                        changes = {};
+                        componentIdentitiesChanged = false;
+                        valuesChanged = undefined;
                         usedDefault = false;
                     }
                 } else {
                     value = null;
-                    changes = {};
+                    componentIdentitiesChanged = false;
+                    valuesChanged = undefined;
                     usedDefault = false;
                 }
             } else if (this.returnSingleComponent) {
                 if (value.length === 1) {
                     value = value[0];
-                    if (changes.valuesChanged && changes.valuesChanged[0]) {
-                        changes.valuesChanged = changes.valuesChanged[0];
-                    } else {
-                        delete changes.valuesChanged;
-                    }
+                    valuesChanged = valuesChanged?.[0] || undefined;
                     usedDefault = usedDefault[0];
                 } else {
                     value = null;
@@ -1280,6 +1286,14 @@ export class Dependency {
         // ) {
         //   value = new Proxy(value, readOnlyProxyHandler)
         // }
+
+        const changes: any = {};
+        if (componentIdentitiesChanged) {
+            changes.componentIdentitiesChanged = true;
+        }
+        if (valuesChanged !== undefined) {
+            changes.valuesChanged = valuesChanged;
+        }
 
         return { value, changes, usedDefault };
     }

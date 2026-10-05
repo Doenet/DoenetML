@@ -515,8 +515,10 @@ export default class ValueListComponent extends BaseComponent {
                 return [dependencyValues.numEntries];
             },
             returnArrayDependenciesByKey({ arrayKeys }) {
+                // A list whose entries take no writes has no `entryWrites`,
+                // so its entries depend on its values alone.
                 const dependenciesByKey = {};
-                for (const arrayKey of arrayKeys) {
+                for (const arrayKey of entriesTakeWrites ? arrayKeys : []) {
                     dependenciesByKey[arrayKey] = {
                         write: {
                             dependencyType: "stateVariable",
@@ -626,43 +628,50 @@ export default class ValueListComponent extends BaseComponent {
         // keep what was written to them, and all of them lose it when its
         // `from` changes. Kept entry by entry, so that a write to one entry
         // leaves the others, and what reads them, as they were. A reader's
-        // writes are saved and read back on load.
-        stateVariableDefinitions.entryWrites = {
-            isArray: true,
-            entryPrefixes: ["entryWrite"],
-            // A reference to the whole list reads the list's.
-            shadowVariable: true,
-            hasEssential: true,
-            defaultValueByArrayKey: () => null,
-            returnArraySizeDependencies: () => ({
-                numEntries: {
-                    dependencyType: "stateVariable",
-                    variableName: "numEntries",
-                },
-            }),
-            returnArraySize({ dependencyValues }) {
-                return [dependencyValues.numEntries];
-            },
-            returnArrayDependenciesByKey: () => ({}),
-            arrayDefinitionByKey({ arrayKeys }) {
-                const useEssential = {};
-                for (const arrayKey of arrayKeys) {
-                    useEssential[arrayKey] = true;
-                }
-                return {
-                    useEssentialOrDefaultValue: { entryWrites: useEssential },
-                };
-            },
-            inverseArrayDefinitionByKey: ({ desiredStateVariableValues }) => ({
-                success: true,
-                instructions: [
-                    {
-                        setEssentialValue: "entryWrites",
-                        value: desiredStateVariableValues.entryWrites,
+        // writes are saved and read back on load. Only a list whose entries
+        // take writes (`listEntriesTakeWrites`) has it.
+        if (entriesTakeWrites) {
+            stateVariableDefinitions.entryWrites = {
+                isArray: true,
+                entryPrefixes: ["entryWrite"],
+                // A reference to the whole list reads the list's.
+                shadowVariable: true,
+                hasEssential: true,
+                defaultValueByArrayKey: () => null,
+                returnArraySizeDependencies: () => ({
+                    numEntries: {
+                        dependencyType: "stateVariable",
+                        variableName: "numEntries",
                     },
-                ],
-            }),
-        };
+                }),
+                returnArraySize({ dependencyValues }) {
+                    return [dependencyValues.numEntries];
+                },
+                returnArrayDependenciesByKey: () => ({}),
+                arrayDefinitionByKey({ arrayKeys }) {
+                    const useEssential = {};
+                    for (const arrayKey of arrayKeys) {
+                        useEssential[arrayKey] = true;
+                    }
+                    return {
+                        useEssentialOrDefaultValue: {
+                            entryWrites: useEssential,
+                        },
+                    };
+                },
+                inverseArrayDefinitionByKey: ({
+                    desiredStateVariableValues,
+                }) => ({
+                    success: true,
+                    instructions: [
+                        {
+                            setEssentialValue: "entryWrites",
+                            value: desiredStateVariableValues.entryWrites,
+                        },
+                    ],
+                }),
+            };
+        }
 
         // The entries are fixed unless the list's `fixed` was set to false,
         // by its own attribute or by an ancestor's, as the components a

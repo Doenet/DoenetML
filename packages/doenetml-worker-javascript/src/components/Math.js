@@ -1695,7 +1695,11 @@ function checkForScalarLinearExpression(
     }
     if (operator === "+") {
         if (operands.length === 1) {
-            // a unary plus, as in `+x`
+            // a unary plus, as in `+x`. One is also left when a reference
+            // in a sum is gone: `$x + <math>0</math>` in an iteration of a
+            // `<repeat for="$s">` that is withheld when `$s` gets shorter
+            // (`line.test.ts`, "line through dynamic number of moveable
+            // points").
             return checkForScalarLinearExpression(
                 operands[0],
                 variables,
