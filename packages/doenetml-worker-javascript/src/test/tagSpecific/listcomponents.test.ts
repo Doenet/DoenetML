@@ -283,6 +283,9 @@ describe("List operator results as children @group4", async () => {
     <p name="pExtend"><cumulativeSum extend="$cum" /></p>
     <p name="pGroup">$g</p>
     <p name="pHidden" hide>$cum</p>
+    <group name="gRef">$cum</group>
+    <p name="pRefOfRef">$pRef</p>
+    <p name="pGroupOfRef">$gRef</p>
     `,
         });
 
@@ -304,7 +307,17 @@ describe("List operator results as children @group4", async () => {
                 pExtend,
                 pGroup: "",
                 pHidden: "",
+                pGroupOfRef: "1, 3",
             });
+            // The `text` of a copy of a `<p>` is blank on `main` too, so
+            // read what its renderers show.
+            expect(
+                renderedText(
+                    core,
+                    await core.returnAllStateVariables(false, true),
+                    await resolvePathToNodeIdx("pRefOfRef"),
+                ),
+            ).eq("1, 3");
         }
     });
 
@@ -433,6 +446,59 @@ describe("List operator results as children @group4", async () => {
                 (child: any) => child.componentIdx,
             ),
         ).eqls(before);
+    });
+
+    it("the children after the results are drawn, however many results there are", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="n" prefill="2" />
+    <numberList name="nl">
+      <repeatForSequence from="1" to="$n" valueName="v"><number>$v</number></repeatForSequence>
+    </numberList>
+    <section name="sec"><cumulativeSum>$nl</cumulativeSum><p>A</p><p>B</p></section>
+    <graph name="g"><cumulativeSum>$nl</cumulativeSum><point>(1,2)</point><description>D</description></graph>
+    <section name="secR"><sortIndices>$nl</sortIndices><repeat for="1 2"><mathInput /></repeat></section>
+    `,
+        });
+
+        const rendererState = (core as any).core.rendererInstructionBuilder
+            .rendererState;
+        async function drawnTypes(name: string) {
+            return rendererState[
+                await resolvePathToNodeIdx(name)
+            ].childrenInstructions
+                .filter(
+                    (child: any) => typeof child === "object" && child !== null,
+                )
+                .map((child: any) => child.componentType);
+        }
+
+        for (const n of [2, 0, 1, 3]) {
+            if (n !== 2) {
+                await updateMathInputValue({
+                    latex: `${n}`,
+                    componentIdx: await resolvePathToNodeIdx("n"),
+                    core,
+                });
+            }
+            const maths = Array(n).fill("math");
+            const numbers = Array(n).fill("number");
+            expect(await drawnTypes("sec"), `n=${n}`).eqls([
+                ...maths,
+                "p",
+                "p",
+            ]);
+            expect(await drawnTypes("g"), `n=${n}`).eqls([
+                ...maths,
+                "point",
+                "description",
+            ]);
+            expect(await drawnTypes("secR"), `n=${n}`).eqls([
+                ...numbers,
+                "mathInput",
+                "mathInput",
+            ]);
+        }
     });
 
     it("a write through a result is refused", async () => {

@@ -156,29 +156,28 @@ export default class ValueListComponent extends BaseComponent {
         const arrayName = this.listValuesArrayName;
         const entryPrefix = entryType;
 
-        // A reference to the whole list (`$l`, not a reference to something
-        // holding it), and a `<collect>` that
+        // A reference to the whole list (`$l`), and a `<collect>` that
         // gathers the list by the type of its entries, show the entries,
         // which the list's own `hide` does not hide, as the copies of a
         // composite's replacements were not hidden by the composite's `hide`.
-        // Such a copy is hidden only by a `hide` of its own, its parent or
-        // its source composite. A copy that is another list of this type
-        // (`<cumulativeSum extend="$l">`, `<collect componentType="cumulativeSum">`)
+        // So does a copy of such a reference, made by referencing something
+        // that holds it (`$p` for `<p name="p">$l</p>`, or `$g` for
+        // `<group name="g">$l</group>`). Such a list is hidden only by a
+        // `hide` of its own, its parent or its source composite. A copy that
+        // is another list of this type (`<cumulativeSum extend="$l">`,
+        // `<collect componentType="cumulativeSum">`), or a reference to
+        // something holding the list itself (`$g` for
+        // `<group name="g"><cumulativeSum hide>…</cumulativeSum></group>`),
         // is hidden with the list.
         const listComponentType = this.componentType;
-        const baseHidden = stateVariableDefinitions.hidden;
-        stateVariableDefinitions.hidden = {
-            ...baseHidden,
-            returnDependencies: (args) => ({
-                ...baseHidden.returnDependencies(args),
-                ownHide: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "hide",
-                    variableNames: ["value"],
-                    dontRecurseToShadows: true,
-                },
+        stateVariableDefinitions.hideIsOwn = {
+            returnDependencies: () => ({
                 shadowSource: {
                     dependencyType: "shadowSource",
+                },
+                shadowSourceHideIsOwn: {
+                    dependencyType: "shadowSourceStateVariable",
+                    variableName: "hideIsOwn",
                 },
                 sourceComposite: {
                     dependencyType: "sourceCompositeIdentity",
@@ -196,30 +195,57 @@ export default class ValueListComponent extends BaseComponent {
                     variableName: "componentTypeToCollect",
                 },
             }),
-            definition(args) {
-                const { dependencyValues, componentInfoObjects } = args;
-                const sourceType =
-                    dependencyValues.sourceComposite?.componentType;
-                let showsEntries = false;
+            definition({ dependencyValues, componentInfoObjects }) {
+                let hideIsOwn = false;
                 if (dependencyValues.shadowSource !== null) {
+                    const sourceType =
+                        dependencyValues.sourceComposite?.componentType;
+                    const shadowsShownList = Boolean(
+                        dependencyValues.shadowSourceHideIsOwn,
+                    );
                     if (sourceType === "_copy") {
-                        showsEntries =
+                        hideIsOwn =
                             dependencyValues.sourceCompositeCreatesType ==
                                 null &&
-                            dependencyValues.sourceCompositeExtends ===
-                                dependencyValues.shadowSource.componentIdx;
+                            (dependencyValues.sourceCompositeExtends ===
+                                dependencyValues.shadowSource.componentIdx ||
+                                shadowsShownList);
                     } else if (sourceType === "collect") {
                         const collected =
                             dependencyValues.sourceCompositeCollectsType;
-                        showsEntries =
+                        hideIsOwn =
                             collected != null &&
                             !componentInfoObjects.isInheritedComponentType({
                                 inheritedComponentType: listComponentType,
                                 baseComponentType: collected,
                             });
+                    } else {
+                        hideIsOwn = shadowsShownList;
                     }
                 }
-                if (!showsEntries) {
+                return { setValue: { hideIsOwn } };
+            },
+        };
+
+        const baseHidden = stateVariableDefinitions.hidden;
+        stateVariableDefinitions.hidden = {
+            ...baseHidden,
+            returnDependencies: (args) => ({
+                ...baseHidden.returnDependencies(args),
+                ownHide: {
+                    dependencyType: "attributeComponent",
+                    attributeName: "hide",
+                    variableNames: ["value"],
+                    dontRecurseToShadows: true,
+                },
+                hideIsOwn: {
+                    dependencyType: "stateVariable",
+                    variableName: "hideIsOwn",
+                },
+            }),
+            definition(args) {
+                const { dependencyValues } = args;
+                if (!dependencyValues.hideIsOwn) {
                     return baseHidden.definition(args);
                 }
                 return baseHidden.definition({

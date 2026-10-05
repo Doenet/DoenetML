@@ -572,6 +572,15 @@ export async function returnActiveChildrenIndicesToRender({
     let childIndicesToRender: number[] | null = null;
     if ("childIndicesToRender" in component.state) {
         childIndicesToRender = await component.stateValues.childIndicesToRender;
+        if (
+            childIndicesToRender &&
+            component.activeChildren.some(isListComponent)
+        ) {
+            childIndicesToRender = await activeIndicesOfExpandedChildren({
+                component,
+                expandedIndices: childIndicesToRender,
+            });
+        }
     }
 
     for (let [ind, child] of component.activeChildren.entries() as Iterable<
@@ -618,6 +627,61 @@ export async function returnActiveChildrenIndicesToRender({
     }
 
     return indicesToRender;
+}
+
+/**
+ * The positions among `component.activeChildren` of the children at
+ * `expandedIndices`, which count each list component among them as its
+ * entries, as a child dependency presents them (`expandListChildren`). A
+ * `childIndicesToRender` computed from a child dependency is in those
+ * positions. A list is included if any of its entries is, and a list with
+ * no entries is included, so that it is drawn as nothing at all, as a
+ * composite with no replacements is.
+ */
+async function activeIndicesOfExpandedChildren({
+    component,
+    expandedIndices,
+}: {
+    component: any;
+    expandedIndices: number[];
+}): Promise<number[]> {
+    const expanded = new Set(expandedIndices);
+    const activeIndices: number[] = [];
+    let expandedInd = 0;
+    for (let [ind, child] of component.activeChildren.entries() as Iterable<
+        [number, any]
+    >) {
+        let span = 1;
+        if (isListComponent(child)) {
+            span = await child.stateValues.numEntries;
+            if (
+                span === 0 &&
+                child.replacementOf?.componentType === "_copy" &&
+                component.sharedParameters?.compositesMustHaveAReplacement
+            ) {
+                // the blank child of `ChildDependency.listMustHaveAnEntry`
+                span = 1;
+            }
+        }
+        if (span === 0) {
+            activeIndices.push(ind);
+        }
+        for (let i = 0; i < span; i++) {
+            if (expanded.has(expandedInd + i)) {
+                activeIndices.push(ind);
+                break;
+            }
+        }
+        expandedInd += span;
+    }
+    return activeIndices;
+}
+
+function isListComponent(child: any): boolean {
+    return (
+        typeof child === "object" &&
+        child?.constructor?.listEntryComponentType !== undefined
+    );
 }
 
 /**
