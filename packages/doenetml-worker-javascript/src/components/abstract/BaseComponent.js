@@ -1610,9 +1610,12 @@ export default class BaseComponent {
         // A component whose linked copy reads everything it shows from the
         // component it copies (`serializeChildrenOnlyIfUnlinked`) is copied
         // without its children unless the copy is unlinked (`copyAll`).
+        // Only the list that is copied; a list inside a copied component
+        // (the coordinates of a `<point>`) is copied with its children.
         const unlinkedAsValues =
             this.constructor.serializeUnlinkedAsValues &&
-            Boolean(parameters.copyAll);
+            Boolean(parameters.copyAll) &&
+            !parameters.serializingDescendant;
         let includeDefiningChildren =
             (!this.constructor.serializeChildrenOnlyIfUnlinked ||
                 Boolean(parameters.copyAll)) &&
@@ -1632,7 +1635,10 @@ export default class BaseComponent {
 
         let serializedChildren = [];
 
-        let parametersForChildren = { ...parameters };
+        let parametersForChildren = {
+            ...parameters,
+            serializingDescendant: true,
+        };
 
         let primitiveSourceAttributesToIgnore;
         if (parameters.primitiveSourceAttributesToIgnore) {

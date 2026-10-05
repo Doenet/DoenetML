@@ -180,7 +180,7 @@ export default class AuthoredValueList extends ValueListComponent {
 
     async serialize(parameters = {}) {
         const serialized = await super.serialize(parameters);
-        if (parameters.copyAll) {
+        if (parameters.copyAll && !parameters.serializingDescendant) {
             serialized.state.entryDisplaySettingsShadow = [
                 ...(await this.stateValues.entryDisplaySettings),
             ];
