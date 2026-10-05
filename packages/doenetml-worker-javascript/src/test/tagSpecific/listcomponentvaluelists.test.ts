@@ -959,6 +959,12 @@ describe("Value lists as list components @group4", async () => {
     <p name="inList"><mathList displayDigits="5"><math copy="$l[2]" /></mathList></p>
     <numberList name="n">3.14159265</numberList>
     <p name="copyNumber"><number copy="$n[1]" displayDecimals="1" /></p>
+    <mathList name="l4" displayDigits="5"><math displayDigits="2">2.7182818</math> 3.14159265</mathList>
+    <p name="copyListSetting"><mathList copy="$l4" /></p>
+    <p name="extendListSetting"><mathList extend="$l4" /></p>
+    <numberList name="nd" displayDecimals="3"><number displayDigits="2">2.7182818</number> 3.14159265</numberList>
+    <p name="copyNumberList"><numberList copy="$nd" /></p>
+    <p name="extendNumberList"><numberList extend="$nd" /></p>
     `,
         });
 
@@ -969,6 +975,10 @@ describe("Value lists as list components @group4", async () => {
                 "copyEntry",
                 "inList",
                 "copyNumber",
+                "copyListSetting",
+                "extendListSetting",
+                "copyNumberList",
+                "extendNumberList",
             ]),
         ).eqls({
             copyList: "2.718, 3.142",
@@ -976,6 +986,12 @@ describe("Value lists as list components @group4", async () => {
             copyEntry: "3.1",
             inList: "3.1416",
             copyNumber: "3.1",
+            // an entry's own setting is kept, and the list's applies to the
+            // others
+            copyListSetting: "2.7, 3.1416",
+            extendListSetting: "2.7, 3.1416",
+            copyNumberList: "2.7, 3.142",
+            extendNumberList: "2.7, 3.142",
         });
     });
 

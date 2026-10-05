@@ -1027,40 +1027,18 @@ export default class AuthoredValueList extends ValueListComponent {
                 }
                 if (dependencyValues.shadow !== null) {
                     // The entries' settings as they were in the list a
-                    // `copy=` holds the values of, except those the copy
-                    // sets itself (`displayDigits` and `displayDecimals`
-                    // together).
-                    const ownNames = displayNames.filter(
-                        (name) =>
-                            listSetsDisplay[name] ||
-                            ((name === "displayDigits" ||
-                                name === "displayDecimals") &&
-                                (listSetsDisplay.displayDigits ||
-                                    listSetsDisplay.displayDecimals)),
-                    );
+                    // `copy=` holds the values of. Settings the copy's
+                    // author gives are on the list holding this one, which
+                    // shows these entries as a reference's
+                    // (`entriesOfReference`).
                     return {
                         setValue: {
                             entryDisplaySettings:
                                 dependencyValues.entryStructure.map(
-                                    (source) => {
-                                        const snapshot =
-                                            dependencyValues.shadow[
-                                                source.shadowInd
-                                            ];
-                                        if (!snapshot) {
-                                            return null;
-                                        }
-                                        const settings = { ...snapshot };
-                                        for (const name of ownNames) {
-                                            settings[name] = listSettings[name];
-                                        }
-                                        settings.setByEntry = (
-                                            snapshot.setByEntry ?? []
-                                        ).filter(
-                                            (name) => !ownNames.includes(name),
-                                        );
-                                        return settings;
-                                    },
+                                    (source) =>
+                                        dependencyValues.shadow[
+                                            source.shadowInd
+                                        ] ?? null,
                                 ),
                         },
                     };
