@@ -3090,6 +3090,38 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 ).eqls([2, 3]);
             });
 
+            it("a math holding an entry of a list that is not modified indirectly solves for its other operands", async () => {
+                // The list's `modifyIndirectly` refuses the write to the
+                // entry, so the math must not try it.
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <numberList name="l" modifyIndirectly="false">2 3</numberList>
+    <graph>
+      <point name="P">($q$l[1], 1)</point>
+    </graph>
+    <math name="q">1</math>
+    `,
+                });
+                await movePoint({
+                    componentIdx: await resolvePathToNodeIdx("P"),
+                    x: 8,
+                    y: 1,
+                    core,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("q")].stateValues
+                        .value.tree,
+                ).eq(4);
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("l")].stateValues
+                        .numbers,
+                ).eqls([2, 3]);
+            });
+
             it("an answer reading an entry inside a math stays submitted as the list grows", async () => {
                 // A property of an entry (`$l[1].math`, which `$l[1]` in a
                 // `<math>` reads) is a value the entry holds, as the entry's

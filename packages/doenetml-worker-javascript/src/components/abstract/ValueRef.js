@@ -625,43 +625,47 @@ export default class ValueRef extends BaseComponent {
         // `canBeModified`; a `math` standing in for one answers from the
         // referent's `fixed` and `modifyIndirectly`.
         // An entry of a list component answers from the list's
-        // `entriesCanBeModified`: the entries of a `<sequence>` are fixed
-        // while the list's own `fixed` is not, and a `<math>` that holds
-        // one (`$q$s[1]^2`) must solve for its other operands, as it did
-        // for the fixed component a copy made for the entry.
+        // `entriesCanBeModified` in place of its `fixed`: the entries of a
+        // `<sequence>` are fixed while the list's own `fixed` is not, and a
+        // `<math>` that holds one (`$q$s[1]^2`) must solve for its other
+        // operands, as it did for the fixed component a copy made for the
+        // entry. The list's `modifyIndirectly` still applies, as the write
+        // to the list is refused when it is false.
         stateVariableDefinitions.canBeModified = referentOrFallback({
             stateVariable: "canBeModified",
             fallbackDependencies: (referentIdx, referentInfo) =>
                 referentIdx === undefined
                     ? {}
-                    : referentInfo.listEntryPosition !== undefined
-                      ? {
-                            entriesCanBeModified: {
-                                dependencyType: "stateVariable",
-                                componentIdx: referentIdx,
-                                variableName: "entriesCanBeModified",
-                                variablesOptional: true,
-                            },
-                        }
-                      : {
-                            targetFixed: {
-                                dependencyType: "stateVariable",
-                                componentIdx: referentIdx,
-                                variableName: "fixed",
-                                variablesOptional: true,
-                            },
-                            modifyIndirectly: {
-                                dependencyType: "stateVariable",
-                                componentIdx: referentIdx,
-                                variableName: "modifyIndirectly",
-                                variablesOptional: true,
-                            },
-                        },
+                    : {
+                          ...(referentInfo.listEntryPosition !== undefined
+                              ? {
+                                    entriesCanBeModified: {
+                                        dependencyType: "stateVariable",
+                                        componentIdx: referentIdx,
+                                        variableName: "entriesCanBeModified",
+                                        variablesOptional: true,
+                                    },
+                                }
+                              : {
+                                    targetFixed: {
+                                        dependencyType: "stateVariable",
+                                        componentIdx: referentIdx,
+                                        variableName: "fixed",
+                                        variablesOptional: true,
+                                    },
+                                }),
+                          modifyIndirectly: {
+                              dependencyType: "stateVariable",
+                              componentIdx: referentIdx,
+                              variableName: "modifyIndirectly",
+                              variablesOptional: true,
+                          },
+                      },
             fallback: (dependencyValues) =>
-                "entriesCanBeModified" in dependencyValues
+                ("entriesCanBeModified" in dependencyValues
                     ? dependencyValues.entriesCanBeModified !== false
-                    : !dependencyValues.targetFixed &&
-                      dependencyValues.modifyIndirectly !== false,
+                    : !dependencyValues.targetFixed) &&
+                dependencyValues.modifyIndirectly !== false,
         });
 
         // A `math` with no `unordered` attribute and no math children is
