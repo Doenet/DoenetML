@@ -106,6 +106,10 @@ export default class AuthoredValueList extends ValueListComponent {
         return splitBySpacesOutsideParens(text);
     }
 
+    // Whether `splitTextIntoPieces` can find text that is not a list of
+    // entries, which is then reported.
+    static textCanBeInvalid = false;
+
     /**
      * The value of the entries' type that a piece of text is: how a
      * component of that type made from the text would read it. `settings`
@@ -412,13 +416,17 @@ export default class AuthoredValueList extends ValueListComponent {
                         dependencyType: "stateVariable",
                         variableName: "maxNumber",
                     },
-                    isAttributeChildFor: {
-                        dependencyType: "doenetAttribute",
-                        attributeName: "isAttributeChildFor",
-                    },
-                    parent: {
-                        dependencyType: "parentIdentity",
-                    },
+                    ...(listClass.textCanBeInvalid
+                        ? {
+                              isAttributeChildFor: {
+                                  dependencyType: "doenetAttribute",
+                                  attributeName: "isAttributeChildFor",
+                              },
+                              parent: {
+                                  dependencyType: "parentIdentity",
+                              },
+                          }
+                        : {}),
                 };
             },
             definition({ dependencyValues }) {
@@ -533,20 +541,24 @@ export default class AuthoredValueList extends ValueListComponent {
             ...stateVariableDefinitions[arrayName],
             stateVariablesDeterminingDependencies: ["entryStructure"],
             returnArrayDependenciesByKey({ arrayKeys, stateValues }) {
+                // Whether the entries are fixed is read when one is written,
+                // so reading them does not depend on it.
                 const globalDependencies = {
                     entryStructure: {
                         dependencyType: "stateVariable",
                         variableName: "entryStructure",
                     },
-                    entriesFixed: {
-                        dependencyType: "stateVariable",
-                        variableName: "entriesFixed",
-                    },
-                    shadow: {
+                };
+                if (
+                    stateValues.entryStructure.some(
+                        (source) => source.shadowInd !== undefined,
+                    )
+                ) {
+                    globalDependencies.shadow = {
                         dependencyType: "stateVariable",
                         variableName: "listValuesShadow",
-                    },
-                };
+                    };
+                }
                 const dependenciesByKey = {};
                 for (const arrayKey of arrayKeys) {
                     const source = stateValues.entryStructure[arrayKey];
@@ -615,7 +627,7 @@ export default class AuthoredValueList extends ValueListComponent {
                 stateValues,
                 workspace,
             }) {
-                if (globalDependencyValues.entriesFixed) {
+                if (await stateValues.entriesFixed) {
                     return { success: false };
                 }
                 const entryStructure = globalDependencyValues.entryStructure;

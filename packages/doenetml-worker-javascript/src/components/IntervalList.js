@@ -98,6 +98,8 @@ export default class IntervalList extends AuthoredValueList {
         return sugarInstructions;
     }
 
+    static textCanBeInvalid = true;
+
     static splitTextIntoPieces(text) {
         const results = breakEmbeddedStringsIntoIntervalPieces({
             componentList: [text],
