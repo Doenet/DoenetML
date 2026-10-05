@@ -772,4 +772,24 @@ describe("Value lists as list components @group4", async () => {
                 .pnl,
         ).eqls("1, 40");
     });
+
+    it("text beside an authored interval, or inside a group, is read", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="p1"><intervalList>(1,2) <interval>[3,4)</interval></intervalList></p>
+    <p name="p2"><intervalList>(1,2) <group>[3,4]</group></intervalList></p>
+    <p name="p3"><numberList>5 <group>6 7</group> 8</numberList></p>
+    <p name="p4"><booleanList>true <group>false true</group></booleanList></p>
+    `,
+        });
+
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, ["p1", "p2", "p3", "p4"]),
+        ).eqls({
+            p1: "(1, 2), [3, 4)",
+            p2: "(1, 2), [3, 4]",
+            p3: "5, 6, 7, 8",
+            p4: "true, false, true",
+        });
+    });
 });
