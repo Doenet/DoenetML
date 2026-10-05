@@ -220,7 +220,8 @@ export default class RepeatForSequence extends CompositeComponent {
         // its current length, keeps the value the sequence gives it there,
         // which it will have when shown again. With values excluded, the
         // repeat makes its iterations anew on every change and withholds
-        // none, so they are its values.
+        // none, so they are its values. An invalid sequence withholds every
+        // iteration and gives none a value past `forValues`.
         stateVariableDefinitions.iterationValues = {
             returnDependencies: () => ({
                 forValues: {

@@ -66,8 +66,9 @@ export class RepeatValues extends ValueListComponent {
  * iterations it has made (`numIterationsMade`, with the ones it withholds),
  * held once for the whole repeat: the repeat's `indexName`
  * (`$i`) is the entry of this list for the iteration it is read in, as
- * `RepeatValues` is for `valueName`. Made from the `integer` the repeat's
- * sugar made for `indexName`, so its entries are integers.
+ * `RepeatValues` is for `valueName`. The pass that makes value references
+ * turns the `integer` the repeat's sugar made for `indexName` into this list;
+ * its entries are integers (`listEntryComponentType`) and fixed.
  */
 export class RepeatIndices extends ValueListComponent {
     static componentType = "_repeatIndices";

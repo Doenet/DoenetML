@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { censusOfCore } from "../perf/census";
 import {
     submitAnswer,
     updateMathInputValue,
@@ -375,5 +376,93 @@ describe("Repeat iteration values and indices @group3", async () => {
             initialState: scoreState.state,
         }));
         await check();
+    });
+});
+
+// What a repeat makes for its `valueName` and `indexName`: one list for the
+// whole repeat when every reference to the name reads it as an entry,
+// nothing when nothing reads it, and a component in each iteration (with a
+// `<setup>` holding it) otherwise. Unlike the tests above, these pin the
+// iteration scaffold itself and do not hold on a build without it.
+describe("Repeat iteration values and indices, what is made @group3", async () => {
+    async function made(doenetML: string) {
+        const { core } = await createTestCore({ doenetML });
+        const { byType } = censusOfCore(core);
+        return {
+            values: byType._repeatValues ?? 0,
+            indices: byType._repeatIndices ?? 0,
+            // each iteration's components for the names, if any
+            setups: byType.setup ?? 0,
+        };
+    }
+
+    it("lists for the values of every type and for the index", async () => {
+        for (const [type, from, child] of [
+            ["number", "1", "number"],
+            ["math", "x", "math"],
+            ["letters", "c", "text"],
+        ]) {
+            expect(
+                await made(`
+    <repeatForSequence type="${type}" from="${from}" length="3" valueName="v" indexName="i">
+      <${child}>$v</${child}><p>$i</p>
+    </repeatForSequence>
+    `),
+                type,
+            ).eqls({ values: 1, indices: 1, setups: 0 });
+        }
+    });
+
+    it("a repeat's index is a list, its value a component of each iteration", async () => {
+        expect(
+            await made(`
+    <repeat for="a b c" valueName="w" indexName="j">
+      <text>$w$j</text>
+    </repeat>
+    `),
+        ).eqls({ values: 0, indices: 1, setups: 3 });
+    });
+
+    it("a name nothing reads makes nothing", async () => {
+        expect(
+            await made(`
+    <mathInput name="n" prefill="3" />
+    <repeatForSequence from="1" to="$n" valueName="v" indexName="i">
+      <number>$v</number>
+    </repeatForSequence>
+    `),
+        ).eqls({ values: 1, indices: 0, setups: 0 });
+    });
+
+    it("a name used another way keeps a component in each iteration", async () => {
+        // the value is read only as an entry; the index is not
+        const cases = [
+            `<integer extend="$i" />`,
+            `<updateValue target="$i" newValue="5" />`,
+        ];
+        for (const usage of cases) {
+            expect(
+                await made(`
+    <repeatForSequence from="1" to="3" valueName="v" indexName="i">
+      <number>$v</number>${usage}
+    </repeatForSequence>
+    `),
+                usage,
+            ).eqls({ values: 1, indices: 0, setups: 3 });
+        }
+        for (const outside of [
+            `<number>$r[2].i</number>`,
+            `<group extend="$r[2]" name="g" /><number>$g.i</number>`,
+        ]) {
+            const counts = await made(`
+    <repeatForSequence from="1" to="3" valueName="v" indexName="i" name="r">
+      <number>$v</number><number>$i</number>
+    </repeatForSequence>
+    ${outside}
+    `);
+            expect(counts.values, outside).eq(1);
+            expect(counts.indices, outside).eq(0);
+            expect(counts.setups, outside).toBeGreaterThanOrEqual(3);
+        }
     });
 });

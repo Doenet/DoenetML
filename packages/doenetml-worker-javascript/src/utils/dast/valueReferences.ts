@@ -59,10 +59,10 @@ import { sequenceEntryComponentType } from "../sequence";
  * (`_repeatValues`, `_repeatIndices`). When every reference to one of them
  * qualifies as an entry of the list, and no path names it past its first
  * part, as one that reaches it from outside its iterations does (`$r[2].i`,
- * or `$g.i` for a `<group extend="$r[2]" name="g"/>`), the placeholder the
- * sugar made for it becomes that list, and the iterations make no component
- * for it (`RepeatIterationLists.js`). Otherwise each reference is planned as
- * it was.
+ * or `$g.i` for a `<group extend="$r[2]" name="g"/>`), the component the
+ * sugar made for it (a `_placeholder` or an `integer`) becomes that list,
+ * and the iterations make no component for it (`RepeatIterationLists.js`).
+ * Otherwise each reference is planned as it was.
  *
  * A reference that an enclosing component names in one of its reference
  * attributes stays a `_copy`, as `<math referencesAreFunctionSymbols="$f">`
