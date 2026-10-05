@@ -881,4 +881,29 @@ describe("Value lists as list components @group4", async () => {
             p1: "7, 1, 9 3",
         });
     });
+
+    it("a reference with nothing to read adds no value", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <repeatForSequence name="r" length="2" valueName="v"><number name="x">10$v</number></repeatForSequence>
+    <p name="p1"><numberList name="a">0 $r.x 9</numberList> $a.numValues</p>
+    <p name="p2"><mathList>0 $r.x <math>y</math></mathList> <textList>a $r.x b</textList></p>
+    <mathInput name="mi" bindValueTo="$a[2]"/>
+    `,
+        });
+
+        expect(await textsOf(core, resolvePathToNodeIdx, ["p1", "p2"])).eqls({
+            p1: "0, 9 2",
+            p2: "0, y a, b",
+        });
+
+        await updateMathInputValue({
+            latex: "8",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await textsOf(core, resolvePathToNodeIdx, ["p1"])).eqls({
+            p1: "0, 8 2",
+        });
+    });
 });
