@@ -527,6 +527,60 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             );
         });
 
+        it("an unlinked copy of a drawn copy of a component keeps that component's settings, and does not follow it", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="mi" prefill="x+x" />
+    <math name="m" simplify styleNumber="3" renderMode="display" hide>$mi</math>
+    <text name="t" styleNumber="4">hi</text>
+    <p><group name="gm">$m</group> <group name="gt">$t</group></p>
+    <math name="um" copy="$gm[1]" />
+    <text name="ut" copy="$gt[1]" />
+    `,
+            });
+
+            async function copies() {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const um =
+                    stateVariables[await resolvePathToNodeIdx("um")]
+                        .stateValues;
+                const ut =
+                    stateVariables[await resolvePathToNodeIdx("ut")]
+                        .stateValues;
+                return [
+                    um.latex,
+                    um.simplify,
+                    um.styleNumber,
+                    um.renderMode,
+                    um.hidden,
+                    ut.value,
+                    ut.styleNumber,
+                    ut.hidden,
+                ];
+            }
+            const expected = [
+                "2 x",
+                "full",
+                3,
+                "display",
+                true,
+                "hi",
+                4,
+                false,
+            ];
+
+            expect(await copies()).eqls(expected);
+            await updateMathInputValue({
+                latex: "y",
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+            expect(await copies()).eqls(expected);
+        });
+
         it("a drawn reference is updated in place, not drawn anew, when its value changes", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `

@@ -767,6 +767,24 @@ export default class ValueRef extends BaseComponent {
         // is given the value this reference reads now, as an unlinked copy
         // of the component a `_copy` made for it was given that component's.
         if (parameters.copyAll) {
+            // One that stands for a copy of its referent (`copiesReferent`)
+            // also takes the referent's settings that are not their
+            // defaults (`hide`, `styleNumber`, `simplify`, …): the copy a
+            // `_copy` made shadowed all of the referent's attributes, and an
+            // unlinked copy of it took their values
+            // (`copyEssentialStateIfShadow`).
+            if (this.doenetAttributes.copiesReferent && referent) {
+                for (const varName in referent.state) {
+                    const stateVar = referent.state[varName];
+                    if (!stateVar.hasEssential) {
+                        continue;
+                    }
+                    const value = await referent.stateValues[varName];
+                    if (!referent.state[varName].usedDefault) {
+                        serialized.state[varName] = value;
+                    }
+                }
+            }
             serialized.state.value = await this.stateValues.value;
         }
         return serialized;
