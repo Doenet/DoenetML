@@ -97,11 +97,168 @@ function worthRearranging(arrangement) {
 function replacementsMatchCopied(replacements, componentsCopied) {
     return (
         replacements.length === componentsCopied.length &&
-        componentsCopied.every(
-            (componentIdx, ind) =>
-                replacements[ind]?.shadows?.componentIdx === componentIdx,
+        componentsCopied.every((componentIdx, ind) =>
+            typeof componentIdx === "string"
+                ? replacements[ind] !== undefined
+                : replacements[ind]?.shadows?.componentIdx === componentIdx,
         )
     );
+}
+
+/**
+ * The entry of a list component that `valueObj` of `sortedValues` is, if it
+ * is one: the list, the entry's index, and a key that names the entry. An
+ * entry has no component to copy, so its replacement is a reference to it
+ * (`listEntryReplacement`).
+ */
+function listEntryOfValue(valueObj, components) {
+    if (valueObj.listInd === undefined) {
+        return undefined;
+    }
+    const list = components[valueObj.componentIdx];
+    if (list?.constructor.listEntryComponentType === undefined) {
+        return undefined;
+    }
+    return {
+        list,
+        listInd: valueObj.listInd,
+        key: `${valueObj.componentIdx}|${valueObj.listInd}`,
+    };
+}
+
+/**
+ * The replacement for entry `listInd` of the list component `list`: a
+ * reference to it, as `$list[2]` is, so that it shows the entry's value with
+ * the list's display settings and follows both as they change.
+ */
+function listEntryReplacement({ list, listInd, nComponents, stateIdInfo }) {
+    const index = [{ value: [`${listInd + 1}`] }];
+    return {
+        serializedComponent: {
+            type: "serialized",
+            componentType: "_copy",
+            componentIdx: nComponents++,
+            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+            attributes: {},
+            doenetAttributes: {},
+            children: [],
+            state: {},
+            extending: {
+                Ref: {
+                    nodeIdx: list.componentIdx,
+                    originalPath: [{ name: "", index }],
+                    unresolvedPath: [{ name: "", index }],
+                    nodesInResolvedPath: [list.componentIdx],
+                },
+            },
+        },
+        nComponents,
+    };
+}
+
+/**
+ * The attributes that decide what `<sort>` and `<sortIndices>` sort by, so
+ * that the two can never disagree about an ordering.
+ */
+export function returnSortAttributes() {
+    let attributes = {};
+
+    attributes.sortVectorsBy = {
+        groupName: "sorting",
+        description: "Whether to sort vectors by component or by magnitude.",
+        createComponentOfType: "text",
+        createStateVariable: "sortVectorsBy",
+        defaultValue: "displacement",
+        public: true,
+        toLowerCase: true,
+        validValues: [
+            {
+                value: "displacement",
+                description: "Sort vectors by their displacement components.",
+            },
+            {
+                value: "tail",
+                description:
+                    "Sort vectors by the position of their tail point.",
+            },
+        ],
+    };
+
+    attributes.sortByComponent = {
+        groupName: "sorting",
+        description:
+            "Index of the component to sort by (when sorting vectors).",
+        createComponentOfType: "integer",
+        createStateVariable: "sortByComponent",
+        defaultValue: "1",
+        public: true,
+    };
+
+    attributes.sortByProp = {
+        createPrimitiveOfType: "string",
+        highlighted: true,
+        groupName: "sorting",
+        description:
+            'Name of a property to sort by (e.g. "x" for sorting points by x-coordinate).',
+    };
+
+    attributes.type = {
+        createPrimitiveOfType: "string",
+        highlighted: true,
+        description:
+            "Component type to sort bare string children as. Omit it and they are read as what they look like: every piece naming a number sorts by value, anything else sorts alphabetically.",
+        validValues: [
+            {
+                value: "number",
+                description: "Read bare strings as numbers, ordered by value.",
+            },
+            {
+                value: "math",
+                description:
+                    "Read bare strings as math expressions, ordered by value.",
+            },
+            {
+                value: "text",
+                description:
+                    "Read bare strings as text, ordered alphabetically.",
+            },
+            {
+                value: "boolean",
+                description:
+                    "Read bare strings as booleans, ordered with false before true.",
+            },
+        ],
+    };
+
+    return attributes;
+}
+
+/**
+ * The values of `listValues` in sorted order, shared by `<sort>` and
+ * `<sortIndices>`.
+ */
+export function returnSortedValuesDefinition() {
+    return {
+        returnDependencies: () => ({
+            listValues: {
+                dependencyType: "stateVariable",
+                variableName: "listValues",
+            },
+            allAreNumeric: {
+                dependencyType: "stateVariable",
+                variableName: "allAreNumeric",
+            },
+        }),
+        definition({ dependencyValues }) {
+            let sortedValues = [...dependencyValues.listValues];
+
+            sortedValues.sort((a, b) =>
+                compareExtractedValues(a, b, dependencyValues.allAreNumeric),
+            );
+
+            return { setValue: { sortedValues } };
+        },
+    };
 }
 
 export default class Sort extends CompositeComponent {
@@ -120,75 +277,7 @@ export default class Sort extends CompositeComponent {
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
 
-        attributes.sortVectorsBy = {
-            groupName: "sorting",
-            description:
-                "Whether to sort vectors by component or by magnitude.",
-            createComponentOfType: "text",
-            createStateVariable: "sortVectorsBy",
-            defaultValue: "displacement",
-            public: true,
-            toLowerCase: true,
-            validValues: [
-                {
-                    value: "displacement",
-                    description:
-                        "Sort vectors by their displacement components.",
-                },
-                {
-                    value: "tail",
-                    description:
-                        "Sort vectors by the position of their tail point.",
-                },
-            ],
-        };
-
-        attributes.sortByComponent = {
-            groupName: "sorting",
-            description:
-                "Index of the component to sort by (when sorting vectors).",
-            createComponentOfType: "integer",
-            createStateVariable: "sortByComponent",
-            defaultValue: "1",
-            public: true,
-        };
-
-        attributes.sortByProp = {
-            createPrimitiveOfType: "string",
-            highlighted: true,
-            groupName: "sorting",
-            description:
-                'Name of a property to sort by (e.g. "x" for sorting points by x-coordinate).',
-        };
-
-        attributes.type = {
-            createPrimitiveOfType: "string",
-            highlighted: true,
-            description:
-                "Component type to sort bare string children as. Omit it and they are read as what they look like: every piece naming a number sorts by value, anything else sorts alphabetically.",
-            validValues: [
-                {
-                    value: "number",
-                    description:
-                        "Read bare strings as numbers, ordered by value.",
-                },
-                {
-                    value: "math",
-                    description:
-                        "Read bare strings as math expressions, ordered by value.",
-                },
-                {
-                    value: "text",
-                    description:
-                        "Read bare strings as text, ordered alphabetically.",
-                },
-                {
-                    value: "boolean",
-                    description:
-                        "Read bare strings as booleans, ordered with false before true.",
-                },
-            ],
-        };
+        Object.assign(attributes, returnSortAttributes());
 
         attributes.asList = {
             createPrimitiveOfType: "boolean",
@@ -232,31 +321,7 @@ export default class Sort extends CompositeComponent {
             }),
         );
 
-        stateVariableDefinitions.sortedValues = {
-            returnDependencies: () => ({
-                listValues: {
-                    dependencyType: "stateVariable",
-                    variableName: "listValues",
-                },
-                allAreNumeric: {
-                    dependencyType: "stateVariable",
-                    variableName: "allAreNumeric",
-                },
-            }),
-            definition({ dependencyValues }) {
-                let sortedValues = [...dependencyValues.listValues];
-
-                sortedValues.sort((a, b) =>
-                    compareExtractedValues(
-                        a,
-                        b,
-                        dependencyValues.allAreNumeric,
-                    ),
-                );
-
-                return { setValue: { sortedValues } };
-            },
-        };
+        stateVariableDefinitions.sortedValues = returnSortedValuesDefinition();
 
         stateVariableDefinitions.readyToExpandWhenResolved = {
             returnDependencies: () => ({
@@ -316,6 +381,20 @@ export default class Sort extends CompositeComponent {
         for (let valueObj of await component.stateValues.sortedValues) {
             let replacementSource;
 
+            const listEntry = listEntryOfValue(valueObj, components);
+            if (listEntry) {
+                const res = listEntryReplacement({
+                    list: listEntry.list,
+                    listInd: listEntry.listInd,
+                    nComponents,
+                    stateIdInfo,
+                });
+                nComponents = res.nComponents;
+                replacements.push(res.serializedComponent);
+                componentsCopied.push(listEntry.key);
+                continue;
+            }
+
             if (valueObj.listInd === undefined) {
                 replacementSource = components[valueObj.componentIdx];
             } else {
@@ -369,6 +448,12 @@ export default class Sort extends CompositeComponent {
 
         for (let valueObj of await component.stateValues.sortedValues) {
             let replacementSource;
+
+            const listEntry = listEntryOfValue(valueObj, components);
+            if (listEntry) {
+                componentsToCopy.push(listEntry.key);
+                continue;
+            }
 
             if (valueObj.listInd === undefined) {
                 replacementSource = components[valueObj.componentIdx];

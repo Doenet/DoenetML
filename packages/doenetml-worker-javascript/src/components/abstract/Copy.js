@@ -14,6 +14,7 @@ import {
 } from "../../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../../utils/componentIndices";
 import { codedDiagnostic } from "../../utils/diagnostics";
+import { isListEntryArrayVariable } from "../../utils/listEntryReference";
 import { errorComponentState } from "../../utils/dast/errors";
 import {
     planValueReference,
@@ -2460,10 +2461,14 @@ export async function replacementFromProp({
     if (replacementSource) {
         target = components[replacementSource.componentIdx];
 
-        varName = publicCaseInsensitiveAliasSubstitutions({
-            stateVariables: [propName],
-            componentClass: target.constructor,
-        })[0];
+        // An entry of a list component, or a property of its entries, was
+        // resolved to an array of the list (`utils/listEntryReference.ts`).
+        varName = isListEntryArrayVariable(target, propName)
+            ? propName
+            : publicCaseInsensitiveAliasSubstitutions({
+                  stateVariables: [propName],
+                  componentClass: target.constructor,
+              })[0];
     }
 
     if (varName === undefined || varName.slice(0, 12) === "__not_public") {
@@ -2925,6 +2930,8 @@ export async function replacementFromProp({
                                         nComponents = res.nComponents;
 
                                         attributesFromComponent[attrName] = {
+                                            type: "component",
+                                            name: attrName,
                                             component: res.components[0],
                                         };
                                     } else if (
@@ -2932,6 +2939,8 @@ export async function replacementFromProp({
                                             ?.primitive !== undefined
                                     ) {
                                         attributesFromComponent[attrName] = {
+                                            type: "primitive",
+                                            name: attrName,
                                             primitive: JSON.parse(
                                                 JSON.stringify(
                                                     target.attributes[attrName]
@@ -3272,6 +3281,8 @@ export async function replacementFromProp({
 
                                             attributesFromComponent[attrName] =
                                                 {
+                                                    type: "component",
+                                                    name: attrName,
                                                     component:
                                                         res.components[0],
                                                 };
@@ -3281,6 +3292,8 @@ export async function replacementFromProp({
                                         ) {
                                             attributesFromComponent[attrName] =
                                                 {
+                                                    type: "primitive",
+                                                    name: attrName,
                                                     primitive: JSON.parse(
                                                         JSON.stringify(
                                                             target.attributes[

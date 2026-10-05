@@ -34,6 +34,16 @@ const IDLE_RENDERER_CHUNK_TARGET_MS = 8;
 const RENDERER_ACK_TIMEOUT_MS = 2000;
 
 /**
+ * The actions the renderer of an entry of a list component, of each type,
+ * may send (those of `<math>` and `<number>`, without the one for
+ * copying DoenetML), which go to the list.
+ */
+const LIST_ENTRY_ACTIONS: Record<string, string[]> = {
+    math: ["moveMath", "mathClicked", "mathFocused"],
+    number: ["moveNumber", "numberClicked", "numberFocused"],
+};
+
+/**
  * Builds the dast/instruction stream sent to the renderer. Owns the
  * per-component "what's currently rendered" registry, the cached
  * renderer state used for save/restore, and the queue of components
@@ -70,6 +80,16 @@ export class RendererInstructionBuilder {
     _lastDeferredRendererAck: unknown;
     /** Whether an idle-lane chunk is waiting for the viewer to draw it. */
     _awaitingRendererAck: boolean;
+    /**
+     * The renderer index of each entry of each list component drawn so far,
+     * by the list's index (see `rendererIdxForListEntry`).
+     */
+    listEntryRendererIndices: Map<number, number[]>;
+    /** The list and entry each of those renderer indices stands for. */
+    listEntryOfRendererIdx: Map<
+        number,
+        { listIdx: number; entryIndex: number }
+    >;
 
     constructor({ core }: { core: Core }) {
         this.core = core;
@@ -82,6 +102,8 @@ export class RendererInstructionBuilder {
         this._idleRendererChunkSize = 16;
         this._lastDeferredRendererAck = undefined;
         this._awaitingRendererAck = false;
+        this.listEntryRendererIndices = new Map();
+        this.listEntryOfRendererIdx = new Map();
     }
 
     /**
@@ -94,6 +116,8 @@ export class RendererInstructionBuilder {
         this.componentsToRender = {};
         this.componentsWithChangedChildrenToRender = new Set();
         this.rendererState = {};
+        this.listEntryRendererIndices = new Map();
+        this.listEntryOfRendererIdx = new Map();
     }
 
     /**
@@ -217,32 +241,37 @@ export class RendererInstructionBuilder {
                     );
 
                     // Strings and numbers are keyed by their position among the
-                    // active children, the same position they hold in the
+                    // rendered children, the same position they hold in the
                     // stored `children` list compared against below.
-                    for (let [
-                        ind,
-                        child,
-                    ] of unproxiedComponent.activeChildren.entries() as Iterable<
-                        [number, any]
-                    >) {
-                        if (indicesToRender.includes(ind)) {
-                            if (child.rendererType) {
-                                currentChildIdentifiers.push(
-                                    `nameType:${child.componentIdx};${child.componentType}`,
-                                );
-                            } else if (typeof child === "string") {
-                                currentChildIdentifiers.push(
-                                    `string${ind}:${child}`,
-                                );
-                            } else if (typeof child === "number") {
-                                currentChildIdentifiers.push(
-                                    `number${ind}:${(
-                                        child as number
-                                    ).toString()}`,
-                                );
-                            } else {
-                                currentChildIdentifiers.push("");
-                            }
+                    for (let [ind, item] of (
+                        await this.childrenToRenderOf(
+                            unproxiedComponent,
+                            indicesToRender,
+                        )
+                    ).items.entries()) {
+                        if (item.listEntry) {
+                            currentChildIdentifiers.push(
+                                `nameType:${this.rendererIdxForListEntry(
+                                    item.listEntry.list,
+                                    item.listEntry.entryIndex,
+                                )};${item.listEntry.list.constructor.listEntryComponentType}`,
+                            );
+                        } else if (item.child === null) {
+                            currentChildIdentifiers.push("");
+                        } else if (item.child.rendererType) {
+                            currentChildIdentifiers.push(
+                                `nameType:${item.child.componentIdx};${item.child.componentType}`,
+                            );
+                        } else if (typeof item.child === "string") {
+                            currentChildIdentifiers.push(
+                                `string${ind}:${item.child}`,
+                            );
+                        } else if (typeof item.child === "number") {
+                            currentChildIdentifiers.push(
+                                `number${ind}:${(
+                                    item.child as number
+                                ).toString()}`,
+                            );
                         } else {
                             currentChildIdentifiers.push("");
                         }
@@ -297,37 +326,19 @@ export class RendererInstructionBuilder {
                     // create new renderers
                     let childrenToRender: any[] = [];
                     if (indicesToRender.length > 0) {
-                        for (let [
-                            ind,
-                            child,
-                        ] of unproxiedComponent.activeChildren.entries() as Iterable<
-                            [number, any]
-                        >) {
-                            if (indicesToRender.includes(ind)) {
-                                if (child.rendererType) {
-                                    let results =
-                                        await this.initializeRenderedComponentInstruction(
-                                            child,
-                                            componentsWithChangedChildrenToRenderInProgress,
-                                        );
-                                    childrenToRender.push(
-                                        results.componentToRender,
-                                    );
-                                    rendererStatesToUpdate.push(
-                                        ...results.rendererStatesToUpdate,
-                                    );
-                                } else if (typeof child === "string") {
-                                    childrenToRender.push(child);
-                                } else if (typeof child === "number") {
-                                    childrenToRender.push(
-                                        (child as number).toString(),
-                                    );
-                                } else {
-                                    childrenToRender.push(null);
-                                }
-                            } else {
-                                childrenToRender.push(null);
-                            }
+                        const { items } = await this.childrenToRenderOf(
+                            unproxiedComponent,
+                            indicesToRender,
+                        );
+                        for (const item of items) {
+                            const results = await this.initializeChildToRender(
+                                item,
+                                componentsWithChangedChildrenToRenderInProgress,
+                            );
+                            childrenToRender.push(results.componentToRender);
+                            rendererStatesToUpdate.push(
+                                ...results.rendererStatesToUpdate,
+                            );
                         }
                     }
 
@@ -348,6 +359,31 @@ export class RendererInstructionBuilder {
         }
 
         for (let componentIdx of componentNamesToUpdate) {
+            // A list component is drawn as its entries.
+            const listEntryIndices =
+                this.listEntryRendererIndices.get(componentIdx);
+            if (listEntryIndices) {
+                const list = this.core._components[componentIdx];
+                for (const [
+                    entryIndex,
+                    entryIdx,
+                ] of listEntryIndices.entries()) {
+                    if (list && entryIdx in this.componentsToRender) {
+                        const stateValues = await this.listEntryRendererState(
+                            list,
+                            entryIndex,
+                        );
+                        this.rendererState[entryIdx] = { stateValues };
+                        rendererStatesToUpdate.push({
+                            componentIdx: entryIdx,
+                            stateValues,
+                            rendererType: list.rendererType,
+                        });
+                    }
+                }
+                continue;
+            }
+
             if (
                 componentIdx in this.componentsToRender
                 // && !deletedRenderers.includes(componentIdx)  TODO: what if recreate with same name?
@@ -364,9 +400,11 @@ export class RendererInstructionBuilder {
                         }
                     }
 
-                    if (component.compositeReplacementActiveRange) {
+                    const compositeRanges =
+                        await this.compositeRangesToRender(component);
+                    if (compositeRanges) {
                         stateValuesForRenderer._compositeReplacementActiveRange =
-                            component.compositeReplacementActiveRange;
+                            compositeRanges;
                     }
 
                     let newRendererState: any = {
@@ -465,9 +503,10 @@ export class RendererInstructionBuilder {
             }
         }
 
-        if (component.compositeReplacementActiveRange) {
+        const compositeRanges = await this.compositeRangesToRender(component);
+        if (compositeRanges) {
             stateValuesForRenderer._compositeReplacementActiveRange =
-                component.compositeReplacementActiveRange;
+                compositeRanges;
         }
 
         if (alwaysUpdate) {
@@ -482,36 +521,20 @@ export class RendererInstructionBuilder {
                 core: this.core,
                 component,
             });
-            for (let [
-                ind,
-                child,
-            ] of component.activeChildren.entries() as Iterable<
-                [number, any]
-            >) {
-                if (indicesToRender.includes(ind)) {
-                    if (child.rendererType) {
-                        let results =
-                            await this.initializeRenderedComponentInstruction(
-                                child,
-                                componentsWithChangedChildrenToRenderInProgress,
-                            );
-                        childrenToRender.push(results.componentToRender);
-                        rendererStatesToUpdate.push(
-                            ...results.rendererStatesToUpdate,
-                        );
-                        rendererStatesToForceUpdate.push(
-                            ...results.rendererStatesToForceUpdate,
-                        );
-                    } else if (typeof child === "string") {
-                        childrenToRender.push(child);
-                    } else if (typeof child === "number") {
-                        childrenToRender.push((child as number).toString());
-                    } else {
-                        childrenToRender.push(null);
-                    }
-                } else {
-                    childrenToRender.push(null);
-                }
+            const { items } = await this.childrenToRenderOf(
+                component,
+                indicesToRender,
+            );
+            for (const item of items) {
+                const results = await this.initializeChildToRender(
+                    item,
+                    componentsWithChangedChildrenToRenderInProgress,
+                );
+                childrenToRender.push(results.componentToRender);
+                rendererStatesToUpdate.push(...results.rendererStatesToUpdate);
+                rendererStatesToForceUpdate.push(
+                    ...(results.rendererStatesToForceUpdate ?? []),
+                );
             }
         }
 
@@ -580,6 +603,260 @@ export class RendererInstructionBuilder {
             componentToRender: rendererInstructions,
             rendererStatesToUpdate,
             rendererStatesToForceUpdate,
+        };
+    }
+
+    /**
+     * The children `component` renders, in order, with each list component
+     * among them (`listEntryComponentType`) replaced by its entries: one
+     * item per child, `{ child }` (a component, a string, a number, or
+     * `null` for one not rendered) or `{ listEntry: { list, entryIndex } }`.
+     * `indicesToRender` are the positions among the active children that
+     * render (`returnActiveChildrenIndicesToRender`).
+     */
+    async childrenToRenderOf(
+        component: any,
+        indicesToRender: number[],
+    ): Promise<{ items: any[] }> {
+        const items: any[] = [];
+        for (const [
+            ind,
+            child,
+        ] of component.activeChildren.entries() as Iterable<[number, any]>) {
+            if (!indicesToRender.includes(ind)) {
+                items.push({ child: null });
+            } else if (this.isListComponent(child)) {
+                const numEntries = await child.stateValues.numEntries;
+                for (
+                    let entryIndex = 0;
+                    entryIndex < numEntries;
+                    entryIndex++
+                ) {
+                    items.push({ listEntry: { list: child, entryIndex } });
+                }
+            } else {
+                items.push({ child });
+            }
+        }
+        return { items };
+    }
+
+    /**
+     * The composite ranges `component`'s renderer separates its children by
+     * (`compositeReplacementActiveRange`, in positions among the active
+     * children), moved to the positions of the children it renders once each
+     * list component among them is its entries, with a range for each list,
+     * so its entries are separated as a composite's replacements are.
+     * `undefined` when there are none.
+     */
+    async compositeRangesToRender(component: any): Promise<any[] | undefined> {
+        const ranges = component.compositeReplacementActiveRange;
+        if (!component.listChildPresentedTypes) {
+            return ranges;
+        }
+
+        const newRanges: any[] = (ranges ?? []).map((range: any) => ({
+            ...range,
+            potentialListComponents: [...(range.potentialListComponents ?? [])],
+        }));
+        const indicesToRender = await returnActiveChildrenIndicesToRender({
+            core: this.core,
+            component,
+        });
+        let shift = 0;
+        for (const [
+            ind,
+            child,
+        ] of component.activeChildren.entries() as Iterable<[number, any]>) {
+            if (!this.isListComponent(child)) {
+                continue;
+            }
+            // as `childrenToRenderOf` counts it
+            const numEntries = indicesToRender.includes(ind)
+                ? await child.stateValues.numEntries
+                : 1;
+            const firstInd = ind + shift;
+            for (const range of newRanges) {
+                if (range.firstInd <= firstInd && range.lastInd >= firstInd) {
+                    range.potentialListComponents.splice(
+                        firstInd - range.firstInd,
+                        1,
+                        ...Array(numEntries).fill(true),
+                    );
+                    range.lastInd += numEntries - 1;
+                } else if (range.firstInd > firstInd) {
+                    range.firstInd += numEntries - 1;
+                    range.lastInd += numEntries - 1;
+                }
+            }
+            newRanges.push({
+                compositeIdx: child.componentIdx,
+                compositeName: this.getRendererId(child),
+                firstInd,
+                lastInd: firstInd + numEntries - 1,
+                asList: await child.stateValues.asList,
+                potentialListComponents: Array(numEntries).fill(true),
+            });
+            shift += numEntries - 1;
+        }
+        return newRanges;
+    }
+
+    isListComponent(child: any): boolean {
+        return (
+            typeof child === "object" &&
+            child?.constructor?.listEntryComponentType !== undefined
+        );
+    }
+
+    /**
+     * The instruction for one item of `childrenToRenderOf`, with the
+     * renderer states it brings.
+     */
+    async initializeChildToRender(
+        item: any,
+        componentsWithChangedChildrenToRenderInProgress: Set<number>,
+    ): Promise<any> {
+        if (item.listEntry) {
+            return this.initializeListEntryInstruction(
+                item.listEntry.list,
+                item.listEntry.entryIndex,
+            );
+        }
+        const child = item.child;
+        if (child?.rendererType) {
+            return this.initializeRenderedComponentInstruction(
+                child,
+                componentsWithChangedChildrenToRenderInProgress,
+            );
+        }
+        if (typeof child === "string") {
+            return { componentToRender: child, rendererStatesToUpdate: [] };
+        }
+        if (typeof child === "number") {
+            return {
+                componentToRender: (child as number).toString(),
+                rendererStatesToUpdate: [],
+            };
+        }
+        return { componentToRender: null, rendererStatesToUpdate: [] };
+    }
+
+    /**
+     * The renderer index of entry `entryIndex` of the list component `list`.
+     * An entry is drawn by the renderer of its type, which is keyed, like
+     * any renderer, by a component index; the entry has no component, so an
+     * index is reserved for it, as for an adapter, and kept for as long as
+     * the document is, so the entry keeps its renderer while it is drawn.
+     */
+    rendererIdxForListEntry(list: any, entryIndex: number): number {
+        let indices = this.listEntryRendererIndices.get(list.componentIdx);
+        if (!indices) {
+            indices = [];
+            this.listEntryRendererIndices.set(list.componentIdx, indices);
+        }
+        while (indices.length <= entryIndex) {
+            const idx = this.core._components.length;
+            this.core._components[idx] = undefined;
+            this.listEntryOfRendererIdx.set(idx, {
+                listIdx: list.componentIdx,
+                entryIndex: indices.length,
+            });
+            indices.push(idx);
+        }
+        return indices[entryIndex];
+    }
+
+    /**
+     * What the renderer of entry `entryIndex` of `list` is sent: each
+     * variable the renderer of the entry's type reads, from the list's
+     * variable for it (`listEntryStateVariables`), the entry's own value of
+     * one that holds a value per entry (`listPerEntryVariables`).
+     */
+    async listEntryRendererState(
+        list: any,
+        entryIndex: number,
+    ): Promise<Record<string, any>> {
+        const listClass = list.constructor;
+        const stateValues: Record<string, any> = {};
+        for (const name in this.core.rendererVariablesByComponentType[
+            listClass.listEntryComponentType
+        ]) {
+            const listVariable = listClass.listEntryStateVariables[name];
+            if (listVariable === undefined || !(listVariable in list.state)) {
+                continue;
+            }
+            const value = await list.state[listVariable].value;
+            stateValues[name] = removeFunctionsMathExpressionClass(
+                listClass.listPerEntryVariables.includes(listVariable)
+                    ? value?.[entryIndex]
+                    : value,
+            );
+        }
+        return stateValues;
+    }
+
+    /**
+     * The instruction for the renderer of entry `entryIndex` of `list`,
+     * as `initializeRenderedComponentInstruction` gives for a component.
+     * Its id is the list's followed by the entry's index, as a reference to
+     * the entry (`$l[2]`) is written in a root name. Its actions go to the
+     * list (`UpdateExecutor.performAction`).
+     */
+    async initializeListEntryInstruction(
+        list: any,
+        entryIndex: number,
+    ): Promise<any> {
+        const entryIdx = this.rendererIdxForListEntry(list, entryIndex);
+        const stateValues = await this.listEntryRendererState(list, entryIndex);
+
+        this.rendererState[entryIdx] = {
+            stateValues,
+            childrenInstructions: [],
+        };
+        this.componentsToRender[entryIdx] = { children: [] };
+
+        const actions: Record<string, any> = {};
+        for (const actionName of LIST_ENTRY_ACTIONS[
+            list.constructor.listEntryComponentType
+        ] ?? []) {
+            actions[actionName] = { actionName, componentIdx: entryIdx };
+        }
+
+        return {
+            componentToRender: {
+                componentIdx: entryIdx,
+                effectiveIdx: entryIdx,
+                id: `${this.getRendererId(list)}:${entryIndex + 1}`,
+                componentType: list.constructor.listEntryComponentType,
+                rendererType: list.rendererType,
+                actions,
+                position: list.position,
+            },
+            rendererStatesToUpdate: [
+                {
+                    componentIdx: entryIdx,
+                    stateValues,
+                    childrenInstructions: [],
+                },
+            ],
+        };
+    }
+
+    /**
+     * The list and entry a renderer index stands for, when it is one an
+     * entry of a list component was given (`rendererIdxForListEntry`).
+     */
+    listEntryOfRenderer(
+        componentIdx: number,
+    ): { list: any; entryIndex: number } | undefined {
+        const entry = this.listEntryOfRendererIdx.get(componentIdx);
+        if (!entry) {
+            return undefined;
+        }
+        return {
+            list: this.core._components[entry.listIdx],
+            entryIndex: entry.entryIndex,
         };
     }
 
@@ -744,6 +1021,11 @@ export class RendererInstructionBuilder {
         const found = new Set<number>(targets);
         const walk = (idx: number) => {
             found.add(idx);
+            // an entry of a list component is updated through its list
+            const listEntry = this.listEntryOfRendererIdx.get(idx);
+            if (listEntry) {
+                found.add(listEntry.listIdx);
+            }
             for (const child of this.componentsToRender[idx]?.children ?? []) {
                 if (child?.componentIdx != undefined) {
                     walk(child.componentIdx);

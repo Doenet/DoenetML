@@ -1,12 +1,5 @@
-import CompositeComponent from "./CompositeComponent";
+import ValueListComponent from "./ValueListComponent";
 import { returnListValueStateVariableDefinitions } from "../../utils/listValues";
-import {
-    addReplacementRendererType,
-    calculateValueListReplacementChanges,
-    createValueListReplacements,
-    returnPassThroughAttributeDeclarations,
-    returnPassThroughAttributes,
-} from "../../utils/valueListReplacements";
 
 /**
  * Base class for the operators that answer *how many*: `<tally>` and
@@ -21,12 +14,12 @@ import {
  *
  * Like `<sort>`, the input is read through `utils/listValues`, so what counts as
  * "the same value" here is what `<sort>` would call equal — by construction
- * rather than by coincidence. The output is created fresh, so these are
- * composites that build replacements in the manner of `<sequence>`, which is
- * what makes `$counts[2]`, `<sum>$counts</sum>` and
- * `<numberList>$counts</numberList>` all work.
+ * rather than by coincidence. The output is a list component of numbers
+ * (`ValueListComponent`), which a parent sees as one `<number>` per count, so
+ * `$counts[2]`, `<sum>$counts</sum>` and `<numberList>$counts</numberList>`
+ * all work.
  *
- * Those replacements are `<number>` components, not the `<math>` that
+ * The entries are numbers, not the maths that
  * `MathBaseListOperator` creates. A count is a non-negative integer whatever
  * the input is: a `<tally>` of a `<textList>` counts names and still answers in
  * integers, so unlike a cumulative sum — which is genuinely symbolic when its
@@ -43,40 +36,16 @@ import {
  * data — as opposed to one about the attributes — is raised once the values are
  * in hand.
  */
-export default class CountingBaseListOperator extends CompositeComponent {
+export default class CountingBaseListOperator extends ValueListComponent {
     static componentType = "_countingListOperator";
 
-    static replacementComponentType = "number";
+    static listEntryComponentType = "number";
 
-    static takesIndex = true;
-
-    static stateVariableToEvaluateAfterReplacements =
-        "readyToExpandWhenResolved";
-
-    static allowInSchemaAsComponent = ["number"];
+    static listEntryValuesVariable = "countingResults";
 
     // Since the operator treats each child as a separate argument,
     // composites with no replacement should be ignored.
     static descendantCompositesMustHaveAReplacement = false;
-
-    static createAttributesObject() {
-        let attributes = super.createAttributesObject();
-
-        // Not used by the composite itself; forwarded to each `<number>` it
-        // creates.
-        Object.assign(attributes, returnPassThroughAttributeDeclarations());
-
-        attributes.asList = {
-            createPrimitiveOfType: "boolean",
-            createStateVariable: "asList",
-            defaultValue: true,
-            highlighted: true,
-            description:
-                "Whether to render the items separated by commas (true) or with no separator (false).",
-        };
-
-        return attributes;
-    }
 
     // Include children that can be added due to sugar. What bare strings are
     // read *as* is left to the subclass: `<binCounts>` can only ever count
@@ -148,67 +117,6 @@ export default class CountingBaseListOperator extends CompositeComponent {
             },
         };
 
-        stateVariableDefinitions.readyToExpandWhenResolved = {
-            returnDependencies: () => ({
-                countingResults: {
-                    dependencyType: "stateVariable",
-                    variableName: "countingResults",
-                },
-            }),
-            // When this state variable is marked stale it indicates we should
-            // update replacements. For this to work, we must get its value in
-            // the replacement functions so that the variable is marked fresh.
-            markStale: () => ({ updateReplacements: true }),
-            definition: function () {
-                return { setValue: { readyToExpandWhenResolved: true } };
-            },
-        };
-
         return stateVariableDefinitions;
-    }
-
-    static async createSerializedReplacements({
-        component,
-        componentInfoObjects,
-        workspace,
-        nComponents,
-    }) {
-        return createValueListReplacements({
-            component,
-            values: await component.stateValues.countingResults,
-            componentType: this.replacementComponentType,
-            attributesToConvert: returnPassThroughAttributes(component),
-            componentInfoObjects,
-            workspace,
-            nComponents,
-        });
-    }
-
-    static async calculateReplacementChanges({
-        component,
-        componentInfoObjects,
-        workspace,
-        nComponents,
-    }) {
-        return calculateValueListReplacementChanges({
-            component,
-            values: await component.stateValues.countingResults,
-            componentType: this.replacementComponentType,
-            attributesToConvert: returnPassThroughAttributes(component),
-            componentInfoObjects,
-            workspace,
-            nComponents,
-        });
-    }
-
-    addOwnPotentialRendererTypes(rendererTypes, visited) {
-        super.addOwnPotentialRendererTypes(rendererTypes, visited);
-
-        // The replacements are `<number>` components whatever the children are.
-        addReplacementRendererType({
-            component: this,
-            componentType: this.constructor.replacementComponentType,
-            rendererTypes,
-        });
     }
 }

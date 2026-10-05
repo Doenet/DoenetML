@@ -7,6 +7,8 @@
  */
 
 import { Dependency, cloneChangeMetadataIfNeeded } from "./Dependency";
+import { listEntryPropertyPath } from "../../utils/listEntryReference";
+import { ensureListEntryPropertyArray } from "../listEntryPropertyArrays";
 
 export class StateVariableDependency extends Dependency {
     static dependencyType = "stateVariable";
@@ -60,7 +62,11 @@ export class StateVariableDependency extends Dependency {
         return {
             success: true,
             downstreamComponentIndices: [this.componentIdx],
-            downstreamComponentTypes: [component.componentType],
+            // A value reference (`_ref`) reads as the type it stands in for,
+            // as it does to a child dependency.
+            downstreamComponentTypes: [
+                component.presentedComponentType ?? component.componentType,
+            ],
         };
     }
 
@@ -127,7 +133,31 @@ export class StateVariableFromUnresolvedPathDependency extends Dependency {
             };
         }
 
-        let unresolvedPath = [...this.definition.unresolvedPath];
+        // A property of a list component's entries (`$l[2].text`,
+        // `$l.text`) is read from an array of the list, whose name is
+        // resolved here, so it is not matched again against the list's
+        // public variables.
+        const listEntryPath = listEntryPropertyPath({
+            listClass: component.constructor,
+            unresolvedPath: this.definition.unresolvedPath,
+            componentInfoObjects: this.dependencyHandler.componentInfoObjects,
+        });
+        if (listEntryPath) {
+            ensureListEntryPropertyArray({
+                core: this.dependencyHandler.core,
+                component,
+                arrayName: listEntryPath.path[0].name,
+            });
+        }
+        this.publicStateVariablesOnly =
+            Boolean(this.definition.publicStateVariablesOnly) && !listEntryPath;
+        this.caseInsensitiveVariableMatch =
+            Boolean(this.definition.caseInsensitiveVariableMatch) &&
+            !listEntryPath;
+
+        let unresolvedPath = [
+            ...(listEntryPath?.path ?? this.definition.unresolvedPath),
+        ];
         let nextPart = unresolvedPath.shift();
 
         let variableName = nextPart.name;
@@ -339,7 +369,11 @@ export class MultipleStateVariablesDependency extends Dependency {
         return {
             success: true,
             downstreamComponentIndices: [this.componentIdx],
-            downstreamComponentTypes: [component.componentType],
+            // A value reference (`_ref`) reads as the type it stands in for,
+            // as it does to a child dependency.
+            downstreamComponentTypes: [
+                component.presentedComponentType ?? component.componentType,
+            ],
         };
     }
 

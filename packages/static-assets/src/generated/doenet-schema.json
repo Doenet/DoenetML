@@ -31162,7 +31162,7 @@
             "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222012212222222221222222122222222212212222",
             "abstractAncestors": [
                 "_mathListOperator",
-                "_composite",
+                "_valueList",
                 "_base"
             ],
             "attributes": [
@@ -31194,7 +31194,12 @@
                 {
                     "name": "fixed",
                     "description": "Whether this component's value is fixed and cannot be modified.",
-                    "defaultValue": false
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "fixLocation",
@@ -31233,6 +31238,60 @@
                     "type": "reference"
                 },
                 {
+                    "name": "displayDigits",
+                    "description": "Number of significant digits to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 3,
+                    "type": "integer"
+                },
+                {
+                    "name": "displayDecimals",
+                    "description": "Number of decimal places to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 2,
+                    "type": "integer"
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "description": "Threshold below which numbers are displayed as zero.",
+                    "groupName": "number-display",
+                    "defaultValue": 1e-14,
+                    "type": "number"
+                },
+                {
+                    "name": "padZeros",
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "forceSymbolic",
                     "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
                     "highlighted": true,
@@ -31248,37 +31307,6 @@
                     "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
                     "highlighted": true,
                     "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "displayDigits",
-                    "description": "Number of significant digits to display when rendering this number."
-                },
-                {
-                    "name": "displayDecimals",
-                    "description": "Number of decimal places to display when rendering this number."
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "description": "Threshold below which numbers are displayed as zero."
-                },
-                {
-                    "name": "padZeros",
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
-                },
-                {
-                    "name": "avoidScientificNotation",
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "asList",
-                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
-                    "highlighted": true,
-                    "defaultValue": true,
                     "values": [
                         "true",
                         "false"
@@ -31325,10 +31353,64 @@
                     "highlighted": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "displayDigits",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 }
             ],
             "top": true,
@@ -31448,7 +31530,7 @@
             "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222012212222222221222222122222222212212222",
             "abstractAncestors": [
                 "_mathListOperator",
-                "_composite",
+                "_valueList",
                 "_base"
             ],
             "attributes": [
@@ -31480,7 +31562,12 @@
                 {
                     "name": "fixed",
                     "description": "Whether this component's value is fixed and cannot be modified.",
-                    "defaultValue": false
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "fixLocation",
@@ -31519,6 +31606,60 @@
                     "type": "reference"
                 },
                 {
+                    "name": "displayDigits",
+                    "description": "Number of significant digits to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 3,
+                    "type": "integer"
+                },
+                {
+                    "name": "displayDecimals",
+                    "description": "Number of decimal places to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 2,
+                    "type": "integer"
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "description": "Threshold below which numbers are displayed as zero.",
+                    "groupName": "number-display",
+                    "defaultValue": 1e-14,
+                    "type": "number"
+                },
+                {
+                    "name": "padZeros",
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "forceSymbolic",
                     "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
                     "highlighted": true,
@@ -31534,37 +31675,6 @@
                     "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
                     "highlighted": true,
                     "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "displayDigits",
-                    "description": "Number of significant digits to display when rendering this number."
-                },
-                {
-                    "name": "displayDecimals",
-                    "description": "Number of decimal places to display when rendering this number."
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "description": "Threshold below which numbers are displayed as zero."
-                },
-                {
-                    "name": "padZeros",
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
-                },
-                {
-                    "name": "avoidScientificNotation",
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "asList",
-                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
-                    "highlighted": true,
-                    "defaultValue": true,
                     "values": [
                         "true",
                         "false"
@@ -31611,10 +31721,64 @@
                     "highlighted": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "displayDigits",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 }
             ],
             "top": true,
@@ -31734,7 +31898,7 @@
             "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222012212222222221222222122222222212212222",
             "abstractAncestors": [
                 "_mathListOperator",
-                "_composite",
+                "_valueList",
                 "_base"
             ],
             "attributes": [
@@ -31766,7 +31930,12 @@
                 {
                     "name": "fixed",
                     "description": "Whether this component's value is fixed and cannot be modified.",
-                    "defaultValue": false
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "fixLocation",
@@ -31805,6 +31974,60 @@
                     "type": "reference"
                 },
                 {
+                    "name": "displayDigits",
+                    "description": "Number of significant digits to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 3,
+                    "type": "integer"
+                },
+                {
+                    "name": "displayDecimals",
+                    "description": "Number of decimal places to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 2,
+                    "type": "integer"
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "description": "Threshold below which numbers are displayed as zero.",
+                    "groupName": "number-display",
+                    "defaultValue": 1e-14,
+                    "type": "number"
+                },
+                {
+                    "name": "padZeros",
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "forceSymbolic",
                     "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
                     "highlighted": true,
@@ -31820,37 +32043,6 @@
                     "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
                     "highlighted": true,
                     "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "displayDigits",
-                    "description": "Number of significant digits to display when rendering this number."
-                },
-                {
-                    "name": "displayDecimals",
-                    "description": "Number of decimal places to display when rendering this number."
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "description": "Threshold below which numbers are displayed as zero."
-                },
-                {
-                    "name": "padZeros",
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
-                },
-                {
-                    "name": "avoidScientificNotation",
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "asList",
-                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
-                    "highlighted": true,
-                    "defaultValue": true,
                     "values": [
                         "true",
                         "false"
@@ -31897,10 +32089,64 @@
                     "highlighted": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "displayDigits",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 }
             ],
             "top": true,
@@ -32020,7 +32266,7 @@
             "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222012212222222221222222122222222212212222",
             "abstractAncestors": [
                 "_mathListOperator",
-                "_composite",
+                "_valueList",
                 "_base"
             ],
             "attributes": [
@@ -32052,7 +32298,12 @@
                 {
                     "name": "fixed",
                     "description": "Whether this component's value is fixed and cannot be modified.",
-                    "defaultValue": false
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "fixLocation",
@@ -32091,6 +32342,60 @@
                     "type": "reference"
                 },
                 {
+                    "name": "displayDigits",
+                    "description": "Number of significant digits to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 3,
+                    "type": "integer"
+                },
+                {
+                    "name": "displayDecimals",
+                    "description": "Number of decimal places to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 2,
+                    "type": "integer"
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "description": "Threshold below which numbers are displayed as zero.",
+                    "groupName": "number-display",
+                    "defaultValue": 1e-14,
+                    "type": "number"
+                },
+                {
+                    "name": "padZeros",
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "forceSymbolic",
                     "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
                     "highlighted": true,
@@ -32106,37 +32411,6 @@
                     "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
                     "highlighted": true,
                     "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "displayDigits",
-                    "description": "Number of significant digits to display when rendering this number."
-                },
-                {
-                    "name": "displayDecimals",
-                    "description": "Number of decimal places to display when rendering this number."
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "description": "Threshold below which numbers are displayed as zero."
-                },
-                {
-                    "name": "padZeros",
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
-                },
-                {
-                    "name": "avoidScientificNotation",
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "asList",
-                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
-                    "highlighted": true,
-                    "defaultValue": true,
                     "values": [
                         "true",
                         "false"
@@ -32183,10 +32457,64 @@
                     "highlighted": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "displayDigits",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 }
             ],
             "top": true,
@@ -32306,7 +32634,7 @@
             "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222012212222222221222222122222222212212222",
             "abstractAncestors": [
                 "_mathListOperator",
-                "_composite",
+                "_valueList",
                 "_base"
             ],
             "attributes": [
@@ -32338,7 +32666,12 @@
                 {
                     "name": "fixed",
                     "description": "Whether this component's value is fixed and cannot be modified.",
-                    "defaultValue": false
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "fixLocation",
@@ -32377,6 +32710,60 @@
                     "type": "reference"
                 },
                 {
+                    "name": "displayDigits",
+                    "description": "Number of significant digits to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 3,
+                    "type": "integer"
+                },
+                {
+                    "name": "displayDecimals",
+                    "description": "Number of decimal places to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 2,
+                    "type": "integer"
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "description": "Threshold below which numbers are displayed as zero.",
+                    "groupName": "number-display",
+                    "defaultValue": 1e-14,
+                    "type": "number"
+                },
+                {
+                    "name": "padZeros",
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "forceSymbolic",
                     "description": "Whether to force the operator to evaluate symbolically rather than numerically.",
                     "highlighted": true,
@@ -32392,37 +32779,6 @@
                     "description": "Whether to force the operator to evaluate numerically rather than symbolically.",
                     "highlighted": true,
                     "defaultValue": false,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "displayDigits",
-                    "description": "Number of significant digits to display when rendering this number."
-                },
-                {
-                    "name": "displayDecimals",
-                    "description": "Number of decimal places to display when rendering this number."
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "description": "Threshold below which numbers are displayed as zero."
-                },
-                {
-                    "name": "padZeros",
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
-                },
-                {
-                    "name": "avoidScientificNotation",
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "asList",
-                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
-                    "highlighted": true,
-                    "defaultValue": true,
                     "values": [
                         "true",
                         "false"
@@ -32469,10 +32825,64 @@
                     "highlighted": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "displayDigits",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 }
             ],
             "top": true,
@@ -34800,7 +35210,7 @@
             "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_listIndexListOperator",
-                "_composite",
+                "_valueList",
                 "_base"
             ],
             "attributes": [
@@ -34832,7 +35242,12 @@
                 {
                     "name": "fixed",
                     "description": "Whether this component's value is fixed and cannot be modified.",
-                    "defaultValue": false
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "fixLocation",
@@ -34871,6 +35286,60 @@
                     "type": "reference"
                 },
                 {
+                    "name": "displayDigits",
+                    "description": "Number of significant digits to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 3,
+                    "type": "integer"
+                },
+                {
+                    "name": "displayDecimals",
+                    "description": "Number of decimal places to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 2,
+                    "type": "integer"
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "description": "Threshold below which numbers are displayed as zero.",
+                    "groupName": "number-display",
+                    "defaultValue": 1e-14,
+                    "type": "number"
+                },
+                {
+                    "name": "padZeros",
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "type",
                     "description": "Component type to interpret bare string children as. Omit it and they are read as what they look like: every piece naming a number makes the list numeric, anything else makes it text. Also decides how `target` is read, since it has no type of its own.",
                     "highlighted": true,
@@ -34906,37 +35375,6 @@
                     "description": "The value, or list of values, to look for.",
                     "highlighted": true,
                     "type": "_componentListWithSelectableType"
-                },
-                {
-                    "name": "displayDigits",
-                    "description": "Number of significant digits to display when rendering this number."
-                },
-                {
-                    "name": "displayDecimals",
-                    "description": "Number of decimal places to display when rendering this number."
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "description": "Threshold below which numbers are displayed as zero."
-                },
-                {
-                    "name": "padZeros",
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
-                },
-                {
-                    "name": "avoidScientificNotation",
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "asList",
-                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
-                    "highlighted": true,
-                    "defaultValue": true,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
                 }
             ],
             "properties": [
@@ -34962,10 +35400,64 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "displayDigits",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 }
             ],
             "top": true,
@@ -35229,7 +35721,7 @@
             "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_listIndexListOperator",
-                "_composite",
+                "_valueList",
                 "_base"
             ],
             "attributes": [
@@ -35261,7 +35753,12 @@
                 {
                     "name": "fixed",
                     "description": "Whether this component's value is fixed and cannot be modified.",
-                    "defaultValue": false
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "fixLocation",
@@ -35300,6 +35797,60 @@
                     "type": "reference"
                 },
                 {
+                    "name": "displayDigits",
+                    "description": "Number of significant digits to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 3,
+                    "type": "integer"
+                },
+                {
+                    "name": "displayDecimals",
+                    "description": "Number of decimal places to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 2,
+                    "type": "integer"
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "description": "Threshold below which numbers are displayed as zero.",
+                    "groupName": "number-display",
+                    "defaultValue": 1e-14,
+                    "type": "number"
+                },
+                {
+                    "name": "padZeros",
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "type",
                     "description": "Component type to interpret bare string children as. Omit it and they are read as what they look like: every piece naming a number makes the list numeric, anything else makes it text. Also decides how `target` is read, since it has no type of its own.",
                     "highlighted": true,
@@ -35335,37 +35886,6 @@
                     "description": "The value, or list of values, to locate within the sorted list.",
                     "highlighted": true,
                     "type": "_componentListWithSelectableType"
-                },
-                {
-                    "name": "displayDigits",
-                    "description": "Number of significant digits to display when rendering this number."
-                },
-                {
-                    "name": "displayDecimals",
-                    "description": "Number of decimal places to display when rendering this number."
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "description": "Threshold below which numbers are displayed as zero."
-                },
-                {
-                    "name": "padZeros",
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
-                },
-                {
-                    "name": "avoidScientificNotation",
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "asList",
-                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
-                    "highlighted": true,
-                    "defaultValue": true,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
                 },
                 {
                     "name": "allowUnsorted",
@@ -35439,10 +35959,64 @@
                     "highlighted": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "displayDigits",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 }
             ],
             "top": true,
@@ -35706,7 +36280,7 @@
             "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_countingListOperator",
-                "_composite",
+                "_valueList",
                 "_base"
             ],
             "attributes": [
@@ -35738,7 +36312,12 @@
                 {
                     "name": "fixed",
                     "description": "Whether this component's value is fixed and cannot be modified.",
-                    "defaultValue": false
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "fixLocation",
@@ -35778,23 +36357,46 @@
                 },
                 {
                     "name": "displayDigits",
-                    "description": "Number of significant digits to display when rendering this number."
+                    "description": "Number of significant digits to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 3,
+                    "type": "integer"
                 },
                 {
                     "name": "displayDecimals",
-                    "description": "Number of decimal places to display when rendering this number."
+                    "description": "Number of decimal places to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 2,
+                    "type": "integer"
                 },
                 {
                     "name": "displaySmallAsZero",
-                    "description": "Threshold below which numbers are displayed as zero."
+                    "description": "Threshold below which numbers are displayed as zero.",
+                    "groupName": "number-display",
+                    "defaultValue": 1e-14,
+                    "type": "number"
                 },
                 {
                     "name": "padZeros",
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "avoidScientificNotation",
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "asList",
@@ -35867,10 +36469,64 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "displayDigits",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
                     "name": "categories",
@@ -36146,7 +36802,7 @@
             "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
                 "_countingListOperator",
-                "_composite",
+                "_valueList",
                 "_base"
             ],
             "attributes": [
@@ -36178,7 +36834,12 @@
                 {
                     "name": "fixed",
                     "description": "Whether this component's value is fixed and cannot be modified.",
-                    "defaultValue": false
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "fixLocation",
@@ -36218,23 +36879,46 @@
                 },
                 {
                     "name": "displayDigits",
-                    "description": "Number of significant digits to display when rendering this number."
+                    "description": "Number of significant digits to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 3,
+                    "type": "integer"
                 },
                 {
                     "name": "displayDecimals",
-                    "description": "Number of decimal places to display when rendering this number."
+                    "description": "Number of decimal places to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 2,
+                    "type": "integer"
                 },
                 {
                     "name": "displaySmallAsZero",
-                    "description": "Threshold below which numbers are displayed as zero."
+                    "description": "Threshold below which numbers are displayed as zero.",
+                    "groupName": "number-display",
+                    "defaultValue": 1e-14,
+                    "type": "number"
                 },
                 {
                     "name": "padZeros",
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "avoidScientificNotation",
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "asList",
@@ -36306,10 +36990,64 @@
                     "highlighted": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "displayDigits",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
                     "name": "binEdges",
@@ -124208,7 +124946,7 @@
             ],
             "childBuckets": "1111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111111",
             "abstractAncestors": [
-                "_composite",
+                "_valueList",
                 "_base"
             ],
             "attributes": [
@@ -124284,6 +125022,60 @@
                     "type": "reference"
                 },
                 {
+                    "name": "displayDigits",
+                    "description": "Number of significant digits to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 3,
+                    "type": "integer"
+                },
+                {
+                    "name": "displayDecimals",
+                    "description": "Number of decimal places to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 2,
+                    "type": "integer"
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "description": "Threshold below which numbers are displayed as zero.",
+                    "groupName": "number-display",
+                    "defaultValue": 1e-14,
+                    "type": "number"
+                },
+                {
+                    "name": "padZeros",
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
+                    "defaultValue": true,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "sortVectorsBy",
                     "description": "Whether to sort vectors by component or by magnitude.",
                     "groupName": "sorting",
@@ -124347,17 +125139,6 @@
                         }
                     ],
                     "type": "keyword"
-                },
-                {
-                    "name": "asList",
-                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
-                    "highlighted": true,
-                    "defaultValue": true,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
                 }
             ],
             "properties": [
@@ -124399,10 +125180,64 @@
                     "groupName": "sorting"
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "displayDigits",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 }
             ],
             "top": true,

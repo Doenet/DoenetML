@@ -197,7 +197,10 @@ export function compareExtractedValues(a, b, numeric) {
  *
  * Defines:
  * - `componentIndicesForValues` — the component index of each value, in
- *   document order. One per child, so the indices are distinct.
+ *   document order. One per child, so the indices are distinct, except that
+ *   an entry of a list component is `{ componentIdx, listInd, componentType,
+ *   valuesVariable }`, read from the list's array of values, and its value
+ *   in `listValues` carries its `listInd`.
  * - `listValues` — the extracted values in that same order, skipping any child
  *   whose type has no comparable value.
  * - `allAreNumeric` — whether the list should be compared numerically.
@@ -252,6 +255,17 @@ export function returnListValueStateVariableDefinitions({
                     );
                     continue;
                 }
+                // An entry of a list component is read from the list's array
+                // of values, at its index.
+                if (child.listEntryIndex !== undefined) {
+                    componentIndicesForValues.push({
+                        componentIdx: child.componentIdx,
+                        listInd: child.listEntryIndex,
+                        componentType: child.componentType,
+                        valuesVariable: child.listValuesVariable,
+                    });
+                    continue;
+                }
                 // A child that publishes `componentIndicesInList` contributes
                 // one index per item it holds. No component defines that
                 // variable today, so in practice this is one index per child.
@@ -299,11 +313,43 @@ export function returnListValueStateVariableDefinitions({
                 };
             }
 
+            // One dependency on the values of each list component, which
+            // all of its entries read.
+            for (let item of stateValues.componentIndicesForValues) {
+                if (typeof item === "object") {
+                    dependencies[`listValues${item.componentIdx}`] = {
+                        dependencyType: "stateVariable",
+                        componentIdx: item.componentIdx,
+                        variableName: item.valuesVariable,
+                    };
+                }
+            }
+
             if (supportProps && stateValues.propName) {
                 for (let [
                     ind,
                     cIdx,
                 ] of stateValues.componentIndicesForValues.entries()) {
+                    if (typeof cIdx === "object") {
+                        // The property of an entry of a list component, read
+                        // as `$l[2].prop` reads it.
+                        dependencies[`component${ind}`] = {
+                            dependencyType: "stateVariableFromUnresolvedPath",
+                            componentIdx: cIdx.componentIdx,
+                            unresolvedPath: [
+                                {
+                                    name: "",
+                                    index: [{ value: [`${cIdx.listInd + 1}`] }],
+                                },
+                                { name: stateValues.propName, index: [] },
+                            ],
+                            variablesOptional: true,
+                            caseInsensitiveVariableMatch: true,
+                            publicStateVariablesOnly: true,
+                            returnAsComponentObject: true,
+                        };
+                        continue;
+                    }
                     dependencies[`component${ind}`] = {
                         dependencyType: "stateVariable",
                         componentIdx: cIdx,
@@ -322,6 +368,9 @@ export function returnListValueStateVariableDefinitions({
                     ind,
                     cIdx,
                 ] of stateValues.componentIndicesForValues.entries()) {
+                    if (typeof cIdx === "object") {
+                        continue;
+                    }
                     dependencies[`component${ind}`] = {
                         dependencyType: "multipleStateVariables",
                         componentIdx: cIdx,
@@ -343,7 +392,27 @@ export function returnListValueStateVariableDefinitions({
             let numValues = dependencyValues.componentIndicesForValues.length;
 
             for (let ind = 0; ind < numValues; ind++) {
+                const item = dependencyValues.componentIndicesForValues[ind];
                 let component = dependencyValues[`component${ind}`];
+                if (typeof item === "object" && !dependencyValues.propName) {
+                    // An entry of a list component, which compares as a
+                    // component of its type holding its value does.
+                    const values =
+                        dependencyValues[`listValues${item.componentIdx}`];
+                    component = {
+                        componentIdx: item.componentIdx,
+                        componentType: item.componentType,
+                        stateValues: { value: values?.[item.listInd] },
+                    };
+                } else if (typeof item === "object" && !component) {
+                    // An entry without the property is kept, as a child
+                    // without it is, and compares as having no value.
+                    component = {
+                        componentIdx: item.componentIdx,
+                        componentType: item.componentType,
+                        stateValues: {},
+                    };
+                }
                 if (!component) {
                     continue;
                 }
@@ -365,6 +434,9 @@ export function returnListValueStateVariableDefinitions({
                 // both compare as the text `NaN`.
                 listValues.push({
                     ...result.value,
+                    ...(typeof item === "object"
+                        ? { listInd: item.listInd }
+                        : {}),
                     numericByType: result.stillNumeric,
                 });
                 if (!result.stillNumeric) {

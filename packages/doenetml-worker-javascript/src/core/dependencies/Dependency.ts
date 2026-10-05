@@ -149,6 +149,35 @@ export class Dependency {
 
     setUpParameters() {}
 
+    /**
+     * Whether this dependency records the variables it reads from each
+     * downstream component (`mappedDownstreamVariableNamesByComponent`).
+     * A dependency that reads none records nothing unless
+     * `mapsVariablesForEveryComponent` is set, as a child dependency sets it
+     * for the list components it may meet.
+     */
+    hasVariableMapping() {
+        return (
+            this.originalDownstreamVariableNames.length > 0 ||
+            Boolean(this.originalVariablesByComponent) ||
+            Boolean(this.mapsVariablesForEveryComponent)
+        );
+    }
+
+    /**
+     * For a list component downstream (`listEntryComponentType`), the
+     * variables of the list that the variables `originalVarNames` of one of
+     * its entries read, followed by the list's count variable. `undefined`
+     * for any other component, and for a dependency that does not present a
+     * list as its entries. Overridden by `ChildDependency`.
+     */
+    mapListEntryVariables(
+        _downComponent: any,
+        _originalVarNames: string[],
+    ): string[] | undefined {
+        return undefined;
+    }
+
     async determineDownstreamComponents(_args?: any): Promise<any> {
         return {
             success: true,
@@ -210,10 +239,7 @@ export class Dependency {
             upCompDownDeps[varName][this.dependencyName] = this;
         }
 
-        if (
-            this.originalDownstreamVariableNames.length === 0 &&
-            !this.originalVariablesByComponent
-        ) {
+        if (!this.hasVariableMapping()) {
             delete this.mappedDownstreamVariableNamesByComponent;
             delete this.upValuesChanged;
         } else {
@@ -415,6 +441,14 @@ export class Dependency {
                 componentClass: aliasClass,
             });
 
+            const listMappedVarNames = this.mapListEntryVariables(
+                downComponent,
+                originalVarNames,
+            );
+            if (listMappedVarNames) {
+                mappedVarNames = listMappedVarNames;
+            }
+
             if ((this.constructor as typeof Dependency).convertToArraySize) {
                 // `arraySizeStateVariable` exists only once the array has
                 // materialized, so build arrays before converting names
@@ -540,6 +574,14 @@ export class Dependency {
             // (If not variablesOptional and variable doesn't exist, will eventually get an error)
             let downVarNames = mappedVarNames;
 
+            if (listMappedVarNames) {
+                // An entry variable the list does not provide is absent from
+                // the entries, so there is nothing of the list's to read.
+                downVarNames = downVarNames.filter(
+                    (downVar: string) => downVar in downComponent.state,
+                );
+            }
+
             if (downComponent.createOnDemandStateVariableDefinitions) {
                 // A value reference (`_ref`) defines almost nothing itself. A
                 // variable asked of it that it lacks is made now, from the
@@ -577,7 +619,8 @@ export class Dependency {
 
             if (
                 originalVarNames.length > 0 ||
-                this.originalVariablesByComponent
+                this.originalVariablesByComponent ||
+                this.mapsVariablesForEveryComponent
             ) {
                 // Intern the (frozen) name list: most dependencies map the
                 // same few lists, so share one array per distinct list.
@@ -763,6 +806,13 @@ export class Dependency {
                     this.mappedDownstreamVariableNamesByComponent[
                         indexToRemove
                     ];
+                if (affectedDownstreamVariableNames.length === 0) {
+                    // Nothing was read, so the edge was recorded as an
+                    // identity (see `addDownstreamComponent`).
+                    affectedDownstreamVariableNames = [
+                        this.downstreamVariableNameIfNoVariables,
+                    ];
+                }
                 this.mappedDownstreamVariableNamesByComponent.splice(
                     indexToRemove,
                     1,
@@ -854,10 +904,7 @@ export class Dependency {
             this.downstreamComponentTypes[index1],
         ];
 
-        if (
-            this.originalDownstreamVariableNames.length > 0 ||
-            this.originalVariablesByComponent
-        ) {
+        if (this.hasVariableMapping()) {
             [
                 this.mappedDownstreamVariableNamesByComponent[index1],
                 this.mappedDownstreamVariableNamesByComponent[index2],
@@ -902,7 +949,12 @@ export class Dependency {
             ).fill([this.downstreamVariableNameIfNoVariables]);
         } else {
             affectedDownstreamVariableNamesByUpstreamComponent =
-                this.mappedDownstreamVariableNamesByComponent;
+                this.mappedDownstreamVariableNamesByComponent.map(
+                    (names: string[]) =>
+                        names.length > 0
+                            ? names
+                            : [this.downstreamVariableNameIfNoVariables],
+                );
             if (this.variablesOptional) {
                 let newVarNames = [];
                 for (let [
@@ -1091,7 +1143,9 @@ export class Dependency {
                             : originalVarName;
 
                         if (
-                            !this.variablesOptional ||
+                            (!this.variablesOptional &&
+                                depComponent.constructor
+                                    .listEntryComponentType === undefined) ||
                             mappedVarName in depComponent.state
                         ) {
                             let mappedStateVarObj =

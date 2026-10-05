@@ -262,9 +262,36 @@ export async function matchChildrenToChildGroups({
 
     let unmatchedChildren: any[] = [];
 
+    delete parent.listChildPresentedTypes;
+
     for (let [ind, child] of parent.activeChildren.entries() as Iterable<
         [number, any]
     >) {
+        // A list component stands in for its entries: it is matched as one
+        // of them, or as what one of them adapts to.
+        const listEntryType =
+            typeof child === "object"
+                ? child.constructor?.listEntryComponentType
+                : undefined;
+        if (listEntryType !== undefined) {
+            const listResult = findChildGroupForListEntries({
+                core,
+                entryType: listEntryType,
+                parentClass: parent.constructor,
+            });
+            if (listResult.success) {
+                parent.childMatchesByGroup[listResult.group!].push(ind);
+                if (!parent.listChildPresentedTypes) {
+                    parent.listChildPresentedTypes = {};
+                }
+                parent.listChildPresentedTypes[ind] = {
+                    componentType: listResult.componentType,
+                    adapterVariable: listResult.adapterVariable,
+                };
+                continue;
+            }
+        }
+
         // A value reference (`_ref`) stands in for a component of its
         // presented type. `Copy.js` chose that type so that a group takes it
         // directly, and the reference has no adapters of its own, so it is
@@ -285,7 +312,11 @@ export async function matchChildrenToChildGroups({
             continue;
         }
 
-        let result;
+        let result: {
+            success: boolean;
+            group?: string;
+            adapterIndUsed?: number;
+        };
         if (presentedType !== undefined) {
             result = findChildGroupNoAdapters({
                 core,
@@ -393,6 +424,80 @@ export function findChildGroup({
     });
 }
 
+/**
+ * Find the child group of `parentClass` that takes the entries of a list
+ * component, each of `entryType`. An entry is matched as its own type, or
+ * as the type of one of its adapters, as `findChildGroup` matches a
+ * component; no adapter component is made, and the entry instead presents as
+ * the adapter's type and reads `adapterVariable` as its `value`.
+ */
+export function findChildGroupForListEntries({
+    core,
+    entryType,
+    parentClass,
+}: {
+    core: Core;
+    entryType: string;
+    parentClass: any;
+}): {
+    success: boolean;
+    group?: string;
+    componentType?: string;
+    adapterVariable?: string;
+} {
+    let result = findChildGroupNoAdapters({
+        core,
+        componentType: entryType,
+        parentClass,
+    });
+    if (result.success) {
+        return { ...result, componentType: entryType };
+    }
+
+    const entryClass = core.componentInfoObjects.allComponentClasses[entryType];
+
+    for (let n = 0; n < entryClass.numAdapters; n++) {
+        const adapter = entryClass.adapters[n];
+        if (
+            typeof adapter !== "string" &&
+            adapter.substituteForPrimaryStateVariable
+        ) {
+            continue;
+        }
+        const adapterType = entryClass.getAdapterComponentType(
+            n,
+            core.componentInfoObjects.publicStateVariableInfo,
+        );
+        result = findChildGroupNoAdapters({
+            core,
+            componentType: adapterType,
+            parentClass,
+        });
+        if (result.success) {
+            return {
+                ...result,
+                componentType: adapterType,
+                adapterVariable:
+                    typeof adapter === "string"
+                        ? adapter
+                        : adapter.stateVariable,
+            };
+        }
+    }
+
+    result = findChildGroupNoAdapters({
+        core,
+        componentType: entryType,
+        parentClass,
+        afterAdapters: true,
+    });
+    if (result.success) {
+        return { ...result, componentType: entryType };
+    }
+
+    return { success: false };
+}
+
 export function findChildGroupNoAdapters({
     core,
     componentType,
@@ -467,6 +572,15 @@ export async function returnActiveChildrenIndicesToRender({
     let childIndicesToRender: number[] | null = null;
     if ("childIndicesToRender" in component.state) {
         childIndicesToRender = await component.stateValues.childIndicesToRender;
+        if (
+            childIndicesToRender &&
+            component.activeChildren.some(isListComponent)
+        ) {
+            childIndicesToRender = await activeIndicesOfExpandedChildren({
+                component,
+                expandedIndices: childIndicesToRender,
+            });
+        }
     }
 
     for (let [ind, child] of component.activeChildren.entries() as Iterable<
@@ -513,6 +627,61 @@ export async function returnActiveChildrenIndicesToRender({
     }
 
     return indicesToRender;
+}
+
+/**
+ * The positions among `component.activeChildren` of the children at
+ * `expandedIndices`, which count each list component among them as its
+ * entries, as a child dependency presents them (`expandListChildren`). A
+ * `childIndicesToRender` computed from a child dependency is in those
+ * positions. A list is included if any of its entries is, and a list with
+ * no entries is included, so that it is drawn as nothing at all, as a
+ * composite with no replacements is.
+ */
+async function activeIndicesOfExpandedChildren({
+    component,
+    expandedIndices,
+}: {
+    component: any;
+    expandedIndices: number[];
+}): Promise<number[]> {
+    const expanded = new Set(expandedIndices);
+    const activeIndices: number[] = [];
+    let expandedInd = 0;
+    for (let [ind, child] of component.activeChildren.entries() as Iterable<
+        [number, any]
+    >) {
+        let span = 1;
+        if (isListComponent(child)) {
+            span = await child.stateValues.numEntries;
+            if (
+                span === 0 &&
+                child.replacementOf?.componentType === "_copy" &&
+                component.sharedParameters?.compositesMustHaveAReplacement
+            ) {
+                // the blank child of `ChildDependency.listMustHaveAnEntry`
+                span = 1;
+            }
+        }
+        if (span === 0) {
+            activeIndices.push(ind);
+        }
+        for (let i = 0; i < span; i++) {
+            if (expanded.has(expandedInd + i)) {
+                activeIndices.push(ind);
+                break;
+            }
+        }
+        expandedInd += span;
+    }
+    return activeIndices;
+}
+
+function isListComponent(child: any): boolean {
+    return (
+        typeof child === "object" &&
+        child?.constructor?.listEntryComponentType !== undefined
+    );
 }
 
 /**

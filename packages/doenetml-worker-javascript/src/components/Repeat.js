@@ -124,6 +124,10 @@ export default class Repeat extends CompositeComponent {
                             compositeIdx: stateValues.sourcesComponentIdx,
                             recursive: true,
                             recurseNonStandardComposites: true,
+                            // how many entries a list component among the
+                            // sources has (`ValueListComponent`)
+                            variableNames: ["numEntries"],
+                            variablesOptional: true,
                         },
                     };
                 } else {
@@ -136,10 +140,17 @@ export default class Repeat extends CompositeComponent {
                         (s) => typeof s !== "string" || s.trim() !== "",
                     );
 
-                    let numIterates = nonBlankSources.length;
-                    let sourcesChildIndices = nonBlankSources.map(
-                        (x) => x.componentIdx,
+                    // A list component among the sources is one item per
+                    // entry.
+                    let sourcesChildIndices = nonBlankSources.flatMap((x) =>
+                        x.stateValues?.numEntries !== undefined
+                            ? [...Array(x.stateValues.numEntries).keys()].map(
+                                  (entryInd) =>
+                                      listEntrySource(x.componentIdx, entryInd),
+                              )
+                            : [x.componentIdx],
                     );
+                    let numIterates = sourcesChildIndices.length;
 
                     return {
                         setValue: {
@@ -539,7 +550,11 @@ export default class Repeat extends CompositeComponent {
         let foundDeletedSourcesChild = false;
         if (currentNumIterates < prevNumIterates) {
             for (let ind = currentNumIterates; ind < prevNumIterates; ind++) {
-                if (components[lrp.sourcesChildIndices[ind]] === undefined) {
+                if (
+                    components[
+                        sourceComponentIdx(lrp.sourcesChildIndices[ind])
+                    ] === undefined
+                ) {
                     foundDeletedSourcesChild = true;
                 }
             }
@@ -547,7 +562,7 @@ export default class Repeat extends CompositeComponent {
             if (!foundDeletedSourcesChild) {
                 // check if any of the previously withheld substitutionChildNames are deleted
                 for (let name of lrp.withheldSubstitutionChildNames) {
-                    if (components[name] === undefined) {
+                    if (components[sourceComponentIdx(name)] === undefined) {
                         foundDeletedSourcesChild = true;
                     }
                 }
@@ -933,19 +948,50 @@ async function addAndLinkAliasComponents(
 }
 
 /**
+ * The item of `sourcesChildIndices` for entry `entryInd` of the list
+ * component `listIdx`, which has no component of its own.
+ */
+function listEntrySource(listIdx, entryInd) {
+    return `${listIdx}|${entryInd}`;
+}
+
+/**
+ * The component an item of `sourcesChildIndices` is or is in: itself, or the
+ * list component of a list entry (`listEntrySource`).
+ */
+function sourceComponentIdx(source) {
+    if (typeof source === "string" && source.includes("|")) {
+        return Number(source.split("|")[0]);
+    }
+    return source;
+}
+
+/**
  * The reference that the `valueName` of iteration `iter` extends.
  *
  * It points straight at the item the iteration was counted from: entry `iter`
  * of `sourcesChildIndices`. Every composite among the sources has been replaced
  * by its items there, including one written inside a group, such as the
  * `<mathList>` in `<group><mathList>1 2 3</mathList></group>`, so iteration
- * `iter` gets the `iter`-th item that the group displays.
+ * `iter` gets the `iter`-th item that the group displays. An entry of a list
+ * component is the list at the entry's index.
  *
  * A source that is text has no component to point at, so it is looked up at
  * position `iter + 1` in the `for` group's index.
  */
 function sourceRefForIter({ sourcesChildIndices, sourcesComponentIdx, iter }) {
     const sourceIdx = sourcesChildIndices[iter];
+
+    if (typeof sourceIdx === "string" && sourceIdx.includes("|")) {
+        const [listIdx, entryInd] = sourceIdx.split("|").map(Number);
+        const index = [{ value: [`${entryInd + 1}`] }];
+        return {
+            nodeIdx: listIdx,
+            originalPath: [{ name: "", index }],
+            unresolvedPath: [{ name: "", index }],
+            nodesInResolvedPath: [listIdx],
+        };
+    }
 
     if (typeof sourceIdx === "number") {
         return {

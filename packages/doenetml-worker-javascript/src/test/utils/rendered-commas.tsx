@@ -48,10 +48,20 @@ function rendererStateOf(core: PublicDoenetMLCore) {
  * markup that renderer actually produces — the same `text` state variable the
  * `text` pathway reads, so the two pathways are compared on the commas alone.
  */
-function ownText(stateVariables: AllStateVariables, componentIdx: number) {
+function ownText(
+    stateVariables: AllStateVariables,
+    componentIdx: number,
+    rendererState: Record<number, RendererStateEntry>,
+) {
     const stateValues = stateVariables[componentIdx]?.stateValues;
     if (typeof stateValues?.text === "string") {
         return stateValues.text;
+    }
+    // An entry of a list component has no component of its own, only the
+    // state its renderer is sent.
+    const rendered = rendererState[componentIdx]?.stateValues;
+    if (!stateValues && rendered) {
+        return rendered.text ?? rendered.latex ?? " ";
     }
     // `textFromComponent` gives a component without a text a single space.
     return " ";
@@ -90,7 +100,7 @@ function childrenWithCommas(
             const inner =
                 grandchildren && grandchildren.length > 0
                     ? childrenWithCommas(core, stateVariables, childIdx)
-                    : ownText(stateVariables, childIdx);
+                    : ownText(stateVariables, childIdx, rendererState);
             return <span key={ind}>{inner}</span>;
         },
     );

@@ -1100,7 +1100,9 @@ export class DependencyHandler {
             const dep = downDeps[dependencyName];
             if (
                 dep.downstreamComponentIndices?.length > 0 &&
-                dep.mappedDownstreamVariableNamesByComponent
+                dep.mappedDownstreamVariableNamesByComponent?.some(
+                    (names: string[]) => names.length > 0,
+                )
             ) {
                 return true;
             }

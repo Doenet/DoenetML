@@ -242,6 +242,9 @@ export default class Collect extends CompositeComponent {
                     useReplacementsForComposites: true,
                     includeNonActiveChildren: true,
                     recurseToMatchedChildren: false,
+                    // A list of maths is collected by `componentType="math"`,
+                    // as the maths of the composite it replaced were.
+                    matchListsByEntryType: true,
                 };
 
                 return {

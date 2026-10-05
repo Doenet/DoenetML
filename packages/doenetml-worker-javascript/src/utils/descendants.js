@@ -7,19 +7,59 @@ export function gatherDescendants({
     skipOverAdapters = false,
     ignoreReplacementsOfMatchedComposites = false,
     ignoreReplacementsOfEncounteredComposites = false,
+    matchListsByEntryType = false,
     init = true,
     componentInfoObjects,
 }) {
     // Note: ignoreReplacementsOfEncounteredComposites means ignore replacements
     // of all composites except copies of external content
 
+    // With `matchListsByEntryType`, a list component
+    // (`listEntryComponentType`) is matched by the type of its entries too,
+    // as the composite it replaced was matched by its replacements.
     let matchChildToTypes = (child) =>
-        descendantTypes.some((ct) =>
-            componentInfoObjects.isInheritedComponentType({
-                inheritedComponentType: child.componentType,
-                baseComponentType: ct,
-            }),
+        descendantTypes.some(
+            (ct) =>
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: child.componentType,
+                    baseComponentType: ct,
+                }) ||
+                (matchListsByEntryType &&
+                    child.constructor?.listEntryComponentType !== undefined &&
+                    componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType:
+                            child.constructor.listEntryComponentType,
+                        baseComponentType: ct,
+                    })),
         );
+
+    // With `useReplacementsForComposites`, a list component
+    // (`listEntryComponentType`) stands for its entries, as a composite
+    // stands for its replacements: its own children are not searched, and a
+    // search that starts at a list finds the list if it matches by the type
+    // of its entries.
+    let isList = (component) =>
+        component.constructor?.listEntryComponentType !== undefined;
+
+    if (useReplacementsForComposites && init && isList(ancestor)) {
+        const entryType = ancestor.constructor.listEntryComponentType;
+        const matchesByEntries =
+            matchListsByEntryType &&
+            descendantTypes.some((ct) =>
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: entryType,
+                    baseComponentType: ct,
+                }),
+            );
+        return matchesByEntries
+            ? [
+                  {
+                      componentIdx: ancestor.componentIdx,
+                      componentType: ancestor.componentType,
+                  },
+              ]
+            : [];
+    }
 
     let childrenToCheck = [];
 
@@ -163,7 +203,8 @@ export function gatherDescendants({
 
         if (
             (!matchedChild || recurseToMatchedChildren) &&
-            child.placeholderInd === undefined
+            child.placeholderInd === undefined &&
+            !(useReplacementsForComposites && isList(child))
         ) {
             // recurse
             let additionalDescendants = gatherDescendants({
@@ -175,6 +216,7 @@ export function gatherDescendants({
                 skipOverAdapters,
                 ignoreReplacementsOfMatchedComposites,
                 ignoreReplacementsOfEncounteredComposites,
+                matchListsByEntryType,
                 init: false,
                 componentInfoObjects,
             });

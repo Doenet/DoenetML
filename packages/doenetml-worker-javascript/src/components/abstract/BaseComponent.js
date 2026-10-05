@@ -151,6 +151,54 @@ export default class BaseComponent {
      */
     static definitionEssentialValuesAreReproducible = true;
 
+    /**
+     * Set on a list component: one component that holds its entries as
+     * arrays, but that a parent sees as one child of this type per entry,
+     * and that the viewer draws as one renderer of this type per entry
+     * (`RendererInstructionBuilder`). Its parent's child groups match it by
+     * this type, and a child dependency gives one record per entry
+     * (`childDependencies.ts`). Part of Doenet/DoenetML#2157.
+     */
+    static listEntryComponentType = undefined;
+
+    /**
+     * For a list component, the variable of its own that each variable of an
+     * entry reads. An entry variable not named here is absent from an entry
+     * that a parent reads, as an optional variable is.
+     *
+     * `listPerEntryVariables` names the variables of the list that hold one
+     * value per entry, in an array; entry `j` reads the `j`th. Every other
+     * variable is shared by all the entries. `listEntryCountVariable` names
+     * the variable that holds the number of entries.
+     */
+    static listEntryStateVariables = {};
+    static listPerEntryVariables = [];
+    static listEntryCountVariable = undefined;
+
+    /**
+     * For a list component, the properties of an entry that a reference
+     * computes from another entry property (`from`) with `compute`, as a
+     * component of the entries' type computes them from its value
+     * (`$l[2].numDimensions`), held in a component of `componentType`
+     * (`utils/listEntryReference.ts`).
+     */
+    static listEntryDerivedProperties = {};
+
+    /**
+     * For a list component, the properties that a reference to the whole
+     * list reads once, from the list (`$l.styleNumber`), where a reference
+     * to the whole list reads every other entry property once per entry
+     * (`utils/listEntryReference.ts`).
+     */
+    static listOwnProperties = [];
+
+    /**
+     * Whether a linked copy of this component (a shadow, `serialize`
+     * without `copyAll`) is made without its children, since everything it
+     * shows is shadowed from the component it copies.
+     */
+    static serializeChildrenOnlyIfUnlinked = false;
+
     static get rendererType() {
         return this.componentType;
     }
@@ -1528,7 +1576,12 @@ export default class BaseComponent {
             );
         }
 
-        let includeDefiningChildren = true;
+        // A component whose linked copy reads everything it shows from the
+        // component it copies (`serializeChildrenOnlyIfUnlinked`) is copied
+        // without its children unless the copy is unlinked (`copyAll`).
+        let includeDefiningChildren =
+            !this.constructor.serializeChildrenOnlyIfUnlinked ||
+            Boolean(parameters.copyAll);
         // let stateVariablesToInclude = [];
 
         const serializedComponent = {

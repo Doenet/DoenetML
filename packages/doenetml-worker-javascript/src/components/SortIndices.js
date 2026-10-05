@@ -1,43 +1,76 @@
-import Sort from "./Sort";
+import ValueListComponent from "./abstract/ValueListComponent";
+import { returnSortAttributes, returnSortedValuesDefinition } from "./Sort";
 import {
-    addReplacementRendererType,
-    calculateValueListReplacementChanges,
-    createValueListReplacements,
-} from "../utils/valueListReplacements";
+    returnBreakStringsIntoTypeSugarInstruction,
+    returnListValueStateVariableDefinitions,
+} from "../utils/listValues";
 
 /**
  * `<sortIndices>` reports the permutation that `<sort>` applies, rather than
  * the sorted values themselves: the list of positions of the original children
  * in sorted order (NumPy's `argsort`, R's `order`).
  *
- * It extends `<sort>` so that every way of deciding what to sort by —
- * `type`, `sortByProp`, points via `sortByComponent`, vectors via
- * `sortVectorsBy` — behaves identically in both components, and so that the
- * two can never disagree about an ordering.
+ * It shares `<sort>`'s attributes and its sorted values, so that every way of
+ * deciding what to sort by — `type`, `sortByProp`, points via
+ * `sortByComponent`, vectors via `sortVectorsBy` — behaves identically in both
+ * components, and so that the two can never disagree about an ordering.
  *
- * Its value is the composition of everything else: because DoenetML indexes
+ * The positions are a list component of numbers (`ValueListComponent`), which
+ * a parent sees as one `<number>` per position. Because DoenetML indexes
  * dynamically, `$data[$perm[1]]` sorts one list by another list's ordering,
  * which is otherwise not expressible.
  */
-export default class SortIndices extends Sort {
+export default class SortIndices extends ValueListComponent {
     static componentType = "sortIndices";
-
-    static replacementComponentType = "number";
 
     static componentDocs = {
         summary:
             "The indices that put a list in sorted order, rather than the sorted values",
     };
 
-    // `<sort>` is `allowInSchemaAnywhere` because its replacements are copies
-    // of its children, whatever those are. `<sortIndices>` always expands to
-    // `number` instead, so it must shed the inherited mark rather than be
-    // accepted in every container.
-    static allowInSchemaAnywhere = false;
-    static allowInSchemaAsComponent = ["number"];
+    static listEntryComponentType = "number";
+
+    static listEntryValuesVariable = "sortedIndices";
+
+    static createAttributesObject() {
+        let attributes = super.createAttributesObject();
+
+        Object.assign(attributes, returnSortAttributes());
+
+        return attributes;
+    }
+
+    static returnSugarInstructions() {
+        let sugarInstructions = super.returnSugarInstructions();
+
+        sugarInstructions.push(
+            returnBreakStringsIntoTypeSugarInstruction(this.componentType),
+        );
+
+        return sugarInstructions;
+    }
+
+    static returnChildGroups() {
+        return [
+            {
+                group: "anything",
+                componentTypes: ["_base"],
+            },
+        ];
+    }
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
+
+        Object.assign(
+            stateVariableDefinitions,
+            returnListValueStateVariableDefinitions({
+                componentName: this.componentType,
+                supportProps: true,
+            }),
+        );
+
+        stateVariableDefinitions.sortedValues = returnSortedValuesDefinition();
 
         stateVariableDefinitions.sortedIndices = {
             returnDependencies: () => ({
@@ -55,20 +88,29 @@ export default class SortIndices extends Sort {
                 // contributes exactly one entry to `componentIndicesForValues`,
                 // so the indices are distinct and the lookup is unambiguous;
                 // the guard below merely keeps the earlier position should that
-                // ever cease to hold.
+                // ever cease to hold. An entry of a list component is named by
+                // the list and its index in it.
                 let originalPosition = new Map();
                 for (let [
                     ind,
-                    cIdx,
+                    item,
                 ] of dependencyValues.componentIndicesForValues.entries()) {
-                    if (!originalPosition.has(cIdx)) {
-                        originalPosition.set(cIdx, ind + 1);
+                    const key =
+                        typeof item === "object"
+                            ? `${item.componentIdx}|${item.listInd}`
+                            : item;
+                    if (!originalPosition.has(key)) {
+                        originalPosition.set(key, ind + 1);
                     }
                 }
 
                 let sortedIndices = [];
                 for (let valueObj of dependencyValues.sortedValues) {
-                    let position = originalPosition.get(valueObj.componentIdx);
+                    const key =
+                        valueObj.listInd !== undefined
+                            ? `${valueObj.componentIdx}|${valueObj.listInd}`
+                            : valueObj.componentIdx;
+                    let position = originalPosition.get(key);
                     if (position !== undefined) {
                         sortedIndices.push(position);
                     }
@@ -78,63 +120,6 @@ export default class SortIndices extends Sort {
             },
         };
 
-        stateVariableDefinitions.readyToExpandWhenResolved = {
-            returnDependencies: () => ({
-                sortedIndices: {
-                    dependencyType: "stateVariable",
-                    variableName: "sortedIndices",
-                },
-            }),
-            markStale: () => ({ updateReplacements: true }),
-            definition: function () {
-                return { setValue: { readyToExpandWhenResolved: true } };
-            },
-        };
-
         return stateVariableDefinitions;
-    }
-
-    static async createSerializedReplacements({
-        component,
-        componentInfoObjects,
-        workspace,
-        nComponents,
-    }) {
-        return createValueListReplacements({
-            component,
-            values: await component.stateValues.sortedIndices,
-            componentType: this.replacementComponentType,
-            componentInfoObjects,
-            workspace,
-            nComponents,
-        });
-    }
-
-    static async calculateReplacementChanges({
-        component,
-        componentInfoObjects,
-        workspace,
-        nComponents,
-    }) {
-        return calculateValueListReplacementChanges({
-            component,
-            values: await component.stateValues.sortedIndices,
-            componentType: this.replacementComponentType,
-            componentInfoObjects,
-            workspace,
-            nComponents,
-        });
-    }
-
-    addOwnPotentialRendererTypes(rendererTypes, visited) {
-        super.addOwnPotentialRendererTypes(rendererTypes, visited);
-
-        // The replacements are indices — `<number>` components — however the
-        // children being ordered are typed.
-        addReplacementRendererType({
-            component: this,
-            componentType: this.constructor.replacementComponentType,
-            rendererTypes,
-        });
     }
 }

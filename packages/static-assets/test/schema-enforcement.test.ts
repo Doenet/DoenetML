@@ -192,22 +192,23 @@ describe("schema build enforcement", () => {
     it("throws when a composite carries both schema marks", () => {
         // The realistic way this happens is inheritance: both marks are
         // statics, so a composite extending an `allowInSchemaAnywhere` one
-        // (`SortIndices extends Sort`) picks the mark up silently and gets
-        // widened to every container despite naming a fixed replacement type.
-        const cls = infoObjects.allComponentClasses.sortIndices as any;
+        // picks the mark up silently and gets widened to every container
+        // despite naming a fixed replacement type.
+        const cls = infoObjects.allComponentClasses.selectRandomNumbers as any;
         const original = cls.allowInSchemaAnywhere;
         cls.allowInSchemaAnywhere = true;
         restore = () => {
             cls.allowInSchemaAnywhere = original;
         };
         expect(() => getSchema(infoObjects)).toThrow(
-            /`sortIndices` sets both allowInSchemaAnywhere and allowInSchemaAsComponent \[number\]/,
+            /`selectRandomNumbers` sets both allowInSchemaAnywhere and allowInSchemaAsComponent \[number\]/,
         );
     });
 
     it("keeps `<sortIndices>` out of containers that don't take a number", () => {
-        // `<sortIndices>` expands to `number`, so it must not follow `<sort>`
-        // into containers that accept arbitrary children of some other type.
+        // `<sortIndices>` is a list of numbers, which a container sees as
+        // its entries, so it must not follow `<sort>` into containers that
+        // accept arbitrary children of some other type.
         const schema = getSchema(infoObjects);
         const parentsOf = (child: string) =>
             schema.elements
