@@ -86,12 +86,6 @@ export default class ValueListComponent extends BaseComponent {
     // results of an operator are computed, and take none.
     static listEntriesTakeWrites = false;
 
-    // Whether a value written to an entry is handed to the subclass's
-    // `listEntryValuesVariable`, at the entry's index, for it to route to
-    // where the entry's value comes from (an authored child of a
-    // `<mathList>`), rather than kept by this class (`entryWrites`).
-    static listEntriesWriteToValues = false;
-
     // Whether the entries are fixed unless the list's `fixed` is set to
     // false. The entries of a list an author writes out (`<numberList>`) are
     // not fixed unless the list is.
@@ -322,7 +316,6 @@ export default class ValueListComponent extends BaseComponent {
         const entryType = this.listEntryComponentType;
         const valuesVariable = this.listEntryValuesVariable;
         const entriesTakeWrites = this.listEntriesTakeWrites;
-        const entriesWriteToValues = this.listEntriesWriteToValues;
         const entriesFixedByDefault = this.listEntriesFixedByDefault;
         const displaySettingsVariable = this.listEntryDisplaySettingsVariable;
         const kind = entryKind(entryType);
@@ -622,27 +615,6 @@ export default class ValueListComponent extends BaseComponent {
                 globalDependencyValues,
                 dependencyNamesByKey,
             }) {
-                if (
-                    entriesWriteToValues &&
-                    !globalDependencyValues.entriesFixed
-                ) {
-                    // `values` takes the entries written, by their index.
-                    const desiredValue = {};
-                    for (const arrayKey in desiredStateVariableValues[
-                        arrayName
-                    ]) {
-                        desiredValue[arrayKey] = entryValueOfType(
-                            desiredStateVariableValues[arrayName][arrayKey],
-                            entryType,
-                        );
-                    }
-                    return {
-                        success: true,
-                        instructions: [
-                            { setDependency: "values", desiredValue },
-                        ],
-                    };
-                }
                 if (!entriesTakeWrites || globalDependencyValues.entriesFixed) {
                     return { success: false };
                 }
@@ -760,8 +732,7 @@ export default class ValueListComponent extends BaseComponent {
             definition: ({ dependencyValues }) => ({
                 setValue: {
                     entriesCanBeModified:
-                        (entriesTakeWrites || entriesWriteToValues) &&
-                        !dependencyValues.entriesFixed,
+                        entriesTakeWrites && !dependencyValues.entriesFixed,
                 },
             }),
         };

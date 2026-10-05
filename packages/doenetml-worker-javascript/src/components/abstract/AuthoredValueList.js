@@ -32,9 +32,13 @@ import { returnUnorderedListStateVariableDefinitions } from "../../utils/unorder
  * A piece of text mixed with a reference (`$f(x)`) is made a component of
  * the entries' type by sugar, as before.
  *
- * A value written to an entry goes where the entry's value comes from: the
- * child, the list a nested entry belongs to, or, for a piece of text, the
- * list itself (`textPieceWrites`), which keeps it and saves it.
+ * Each entry depends on where its value comes from and nothing else
+ * (`entryStructure` says where), so that `<point>($Q.y, 2)</point>` and
+ * `<point name="Q">(1, $P.x)</point>`, whose coordinates are such lists,
+ * read each other's coordinates without a cycle. A value written to an
+ * entry goes to that same place: the child, the list a nested entry belongs
+ * to, or, for a piece of text, the list itself (`textPieceWrites`), which
+ * keeps it and saves it.
  *
  * A list made by shadowing a variable that holds an array (a `<numberList>`
  * a reference to `matrixSize` makes) has no children, and its entries are
@@ -43,8 +47,6 @@ import { returnUnorderedListStateVariableDefinitions } from "../../utils/unorder
 export default class AuthoredValueList extends ValueListComponent {
     static componentType = "_authoredValueList";
 
-    static listEntryValuesVariable = "listValues";
-    static listEntriesWriteToValues = true;
     static listEntriesFixedByDefault = false;
     static listEntryDisplaySettingsVariable = "entryDisplaySettings";
 
@@ -176,10 +178,9 @@ export default class AuthoredValueList extends ValueListComponent {
         const listClass = this;
         const entryType = this.listEntryComponentType;
         const kind = entryKind(entryType);
-        const childGroups = [
-            ...this.listChildGroups.map((x) => x.group),
-            "strings",
-        ];
+        const arrayName = this.listValuesArrayName;
+        const componentGroups = this.listChildGroups.map((x) => x.group);
+        const childGroups = [...componentGroups, "strings"];
         const displayNames =
             kind === "math" || kind === "number"
                 ? Object.keys(returnNumberDisplayAttributes())
@@ -208,7 +209,7 @@ export default class AuthoredValueList extends ValueListComponent {
             definition: () => ({ setValue: { textPieceParseSettings: {} } }),
         };
 
-        // The pieces of the list's text, and the value each is parsed as.
+        // The value each piece of the list's text is parsed as.
         stateVariableDefinitions.textPieceValues = {
             returnDependencies: () => ({
                 stringChildren: {
@@ -276,6 +277,34 @@ export default class AuthoredValueList extends ValueListComponent {
             }),
         };
 
+        // The value of each piece of text: what was written to it, or what
+        // it is parsed as.
+        stateVariableDefinitions.textPieceEntryValues = {
+            returnDependencies: () => ({
+                textPieceValues: {
+                    dependencyType: "stateVariable",
+                    variableName: "textPieceValues",
+                },
+                textPieceWrites: {
+                    dependencyType: "stateVariable",
+                    variableName: "textPieceWrites",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    textPieceEntryValues: dependencyValues.textPieceValues.map(
+                        (value, pieceInd) => {
+                            const write =
+                                dependencyValues.textPieceWrites[pieceInd];
+                            return write === null || write === undefined
+                                ? value
+                                : restoredValue(write, kind);
+                        },
+                    ),
+                },
+            }),
+        };
+
         stateVariableDefinitions.mergeMathLists = {
             returnDependencies: () => ({
                 mergeMathListsAttr: {
@@ -293,11 +322,7 @@ export default class AuthoredValueList extends ValueListComponent {
                 const sources = [];
                 for (const child of dependencyValues.children) {
                     if (typeof child === "string") {
-                        for (const piece of listClass.splitTextIntoPieces(
-                            child,
-                        )) {
-                            sources.push(piece);
-                        }
+                        sources.push(...listClass.splitTextIntoPieces(child));
                     } else {
                         sources.push(child);
                     }
@@ -315,260 +340,286 @@ export default class AuthoredValueList extends ValueListComponent {
             },
         };
 
-        // The values of the entries (`values`), where each comes from
-        // (`sources`), and the display settings each is shown with
-        // (`displaySettings`, `null` for the list's).
-        stateVariableDefinitions.listEntries = {
-            // A reference to the whole list reads them from the list.
-            shadowVariable: true,
-            returnDependencies: () => ({
-                children: {
-                    dependencyType: "child",
-                    childGroups,
-                    variableNames: [
-                        "value",
-                        ...displayNames,
-                        "referentInfo",
-                        "entryOfReference",
-                    ],
-                    variablesOptional: true,
-                },
-                textPieceValues: {
-                    dependencyType: "stateVariable",
-                    variableName: "textPieceValues",
-                },
-                textPieceWrites: {
-                    dependencyType: "stateVariable",
-                    variableName: "textPieceWrites",
-                },
-                shadow: {
-                    dependencyType: "stateVariable",
-                    variableName: "listValuesShadow",
-                },
-                maxNumber: {
-                    dependencyType: "stateVariable",
-                    variableName: "maxNumber",
-                },
-                mergeMathLists: {
-                    dependencyType: "stateVariable",
-                    variableName: "mergeMathLists",
-                },
-                ...Object.fromEntries(
-                    displayNames.map((name) => [
-                        name,
-                        { dependencyType: "stateVariable", variableName: name },
-                    ]),
-                ),
-            }),
-            definition({ dependencyValues, usedDefault }) {
-                let values = [];
-                let entrySources = [];
-                let entryDisplaySettings = [];
+        // Where each entry's value comes from, without its value: a piece
+        // of text (`pieceInd`), a child (`componentInd`, among the children
+        // that are not text, once a list among them is its entries), an
+        // item of a piece or child whose value is a list, when the math
+        // lists merge (`component` of `nComponents`), or the array the list
+        // shadows (`shadowInd`). Only merging reads the values, to count the
+        // items.
+        stateVariableDefinitions.entryStructure = {
+            stateVariablesDeterminingDependencies: ["mergeMathLists"],
+            returnDependencies({ stateValues }) {
+                return {
+                    children: {
+                        dependencyType: "child",
+                        childGroups,
+                        variableNames: stateValues.mergeMathLists
+                            ? ["value"]
+                            : [],
+                        skipComponentIndices: true,
+                    },
+                    ...(stateValues.mergeMathLists
+                        ? {
+                              textPieceEntryValues: {
+                                  dependencyType: "stateVariable",
+                                  variableName: "textPieceEntryValues",
+                              },
+                          }
+                        : {}),
+                    shadow: {
+                        dependencyType: "stateVariable",
+                        variableName: "listValuesShadow",
+                    },
+                    maxNumber: {
+                        dependencyType: "stateVariable",
+                        variableName: "maxNumber",
+                    },
+                };
+            },
+            definition({ dependencyValues }) {
+                let entryStructure = [];
 
-                const listSettings = {};
-                const listSetsDisplay = {};
-                for (const name of displayNames) {
-                    listSettings[name] = dependencyValues[name];
-                    listSetsDisplay[name] = !usedDefault[name];
-                }
-
-                // The value of one source of entries (a child or a piece of
-                // text), which is one entry, or, when the math lists merge
-                // and it is a list, one entry per item.
-                function addEntries(value, source, settings) {
-                    if (
-                        dependencyValues.mergeMathLists &&
-                        value instanceof me.class &&
-                        Array.isArray(value.tree) &&
-                        value.tree[0] === "list"
-                    ) {
+                function addSources(value, source) {
+                    if (isMathList(value)) {
                         const nComponents = value.tree.length - 1;
                         for (let i = 0; i < nComponents; i++) {
-                            values.push(
-                                entryValueOfType(
-                                    value.get_component(i),
-                                    entryType,
-                                ),
-                            );
-                            entrySources.push({
+                            entryStructure.push({
                                 ...source,
                                 component: i,
                                 nComponents,
                             });
-                            entryDisplaySettings.push(settings);
                         }
                     } else {
-                        values.push(entryValueOfType(value, entryType));
-                        entrySources.push(source);
-                        entryDisplaySettings.push(settings);
+                        entryStructure.push(source);
                     }
                 }
 
                 let pieceInd = 0;
                 let componentInd = 0;
-                for (const [
-                    childInd,
-                    child,
-                ] of dependencyValues.children.entries()) {
+                for (const child of dependencyValues.children) {
                     if (typeof child === "string") {
                         for (const _piece of listClass.splitTextIntoPieces(
                             child,
                         )) {
-                            const write =
-                                dependencyValues.textPieceWrites[pieceInd];
-                            addEntries(
-                                write === null || write === undefined
-                                    ? dependencyValues.textPieceValues[pieceInd]
-                                    : restoredValue(write, kind),
+                            addSources(
+                                dependencyValues.textPieceEntryValues?.[
+                                    pieceInd
+                                ],
                                 { pieceInd },
-                                null,
                             );
                             pieceInd++;
                         }
-                        continue;
+                    } else {
+                        addSources(child.stateValues?.value, { componentInd });
+                        componentInd++;
                     }
-
-                    const settings = childDisplaySettings({
-                        child,
-                        childUsedDefault: usedDefault.children?.[componentInd],
-                        displayNames,
-                        listSettings,
-                        listSetsDisplay,
-                    });
-                    componentInd++;
-
-                    addEntries(child.stateValues.value, { childInd }, settings);
                 }
 
                 if (
                     dependencyValues.children.length === 0 &&
                     dependencyValues.shadow !== null
                 ) {
-                    values = [...dependencyValues.shadow];
-                    entrySources = values.map((_, shadowInd) => ({
-                        shadowInd,
-                    }));
-                    entryDisplaySettings = values.map(() => null);
-                }
-
-                const maxNumber = dependencyValues.maxNumber;
-                if (values.length > maxNumber) {
-                    values = values.slice(0, maxNumber);
-                    entrySources = entrySources.slice(0, maxNumber);
-                    entryDisplaySettings = entryDisplaySettings.slice(
-                        0,
-                        maxNumber,
+                    entryStructure = dependencyValues.shadow.map(
+                        (_, shadowInd) => ({ shadowInd }),
                     );
                 }
 
-                return {
-                    setValue: {
-                        listEntries: {
-                            values,
-                            sources: entrySources,
-                            displaySettings: entryDisplaySettings,
-                        },
+                if (entryStructure.length > dependencyValues.maxNumber) {
+                    entryStructure = entryStructure.slice(
+                        0,
+                        dependencyValues.maxNumber,
+                    );
+                }
+
+                return { setValue: { entryStructure } };
+            },
+        };
+
+        // The number of entries is that of `entryStructure`, so it does not
+        // depend on their values.
+        stateVariableDefinitions.computedNumEntries = {
+            ...stateVariableDefinitions.computedNumEntries,
+            returnDependencies: () => ({
+                entryStructure: {
+                    dependencyType: "stateVariable",
+                    variableName: "entryStructure",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    computedNumEntries: dependencyValues.entryStructure.length,
+                },
+            }),
+        };
+
+        // Each entry reads where its value comes from, and a value written
+        // to it goes there.
+        stateVariableDefinitions[arrayName] = {
+            ...stateVariableDefinitions[arrayName],
+            stateVariablesDeterminingDependencies: ["entryStructure"],
+            returnArrayDependenciesByKey({ arrayKeys, stateValues }) {
+                const globalDependencies = {
+                    entryStructure: {
+                        dependencyType: "stateVariable",
+                        variableName: "entryStructure",
+                    },
+                    entriesFixed: {
+                        dependencyType: "stateVariable",
+                        variableName: "entriesFixed",
+                    },
+                    shadow: {
+                        dependencyType: "stateVariable",
+                        variableName: "listValuesShadow",
                     },
                 };
+                const dependenciesByKey = {};
+                for (const arrayKey of arrayKeys) {
+                    const source = stateValues.entryStructure[arrayKey];
+                    if (source?.pieceInd !== undefined) {
+                        dependenciesByKey[arrayKey] = {
+                            piece: {
+                                dependencyType: "stateVariable",
+                                variableName: "textPieceValues",
+                            },
+                            write: {
+                                dependencyType: "stateVariable",
+                                variableName: `textPieceWrite${source.pieceInd + 1}`,
+                            },
+                        };
+                    } else if (source?.componentInd !== undefined) {
+                        dependenciesByKey[arrayKey] = {
+                            child: {
+                                dependencyType: "child",
+                                childGroups: componentGroups,
+                                variableNames: ["value"],
+                                childIndices: [source.componentInd],
+                            },
+                        };
+                    }
+                }
+                return { globalDependencies, dependenciesByKey };
             },
-            async inverseDefinition({
+            arrayDefinitionByKey({
+                globalDependencyValues,
+                dependencyValuesByKey,
+                arrayKeys,
+            }) {
+                const entries = {};
+                const unchangedChecks = {};
+                for (const arrayKey of arrayKeys) {
+                    const source =
+                        globalDependencyValues.entryStructure[arrayKey];
+                    const sourceValue = entrySourceValue({
+                        source,
+                        dependencyValues: dependencyValuesByKey[arrayKey],
+                        shadow: globalDependencyValues.shadow,
+                        entryType,
+                    });
+                    entries[arrayKey] =
+                        source?.component === undefined
+                            ? sourceValue
+                            : isMathList(sourceValue)
+                              ? sourceValue.get_component(source.component)
+                              : undefined;
+                    entries[arrayKey] =
+                        entries[arrayKey] === undefined
+                            ? blankValue(kind)
+                            : entryValueOfType(entries[arrayKey], entryType);
+                    unchangedChecks[arrayKey] = true;
+                }
+                return {
+                    setValue: { [arrayName]: entries },
+                    checkForActualChange: { [arrayName]: unchangedChecks },
+                };
+            },
+            async inverseArrayDefinitionByKey({
                 desiredStateVariableValues,
-                dependencyValues,
+                globalDependencyValues,
+                dependencyValuesByKey,
+                dependencyNamesByKey,
                 stateValues,
                 workspace,
             }) {
-                // the values desired at some entries, by their index
-                const desired = desiredStateVariableValues.listEntries;
-                const { values, sources: entrySources } =
-                    await stateValues.listEntries;
+                if (globalDependencyValues.entriesFixed) {
+                    return { success: false };
+                }
+                const entryStructure = globalDependencyValues.entryStructure;
+                const desired = desiredStateVariableValues[arrayName];
 
                 const instructions = [];
-                const pieceWrites = {};
+                let wroteShadow = false;
                 // The entries of one write can arrive one by one, so what
                 // was written to a source holding several of them is kept
                 // in the workspace until the write is done.
-                if (!workspace.mergedSources) {
-                    workspace.mergedSources = {};
+                if (!workspace.itemsOfSources) {
+                    workspace.itemsOfSources = {};
                 }
-                const mergedSources = workspace.mergedSources;
-                let wroteShadow = false;
 
-                for (const key in desired) {
-                    const source = entrySources[key];
+                for (const arrayKey in desired) {
+                    const source = entryStructure[arrayKey];
                     if (!source) {
                         continue;
                     }
-                    const value = desired[key];
+                    let value = entryValueOfType(desired[arrayKey], entryType);
+
                     if (source.component !== undefined) {
                         // An item of a math whose value is a list: the
                         // child or piece of text is written the whole list.
                         const sourceKey =
                             source.pieceInd === undefined
-                                ? `child${source.childInd}`
+                                ? `child${source.componentInd}`
                                 : `piece${source.pieceInd}`;
-                        if (!mergedSources[sourceKey]) {
-                            const first = Number(key) - source.component;
-                            mergedSources[sourceKey] = {
+                        let items = workspace.itemsOfSources[sourceKey];
+                        if (!items) {
+                            const current = entrySourceValue({
                                 source,
-                                items: values
-                                    .slice(first, first + source.nComponents)
-                                    .map((x) =>
-                                        convertValueToMathExpression(x),
-                                    ),
-                            };
+                                dependencyValues:
+                                    dependencyValuesByKey[arrayKey],
+                                shadow: globalDependencyValues.shadow,
+                                entryType,
+                            });
+                            items = workspace.itemsOfSources[sourceKey] =
+                                current.tree
+                                    .slice(1)
+                                    .map((tree) => me.fromAst(tree));
                         }
-                        mergedSources[sourceKey].items[source.component] =
+                        items[source.component] =
                             convertValueToMathExpression(value);
-                        mergedSources[sourceKey].written = true;
-                    } else if (source.pieceInd !== undefined) {
-                        pieceWrites[source.pieceInd] = value;
+                        value = me.fromAst([
+                            "list",
+                            ...items.map((x) => x.tree),
+                        ]);
+                    }
+
+                    if (source.pieceInd !== undefined) {
+                        instructions.push({
+                            setDependency: dependencyNamesByKey[arrayKey].write,
+                            desiredValue: value,
+                        });
                     } else if (source.shadowInd !== undefined) {
                         if (!workspace.shadowWrites) {
                             workspace.shadowWrites = [
-                                ...dependencyValues.shadow,
+                                ...globalDependencyValues.shadow,
                             ];
                         }
                         workspace.shadowWrites[source.shadowInd] = value;
                         wroteShadow = true;
                     } else {
                         const child =
-                            dependencyValues.children[source.childInd];
+                            dependencyValuesByKey[arrayKey].child?.[0];
+                        if (!child) {
+                            continue;
+                        }
                         instructions.push({
-                            setDependency: "children",
+                            setDependency: dependencyNamesByKey[arrayKey].child,
                             desiredValue: valueForChild(value, child),
-                            childIndex: source.childInd,
+                            childIndex: 0,
                             variableIndex: 0,
                         });
                     }
                 }
 
-                for (const { source, items, written } of Object.values(
-                    mergedSources,
-                )) {
-                    if (!written) {
-                        continue;
-                    }
-                    const list = me.fromAst([
-                        "list",
-                        ...items.map((x) => x.tree),
-                    ]);
-                    if (source.pieceInd !== undefined) {
-                        pieceWrites[source.pieceInd] = list;
-                    } else {
-                        instructions.push({
-                            setDependency: "children",
-                            desiredValue: list,
-                            childIndex: source.childInd,
-                            variableIndex: 0,
-                        });
-                    }
-                }
-                if (Object.keys(pieceWrites).length > 0) {
-                    instructions.push({
-                        setDependency: "textPieceWrites",
-                        desiredValue: pieceWrites,
-                    });
-                }
                 if (wroteShadow) {
                     instructions.push({
                         setDependency: "shadow",
@@ -580,40 +631,62 @@ export default class AuthoredValueList extends ValueListComponent {
             },
         };
 
-        stateVariableDefinitions.listValues = {
-            returnDependencies: () => ({
-                listEntries: {
-                    dependencyType: "stateVariable",
-                    variableName: "listEntries",
-                },
-            }),
-            definition: ({ dependencyValues }) => ({
-                setValue: { listValues: dependencyValues.listEntries.values },
-            }),
-            inverseDefinition: ({ desiredStateVariableValues }) => ({
-                success: true,
-                instructions: [
-                    {
-                        setDependency: "listEntries",
-                        desiredValue: desiredStateVariableValues.listValues,
-                    },
-                ],
-            }),
-        };
-
+        // The display settings each entry is shown with, `null` for the
+        // list's.
         stateVariableDefinitions.entryDisplaySettings = {
+            // A reference to the whole list reads them from the list.
+            shadowVariable: true,
             returnDependencies: () => ({
-                listEntries: {
+                entryStructure: {
                     dependencyType: "stateVariable",
-                    variableName: "listEntries",
+                    variableName: "entryStructure",
                 },
-            }),
-            definition: ({ dependencyValues }) => ({
-                setValue: {
-                    entryDisplaySettings:
-                        dependencyValues.listEntries.displaySettings,
+                children: {
+                    dependencyType: "child",
+                    childGroups: componentGroups,
+                    variableNames: [
+                        ...displayNames,
+                        "referentInfo",
+                        "entryOfReference",
+                    ],
+                    variablesOptional: true,
                 },
+                ...Object.fromEntries(
+                    displayNames.map((name) => [
+                        name,
+                        { dependencyType: "stateVariable", variableName: name },
+                    ]),
+                ),
             }),
+            definition({ dependencyValues, usedDefault }) {
+                const listSettings = {};
+                const listSetsDisplay = {};
+                for (const name of displayNames) {
+                    listSettings[name] = dependencyValues[name];
+                    listSetsDisplay[name] = !usedDefault[name];
+                }
+                const settingsByChild = dependencyValues.children.map(
+                    (child, componentInd) =>
+                        childDisplaySettings({
+                            child,
+                            childUsedDefault:
+                                usedDefault.children?.[componentInd],
+                            displayNames,
+                            listSettings,
+                            listSetsDisplay,
+                        }),
+                );
+                return {
+                    setValue: {
+                        entryDisplaySettings:
+                            dependencyValues.entryStructure.map((source) =>
+                                source.componentInd === undefined
+                                    ? null
+                                    : settingsByChild[source.componentInd],
+                            ),
+                    },
+                };
+            },
         };
 
         stateVariableDefinitions.entriesInUnorderedList = {
@@ -628,6 +701,21 @@ export default class AuthoredValueList extends ValueListComponent {
                     entriesInUnorderedList:
                         !usedDefault.unordered &&
                         Boolean(dependencyValues.unordered),
+                },
+            }),
+        };
+
+        // An entry can be written unless the list is fixed.
+        stateVariableDefinitions.entriesCanBeModified = {
+            returnDependencies: () => ({
+                entriesFixed: {
+                    dependencyType: "stateVariable",
+                    variableName: "entriesFixed",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    entriesCanBeModified: !dependencyValues.entriesFixed,
                 },
             }),
         };
@@ -658,11 +746,52 @@ export default class AuthoredValueList extends ValueListComponent {
 
         stateVariableDefinitions.values = {
             isAlias: true,
-            targetVariableName: this.listValuesArrayName,
+            targetVariableName: arrayName,
         };
 
         return stateVariableDefinitions;
     }
+}
+
+/** Whether `value` is a math whose value is a list (`1, 2, 3`). */
+function isMathList(value) {
+    return (
+        value instanceof me.class &&
+        Array.isArray(value.tree) &&
+        value.tree[0] === "list"
+    );
+}
+
+/**
+ * The value of the source of an entry (`entryStructure`), from the entry's
+ * dependencies: the piece of text, the child, or the entry of the shadowed
+ * array. For an item of a list, the whole list.
+ */
+function entrySourceValue({ source, dependencyValues, shadow, entryType }) {
+    if (source?.pieceInd !== undefined) {
+        const write = dependencyValues?.write;
+        return write === null || write === undefined
+            ? dependencyValues?.piece?.[source.pieceInd]
+            : restoredValue(write, entryKind(entryType));
+    }
+    if (source?.componentInd !== undefined) {
+        return dependencyValues?.child?.[0]?.stateValues.value;
+    }
+    if (source?.shadowInd !== undefined) {
+        return shadow?.[source.shadowInd];
+    }
+    return undefined;
+}
+
+/** The value of an entry of `kind` that has none. */
+function blankValue(kind) {
+    if (kind === "math") {
+        return me.fromAst("＿");
+    }
+    if (kind === "boolean") {
+        return false;
+    }
+    return kind === "text" ? "" : NaN;
 }
 
 /**
