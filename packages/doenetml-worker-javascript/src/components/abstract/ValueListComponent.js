@@ -1,6 +1,7 @@
 import BaseComponent from "./BaseComponent";
 import me from "math-expressions";
 import {
+    convertValueToMathExpression,
     normalizeMathExpression,
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
@@ -561,7 +562,11 @@ export default class ValueListComponent extends BaseComponent {
                 let entries = {};
                 let unchangedChecks = {};
                 for (let arrayKey of arrayKeys) {
-                    const write = dependencyValuesByKey[arrayKey]?.write;
+                    const write = restoredEntryWrite(
+                        dependencyValuesByKey[arrayKey]?.write,
+                        entryType,
+                        writeBasisVariable === undefined,
+                    );
                     const over =
                         writeBasisVariable === undefined
                             ? values[arrayKey]
@@ -968,6 +973,24 @@ function sameEntryValue(a, b) {
         );
     }
     return Object.is(a, b);
+}
+
+/**
+ * A value written to an entry (`entryWrites`) as the entry holds it. A saved
+ * state keeps a math as its tree, so a write read back from one has a tree
+ * for a math entry's value and, when it was written over the value the list
+ * computed (`overIsValue`), for what it was written over.
+ */
+function restoredEntryWrite(write, entryType, overIsValue) {
+    if (!write || entryType !== "math") {
+        return write;
+    }
+    const restore = (value) =>
+        value instanceof me.class ? value : convertValueToMathExpression(value);
+    return {
+        value: restore(write.value),
+        over: overIsValue ? restore(write.over) : write.over,
+    };
 }
 
 /** The value of an entry of `entryType` past the end of the values. */

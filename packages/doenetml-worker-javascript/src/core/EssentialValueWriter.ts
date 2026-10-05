@@ -137,8 +137,12 @@ export class EssentialValueWriter {
             return;
         }
         const computedNumEntries = await list.stateValues.computedNumEntries;
-        if (computedNumEntries === (await list.stateValues.numEntries)) {
+        const previousNumEntries = await list.stateValues.numEntries;
+        if (computedNumEntries === previousNumEntries) {
             return;
+        }
+        if (computedNumEntries < previousNumEntries) {
+            this.dropListEntryWritesFrom(list, computedNumEntries);
         }
         list.entryCountChanged = true;
         try {
@@ -161,6 +165,32 @@ export class EssentialValueWriter {
                     composite: changed.replacementOf,
                     changedOwnItems: true,
                 });
+            }
+        }
+    }
+
+    /**
+     * Drop the values written to the entries of `list` from `numEntries` on
+     * (`ValueListComponent`'s `entryWrites`), when it has fewer entries
+     * than before. An entry it gets back later shows the value the list
+     * computes, as a composite gave a replacement it stopped withholding a
+     * newly computed value (`<sequence fixed="false">` shortened and
+     * lengthened again), and a saved state holds no write past the end.
+     */
+    dropListEntryWritesFrom(list: any, numEntries: number) {
+        const writes = list.essentialState?.entryWrites;
+        if (Array.isArray(writes) && writes.length > numEntries) {
+            writes.length = numEntries;
+        }
+        const saved =
+            this.core.cumulativeStateVariableChanges[list.stateId]?.entryWrites;
+        if (Array.isArray(saved)) {
+            saved.length = Math.min(saved.length, numEntries);
+        } else if (typeof saved === "object" && saved !== null) {
+            for (const key of Object.keys(saved)) {
+                if (key !== "mergeObject" && Number(key) >= numEntries) {
+                    delete saved[key];
+                }
             }
         }
     }

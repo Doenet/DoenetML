@@ -321,6 +321,145 @@ describe("Samplers and sequences as list components @group4", async () => {
         ).eq(`${first}, 42`);
     });
 
+    it("a value written to a sequence is dropped when the sequence shortens past it", async () => {
+        const doenetML = `
+    <mathInput name="n" prefill="3" />
+    <p name="p"><sequence name="s" length="$n" fixed="false" /></p>
+    <mathInput name="mi" bindValueTo="$s[3]" />
+    `;
+        const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
+            { doenetML },
+        );
+        async function setN(latex: string) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+        }
+        async function check(text: string) {
+            expect((await textsOf(core, resolvePathToNodeIdx, ["p"])).p).eq(
+                text,
+            );
+        }
+
+        await updateMathInputValue({
+            latex: "10",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await check("1, 2, 10");
+
+        // as the composite gave a replacement it stopped withholding the
+        // value it computed
+        await setN("2");
+        await check("1, 2");
+        await setN("3");
+        await check("1, 2, 3");
+
+        await updateMathInputValue({
+            latex: "10",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await setN("x");
+        await check("");
+        await setN("3");
+        await check("1, 2, 3");
+
+        // nor is it saved
+        await updateMathInputValue({
+            latex: "10",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await setN("2");
+        await core.core!.saveImmediately();
+        const saved = Object.values(JSON.parse(scoreState.state)).find(
+            (state: any) => state.entryWrites,
+        ) as any;
+        expect(Object.keys(saved.entryWrites)).eqls(["mergeObject"]);
+    });
+
+    it("a math written to an entry is saved and read back", async () => {
+        const doenetML = `
+    <p name="p1"><selectFromSequence name="a" type="math" from="x" step="y" length="5" numToSelect="2" fixed="false" /></p>
+    <mathInput name="mi1" bindValueTo="$a[1]" />
+    <p name="p2"><sequence name="m" type="math" from="x" length="2" fixed="false" /></p>
+    <mathInput name="mi2" bindValueTo="$m[2]" />
+    `;
+        const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
+            { doenetML, requestedVariantIndex: 2 },
+        );
+        const second = (
+            await textsOf(core, resolvePathToNodeIdx, ["p1"])
+        ).p1.split(", ")[1];
+        for (const [name, latex] of [
+            ["mi1", "q^2"],
+            ["mi2", "\\sin(t)"],
+        ]) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+        }
+        const expected = { p1: `q², ${second}`, p2: "x, sin(t)" };
+        expect(await textsOf(core, resolvePathToNodeIdx, ["p1", "p2"])).eqls(
+            expected,
+        );
+
+        await core.core!.saveImmediately();
+        const reloaded = await createTestCore({
+            doenetML,
+            requestedVariantIndex: 2,
+            initialState: scoreState.state,
+        });
+        expect(
+            await textsOf(reloaded.core, reloaded.resolvePathToNodeIdx, [
+                "p1",
+                "p2",
+            ]),
+        ).eqls(expected);
+    });
+
+    it("a sample written to keeps its samples when read back", async () => {
+        // drawn from a seed the variant does not determine, so only the
+        // saved state has them
+        const doenetML = `
+    <p name="p1"><sampleRandomNumbers name="s" numSamples="2" fixed="false" /></p>
+    <mathInput name="mi1" bindValueTo="$s[2]" />
+    <p name="p2"><samplePrimeNumbers name="pr" numSamples="2" minValue="2" maxValue="1000" fixed="false" /></p>
+    <mathInput name="mi2" bindValueTo="$pr[2]" />
+    <p name="p3"><sampleMultivariateRandomNumber name="mv" type="hypergeometric" numInCategories="50 30 20" numDraws="10" fixed="false" /></p>
+    <mathInput name="mi3" bindValueTo="$mv[2]" />
+    `;
+        const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
+            { doenetML },
+        );
+        for (const name of ["mi1", "mi2", "mi3"]) {
+            await updateMathInputValue({
+                latex: "7",
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+        }
+        const names = ["p1", "p2", "p3"];
+        const written = await textsOf(core, resolvePathToNodeIdx, names);
+        for (const name of names) {
+            expect(written[name].split(", ")[1]).eq("7");
+        }
+
+        await core.core!.saveImmediately();
+        const reloaded = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        });
+        expect(
+            await textsOf(reloaded.core, reloaded.resolvePathToNodeIdx, names),
+        ).eqls(written);
+    });
+
     it("letters and primes are drawn by the renderers of their types", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
