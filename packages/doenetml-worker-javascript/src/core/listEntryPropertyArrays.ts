@@ -238,10 +238,19 @@ function entryCompanions(
     ]) {
         const shadowing: Record<string, any> = {};
         for (const name in instructions[kind] ?? {}) {
+            const entryVariable =
+                instructions[kind][name].stateVariableToShadow;
+            // the entry's own value, when the list holds one per entry
+            const ownArray = listClass.listEntryOwnArrays[entryVariable];
+            if (ownArray !== undefined) {
+                shadowing[name] = {
+                    ...instructions[kind][name],
+                    stateVariableToShadow: ownArray,
+                };
+                continue;
+            }
             const listVariable =
-                listClass.listEntryStateVariables[
-                    instructions[kind][name].stateVariableToShadow
-                ];
+                listClass.listEntryStateVariables[entryVariable];
             if (
                 listVariable !== undefined &&
                 !listClass.listPerEntryVariables.includes(listVariable)

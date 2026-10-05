@@ -2952,7 +2952,12 @@ export async function replacementFromProp({
                                                 arrayKey,
                                             )
                                         ];
-                                        usedDefault = false;
+                                        usedDefault = Boolean(
+                                            companionArray
+                                                .usedDefaultByArrayKey?.[
+                                                arrayKey
+                                            ],
+                                        );
                                     }
                                     if (!usedDefault) {
                                         additionalAttributes[attrName] =
@@ -4139,7 +4144,16 @@ async function arrayListReplacement({
         // where a reference must have a replacement, an empty array is one
         // blank replacement, which a value written to it fills
         components[component.parentIdx]?.sharedParameters
-            ?.compositesMustHaveAReplacement
+            ?.compositesMustHaveAReplacement ||
+        // values whose display settings differ from value to value (the
+        // `number` of each entry of a `<mathList>`) each keep their own
+        Object.values(
+            arrayStateVarObj.shadowingInstructions
+                .addAttributeComponentsShadowingStateVariables ?? {},
+        ).some(
+            ({ stateVariableToShadow }) =>
+                target.state[stateVariableToShadow]?.companionOfEachEntry,
+        )
     ) {
         return undefined;
     }

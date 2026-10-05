@@ -70,7 +70,10 @@ export function isListEntryArrayVariable(
             arrayName = component.arrayEntryPrefixes[prefix];
         }
     }
-    return listClass.listPerEntryVariables.includes(arrayName);
+    return (
+        listClass.listPerEntryVariables.includes(arrayName) ||
+        Object.values(listClass.listEntryOwnArrays).includes(arrayName)
+    );
 }
 
 /**
@@ -308,6 +311,10 @@ function arrayForEntryProperty(
     entryProperty: string,
     componentInfoObjects: ComponentInfoObjects,
 ): string {
+    const ownArray = listClass.listEntryOwnArrays[entryProperty];
+    if (ownArray !== undefined) {
+        return ownArray;
+    }
     const listVariable = listClass.listEntryStateVariables[entryProperty];
     const description = (
         componentInfoObjects.stateVariableInfo[listClass.componentType]

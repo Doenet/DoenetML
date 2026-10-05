@@ -940,4 +940,64 @@ describe("Value lists as list components @group4", async () => {
             await textsOf(core, resolvePathToNodeIdx, ["pl", "pIndex"]),
         ).eqls({ pl: "2.7, 3.14", pIndex: "2.7 3.14" });
     });
+
+    it("a copy of a list or of an entry takes the display settings it sets, and none the entry only has by default", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="l"><math displayDigits="2">2.7182818</math> 3.14159265</mathList>
+    <p name="copyList"><mathList copy="$l" displayDigits="4" /></p>
+    <p name="extendList"><mathList extend="$l" displayDigits="4" /></p>
+    <p name="copyEntry"><math copy="$l[2]" displayDecimals="1" /></p>
+    <p name="inList"><mathList displayDigits="5"><math copy="$l[2]" /></mathList></p>
+    <numberList name="n">3.14159265</numberList>
+    <p name="copyNumber"><number copy="$n[1]" displayDecimals="1" /></p>
+    `,
+        });
+
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "copyList",
+                "extendList",
+                "copyEntry",
+                "inList",
+                "copyNumber",
+            ]),
+        ).eqls({
+            copyList: "2.718, 3.142",
+            extendList: "2.718, 3.142",
+            copyEntry: "3.1",
+            inList: "3.1416",
+            copyNumber: "3.1",
+        });
+    });
+
+    it("a property of an entry is shown with the entry's display settings", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="dd" prefill="6" />
+    <mathList name="ml"><math displayDigits="$dd">2.7182818</math> 3.14159</mathList>
+    <numberList name="nl"><number displayDigits="$dd">2.7182818</number> 3.14159</numberList>
+    <p name="pm">$ml[1].number $ml[2].number $ml[1].displayDigits</p>
+    <p name="pn">$nl[1].math $nl[2].math</p>
+    <p name="pAll">$ml.number</p>
+    `,
+        });
+
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, ["pm", "pn", "pAll"]),
+        ).eqls({
+            pm: "2.71828 3.14 6",
+            pn: "2.71828 3.14",
+            pAll: "2.71828, 3.14",
+        });
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("dd"),
+            core,
+        });
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, ["pm", "pn", "pAll"]),
+        ).eqls({ pm: "2.7 3.14 2", pn: "2.7 3.14", pAll: "2.7, 3.14" });
+    });
 });

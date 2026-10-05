@@ -51,6 +51,21 @@ export default class AuthoredValueList extends ValueListComponent {
 
     static listEntriesFixedByDefault = false;
 
+    // Each display setting of each entry is an array of its own
+    // (`entryDisplayDigits`, …).
+    static get listEntryOwnArrays() {
+        const kind = entryKind(this.listEntryComponentType);
+        if (kind !== "math" && kind !== "number") {
+            return {};
+        }
+        return Object.fromEntries(
+            Object.keys(returnNumberDisplayAttributes()).map((name) => [
+                name,
+                entryOwnArrayName(name),
+            ]),
+        );
+    }
+
     // A `copy=` of the list holds its values, as they are.
     static serializeUnlinkedAsValues = true;
     static listEntryDisplaySettingsVariable = "entryDisplaySettings";
@@ -885,12 +900,20 @@ export default class AuthoredValueList extends ValueListComponent {
         // so that it is shown as it is in the list.
         const valuesShadowing = {};
         for (const name of displayNames) {
-            const entryArrayName = `entry${name[0].toUpperCase()}${name.slice(1)}`;
+            const entryArrayName = entryOwnArrayName(name);
             stateVariableDefinitions[entryArrayName] = {
                 isArray: true,
                 entryPrefixes: [entryArrayName],
                 companionOfEachEntry: true,
                 shadowVariable: true,
+                shadowingInstructions: {
+                    createComponentOfType:
+                        stateVariableDefinitions[name].shadowingInstructions
+                            .createComponentOfType,
+                },
+                // never written: an entry that takes the default is marked
+                // so (`useEssentialOrDefaultValue`)
+                hasEssential: true,
                 returnArraySizeDependencies: () => ({
                     numEntries: {
                         dependencyType: "stateVariable",
@@ -912,15 +935,39 @@ export default class AuthoredValueList extends ValueListComponent {
                         },
                     },
                 }),
-                arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
+                // A setting neither the entry nor the list sets is a default,
+                // so a copy of the entry (`<math copy="$l[1]"/>`) leaves it
+                // to where the copy is.
+                arrayDefinitionByKey({
+                    globalDependencyValues,
+                    globalUsedDefault,
+                    arrayKeys,
+                }) {
                     const values = {};
+                    const defaults = {};
                     for (const arrayKey of arrayKeys) {
-                        values[arrayKey] =
+                        const settings =
                             globalDependencyValues.entryDisplaySettings[
                                 arrayKey
-                            ]?.[name] ?? globalDependencyValues.listSetting;
+                            ];
+                        const value =
+                            settings?.[name] ??
+                            globalDependencyValues.listSetting;
+                        if (
+                            !settings?.setByEntry?.includes(name) &&
+                            globalUsedDefault.listSetting
+                        ) {
+                            defaults[arrayKey] = { defaultValue: value };
+                        } else {
+                            values[arrayKey] = value;
+                        }
                     }
-                    return { setValue: { [entryArrayName]: values } };
+                    return {
+                        setValue: { [entryArrayName]: values },
+                        useEssentialOrDefaultValue: {
+                            [entryArrayName]: defaults,
+                        },
+                    };
                 },
             };
             valuesShadowing[name] = {
@@ -972,24 +1019,51 @@ export default class AuthoredValueList extends ValueListComponent {
                 ),
             }),
             definition({ dependencyValues, usedDefault }) {
-                if (dependencyValues.shadow !== null) {
-                    return {
-                        setValue: {
-                            entryDisplaySettings:
-                                dependencyValues.entryStructure.map(
-                                    (source) =>
-                                        dependencyValues.shadow[
-                                            source.shadowInd
-                                        ] ?? null,
-                                ),
-                        },
-                    };
-                }
                 const listSettings = {};
                 const listSetsDisplay = {};
                 for (const name of displayNames) {
                     listSettings[name] = dependencyValues[name];
                     listSetsDisplay[name] = !usedDefault[name];
+                }
+                if (dependencyValues.shadow !== null) {
+                    // The entries' settings as they were in the list a
+                    // `copy=` holds the values of, except those the copy
+                    // sets itself (`displayDigits` and `displayDecimals`
+                    // together).
+                    const ownNames = displayNames.filter(
+                        (name) =>
+                            listSetsDisplay[name] ||
+                            ((name === "displayDigits" ||
+                                name === "displayDecimals") &&
+                                (listSetsDisplay.displayDigits ||
+                                    listSetsDisplay.displayDecimals)),
+                    );
+                    return {
+                        setValue: {
+                            entryDisplaySettings:
+                                dependencyValues.entryStructure.map(
+                                    (source) => {
+                                        const snapshot =
+                                            dependencyValues.shadow[
+                                                source.shadowInd
+                                            ];
+                                        if (!snapshot) {
+                                            return null;
+                                        }
+                                        const settings = { ...snapshot };
+                                        for (const name of ownNames) {
+                                            settings[name] = listSettings[name];
+                                        }
+                                        settings.setByEntry = (
+                                            snapshot.setByEntry ?? []
+                                        ).filter(
+                                            (name) => !ownNames.includes(name),
+                                        );
+                                        return settings;
+                                    },
+                                ),
+                        },
+                    };
                 }
                 const settingsByChild = dependencyValues.children.map(
                     (child, componentInd) =>
@@ -1077,6 +1151,11 @@ export default class AuthoredValueList extends ValueListComponent {
 
         return stateVariableDefinitions;
     }
+}
+
+/** The array holding display setting `name` of each entry. */
+function entryOwnArrayName(name) {
+    return `entry${name[0].toUpperCase()}${name.slice(1)}`;
 }
 
 /** Whether `value` is a math whose value is a list (`1, 2, 3`). */
@@ -1175,6 +1254,8 @@ function childDisplaySettings({
         child.stateValues.referentInfo !== undefined ||
         Boolean(child.stateValues.entryOfReference);
     const settings = {};
+    // the settings the entry has of its own, rather than the list's
+    const setByEntry = [];
     let differs = false;
 
     // `displayDigits` and `displayDecimals` go together: whichever sets one
@@ -1187,7 +1268,7 @@ function childDisplaySettings({
     }
 
     // An entry of a list among the children that is shown with settings of
-    // its own (`displaySettings`) has set all of them.
+    // its own (`displaySettings`) has set those it lists in `setByEntry`.
     const ownSettings = child.stateValues.displaySettings ?? undefined;
 
     for (const names of groups) {
@@ -1196,8 +1277,9 @@ function childDisplaySettings({
         );
         const childSets =
             childValues.every((value) => value !== undefined) &&
-            (ownSettings !== undefined ||
-                names.some((name) => !childUsedDefault?.[name]));
+            (ownSettings !== undefined
+                ? names.some((name) => ownSettings.setByEntry?.includes(name))
+                : names.some((name) => !childUsedDefault?.[name]));
         const listSets = names.some((name) => listSetsDisplay[name]);
         const useChild = childSets && !(isReference && listSets);
         for (const [i, name] of names.entries()) {
@@ -1205,10 +1287,15 @@ function childDisplaySettings({
             if (settings[name] !== listSettings[name]) {
                 differs = true;
             }
+            if (useChild) {
+                setByEntry.push(name);
+            }
         }
     }
 
-    return differs ? settings : null;
+    return differs || setByEntry.length > 0
+        ? { ...settings, setByEntry }
+        : null;
 }
 
 /** `value`, written to an entry, as `child` takes it. */

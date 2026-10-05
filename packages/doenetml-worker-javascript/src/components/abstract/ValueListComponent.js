@@ -97,6 +97,14 @@ export default class ValueListComponent extends BaseComponent {
     // settings the child sets.
     static listEntryDisplaySettingsVariable = undefined;
 
+    // An array of the list holding the value of an entry property for each
+    // entry, by the property (`displayDigits` of each entry), which a
+    // reference to that property of an entry reads (`$l[2].displayDigits`)
+    // and which travels with the entry's other properties.
+    static get listEntryOwnArrays() {
+        return {};
+    }
+
     // A state variable of the subclass whose value is what a written value
     // stands over (`entryWrites`) in place of the value the list computed
     // for the entry, when the subclass recomputes every value whenever it
@@ -822,18 +830,25 @@ export default class ValueListComponent extends BaseComponent {
             }),
         };
 
-        // Whether the entries are those of a reference to a list (`$l`),
-        // so that a list holding it shows them with the display settings it
+        // Whether the entries are those of a reference to a list (`$l`), or
+        // of a copy of one (`<mathList copy="$l" />` holds such a copy), so
+        // that a list holding it shows them with the display settings it
         // sets (`AuthoredValueList`).
         stateVariableDefinitions.entriesOfReference = {
             returnDependencies: () => ({
                 shadowSource: {
                     dependencyType: "shadowSource",
                 },
+                sourceComposite: {
+                    dependencyType: "sourceCompositeIdentity",
+                },
             }),
             definition: ({ dependencyValues }) => ({
                 setValue: {
-                    entriesOfReference: dependencyValues.shadowSource !== null,
+                    entriesOfReference:
+                        dependencyValues.shadowSource !== null ||
+                        dependencyValues.sourceComposite?.componentType ===
+                            "_copy",
                 },
             }),
         };
