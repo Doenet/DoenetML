@@ -70,7 +70,10 @@ export function isListEntryArrayVariable(
             arrayName = component.arrayEntryPrefixes[prefix];
         }
     }
-    return listClass.listPerEntryVariables.includes(arrayName);
+    return (
+        listClass.listPerEntryVariables.includes(arrayName) ||
+        Object.values(listClass.listEntryOwnArrays).includes(arrayName)
+    );
 }
 
 /**
@@ -98,7 +101,7 @@ function entryPropertyOf(
         property.startsWith("__not_public_") ||
         !(
             property in listClass.listEntryStateVariables ||
-            property in listClass.listEntryDerivedProperties ||
+            listClass.derivedEntryProperty(property) !== undefined ||
             listEntryDefaultValue(entryClass, property) !== undefined
         )
     ) {
@@ -136,7 +139,8 @@ export function listEntryDefaultValue(
 /**
  * The path that reads, on a list of class `listClass`, what `unresolvedPath`
  * reads of its entries: `[i]` becomes entry `i` of the array of values,
- * `[i].prop` entry `i` of the array for `prop`, and `.prop` the whole
+ * `[i].prop` entry `i` of the array for `prop`, `[i][j]` entry `i` of the
+ * array for coordinate `xj` of math entries, and `.prop` the whole
  * array. `undefined` when `listClass` is not a
  * list component or the path names no entry property, so that the path is
  * resolved as it is.
@@ -183,6 +187,37 @@ export function listEntryPropertyPath({
             entryProperty: "value",
             isEntry: true,
         };
+    }
+
+    // A second index (`$l[2][3]`) reads a coordinate of a math entry, as
+    // `$m[3]` reads one of a `<math>`.
+    if (
+        unresolvedPath.length === 1 &&
+        first.name === "" &&
+        first.index.length === 2
+    ) {
+        const coordinate = Math.round(Number(first.index[1].value?.[0]));
+        const entryProperty = `x${coordinate}`;
+        if (
+            Number.isFinite(coordinate) &&
+            listClass.derivedEntryProperty(entryProperty) !== undefined
+        ) {
+            return {
+                path: [
+                    {
+                        ...first,
+                        name: arrayForEntryProperty(
+                            listClass,
+                            entryProperty,
+                            componentInfoObjects,
+                        ),
+                        index: [first.index[0]],
+                    },
+                ],
+                entryProperty,
+                isEntry: true,
+            };
+        }
     }
 
     if (
@@ -256,7 +291,7 @@ export function listEntryPropertyType(
     entryProperty: string,
     componentInfoObjects: ComponentInfoObjects,
 ): string | undefined {
-    const derived = listClass.listEntryDerivedProperties[entryProperty];
+    const derived = listClass.derivedEntryProperty(entryProperty);
     if (derived) {
         return derived.componentType;
     }
@@ -276,6 +311,10 @@ function arrayForEntryProperty(
     entryProperty: string,
     componentInfoObjects: ComponentInfoObjects,
 ): string {
+    const ownArray = listClass.listEntryOwnArrays[entryProperty];
+    if (ownArray !== undefined) {
+        return ownArray;
+    }
     const listVariable = listClass.listEntryStateVariables[entryProperty];
     const description = (
         componentInfoObjects.stateVariableInfo[listClass.componentType]

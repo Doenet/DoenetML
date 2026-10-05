@@ -876,15 +876,17 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.infos.length).eq(0);
 
         expect(diagnosticsByType.warnings[0].message).contain(
-            "Insufficient dimensions for domain for function.",
+            "Invalid format for attribute domain of `<function>`",
         );
         expect(diagnosticsByType.warnings[0].position.start.line).eq(2);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(20);
         expect(diagnosticsByType.warnings[0].position.end.line).eq(2);
         expect(diagnosticsByType.warnings[0].position.end.column).eq(34);
 
+        // The list the domain makes reports the text it cannot read as it
+        // reads it, before the function finds it has no interval.
         expect(diagnosticsByType.warnings[1].message).contain(
-            "Invalid format for attribute domain of `<function>`",
+            "Insufficient dimensions for domain for function.",
         );
         expect(diagnosticsByType.warnings[1].position.start.line).eq(2);
         expect(diagnosticsByType.warnings[1].position.start.column).eq(20);

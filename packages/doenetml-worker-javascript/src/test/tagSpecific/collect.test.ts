@@ -1,5 +1,9 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import {
+    componentOrListEntry,
+    entriesOrReplacements,
+} from "../utils/list-entries";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
@@ -14,16 +18,21 @@ const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
 
+/**
+ * Replacement `replacementNum` of the composite `compositeIdx`, or that entry
+ * of the list component `compositeIdx`.
+ */
 function getReplacement(
+    core: PublicDoenetMLCore,
     stateVariables: Awaited<
         ReturnType<PublicDoenetMLCore["returnAllStateVariables"]>
     >,
     compositeIdx: number,
     replacementNum: number,
 ) {
-    const replacementIdx =
-        stateVariables[compositeIdx].replacements![replacementNum].componentIdx;
-    return stateVariables[replacementIdx];
+    return entriesOrReplacements(core, stateVariables, compositeIdx)[
+        replacementNum
+    ];
 }
 
 describe("Collect tag tests @group4", async () => {
@@ -81,6 +90,7 @@ describe("Collect tag tests @group4", async () => {
 
             for (let i = 0; i < 5; i++) {
                 const thePoint = getReplacement(
+                    core,
                     stateVariables,
                     await resolvePathToNodeIdx(`points`),
                     i,
@@ -90,6 +100,7 @@ describe("Collect tag tests @group4", async () => {
                 expect(thePoint.stateValues.xs[1].tree).eq(ys[i]);
 
                 const theCoords = getReplacement(
+                    core,
                     stateVariables,
                     await resolvePathToNodeIdx(`coords`),
                     i,
@@ -102,6 +113,7 @@ describe("Collect tag tests @group4", async () => {
                 ]);
 
                 const theX = getReplacement(
+                    core,
                     stateVariables,
                     await resolvePathToNodeIdx(`xs`),
                     i,
@@ -297,12 +309,24 @@ describe("Collect tag tests @group4", async () => {
                     .stateValues.xs[1].tree,
             ).eq(3 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 1}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(2 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 4}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 4}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(3 * x);
         }
 
@@ -382,12 +406,24 @@ describe("Collect tag tests @group4", async () => {
                     .stateValues.xs[1].tree,
             ).eq(3 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 1}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(2 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 6}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 6}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(3 * x);
         }
 
@@ -467,12 +503,24 @@ describe("Collect tag tests @group4", async () => {
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 1}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 6}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 6}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.75 * x);
         }
 
@@ -552,12 +600,24 @@ describe("Collect tag tests @group4", async () => {
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 1}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 2}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 2}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.75 * x);
         }
 
@@ -637,12 +697,24 @@ describe("Collect tag tests @group4", async () => {
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 1}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 5}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 5}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.75 * x);
         }
 
@@ -722,12 +794,24 @@ describe("Collect tag tests @group4", async () => {
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 1}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 7}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 7}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.75 * x);
         }
     });
@@ -841,12 +925,24 @@ describe("Collect tag tests @group4", async () => {
                     .stateValues.xs[1].tree,
             ).eq(3 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 1}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(2 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 4}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 4}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(3 * x);
         }
 
@@ -926,12 +1022,24 @@ describe("Collect tag tests @group4", async () => {
                     .stateValues.xs[1].tree,
             ).eq(3 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 1}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(2 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 6}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 6}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(3 * x);
         }
 
@@ -1011,12 +1119,24 @@ describe("Collect tag tests @group4", async () => {
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 1}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 6}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 6}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.75 * x);
         }
 
@@ -1096,12 +1216,24 @@ describe("Collect tag tests @group4", async () => {
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 1}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 2}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 2}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.75 * x);
         }
 
@@ -1181,12 +1313,24 @@ describe("Collect tag tests @group4", async () => {
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 1}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 5}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 5}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.75 * x);
         }
 
@@ -1266,12 +1410,24 @@ describe("Collect tag tests @group4", async () => {
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 1}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 7}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 7}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.75 * x);
         }
     });
@@ -1387,8 +1543,14 @@ describe("Collect tag tests @group4", async () => {
         for (let i = 0; i < 2; i++) {
             let x = i + 1;
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 1}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(2 * x);
         }
 
@@ -1468,10 +1630,16 @@ describe("Collect tag tests @group4", async () => {
                     .stateValues.xs[1].tree,
             ).eq(3 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 1}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(2 * x);
-            //expect(stateVariables[await resolvePathToNodeIdx(`ys[${i + 6}]`)].stateValues.value.tree).eq(3 * x);
+            //expect((await componentOrListEntry(core, stateVariables, resolvePathToNodeIdx, `ys[${i + 6}]`)).stateValues.value.tree).eq(3 * x);
         }
 
         // increase maxnumber further
@@ -1550,12 +1718,24 @@ describe("Collect tag tests @group4", async () => {
                     .stateValues.xs[1].tree,
             ).eq(3 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 1}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(2 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 6}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 6}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(3 * x);
         }
 
@@ -1635,12 +1815,24 @@ describe("Collect tag tests @group4", async () => {
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 1}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 6}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 6}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.75 * x);
         }
 
@@ -1720,12 +1912,24 @@ describe("Collect tag tests @group4", async () => {
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 1}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 2}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 2}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.75 * x);
         }
 
@@ -1805,12 +2009,24 @@ describe("Collect tag tests @group4", async () => {
                     .stateValues.xs[1].tree,
             ).eq(0.75 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 1}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.5 * x);
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 5}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 5}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.75 * x);
         }
 
@@ -1903,8 +2119,14 @@ describe("Collect tag tests @group4", async () => {
         for (let i = 0; i < 3; i++) {
             let x = i + 1;
             expect(
-                stateVariables[await resolvePathToNodeIdx(`ys[${i + 1}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `ys[${i + 1}]`,
+                    )
+                ).stateValues.value.tree,
             ).eq(0.5 * x);
         }
     });
@@ -2268,36 +2490,68 @@ describe("Collect tag tests @group4", async () => {
                 .hidden,
         ).eq(true);
         expect(
-            getReplacement(stateVariables, await resolvePathToNodeIdx("c1"), 0)
-                .stateValues.text,
+            getReplacement(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("c1"),
+                0,
+            ).stateValues.text,
         ).eq("Hidden text: ");
         expect(
-            getReplacement(stateVariables, await resolvePathToNodeIdx("c1"), 1)
-                .stateValues.text,
+            getReplacement(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("c1"),
+                1,
+            ).stateValues.text,
         ).eq("Hidden text: ");
         expect(
-            getReplacement(stateVariables, await resolvePathToNodeIdx("c1"), 2)
-                .stateValues.hidden,
+            getReplacement(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("c1"),
+                2,
+            ).stateValues.hidden,
         ).eq(true);
         expect(
-            getReplacement(stateVariables, await resolvePathToNodeIdx("c1"), 3)
-                .stateValues.hidden,
+            getReplacement(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("c1"),
+                3,
+            ).stateValues.hidden,
         ).eq(true);
         expect(
-            getReplacement(stateVariables, await resolvePathToNodeIdx("c2"), 0)
-                .stateValues.text,
+            getReplacement(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("c2"),
+                0,
+            ).stateValues.text,
         ).eq("Hidden text: ");
         expect(
-            getReplacement(stateVariables, await resolvePathToNodeIdx("c2"), 1)
-                .stateValues.text,
+            getReplacement(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("c2"),
+                1,
+            ).stateValues.text,
         ).eq("Hidden text: ");
         expect(
-            getReplacement(stateVariables, await resolvePathToNodeIdx("c2"), 2)
-                .stateValues.text,
+            getReplacement(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("c2"),
+                2,
+            ).stateValues.text,
         ).eq("Hidden paragraph with hidden text: ");
         expect(
-            getReplacement(stateVariables, await resolvePathToNodeIdx("c2"), 3)
-                .stateValues.text,
+            getReplacement(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("c2"),
+                3,
+            ).stateValues.text,
         ).eq("Hidden paragraph with hidden text: ");
     });
 
@@ -2334,36 +2588,68 @@ describe("Collect tag tests @group4", async () => {
                 .hidden,
         ).eq(true);
         expect(
-            getReplacement(stateVariables, await resolvePathToNodeIdx("c1"), 0)
-                .stateValues.text,
+            getReplacement(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("c1"),
+                0,
+            ).stateValues.text,
         ).eq("Hidden text: ");
         expect(
-            getReplacement(stateVariables, await resolvePathToNodeIdx("c1"), 1)
-                .stateValues.text,
+            getReplacement(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("c1"),
+                1,
+            ).stateValues.text,
         ).eq("Hidden text: ");
         expect(
-            getReplacement(stateVariables, await resolvePathToNodeIdx("c1"), 2)
-                .stateValues.hidden,
+            getReplacement(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("c1"),
+                2,
+            ).stateValues.hidden,
         ).eq(true);
         expect(
-            getReplacement(stateVariables, await resolvePathToNodeIdx("c1"), 3)
-                .stateValues.hidden,
+            getReplacement(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("c1"),
+                3,
+            ).stateValues.hidden,
         ).eq(true);
         expect(
-            getReplacement(stateVariables, await resolvePathToNodeIdx("c2"), 0)
-                .stateValues.text,
+            getReplacement(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("c2"),
+                0,
+            ).stateValues.text,
         ).eq("Hidden text: ");
         expect(
-            getReplacement(stateVariables, await resolvePathToNodeIdx("c2"), 1)
-                .stateValues.text,
+            getReplacement(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("c2"),
+                1,
+            ).stateValues.text,
         ).eq("Hidden text: ");
         expect(
-            getReplacement(stateVariables, await resolvePathToNodeIdx("c2"), 2)
-                .stateValues.text,
+            getReplacement(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("c2"),
+                2,
+            ).stateValues.text,
         ).eq("Hidden paragraph with hidden text: ");
         expect(
-            getReplacement(stateVariables, await resolvePathToNodeIdx("c2"), 3)
-                .stateValues.text,
+            getReplacement(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("c2"),
+                3,
+            ).stateValues.text,
         ).eq("Hidden paragraph with hidden text: ");
     });
 

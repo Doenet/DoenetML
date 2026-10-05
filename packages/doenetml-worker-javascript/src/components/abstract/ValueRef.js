@@ -314,6 +314,7 @@ export default class ValueRef extends BaseComponent {
                             referencedVariable: referent.variableName,
                             referencedPrimaryValue: referent.isPrimaryValue,
                             companions: referent.companions,
+                            listEntryPosition: referent.listEntryPosition,
                         };
                     }
                 }
@@ -515,6 +516,8 @@ export default class ValueRef extends BaseComponent {
      * an `<answer>` (of the references in its awards) and a
      * `<considerAsResponses>` (of its children) ask for. A reference a copy
      * made at run time has no `valueMissing`, but has the other two.
+     * `pastEndOfList` (`pastEndOfListDefinition`), which a list asks of its
+     * children, is likewise the reference's own.
      */
     createOnDemandStateVariableDefinitions({
         stateVariable,
@@ -524,6 +527,11 @@ export default class ValueRef extends BaseComponent {
             return this.fixedReferent
                 ? []
                 : [[stateVariable, valueMissingDefinition()]];
+        }
+        if (stateVariable === "pastEndOfList") {
+            return this.fixedReferent
+                ? []
+                : [[stateVariable, pastEndOfListDefinition()]];
         }
         if (stateVariable === "valueAsResponse") {
             return [
@@ -706,6 +714,53 @@ function valueMissingDefinition() {
                     valueMissing:
                         dependencyValues.target === undefined ||
                         Boolean(dependencyValues.targetInactive),
+                },
+            };
+        },
+    };
+}
+
+/**
+ * The definition of `pastEndOfList`, made on demand for a reference that
+ * resolves itself: whether it reads an entry of a list component past the
+ * list's last entry (`$l[5]` of a list of two). It reads the number of the
+ * list's entries, not the entry's value, so a list that skips such a
+ * reference among its values (`AuthoredValueList.js`) counts its entries
+ * from the sizes of the lists it reads entries of.
+ */
+function pastEndOfListDefinition() {
+    return {
+        stateVariablesDeterminingDependencies: ["referentInfo"],
+        returnDependencies({ stateValues, componentInfoObjects }) {
+            const referentInfo = stateValues.referentInfo;
+            const countVariable =
+                referentInfo?.listEntryPosition === undefined
+                    ? undefined
+                    : componentInfoObjects.allComponentClasses[
+                          referentInfo.componentType
+                      ]?.listEntryCountVariable;
+            if (countVariable === undefined) {
+                return {};
+            }
+            return {
+                referentInfo: {
+                    dependencyType: "stateVariable",
+                    variableName: "referentInfo",
+                },
+                numEntries: {
+                    dependencyType: "stateVariable",
+                    componentIdx: referentInfo.componentIdx,
+                    variableName: countVariable,
+                },
+            };
+        },
+        definition({ dependencyValues }) {
+            return {
+                setValue: {
+                    pastEndOfList:
+                        dependencyValues.numEntries !== undefined &&
+                        dependencyValues.referentInfo.listEntryPosition >
+                            dependencyValues.numEntries,
                 },
             };
         },

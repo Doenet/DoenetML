@@ -5,6 +5,7 @@ import { updateMathInputValue } from "../utils/actions";
 import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { entriesOrReplacements } from "../utils/list-entries";
 import type {
     index as IndexType,
     matrix as MatrixType,
@@ -300,17 +301,21 @@ describe("FunctionIterates tag tests @group2", async () => {
             ]);
             let x = matrix([[u1], [u2]]);
 
-            let iterNames = stateVariables[
-                await resolvePathToNodeIdx("iterates")
-            ].replacements!.map((x) => x.componentIdx);
+            let iterates = entriesOrReplacements(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("iterates"),
+            );
 
             for (let i = 0; i < n; i++) {
                 x = multiply(A, x);
                 let x1 = subset(x, index(0, 0));
                 let x2 = subset(x, index(1, 0));
-                expect(
-                    stateVariables[iterNames[i]].stateValues.value.tree,
-                ).eqls(["vector", x1, x2]);
+                expect(iterates[i].stateValues.value.tree).eqls([
+                    "vector",
+                    x1,
+                    x2,
+                ]);
             }
         }
 
@@ -434,23 +439,19 @@ describe("FunctionIterates tag tests @group2", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let iterNames = stateVariables[
-            await resolvePathToNodeIdx("iterates")
-        ].replacements!.map((x) => x.componentIdx);
+        let iterates = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("iterates"),
+        );
 
         expect(
             stateVariables[await resolvePathToNodeIdx("fis")].stateValues
                 .numDimensions,
         ).eq(2);
-        expect(cleanLatex(stateVariables[iterNames[0]].stateValues.latex)).eq(
-            `(2,3)`,
-        );
-        expect(cleanLatex(stateVariables[iterNames[1]].stateValues.latex)).eq(
-            `(6,5)`,
-        );
-        expect(cleanLatex(stateVariables[iterNames[2]].stateValues.latex)).eq(
-            `(30,11)`,
-        );
+        expect(cleanLatex(iterates[0].stateValues.latex)).eq(`(2,3)`);
+        expect(cleanLatex(iterates[1].stateValues.latex)).eq(`(6,5)`);
+        expect(cleanLatex(iterates[2].stateValues.latex)).eq(`(30,11)`);
 
         await updateMathInputValue({
             latex: "(xy, x+yz, x-z)",
@@ -460,23 +461,19 @@ describe("FunctionIterates tag tests @group2", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        iterNames = stateVariables[
-            await resolvePathToNodeIdx("iterates")
-        ].replacements!.map((x) => x.componentIdx);
+        iterates = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("iterates"),
+        );
 
         expect(
             stateVariables[await resolvePathToNodeIdx("fis")].stateValues
                 .numDimensions,
         ).eq(0);
-        expect(cleanLatex(stateVariables[iterNames[0]].stateValues.latex)).eq(
-            "\uff3f",
-        );
-        expect(cleanLatex(stateVariables[iterNames[1]].stateValues.latex)).eq(
-            "\uff3f",
-        );
-        expect(cleanLatex(stateVariables[iterNames[2]].stateValues.latex)).eq(
-            "\uff3f",
-        );
+        expect(cleanLatex(iterates[0].stateValues.latex)).eq("\uff3f");
+        expect(cleanLatex(iterates[1].stateValues.latex)).eq("\uff3f");
+        expect(cleanLatex(iterates[2].stateValues.latex)).eq("\uff3f");
 
         // add variable to function
         await updateMathInputValue({
@@ -487,23 +484,19 @@ describe("FunctionIterates tag tests @group2", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        iterNames = stateVariables[
-            await resolvePathToNodeIdx("iterates")
-        ].replacements!.map((x) => x.componentIdx);
+        iterates = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("iterates"),
+        );
 
         expect(
             stateVariables[await resolvePathToNodeIdx("fis")].stateValues
                 .numDimensions,
         ).eq(3);
-        expect(cleanLatex(stateVariables[iterNames[0]].stateValues.latex)).eq(
-            "\uff3f",
-        );
-        expect(cleanLatex(stateVariables[iterNames[1]].stateValues.latex)).eq(
-            "\uff3f",
-        );
-        expect(cleanLatex(stateVariables[iterNames[2]].stateValues.latex)).eq(
-            "\uff3f",
-        );
+        expect(cleanLatex(iterates[0].stateValues.latex)).eq("\uff3f");
+        expect(cleanLatex(iterates[1].stateValues.latex)).eq("\uff3f");
+        expect(cleanLatex(iterates[2].stateValues.latex)).eq("\uff3f");
 
         // add component to initial condition
         await updateMathInputValue({
@@ -513,22 +506,18 @@ describe("FunctionIterates tag tests @group2", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        iterNames = stateVariables[
-            await resolvePathToNodeIdx("iterates")
-        ].replacements!.map((x) => x.componentIdx);
+        iterates = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("iterates"),
+        );
         expect(
             stateVariables[await resolvePathToNodeIdx("fis")].stateValues
                 .numDimensions,
         ).eq(3);
-        expect(cleanLatex(stateVariables[iterNames[0]].stateValues.latex)).eq(
-            `(2,-2,6)`,
-        );
-        expect(cleanLatex(stateVariables[iterNames[1]].stateValues.latex)).eq(
-            `(-4,-10,-4)`,
-        );
-        expect(cleanLatex(stateVariables[iterNames[2]].stateValues.latex)).eq(
-            `(40,36,0)`,
-        );
+        expect(cleanLatex(iterates[0].stateValues.latex)).eq(`(2,-2,6)`);
+        expect(cleanLatex(iterates[1].stateValues.latex)).eq(`(-4,-10,-4)`);
+        expect(cleanLatex(iterates[2].stateValues.latex)).eq(`(40,36,0)`);
     });
 
     it("change dimensions, numerical", async () => {
@@ -547,23 +536,19 @@ describe("FunctionIterates tag tests @group2", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let iterNames = stateVariables[
-            await resolvePathToNodeIdx("iterates")
-        ].replacements!.map((x) => x.componentIdx);
+        let iterates = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("iterates"),
+        );
 
         expect(
             stateVariables[await resolvePathToNodeIdx("fis")].stateValues
                 .numDimensions,
         ).eq(2);
-        expect(cleanLatex(stateVariables[iterNames[0]].stateValues.latex)).eq(
-            `(2,3)`,
-        );
-        expect(cleanLatex(stateVariables[iterNames[1]].stateValues.latex)).eq(
-            `(6,5)`,
-        );
-        expect(cleanLatex(stateVariables[iterNames[2]].stateValues.latex)).eq(
-            `(30,11)`,
-        );
+        expect(cleanLatex(iterates[0].stateValues.latex)).eq(`(2,3)`);
+        expect(cleanLatex(iterates[1].stateValues.latex)).eq(`(6,5)`);
+        expect(cleanLatex(iterates[2].stateValues.latex)).eq(`(30,11)`);
 
         // non-numeric initial condition
         await updateMathInputValue({
@@ -573,24 +558,20 @@ describe("FunctionIterates tag tests @group2", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        iterNames = stateVariables[
-            await resolvePathToNodeIdx("iterates")
-        ].replacements!.map((x) => x.componentIdx);
+        iterates = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("iterates"),
+        );
 
         expect(
             stateVariables[await resolvePathToNodeIdx("fis")].stateValues
                 .numDimensions,
         ).eq(2);
 
-        expect(cleanLatex(stateVariables[iterNames[0]].stateValues.latex)).eq(
-            `(NaN,NaN)`,
-        );
-        expect(cleanLatex(stateVariables[iterNames[1]].stateValues.latex)).eq(
-            `(NaN,NaN)`,
-        );
-        expect(cleanLatex(stateVariables[iterNames[2]].stateValues.latex)).eq(
-            `(NaN,NaN)`,
-        );
+        expect(cleanLatex(iterates[0].stateValues.latex)).eq(`(NaN,NaN)`);
+        expect(cleanLatex(iterates[1].stateValues.latex)).eq(`(NaN,NaN)`);
+        expect(cleanLatex(iterates[2].stateValues.latex)).eq(`(NaN,NaN)`);
 
         // add component to function
         await updateMathInputValue({
@@ -605,23 +586,19 @@ describe("FunctionIterates tag tests @group2", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        iterNames = stateVariables[
-            await resolvePathToNodeIdx("iterates")
-        ].replacements!.map((x) => x.componentIdx);
+        iterates = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("iterates"),
+        );
 
         expect(
             stateVariables[await resolvePathToNodeIdx("fis")].stateValues
                 .numDimensions,
         ).eq(0);
-        expect(cleanLatex(stateVariables[iterNames[0]].stateValues.latex)).eq(
-            "\uff3f",
-        );
-        expect(cleanLatex(stateVariables[iterNames[1]].stateValues.latex)).eq(
-            "\uff3f",
-        );
-        expect(cleanLatex(stateVariables[iterNames[2]].stateValues.latex)).eq(
-            "\uff3f",
-        );
+        expect(cleanLatex(iterates[0].stateValues.latex)).eq("\uff3f");
+        expect(cleanLatex(iterates[1].stateValues.latex)).eq("\uff3f");
+        expect(cleanLatex(iterates[2].stateValues.latex)).eq("\uff3f");
 
         // add variable to function
         await updateMathInputValue({
@@ -631,23 +608,19 @@ describe("FunctionIterates tag tests @group2", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        iterNames = stateVariables[
-            await resolvePathToNodeIdx("iterates")
-        ].replacements!.map((x) => x.componentIdx);
+        iterates = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("iterates"),
+        );
 
         expect(
             stateVariables[await resolvePathToNodeIdx("fis")].stateValues
                 .numDimensions,
         ).eq(3);
-        expect(cleanLatex(stateVariables[iterNames[0]].stateValues.latex)).eq(
-            "\uff3f",
-        );
-        expect(cleanLatex(stateVariables[iterNames[1]].stateValues.latex)).eq(
-            "\uff3f",
-        );
-        expect(cleanLatex(stateVariables[iterNames[2]].stateValues.latex)).eq(
-            "\uff3f",
-        );
+        expect(cleanLatex(iterates[0].stateValues.latex)).eq("\uff3f");
+        expect(cleanLatex(iterates[1].stateValues.latex)).eq("\uff3f");
+        expect(cleanLatex(iterates[2].stateValues.latex)).eq("\uff3f");
 
         // add component to initial condition
         await updateMathInputValue({
@@ -657,23 +630,19 @@ describe("FunctionIterates tag tests @group2", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        iterNames = stateVariables[
-            await resolvePathToNodeIdx("iterates")
-        ].replacements!.map((x) => x.componentIdx);
+        iterates = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("iterates"),
+        );
 
         expect(
             stateVariables[await resolvePathToNodeIdx("fis")].stateValues
                 .numDimensions,
         ).eq(3);
-        expect(cleanLatex(stateVariables[iterNames[0]].stateValues.latex)).eq(
-            `(2,-2,6)`,
-        );
-        expect(cleanLatex(stateVariables[iterNames[1]].stateValues.latex)).eq(
-            `(-4,-10,-4)`,
-        );
-        expect(cleanLatex(stateVariables[iterNames[2]].stateValues.latex)).eq(
-            `(40,36,0)`,
-        );
+        expect(cleanLatex(iterates[0].stateValues.latex)).eq(`(2,-2,6)`);
+        expect(cleanLatex(iterates[1].stateValues.latex)).eq(`(-4,-10,-4)`);
+        expect(cleanLatex(iterates[2].stateValues.latex)).eq(`(40,36,0)`);
     });
     /**
      * An initial value with a component that has no numeric value must not
@@ -703,25 +672,25 @@ describe("FunctionIterates tag tests @group2", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
-        const iterNames = stateVariables[
-            await resolvePathToNodeIdx("iterates")
-        ].replacements!.map((x) => x.componentIdx);
-        expect(iterNames.length).eq(2);
-        for (const n of iterNames) {
+        const iterates = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("iterates"),
+        );
+        expect(iterates.length).eq(2);
+        for (const n of iterates) {
             // `(NaN,NaN)`, and in particular not `(0,0)`.
-            expect(stateVariables[n].stateValues.value.tree).eqls([
-                "vector",
-                NaN,
-                NaN,
-            ]);
+            expect(n.stateValues.value.tree).eqls(["vector", NaN, NaN]);
         }
 
-        const gIterNames = stateVariables[
-            await resolvePathToNodeIdx("giterates")
-        ].replacements!.map((x) => x.componentIdx);
-        expect(gIterNames.length).eq(2);
-        for (const n of gIterNames) {
-            expect(stateVariables[n].stateValues.value.tree).eq("\uff3f");
+        const gIterates = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("giterates"),
+        );
+        expect(gIterates.length).eq(2);
+        for (const n of gIterates) {
+            expect(n.stateValues.value.tree).eq("\uff3f");
         }
     });
 });

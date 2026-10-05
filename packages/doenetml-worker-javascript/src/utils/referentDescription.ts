@@ -8,6 +8,8 @@
  * reference's target as it expands.
  */
 
+import { isListEntryArrayVariable } from "./listEntryReference";
+
 export type ReferentDescription = {
     componentIdx: number;
     componentType: string;
@@ -30,6 +32,13 @@ export type ReferentDescription = {
      * its array's). Only variables the referent has, and no arrays.
      */
     companions: Record<string, string>;
+    /**
+     * For an entry of a list component (`number3` of a `<numberList>`,
+     * `isListEntryArrayVariable`), its position in the list, 1 for the
+     * first. The list holds the entry while its `listEntryCountVariable` is
+     * at least that.
+     */
+    listEntryPosition?: number;
 };
 
 /**
@@ -42,13 +51,20 @@ export function describeReferentVariable(
     variableName: string,
 ): ReferentDescription | null {
     const stateVarObj = component?.state[variableName];
-    if (!stateVarObj || stateVarObj.isArray) {
+    // An entry of an array is made when first read, so one not read yet is
+    // described by its array (`x1` of a `<point>` by `xs`).
+    const arrayOfEntry = stateVarObj
+        ? undefined
+        : arrayOfUnmadeEntry(component, variableName);
+    if ((!stateVarObj && !arrayOfEntry) || stateVarObj?.isArray) {
         return null;
     }
 
-    const arrayStateVarObj = stateVarObj.isArrayEntry
-        ? component.state[stateVarObj.arrayStateVariable]
-        : stateVarObj;
+    const arrayStateVarObj = arrayOfEntry
+        ? arrayOfEntry
+        : stateVarObj.isArrayEntry
+          ? component.state[stateVarObj.arrayStateVariable]
+          : stateVarObj;
     const instructions = arrayStateVarObj?.shadowingInstructions ?? {};
 
     const companions: Record<string, string> = {};
@@ -58,13 +74,22 @@ export function describeReferentVariable(
     ]) {
         for (const name in shadowing ?? {}) {
             const target = shadowing[name].stateVariableToShadow;
-            // an entry's array companion would need the entry's own key
-            if (
-                !(name in companions) &&
-                component.state[target] &&
-                !component.state[target].isArray
-            ) {
+            if (name in companions || !component.state[target]) {
+                continue;
+            }
+            if (!component.state[target].isArray) {
                 companions[name] = target;
+            } else if (component.state[target].companionOfEachEntry) {
+                // an array holding the companion of each entry (the display
+                // settings of each entry of a list): the entry's own
+                const entryName = sameEntryOfArray(
+                    arrayStateVarObj,
+                    component.state[target],
+                    variableName,
+                );
+                if (entryName !== undefined) {
+                    companions[name] = entryName;
+                }
             }
         }
     }
@@ -72,13 +97,20 @@ export function describeReferentVariable(
     // An array entry's own `createComponentOfType` is per key (an array), so
     // the type of an entry is read from its array.
     const arrayType = instructions.createComponentOfType;
-    const ownType = stateVarObj.shadowingInstructions?.createComponentOfType;
+    const ownType = stateVarObj?.shadowingInstructions?.createComponentOfType;
     const createComponentOfType =
         typeof arrayType === "string"
             ? arrayType
             : typeof ownType === "string"
               ? ownType
               : undefined;
+
+    const listEntryPosition = listEntryPositionOf(
+        component,
+        variableName,
+        stateVarObj,
+        arrayStateVarObj,
+    );
 
     return {
         componentIdx: component.componentIdx,
@@ -89,5 +121,71 @@ export function describeReferentVariable(
             variableName === "value" ||
             variableName === component.constructor.variableForImplicitProp,
         companions,
+        ...(listEntryPosition === undefined ? {} : { listEntryPosition }),
     };
+}
+
+/**
+ * The position of `variableName` among the entries of the list component
+ * `component`, when it is an entry of one of the list's arrays with one
+ * value per entry; `undefined` otherwise.
+ */
+function listEntryPositionOf(
+    component: any,
+    variableName: string,
+    stateVarObj: any,
+    arrayStateVarObj: any,
+): number | undefined {
+    if (
+        component.constructor.listEntryCountVariable === undefined ||
+        arrayStateVarObj === stateVarObj ||
+        !isListEntryArrayVariable(component, variableName)
+    ) {
+        return undefined;
+    }
+    const prefix = [...(arrayStateVarObj.entryPrefixes ?? [])]
+        .sort((a: string, b: string) => b.length - a.length)
+        .find((prefix: string) => variableName.startsWith(prefix));
+    const varEnding =
+        prefix === undefined ? "" : variableName.slice(prefix.length);
+    return /^[1-9]\d*$/.test(varEnding) ? Number(varEnding) : undefined;
+}
+
+/**
+ * The array state variable of `component` that `variableName` names an
+ * entry of, by the longest entry prefix it begins with, when that entry has
+ * not been made yet; `undefined` otherwise.
+ */
+function arrayOfUnmadeEntry(component: any, variableName: string) {
+    const prefixes: Record<string, string> =
+        component?.arrayEntryPrefixes ?? {};
+    const prefix = Object.keys(prefixes)
+        .sort((a, b) => b.length - a.length)
+        .find(
+            (prefix) =>
+                variableName.startsWith(prefix) &&
+                variableName.length > prefix.length,
+        );
+    return prefix === undefined ? undefined : component.state[prefixes[prefix]];
+}
+
+/**
+ * The name of the entry of the one-dimensional array `otherArray` at the
+ * index that `variableName`, an entry of `array`, has (`entryDisplayDigits2`
+ * for `math2`); `undefined` when `variableName` is not such an entry.
+ */
+function sameEntryOfArray(
+    array: any,
+    otherArray: any,
+    variableName: string,
+): string | undefined {
+    const prefix = (array?.entryPrefixes ?? []).find((prefix: string) =>
+        variableName.startsWith(prefix),
+    );
+    const index = prefix === undefined ? "" : variableName.slice(prefix.length);
+    const otherPrefix = otherArray.entryPrefixes?.[0];
+    if (!/^[1-9]\d*$/.test(index) || otherPrefix === undefined) {
+        return undefined;
+    }
+    return `${otherPrefix}${index}`;
 }

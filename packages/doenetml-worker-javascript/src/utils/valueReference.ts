@@ -242,11 +242,8 @@ export function planListEntryAdapterReference({
  * must declare the type of its values; one whose type depends on its value
  * (a `<choiceInput>`'s `selectedValue`) is left to be resolved at run time.
  *
- * A composite's replacements are only known once it expands, except for a
- * composite whose class fixes their type (`replacementComponentType`): a
- * path that starts with one index into it (`$l[$i]` of a `<numberList>`)
- * reads one of its replacements, and the rest of the path is worked out on
- * that type.
+ * A composite's replacements are only known once it expands, so a reference
+ * to a composite is not worked out from its type.
  */
 export function staticValueReferenceTarget({
     targetComponentType,
@@ -283,20 +280,7 @@ export function staticValueReferenceTarget({
             includeNonStandard: true,
         })
     ) {
-        const replacementType = targetClass.replacementComponentType;
-        const [first, ...rest] = unresolvedPath ?? [];
-        if (
-            replacementType === undefined ||
-            first?.name !== "" ||
-            first.index.length !== 1
-        ) {
-            return undefined;
-        }
-        return staticValueReferenceTarget({
-            targetComponentType: replacementType,
-            unresolvedPath: rest.length > 0 ? rest : null,
-            componentInfoObjects,
-        });
+        return undefined;
     }
 
     // A property of an entry of a list component (`$l[2].text`) is one

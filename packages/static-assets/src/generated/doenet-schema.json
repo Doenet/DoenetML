@@ -77584,7 +77584,8 @@
             ],
             "childBuckets": "222222222222222222222222222222222222222222222222212220222222222222222222222222222221122222222222212",
             "abstractAncestors": [
-                "_composite",
+                "_authoredValueList",
+                "_valueList",
                 "_base"
             ],
             "attributes": [
@@ -77616,7 +77617,12 @@
                 {
                     "name": "fixed",
                     "description": "Whether this component's value is fixed and cannot be modified.",
-                    "defaultValue": false
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "fixLocation",
@@ -77636,7 +77642,13 @@
                 },
                 {
                     "name": "isResponse",
-                    "description": "Whether this component is treated as a response for the purposes of assessment."
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "extend",
@@ -77649,9 +77661,10 @@
                     "type": "reference"
                 },
                 {
-                    "name": "unordered",
-                    "description": "Whether the order of items should be treated as unordered.",
-                    "defaultValue": false,
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
+                    "defaultValue": true,
                     "values": [
                         "true",
                         "false"
@@ -77665,9 +77678,9 @@
                     "type": "number"
                 },
                 {
-                    "name": "asList",
-                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
-                    "defaultValue": true,
+                    "name": "unordered",
+                    "description": "Whether the order of items should be treated as unordered.",
+                    "defaultValue": false,
                     "values": [
                         "true",
                         "false"
@@ -77691,10 +77704,10 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "unordered",
+                    "name": "isResponse",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the order of items should be treated as unordered.",
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
                     "fromAttribute": true
                 },
                 {
@@ -77705,22 +77718,52 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "unordered",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the order of items in this list should be treated as unordered (e.g. for matching)."
+                },
+                {
                     "name": "numComponents",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of items in the text list."
+                    "description": "The number of items in the list."
                 },
                 {
                     "name": "numValues",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of text values in the list."
+                    "description": "The number of values in the list."
                 }
             ],
             "top": true,
@@ -78739,7 +78782,8 @@
             ],
             "childBuckets": "111111111022222222222211",
             "abstractAncestors": [
-                "_composite",
+                "_authoredValueList",
+                "_valueList",
                 "_base"
             ],
             "attributes": [
@@ -78771,7 +78815,12 @@
                 {
                     "name": "fixed",
                     "description": "Whether this component's value is fixed and cannot be modified.",
-                    "defaultValue": false
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "fixLocation",
@@ -78791,7 +78840,13 @@
                 },
                 {
                     "name": "isResponse",
-                    "description": "Whether this component is treated as a response for the purposes of assessment."
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "extend",
@@ -78804,9 +78859,10 @@
                     "type": "reference"
                 },
                 {
-                    "name": "unordered",
-                    "description": "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
-                    "defaultValue": false,
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
+                    "defaultValue": true,
                     "values": [
                         "true",
                         "false"
@@ -78820,9 +78876,9 @@
                     "type": "number"
                 },
                 {
-                    "name": "asList",
-                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
-                    "defaultValue": true,
+                    "name": "unordered",
+                    "description": "Whether the order of items should be treated as unordered.",
+                    "defaultValue": false,
                     "values": [
                         "true",
                         "false"
@@ -78846,10 +78902,10 @@
                     "fromAttribute": true
                 },
                 {
-                    "name": "unordered",
+                    "name": "isResponse",
                     "type": "boolean",
                     "isArray": false,
-                    "description": "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
                     "fromAttribute": true
                 },
                 {
@@ -78860,22 +78916,52 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "unordered",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the order of items in this list should be treated as unordered (e.g. for matching)."
+                },
+                {
                     "name": "numComponents",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of items in the boolean list."
+                    "description": "The number of items in the list."
                 },
                 {
                     "name": "numValues",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of booleans in the list."
+                    "description": "The number of values in the list."
                 }
             ],
             "top": true,
@@ -79862,7 +79948,8 @@
             ],
             "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
             "abstractAncestors": [
-                "_composite",
+                "_authoredValueList",
+                "_valueList",
                 "_base"
             ],
             "attributes": [
@@ -79894,7 +79981,12 @@
                 {
                     "name": "fixed",
                     "description": "Whether this component's value is fixed and cannot be modified.",
-                    "defaultValue": false
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "fixLocation",
@@ -79914,7 +80006,13 @@
                 },
                 {
                     "name": "isResponse",
-                    "description": "Whether this component is treated as a response for the purposes of assessment."
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "extend",
@@ -79927,9 +80025,53 @@
                     "type": "reference"
                 },
                 {
-                    "name": "unordered",
-                    "description": "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
+                    "name": "displayDigits",
+                    "description": "Number of significant digits to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 3,
+                    "type": "integer"
+                },
+                {
+                    "name": "displayDecimals",
+                    "description": "Number of decimal places to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 2,
+                    "type": "integer"
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "description": "Threshold below which numbers are displayed as zero.",
+                    "groupName": "number-display",
+                    "defaultValue": 1e-14,
+                    "type": "number"
+                },
+                {
+                    "name": "padZeros",
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
+                    "groupName": "number-display",
                     "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
+                    "defaultValue": true,
                     "values": [
                         "true",
                         "false"
@@ -79943,6 +80085,16 @@
                     "type": "number"
                 },
                 {
+                    "name": "unordered",
+                    "description": "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "mergeMathLists",
                     "description": "Whether nested math-list children should be flattened into this list.",
                     "values": [
@@ -79950,36 +80102,6 @@
                         "false"
                     ],
                     "type": "boolean"
-                },
-                {
-                    "name": "asList",
-                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
-                    "defaultValue": true,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "displayDigits",
-                    "description": "Number of significant digits to display when rendering this number."
-                },
-                {
-                    "name": "displayDecimals",
-                    "description": "Number of decimal places to display when rendering this number."
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "description": "Threshold below which numbers are displayed as zero."
-                },
-                {
-                    "name": "padZeros",
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
-                },
-                {
-                    "name": "avoidScientificNotation",
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
                     "name": "functionSymbols",
@@ -80033,6 +80155,13 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
                     "name": "maxNumber",
                     "type": "number",
                     "isArray": false,
@@ -80061,10 +80190,64 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "displayDigits",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
                     "name": "unordered",
@@ -80082,13 +80265,13 @@
                     "name": "numComponents",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of items in the math list."
+                    "description": "The number of items in the list."
                 },
                 {
                     "name": "numValues",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of math expressions in the list."
+                    "description": "The number of values in the list."
                 }
             ],
             "top": true,
@@ -80207,7 +80390,8 @@
             ],
             "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
             "abstractAncestors": [
-                "_composite",
+                "_authoredValueList",
+                "_valueList",
                 "_base"
             ],
             "attributes": [
@@ -80239,7 +80423,12 @@
                 {
                     "name": "fixed",
                     "description": "Whether this component's value is fixed and cannot be modified.",
-                    "defaultValue": false
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "fixLocation",
@@ -80259,7 +80448,13 @@
                 },
                 {
                     "name": "isResponse",
-                    "description": "Whether this component is treated as a response for the purposes of assessment."
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "extend",
@@ -80272,9 +80467,53 @@
                     "type": "reference"
                 },
                 {
-                    "name": "unordered",
-                    "description": "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
+                    "name": "displayDigits",
+                    "description": "Number of significant digits to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 3,
+                    "type": "integer"
+                },
+                {
+                    "name": "displayDecimals",
+                    "description": "Number of decimal places to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 2,
+                    "type": "integer"
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "description": "Threshold below which numbers are displayed as zero.",
+                    "groupName": "number-display",
+                    "defaultValue": 1e-14,
+                    "type": "number"
+                },
+                {
+                    "name": "padZeros",
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
+                    "groupName": "number-display",
                     "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
+                    "defaultValue": true,
                     "values": [
                         "true",
                         "false"
@@ -80288,6 +80527,16 @@
                     "type": "number"
                 },
                 {
+                    "name": "unordered",
+                    "description": "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "mergeMathLists",
                     "description": "Whether nested math-list children should be flattened into this list.",
                     "values": [
@@ -80295,36 +80544,6 @@
                         "false"
                     ],
                     "type": "boolean"
-                },
-                {
-                    "name": "asList",
-                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
-                    "defaultValue": true,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "displayDigits",
-                    "description": "Number of significant digits to display when rendering this number."
-                },
-                {
-                    "name": "displayDecimals",
-                    "description": "Number of decimal places to display when rendering this number."
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "description": "Threshold below which numbers are displayed as zero."
-                },
-                {
-                    "name": "padZeros",
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
-                },
-                {
-                    "name": "avoidScientificNotation",
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
                     "name": "functionSymbols",
@@ -80378,6 +80597,13 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
                     "name": "maxNumber",
                     "type": "number",
                     "isArray": false,
@@ -80406,10 +80632,64 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "displayDigits",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
                     "name": "unordered",
@@ -80427,13 +80707,13 @@
                     "name": "numComponents",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of items in the math list."
+                    "description": "The number of items in the list."
                 },
                 {
                     "name": "numValues",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of math expressions in the list."
+                    "description": "The number of values in the list."
                 }
             ],
             "top": true,
@@ -80552,7 +80832,8 @@
             ],
             "childBuckets": "1111111111111111111111122222112222212202222101122222222122222212222222212122222222222222222222222222222",
             "abstractAncestors": [
-                "_composite",
+                "_authoredValueList",
+                "_valueList",
                 "_base"
             ],
             "attributes": [
@@ -80584,7 +80865,12 @@
                 {
                     "name": "fixed",
                     "description": "Whether this component's value is fixed and cannot be modified.",
-                    "defaultValue": false
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "fixLocation",
@@ -80604,7 +80890,13 @@
                 },
                 {
                     "name": "isResponse",
-                    "description": "Whether this component is treated as a response for the purposes of assessment."
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "extend",
@@ -80617,9 +80909,53 @@
                     "type": "reference"
                 },
                 {
-                    "name": "unordered",
-                    "description": "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
+                    "name": "displayDigits",
+                    "description": "Number of significant digits to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 3,
+                    "type": "integer"
+                },
+                {
+                    "name": "displayDecimals",
+                    "description": "Number of decimal places to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 2,
+                    "type": "integer"
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "description": "Threshold below which numbers are displayed as zero.",
+                    "groupName": "number-display",
+                    "defaultValue": 1e-14,
+                    "type": "number"
+                },
+                {
+                    "name": "padZeros",
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
+                    "groupName": "number-display",
                     "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
+                    "defaultValue": true,
                     "values": [
                         "true",
                         "false"
@@ -80633,34 +80969,14 @@
                     "type": "number"
                 },
                 {
-                    "name": "asList",
-                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
-                    "defaultValue": true,
+                    "name": "unordered",
+                    "description": "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
+                    "defaultValue": false,
                     "values": [
                         "true",
                         "false"
                     ],
                     "type": "boolean"
-                },
-                {
-                    "name": "displayDigits",
-                    "description": "Number of significant digits to display when rendering this number."
-                },
-                {
-                    "name": "displayDecimals",
-                    "description": "Number of decimal places to display when rendering this number."
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "description": "Threshold below which numbers are displayed as zero."
-                },
-                {
-                    "name": "padZeros",
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
-                },
-                {
-                    "name": "avoidScientificNotation",
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 }
             ],
             "properties": [
@@ -80679,6 +80995,13 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
                     "name": "maxNumber",
                     "type": "number",
                     "isArray": false,
@@ -80686,10 +81009,64 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "displayDigits",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
                     "name": "unordered",
@@ -80701,13 +81078,13 @@
                     "name": "numComponents",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of items in the number list."
+                    "description": "The number of items in the list."
                 },
                 {
                     "name": "numValues",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of numbers in the list."
+                    "description": "The number of values in the list."
                 }
             ],
             "top": true,
@@ -138340,7 +138717,8 @@
             ],
             "childBuckets": "2022222222221222211111111111111111111112222211222222222222212222022221222222222222212222221222221221222",
             "abstractAncestors": [
-                "_composite",
+                "_authoredValueList",
+                "_valueList",
                 "_base"
             ],
             "attributes": [
@@ -138372,7 +138750,12 @@
                 {
                     "name": "fixed",
                     "description": "Whether this component's value is fixed and cannot be modified.",
-                    "defaultValue": false
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "fixLocation",
@@ -138392,7 +138775,13 @@
                 },
                 {
                     "name": "isResponse",
-                    "description": "Whether this component is treated as a response for the purposes of assessment."
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "extend",
@@ -138405,8 +138794,30 @@
                     "type": "reference"
                 },
                 {
-                    "name": "unordered",
-                    "description": "Whether the order of intervals in this list should be treated as unordered (e.g. for matching).",
+                    "name": "displayDigits",
+                    "description": "Number of significant digits to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 3,
+                    "type": "integer"
+                },
+                {
+                    "name": "displayDecimals",
+                    "description": "Number of decimal places to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 2,
+                    "type": "integer"
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "description": "Threshold below which numbers are displayed as zero.",
+                    "groupName": "number-display",
+                    "defaultValue": 1e-14,
+                    "type": "number"
+                },
+                {
+                    "name": "padZeros",
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
+                    "groupName": "number-display",
                     "defaultValue": false,
                     "values": [
                         "true",
@@ -138415,14 +138826,20 @@
                     "type": "boolean"
                 },
                 {
-                    "name": "maxNumber",
-                    "description": "Maximum number of intervals to retain in the list.",
-                    "defaultValue": "Infinity",
-                    "type": "number"
+                    "name": "avoidScientificNotation",
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "asList",
                     "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
                     "defaultValue": true,
                     "values": [
                         "true",
@@ -138431,24 +138848,20 @@
                     "type": "boolean"
                 },
                 {
-                    "name": "displayDigits",
-                    "description": "Number of significant digits to display when rendering this number."
+                    "name": "maxNumber",
+                    "description": "Maximum number of items to retain in the list.",
+                    "defaultValue": "Infinity",
+                    "type": "number"
                 },
                 {
-                    "name": "displayDecimals",
-                    "description": "Number of decimal places to display when rendering this number."
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "description": "Threshold below which numbers are displayed as zero."
-                },
-                {
-                    "name": "padZeros",
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
-                },
-                {
-                    "name": "avoidScientificNotation",
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                    "name": "unordered",
+                    "description": "Whether the order of intervals in this list should be treated as unordered (e.g. for matching).",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 }
             ],
             "properties": [
@@ -138467,11 +138880,42 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
                     "name": "maxNumber",
                     "type": "number",
                     "isArray": false,
-                    "description": "Maximum number of intervals to retain in the list.",
+                    "description": "Maximum number of items to retain in the list.",
                     "fromAttribute": true
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
                 },
                 {
                     "name": "doenetML",
@@ -138480,19 +138924,55 @@
                     "description": "The DoenetML source code that produced this component."
                 },
                 {
+                    "name": "displayDigits",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
+                },
+                {
                     "name": "unordered",
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether the order of items in this list should be treated as unordered (e.g. for matching)."
                 },
                 {
-                    "name": "numIntervals",
+                    "name": "numComponents",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of intervals in the list."
+                    "description": "The number of items in the list."
                 },
                 {
                     "name": "numValues",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "The number of values in the list."
+                },
+                {
+                    "name": "numIntervals",
                     "type": "number",
                     "isArray": false,
                     "description": "The number of intervals in the list."
@@ -138500,7 +138980,7 @@
             ],
             "top": true,
             "acceptsStringChildren": true,
-            "takesIndex": false,
+            "takesIndex": true,
             "docsSlug": "intervalList",
             "summary": "A list of intervals",
             "layoutCategory": "other"
@@ -138812,7 +139292,12 @@
                 {
                     "name": "fixed",
                     "description": "Whether this component's value is fixed and cannot be modified.",
-                    "defaultValue": false
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "fixLocation",
@@ -138832,7 +139317,13 @@
                 },
                 {
                     "name": "isResponse",
-                    "description": "Whether this component is treated as a response for the purposes of assessment."
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "extend",
@@ -138845,9 +139336,53 @@
                     "type": "reference"
                 },
                 {
-                    "name": "unordered",
-                    "description": "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
+                    "name": "displayDigits",
+                    "description": "Number of significant digits to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 3,
+                    "type": "integer"
+                },
+                {
+                    "name": "displayDecimals",
+                    "description": "Number of decimal places to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 2,
+                    "type": "integer"
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "description": "Threshold below which numbers are displayed as zero.",
+                    "groupName": "number-display",
+                    "defaultValue": 1e-14,
+                    "type": "number"
+                },
+                {
+                    "name": "padZeros",
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
+                    "groupName": "number-display",
                     "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
+                    "defaultValue": true,
                     "values": [
                         "true",
                         "false"
@@ -138861,6 +139396,16 @@
                     "type": "number"
                 },
                 {
+                    "name": "unordered",
+                    "description": "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "mergeMathLists",
                     "description": "Whether nested math-list children should be flattened into this list.",
                     "values": [
@@ -138868,36 +139413,6 @@
                         "false"
                     ],
                     "type": "boolean"
-                },
-                {
-                    "name": "asList",
-                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
-                    "defaultValue": true,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "displayDigits",
-                    "description": "Number of significant digits to display when rendering this number."
-                },
-                {
-                    "name": "displayDecimals",
-                    "description": "Number of decimal places to display when rendering this number."
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "description": "Threshold below which numbers are displayed as zero."
-                },
-                {
-                    "name": "padZeros",
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
-                },
-                {
-                    "name": "avoidScientificNotation",
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
                     "name": "functionSymbols",
@@ -138951,6 +139466,13 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
                     "name": "maxNumber",
                     "type": "number",
                     "isArray": false,
@@ -138979,10 +139501,64 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "displayDigits",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
                     "name": "unordered",
@@ -139000,13 +139576,13 @@
                     "name": "numComponents",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of items in the math list."
+                    "description": "The number of items in the list."
                 },
                 {
                     "name": "numValues",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of math expressions in the list."
+                    "description": "The number of values in the list."
                 }
             ],
             "docsSlug": "row_matrix",
@@ -139118,7 +139694,8 @@
             ],
             "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
             "abstractAncestors": [
-                "_composite",
+                "_authoredValueList",
+                "_valueList",
                 "_base"
             ],
             "acceptsStringChildren": true,
@@ -139156,7 +139733,12 @@
                 {
                     "name": "fixed",
                     "description": "Whether this component's value is fixed and cannot be modified.",
-                    "defaultValue": false
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "fixLocation",
@@ -139176,7 +139758,13 @@
                 },
                 {
                     "name": "isResponse",
-                    "description": "Whether this component is treated as a response for the purposes of assessment."
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
                 },
                 {
                     "name": "extend",
@@ -139189,9 +139777,53 @@
                     "type": "reference"
                 },
                 {
-                    "name": "unordered",
-                    "description": "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
+                    "name": "displayDigits",
+                    "description": "Number of significant digits to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 3,
+                    "type": "integer"
+                },
+                {
+                    "name": "displayDecimals",
+                    "description": "Number of decimal places to display when rendering this number.",
+                    "groupName": "number-display",
+                    "defaultValue": 2,
+                    "type": "integer"
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "description": "Threshold below which numbers are displayed as zero.",
+                    "groupName": "number-display",
+                    "defaultValue": 1e-14,
+                    "type": "number"
+                },
+                {
+                    "name": "padZeros",
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals.",
+                    "groupName": "number-display",
                     "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation.",
+                    "groupName": "number-display",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
+                    "name": "asList",
+                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
+                    "highlighted": true,
+                    "defaultValue": true,
                     "values": [
                         "true",
                         "false"
@@ -139205,6 +139837,16 @@
                     "type": "number"
                 },
                 {
+                    "name": "unordered",
+                    "description": "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
+                    "defaultValue": false,
+                    "values": [
+                        "true",
+                        "false"
+                    ],
+                    "type": "boolean"
+                },
+                {
                     "name": "mergeMathLists",
                     "description": "Whether nested math-list children should be flattened into this list.",
                     "values": [
@@ -139212,36 +139854,6 @@
                         "false"
                     ],
                     "type": "boolean"
-                },
-                {
-                    "name": "asList",
-                    "description": "Whether to render the items separated by commas (true) or with no separator (false).",
-                    "defaultValue": true,
-                    "values": [
-                        "true",
-                        "false"
-                    ],
-                    "type": "boolean"
-                },
-                {
-                    "name": "displayDigits",
-                    "description": "Number of significant digits to display when rendering this number."
-                },
-                {
-                    "name": "displayDecimals",
-                    "description": "Number of decimal places to display when rendering this number."
-                },
-                {
-                    "name": "displaySmallAsZero",
-                    "description": "Threshold below which numbers are displayed as zero."
-                },
-                {
-                    "name": "padZeros",
-                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
-                },
-                {
-                    "name": "avoidScientificNotation",
-                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
                     "name": "functionSymbols",
@@ -139295,6 +139907,13 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
                     "name": "maxNumber",
                     "type": "number",
                     "isArray": false,
@@ -139323,10 +139942,64 @@
                     "fromAttribute": true
                 },
                 {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
                     "name": "doenetML",
                     "type": "text",
                     "isArray": false,
                     "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "displayDigits",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of significant digits to display when rendering this number."
+                },
+                {
+                    "name": "displayDecimals",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "Number of decimal places to display when rendering this number."
+                },
+                {
+                    "name": "displaySmallAsZero",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Threshold below which numbers are displayed as zero."
+                },
+                {
+                    "name": "padZeros",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to pad displayed numbers with trailing zeros to fill the requested digits/decimals."
+                },
+                {
+                    "name": "avoidScientificNotation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to render numbers in full decimal form rather than scientific notation."
                 },
                 {
                     "name": "unordered",
@@ -139344,13 +140017,13 @@
                     "name": "numComponents",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of items in the math list."
+                    "description": "The number of items in the list."
                 },
                 {
                     "name": "numValues",
                     "type": "number",
                     "isArray": false,
-                    "description": "The number of math expressions in the list."
+                    "description": "The number of values in the list."
                 }
             ],
             "docsSlug": "column_matrix",
@@ -139462,7 +140135,8 @@
             ],
             "childBuckets": "1222211111111111111111111112222211222222222222212222022222122222222212222222221222222122222222212212222",
             "abstractAncestors": [
-                "_composite",
+                "_authoredValueList",
+                "_valueList",
                 "_base"
             ],
             "acceptsStringChildren": true,

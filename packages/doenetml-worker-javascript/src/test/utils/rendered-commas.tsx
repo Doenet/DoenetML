@@ -136,9 +136,10 @@ export function renderedText(
 /**
  * A readable rendering of a component's `compositeReplacementActiveRange`: one
  * line per composite range, indented by nesting, as
- * `name [first-last] asList=…`. Nesting is implicit in the array (an outer
- * range comes before the ranges of the composites it produced), so spelling it
- * out is what makes a regression in the range data legible.
+ * `name [first-last] asList=…`. Nesting is implicit in the indices, so the
+ * ranges are put in the order `groupCompositeRanges` reads them (by first
+ * index, an outer range before the ranges inside it), and spelling the
+ * nesting out is what makes a regression in the range data legible.
  *
  * A composite that produced nothing is recorded as `lastInd === firstInd - 1`
  * and is left out: it contributes no children, so where it sits in the nesting
@@ -155,7 +156,11 @@ export function describeCompositeRanges(
     const lines: string[] = [];
     const openRanges: { firstInd: number; lastInd: number }[] = [];
 
-    for (const range of ranges) {
+    const ordered = [...ranges].sort(
+        (a: any, b: any) => a.firstInd - b.firstInd || b.lastInd - a.lastInd,
+    );
+
+    for (const range of ordered) {
         if (range.lastInd < range.firstInd) {
             continue;
         }

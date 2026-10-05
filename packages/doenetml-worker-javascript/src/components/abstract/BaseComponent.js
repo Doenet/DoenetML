@@ -185,6 +185,16 @@ export default class BaseComponent {
     static listEntryDerivedProperties = {};
 
     /**
+     * The derived property `name` of an entry
+     * (`listEntryDerivedProperties`), or `undefined`.
+     */
+    static derivedEntryProperty(name) {
+        return Object.hasOwn(this.listEntryDerivedProperties, name)
+            ? this.listEntryDerivedProperties[name]
+            : undefined;
+    }
+
+    /**
      * For a list component, the properties that a reference to the whole
      * list reads once, from the list (`$l.styleNumber`), where a reference
      * to the whole list reads every other entry property once per entry
@@ -198,6 +208,15 @@ export default class BaseComponent {
      * shows is shadowed from the component it copies.
      */
     static serializeChildrenOnlyIfUnlinked = false;
+
+    /**
+     * For a list component, whether an unlinked copy of it (`copy=`) is made
+     * holding the list's values as they are, in the state variable that
+     * takes the values of a shadowed array (`primaryStateVariableForDefinition`),
+     * without its children, as the copies of a composite's replacements
+     * were.
+     */
+    static serializeUnlinkedAsValues = false;
 
     /**
      * The class a component serialized as `serializedComponent` is created
@@ -1591,9 +1610,16 @@ export default class BaseComponent {
         // A component whose linked copy reads everything it shows from the
         // component it copies (`serializeChildrenOnlyIfUnlinked`) is copied
         // without its children unless the copy is unlinked (`copyAll`).
+        // Only the list that is copied; a list inside a copied component
+        // (the coordinates of a `<point>`) is copied with its children.
+        const unlinkedAsValues =
+            this.constructor.serializeUnlinkedAsValues &&
+            Boolean(parameters.copyAll) &&
+            !parameters.serializingDescendant;
         let includeDefiningChildren =
-            !this.constructor.serializeChildrenOnlyIfUnlinked ||
-            Boolean(parameters.copyAll);
+            (!this.constructor.serializeChildrenOnlyIfUnlinked ||
+                Boolean(parameters.copyAll)) &&
+            !unlinkedAsValues;
         // let stateVariablesToInclude = [];
 
         const serializedComponent = {
@@ -1609,7 +1635,10 @@ export default class BaseComponent {
 
         let serializedChildren = [];
 
-        let parametersForChildren = { ...parameters };
+        let parametersForChildren = {
+            ...parameters,
+            serializingDescendant: true,
+        };
 
         let primitiveSourceAttributesToIgnore;
         if (parameters.primitiveSourceAttributesToIgnore) {
@@ -1736,6 +1765,16 @@ export default class BaseComponent {
             Object.keys(this.essentialState).length > 0
         ) {
             serializedComponent.state = deepClone(this.essentialState);
+        }
+
+        if (unlinkedAsValues) {
+            serializedComponent.state[
+                this.constructor.primaryStateVariableForDefinition
+            ] = [
+                ...(await this.stateValues[
+                    this.constructor.listValuesArrayName
+                ]),
+            ];
         }
 
         if (

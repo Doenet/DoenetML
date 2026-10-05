@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { componentOrListEntry } from "../utils/list-entries";
 import { createFunctionFromDefinition } from "@doenet/utils";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import {
@@ -878,8 +879,14 @@ describe("odeSystem Tag Tests @group4", async () => {
 
         async function expectValue(origName: string, desiredValue: any) {
             expect(
-                stateVariables[await resolvePathToNodeIdx(origName)].stateValues
-                    .value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        origName,
+                    )
+                ).stateValues.value.tree,
             ).eqls(desiredValue);
         }
 

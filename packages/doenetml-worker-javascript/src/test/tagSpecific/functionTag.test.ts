@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
+import { componentOrListEntry } from "../utils/list-entries";
 import { cleanLatex } from "../utils/math";
 import {
     movePoint,
@@ -5568,8 +5569,10 @@ describe("Function tag tests @group4", async () => {
         expect(diagnosticsByType.errors.length).eq(0);
         expect(diagnosticsByType.warnings.length).eq(7);
 
+        // The domain written as `(` is reported by the list it makes, as it
+        // reads it, before the function finds it has no interval.
         expect(diagnosticsByType.warnings[0].message).contain(
-            `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 1 input.`,
+            `Invalid format for attribute domain of \`<function>\``,
         );
         expect(diagnosticsByType.warnings[0].position.start.line).eq(3);
         expect(diagnosticsByType.warnings[0].position.start.column).eq(25);
@@ -5577,52 +5580,52 @@ describe("Function tag tests @group4", async () => {
         expect(diagnosticsByType.warnings[0].position.end.column).eq(35);
 
         expect(diagnosticsByType.warnings[1].message).contain(
-            `Invalid format for domain for function`,
-        );
-        expect(diagnosticsByType.warnings[1].position.start.line).eq(4);
-        expect(diagnosticsByType.warnings[1].position.start.column).eq(25);
-        expect(diagnosticsByType.warnings[1].position.end.line).eq(4);
-        expect(diagnosticsByType.warnings[1].position.end.column).eq(41);
-
-        expect(diagnosticsByType.warnings[2].message).contain(
             `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 1 input.`,
         );
-        expect(diagnosticsByType.warnings[2].position.start.line).eq(5);
-        expect(diagnosticsByType.warnings[2].position.start.column).eq(25);
-        expect(diagnosticsByType.warnings[2].position.end.line).eq(5);
-        expect(diagnosticsByType.warnings[2].position.end.column).eq(34);
+        expect(diagnosticsByType.warnings[1].position.start.line).eq(3);
+        expect(diagnosticsByType.warnings[1].position.start.column).eq(25);
+        expect(diagnosticsByType.warnings[1].position.end.line).eq(3);
+        expect(diagnosticsByType.warnings[1].position.end.column).eq(35);
 
-        expect(diagnosticsByType.warnings[3].message).contain(
-            `Insufficient dimensions for domain for function. Domain has 1 interval but the function has 2 inputs.`,
-        );
-        expect(diagnosticsByType.warnings[3].position.start.line).eq(14);
-        expect(diagnosticsByType.warnings[3].position.start.column).eq(39);
-        expect(diagnosticsByType.warnings[3].position.end.line).eq(14);
-        expect(diagnosticsByType.warnings[3].position.end.column).eq(53);
-
-        expect(diagnosticsByType.warnings[4].message).contain(
+        expect(diagnosticsByType.warnings[2].message).contain(
             `Invalid format for domain for function`,
         );
-        expect(diagnosticsByType.warnings[4].position.start.line).eq(16);
+        expect(diagnosticsByType.warnings[2].position.start.line).eq(4);
+        expect(diagnosticsByType.warnings[2].position.start.column).eq(25);
+        expect(diagnosticsByType.warnings[2].position.end.line).eq(4);
+        expect(diagnosticsByType.warnings[2].position.end.column).eq(41);
+
+        expect(diagnosticsByType.warnings[3].message).contain(
+            `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 1 input.`,
+        );
+        expect(diagnosticsByType.warnings[3].position.start.line).eq(5);
+        expect(diagnosticsByType.warnings[3].position.start.column).eq(25);
+        expect(diagnosticsByType.warnings[3].position.end.line).eq(5);
+        expect(diagnosticsByType.warnings[3].position.end.column).eq(34);
+
+        expect(diagnosticsByType.warnings[4].message).contain(
+            `Insufficient dimensions for domain for function. Domain has 1 interval but the function has 2 inputs.`,
+        );
+        expect(diagnosticsByType.warnings[4].position.start.line).eq(14);
         expect(diagnosticsByType.warnings[4].position.start.column).eq(39);
-        expect(diagnosticsByType.warnings[4].position.end.line).eq(16);
-        expect(diagnosticsByType.warnings[4].position.end.column).eq(61);
+        expect(diagnosticsByType.warnings[4].position.end.line).eq(14);
+        expect(diagnosticsByType.warnings[4].position.end.column).eq(53);
 
         expect(diagnosticsByType.warnings[5].message).contain(
-            `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 2 inputs.`,
+            `Invalid format for domain for function`,
         );
-        expect(diagnosticsByType.warnings[5].position.start.line).eq(17);
+        expect(diagnosticsByType.warnings[5].position.start.line).eq(16);
         expect(diagnosticsByType.warnings[5].position.start.column).eq(39);
-        expect(diagnosticsByType.warnings[5].position.end.line).eq(17);
-        expect(diagnosticsByType.warnings[5].position.end.column).eq(48);
+        expect(diagnosticsByType.warnings[5].position.end.line).eq(16);
+        expect(diagnosticsByType.warnings[5].position.end.column).eq(61);
 
         expect(diagnosticsByType.warnings[6].message).contain(
-            `Invalid format for attribute domain of \`<function>\``,
+            `Insufficient dimensions for domain for function. Domain has 0 intervals but the function has 2 inputs.`,
         );
-        expect(diagnosticsByType.warnings[6].position.start.line).eq(3);
-        expect(diagnosticsByType.warnings[6].position.start.column).eq(25);
-        expect(diagnosticsByType.warnings[6].position.end.line).eq(3);
-        expect(diagnosticsByType.warnings[6].position.end.column).eq(35);
+        expect(diagnosticsByType.warnings[6].position.start.line).eq(17);
+        expect(diagnosticsByType.warnings[6].position.start.column).eq(39);
+        expect(diagnosticsByType.warnings[6].position.end.line).eq(17);
+        expect(diagnosticsByType.warnings[6].position.end.column).eq(48);
     });
 
     it("copy function and overwrite numInputs", async () => {
@@ -5803,58 +5806,112 @@ describe("Function tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mnl[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mnl[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mxl[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mxl[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("8");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("exl[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "exl[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-4");
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mnv[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mnv[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mxv[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mxv[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("9");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("exv[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "exv[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("4");
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mn1[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mn1[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-5");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mx1[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mx1[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("4");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ex1[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ex1[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-5");
 
@@ -5887,58 +5944,112 @@ describe("Function tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mnl[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mnl[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-7");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mxl[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mxl[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-4");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("exl[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "exl[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-7");
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mnv[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mnv[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-5");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mxv[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mxv[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("4");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("exv[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "exv[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-5");
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mn1[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mn1[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-7");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mx1[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mx1[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-4");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ex1[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ex1[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-7");
     }

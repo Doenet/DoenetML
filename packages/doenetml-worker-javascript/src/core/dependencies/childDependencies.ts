@@ -7,6 +7,8 @@
 
 import { Dependency, INITIAL_CHANGE_RECORD } from "./Dependency";
 import { gatherDescendants } from "../../utils/descendants";
+import { LIST_ENTRY_ARRAY_PREFIX } from "../../utils/listEntryReference";
+import { ensureListEntryPropertyArray } from "../listEntryPropertyArrays";
 
 export class ChildDependency extends Dependency {
     static dependencyType = "child";
@@ -52,6 +54,12 @@ export class ChildDependency extends Dependency {
             this.definition.proceedIfAllChildrenNotMatched;
 
         this.dontRecurseToShadows = this.definition.dontRecurseToShadows;
+
+        // Whether a change in the composites the children are replacements
+        // of (`compositeReplacementRange`) is a change of the dependency,
+        // as for a parent that keys its children's text by the composite
+        // the text came from.
+        this.reportCompositeChanges = this.definition.reportCompositeChanges;
     }
 
     async determineDownstreamComponents() {
@@ -147,7 +155,8 @@ export class ChildDependency extends Dependency {
                 activeChildrenIndices.some(
                     (x: any) =>
                         parent.activeChildren[x]?.constructor
-                            ?.listEntryComponentType !== undefined,
+                            ?.listEntryComponentType !== undefined &&
+                        !parent.listChildrenMatchedWhole?.has(x),
                 )
             ) {
                 this.childIndicesAfterExpansion = true;
@@ -412,6 +421,10 @@ export class ChildDependency extends Dependency {
                     if (translatedLastInd !== undefined) {
                         this.compositeReplacementRange.push({
                             compositeIdx: compositeInfo.compositeIdx,
+                            compositeStateId:
+                                this.dependencyHandler._components[
+                                    compositeInfo.compositeIdx
+                                ]?.stateId,
                             extendIdx: compositeInfo.extendIdx,
                             unresolvedPath: compositeInfo.unresolvedPath,
                             firstInd: translatedFirstInd,
@@ -462,7 +475,12 @@ export class ChildDependency extends Dependency {
             }
 
             const listEntryType = child.constructor?.listEntryComponentType;
-            if (listEntryType !== undefined) {
+            if (
+                listEntryType !== undefined &&
+                !parent.listChildrenMatchedWhole?.has(
+                    activeChildrenIndices[ind],
+                )
+            ) {
                 this.listChildPresentedTypes[child.componentIdx] = parent
                     .listChildPresentedTypes?.[activeChildrenIndices[ind]] ?? {
                     componentType: listEntryType,
@@ -580,6 +598,24 @@ export class ChildDependency extends Dependency {
 
         result.value = resultValueWithPrimitives;
 
+        if (this.reportCompositeChanges) {
+            const compositeRanges = JSON.stringify(
+                (resultValueWithPrimitives.compositeReplacementRange ?? []).map(
+                    (range: any) => [
+                        range.compositeIdx,
+                        range.firstInd,
+                        range.lastInd,
+                    ],
+                ),
+            );
+            if (compositeRanges !== this.previousCompositeRanges) {
+                result.changes.componentIdentitiesChanged = true;
+                if (consumeChanges) {
+                    this.previousCompositeRanges = compositeRanges;
+                }
+            }
+        }
+
         if (
             this.downstreamPrimitives.length !==
                 this.previousDownstreamPrimitives.length ||
@@ -632,13 +668,14 @@ export class ChildDependency extends Dependency {
 
     mapListEntryVariables(downComponent: any, originalVarNames: string[]) {
         const listClass = downComponent.constructor;
-        if (listClass.listEntryComponentType === undefined) {
+        const presented =
+            this.listChildPresentedTypes?.[downComponent.componentIdx];
+        if (
+            listClass.listEntryComponentType === undefined ||
+            presented === undefined
+        ) {
             return undefined;
         }
-
-        const presented = this.listChildPresentedTypes?.[
-            downComponent.componentIdx
-        ] ?? { componentType: listClass.listEntryComponentType };
 
         // An entry answers to the aliases of the type it presents as.
         const names: string[] = this.dependencyHandler.core.substituteAliases({
@@ -656,10 +693,24 @@ export class ChildDependency extends Dependency {
                 presented.adapterVariable !== undefined && name === "value"
                     ? presented.adapterVariable
                     : name;
-            return (
-                listClass.listEntryStateVariables[entryVariable] ??
-                `__${entryVariable}_not_a_list_entry_variable`
-            );
+            const listVariable =
+                listClass.listEntryStateVariables[entryVariable];
+            if (listVariable !== undefined) {
+                return listVariable;
+            }
+            // A property the list computes for each entry from its value
+            // (`numDimensions`, `x2` of a math read as a point) is an array
+            // made on the list when first asked for.
+            if (listClass.derivedEntryProperty(entryVariable) !== undefined) {
+                const arrayName = `${LIST_ENTRY_ARRAY_PREFIX}${entryVariable}`;
+                ensureListEntryPropertyArray({
+                    core: this.dependencyHandler.core,
+                    component: downComponent,
+                    arrayName,
+                });
+                return arrayName;
+            }
+            return `__${entryVariable}_not_a_list_entry_variable`;
         });
         mapped.push(listClass.listEntryCountVariable);
 
@@ -761,9 +812,9 @@ export class ChildDependency extends Dependency {
                 varInd,
                 originalName,
             ] of this.originalDownstreamVariableNames.entries()) {
-                isArray[originalName] = perEntryVariables.includes(
-                    mappedNames[varInd],
-                );
+                isArray[originalName] =
+                    perEntryVariables.includes(mappedNames[varInd]) ||
+                    mappedNames[varInd].startsWith(LIST_ENTRY_ARRAY_PREFIX);
             }
 
             const firstInd = expanded.length;
