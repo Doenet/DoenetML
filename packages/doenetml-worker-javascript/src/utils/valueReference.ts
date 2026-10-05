@@ -179,7 +179,17 @@ export function planListEntryAdapterReference({
     valueComponentType: string;
     componentInfoObjects: ComponentInfoObjects;
 }): { presentedComponentType: string; entryProperty: string } | undefined {
-    if (!parentClass || parentClass.renderChildren) {
+    // A parent that `planValueReference` turns away for every reference
+    // (a composite, such as a `<numberList>`, which copies an entry's
+    // display settings from a `_copy`) is turned away here too.
+    if (
+        !parentClass ||
+        parentClass.renderChildren ||
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: parentClass.componentType,
+            baseComponentType: "_composite",
+        })
+    ) {
         return undefined;
     }
     const valueClass =

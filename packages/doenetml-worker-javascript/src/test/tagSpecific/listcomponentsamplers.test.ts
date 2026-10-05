@@ -460,6 +460,25 @@ describe("Samplers and sequences as list components @group4", async () => {
         ).eqls(written);
     });
 
+    it("a list of one entry shows it with the list's display settings", async () => {
+        // as a list of one component a composite created did, and as one of
+        // an operator's entries does
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <sequence name="s" from="1.23456" length="2" displayDigits="2" />
+    <selectFromSequence name="sel" from="1.23456" to="1.23456" displayDigits="2" />
+    <cumulativeSum name="cs" displayDigits="2">1.23456 1</cumulativeSum>
+    <p name="p1"><numberList>$s[1]</numberList></p>
+    <p name="p2"><mathList>$s[2]</mathList></p>
+    <p name="p3"><numberList>$sel[1]</numberList></p>
+    <p name="p4"><numberList>$cs[1]</numberList></p>
+    `,
+        });
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, ["p1", "p2", "p3", "p4"]),
+        ).eqls({ p1: "1.2", p2: "2.2", p3: "1.2", p4: "1.2" });
+    });
+
     it("letters and primes are drawn by the renderers of their types", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
