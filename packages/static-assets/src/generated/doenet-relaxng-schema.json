@@ -36786,20 +36786,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "maths",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The values of the list, as maths.",
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "math",
-                            "numDimensions": 1
-                        }
-                    ]
                 }
             ]
         },
@@ -37327,20 +37313,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "maths",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The values of the list, as maths.",
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "math",
-                            "numDimensions": 1
-                        }
-                    ]
                 }
             ]
         },
@@ -37868,20 +37840,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "maths",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The values of the list, as maths.",
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "math",
-                            "numDimensions": 1
-                        }
-                    ]
                 }
             ]
         },
@@ -38409,20 +38367,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "maths",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The values of the list, as maths.",
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "math",
-                            "numDimensions": 1
-                        }
-                    ]
                 }
             ]
         },
@@ -38950,20 +38894,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "maths",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The values of the list, as maths.",
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "math",
-                            "numDimensions": 1
-                        }
-                    ]
                 }
             ]
         },
@@ -42596,20 +42526,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "maths",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The values of the list, as maths.",
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "math",
-                            "numDimensions": 1
-                        }
-                    ]
                 }
             ]
         },
@@ -43584,20 +43500,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "maths",
-                    "type": "math",
-                    "isArray": true,
-                    "description": "The values of the list, as maths.",
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "math",
-                            "numDimensions": 1
-                        }
-                    ]
                 }
             ]
         },
@@ -44544,20 +44446,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "numbers",
-                    "type": "number",
-                    "isArray": true,
-                    "description": "The values of the list, as numbers.",
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "number",
-                            "numDimensions": 1
-                        }
-                    ]
                 },
                 {
                     "name": "categories",
@@ -45521,20 +45409,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "numbers",
-                    "type": "number",
-                    "isArray": true,
-                    "description": "The values of the list, as numbers.",
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "number",
-                            "numDimensions": 1
-                        }
-                    ]
                 },
                 {
                     "name": "binEdges",
@@ -161995,20 +161869,6 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to render numbers in full decimal form rather than scientific notation."
-                },
-                {
-                    "name": "numbers",
-                    "type": "number",
-                    "isArray": true,
-                    "description": "The values of the list, as numbers.",
-                    "numDimensions": 1,
-                    "indexedArrayDescription": [
-                        {
-                            "isArray": true,
-                            "type": "number",
-                            "numDimensions": 1
-                        }
-                    ]
                 }
             ]
         },

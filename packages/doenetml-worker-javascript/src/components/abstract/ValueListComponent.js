@@ -33,8 +33,8 @@ import { returnMathVectorMatrixStateVariableDefinitions } from "../../utils/math
  * the entries as they read a composite's replacements.
  *
  * A subclass names, in `listEntryValuesVariable`, the state variable that
- * computes the values as a plain array; this class keeps them in the public
- * array `maths` or `numbers`, which `$l[2]` indexes, and computes from them
+ * computes the values as a plain array; this class keeps them in the array
+ * `maths` or `numbers`, which `$l[2]` indexes, and computes from them
  * what a parent reads of an entry: its text, its latex, and its value as the
  * other type. An entry reads its display settings, `hidden` and `fixed` from
  * the list. The values are computed, so the entries are `fixed` and cannot be
@@ -370,12 +370,9 @@ export default class ValueListComponent extends BaseComponent {
             },
         };
 
+        // Not a property an author names: `$l[2]` and `$l[2].value` read it
+        // (`listEntryPropertyPath`), as does a reference to the whole list.
         stateVariableDefinitions[arrayName] = {
-            description:
-                entryType === "math"
-                    ? "The values of the list, as maths."
-                    : "The values of the list, as numbers.",
-            public: true,
             isArray: true,
             entryPrefixes: [entryPrefix],
             // A reference to the whole list is a shadow that reads the values

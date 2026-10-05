@@ -14,7 +14,7 @@ import {
 } from "../../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../../utils/componentIndices";
 import { codedDiagnostic } from "../../utils/diagnostics";
-import { isListEntryPropertyVariable } from "../../utils/listEntryReference";
+import { isListEntryArrayVariable } from "../../utils/listEntryReference";
 import { errorComponentState } from "../../utils/dast/errors";
 import {
     planValueReference,
@@ -2461,16 +2461,14 @@ export async function replacementFromProp({
     if (replacementSource) {
         target = components[replacementSource.componentIdx];
 
-        // A property of the entries of a list component was resolved to an
-        // array of the list (`utils/listEntryReference.ts`).
-        varName =
-            target.constructor.listEntryComponentType !== undefined &&
-            isListEntryPropertyVariable(propName)
-                ? propName
-                : publicCaseInsensitiveAliasSubstitutions({
-                      stateVariables: [propName],
-                      componentClass: target.constructor,
-                  })[0];
+        // An entry of a list component, or a property of its entries, was
+        // resolved to an array of the list (`utils/listEntryReference.ts`).
+        varName = isListEntryArrayVariable(target, propName)
+            ? propName
+            : publicCaseInsensitiveAliasSubstitutions({
+                  stateVariables: [propName],
+                  componentClass: target.constructor,
+              })[0];
     }
 
     if (varName === undefined || varName.slice(0, 12) === "__not_public") {

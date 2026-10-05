@@ -42,6 +42,38 @@ export function isListEntryPropertyVariable(name: string): boolean {
 }
 
 /**
+ * Whether `name` is, on the list component `component`, an array holding a
+ * value per entry (`listPerEntryVariables`, or one made for an entry
+ * property) or an entry of one, which a reference reads through
+ * `listEntryPropertyPath` rather than as one of the list's properties.
+ */
+export function isListEntryArrayVariable(
+    component: any,
+    name: string,
+): boolean {
+    const listClass = component?.constructor;
+    if (listClass?.listEntryComponentType === undefined) {
+        return false;
+    }
+    if (isListEntryPropertyVariable(name)) {
+        return true;
+    }
+    let arrayName = name;
+    const stateVarObj = component.state[name];
+    if (stateVarObj?.isArrayEntry) {
+        arrayName = stateVarObj.arrayStateVariable;
+    } else if (!stateVarObj) {
+        const prefix = Object.keys(component.arrayEntryPrefixes ?? {})
+            .filter((prefix) => name.startsWith(prefix))
+            .sort((a, b) => b.length - a.length)[0];
+        if (prefix !== undefined) {
+            arrayName = component.arrayEntryPrefixes[prefix];
+        }
+    }
+    return listClass.listPerEntryVariables.includes(arrayName);
+}
+
+/**
  * The entry property of a list of class `listClass` that `name` designates,
  * or `undefined` when `name` is not one.
  */
@@ -103,8 +135,9 @@ export function listEntryDefaultValue(
 
 /**
  * The path that reads, on a list of class `listClass`, what `unresolvedPath`
- * reads of its entries: `[i].prop` becomes entry `i` of the array for
- * `prop`, and `.prop` the whole array. `undefined` when `listClass` is not a
+ * reads of its entries: `[i]` becomes entry `i` of the array of values,
+ * `[i].prop` entry `i` of the array for `prop`, and `.prop` the whole
+ * array. `undefined` when `listClass` is not a
  * list component or the path names no entry property, so that the path is
  * resolved as it is.
  */
@@ -128,6 +161,29 @@ export function listEntryPropertyPath({
         return undefined;
     }
     const [first, second] = unresolvedPath;
+
+    // A bare index (`$l[2]`) reads the entry's value, from the list's array
+    // of values, which is not one of the list's properties.
+    if (
+        unresolvedPath.length === 1 &&
+        first.name === "" &&
+        first.index.length === 1
+    ) {
+        return {
+            path: [
+                {
+                    ...first,
+                    name: arrayForEntryProperty(
+                        listClass,
+                        "value",
+                        componentInfoObjects,
+                    ),
+                },
+            ],
+            entryProperty: "value",
+            isEntry: true,
+        };
+    }
 
     if (
         unresolvedPath.length === 2 &&
