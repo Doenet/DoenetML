@@ -20,6 +20,11 @@ import {
     textToMathFactory,
 } from "../../utils/math";
 import { returnMathVectorMatrixStateVariableDefinitions } from "../../utils/mathVectorMatrixStateVariables";
+import { booleanFromWord, booleanWord } from "../../utils/booleanWords";
+import {
+    contentTranslator,
+    returnContentLocaleDependencies,
+} from "../../utils/contentLocale";
 
 /**
  * Base class for a list component: one component that holds a list of values,
@@ -80,6 +85,23 @@ export default class ValueListComponent extends BaseComponent {
     // components a composite created did (`<sequence fixed="false">`). The
     // results of an operator are computed, and take none.
     static listEntriesTakeWrites = false;
+
+    // Whether a value written to an entry is handed to the subclass's
+    // `listEntryValuesVariable`, at the entry's index, for it to route to
+    // where the entry's value comes from (an authored child of a
+    // `<mathList>`), rather than kept by this class (`entryWrites`).
+    static listEntriesWriteToValues = false;
+
+    // Whether the entries are fixed unless the list's `fixed` is set to
+    // false. The entries of a list an author writes out (`<numberList>`) are
+    // not fixed unless the list is.
+    static listEntriesFixedByDefault = true;
+
+    // A state variable of the subclass holding, for each entry, the display
+    // settings it is shown with (`displayDigits`, …), or `null` for the
+    // list's own. An entry that is an authored child of the list shows the
+    // settings the child sets.
+    static listEntryDisplaySettingsVariable = undefined;
 
     // A state variable of the subclass whose value is what a written value
     // stands over (`entryWrites`) in place of the value the list computed
@@ -159,22 +181,24 @@ export default class ValueListComponent extends BaseComponent {
     }
 
     static buildListEntryStateVariables() {
-        const entryType = this.listEntryComponentType;
+        const kind = entryKind(this.listEntryComponentType);
         const typeVariables =
-            entryType === "text"
+            kind === "text"
                 ? {
                       text: "entryTexts",
                       math: "entryTextMaths",
                       number: "entryTextNumbers",
                   }
-                : {
-                      [entryType === "math" ? "number" : "math"]:
-                          "entryOtherTypeValues",
-                      text: "entryTexts",
-                      latex: "entryLatexes",
-                      isNumber: "entryIsNumbers",
-                      valueForDisplay: "entryValuesForDisplay",
-                  };
+                : kind === "boolean"
+                  ? { text: "entryTexts" }
+                  : {
+                        [kind === "math" ? "number" : "math"]:
+                            "entryOtherTypeValues",
+                        text: "entryTexts",
+                        latex: "entryLatexes",
+                        isNumber: "entryIsNumbers",
+                        valueForDisplay: "entryValuesForDisplay",
+                    };
         const variables = {
             value: this.listValuesArrayName,
             ...typeVariables,
@@ -182,6 +206,8 @@ export default class ValueListComponent extends BaseComponent {
             fixed: "entriesFixed",
             canBeModified: "entriesCanBeModified",
             unordered: "entriesUnordered",
+            inUnorderedList: "entriesInUnorderedList",
+            entryOfReference: "entriesOfReference",
             disabled: "disabled",
             fixLocation: "fixLocation",
             selectedStyle: "selectedStyle",
@@ -194,7 +220,7 @@ export default class ValueListComponent extends BaseComponent {
         for (const name in ENTRY_RENDERER_DEFAULTS) {
             variables[name] = name;
         }
-        if (entryType !== "text") {
+        if (hasNumberDisplay(kind)) {
             for (const name in returnNumberDisplayAttributes()) {
                 variables[name] = name;
             }
@@ -219,15 +245,19 @@ export default class ValueListComponent extends BaseComponent {
     // from the entry's value alone, so that a reference to it (`$l[$i]` in a
     // `<math>`) follows that entry and no other.
     static get listEntryDerivedProperties() {
-        const entryType = this.listEntryComponentType;
-        if (entryType === "math") {
+        const kind = entryKind(this.listEntryComponentType);
+        if (kind === "math") {
             return MATH_ENTRY_DERIVED_PROPERTIES;
         }
-        return entryType === "text" ? {} : NUMBER_ENTRY_DERIVED_PROPERTIES;
+        return kind === "number" ? NUMBER_ENTRY_DERIVED_PROPERTIES : {};
     }
 
     static get listPerEntryVariables() {
-        if (this.listEntryComponentType === "text") {
+        const kind = entryKind(this.listEntryComponentType);
+        if (kind === "boolean") {
+            return [this.listValuesArrayName, "entryTexts"];
+        }
+        if (kind === "text") {
             return [
                 this.listValuesArrayName,
                 "entryTexts",
@@ -292,6 +322,10 @@ export default class ValueListComponent extends BaseComponent {
         const entryType = this.listEntryComponentType;
         const valuesVariable = this.listEntryValuesVariable;
         const entriesTakeWrites = this.listEntriesTakeWrites;
+        const entriesWriteToValues = this.listEntriesWriteToValues;
+        const entriesFixedByDefault = this.listEntriesFixedByDefault;
+        const displaySettingsVariable = this.listEntryDisplaySettingsVariable;
+        const kind = entryKind(entryType);
         const writeBasisVariable = this.listEntryWriteBasisVariable;
         const arrayName = this.listValuesArrayName;
         const entryPrefix = entryType;
@@ -495,15 +529,14 @@ export default class ValueListComponent extends BaseComponent {
             shadowingInstructions: {
                 createComponentOfType: entryType,
                 addAttributeComponentsShadowingStateVariables: {
-                    ...(entryType === "text"
-                        ? {}
-                        : returnNumberDisplayAttributeComponentShadowing()),
+                    ...(hasNumberDisplay(kind)
+                        ? returnNumberDisplayAttributeComponentShadowing()
+                        : {}),
                     fixed: { stateVariableToShadow: "entriesFixed" },
                 },
-                attributesToShadow:
-                    entryType === "text"
-                        ? []
-                        : Object.keys(returnNumberDisplayAttributes()),
+                attributesToShadow: hasNumberDisplay(kind)
+                    ? Object.keys(returnNumberDisplayAttributes())
+                    : [],
             },
             returnArraySizeDependencies: () => ({
                 numEntries: {
@@ -589,6 +622,27 @@ export default class ValueListComponent extends BaseComponent {
                 globalDependencyValues,
                 dependencyNamesByKey,
             }) {
+                if (
+                    entriesWriteToValues &&
+                    !globalDependencyValues.entriesFixed
+                ) {
+                    // `values` takes the entries written, by their index.
+                    const desiredValue = {};
+                    for (const arrayKey in desiredStateVariableValues[
+                        arrayName
+                    ]) {
+                        desiredValue[arrayKey] = entryValueOfType(
+                            desiredStateVariableValues[arrayName][arrayKey],
+                            entryType,
+                        );
+                    }
+                    return {
+                        success: true,
+                        instructions: [
+                            { setDependency: "values", desiredValue },
+                        ],
+                    };
+                }
                 if (!entriesTakeWrites || globalDependencyValues.entriesFixed) {
                     return { success: false };
                 }
@@ -687,7 +741,7 @@ export default class ValueListComponent extends BaseComponent {
                 },
             }),
             definition({ dependencyValues, usedDefault }) {
-                if (usedDefault.fixed) {
+                if (usedDefault.fixed && entriesFixedByDefault) {
                     return {
                         useEssentialOrDefaultValue: { entriesFixed: true },
                     };
@@ -706,7 +760,8 @@ export default class ValueListComponent extends BaseComponent {
             definition: ({ dependencyValues }) => ({
                 setValue: {
                     entriesCanBeModified:
-                        entriesTakeWrites && !dependencyValues.entriesFixed,
+                        (entriesTakeWrites || entriesWriteToValues) &&
+                        !dependencyValues.entriesFixed,
                 },
             }),
         };
@@ -716,7 +771,78 @@ export default class ValueListComponent extends BaseComponent {
             definition: () => ({ setValue: { entriesUnordered: false } }),
         };
 
-        if (entryType === "text") {
+        // Whether the entries are the items of a list whose order does not
+        // matter, which a comparison reads (`<boolean>$l = $m</boolean>`).
+        stateVariableDefinitions.entriesInUnorderedList = {
+            returnDependencies: () => ({}),
+            definition: () => ({
+                setValue: { entriesInUnorderedList: false },
+            }),
+        };
+
+        // Whether the entries are those of a reference to a list (`$l`),
+        // so that a list holding it shows them with the display settings it
+        // sets (`AuthoredValueList`).
+        stateVariableDefinitions.entriesOfReference = {
+            returnDependencies: () => ({
+                shadowSource: {
+                    dependencyType: "shadowSource",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    entriesOfReference: dependencyValues.shadowSource !== null,
+                },
+            }),
+        };
+
+        if (kind === "boolean") {
+            // A boolean entry's text is its value as a word of the
+            // document's language, as a `<boolean>` shows it.
+            stateVariableDefinitions.entryTexts = {
+                forRenderer: true,
+                returnDependencies: () => ({
+                    values: {
+                        dependencyType: "stateVariable",
+                        variableName: arrayName,
+                    },
+                    ...returnContentLocaleDependencies(),
+                }),
+                definition({ dependencyValues }) {
+                    const t = contentTranslator(dependencyValues);
+                    return {
+                        setValue: {
+                            entryTexts: dependencyValues.values.map((value) =>
+                                booleanWord(value, t),
+                            ),
+                        },
+                    };
+                },
+                inverseDefinition({
+                    desiredStateVariableValues,
+                    dependencyValues,
+                }) {
+                    const t = contentTranslator(dependencyValues);
+                    const desiredValue = {};
+                    for (const key in desiredStateVariableValues.entryTexts) {
+                        const value = booleanFromWord(
+                            desiredStateVariableValues.entryTexts[key],
+                            t,
+                        );
+                        if (value === undefined) {
+                            return { success: false };
+                        }
+                        desiredValue[key] = value;
+                    }
+                    return {
+                        success: true,
+                        instructions: [
+                            { setDependency: "values", desiredValue },
+                        ],
+                    };
+                },
+            };
+        } else if (kind === "text") {
             // A text entry's text is its value; its `math` and `number`
             // are the text parsed, as a `<text>` parses it.
             stateVariableDefinitions.entryTexts = {
@@ -810,6 +936,14 @@ export default class ValueListComponent extends BaseComponent {
                     dependencyType: "stateVariable",
                     variableName: "avoidScientificNotation",
                 },
+                ...(displaySettingsVariable === undefined
+                    ? {}
+                    : {
+                          entryDisplaySettings: {
+                              dependencyType: "stateVariable",
+                              variableName: displaySettingsVariable,
+                          },
+                      }),
             };
 
             // What `valueForDisplay` is for each entry: the value rounded for
@@ -824,13 +958,15 @@ export default class ValueListComponent extends BaseComponent {
                 }),
                 definition({ dependencyValues }) {
                     const entryValuesForDisplay = dependencyValues.values.map(
-                        (value) =>
-                            entryType === "math"
-                                ? mathValueForDisplay(value, dependencyValues)
-                                : numberValueForDisplay(
-                                      value,
-                                      dependencyValues,
-                                  ),
+                        (value, ind) => {
+                            const settings = entrySettings(
+                                dependencyValues,
+                                ind,
+                            );
+                            return kind === "math"
+                                ? mathValueForDisplay(value, settings)
+                                : numberValueForDisplay(value, settings);
+                        },
                     );
                     return { setValue: { entryValuesForDisplay } };
                 },
@@ -846,15 +982,18 @@ export default class ValueListComponent extends BaseComponent {
                     ...displayDependencies,
                 }),
                 definition({ dependencyValues }) {
-                    const params =
-                        buildNumberDisplayParameters(dependencyValues);
                     const entryTexts =
-                        dependencyValues.entryValuesForDisplay.map((value) =>
-                            entryType === "math"
-                                ? mathText(value, params)
-                                : numberToMathExpression(value).toString(
-                                      params,
-                                  ),
+                        dependencyValues.entryValuesForDisplay.map(
+                            (value, ind) => {
+                                const params = buildNumberDisplayParameters(
+                                    entrySettings(dependencyValues, ind),
+                                );
+                                return kind === "math"
+                                    ? mathText(value, params)
+                                    : numberToMathExpression(value).toString(
+                                          params,
+                                      );
+                            },
                         );
                     return { setValue: { entryTexts } };
                 },
@@ -870,13 +1009,18 @@ export default class ValueListComponent extends BaseComponent {
                     ...displayDependencies,
                 }),
                 definition({ dependencyValues }) {
-                    const params =
-                        buildNumberDisplayParameters(dependencyValues);
                     const entryLatexes =
-                        dependencyValues.entryValuesForDisplay.map((value) =>
-                            entryType === "math"
-                                ? mathLatex(value, params)
-                                : numberToMathExpression(value).toLatex(params),
+                        dependencyValues.entryValuesForDisplay.map(
+                            (value, ind) => {
+                                const params = buildNumberDisplayParameters(
+                                    entrySettings(dependencyValues, ind),
+                                );
+                                return kind === "math"
+                                    ? mathLatex(value, params)
+                                    : numberToMathExpression(value).toLatex(
+                                          params,
+                                      );
+                            },
                         );
                     return { setValue: { entryLatexes } };
                 },
@@ -894,7 +1038,7 @@ export default class ValueListComponent extends BaseComponent {
                 definition({ dependencyValues }) {
                     const entryOtherTypeValues = dependencyValues.values.map(
                         (value) =>
-                            entryType === "math"
+                            kind === "math"
                                 ? (plainComplex(value.evaluate_to_constant()) ??
                                   NaN)
                                 : numberToMathExpression(value),
@@ -918,7 +1062,7 @@ export default class ValueListComponent extends BaseComponent {
                 definition({ dependencyValues }) {
                     const entryIsNumbers = dependencyValues.values.map(
                         (value) =>
-                            entryType === "math"
+                            kind === "math"
                                 ? Number.isFinite(value.tree)
                                 : Number.isFinite(value),
                     );
@@ -946,11 +1090,38 @@ export default class ValueListComponent extends BaseComponent {
  * values of entries of that type and the renderer that draws one.
  */
 const ENTRY_TYPES = {
-    math: { arrayName: "maths", rendererType: "math" },
-    number: { arrayName: "numbers", rendererType: "number" },
-    integer: { arrayName: "numbers", rendererType: "number" },
-    text: { arrayName: "texts", rendererType: "text" },
+    math: { arrayName: "maths", rendererType: "math", kind: "math" },
+    interval: { arrayName: "intervals", rendererType: "math", kind: "math" },
+    number: { arrayName: "numbers", rendererType: "number", kind: "number" },
+    integer: { arrayName: "numbers", rendererType: "number", kind: "number" },
+    text: { arrayName: "texts", rendererType: "text", kind: "text" },
+    boolean: {
+        arrayName: "booleans",
+        rendererType: "boolean",
+        kind: "boolean",
+    },
 };
+
+/**
+ * How the values of entries of `entryType` are held and shown: `math` (a
+ * math expression, also an interval), `number`, `text` or `boolean`.
+ */
+export function entryKind(entryType) {
+    return ENTRY_TYPES[entryType]?.kind;
+}
+
+/** Whether entries of `kind` take the number display settings. */
+function hasNumberDisplay(kind) {
+    return kind === "math" || kind === "number";
+}
+
+/**
+ * The display settings entry `ind` is shown with: its own
+ * (`listEntryDisplaySettingsVariable`), or the list's.
+ */
+function entrySettings(dependencyValues, ind) {
+    return dependencyValues.entryDisplaySettings?.[ind] ?? dependencyValues;
+}
 
 /**
  * The inverse of a variable of a list holding a plain array of one value per
@@ -991,7 +1162,7 @@ function sameEntryValue(a, b) {
  * computed (`overIsValue`), for what it was written over.
  */
 function restoredEntryWrite(write, entryType, overIsValue) {
-    if (!write || entryType !== "math") {
+    if (!write || entryKind(entryType) !== "math") {
         return write;
     }
     const restore = (value) =>
@@ -1004,10 +1175,14 @@ function restoredEntryWrite(write, entryType, overIsValue) {
 
 /** The value of an entry of `entryType` past the end of the values. */
 function blankEntryValue(entryType) {
-    if (entryType === "math") {
+    const kind = entryKind(entryType);
+    if (kind === "math") {
         return me.fromAst("\uff3f");
     }
-    return entryType === "text" ? "" : NaN;
+    if (kind === "boolean") {
+        return false;
+    }
+    return kind === "text" ? "" : NaN;
 }
 
 /**
@@ -1015,8 +1190,18 @@ function blankEntryValue(entryType) {
  * a component of that type takes it: a number from a math, a math from a
  * number, a text from either, and an integer rounded.
  */
-function entryValueOfType(value, entryType) {
-    if (entryType === "math") {
+export function entryValueOfType(value, entryType) {
+    const kind = entryKind(entryType);
+    if (kind === "boolean") {
+        if (typeof value === "boolean") {
+            return value;
+        }
+        if (typeof value === "string") {
+            return value.trim().toLowerCase() === "true";
+        }
+        return Boolean(value);
+    }
+    if (kind === "math") {
         if (value instanceof me.class) {
             return value;
         }
@@ -1024,7 +1209,7 @@ function entryValueOfType(value, entryType) {
             ? numberToMathExpression(value)
             : textToMathFactory()(String(value));
     }
-    if (entryType === "text") {
+    if (kind === "text") {
         return value instanceof me.class ? value.toString() : String(value);
     }
     let number =

@@ -1171,22 +1171,19 @@ export class EssentialValueWriter {
                                 `Invalid inverse definition of ${stateVariable} of ${component.componentIdx}: ${dependencyName} child of index ${newInstruction.childIndex} does not exist.`,
                             );
                         }
-                        let arrayKey = newInstruction.arrayKey;
                         let value = newInstruction.desiredValue;
                         const list = this.core._components[cIdx];
-                        if (childSource.entryIndex !== undefined) {
-                            if (list.state[varName]?.isArray) {
-                                arrayKey = String(childSource.entryIndex);
-                            } else if (
+                        if (
+                            childSource.entryIndex !== undefined &&
+                            (list.state[varName]?.isArray ||
                                 list.constructor.listPerEntryVariables.includes(
                                     varName,
-                                )
-                            ) {
-                                // A variable holding a plain array of one
-                                // value per entry is written at the entry
-                                // alone.
-                                value = { [childSource.entryIndex]: value };
-                            }
+                                ))
+                        ) {
+                            // An array of the list, or a variable holding a
+                            // plain array of one value per entry, is written
+                            // at the entry alone.
+                            value = { [childSource.entryIndex]: value };
                         }
                         await this._recurseInto({
                             inst: {
@@ -1194,7 +1191,6 @@ export class EssentialValueWriter {
                                 stateVariable: varName,
                                 value,
                                 overrideFixed: instruction.overrideFixed,
-                                arrayKey,
                             },
                             newInstruction,
                             workspace,
@@ -1285,10 +1281,14 @@ export class EssentialValueWriter {
                                 `Invalid inverse definition of ${stateVariable} of ${component.componentIdx}: ${dependencyName} child of index ${newInstruction.childIndex} does not exist.`,
                             );
                         }
-                        let varName =
-                            dep.mappedDownstreamVariableNamesByComponent[
-                                newInstruction.childIndex
-                            ][newInstruction.variableIndex];
+                        // `childIndex` counts the primitive children too;
+                        // the variables are by downstream component.
+                        let varName = (dep
+                            .mappedDownstreamVariableNamesByComponent?.[
+                            downstreamInd
+                        ] ?? dep.originalDownstreamVariableNames)[
+                            newInstruction.variableIndex
+                        ];
                         if (!varName) {
                             throw Error(
                                 `Invalid inverse definition of ${stateVariable} of ${component.componentIdx}: ${dependencyName} variable of index ${newInstruction.variableIndex} does not exist.`,

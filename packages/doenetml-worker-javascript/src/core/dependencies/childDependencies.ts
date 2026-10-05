@@ -147,7 +147,8 @@ export class ChildDependency extends Dependency {
                 activeChildrenIndices.some(
                     (x: any) =>
                         parent.activeChildren[x]?.constructor
-                            ?.listEntryComponentType !== undefined,
+                            ?.listEntryComponentType !== undefined &&
+                        !parent.listChildrenMatchedWhole?.has(x),
                 )
             ) {
                 this.childIndicesAfterExpansion = true;
@@ -462,7 +463,12 @@ export class ChildDependency extends Dependency {
             }
 
             const listEntryType = child.constructor?.listEntryComponentType;
-            if (listEntryType !== undefined) {
+            if (
+                listEntryType !== undefined &&
+                !parent.listChildrenMatchedWhole?.has(
+                    activeChildrenIndices[ind],
+                )
+            ) {
                 this.listChildPresentedTypes[child.componentIdx] = parent
                     .listChildPresentedTypes?.[activeChildrenIndices[ind]] ?? {
                     componentType: listEntryType,
@@ -632,13 +638,14 @@ export class ChildDependency extends Dependency {
 
     mapListEntryVariables(downComponent: any, originalVarNames: string[]) {
         const listClass = downComponent.constructor;
-        if (listClass.listEntryComponentType === undefined) {
+        const presented =
+            this.listChildPresentedTypes?.[downComponent.componentIdx];
+        if (
+            listClass.listEntryComponentType === undefined ||
+            presented === undefined
+        ) {
             return undefined;
         }
-
-        const presented = this.listChildPresentedTypes?.[
-            downComponent.componentIdx
-        ] ?? { componentType: listClass.listEntryComponentType };
 
         // An entry answers to the aliases of the type it presents as.
         const names: string[] = this.dependencyHandler.core.substituteAliases({

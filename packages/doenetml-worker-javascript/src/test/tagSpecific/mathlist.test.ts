@@ -1457,7 +1457,7 @@ describe("MathList tag tests @group3", async () => {
         }
     });
 
-    it("mathList and rounding, ignore math and number children attributes", async () => {
+    it("mathList and rounding, children keep the display settings they set", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p name="p1"><mathList name="ml1">
@@ -1551,16 +1551,32 @@ describe("MathList tag tests @group3", async () => {
             2345.1535268, 3.52343, 5, 0.00000000000000052523,
             0.000000000000000000006,
         ];
-        let text1 = ["2345.15", "3.52", "5", "0", "0"].join(", ");
-        let text2 = ["2345", "3.523", "5", "0", "0"].join(", ");
-        let text3 = ["2345", "3.523", "5.000", "0.000", "0.000"].join(", ");
-        let text4 = ["2345.1535", "3.5234", "5", "0", "0"].join(", ");
-        let text5 = ["2345.1535", "3.5234", "5.0000", "0.0000", "0.0000"].join(
+        // An authored child shows the display settings it sets; the list's
+        // settings fill in the ones it does not.
+        let text1 = ["2345.2", "3.5234", "5.0000", "5.25 * 10⁻¹⁶", "0"].join(
             ", ",
         );
-        let text6 = ["2345", "3.523", "5", "5.252 * 10⁻¹⁶", "6 * 10⁻²¹"].join(
+        let text2 = ["2345.2", "3.5234", "5.0000", "5.252 * 10⁻¹⁶", "0"].join(
             ", ",
         );
+        let text3 = [
+            "2345.2",
+            "3.5234",
+            "5.0000",
+            "5.252 * 10⁻¹⁶",
+            "0.000",
+        ].join(", ");
+        let text4 = ["2345.2", "3.5234", "5.0000", "0", "0"].join(", ");
+        let text5 = ["2345.2", "3.5234", "5.0000", "0.0000", "0.0000"].join(
+            ", ",
+        );
+        let text6 = [
+            "2345.2",
+            "3.5234",
+            "5.0000",
+            "5.252 * 10⁻¹⁶",
+            "6 * 10⁻²¹",
+        ].join(", ");
 
         for (let post of ["", "n"]) {
             await test_mathList({
@@ -1627,7 +1643,9 @@ describe("MathList tag tests @group3", async () => {
 
         let vals = [34.245023482352345, 0.0023823402358234234];
 
-        let text = ["34.25", "0.00238"].join(", ");
+        // the authored child shows its own `displayDigits`, and an `extend`
+        // that sets display settings shows them
+        let text = ["34.25", "0.00238234"].join(", ");
         let textDig6 = ["34.245", "0.00238234"].join(", ");
         let textDec6 = ["34.245023", "0.002382"].join(", ");
 

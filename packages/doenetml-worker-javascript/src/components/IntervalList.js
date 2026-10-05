@@ -1,37 +1,30 @@
-import CompositeComponent from "./abstract/CompositeComponent";
-import {
-    addShadowNumberDisplayAttributes,
-    gatherRawNumberDisplayFixedResponseAttributes,
-    returnNumberDisplayAttributes,
-} from "../utils/numberDisplay";
-import { postProcessCopy } from "../utils/copy";
-import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
-import { returnUnorderedListStateVariableDefinitions } from "../utils/unorderedLists";
+import AuthoredValueList from "./abstract/AuthoredValueList";
+import { parseMathText } from "./MathList";
 
-export default class IntervalList extends CompositeComponent {
+/**
+ * A list of intervals. An interval is a math value, so its entries are maths
+ * read as intervals, as an `<interval>` reads them.
+ */
+export default class IntervalList extends AuthoredValueList {
     static componentType = "intervalList";
 
     static componentDocs = {
         summary: "A list of intervals",
     };
-    static stateVariableToEvaluateAfterReplacements =
-        "readyToExpandWhenResolved";
 
-    static includeBlankStringChildren = true;
-    static removeBlankStringChildrenPostSugar = true;
+    static listEntryComponentType = "interval";
 
     static allowInSchemaAsComponent = ["interval"];
 
-    // when another component has an attribute that is a intervalList,
-    // use the intervals state variable to populate that attribute
-    static stateVariableToBeShadowed = "intervals";
-    static primaryStateVariableForDefinition = "intervalsShadow";
+    // Include children that can be added due to sugar
+    static additionalSchemaChildren = ["math", "string"];
 
-    // even if inside a component that turned on descendantCompositesMustHaveAReplacement
-    // don't required composite replacements
-    static descendantCompositesMustHaveAReplacement = false;
-
-    static doNotExpandAsShadowed = true;
+    static listChildGroups = [
+        {
+            group: "intervals",
+            componentTypes: ["interval"],
+        },
+    ];
 
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
@@ -44,54 +37,15 @@ export default class IntervalList extends CompositeComponent {
                 "Whether the order of intervals in this list should be treated as unordered (e.g. for matching).",
         };
 
-        attributes.maxNumber = {
-            description: "Maximum number of intervals to retain in the list.",
-            createComponentOfType: "number",
-            createStateVariable: "maxNumber",
-            defaultValue: Infinity,
-            public: true,
-        };
-
-        attributes.fixed = {
-            leaveRaw: true,
-            description:
-                "Whether this component's value is fixed and cannot be modified.",
-        };
-
-        attributes.isResponse = {
-            leaveRaw: true,
-            description:
-                "Whether this component is treated as a response for the purposes of assessment.",
-        };
-        attributes.isPotentialResponse = {
-            leaveRaw: true,
-            excludeFromSchema: true,
-        };
-
-        attributes.asList = {
-            createPrimitiveOfType: "boolean",
-            createStateVariable: "asList",
-            defaultValue: true,
-            description:
-                "Whether to render the items separated by commas (true) or with no separator (false).",
-        };
-
-        const numberDisplayAttrs = returnNumberDisplayAttributes();
-        for (let attrName in numberDisplayAttrs) {
-            attributes[attrName] = {
-                leaveRaw: true,
-                description: numberDisplayAttrs[attrName].description,
-            };
-        }
-
         return attributes;
     }
 
-    // Include children that can be added due to sugar
-    static additionalSchemaChildren = ["math", "string"];
-
+    // The pieces are the intervals, each in parentheses or brackets. A piece
+    // that is only text stays text, for the list to read
+    // (`splitTextIntoPieces`); one that holds a reference is an
+    // `<interval>`.
     static returnSugarInstructions() {
-        let sugarInstructions = super.returnSugarInstructions();
+        let sugarInstructions = [];
 
         let createIntervalList = function ({
             matchedChildren,
@@ -106,28 +60,35 @@ export default class IntervalList extends CompositeComponent {
                 return { success: false };
             }
 
-            return {
-                success: true,
-                newChildren: results.pieces.map(function (piece) {
-                    if (piece.length > 1 || typeof piece[0] === "string") {
-                        return {
-                            type: "serialized",
-                            componentType: "interval",
-                            componentIdx: nComponents++,
-                            stateId: stateIdInfo
-                                ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
-                                : undefined,
-                            attributes: {},
-                            doenetAttributes: {},
-                            state: {},
-                            children: piece,
-                        };
+            let newChildren = [];
+            for (let piece of results.pieces) {
+                if (piece.length === 1 && typeof piece[0] === "string") {
+                    const last = newChildren[newChildren.length - 1];
+                    if (typeof last === "string") {
+                        newChildren[newChildren.length - 1] =
+                            `${last} ${piece[0]}`;
                     } else {
-                        return piece[0];
+                        newChildren.push(piece[0]);
                     }
-                }),
-                nComponents,
-            };
+                } else if (piece.length > 1) {
+                    newChildren.push({
+                        type: "serialized",
+                        componentType: "interval",
+                        componentIdx: nComponents++,
+                        stateId: stateIdInfo
+                            ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
+                            : undefined,
+                        attributes: {},
+                        doenetAttributes: {},
+                        state: {},
+                        children: piece,
+                    });
+                } else {
+                    newChildren.push(piece[0]);
+                }
+            }
+
+            return { success: true, newChildren, nComponents };
         };
 
         sugarInstructions.push({
@@ -136,467 +97,31 @@ export default class IntervalList extends CompositeComponent {
 
         return sugarInstructions;
     }
-    static returnChildGroups() {
-        return [
-            {
-                group: "intervals",
-                componentTypes: ["interval"],
-            },
-        ];
+
+    static splitTextIntoPieces(text) {
+        const results = breakEmbeddedStringsIntoIntervalPieces({
+            componentList: [text],
+        });
+        if (results.success !== true) {
+            return text.trim() === "" ? [] : [text.trim()];
+        }
+        return results.pieces.map((piece) => piece.join(""));
+    }
+
+    static parseTextPiece(text) {
+        return parseMathText(text, {}, { createIntervals: true });
     }
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        Object.assign(
-            stateVariableDefinitions,
-            returnUnorderedListStateVariableDefinitions(),
-        );
-
-        stateVariableDefinitions.intervalsShadow = {
-            defaultValue: null,
-            hasEssential: true,
-            returnDependencies: () => ({}),
-            definition: () => ({
-                useEssentialOrDefaultValue: {
-                    intervalsShadow: true,
-                },
-            }),
-        };
-
         stateVariableDefinitions.numIntervals = {
-            description: "The number of intervals in the list.",
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "number",
-            },
-            returnDependencies: () => ({
-                maxNumber: {
-                    dependencyType: "stateVariable",
-                    variableName: "maxNumber",
-                },
-                intervalChildren: {
-                    dependencyType: "child",
-                    childGroups: ["intervals"],
-                    skipComponentIndices: true,
-                },
-                intervalsShadow: {
-                    dependencyType: "stateVariable",
-                    variableName: "intervalsShadow",
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                let numIntervals = 0;
-
-                if (dependencyValues.intervalChildren.length > 0) {
-                    numIntervals = dependencyValues.intervalChildren.length;
-                } else if (dependencyValues.intervalsShadow !== null) {
-                    numIntervals = dependencyValues.intervalsShadow.length;
-                }
-
-                let maxNum = dependencyValues.maxNumber;
-                if (numIntervals > maxNum) {
-                    numIntervals = maxNum;
-                }
-
-                return {
-                    setValue: { numIntervals },
-                    checkForActualChange: { numIntervals: true },
-                };
-            },
-        };
-
-        stateVariableDefinitions.childIndicesByInterval = {
-            isArray: true,
-            returnArraySizeDependencies: () => ({
-                numIntervals: {
-                    dependencyType: "stateVariable",
-                    variableName: "numIntervals",
-                },
-            }),
-            returnArraySize({ dependencyValues }) {
-                return [dependencyValues.numIntervals];
-            },
-            returnArrayDependenciesByKey({ arrayKeys }) {
-                let dependenciesByKey = {};
-
-                for (let arrayKey of arrayKeys) {
-                    dependenciesByKey[arrayKey] = {
-                        intervalChild: {
-                            dependencyType: "child",
-                            childGroups: ["intervals"],
-                            childIndices: [arrayKey],
-                        },
-                    };
-                }
-
-                return { dependenciesByKey };
-            },
-            arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
-                let childIndicesByInterval = {};
-
-                for (let arrayKey of arrayKeys) {
-                    let intervalChild =
-                        dependencyValuesByKey[arrayKey].intervalChild[0];
-
-                    if (intervalChild) {
-                        childIndicesByInterval[arrayKey] =
-                            intervalChild.componentIdx;
-                    }
-                }
-
-                return { setValue: { childIndicesByInterval } };
-            },
-        };
-
-        stateVariableDefinitions.intervals = {
-            isArray: true,
-            numDimensions: 1,
-            entryPrefixes: ["interval"],
-            stateVariablesDeterminingDependencies: ["childIndicesByInterval"],
-            returnArraySizeDependencies: () => ({
-                numIntervals: {
-                    dependencyType: "stateVariable",
-                    variableName: "numIntervals",
-                },
-            }),
-            returnArraySize({ dependencyValues }) {
-                return [dependencyValues.numIntervals];
-            },
-            returnArrayDependenciesByKey({ arrayKeys, stateValues }) {
-                let dependenciesByKey = {};
-                let globalDependencies = {
-                    childIndicesByInterval: {
-                        dependencyType: "stateVariable",
-                        variableName: "childIndicesByInterval",
-                    },
-                    intervalsShadow: {
-                        dependencyType: "stateVariable",
-                        variableName: "intervalsShadow",
-                    },
-                };
-
-                for (let arrayKey of arrayKeys) {
-                    let childIndices = [];
-                    if (stateValues.childIndicesByInterval[arrayKey]) {
-                        childIndices = [arrayKey];
-                    }
-                    dependenciesByKey[arrayKey] = {
-                        intervalChild: {
-                            dependencyType: "child",
-                            childGroups: ["intervals"],
-                            variableNames: ["value"],
-                            childIndices,
-                        },
-                    };
-                }
-
-                return { dependenciesByKey, globalDependencies };
-            },
-            arrayDefinitionByKey({
-                dependencyValuesByKey,
-                globalDependencyValues,
-                arrayKeys,
-            }) {
-                // console.log("array definition of intervals for intervallist");
-                // console.log(JSON.parse(JSON.stringify(dependencyValuesByKey)));
-                // console.log(arrayKeys);
-
-                let intervals = {};
-
-                for (let arrayKey of arrayKeys) {
-                    let intervalChild =
-                        dependencyValuesByKey[arrayKey].intervalChild[0];
-                    if (intervalChild) {
-                        intervals[arrayKey] =
-                            intervalChild.stateValues["value"];
-                    } else {
-                        intervals[arrayKey] =
-                            globalDependencyValues.intervalsShadow[arrayKey];
-                    }
-                }
-
-                // console.log("result")
-                // console.log(JSON.parse(JSON.stringify(intervals)));
-
-                return { setValue: { intervals } };
-            },
-            inverseArrayDefinitionByKey({
-                desiredStateVariableValues,
-                globalDependencyValues,
-                dependencyValuesByKey,
-                dependencyNamesByKey,
-                workspace,
-            }) {
-                // console.log('array inverse definition of intervals of intervallist')
-                // console.log(desiredStateVariableValues)
-                // console.log(arrayKeys);
-
-                let instructions = [];
-                for (let arrayKey in desiredStateVariableValues.intervals) {
-                    if (!dependencyValuesByKey[arrayKey]) {
-                        continue;
-                    }
-
-                    let intervalChild =
-                        dependencyValuesByKey[arrayKey].intervalChild[0];
-
-                    if (intervalChild) {
-                        instructions.push({
-                            setDependency:
-                                dependencyNamesByKey[arrayKey].intervalChild,
-                            desiredValue:
-                                desiredStateVariableValues.intervals[arrayKey],
-                            childIndex: 0,
-                            variableIndex: 0,
-                        });
-                    } else if (
-                        globalDependencyValues.intervalsShadow !== null
-                    ) {
-                        if (!workspace.desiredIntervalsShadow) {
-                            workspace.desiredIntervalsShadow = [
-                                ...globalDependencyValues.intervalsShadow,
-                            ];
-                        }
-
-                        workspace.desiredIntervalsShadow[arrayKey] =
-                            desiredStateVariableValues.texts[arrayKey];
-                    }
-                }
-
-                if (workspace.desiredIntervalsShadow) {
-                    instructions.push({
-                        setDependency: "intervalsShadow",
-                        desiredValue: workspace.desiredIntervalsShadow,
-                    });
-                }
-
-                return {
-                    success: true,
-                    instructions,
-                };
-            },
-        };
-
-        stateVariableDefinitions.numValues = {
             isAlias: true,
-            targetVariableName: "numIntervals",
+            targetVariableName: "numComponents",
             description: "The number of intervals in the list.",
-        };
-
-        stateVariableDefinitions.values = {
-            isAlias: true,
-            targetVariableName: "intervals",
-            description: "The list's intervals.",
-        };
-
-        stateVariableDefinitions.readyToExpandWhenResolved = {
-            returnDependencies: () => ({
-                childIndicesByInterval: {
-                    dependencyType: "stateVariable",
-                    variableName: "childIndicesByInterval",
-                },
-            }),
-            // When this state variable is marked stale
-            // it indicates we should update replacements.
-            // For this to work, must set
-            // stateVariableToEvaluateAfterReplacements
-            // to this variable so that it is marked fresh
-            markStale: () => ({ updateReplacements: true }),
-            definition: function () {
-                return { setValue: { readyToExpandWhenResolved: true } };
-            },
         };
 
         return stateVariableDefinitions;
-    }
-
-    static async createSerializedReplacements({
-        component,
-        components,
-        componentInfoObjects,
-        workspace,
-        nComponents,
-    }) {
-        if (workspace.replacementsCreated === undefined) {
-            workspace.replacementsCreated = 0;
-        }
-
-        const stateIdInfo = {
-            prefix: `${component.stateId}|`,
-            num: workspace.replacementsCreated,
-        };
-
-        let diagnostics = [];
-
-        let replacements = [];
-        let componentsCopied = [];
-
-        // For attributes that were left raw, we convert them and add them to the replacements
-        let attributesToConvert = gatherRawNumberDisplayFixedResponseAttributes(
-            component,
-            components,
-        );
-
-        const copyChild =
-            component.definingChildren.length === 1 &&
-            component.definingChildren[0].componentType === "_copy"
-                ? component.definingChildren[0]
-                : null;
-        let copyChildSource;
-        if (copyChild) {
-            const cIdx = await copyChild.stateValues.extendIdx;
-            if (cIdx !== -1) {
-                copyChildSource = {
-                    componentIdx: cIdx,
-                    componentType: components[cIdx].componentType,
-                    component: components[cIdx],
-                };
-            }
-        }
-
-        let childIndicesByInterval =
-            await component.stateValues.childIndicesByInterval;
-
-        let numIntervals = await component.stateValues.numIntervals;
-        for (let i = 0; i < numIntervals; i++) {
-            // allow one to override the fixed, isResponse, and isPotentialResponse attributes
-            // as well as rounding settings
-            // by specifying it on the list
-            let attributes = {};
-
-            if (Object.keys(attributesToConvert).length > 0) {
-                const res = convertUnresolvedAttributesForComponentType({
-                    attributes: attributesToConvert,
-                    componentType: "interval",
-                    componentInfoObjects,
-                    nComponents,
-                    stateIdInfo,
-                });
-
-                attributes = JSON.parse(JSON.stringify(res.attributes));
-                nComponents = res.nComponents;
-            }
-
-            if (copyChildSource) {
-                nComponents = addShadowNumberDisplayAttributes({
-                    nComponents,
-                    stateIdInfo,
-                    source: copyChildSource,
-                    compositeIdx: copyChild.componentIdx,
-                    attributes,
-                    componentInfoObjects,
-                });
-            }
-
-            let childIdx = childIndicesByInterval[i];
-            let replacementSource = components[childIdx];
-
-            if (replacementSource) {
-                componentsCopied.push(replacementSource.componentIdx);
-            }
-
-            replacements.push({
-                type: "serialized",
-                componentType: "interval",
-                componentIdx: nComponents++,
-                stateId: stateIdInfo
-                    ? `${stateIdInfo.prefix}${stateIdInfo.num++}`
-                    : undefined,
-                attributes,
-                doenetAttributes: {},
-                children: [],
-                state: {},
-                downstreamDependencies: {
-                    [component.componentIdx]: [
-                        {
-                            dependencyType: "referenceShadow",
-                            compositeIdx: component.componentIdx,
-                            propVariable: `interval${i + 1}`,
-                        },
-                    ],
-                },
-            });
-        }
-
-        replacements = postProcessCopy({
-            serializedComponents: replacements,
-            componentIdx: component.componentIdx,
-            addShadowDependencies: true,
-            markAsPrimaryShadow: true,
-        });
-
-        workspace.componentsCopied = componentsCopied;
-        workspace.numIntervals = numIntervals;
-
-        workspace.replacementsCreated = stateIdInfo.num;
-
-        return {
-            replacements,
-            diagnostics,
-            nComponents,
-        };
-    }
-
-    static async calculateReplacementChanges({
-        component,
-        components,
-        componentInfoObjects,
-        workspace,
-        nComponents,
-    }) {
-        let diagnostics = [];
-
-        let numIntervals = await component.stateValues.numIntervals;
-
-        if (numIntervals === workspace.numIntervals) {
-            let componentsToCopy = [];
-
-            let childIndicesByInterval =
-                await component.stateValues.childIndicesByInterval;
-
-            for (let childIdx of childIndicesByInterval) {
-                let replacementSource = components[childIdx];
-
-                if (replacementSource) {
-                    componentsToCopy.push(replacementSource.componentIdx);
-                }
-            }
-
-            if (
-                componentsToCopy.length == workspace.componentsCopied.length &&
-                workspace.componentsCopied.every(
-                    (x, i) => x === componentsToCopy[i],
-                )
-            ) {
-                return { replacementChanges: [], diagnostics, nComponents };
-            }
-        }
-
-        // for now, just recreate
-        let replacementResults = await this.createSerializedReplacements({
-            component,
-            components,
-            componentInfoObjects,
-            workspace,
-            nComponents,
-        });
-
-        let replacements = replacementResults.replacements;
-        diagnostics.push(...replacementResults.diagnostics);
-        nComponents = replacementResults.nComponents;
-
-        let replacementChanges = [
-            {
-                changeType: "add",
-                changeTopLevelReplacements: true,
-                firstReplacementInd: 0,
-                numberReplacementsToReplace: component.replacements.length,
-                serializedReplacements: replacements,
-            },
-        ];
-
-        return { replacementChanges, diagnostics, nComponents };
     }
 }
 

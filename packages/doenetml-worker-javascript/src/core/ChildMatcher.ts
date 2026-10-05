@@ -263,6 +263,7 @@ export async function matchChildrenToChildGroups({
     let unmatchedChildren: any[] = [];
 
     delete parent.listChildPresentedTypes;
+    delete parent.listChildrenMatchedWhole;
 
     for (let [ind, child] of parent.activeChildren.entries() as Iterable<
         [number, any]
@@ -273,6 +274,24 @@ export async function matchChildrenToChildGroups({
             typeof child === "object"
                 ? child.constructor?.listEntryComponentType
                 : undefined;
+        // A parent that takes lists of the list's type (a `<matrix>` takes
+        // its `<matrixRow>`s) takes the list itself.
+        const ownGroup =
+            listEntryType !== undefined
+                ? findChildGroupNamingListType({
+                      core,
+                      componentType: child.componentType,
+                      parentClass: parent.constructor,
+                  })
+                : undefined;
+        if (ownGroup !== undefined) {
+            parent.childMatchesByGroup[ownGroup].push(ind);
+            if (!parent.listChildrenMatchedWhole) {
+                parent.listChildrenMatchedWhole = new Set();
+            }
+            parent.listChildrenMatchedWhole.add(ind);
+            continue;
+        }
         if (listEntryType !== undefined) {
             const listResult = findChildGroupForListEntries({
                 core,
@@ -422,6 +441,37 @@ export function findChildGroup({
         parentClass,
         afterAdapters: true,
     });
+}
+
+/**
+ * The child group of `parentClass` that names a type of list component that
+ * `componentType` is (`componentTypes: ["numberList"]`), so takes such a
+ * list whole rather than its entries; `undefined` when there is none.
+ */
+function findChildGroupNamingListType({
+    core,
+    componentType,
+    parentClass,
+}: {
+    core: Core;
+    componentType: string;
+    parentClass: any;
+}): string | undefined {
+    for (const group of parentClass.childGroups) {
+        for (const typeFromGroup of group.componentTypes) {
+            if (
+                core.componentInfoObjects.allComponentClasses[typeFromGroup]
+                    ?.listEntryComponentType !== undefined &&
+                core.componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: componentType,
+                    baseComponentType: typeFromGroup,
+                })
+            ) {
+                return group.group;
+            }
+        }
+    }
+    return undefined;
 }
 
 /**
