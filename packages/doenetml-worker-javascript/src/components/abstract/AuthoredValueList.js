@@ -11,6 +11,7 @@ import {
 import { returnNumberDisplayAttributes } from "../../utils/numberDisplay";
 import { returnUnorderedListStateVariableDefinitions } from "../../utils/unorderedLists";
 import { codedDiagnostic } from "../../utils/diagnostics";
+import { copiedReferentVariableName } from "../../utils/valueReference";
 
 /**
  * Base class for the lists an author writes out: `<numberList>`,
@@ -94,6 +95,51 @@ export default class AuthoredValueList extends ValueListComponent {
 
     // The child groups whose children are entries, besides text.
     static listChildGroups = [];
+
+    // Whether each entry is shown as its source shows itself: hidden by an
+    // authored child's own `hide`, in the child's style and, for a math, its
+    // `renderMode` (or a referenced component's, for a reference that stands
+    // for a copy of it), as the copy of each child that `<sort>` and
+    // `<shuffle>` made was (`entryPresentation`). Otherwise every entry is
+    // shown in the list's style.
+    static listEntriesShownAsSources = false;
+
+    static buildListEntryStateVariables() {
+        const variables = super.buildListEntryStateVariables();
+        if (this.listEntriesShownAsSources) {
+            Object.assign(variables, this.listEntryPresentationVariables);
+        }
+        return variables;
+    }
+
+    static get listPerEntryVariables() {
+        const variables = super.listPerEntryVariables;
+        return this.listEntriesShownAsSources
+            ? [
+                  ...variables,
+                  ...Object.values(this.listEntryPresentationVariables),
+              ]
+            : variables;
+    }
+
+    // The variable holding, for each entry, the component it stands for, or
+    // `null`, whose properties are the entry's where the list holds none of
+    // its own for that entry (`listEntryPropertyArrays.ts`).
+    static get listEntrySourcesVariable() {
+        return this.listEntriesShownAsSources
+            ? "entrySourceComponents"
+            : undefined;
+    }
+
+    // The entry variables shown as the source shows them, with the array of
+    // the list that holds them.
+    static get listEntryPresentationVariables() {
+        if (entryKind(this.listEntryComponentType) === "math") {
+            return ENTRY_PRESENTATION_ARRAYS;
+        }
+        const { renderMode, ...arrays } = ENTRY_PRESENTATION_ARRAYS;
+        return arrays;
+    }
 
     // When another component has an attribute that is this list, or a
     // variable whose shadow is this list, the array of values populates it.
@@ -1123,6 +1169,13 @@ export default class AuthoredValueList extends ValueListComponent {
             }),
         };
 
+        if (listClass.listEntriesShownAsSources) {
+            Object.assign(
+                stateVariableDefinitions,
+                returnEntryPresentationDefinitions(listClass),
+            );
+        }
+
         // The number of values, by the names authors have used for it.
         stateVariableDefinitions.numComponents = {
             description: "The number of items in the list.",
@@ -1157,12 +1210,12 @@ export default class AuthoredValueList extends ValueListComponent {
 }
 
 /** The array holding display setting `name` of each entry. */
-function entryOwnArrayName(name) {
+export function entryOwnArrayName(name) {
     return `entry${name[0].toUpperCase()}${name.slice(1)}`;
 }
 
 /** Whether `value` is a math whose value is a list (`1, 2, 3`). */
-function isMathList(value) {
+export function isMathList(value) {
     return (
         value instanceof me.class &&
         Array.isArray(value.tree) &&
@@ -1175,7 +1228,7 @@ function isMathList(value) {
  * dependencies: the piece of text, the child, or the entry of the shadowed
  * array. For an item of a list, the whole list.
  */
-function entrySourceValue({
+export function entrySourceValue({
     source,
     dependencyValues,
     shadow,
@@ -1226,7 +1279,7 @@ function innermostCompositeStateId(ranges, childInd) {
 }
 
 /** The value of an entry of `kind` that has none. */
-function blankValue(kind) {
+export function blankValue(kind) {
     if (kind === "math") {
         return me.fromAst("＿");
     }
@@ -1243,7 +1296,7 @@ function blankValue(kind) {
  * then the innermost thing an author wrote around the value. A setting the
  * list does not set is the child's.
  */
-function childDisplaySettings({
+export function childDisplaySettings({
     child,
     fromReference = false,
     childUsedDefault,
@@ -1304,7 +1357,7 @@ function childDisplaySettings({
 }
 
 /** `value`, written to an entry, as `child` takes it. */
-function valueForChild(value, child) {
+export function valueForChild(value, child) {
     if (child.stateValues.value instanceof me.class) {
         return convertValueToMathExpression(value);
     }
@@ -1322,9 +1375,207 @@ function valueForChild(value, child) {
  * A value written to a piece of text, or to an entry of the values a copy
  * holds, as the entry holds it. A saved state keeps a math as its tree.
  */
-function restoredValue(value, kind) {
+export function restoredValue(value, kind) {
     if (kind === "math" && !(value instanceof me.class)) {
         return convertValueToMathExpression(value);
     }
     return value;
+}
+
+/**
+ * The arrays of a list shown as its sources (`listEntriesShownAsSources`)
+ * holding, for each entry, the entry variable they are named by.
+ */
+const ENTRY_PRESENTATION_ARRAYS = Object.freeze({
+    hidden: "entryHiddens",
+    selectedStyle: "entrySelectedStyles",
+    styleNumber: "entryStyleNumbers",
+    renderMode: "entryRenderModes",
+});
+
+/**
+ * The variables of a child, read by `entryPresentation`, that say how its
+ * entry is shown: its own, and those of the referent of a reference that
+ * stands for a copy of it (`copiedReferentVariableName`).
+ */
+export const ENTRY_PRESENTATION_SOURCE_VARIABLES = [
+    "hide",
+    "selectedStyle",
+    "styleNumber",
+    "renderMode",
+    copiedReferentVariableName("hide"),
+    copiedReferentVariableName("selectedStyle"),
+    copiedReferentVariableName("styleNumber"),
+    copiedReferentVariableName("renderMode"),
+];
+
+/**
+ * How the entry of `source`, a child or a component a list reads an entry
+ * from, is shown, from its variables (`ENTRY_PRESENTATION_SOURCE_VARIABLES`):
+ * `hide`, `selectedStyle`, `styleNumber` and `renderMode`, each `undefined`
+ * when the source
+ * does not say, so that the list's own is used. A reference that stands for a
+ * copy of its referent gives the referent's.
+ */
+export function sourcePresentation(stateValues = {}) {
+    const read = (name) =>
+        stateValues[copiedReferentVariableName(name)] ?? stateValues[name];
+    return {
+        hide: read("hide") ?? undefined,
+        selectedStyle: read("selectedStyle") ?? undefined,
+        styleNumber: read("styleNumber") ?? undefined,
+        renderMode: read("renderMode") ?? undefined,
+    };
+}
+
+/**
+ * The definitions of a list shown as its sources (`listEntriesShownAsSources`):
+ * how each entry's source shows itself (`entryPresentation`; a piece of text
+ * as the list), and from that, an array of a value per entry for each
+ * presentation variable (`ENTRY_PRESENTATION_ARRAYS`), which the viewer
+ * reads for each entry. An entry is hidden with the list or by its source's
+ * own `hide`.
+ */
+function returnEntryPresentationDefinitions(listClass) {
+    const componentGroups = listClass.listChildGroups.map((x) => x.group);
+    const definitions = {};
+
+    definitions.entryPresentation = {
+        // A reference to the whole list reads the list's.
+        shadowVariable: true,
+        returnDependencies: () => ({
+            entryStructure: {
+                dependencyType: "stateVariable",
+                variableName: "entryStructure",
+            },
+            children: {
+                dependencyType: "child",
+                childGroups: componentGroups,
+                variableNames: ENTRY_PRESENTATION_SOURCE_VARIABLES,
+                variablesOptional: true,
+            },
+        }),
+        definition: ({ dependencyValues }) => ({
+            setValue: {
+                entryPresentation: dependencyValues.entryStructure.map(
+                    (source) =>
+                        source.componentInd === undefined
+                            ? {}
+                            : sourcePresentation(
+                                  dependencyValues.children[source.componentInd]
+                                      ?.stateValues,
+                              ),
+                ),
+            },
+        }),
+    };
+
+    // An authored child, or a reference among the children, stands for
+    // itself; the entries of a list among them and the pieces of text
+    // stand for no component.
+    definitions.entrySourceComponents = {
+        shadowVariable: true,
+        returnDependencies: () => ({
+            entryStructure: {
+                dependencyType: "stateVariable",
+                variableName: "entryStructure",
+            },
+            children: {
+                dependencyType: "child",
+                childGroups: componentGroups,
+            },
+        }),
+        definition: ({ dependencyValues }) => ({
+            setValue: {
+                entrySourceComponents: dependencyValues.entryStructure.map(
+                    (source) => {
+                        const child =
+                            source.componentInd === undefined
+                                ? undefined
+                                : dependencyValues.children[
+                                      source.componentInd
+                                  ];
+                        return child && child.listEntryIndex === undefined
+                            ? child.componentIdx
+                            : null;
+                    },
+                ),
+            },
+            checkForActualChange: { entrySourceComponents: true },
+        }),
+    };
+
+    Object.assign(definitions, returnEntryPresentationArrays(listClass));
+
+    return definitions;
+}
+
+/**
+ * The attribute of the list that, when the list sets it, decides an entry
+ * presentation variable for every entry over what each source says, as a
+ * `<collect>`'s own `hide` and `styleNumber` were given to every copy it
+ * made.
+ */
+const LIST_SETTING_OF_PRESENTATION = {
+    hidden: "hide",
+    selectedStyle: "styleNumber",
+    styleNumber: "styleNumber",
+};
+
+/**
+ * The arrays of a value per entry of a list shown as its sources
+ * (`ENTRY_PRESENTATION_ARRAYS`), computed from its `entryPresentation` and
+ * the list's own `hidden`, `selectedStyle` and `renderMode`. Changing which
+ * entries are hidden changes the children the parent draws.
+ */
+export function returnEntryPresentationArrays(listClass) {
+    const definitions = {};
+    const arrays = listClass.listEntryPresentationVariables;
+    for (const [entryVariable, arrayName] of Object.entries(arrays)) {
+        const listSetting = LIST_SETTING_OF_PRESENTATION[entryVariable];
+        definitions[arrayName] = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                entryPresentation: {
+                    dependencyType: "stateVariable",
+                    variableName: "entryPresentation",
+                },
+                listValue: {
+                    dependencyType: "stateVariable",
+                    variableName: entryVariable,
+                },
+                ...(listSetting
+                    ? {
+                          listSetting: {
+                              dependencyType: "stateVariable",
+                              variableName: listSetting,
+                          },
+                      }
+                    : {}),
+            }),
+            ...(entryVariable === "hidden"
+                ? { markStale: () => ({ updateParentRenderedChildren: true }) }
+                : {}),
+            definition({ dependencyValues, usedDefault }) {
+                const listSets =
+                    Boolean(listSetting) && !usedDefault.listSetting;
+                const values = dependencyValues.entryPresentation.map(
+                    (presentation) => {
+                        if (listSets) {
+                            return dependencyValues.listValue;
+                        }
+                        return entryVariable === "hidden"
+                            ? Boolean(
+                                  dependencyValues.listValue ||
+                                  presentation.hide,
+                              )
+                            : (presentation[entryVariable] ??
+                                  dependencyValues.listValue);
+                    },
+                );
+                return { setValue: { [arrayName]: values } };
+            },
+        };
+    }
+    return definitions;
 }

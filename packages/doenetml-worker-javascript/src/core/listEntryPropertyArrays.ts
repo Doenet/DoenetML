@@ -204,6 +204,14 @@ export function ensureListEntryPropertyArray({
             };
         },
     };
+    // An entry that stands for a component (`listEntrySourcesVariable`) has
+    // that component's value of a property the list does not hold entry by
+    // entry, as the copy of the component a composite made had.
+    const sourcesVariable = listClass.listEntrySourcesVariable;
+    if (sourcesVariable !== undefined && !derived && !perEntry) {
+        readFromSources(definition, sourcesVariable, entryProperty);
+    }
+
     normalizeArrayStateVariableDefaults(definition, arrayName);
 
     addStateVariablePlaceholder({
@@ -271,4 +279,85 @@ function entryCompanions(
         }
     }
     return companions;
+}
+
+/**
+ * Make `definition`, the array of `entryProperty` of each entry of a list,
+ * read that property of the component each entry stands for, by the list's
+ * `sourcesVariable` (a component index, or `null`, for each entry), and
+ * write it there; an entry that stands for no component, or whose component
+ * lacks the property, keeps what `definition` gives it.
+ */
+function readFromSources(
+    definition: any,
+    sourcesVariable: string,
+    entryProperty: string,
+) {
+    const {
+        returnArrayDependenciesByKey,
+        arrayDefinitionByKey,
+        inverseArrayDefinitionByKey,
+    } = definition;
+
+    definition.stateVariablesDeterminingDependencies = [sourcesVariable];
+    definition.returnArrayDependenciesByKey = (args: any) => {
+        const dependencies = returnArrayDependenciesByKey(args) ?? {};
+        const dependenciesByKey: Record<string, any> = {
+            ...(dependencies.dependenciesByKey ?? {}),
+        };
+        for (const arrayKey of args.arrayKeys) {
+            const sourceIdx = args.stateValues[sourcesVariable]?.[arrayKey];
+            if (typeof sourceIdx === "number") {
+                dependenciesByKey[arrayKey] = {
+                    ...dependenciesByKey[arrayKey],
+                    fromSource: {
+                        dependencyType: "stateVariable",
+                        componentIdx: sourceIdx,
+                        variableName: entryProperty,
+                        variablesOptional: true,
+                    },
+                };
+            }
+        }
+        return { ...dependencies, dependenciesByKey };
+    };
+    definition.arrayDefinitionByKey = (args: any) => {
+        const result = arrayDefinitionByKey(args);
+        const [arrayName] = Object.keys(result.setValue);
+        for (const arrayKey of args.arrayKeys) {
+            const fromSource = args.dependencyValuesByKey[arrayKey]?.fromSource;
+            if (fromSource !== undefined && fromSource !== null) {
+                result.setValue[arrayName][arrayKey] = fromSource;
+            }
+        }
+        return result;
+    };
+    definition.inverseArrayDefinitionByKey = (args: any) => {
+        const [arrayName] = Object.keys(args.desiredStateVariableValues);
+        const desired = args.desiredStateVariableValues[arrayName];
+        const instructions = [];
+        const rest: Record<string, any> = {};
+        for (const arrayKey in desired) {
+            const name = args.dependencyNamesByKey[arrayKey]?.fromSource;
+            if (name !== undefined) {
+                instructions.push({
+                    setDependency: name,
+                    desiredValue: desired[arrayKey],
+                });
+            } else {
+                rest[arrayKey] = desired[arrayKey];
+            }
+        }
+        if (Object.keys(rest).length > 0) {
+            const result = inverseArrayDefinitionByKey({
+                ...args,
+                desiredStateVariableValues: { [arrayName]: rest },
+            });
+            if (!result.success) {
+                return result;
+            }
+            instructions.push(...result.instructions);
+        }
+        return { success: true, instructions };
+    };
 }

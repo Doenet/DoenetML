@@ -249,6 +249,44 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         });
     });
 
+    // As before the list operators became list components (#2164), which
+    // counted an operator's results as one item.
+    it("collect counts the entries of a list for maxNumber and an index", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi" prefill="2" />
+    <group name="g"><cumulativeSum>1 2 3</cumulativeSum><math>x</math></group>
+    <p name="pMax"><collect componentType="math" from="$g" maxNumber="2" /></p>
+    <p name="pAll"><collect componentType="math" from="$g" name="c" /></p>
+    <p name="pIndex">$c[2] $c[4]</p>
+    <group name="g2"><number>1</number><numberList>5 $mi 7</numberList><sequence from="1" to="$mi" /></group>
+    <p name="pn"><collect componentType="number" from="$g2" name="cn" /></p>
+    <p name="pn4">$cn[4] $cn[6]</p>
+    <p name="pnMax"><collect componentType="number" from="$g2" maxNumber="3" /></p>
+    `,
+        });
+
+        await expectTexts(core, resolvePathToNodeIdx, {
+            pMax: "1, 3",
+            pAll: "1, 3, 6, x",
+            pIndex: "3 x",
+            pn: "1, 5, 2, 7, 1, 2",
+            pn4: "7 2",
+            pnMax: "1, 5, 2",
+        });
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await expectTexts(core, resolvePathToNodeIdx, {
+            pn: "1, 5, 3, 7, 1, 2, 3",
+            pn4: "7 2",
+            pnMax: "1, 5, 3",
+        });
+    });
+
     it("collected values are shown as their sources show them", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

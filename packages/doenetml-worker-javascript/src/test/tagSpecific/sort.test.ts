@@ -7,7 +7,11 @@ import {
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { getDiagnosticsByType } from "../utils/diagnostics";
-import { typeAsPresented } from "../utils/list-entries";
+import {
+    childrenAsPresented,
+    componentOrListEntry,
+    typeAsPresented,
+} from "../utils/list-entries";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -36,11 +40,15 @@ describe("Sort tag tests @group4", async () => {
 
         if (replacements_all_of_type) {
             // an entry copied from a list is drawn as a value reference of
-            // its type
-            let replacementTypes = stateVariables[
-                await resolvePathToNodeIdx(pName)
-            ].activeChildren.map((child) =>
-                typeAsPresented(core, stateVariables, child.componentIdx),
+            // its type, and an entry of a list as the type of its entries
+            let replacementTypes = childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx(pName),
+            ).map((child) =>
+                child.listEntryIndex === undefined
+                    ? typeAsPresented(core, stateVariables, child.componentIdx)
+                    : child.componentType,
             );
 
             expect(replacementTypes).eqls(
@@ -772,8 +780,14 @@ describe("Sort tag tests @group4", async () => {
 
         for (let i = 0; i < 12; i++) {
             result.push(
-                stateVariables[await resolvePathToNodeIdx(`xs[${i + 1}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `xs[${i + 1}]`,
+                    )
+                ).stateValues.value.tree,
             );
         }
 
@@ -929,11 +943,11 @@ describe("Sort tag tests @group4", async () => {
                 false,
                 true,
             );
-            return stateVariables[
-                await resolvePathToNodeIdx("pList")
-            ].activeChildren.map((child: any) =>
-                stateVariables[child.componentIdx].stateValues.value.toString(),
-            );
+            return childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("pList"),
+            ).map((child: any) => child.stateValues.value.toString());
         }
 
         const live = await sortedValues(first);
@@ -1004,8 +1018,11 @@ describe("Sort tag tests @group4", async () => {
         // to be worth rearranging — recreates every replacement with fresh
         // ids, so this says nothing about work done on a replacement such a
         // rebuild recreates (see `Sort.js`).
+        //
+        // A mix of numbers and maths, which it copies; values of one type it
+        // would hold as a list.
         const doenetML = `
-    <sort name="s">5 3 1</sort>
+    <sort name="s"><number>5</number><math>3</math><number>1</number></sort>
     <p name="pList">$s</p>
   `;
 

@@ -564,10 +564,15 @@ export default class Shuffle extends CompositeComponent {
         return { replacementChanges, diagnostics, nComponents };
     }
 
-    static determineNumberOfUniqueVariants({
+    /**
+     * The number of children of `serializedComponent` that are shuffled, as
+     * known from the document, or `undefined` when it is not known there (a
+     * list component among them, or a composite that does not say how many
+     * components it makes).
+     */
+    static numberOfShuffledChildren({
         serializedComponent,
         componentInfoObjects,
-        infoDiagnostics,
     }) {
         let numComponents = 0;
 
@@ -578,7 +583,7 @@ export default class Shuffle extends CompositeComponent {
                 componentInfoObjects.allComponentClasses[child.componentType]
                     ?.listEntryComponentType !== undefined
             ) {
-                return { success: false };
+                return undefined;
             }
             if (
                 componentInfoObjects.isInheritedComponentType({
@@ -599,17 +604,33 @@ export default class Shuffle extends CompositeComponent {
                         ) {
                             numComponents += newComponents;
                         } else {
-                            return { success: false };
+                            return undefined;
                         }
                     } else {
                         numComponents++;
                     }
                 } else {
-                    return { success: false };
+                    return undefined;
                 }
             } else {
                 numComponents++;
             }
+        }
+
+        return numComponents;
+    }
+
+    static determineNumberOfUniqueVariants({
+        serializedComponent,
+        componentInfoObjects,
+        infoDiagnostics,
+    }) {
+        const numComponents = this.numberOfShuffledChildren({
+            serializedComponent,
+            componentInfoObjects,
+        });
+        if (numComponents === undefined) {
+            return { success: false };
         }
 
         let numberOfPermutations = 1;

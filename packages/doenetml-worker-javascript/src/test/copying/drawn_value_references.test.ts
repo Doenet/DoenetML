@@ -6,6 +6,7 @@ import {
     updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
+import { entriesOrReplacements } from "../utils/list-entries";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -273,16 +274,15 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 false,
                 true,
             );
-            const collected =
-                stateVariables[await resolvePathToNodeIdx("c")].replacements;
+            const collected = entriesOrReplacements(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("c"),
+            );
             expect(collected).toHaveLength(1);
             expect(collected[0].componentType).eq("number");
-            expect(
-                stateVariables[collected[0].componentIdx].stateValues.value,
-            ).eq(3.14159);
-            expect(
-                stateVariables[collected[0].componentIdx].stateValues.text,
-            ).eq("3.1");
+            expect(collected[0].stateValues.value).eq(3.14159);
+            expect(collected[0].stateValues.text).eq("3.1");
             expect(await textOf(core, resolvePathToNodeIdx, "pc")).eq("3.1");
             expect(
                 stateVariables[await resolvePathToNodeIdx("m")].stateValues
@@ -309,11 +309,13 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     false,
                     true,
                 );
-                return stateVariables[
-                    await resolvePathToNodeIdx(name)
-                ].replacements!.map((r: any) => {
+                return entriesOrReplacements(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx(name),
+                ).map((r: any) => {
                     const { hidden, styleNumber, renderMode, text } =
-                        stateVariables[r.componentIdx].stateValues;
+                        r.stateValues;
                     return { hidden, styleNumber, renderMode, text };
                 });
             }
@@ -332,11 +334,13 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     text: "y",
                 },
             ]);
+            // A `<text>` has no `renderMode`; an entry of a list of texts
+            // has the one every entry of a list is drawn with.
             expect(await collected("ct")).eqls([
                 {
                     hidden: false,
                     styleNumber: 4,
-                    renderMode: undefined,
+                    renderMode: "inline",
                     text: "hi",
                 },
             ]);

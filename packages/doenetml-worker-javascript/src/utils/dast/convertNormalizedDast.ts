@@ -30,6 +30,7 @@ import { decodeXMLEntities, removeBlankStringChildren } from "./convertUtils";
 import { applySugar } from "./sugar";
 import { convertRefsToCopies } from "./convertToCopy";
 import { convertCopiesToValueReferences } from "./valueReferences";
+import { convertToListForms } from "./listForms";
 import { DiagnosticRecord } from "@doenet/utils";
 import {
     codedDiagnostic,
@@ -329,6 +330,15 @@ export async function normalizedDastToSerializedComponents(
     //     JSON.parse(JSON.stringify(sugarResult.components)),
     //     nComponents,
     // );
+
+    // After sugar, which splits the text of a `<sort>` or `<shuffle>` into
+    // the values it reads, and before the value references, so that a
+    // reference among the children of a list made here is one.
+    nComponents = convertToListForms({
+        serializedComponents: sugarResult.components,
+        componentInfoObjects,
+        nComponents,
+    }).nComponents;
 
     // After sugar, so that each reference is judged by the parent it will
     // have: the `$n` of `<number>$n+1</number>` sits in the `<math>` sugar

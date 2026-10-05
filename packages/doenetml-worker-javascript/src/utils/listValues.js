@@ -773,6 +773,21 @@ export function returnBreakStringsIntoTypeSugarInstruction(componentName) {
         });
 
         if (result.success) {
+            // A component made from a piece of text alone records the text,
+            // which a `<sort>` or `<shuffle>` made a list reads itself
+            // (`utils/dast/listForms.ts`).
+            for (const child of result.newChildren) {
+                if (
+                    typeof child === "object" &&
+                    !matchedChildren.includes(child) &&
+                    child.children.length > 0 &&
+                    child.children.every((piece) => typeof piece === "string")
+                ) {
+                    child.doenetAttributes.textPiece = child.children
+                        .join("")
+                        .trim();
+                }
+            }
             return {
                 success: true,
                 newChildren: result.newChildren,

@@ -668,3 +668,29 @@ export function variableOfReferentVariable(name: string): string | undefined {
         ? name.slice(REFERENT_VARIABLE_PREFIX.length)
         : undefined;
 }
+
+const COPIED_REFERENT_VARIABLE_PREFIX = "__copiedReferent_";
+
+/**
+ * The name under which a `_ref` exposes `variableName` of its referent when
+ * it stands for a copy of its referent (`copiesReferent`: `$t`, not
+ * `$t.value`), as the copy made for it shadowed the referent's attributes;
+ * `null` for any other reference. A list that shows each entry as its source
+ * shows it (`AuthoredValueList.listEntriesShownAsSources`) reads a
+ * reference's `hide`, style and `renderMode` this way.
+ */
+export function copiedReferentVariableName(variableName: string): string {
+    return COPIED_REFERENT_VARIABLE_PREFIX + variableName;
+}
+
+/**
+ * The referent's variable that `name` exposes, when `name` was made by
+ * `copiedReferentVariableName`; `undefined` otherwise.
+ */
+export function variableOfCopiedReferentVariable(
+    name: string,
+): string | undefined {
+    return name.startsWith(COPIED_REFERENT_VARIABLE_PREFIX)
+        ? name.slice(COPIED_REFERENT_VARIABLE_PREFIX.length)
+        : undefined;
+}

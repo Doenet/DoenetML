@@ -4,6 +4,7 @@ import { reportInternalError } from "../../utils/internalErrors";
 import { currentReferentValue } from "../../utils/referentDescription";
 import {
     parentDrawsValueReferences,
+    variableOfCopiedReferentVariable,
     variableOfReferentVariable,
 } from "../../utils/valueReference";
 
@@ -863,6 +864,9 @@ export default class ValueRef extends BaseComponent {
      * (`readsReferentVariable`): what a dependency on this reference's
      * adapter source reads (`adapterDependencies.ts`), since the referent is
      * that source.
+     * A name made by `copiedReferentVariableName` asks for it only when the
+     * reference stands for a copy of its referent (`copiesReferent`), and is
+     * `null` otherwise.
      *
      * `valueMissing`, whether the reference has nothing to read, is its own
      * (`valueMissingDefinition`). The parents that treat such a reference
@@ -926,6 +930,28 @@ export default class ValueRef extends BaseComponent {
                         stateVariable,
                         this.fixedReferent,
                     ),
+                ],
+            ];
+        }
+        // A name made by `copiedReferentVariableName` reads the referent's
+        // variable only when this reference stands for a copy of it.
+        const copiedVariable = variableOfCopiedReferentVariable(stateVariable);
+        if (copiedVariable !== undefined) {
+            return [
+                [
+                    stateVariable,
+                    this.doenetAttributes.copiesReferent
+                        ? readsReferentVariable(
+                              stateVariable,
+                              copiedVariable,
+                              this.fixedReferent,
+                          )
+                        : {
+                              returnDependencies: () => ({}),
+                              definition: () => ({
+                                  setValue: { [stateVariable]: null },
+                              }),
+                          },
                 ],
             ];
         }

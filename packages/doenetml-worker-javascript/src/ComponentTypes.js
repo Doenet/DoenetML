@@ -43,6 +43,7 @@ import BooleanComponent from "./components/Boolean";
 import BooleanList from "./components/BooleanList";
 import MathComponent from "./components/Math";
 import Collect from "./components/Collect";
+import CollectList from "./components/CollectList";
 import Ref from "./components/Ref";
 import Point from "./components/Point";
 import Coords from "./components/Coords";
@@ -154,7 +155,9 @@ import Footnote from "./components/Footnote";
 import Caption from "./components/Caption";
 import Endpoint from "./components/Endpoint";
 import Sort from "./components/Sort";
+import SortList from "./components/SortList";
 import Shuffle from "./components/Shuffle";
+import ShuffleList from "./components/ShuffleList";
 import SortIndices from "./components/SortIndices";
 import SolveEquations from "./components/SolveEquations";
 import PostponeRenderContainer from "./components/PostponeRenderContainer";
@@ -265,6 +268,7 @@ const componentTypeArray = [
     Copy,
     ValueRef,
     Collect,
+    CollectList,
     Ref,
     Point,
     Coords,
@@ -372,8 +376,10 @@ const componentTypeArray = [
     Caption,
     Endpoint,
     Sort,
+    SortList,
     SortIndices,
     Shuffle,
+    ShuffleList,
     SolveEquations,
     PostponeRenderContainer,
     SubsetOfRealsInput,
