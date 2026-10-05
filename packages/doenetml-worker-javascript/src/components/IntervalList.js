@@ -103,7 +103,7 @@ export default class IntervalList extends AuthoredValueList {
             componentList: [text],
         });
         if (results.success !== true) {
-            return text.trim() === "" ? [] : [text.trim()];
+            return null;
         }
         return results.pieces.map((piece) => piece.join(""));
     }

@@ -10,6 +10,7 @@ import {
 } from "../commonsugar/lists";
 import { returnNumberDisplayAttributes } from "../../utils/numberDisplay";
 import { returnUnorderedListStateVariableDefinitions } from "../../utils/unorderedLists";
+import { codedDiagnostic } from "../../utils/diagnostics";
 
 /**
  * Base class for the lists an author writes out: `<numberList>`,
@@ -94,7 +95,9 @@ export default class AuthoredValueList extends ValueListComponent {
 
     /**
      * The pieces of `text` that are entries: the text separated at the
-     * spaces outside parentheses, as sugar separates it.
+     * spaces outside parentheses, as sugar separates it. `null` for text
+     * that is not a list of entries (`<intervalList>` text that is not
+     * intervals), which gives none and is reported.
      */
     static splitTextIntoPieces(text) {
         return splitBySpacesOutsideParens(text);
@@ -224,7 +227,8 @@ export default class AuthoredValueList extends ValueListComponent {
             definition({ dependencyValues }) {
                 const textPieceValues = [];
                 for (const text of dependencyValues.stringChildren) {
-                    for (const piece of listClass.splitTextIntoPieces(text)) {
+                    for (const piece of listClass.splitTextIntoPieces(text) ??
+                        []) {
                         textPieceValues.push(
                             listClass.parseTextPiece(
                                 piece,
@@ -322,7 +326,9 @@ export default class AuthoredValueList extends ValueListComponent {
                 const sources = [];
                 for (const child of dependencyValues.children) {
                     if (typeof child === "string") {
-                        sources.push(...listClass.splitTextIntoPieces(child));
+                        sources.push(
+                            ...(listClass.splitTextIntoPieces(child) ?? []),
+                        );
                     } else {
                         sources.push(child);
                     }
@@ -375,10 +381,20 @@ export default class AuthoredValueList extends ValueListComponent {
                         dependencyType: "stateVariable",
                         variableName: "maxNumber",
                     },
+                    isAttributeChildFor: {
+                        dependencyType: "doenetAttribute",
+                        attributeName: "isAttributeChildFor",
+                    },
+                    parent: {
+                        dependencyType: "parentIdentity",
+                    },
                 };
             },
             definition({ dependencyValues }) {
                 let entryStructure = [];
+                // Text that is not a list of entries gives none, and is
+                // reported as a child the list cannot take.
+                let invalidText = false;
 
                 function addSources(value, source) {
                     if (isMathList(value)) {
@@ -399,9 +415,11 @@ export default class AuthoredValueList extends ValueListComponent {
                 let componentInd = 0;
                 for (const child of dependencyValues.children) {
                     if (typeof child === "string") {
-                        for (const _piece of listClass.splitTextIntoPieces(
-                            child,
-                        )) {
+                        const pieces = listClass.splitTextIntoPieces(child);
+                        if (pieces === null) {
+                            invalidText = true;
+                        }
+                        for (const _piece of pieces ?? []) {
                             addSources(
                                 dependencyValues.textPieceEntryValues?.[
                                     pieceInd
@@ -432,7 +450,32 @@ export default class AuthoredValueList extends ValueListComponent {
                     );
                 }
 
-                return { setValue: { entryStructure } };
+                const sendDiagnostics = [];
+                if (invalidText) {
+                    sendDiagnostics.push(
+                        dependencyValues.isAttributeChildFor
+                            ? codedDiagnostic({
+                                  type: "warning",
+                                  code: "doenet-w0106",
+                                  args: {
+                                      attribute:
+                                          dependencyValues.isAttributeChildFor,
+                                      componentType:
+                                          dependencyValues.parent
+                                              ?.componentType,
+                                  },
+                              })
+                            : codedDiagnostic({
+                                  type: "warning",
+                                  code: "doenet-w0107",
+                                  args: {
+                                      componentType: listClass.componentType,
+                                      children: "string",
+                                  },
+                              }),
+                    );
+                }
+                return { setValue: { entryStructure }, sendDiagnostics };
             },
         };
 
