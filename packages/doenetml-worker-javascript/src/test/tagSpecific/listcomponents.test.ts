@@ -521,4 +521,173 @@ describe("List operator results as children @group4", async () => {
             (await stateValuesOf(core, resolvePathToNodeIdx, "mi")).value.tree,
         ).eq(3);
     });
+
+    it("a property of a result, or of every result, reads as that of a math or a number", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="n" prefill="3" />
+    <mathInput name="mi" prefill="2" />
+    <mathInput name="ddi" prefill="3" />
+    <number name="i">$mi</number>
+    <number name="dd">$ddi</number>
+    <numberList name="src"><repeatForSequence from="1" to="$n" valueName="v"><number>$v*1.23456</number></repeatForSequence></numberList>
+    <cumulativeSum name="c" displayDigits="$dd">$src</cumulativeSum>
+    <sortIndices name="s">$src</sortIndices>
+
+    <p name="pValue">$c[2].value</p>
+    <p name="pText">$c[2].text</p>
+    <p name="pLatex">$c[2].latex</p>
+    <p name="pNumber">$c[2].number</p>
+    <p name="pIndexBy">$c[$i].value</p>
+    <p name="pPast">$c[5].text</p>
+    <p name="pSettings">$c[2].displayDigits $c[2].fixed $c[2].hidden $c[2].isNumber $c[2].styleNumber $c[2].anchor</p>
+    <math name="mValue">$c[2].value</math>
+    <number name="nValue">$c[2].value</number>
+    <math name="mExpr">$c[2].value + 1</math>
+    <text name="tText">$c[2].text</text>
+    <number name="nDigits">$c[2].displayDigits</number>
+    <p name="pAllValue">$c.value</p>
+    <p name="pAllText">$c.text</p>
+    <p name="pAllFixed">$c.fixed</p>
+    <p name="pAllDigits">$c.displayDigits</p>
+    <p name="pAllStyle">$c.styleNumber</p>
+    <p name="pSum"><sum>$c.number</sum></p>
+    <p name="pNumbers">$s[2].math $s[2].text $s.text</p>
+    <text name="tNumbers">$s[$i].text</text>
+    `,
+        });
+
+        await expectTexts(core, resolvePathToNodeIdx, {
+            pValue: "3.7",
+            pText: "3.7",
+            pLatex: "3.7",
+            pNumber: "3.7",
+            pIndexBy: "3.7",
+            pPast: "",
+            pSettings: "3 true false true 1 (0, 0)",
+            mValue: "3.7",
+            nValue: "3.7",
+            mExpr: "3.7 + 1",
+            tText: "3.7",
+            nDigits: "3",
+            pAllValue: "1.23, 3.7, 7.41",
+            pAllText: "1.23, 3.7, 7.41",
+            pAllFixed: "true, true, true",
+            pAllDigits: "3, 3, 3",
+            pAllStyle: "1",
+            pSum: "12.35",
+            pNumbers: "2 2 1, 2, 3",
+            tNumbers: "2",
+        });
+
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("ddi"),
+            core,
+        });
+
+        await expectTexts(core, resolvePathToNodeIdx, {
+            pValue: "4",
+            pText: "4",
+            pNumber: "4",
+            pIndexBy: "7",
+            pSettings: "1 true false true 1 (0, 0)",
+            mValue: "4",
+            mExpr: "3.7 + 1",
+            tText: "4",
+            nDigits: "1",
+            pAllValue: "1, 4, 7, 10",
+            pAllText: "1, 4, 7, 10",
+            pAllFixed: "true, true, true, true",
+            pAllDigits: "1, 1, 1, 1",
+            pNumbers: "2 2 1, 2, 3, 4",
+            tNumbers: "3",
+        });
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+
+        await expectTexts(core, resolvePathToNodeIdx, {
+            pValue: "",
+            pText: "",
+            pIndexBy: "",
+            pAllValue: "1",
+            pAllFixed: "true",
+            pNumbers: "  1",
+        });
+    });
+
+    it("a copy of a result follows display settings given by reference", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="ddi" prefill="2" />
+    <booleanInput name="pz" />
+    <number name="dd">$ddi</number>
+    <cumulativeSum name="c" displayDigits="$dd">1.23456 2.34567</cumulativeSum>
+    <tally name="t" displayDigits="$dd" padZeros="$pz">1 1 2</tally>
+    <p name="pMath"><math copy="$c[2]" /></p>
+    <p name="pNumber"><number copy="$t[1]" /></p>
+    <p name="pExtend"><math extend="$c[2]" /></p>
+    `,
+        });
+
+        await expectTexts(core, resolvePathToNodeIdx, {
+            pMath: "3.6",
+            pNumber: "2",
+            pExtend: "3.6",
+        });
+
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: await resolvePathToNodeIdx("ddi"),
+            core,
+        });
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("pz"),
+            core,
+        });
+
+        await expectTexts(core, resolvePathToNodeIdx, {
+            pMath: "3.58",
+            pNumber: "2.000",
+            pExtend: "3.58",
+        });
+    });
+
+    it("a copy of the whole result follows display settings given by reference", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="ddi" prefill="2" />
+    <number name="dd">$ddi</number>
+    <cumulativeSum name="c" displayDigits="$dd">1.23456 2.34567</cumulativeSum>
+    <p name="pList"><cumulativeSum copy="$c" /></p>
+    `,
+        });
+
+        await expectTexts(core, resolvePathToNodeIdx, { pList: "1.2, 3.6" });
+
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: await resolvePathToNodeIdx("ddi"),
+            core,
+        });
+
+        await expectTexts(core, resolvePathToNodeIdx, {
+            pList: "1.235, 3.58",
+        });
+    });
 });

@@ -12,6 +12,8 @@ import {
     describeReferentVariable,
     type ReferentDescription,
 } from "../../utils/referentDescription";
+import { listEntryPropertyPath } from "../../utils/listEntryReference";
+import { ensureListEntryPropertyArray } from "../listEntryPropertyArrays";
 
 /**
  * A dependency that resolves one part of an unresolved path on a component
@@ -81,7 +83,23 @@ export class ReferentDependency extends Dependency {
      */
     async findReferentVariable(component: any): Promise<string | undefined> {
         const core = this.dependencyHandler.core;
-        const unresolvedPath = this.definition.unresolvedPath;
+        let unresolvedPath = this.definition.unresolvedPath;
+
+        // A property of an entry of a list component (`$l[2].text`) is read
+        // from an array of the list, whose name is resolved here.
+        const listEntryPath = listEntryPropertyPath({
+            listClass: component.constructor,
+            unresolvedPath,
+            componentInfoObjects: this.dependencyHandler.componentInfoObjects,
+        });
+        if (listEntryPath) {
+            ensureListEntryPropertyArray({
+                core,
+                component,
+                arrayName: listEntryPath.path[0].name,
+            });
+            unresolvedPath = listEntryPath.path;
+        }
 
         let name: string | undefined;
         let index: any[] = [];
@@ -103,10 +121,13 @@ export class ReferentDependency extends Dependency {
             return undefined;
         }
 
-        let [variableName] = core.publicCaseInsensitiveAliasSubstitutions({
-            stateVariables: [name],
-            componentClass: component.constructor,
-        });
+        let variableName = name;
+        if (!listEntryPath) {
+            [variableName] = core.publicCaseInsensitiveAliasSubstitutions({
+                stateVariables: [name],
+                componentClass: component.constructor,
+            });
+        }
 
         if (variableName.startsWith("__not_public_")) {
             return undefined;

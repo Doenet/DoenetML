@@ -13,6 +13,10 @@
 import type { ComponentInfoObjects } from "./componentInfoObjects";
 import { publicCaseInsensitiveAliasSubstitutions } from "../StateVariableNameResolver";
 import { describeReferentVariable } from "./referentDescription";
+import {
+    listEntryPropertyPath,
+    listEntryPropertyType,
+} from "./listEntryReference";
 
 /**
  * The component types a value reference can stand in for, with their
@@ -166,7 +170,9 @@ export function planValueReference({
  * Known when the target is not a composite and the path is empty (the
  * implicit prop) or one part: a prop name, an array entry, a bare index into
  * `variableForIndexAsProp`, or a name with as many indices as the array or
- * entry has dimensions, so that one value comes out. Names are matched as
+ * entry has dimensions, so that one value comes out; or, for a list
+ * component, a property of one of its entries (`[2].text`,
+ * `utils/listEntryReference.ts`). Names are matched as
  * they are at run time (case, aliases, public variables only). The variable
  * must declare the type of its values; one whose type depends on its value
  * (a `<choiceInput>`'s `selectedValue`) is left to be resolved at run time.
@@ -217,6 +223,31 @@ export function staticValueReferenceTarget({
             unresolvedPath: rest.length > 0 ? rest : null,
             componentInfoObjects,
         });
+    }
+
+    // A property of an entry of a list component (`$l[2].text`) is one
+    // value, of the type of that property of the entries; the property of
+    // every entry (`$l.text`) is not.
+    const listEntryPath = listEntryPropertyPath({
+        listClass: targetClass,
+        unresolvedPath,
+        componentInfoObjects,
+    });
+    if (listEntryPath) {
+        const valueComponentType = listEntryPath.isEntry
+            ? listEntryPropertyType(
+                  targetClass,
+                  listEntryPath.entryProperty,
+                  componentInfoObjects,
+              )
+            : undefined;
+        return valueComponentType === undefined
+            ? undefined
+            : {
+                  referentComponentType: targetComponentType,
+                  valueComponentType,
+                  fromImplicitProp: false,
+              };
     }
 
     let name: string | undefined;

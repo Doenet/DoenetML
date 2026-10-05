@@ -181,6 +181,15 @@ export default class BaseComponent {
     static listPerEntryVariables = [];
     static listEntryCountVariable = undefined;
 
+    /**
+     * For a list component, the entry properties (keys of
+     * `listEntryStateVariables`) that a reference to the whole list reads
+     * once, from the list (`$l.styleNumber`). A reference to the whole list
+     * reads every other entry property once per entry
+     * (`utils/listEntryReference.ts`).
+     */
+    static listOwnProperties = [];
+
     static get rendererType() {
         return this.componentType;
     }

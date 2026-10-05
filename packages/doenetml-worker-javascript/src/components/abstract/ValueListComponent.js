@@ -3,6 +3,7 @@ import me from "math-expressions";
 import {
     normalizeMathExpression,
     returnSelectedStyleStateVariableDefinition,
+    returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
 import {
     buildNumberDisplayParameters,
@@ -71,7 +72,17 @@ export default class ValueListComponent extends BaseComponent {
         return this.listValuesArrayName;
     }
 
+    // Built once for each list class.
     static get listEntryStateVariables() {
+        if (!Object.hasOwn(this, "builtListEntryStateVariables")) {
+            this.builtListEntryStateVariables = Object.freeze(
+                this.buildListEntryStateVariables(),
+            );
+        }
+        return this.builtListEntryStateVariables;
+    }
+
+    static buildListEntryStateVariables() {
         const otherType =
             this.listEntryComponentType === "math" ? "number" : "math";
         const variables = {
@@ -87,7 +98,11 @@ export default class ValueListComponent extends BaseComponent {
             disabled: "disabled",
             fixLocation: "fixLocation",
             selectedStyle: "selectedStyle",
+            styleNumber: "styleNumber",
         };
+        for (const name in returnTextStyleDescriptionDefinitions()) {
+            variables[name] = name;
+        }
         for (const name in ENTRY_RENDERER_DEFAULTS) {
             variables[name] = name;
         }
@@ -96,6 +111,16 @@ export default class ValueListComponent extends BaseComponent {
         }
         return variables;
     }
+
+    // A reference to the whole list reads these of the list itself
+    // (`$l.styleNumber` is the style of the list as a whole).
+    static listOwnProperties = [
+        "styleNumber",
+        "hide",
+        "modifyIndirectly",
+        "isResponse",
+        "permid",
+    ];
 
     static get listPerEntryVariables() {
         return [
@@ -265,6 +290,14 @@ export default class ValueListComponent extends BaseComponent {
             returnSelectedStyleStateVariableDefinition(),
         );
 
+        // How the text of every entry is styled, which a reference to an
+        // entry reads (`$l[2].textColor`).
+        for (const [name, definition] of Object.entries(
+            returnTextStyleDescriptionDefinitions(),
+        )) {
+            stateVariableDefinitions[name] = { ...definition, public: false };
+        }
+
         // The entries were `<math>` and `<number>` components with no
         // children, so they take no display settings from the list's
         // children.
@@ -337,11 +370,17 @@ export default class ValueListComponent extends BaseComponent {
             // from the list it references rather than computing them.
             shadowVariable: true,
             // An entry's display settings are the list's, for a reference to
-            // one entry as for the entries a parent sees.
+            // one entry as for the entries a parent sees. A copy of an entry
+            // (`<math copy="$l[2]"/>`) takes the list's display attributes as
+            // written, so one given as a reference (`displayDigits="$dd"`)
+            // keeps following it.
             shadowingInstructions: {
                 createComponentOfType: entryType,
                 addAttributeComponentsShadowingStateVariables:
                     returnNumberDisplayAttributeComponentShadowing(),
+                attributesToShadow: Object.keys(
+                    returnNumberDisplayAttributes(),
+                ),
             },
             returnArraySizeDependencies: () => ({
                 numEntries: {
