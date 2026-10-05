@@ -1,6 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
-import { movePoint, updateMathInputValue } from "../utils/actions";
+import {
+    movePoint,
+    updateMathInputValue,
+    updateTextInputValue,
+} from "../utils/actions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 
 const Mock = vi.fn();
@@ -379,6 +383,100 @@ describe("Samplers and sequences as list components @group4", async () => {
             (state: any) => state.entryWrites,
         ) as any;
         expect(Object.keys(saved.entryWrites)).eqls(["mergeObject"]);
+    });
+
+    it("a write reaches an entry of each type, and is refused where the list is fixed", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="pl"><sequence name="l" type="letters" length="3" fixed="false" /></p>
+    <textInput name="ti" bindValueTo="$l[1]" />
+    <mathInput name="mim" bindValueTo="$l[2].math" />
+    <mathInput name="min" bindValueTo="$l[3].number" />
+    <p name="ppr"><samplePrimeNumbers name="pr" numSamples="1" minValue="2" maxValue="10" fixed="false" /></p>
+    <mathInput name="mipr" bindValueTo="$pr[1]" />
+    <group fixed="false"><p name="pg"><sequence name="g" length="2" /></p></group>
+    <mathInput name="mig" bindValueTo="$g[1]" />
+    <p name="ps"><sequence name="s" length="2" /></p>
+    <mathInput name="mis" bindValueTo="$s[1]" />
+    <number name="c" copy="$s[2]" />
+    <mathInput name="mic" bindValueTo="$c" />
+    `,
+        });
+
+        await updateTextInputValue({
+            text: "q",
+            componentIdx: await resolvePathToNodeIdx("ti"),
+            core,
+        });
+        for (const [name, latex] of [
+            ["mim", "z"],
+            ["min", "7"],
+            ["mipr", "4.6"],
+            ["mig", "9"],
+            ["mis", "9"],
+            ["mic", "8"],
+        ]) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+        }
+
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "pl",
+                "ppr",
+                "pg",
+                "ps",
+            ]),
+        ).eqls({
+            // a letter takes a text, and a math or number as its text
+            pl: "q, z, 7",
+            // a prime sample takes an integer
+            ppr: "5",
+            // `fixed` set on an ancestor
+            pg: "9, 2",
+            // fixed by default
+            ps: "1, 2",
+        });
+        // An unlinked copy of an entry is not fixed.
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const c = stateVariables[await resolvePathToNodeIdx("c")].stateValues;
+        expect(c.fixed).eq(false);
+        expect(c.value).eq(8);
+    });
+
+    it("a value written to a selection stays when the sequence's from changes", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="from" prefill="1" />
+    <p name="p"><selectFromSequence name="s" from="$from" to="100" numToSelect="2" fixed="false" /></p>
+    <mathInput name="mi" bindValueTo="$s[1]" />
+    `,
+        });
+        const second = (
+            await textsOf(core, resolvePathToNodeIdx, ["p"])
+        ).p.split(", ")[1];
+
+        await updateMathInputValue({
+            latex: "742",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect((await textsOf(core, resolvePathToNodeIdx, ["p"])).p).eq(
+            `742, ${second}`,
+        );
+
+        // The selection is not made again, and neither is the write undone.
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("from"),
+            core,
+        });
+        expect((await textsOf(core, resolvePathToNodeIdx, ["p"])).p).eq(
+            `742, ${second}`,
+        );
     });
 
     it("a math written to an entry is saved and read back", async () => {

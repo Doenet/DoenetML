@@ -1695,8 +1695,7 @@ function checkForScalarLinearExpression(
     }
     if (operator === "+") {
         if (operands.length === 1) {
-            // a unary plus, as in `+x`, or in `$x + 1` while `$x` has no
-            // replacement (a repeat's withheld iteration)
+            // a unary plus, as in `+x`
             return checkForScalarLinearExpression(
                 operands[0],
                 variables,

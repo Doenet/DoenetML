@@ -38,6 +38,12 @@ export default class SelectFromSequence extends Sequence {
 
     static listEntryValuesVariable = "selectedValues";
 
+    // The selection is made once and does not change, so a value written to
+    // an entry stands over the value selected there, whatever the sequence's
+    // `from` or `step` become (not `sequenceWriteBasis`, as for a
+    // `<sequence>`).
+    static listEntryWriteBasisVariable = undefined;
+
     static createsVariants = true;
 
     static createAttributesObject() {

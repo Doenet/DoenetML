@@ -41,8 +41,8 @@ import { returnMathVectorMatrixStateVariableDefinitions } from "../../utils/math
  * and its value as another type. An entry reads its display settings,
  * `hidden` and `fixed` from the list.
  *
- * The entries are `fixed` unless the list's `fixed` is set, by its own
- * attribute or by an ancestor's, as the components a composite created
+ * The entries are `fixed` unless the list's `fixed` is set to false, by its
+ * own attribute or by an ancestor's, as the components a composite created
  * were. A value written to an entry that is not fixed, of a list that takes
  * writes (`listEntriesTakeWrites`), is kept, entry by entry, over the value
  * the list computes (`entryWrites`) while the list computes the value it was
@@ -664,9 +664,9 @@ export default class ValueListComponent extends BaseComponent {
             }),
         };
 
-        // The entries are fixed unless the list's `fixed` was set, by its
-        // own attribute or by an ancestor's, as the components a composite
-        // created were. Fixed by default, which an unlinked copy of an entry
+        // The entries are fixed unless the list's `fixed` was set to false,
+        // by its own attribute or by an ancestor's, as the components a
+        // composite created were. Fixed by default, which an unlinked copy of an entry
         // (`<number copy="$s[1]"/>`) does not take.
         stateVariableDefinitions.entriesFixed = {
             hasEssential: true,

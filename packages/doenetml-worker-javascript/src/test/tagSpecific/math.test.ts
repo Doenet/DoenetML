@@ -13605,4 +13605,31 @@ describe("Math tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("m3")].stateValues.number,
         ).eqls({ re: 0, im: 2 });
     });
+
+    it("a math with a unary plus can be modified", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <mathInput name="a" prefill="3" />
+  <math name="m">+$a</math>
+  <mathInput name="mi" bindValueTo="$m" />
+  `,
+        });
+
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                .canBeModified,
+        ).eq(true);
+
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("a")].stateValues.value
+                .tree,
+        ).eq(5);
+    });
 });
