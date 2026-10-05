@@ -8,6 +8,8 @@
  * reference's target as it expands.
  */
 
+import { isListEntryArrayVariable } from "./listEntryReference";
+
 export type ReferentDescription = {
     componentIdx: number;
     componentType: string;
@@ -30,6 +32,13 @@ export type ReferentDescription = {
      * its array's). Only variables the referent has, and no arrays.
      */
     companions: Record<string, string>;
+    /**
+     * For an entry of a list component (`number3` of a `<numberList>`,
+     * `isListEntryArrayVariable`), its position in the list, 1 for the
+     * first. The list holds the entry while its `listEntryCountVariable` is
+     * at least that.
+     */
+    listEntryPosition?: number;
 };
 
 /**
@@ -87,6 +96,13 @@ export function describeReferentVariable(
               ? ownType
               : undefined;
 
+    const listEntryPosition = listEntryPositionOf(
+        component,
+        variableName,
+        stateVarObj,
+        arrayStateVarObj,
+    );
+
     return {
         componentIdx: component.componentIdx,
         componentType: component.componentType,
@@ -96,7 +112,34 @@ export function describeReferentVariable(
             variableName === "value" ||
             variableName === component.constructor.variableForImplicitProp,
         companions,
+        ...(listEntryPosition === undefined ? {} : { listEntryPosition }),
     };
+}
+
+/**
+ * The position of `variableName` among the entries of the list component
+ * `component`, when it is an entry of one of the list's arrays with one
+ * value per entry; `undefined` otherwise.
+ */
+function listEntryPositionOf(
+    component: any,
+    variableName: string,
+    stateVarObj: any,
+    arrayStateVarObj: any,
+): number | undefined {
+    if (
+        component.constructor.listEntryCountVariable === undefined ||
+        arrayStateVarObj === stateVarObj ||
+        !isListEntryArrayVariable(component, variableName)
+    ) {
+        return undefined;
+    }
+    const prefix = [...(arrayStateVarObj.entryPrefixes ?? [])]
+        .sort((a: string, b: string) => b.length - a.length)
+        .find((prefix: string) => variableName.startsWith(prefix));
+    const varEnding =
+        prefix === undefined ? "" : variableName.slice(prefix.length);
+    return /^[1-9]\d*$/.test(varEnding) ? Number(varEnding) : undefined;
 }
 
 /**

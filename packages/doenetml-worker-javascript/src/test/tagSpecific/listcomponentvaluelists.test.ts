@@ -831,4 +831,54 @@ describe("Value lists as list components @group4", async () => {
             p4: "9 (1, 2, 3), (4, 9, 6)",
         });
     });
+
+    it("a reference past the end of a list adds no value", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <numberList name="l" maxNumber="$max">1 2 3</numberList>
+    <mathInput name="max" prefill="2"/>
+    <mathInput name="k" prefill="3"/>
+    <mathList name="m"/>
+    <textList name="t">a b</textList>
+    <sequence name="s" length="2"/>
+    <p name="p1"><numberList name="r">7 $l[$k] 9</numberList> $r.numValues</p>
+    <p name="p2"><mathList>$m[1] x $m[2]</mathList> <textList>$t[3] c</textList></p>
+    <p name="p3"><numberList>$s[4] 5 $s[2]</numberList></p>
+    `,
+        });
+
+        const names = ["p1", "p2", "p3"];
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls({
+            p1: "7, 9 2",
+            p2: "x c",
+            p3: "5, 2",
+        });
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("max"),
+            core,
+        });
+        expect(await textsOf(core, resolvePathToNodeIdx, ["p1"])).eqls({
+            p1: "7, 3, 9 3",
+        });
+
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: await resolvePathToNodeIdx("k"),
+            core,
+        });
+        expect(await textsOf(core, resolvePathToNodeIdx, ["p1"])).eqls({
+            p1: "7, 9 2",
+        });
+
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("k"),
+            core,
+        });
+        expect(await textsOf(core, resolvePathToNodeIdx, ["p1"])).eqls({
+            p1: "7, 1, 9 3",
+        });
+    });
 });

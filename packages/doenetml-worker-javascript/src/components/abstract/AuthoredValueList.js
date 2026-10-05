@@ -481,7 +481,8 @@ export default class AuthoredValueList extends ValueListComponent {
         // item of a piece or child whose value is a list, when the math
         // lists merge (`component` of `nComponents`), or the array the list
         // shadows (`shadowInd`). Only merging reads the values, to count the
-        // items.
+        // items. A reference to an entry past the end of a list
+        // (`pastEndOfList`, `ValueRef.js`) gives none.
         stateVariableDefinitions.entryStructure = {
             stateVariablesDeterminingDependencies: ["mergeMathLists"],
             returnDependencies({ stateValues }) {
@@ -490,8 +491,9 @@ export default class AuthoredValueList extends ValueListComponent {
                         dependencyType: "child",
                         childGroups,
                         variableNames: stateValues.mergeMathLists
-                            ? ["value"]
-                            : [],
+                            ? ["value", "pastEndOfList"]
+                            : ["pastEndOfList"],
+                        variablesOptional: true,
                         skipComponentIndices: true,
                     },
                     ...(stateValues.mergeMathLists
@@ -572,7 +574,12 @@ export default class AuthoredValueList extends ValueListComponent {
                             pieceInd++;
                         }
                     } else {
-                        addSources(child.stateValues?.value, { componentInd });
+                        // A reference past the end of a list gives no entry.
+                        if (!child.stateValues?.pastEndOfList) {
+                            addSources(child.stateValues?.value, {
+                                componentInd,
+                            });
+                        }
                         componentInd++;
                     }
                 }
