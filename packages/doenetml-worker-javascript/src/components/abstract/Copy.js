@@ -2629,6 +2629,35 @@ export async function replacementFromProp({
             }
         }
 
+        // A reference to a whole array of values (`$P.xs`, `$l.text`) whose
+        // parent takes components rather than values is one list component
+        // shadowing the array (Doenet/DoenetML#2160).
+        const listReplacement = stateVarObj.isArray
+            ? await arrayListReplacement({
+                  component,
+                  components,
+                  target,
+                  varName,
+                  arrayStateVarObj,
+                  numWrappingComponents,
+                  link,
+                  mayBeValueReference,
+                  parentClass,
+                  componentInfoObjects,
+                  compositeAttributesObj,
+                  nComponents,
+                  stateIdInfo,
+              })
+            : undefined;
+        if (listReplacement) {
+            return {
+                serializedReplacements: [listReplacement.serializedComponent],
+                propVariablesCopiedByReplacement: [[varName]],
+                diagnostics,
+                nComponents: listReplacement.nComponents,
+            };
+        }
+
         if (numWrappingComponents === 0) {
             // return flattened entries
 
@@ -4038,4 +4067,164 @@ export function addChildrenFromComposite({
     }
 
     repl.children.push(...newChildren);
+}
+
+/**
+ * The list component of each type of value that an array of such values is
+ * read as (`arrayListReplacement`).
+ */
+const LIST_TYPE_OF_VALUE_TYPE = {
+    math: "mathList",
+    number: "numberList",
+    text: "textList",
+    boolean: "booleanList",
+};
+
+/**
+ * The replacement for a reference to the whole array `varName` of `target`
+ * (`$P.xs`): one list component of the array's values, which shadows the
+ * array and whose entries a parent reads, and the viewer draws, as one child
+ * per value, each of the type a value of the array has on its own. It carries
+ * the companions the array's values have (`displayDigits` of a `<point>`),
+ * shadowing them. `undefined`, for one replacement per value as before, when
+ * the array is not one dimension of math, number, text or boolean values,
+ * when the reference is not linked, was given a type or attributes of its
+ * own, skips empty entries, or sits where a parent reads values, where each
+ * value is a value reference of its own, or must have a replacement.
+ */
+async function arrayListReplacement({
+    component,
+    components,
+    target,
+    varName,
+    arrayStateVarObj,
+    numWrappingComponents,
+    link,
+    mayBeValueReference,
+    parentClass,
+    componentInfoObjects,
+    compositeAttributesObj,
+    nComponents,
+    stateIdInfo,
+}) {
+    const valueType =
+        arrayStateVarObj.shadowingInstructions?.createComponentOfType;
+    const listType =
+        typeof valueType === "string"
+            ? LIST_TYPE_OF_VALUE_TYPE[valueType]
+            : undefined;
+    if (
+        listType === undefined ||
+        (arrayStateVarObj.numDimensions ?? 1) !== 1 ||
+        numWrappingComponents > 0 ||
+        !link ||
+        !mayBeValueReference ||
+        (await component.stateValues.removeEmptyArrayEntries) ||
+        // where a reference must have a replacement, an empty array is one
+        // blank replacement, which a value written to it fills
+        components[component.parentIdx]?.sharedParameters
+            ?.compositesMustHaveAReplacement
+    ) {
+        return undefined;
+    }
+
+    const res = convertUnresolvedAttributesForComponentType({
+        attributes: component.attributes,
+        componentType: listType,
+        componentInfoObjects,
+        compositeAttributesObj,
+        nComponents: 0,
+        stateIdInfo: { prefix: "", num: 0 },
+    });
+    const { otherAttributes } = separateResponseMarks(res.attributes);
+    if (
+        Object.keys(otherAttributes).length > 0 ||
+        planValueReference({
+            parentClass,
+            targetComponentType: target.componentType,
+            valueComponentType: valueType,
+            fromImplicitProp: false,
+            hasAttributes: false,
+            componentInfoObjects,
+        })
+    ) {
+        return undefined;
+    }
+
+    const converted = convertUnresolvedAttributesForComponentType({
+        attributes: component.attributes,
+        componentType: listType,
+        componentInfoObjects,
+        compositeAttributesObj,
+        nComponents,
+        stateIdInfo,
+    });
+    nComponents = converted.nComponents;
+    const attributes = {};
+
+    const listAttributes =
+        componentInfoObjects.allComponentClasses[
+            listType
+        ].createAttributesObject();
+    const shadowing =
+        arrayStateVarObj.shadowingInstructions
+            .addAttributeComponentsShadowingStateVariables ?? {};
+    for (const attrName in shadowing) {
+        const stateVariableToShadow = shadowing[attrName].stateVariableToShadow;
+        const attributeComponentType =
+            listAttributes[attrName]?.createComponentOfType;
+        // a companion that differs from value to value has no place on the
+        // list
+        if (
+            !attributeComponentType ||
+            target.state[stateVariableToShadow]?.isArray
+        ) {
+            continue;
+        }
+        attributes[attrName] = {
+            component: {
+                type: "serialized",
+                componentType: attributeComponentType,
+                componentIdx: nComponents++,
+                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                attributes: {},
+                doenetAttributes: {},
+                state: {},
+                children: [],
+                downstreamDependencies: {
+                    [target.componentIdx]: [
+                        {
+                            compositeIdx: component.componentIdx,
+                            dependencyType: "referenceShadow",
+                            propVariable: stateVariableToShadow,
+                        },
+                    ],
+                },
+            },
+        };
+    }
+    Object.assign(attributes, converted.attributes);
+
+    return {
+        serializedComponent: {
+            type: "serialized",
+            componentType: listType,
+            componentIdx: nComponents++,
+            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+            attributes,
+            doenetAttributes: {},
+            children: [],
+            state: {},
+            downstreamDependencies: {
+                [target.componentIdx]: [
+                    {
+                        dependencyType: "referenceShadow",
+                        compositeIdx: component.componentIdx,
+                        propVariable: varName,
+                    },
+                ],
+            },
+        },
+        nComponents,
+    };
 }

@@ -42,13 +42,20 @@ export function describeReferentVariable(
     variableName: string,
 ): ReferentDescription | null {
     const stateVarObj = component?.state[variableName];
-    if (!stateVarObj || stateVarObj.isArray) {
+    // An entry of an array is made when first read, so one not read yet is
+    // described by its array (`x1` of a `<point>` by `xs`).
+    const arrayOfEntry = stateVarObj
+        ? undefined
+        : arrayOfUnmadeEntry(component, variableName);
+    if ((!stateVarObj && !arrayOfEntry) || stateVarObj?.isArray) {
         return null;
     }
 
-    const arrayStateVarObj = stateVarObj.isArrayEntry
-        ? component.state[stateVarObj.arrayStateVariable]
-        : stateVarObj;
+    const arrayStateVarObj = arrayOfEntry
+        ? arrayOfEntry
+        : stateVarObj.isArrayEntry
+          ? component.state[stateVarObj.arrayStateVariable]
+          : stateVarObj;
     const instructions = arrayStateVarObj?.shadowingInstructions ?? {};
 
     const companions: Record<string, string> = {};
@@ -72,7 +79,7 @@ export function describeReferentVariable(
     // An array entry's own `createComponentOfType` is per key (an array), so
     // the type of an entry is read from its array.
     const arrayType = instructions.createComponentOfType;
-    const ownType = stateVarObj.shadowingInstructions?.createComponentOfType;
+    const ownType = stateVarObj?.shadowingInstructions?.createComponentOfType;
     const createComponentOfType =
         typeof arrayType === "string"
             ? arrayType
@@ -90,4 +97,22 @@ export function describeReferentVariable(
             variableName === component.constructor.variableForImplicitProp,
         companions,
     };
+}
+
+/**
+ * The array state variable of `component` that `variableName` names an
+ * entry of, by the longest entry prefix it begins with, when that entry has
+ * not been made yet; `undefined` otherwise.
+ */
+function arrayOfUnmadeEntry(component: any, variableName: string) {
+    const prefixes: Record<string, string> =
+        component?.arrayEntryPrefixes ?? {};
+    const prefix = Object.keys(prefixes)
+        .sort((a, b) => b.length - a.length)
+        .find(
+            (prefix) =>
+                variableName.startsWith(prefix) &&
+                variableName.length > prefix.length,
+        );
+    return prefix === undefined ? undefined : component.state[prefixes[prefix]];
 }

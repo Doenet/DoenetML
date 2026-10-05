@@ -136,6 +136,14 @@ export default class AuthoredValueList extends ValueListComponent {
             public: true,
         };
 
+        // Texts and booleans are not shown with number display settings.
+        const kind = entryKind(this.listEntryComponentType);
+        if (kind === "text" || kind === "boolean") {
+            for (const name in returnNumberDisplayAttributes()) {
+                delete attributes[name];
+            }
+        }
+
         return attributes;
     }
 
@@ -206,6 +214,16 @@ export default class AuthoredValueList extends ValueListComponent {
             stateVariableDefinitions,
             returnUnorderedListStateVariableDefinitions(),
         );
+
+        if (displayNames.length === 0) {
+            for (const name in returnNumberDisplayAttributes()) {
+                stateVariableDefinitions[name] = {
+                    ...stateVariableDefinitions[name],
+                    public: false,
+                };
+                delete stateVariableDefinitions[name].shadowingInstructions;
+            }
+        }
 
         stateVariableDefinitions.listValuesShadow = {
             defaultValue: null,
