@@ -90,13 +90,15 @@ vi.mock("../../core/ResolverAdapter", async (importOriginal) => {
  * so a pass cannot come from the document never building anything.
  */
 describe("a composite reports its own failure rather than losing it @group4", () => {
+    // A `<sequence>` is not a composite (it is a list component), so a
+    // composite that creates one component per value stands in for it.
     const buildDoenetML = `
 <p name="before">before</p>
-<sequence name="s" from="1" to="3" />
+<p name="vals"><repeatForSequence name="s" from="1" to="3" valueName="v"><number>$v</number> </repeatForSequence></p>
 <p name="after">after</p>`;
 
     it("reports a failure registering replacements while building", async () => {
-        failRegistrationFor = "sequence";
+        failRegistrationFor = "repeatForSequence";
         let core, resolvePathToNodeIdx;
         try {
             ({ core, resolvePathToNodeIdx } = await createTestCore({
@@ -141,31 +143,26 @@ describe("a composite reports its own failure rather than losing it @group4", ()
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
-        const replacements =
-            stateVariables[await resolvePathToNodeIdx("s")].replacements!;
         expect(
-            replacements.map(
-                (replacement: any) =>
-                    stateVariables[replacement.componentIdx].stateValues.value,
-            ),
-        ).eqls([1, 2, 3]);
+            stateVariables[await resolvePathToNodeIdx("vals")].stateValues.text,
+        ).eq("1, 2, 3");
 
         expect(getDiagnosticsByType(core).errors.length).eq(0);
     });
 
-    // Growing the sequence makes it create replacements, which is the update
+    // Growing the repeat makes it create replacements, which is the update
     // path's own call to `addReplacementsToResolver`.
     const growDoenetML = `
 <mathInput name="n" prefill="3" />
 <p name="after">after</p>
-<sequence name="s" from="1" to="$n" />`;
+<p name="vals"><repeatForSequence name="s" from="1" to="$n" valueName="v"><number>$v</number> </repeatForSequence></p>`;
 
     it("reports a failure registering replacements while updating", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: growDoenetML,
         });
 
-        failRegistrationFor = "sequence";
+        failRegistrationFor = "repeatForSequence";
         try {
             await updateMathInputValue({
                 latex: "5",
@@ -203,14 +200,9 @@ describe("a composite reports its own failure rather than losing it @group4", ()
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
-        const replacements =
-            stateVariables[await resolvePathToNodeIdx("s")].replacements!;
         expect(
-            replacements.map(
-                (replacement: any) =>
-                    stateVariables[replacement.componentIdx].stateValues.value,
-            ),
-        ).eqls([1, 2, 3, 4, 5]);
+            stateVariables[await resolvePathToNodeIdx("vals")].stateValues.text,
+        ).eq("1, 2, 3, 4, 5");
 
         expect(getDiagnosticsByType(core).errors.length).eq(0);
     });

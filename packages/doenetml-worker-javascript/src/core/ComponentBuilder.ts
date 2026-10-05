@@ -332,6 +332,9 @@ export async function createIsolatedComponents({
                 ];
         }
 
+        componentClass =
+            componentClass.classForSerializedComponent(serializedComponent);
+
         if (!serializedComponent.doenetAttributes) {
             serializedComponent.doenetAttributes = {};
         }

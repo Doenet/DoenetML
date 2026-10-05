@@ -1694,6 +1694,16 @@ function checkForScalarLinearExpression(
         );
     }
     if (operator === "+") {
+        if (operands.length === 1) {
+            // a unary plus, as in `+x`, or in `$x + 1` while `$x` has no
+            // replacement (a repeat's withheld iteration)
+            return checkForScalarLinearExpression(
+                operands[0],
+                variables,
+                inverseTree,
+                components,
+            );
+        }
         if (me.variables(operands[0]).every((v) => !variables.includes(v))) {
             // if none of the variables appear in the first operand, subtract off operand from inverseTree
             inverseTree = ["+", inverseTree, ["-", operands[0]]];

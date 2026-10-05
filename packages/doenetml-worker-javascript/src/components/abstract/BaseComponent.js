@@ -199,6 +199,18 @@ export default class BaseComponent {
      */
     static serializeChildrenOnlyIfUnlinked = false;
 
+    /**
+     * The class a component serialized as `serializedComponent` is created
+     * as: this one, unless a subclass decides it from the component's
+     * primitive attributes, which the document fixes for the component's
+     * life (`<sequence type="letters">` is a list of texts; see
+     * `ValueListComponent.classForEntryType`). The subclass keeps this
+     * class's `componentType`.
+     */
+    static classForSerializedComponent(serializedComponent) {
+        return this;
+    }
+
     static get rendererType() {
         return this.componentType;
     }

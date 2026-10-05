@@ -450,6 +450,7 @@ export default class IntervalList extends CompositeComponent {
                 copyChildSource = {
                     componentIdx: cIdx,
                     componentType: components[cIdx].componentType,
+                    component: components[cIdx],
                 };
             }
         }

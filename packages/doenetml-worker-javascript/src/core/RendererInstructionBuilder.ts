@@ -41,6 +41,8 @@ const RENDERER_ACK_TIMEOUT_MS = 2000;
 const LIST_ENTRY_ACTIONS: Record<string, string[]> = {
     math: ["moveMath", "mathClicked", "mathFocused"],
     number: ["moveNumber", "numberClicked", "numberFocused"],
+    integer: ["moveNumber", "numberClicked", "numberFocused"],
+    text: ["moveText", "textClicked", "textFocused"],
 };
 
 /**
@@ -90,6 +92,17 @@ export class RendererInstructionBuilder {
         number,
         { listIdx: number; entryIndex: number }
     >;
+    /**
+     * The renderer indices of list entries that are also nodes of the
+     * resolver, where a composite is indexed by them
+     * (`listEntryResolverNodes.ts`).
+     */
+    listEntryNodesInResolver: Set<number>;
+    /**
+     * What each composite indexed by list entries was last indexed by, by
+     * the index of its node in the resolver.
+     */
+    listEntryIndexContent: Map<number, string>;
 
     constructor({ core }: { core: Core }) {
         this.core = core;
@@ -104,6 +117,8 @@ export class RendererInstructionBuilder {
         this._awaitingRendererAck = false;
         this.listEntryRendererIndices = new Map();
         this.listEntryOfRendererIdx = new Map();
+        this.listEntryNodesInResolver = new Set();
+        this.listEntryIndexContent = new Map();
     }
 
     /**
@@ -118,6 +133,8 @@ export class RendererInstructionBuilder {
         this.rendererState = {};
         this.listEntryRendererIndices = new Map();
         this.listEntryOfRendererIdx = new Map();
+        this.listEntryNodesInResolver = new Set();
+        this.listEntryIndexContent = new Map();
     }
 
     /**

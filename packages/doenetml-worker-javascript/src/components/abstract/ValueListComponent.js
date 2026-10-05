@@ -16,6 +16,7 @@ import {
     plainComplex,
     roundForDisplay,
     superSubscriptsToUnicode,
+    textToMathFactory,
 } from "../../utils/math";
 import { returnMathVectorMatrixStateVariableDefinitions } from "../../utils/mathVectorMatrixStateVariables";
 
@@ -34,11 +35,21 @@ import { returnMathVectorMatrixStateVariableDefinitions } from "../../utils/math
  *
  * A subclass names, in `listEntryValuesVariable`, the state variable that
  * computes the values as a plain array; this class keeps them in the array
- * `maths` or `numbers`, which `$l[2]` indexes, and computes from them
- * what a parent reads of an entry: its text, its latex, and its value as the
- * other type. An entry reads its display settings, `hidden` and `fixed` from
- * the list. The values are computed, so the entries are `fixed` and cannot be
- * modified.
+ * `maths`, `numbers` or `texts` (`ENTRY_TYPES`), which `$l[2]` indexes, and
+ * computes from them what a parent reads of an entry: its text, its latex,
+ * and its value as another type. An entry reads its display settings,
+ * `hidden` and `fixed` from the list.
+ *
+ * The entries are `fixed` unless the list's `fixed` is set, by its own
+ * attribute or by an ancestor's, as the components a composite created
+ * were. A value written to an entry that is not fixed, of a list that takes
+ * writes (`listEntriesTakeWrites`), is kept, entry by entry, over the value
+ * the list computes (`entryWrites`) while the list computes the value it was
+ * written over there.
+ *
+ * A subclass whose entries' type a primitive attribute decides
+ * (`listEntryTypeAttribute`, `<sequence type="letters">`) is created as a
+ * subclass for that type (`classForSerializedComponent`).
  */
 export default class ValueListComponent extends BaseComponent {
     static componentType = "_valueList";
@@ -46,7 +57,7 @@ export default class ValueListComponent extends BaseComponent {
     // (`RendererInstructionBuilder`), so it has no renderer of its own; this
     // is the type its entries need.
     static get rendererType() {
-        return this.listEntryComponentType;
+        return ENTRY_TYPES[this.listEntryComponentType]?.rendererType;
     }
 
     // `$l[2]` picks an entry.
@@ -57,14 +68,77 @@ export default class ValueListComponent extends BaseComponent {
     // children they were computed from.
     static serializeChildrenOnlyIfUnlinked = true;
 
-    // `math` or `number`; set by a subclass.
+    // A type of `ENTRY_TYPES`; set by a subclass.
     static listEntryComponentType = undefined;
 
-    // The state variable of the subclass that computes the values.
+    // The state variable of the subclass that computes the values, as an
+    // array (or `null`, for no values).
     static listEntryValuesVariable = undefined;
 
+    // Whether an entry that is not fixed takes a value written to it, as the
+    // components a composite created did (`<sequence fixed="false">`). The
+    // results of an operator are computed, and take none.
+    static listEntriesTakeWrites = false;
+
+    // A state variable of the subclass whose value is what a written value
+    // stands over (`entryWrites`) in place of the value the list computed
+    // for the entry, when the subclass recomputes every value whenever it
+    // changes (a `<sequence>`'s `from` and `step`).
+    static listEntryWriteBasisVariable = undefined;
+
+    // The primitive attribute that decides the entries' type, when one does
+    // (`listEntryTypeFromAttribute`).
+    static listEntryTypeAttribute = undefined;
+
     static get listValuesArrayName() {
-        return this.listEntryComponentType === "math" ? "maths" : "numbers";
+        return ENTRY_TYPES[this.listEntryComponentType].arrayName;
+    }
+
+    /**
+     * The type of the entries that the value of the attribute
+     * `listEntryTypeAttribute` gives (`undefined` for its default, or when
+     * it is not a primitive). Set by a subclass that has the attribute.
+     */
+    static listEntryTypeFromAttribute(attribute) {
+        return undefined;
+    }
+
+    static classForSerializedComponent(serializedComponent) {
+        if (this.listEntryTypeAttribute === undefined) {
+            return this;
+        }
+        const entryType = this.listEntryTypeFromAttribute(
+            serializedComponent.attributes?.[this.listEntryTypeAttribute],
+        );
+        return entryType === undefined
+            ? this
+            : this.classForEntryType(entryType);
+    }
+
+    /**
+     * The class of this list whose entries are of `entryType`: this one, or
+     * a subclass made for that type once and kept. It keeps this class's
+     * `componentType`, so the document, references and the schema see one
+     * component type, and differs only in what its entries are.
+     */
+    static classForEntryType(entryType) {
+        if (entryType === this.listEntryComponentType) {
+            return this;
+        }
+        const base = this.listEntryTypeBaseClass ?? this;
+        if (entryType === base.listEntryComponentType) {
+            return base;
+        }
+        if (!Object.hasOwn(base, "listEntryTypeClasses")) {
+            base.listEntryTypeClasses = {};
+        }
+        if (!base.listEntryTypeClasses[entryType]) {
+            base.listEntryTypeClasses[entryType] = class extends base {
+                static listEntryComponentType = entryType;
+                static listEntryTypeBaseClass = base;
+            };
+        }
+        return base.listEntryTypeClasses[entryType];
     }
 
     static listEntryCountVariable = "numEntries";
@@ -84,14 +158,25 @@ export default class ValueListComponent extends BaseComponent {
     }
 
     static buildListEntryStateVariables() {
-        const otherType =
-            this.listEntryComponentType === "math" ? "number" : "math";
+        const entryType = this.listEntryComponentType;
+        const typeVariables =
+            entryType === "text"
+                ? {
+                      text: "entryTexts",
+                      math: "entryTextMaths",
+                      number: "entryTextNumbers",
+                  }
+                : {
+                      [entryType === "math" ? "number" : "math"]:
+                          "entryOtherTypeValues",
+                      text: "entryTexts",
+                      latex: "entryLatexes",
+                      isNumber: "entryIsNumbers",
+                      valueForDisplay: "entryValuesForDisplay",
+                  };
         const variables = {
             value: this.listValuesArrayName,
-            [otherType]: "entryOtherTypeValues",
-            text: "entryTexts",
-            latex: "entryLatexes",
-            isNumber: "entryIsNumbers",
+            ...typeVariables,
             hidden: "hidden",
             fixed: "entriesFixed",
             canBeModified: "entriesCanBeModified",
@@ -108,8 +193,10 @@ export default class ValueListComponent extends BaseComponent {
         for (const name in ENTRY_RENDERER_DEFAULTS) {
             variables[name] = name;
         }
-        for (const name in returnNumberDisplayAttributes()) {
-            variables[name] = name;
+        if (entryType !== "text") {
+            for (const name in returnNumberDisplayAttributes()) {
+                variables[name] = name;
+            }
         }
         return variables;
     }
@@ -127,20 +214,33 @@ export default class ValueListComponent extends BaseComponent {
 
     // The properties of a `<math>` entry that a `<math>` computes from its
     // value (`$l[2].numDimensions`, `$l[2].x`), computed from the entry's
-    // value in the same way.
+    // value in the same way, and the `math` of a `<number>` entry, computed
+    // from the entry's value alone, so that a reference to it (`$l[$i]` in a
+    // `<math>`) follows that entry and no other.
     static get listEntryDerivedProperties() {
-        return this.listEntryComponentType === "math"
-            ? MATH_ENTRY_DERIVED_PROPERTIES
-            : {};
+        const entryType = this.listEntryComponentType;
+        if (entryType === "math") {
+            return MATH_ENTRY_DERIVED_PROPERTIES;
+        }
+        return entryType === "text" ? {} : NUMBER_ENTRY_DERIVED_PROPERTIES;
     }
 
     static get listPerEntryVariables() {
+        if (this.listEntryComponentType === "text") {
+            return [
+                this.listValuesArrayName,
+                "entryTexts",
+                "entryTextMaths",
+                "entryTextNumbers",
+            ];
+        }
         return [
             this.listValuesArrayName,
             "entryOtherTypeValues",
             "entryTexts",
             "entryLatexes",
             "entryIsNumbers",
+            "entryValuesForDisplay",
         ];
     }
 
@@ -190,6 +290,8 @@ export default class ValueListComponent extends BaseComponent {
 
         const entryType = this.listEntryComponentType;
         const valuesVariable = this.listEntryValuesVariable;
+        const entriesTakeWrites = this.listEntriesTakeWrites;
+        const writeBasisVariable = this.listEntryWriteBasisVariable;
         const arrayName = this.listValuesArrayName;
         const entryPrefix = entryType;
 
@@ -332,7 +434,8 @@ export default class ValueListComponent extends BaseComponent {
             definition({ dependencyValues }) {
                 return {
                     setValue: {
-                        computedNumEntries: dependencyValues.values.length,
+                        computedNumEntries:
+                            dependencyValues.values?.length ?? 0,
                     },
                 };
             },
@@ -378,18 +481,28 @@ export default class ValueListComponent extends BaseComponent {
             // A reference to the whole list is a shadow that reads the values
             // from the list it references rather than computing them.
             shadowVariable: true,
+            // An answer that reads an entry sees it as a value the entry
+            // holds, as the components a composite created held theirs:
+            // a change elsewhere in the list (its length) leaves the entry
+            // as it was (`recursiveDependencyValues`).
+            recursiveDependencyBoundary: true,
             // An entry's display settings are the list's, for a reference to
             // one entry as for the entries a parent sees. A copy of an entry
             // (`<math copy="$l[2]"/>`) takes the list's display attributes as
             // written, so one given as a reference (`displayDigits="$dd"`)
-            // keeps following it.
+            // keeps following it. It is fixed as the entry is.
             shadowingInstructions: {
                 createComponentOfType: entryType,
-                addAttributeComponentsShadowingStateVariables:
-                    returnNumberDisplayAttributeComponentShadowing(),
-                attributesToShadow: Object.keys(
-                    returnNumberDisplayAttributes(),
-                ),
+                addAttributeComponentsShadowingStateVariables: {
+                    ...(entryType === "text"
+                        ? {}
+                        : returnNumberDisplayAttributeComponentShadowing()),
+                    fixed: { stateVariableToShadow: "entriesFixed" },
+                },
+                attributesToShadow:
+                    entryType === "text"
+                        ? []
+                        : Object.keys(returnNumberDisplayAttributes()),
             },
             returnArraySizeDependencies: () => ({
                 numEntries: {
@@ -400,39 +513,188 @@ export default class ValueListComponent extends BaseComponent {
             returnArraySize({ dependencyValues }) {
                 return [dependencyValues.numEntries];
             },
-            returnArrayDependenciesByKey() {
+            returnArrayDependenciesByKey({ arrayKeys }) {
+                const dependenciesByKey = {};
+                for (const arrayKey of arrayKeys) {
+                    dependenciesByKey[arrayKey] = {
+                        write: {
+                            dependencyType: "stateVariable",
+                            variableName: `entryWrite${Number(arrayKey) + 1}`,
+                        },
+                    };
+                }
                 return {
                     globalDependencies: {
                         values: {
                             dependencyType: "stateVariable",
                             variableName: valuesVariable,
                         },
+                        entriesFixed: {
+                            dependencyType: "stateVariable",
+                            variableName: "entriesFixed",
+                        },
+                        ...(writeBasisVariable === undefined
+                            ? {}
+                            : {
+                                  writeBasis: {
+                                      dependencyType: "stateVariable",
+                                      variableName: writeBasisVariable,
+                                  },
+                              }),
                     },
+                    dependenciesByKey,
                 };
             },
-            arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
+            arrayDefinitionByKey({
+                globalDependencyValues,
+                dependencyValuesByKey,
+                arrayKeys,
+            }) {
                 // The array is sized by `numEntries`, which catches up with
                 // the number of values only once a change is done, so it
                 // can briefly be longer than the values; an entry past them
                 // is blank until then.
-                let values = {};
+                // An entry whose value did not change is reported unchanged,
+                // so that what reads that entry alone (`$l[$i]`) is not
+                // recomputed when another one changes.
+                const values = globalDependencyValues.values ?? [];
+                let entries = {};
+                let unchangedChecks = {};
                 for (let arrayKey of arrayKeys) {
-                    values[arrayKey] =
-                        globalDependencyValues.values[arrayKey] ??
-                        (entryType === "math" ? me.fromAst("＿") : NaN);
+                    const write = dependencyValuesByKey[arrayKey]?.write;
+                    const over =
+                        writeBasisVariable === undefined
+                            ? values[arrayKey]
+                            : globalDependencyValues.writeBasis;
+                    entries[arrayKey] =
+                        write && sameEntryValue(over, write.over)
+                            ? write.value
+                            : (values[arrayKey] ?? blankEntryValue(entryType));
+                    unchangedChecks[arrayKey] = true;
                 }
-                return { setValue: { [arrayName]: values } };
+                return {
+                    setValue: { [arrayName]: entries },
+                    checkForActualChange: { [arrayName]: unchangedChecks },
+                };
+            },
+            inverseArrayDefinitionByKey({
+                desiredStateVariableValues,
+                globalDependencyValues,
+                dependencyNamesByKey,
+            }) {
+                if (!entriesTakeWrites || globalDependencyValues.entriesFixed) {
+                    return { success: false };
+                }
+                const values = globalDependencyValues.values ?? [];
+                const instructions = [];
+                for (const arrayKey in desiredStateVariableValues[arrayName]) {
+                    if (
+                        Number(arrayKey) >= values.length ||
+                        !dependencyNamesByKey[arrayKey]
+                    ) {
+                        continue;
+                    }
+                    instructions.push({
+                        setDependency: dependencyNamesByKey[arrayKey].write,
+                        desiredValue: {
+                            value: entryValueOfType(
+                                desiredStateVariableValues[arrayName][arrayKey],
+                                entryType,
+                            ),
+                            over:
+                                writeBasisVariable === undefined
+                                    ? values[arrayKey]
+                                    : globalDependencyValues.writeBasis,
+                        },
+                    });
+                }
+                return { success: true, instructions };
             },
         };
 
+        // The value written to each entry (`$l[2]`, a dragged entry), with
+        // what it was written over: the value the list computed for the
+        // entry then, or the subclass's `listEntryWriteBasisVariable`. A
+        // written value stands in for the entry while that is unchanged, as
+        // a composite left the value of a component it created until it
+        // computed a new one: the entries a `<sequence>` keeps when it grows
+        // keep what was written to them, and all of them lose it when its
+        // `from` changes. Kept entry by entry, so that a write to one entry
+        // leaves the others, and what reads them, as they were. A reader's
+        // writes are saved and read back on load.
+        stateVariableDefinitions.entryWrites = {
+            isArray: true,
+            entryPrefixes: ["entryWrite"],
+            // A reference to the whole list reads the list's.
+            shadowVariable: true,
+            hasEssential: true,
+            defaultValueByArrayKey: () => null,
+            returnArraySizeDependencies: () => ({
+                numEntries: {
+                    dependencyType: "stateVariable",
+                    variableName: "numEntries",
+                },
+            }),
+            returnArraySize({ dependencyValues }) {
+                return [dependencyValues.numEntries];
+            },
+            returnArrayDependenciesByKey: () => ({}),
+            arrayDefinitionByKey({ arrayKeys }) {
+                const useEssential = {};
+                for (const arrayKey of arrayKeys) {
+                    useEssential[arrayKey] = true;
+                }
+                return {
+                    useEssentialOrDefaultValue: { entryWrites: useEssential },
+                };
+            },
+            inverseArrayDefinitionByKey: ({ desiredStateVariableValues }) => ({
+                success: true,
+                instructions: [
+                    {
+                        setEssentialValue: "entryWrites",
+                        value: desiredStateVariableValues.entryWrites,
+                    },
+                ],
+            }),
+        };
+
+        // The entries are fixed unless the list's `fixed` was set, by its
+        // own attribute or by an ancestor's, as the components a composite
+        // created were. Fixed by default, which an unlinked copy of an entry
+        // (`<number copy="$s[1]"/>`) does not take.
         stateVariableDefinitions.entriesFixed = {
-            returnDependencies: () => ({}),
-            definition: () => ({ setValue: { entriesFixed: true } }),
+            hasEssential: true,
+            defaultValue: true,
+            returnDependencies: () => ({
+                fixed: {
+                    dependencyType: "stateVariable",
+                    variableName: "fixed",
+                },
+            }),
+            definition({ dependencyValues, usedDefault }) {
+                if (usedDefault.fixed) {
+                    return {
+                        useEssentialOrDefaultValue: { entriesFixed: true },
+                    };
+                }
+                return { setValue: { entriesFixed: dependencyValues.fixed } };
+            },
         };
 
         stateVariableDefinitions.entriesCanBeModified = {
-            returnDependencies: () => ({}),
-            definition: () => ({ setValue: { entriesCanBeModified: false } }),
+            returnDependencies: () => ({
+                entriesFixed: {
+                    dependencyType: "stateVariable",
+                    variableName: "entriesFixed",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    entriesCanBeModified:
+                        entriesTakeWrites && !dependencyValues.entriesFixed,
+                },
+            }),
         };
 
         stateVariableDefinitions.entriesUnordered = {
@@ -440,129 +702,216 @@ export default class ValueListComponent extends BaseComponent {
             definition: () => ({ setValue: { entriesUnordered: false } }),
         };
 
-        const displayDependencies = {
-            displayDigits: {
-                dependencyType: "stateVariable",
-                variableName: "displayDigits",
-            },
-            displayDecimals: {
-                dependencyType: "stateVariable",
-                variableName: "displayDecimals",
-            },
-            displaySmallAsZero: {
-                dependencyType: "stateVariable",
-                variableName: "displaySmallAsZero",
-            },
-            padZeros: {
-                dependencyType: "stateVariable",
-                variableName: "padZeros",
-            },
-            avoidScientificNotation: {
-                dependencyType: "stateVariable",
-                variableName: "avoidScientificNotation",
-            },
-        };
+        if (entryType === "text") {
+            // A text entry's text is its value; its `math` and `number`
+            // are the text parsed, as a `<text>` parses it.
+            stateVariableDefinitions.entryTexts = {
+                forRenderer: true,
+                returnDependencies: () => ({
+                    values: {
+                        dependencyType: "stateVariable",
+                        variableName: arrayName,
+                    },
+                }),
+                definition: ({ dependencyValues }) => ({
+                    setValue: { entryTexts: [...dependencyValues.values] },
+                }),
+                inverseDefinition: ({ desiredStateVariableValues }) =>
+                    writeEntries(
+                        desiredStateVariableValues.entryTexts,
+                        (text) => entryValueOfType(text, "text"),
+                    ),
+            };
 
-        // What `valueForDisplay` is for each entry: the value rounded for
-        // display, as `<math>` and `<number>` round it.
-        stateVariableDefinitions.entryValuesForDisplay = {
-            returnDependencies: () => ({
-                values: {
-                    dependencyType: "stateVariable",
-                    variableName: arrayName,
+            stateVariableDefinitions.entryTextMaths = {
+                returnDependencies: () => ({
+                    values: {
+                        dependencyType: "stateVariable",
+                        variableName: arrayName,
+                    },
+                }),
+                definition({ dependencyValues }) {
+                    const parser = textToMathFactory();
+                    const entryTextMaths = dependencyValues.values.map(
+                        (value) => {
+                            try {
+                                return parser(value);
+                            } catch (e) {
+                                return me.fromAst("\uff3f");
+                            }
+                        },
+                    );
+                    return { setValue: { entryTextMaths } };
                 },
-                ...displayDependencies,
-            }),
-            definition({ dependencyValues }) {
-                const entryValuesForDisplay = dependencyValues.values.map(
-                    (value) =>
-                        entryType === "math"
-                            ? mathValueForDisplay(value, dependencyValues)
-                            : numberValueForDisplay(value, dependencyValues),
-                );
-                return { setValue: { entryValuesForDisplay } };
-            },
-        };
+                inverseDefinition: ({ desiredStateVariableValues }) =>
+                    writeEntries(
+                        desiredStateVariableValues.entryTextMaths,
+                        (math) => entryValueOfType(math, "text"),
+                    ),
+            };
 
-        stateVariableDefinitions.entryTexts = {
-            forRenderer: true,
-            returnDependencies: () => ({
-                entryValuesForDisplay: {
+            stateVariableDefinitions.entryTextNumbers = {
+                returnDependencies: () => ({
+                    entryTextMaths: {
+                        dependencyType: "stateVariable",
+                        variableName: "entryTextMaths",
+                    },
+                }),
+                definition: ({ dependencyValues }) => ({
+                    setValue: {
+                        entryTextNumbers: dependencyValues.entryTextMaths.map(
+                            (math) =>
+                                plainComplex(
+                                    math.evaluate_to_constant() ?? NaN,
+                                ),
+                        ),
+                    },
+                }),
+                inverseDefinition: ({ desiredStateVariableValues }) =>
+                    writeEntries(
+                        desiredStateVariableValues.entryTextNumbers,
+                        (number) => entryValueOfType(number, "math"),
+                        "entryTextMaths",
+                    ),
+            };
+        } else {
+            const displayDependencies = {
+                displayDigits: {
                     dependencyType: "stateVariable",
-                    variableName: "entryValuesForDisplay",
+                    variableName: "displayDigits",
                 },
-                ...displayDependencies,
-            }),
-            definition({ dependencyValues }) {
-                const params = buildNumberDisplayParameters(dependencyValues);
-                const entryTexts = dependencyValues.entryValuesForDisplay.map(
-                    (value) =>
-                        entryType === "math"
-                            ? mathText(value, params)
-                            : numberToMathExpression(value).toString(params),
-                );
-                return { setValue: { entryTexts } };
-            },
-        };
+                displayDecimals: {
+                    dependencyType: "stateVariable",
+                    variableName: "displayDecimals",
+                },
+                displaySmallAsZero: {
+                    dependencyType: "stateVariable",
+                    variableName: "displaySmallAsZero",
+                },
+                padZeros: {
+                    dependencyType: "stateVariable",
+                    variableName: "padZeros",
+                },
+                avoidScientificNotation: {
+                    dependencyType: "stateVariable",
+                    variableName: "avoidScientificNotation",
+                },
+            };
 
-        stateVariableDefinitions.entryLatexes = {
-            forRenderer: true,
-            returnDependencies: () => ({
-                entryValuesForDisplay: {
-                    dependencyType: "stateVariable",
-                    variableName: "entryValuesForDisplay",
+            // What `valueForDisplay` is for each entry: the value rounded for
+            // display, as `<math>` and `<number>` round it.
+            stateVariableDefinitions.entryValuesForDisplay = {
+                returnDependencies: () => ({
+                    values: {
+                        dependencyType: "stateVariable",
+                        variableName: arrayName,
+                    },
+                    ...displayDependencies,
+                }),
+                definition({ dependencyValues }) {
+                    const entryValuesForDisplay = dependencyValues.values.map(
+                        (value) =>
+                            entryType === "math"
+                                ? mathValueForDisplay(value, dependencyValues)
+                                : numberValueForDisplay(
+                                      value,
+                                      dependencyValues,
+                                  ),
+                    );
+                    return { setValue: { entryValuesForDisplay } };
                 },
-                ...displayDependencies,
-            }),
-            definition({ dependencyValues }) {
-                const params = buildNumberDisplayParameters(dependencyValues);
-                const entryLatexes = dependencyValues.entryValuesForDisplay.map(
-                    (value) =>
-                        entryType === "math"
-                            ? mathLatex(value, params)
-                            : numberToMathExpression(value).toLatex(params),
-                );
-                return { setValue: { entryLatexes } };
-            },
-        };
+            };
 
-        // The value of each entry as the other type: an entry `<math>`'s
-        // `number`, or an entry `<number>`'s `math`.
-        stateVariableDefinitions.entryOtherTypeValues = {
-            returnDependencies: () => ({
-                values: {
-                    dependencyType: "stateVariable",
-                    variableName: arrayName,
+            stateVariableDefinitions.entryTexts = {
+                forRenderer: true,
+                returnDependencies: () => ({
+                    entryValuesForDisplay: {
+                        dependencyType: "stateVariable",
+                        variableName: "entryValuesForDisplay",
+                    },
+                    ...displayDependencies,
+                }),
+                definition({ dependencyValues }) {
+                    const params =
+                        buildNumberDisplayParameters(dependencyValues);
+                    const entryTexts =
+                        dependencyValues.entryValuesForDisplay.map((value) =>
+                            entryType === "math"
+                                ? mathText(value, params)
+                                : numberToMathExpression(value).toString(
+                                      params,
+                                  ),
+                        );
+                    return { setValue: { entryTexts } };
                 },
-            }),
-            definition({ dependencyValues }) {
-                const entryOtherTypeValues = dependencyValues.values.map(
-                    (value) =>
-                        entryType === "math"
-                            ? (plainComplex(value.evaluate_to_constant()) ??
-                              NaN)
-                            : numberToMathExpression(value),
-                );
-                return { setValue: { entryOtherTypeValues } };
-            },
-        };
+            };
 
-        stateVariableDefinitions.entryIsNumbers = {
-            returnDependencies: () => ({
-                values: {
-                    dependencyType: "stateVariable",
-                    variableName: arrayName,
+            stateVariableDefinitions.entryLatexes = {
+                forRenderer: true,
+                returnDependencies: () => ({
+                    entryValuesForDisplay: {
+                        dependencyType: "stateVariable",
+                        variableName: "entryValuesForDisplay",
+                    },
+                    ...displayDependencies,
+                }),
+                definition({ dependencyValues }) {
+                    const params =
+                        buildNumberDisplayParameters(dependencyValues);
+                    const entryLatexes =
+                        dependencyValues.entryValuesForDisplay.map((value) =>
+                            entryType === "math"
+                                ? mathLatex(value, params)
+                                : numberToMathExpression(value).toLatex(params),
+                        );
+                    return { setValue: { entryLatexes } };
                 },
-            }),
-            definition({ dependencyValues }) {
-                const entryIsNumbers = dependencyValues.values.map((value) =>
-                    entryType === "math"
-                        ? Number.isFinite(value.tree)
-                        : Number.isFinite(value),
-                );
-                return { setValue: { entryIsNumbers } };
-            },
-        };
+            };
+
+            // The value of each entry as the other type: an entry `<math>`'s
+            // `number`, or an entry `<number>`'s `math`.
+            stateVariableDefinitions.entryOtherTypeValues = {
+                returnDependencies: () => ({
+                    values: {
+                        dependencyType: "stateVariable",
+                        variableName: arrayName,
+                    },
+                }),
+                definition({ dependencyValues }) {
+                    const entryOtherTypeValues = dependencyValues.values.map(
+                        (value) =>
+                            entryType === "math"
+                                ? (plainComplex(value.evaluate_to_constant()) ??
+                                  NaN)
+                                : numberToMathExpression(value),
+                    );
+                    return { setValue: { entryOtherTypeValues } };
+                },
+                inverseDefinition: ({ desiredStateVariableValues }) =>
+                    writeEntries(
+                        desiredStateVariableValues.entryOtherTypeValues,
+                        (value) => entryValueOfType(value, entryType),
+                    ),
+            };
+
+            stateVariableDefinitions.entryIsNumbers = {
+                returnDependencies: () => ({
+                    values: {
+                        dependencyType: "stateVariable",
+                        variableName: arrayName,
+                    },
+                }),
+                definition({ dependencyValues }) {
+                    const entryIsNumbers = dependencyValues.values.map(
+                        (value) =>
+                            entryType === "math"
+                                ? Number.isFinite(value.tree)
+                                : Number.isFinite(value),
+                    );
+                    return { setValue: { entryIsNumbers } };
+                },
+            };
+        }
 
         // What the renderer of an entry reads beyond its value, at the
         // values a `<math>` or `<number>` has by default.
@@ -579,9 +928,88 @@ export default class ValueListComponent extends BaseComponent {
 }
 
 /**
- * The variables the renderer of a `<math>` or `<number>` entry reads besides
- * its `latex` or `text`, `hidden`, `disabled`, `fixed`, `fixLocation` and
- * `selectedStyle`, with the values those components have by default.
+ * The types an entry can have, with the array of the list that holds the
+ * values of entries of that type and the renderer that draws one.
+ */
+const ENTRY_TYPES = {
+    math: { arrayName: "maths", rendererType: "math" },
+    number: { arrayName: "numbers", rendererType: "number" },
+    integer: { arrayName: "numbers", rendererType: "number" },
+    text: { arrayName: "texts", rendererType: "text" },
+};
+
+/**
+ * The inverse of a variable of a list holding a plain array of one value per
+ * entry, given the values desired at some entries (`{ [index]: value }`; a
+ * write through an entry, `EssentialValueWriter`): those entries of the
+ * array dependency `dependencyName`, as `convert` makes them.
+ */
+function writeEntries(desired, convert, dependencyName = "values") {
+    const desiredValue = {};
+    for (const key in desired) {
+        desiredValue[key] = convert(desired[key]);
+    }
+    return {
+        success: true,
+        instructions: [{ setDependency: dependencyName, desiredValue }],
+    };
+}
+
+/**
+ * Whether two values the list computed for an entry are the same, as a
+ * number, a string or a math expression written the same way.
+ */
+function sameEntryValue(a, b) {
+    if (a instanceof me.class || b instanceof me.class) {
+        return (
+            a instanceof me.class &&
+            b instanceof me.class &&
+            JSON.stringify(a.tree) === JSON.stringify(b.tree)
+        );
+    }
+    return Object.is(a, b);
+}
+
+/** The value of an entry of `entryType` past the end of the values. */
+function blankEntryValue(entryType) {
+    if (entryType === "math") {
+        return me.fromAst("\uff3f");
+    }
+    return entryType === "text" ? "" : NaN;
+}
+
+/**
+ * `value`, written to an entry of `entryType`, as a value of that type, as
+ * a component of that type takes it: a number from a math, a math from a
+ * number, a text from either, and an integer rounded.
+ */
+function entryValueOfType(value, entryType) {
+    if (entryType === "math") {
+        if (value instanceof me.class) {
+            return value;
+        }
+        return typeof value === "number"
+            ? numberToMathExpression(value)
+            : textToMathFactory()(String(value));
+    }
+    if (entryType === "text") {
+        return value instanceof me.class ? value.toString() : String(value);
+    }
+    let number =
+        value instanceof me.class
+            ? (plainComplex(value.evaluate_to_constant()) ?? NaN)
+            : Number(value);
+    if (entryType === "integer" && typeof number === "number") {
+        number = Math.round(number);
+    }
+    return number;
+}
+
+/**
+ * The variables the renderer of a `<math>`, `<number>` or `<text>` entry
+ * reads besides its `latex` or `text`, `hidden`, `disabled`, `fixed`,
+ * `fixLocation` and `selectedStyle`, with the values those components have
+ * by default.
  */
 const ENTRY_RENDERER_DEFAULTS = {
     anchor: () => me.fromAst(["vector", 0, 0]),
@@ -702,6 +1130,21 @@ const MATH_ENTRY_DERIVED_PROPERTIES = {
         componentType: "math",
         companionsOf: "matrix",
         compute: entryMatrix,
+    },
+};
+
+/**
+ * The properties of a `<number>` entry computed from its value, as
+ * `MATH_ENTRY_DERIVED_PROPERTIES` are for a `<math>`; `invert` turns a value
+ * written to the property into one for the entry.
+ */
+const NUMBER_ENTRY_DERIVED_PROPERTIES = {
+    math: {
+        from: "value",
+        componentType: "math",
+        companionsOf: "math",
+        compute: (value) => numberToMathExpression(value),
+        invert: (math) => entryValueOfType(math, "number"),
     },
 };
 

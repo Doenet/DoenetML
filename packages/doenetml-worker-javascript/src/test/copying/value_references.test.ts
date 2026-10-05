@@ -433,8 +433,6 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 tupleList: `<tupleList name="c">(1,2) (3,4)</tupleList>`,
                 textList: `<textList name="c">a b c</textList>`,
                 booleanList: `<booleanList name="c">true false</booleanList>`,
-                sampleRandomNumbers: `<sampleRandomNumbers name="c" numSamples="3" />`,
-                selectRandomNumbers: `<selectRandomNumbers name="c" numToSelect="3" />`,
             };
 
             let declared: string[] | undefined;
@@ -505,6 +503,13 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 cumulativeMin: `<cumulativeMin name="c">3 1 2</cumulativeMin>`,
                 cumulativeMax: `<cumulativeMax name="c">1 3 2</cumulativeMax>`,
                 differences: `<differences name="c">1 4 9</differences>`,
+                sequence: `<sequence name="c" from="1" to="3" />`,
+                selectFromSequence: `<selectFromSequence name="c" numToSelect="3" />`,
+                sampleRandomNumbers: `<sampleRandomNumbers name="c" numSamples="3" />`,
+                selectRandomNumbers: `<selectRandomNumbers name="c" numToSelect="3" />`,
+                samplePrimeNumbers: `<samplePrimeNumbers name="c" numSamples="3" />`,
+                selectPrimeNumbers: `<selectPrimeNumbers name="c" numToSelect="3" />`,
+                sampleMultivariateRandomNumber: `<sampleMultivariateRandomNumber name="c" type="hypergeometric" numInCategories="3 4 5" numDraws="5" />`,
             };
 
             let declared: string[] | undefined;
@@ -652,11 +657,11 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             ).rejects.toThrow(
                 "Circular dependency involving these components: <number> (line 1).",
             );
-            // the same where the reference into the list keeps its copy: the
-            // `$i` between its brackets is still read directly
+            // the same where the reference into a composite keeps its copy:
+            // the `$i` between its brackets is still read directly
             await expect(
                 createTestCore({
-                    doenetML: `<sequence name="s" from="1" to="3" /><number name="i">$s[$i]</number>`,
+                    doenetML: `<group name="s"><number>1</number><number>2</number></group><number name="i">$s[$i]</number>`,
                 }),
             ).rejects.toThrow(
                 "Circular dependency involving these components: <number> (line 1), <_copy> (line 1).",

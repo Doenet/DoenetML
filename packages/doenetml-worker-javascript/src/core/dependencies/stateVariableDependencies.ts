@@ -559,6 +559,30 @@ export class StateVariableArraySizeDependency extends StateVariableDependency {
     static convertToArraySize = true;
 }
 
+/**
+ * Whether `varName` of `component`, or the array it is an entry of, is a
+ * boundary for `recursiveDependencyValues` (`recursiveDependencyBoundary`):
+ * it stands for values that components held as their own essential values,
+ * as the values of a list component (`ValueListComponent`) stand for those
+ * of the components a composite created, one per entry. It is collected as
+ * an essential value is, and what it is computed from is not followed, so
+ * that a change elsewhere in the list (its number of entries) is not a
+ * change to an entry that did not change.
+ */
+function isRecursiveDependencyBoundary(component: any, varName: string) {
+    const stateVarObj = component.state[varName];
+    if (!stateVarObj) {
+        return false;
+    }
+    if (stateVarObj.isArrayEntry) {
+        return Boolean(
+            component.state[stateVarObj.arrayStateVariable]
+                ?.recursiveDependencyBoundary,
+        );
+    }
+    return Boolean(stateVarObj.recursiveDependencyBoundary);
+}
+
 export class RecursiveDependencyValuesDependency extends Dependency {
     static dependencyType = "recursiveDependencyValues";
 
@@ -621,7 +645,10 @@ export class RecursiveDependencyValuesDependency extends Dependency {
                     this.dependencyHandler._components[componentIdx];
                 for (let vName of result.components[componentIdx]
                     .variableNames) {
-                    if (component.state[vName]?.hasEssential) {
+                    if (
+                        component.state[vName]?.hasEssential ||
+                        isRecursiveDependencyBoundary(component, vName)
+                    ) {
                         essentialVarNames.push(vName);
                     } else if (component.state[vName]?.isArrayEntry) {
                         if (
@@ -800,10 +827,16 @@ export class RecursiveDependencyValuesDependency extends Dependency {
                         }
                     }
 
-                    let downDeps =
-                        this.dependencyHandler.downstreamDependencies[
-                            component.componentIdx
-                        ][varName];
+                    // A boundary is read as an essential value is, and
+                    // what it is computed from is not followed.
+                    let downDeps = isRecursiveDependencyBoundary(
+                        component,
+                        varName,
+                    )
+                        ? {}
+                        : this.dependencyHandler.downstreamDependencies[
+                              component.componentIdx
+                          ][varName];
 
                     for (let dependencyName in downDeps) {
                         let dep = downDeps[dependencyName];

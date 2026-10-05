@@ -131,7 +131,12 @@ function listEntryOfValue(valueObj, components) {
  * reference to it, as `$list[2]` is, so that it shows the entry's value with
  * the list's display settings and follows both as they change.
  */
-function listEntryReplacement({ list, listInd, nComponents, stateIdInfo }) {
+export function listEntryReplacement({
+    list,
+    listInd,
+    nComponents,
+    stateIdInfo,
+}) {
     const index = [{ value: [`${listInd + 1}`] }];
     return {
         serializedComponent: {

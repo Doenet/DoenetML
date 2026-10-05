@@ -256,11 +256,23 @@ export default class ValueRef extends BaseComponent {
                 ) {
                     return {};
                 }
+                // A reference to an entry of a list component, planned to
+                // read the entry's property that an adapter of the entries'
+                // type reads (`$l[$i]` in a `<math>` reads `$l[$i].math`,
+                // `planListEntryAdapterReference`).
+                const adapterProperty =
+                    this.svComponent.doenetAttributes.listEntryAdapterProperty;
                 return {
                     referent: {
                         dependencyType: "referent",
                         componentIdx: stateValues.extendIdx,
-                        unresolvedPath: stateValues.unresolvedPath,
+                        unresolvedPath:
+                            adapterProperty === undefined
+                                ? stateValues.unresolvedPath
+                                : [
+                                      ...(stateValues.unresolvedPath ?? []),
+                                      { name: adapterProperty, index: [] },
+                                  ],
                     },
                 };
             },

@@ -637,6 +637,21 @@ export function addShadowNumberDisplayAttributes({
             continue;
         }
 
+        // A list component (`ValueListComponent`) takes its display settings
+        // from its own attributes alone, or, as a reference, from the list it
+        // shadows, so one it was not given is the default, which the new
+        // component has too: a reference to a `<selectRandomNumbers>` in a
+        // `<numberList>` makes no components for the settings it does not
+        // have.
+        if (
+            source.component?.constructor.listEntryComponentType !==
+                undefined &&
+            !source.component.shadows &&
+            !(attrName in source.component.attributes)
+        ) {
+            continue;
+        }
+
         if (
             sourceSVs[attrName]?.createComponentOfType ===
             numberDisplayAttrs[attrName].createComponentOfType

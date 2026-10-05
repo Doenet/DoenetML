@@ -639,6 +639,7 @@ export default class MathList extends CompositeComponent {
                 copyChildSource = {
                     componentIdx: cIdx,
                     componentType: components[cIdx].componentType,
+                    component: components[cIdx],
                 };
             }
         }

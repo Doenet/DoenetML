@@ -62,15 +62,20 @@ describe("Circular reference tests @group2", async () => {
     }
 
     // The message is worth checking on one case: reporting the cycle is only
-    // useful if it says where to look. It goes on to name the components the
-    // attribute expanded into, which are an implementation detail, so only the
-    // authored component is asserted.
+    // useful if it says where to look. It also names the components the
+    // attribute expanded into, which are an implementation detail, as is the
+    // order the cycle is listed in, so only the authored component is
+    // asserted.
     it("the report names the component the attribute is on", async () => {
         await expect(
             createTestCore({
                 doenetML: `<selectFromSequence name="a" from="1" to="10" numToSelect="2" exclude="2$a[1]"/>`,
             }),
-        ).rejects.toThrow(`${circularError}: <selectFromSequence> (line 1)`);
+        ).rejects.toThrow(
+            new RegExp(
+                `^${circularError}: .*<selectFromSequence> \\(line 1\\)`,
+            ),
+        );
     });
 
     // Two components, each excluding a value the other has yet to produce:

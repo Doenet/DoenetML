@@ -23,6 +23,7 @@ import {
     createNewComponentIndices,
 } from "../utils/componentIndices";
 import { rethrowIfCircular } from "./dependencies/CircularDependencyError";
+import { giveListEntriesToIndexParent } from "./listEntryResolverNodes";
 
 /**
  * Expands composite components into their replacements: walks descendants
@@ -840,6 +841,9 @@ export async function createAndSetReplacements({
     await core.dependencies.addBlockersFromChangedReplacements(component);
 
     component.isExpanded = true;
+
+    // A list component among the items is indexed by its entries.
+    await giveListEntriesToIndexParent({ core, composite: component });
 }
 
 /**

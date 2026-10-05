@@ -194,14 +194,14 @@ describe("schema build enforcement", () => {
         // statics, so a composite extending an `allowInSchemaAnywhere` one
         // picks the mark up silently and gets widened to every container
         // despite naming a fixed replacement type.
-        const cls = infoObjects.allComponentClasses.selectRandomNumbers as any;
+        const cls = infoObjects.allComponentClasses.split as any;
         const original = cls.allowInSchemaAnywhere;
         cls.allowInSchemaAnywhere = true;
         restore = () => {
             cls.allowInSchemaAnywhere = original;
         };
         expect(() => getSchema(infoObjects)).toThrow(
-            /`selectRandomNumbers` sets both allowInSchemaAnywhere and allowInSchemaAsComponent \[number\]/,
+            /`split` sets both allowInSchemaAnywhere and allowInSchemaAsComponent \[text\]/,
         );
     });
 
