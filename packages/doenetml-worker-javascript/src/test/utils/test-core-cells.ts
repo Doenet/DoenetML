@@ -1,0 +1,595 @@
+/**
+ * A stand-in for `createTestCore` that runs the document on the cells
+ * prototype (experiments/cells-prototype), so the existing worker tests
+ * measure how far that core's operator-chain inverses are from the
+ * JavaScript core's hand-written ones (plan 3 of the prototype).
+ *
+ * Enabled by `DOENET_TEST_CORE=cells`. The wasm package is read from
+ * `CELLS_WASM_DIR` (default: the prototype checkout next to this repo).
+ *
+ * The cells core has no state variables: components own numeric cells by
+ * prop name. `stateValues.<name>` is answered from a per-kind table that maps
+ * the JavaScript core's state variable names onto those cells and wraps the
+ * numbers the way the tests expect (`math-expressions` objects where the
+ * JavaScript core holds maths). Actions are translated to cell requests the
+ * same way the prototype's renderers send them. Anything the table does not
+ * cover throws `CellsCoreGap` naming the component type and state variable,
+ * so a list of failures reads as a list of gaps.
+ */
+import me from "math-expressions";
+import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
+import { PublicDoenetMLCore as PublicDoenetMLCoreJavascript } from "../../CoreWorker";
+import fs from "node:fs";
+import path from "node:path";
+import { pathToFileURL } from "node:url";
+
+export class CellsCoreGap extends Error {
+    constructor(message: string) {
+        super(`[cells core gap] ${message}`);
+        this.name = "CellsCoreGap";
+    }
+}
+
+export class StaleSnapshotRead extends Error {
+    constructor(message: string) {
+        super(`[stale snapshot read] ${message}`);
+        this.name = "StaleSnapshotRead";
+    }
+}
+
+const UNSUPPORTED_OPTIONS = [
+    "theme",
+    "documentLocale",
+    "localeResources",
+    "styleOverrides",
+    "initialState",
+] as const;
+
+type Get = (prop: string) => number;
+type Reader = (get: Get) => unknown;
+
+const M = (v: number) => me.fromAst(v);
+const pt = (get: Get, x: string, y: string) => [M(get(x)), M(get(y))];
+const npt = (get: Get, x: string, y: string) => [get(x), get(y)];
+
+/** Items of an array prop: `[[x1, y1], [x2, y2], ...]` as prop names. */
+function items(
+    prefixX: string,
+    prefixY: string,
+    n: number,
+): [string, string][] {
+    return Array.from({ length: n }, (_, i) => [
+        `${prefixX}${i + 1}`,
+        `${prefixY}${i + 1}`,
+    ]);
+}
+
+const valueReaders: Record<string, Reader> = {
+    value: (g) => M(g("value")),
+    immediateValue: (g) => M(g("value")),
+    valueForDisplay: (g) => M(g("value")),
+};
+
+/**
+ * JavaScript-core state variable name -> reader over the prototype's props,
+ * per component type.
+ */
+const STATE: Record<string, Record<string, Reader>> = {
+    point: {
+        xs: (g) => pt(g, "x", "y"),
+        numericalXs: (g) => npt(g, "x", "y"),
+        coords: (g) => me.fromAst(["vector", g("x"), g("y")]),
+        x: (g) => M(g("x")),
+        y: (g) => M(g("y")),
+        numDimensions: () => 2,
+        hidden: (g) => g("hide") !== 0,
+        hide: (g) => g("hide") !== 0,
+    },
+    circle: {
+        center: (g) => pt(g, "cx", "cy"),
+        numericalCenter: (g) => npt(g, "cx", "cy"),
+        radius: (g) => M(g("radius")),
+        numericalRadius: (g) => g("radius"),
+        diameter: (g) => M(g("diameter")),
+        area: (g) => M(g("area")),
+        circumference: (g) => M(g("circumference")),
+        numThroughPoints: (g) => g("numThroughPoints"),
+        throughPoints: (g) =>
+            items("throughPointX", "_", g("numThroughPoints")).map(([x]) => [
+                M(g(`${x}_1`)),
+                M(g(`${x}_2`)),
+            ]),
+        numericalThroughPoints: (g) =>
+            items("throughPointX", "_", g("numThroughPoints")).map(([x]) => [
+                g(`${x}_1`),
+                g(`${x}_2`),
+            ]),
+    },
+    line: {
+        points: (g) => [pt(g, "x1", "y1"), pt(g, "x2", "y2")],
+        numericalPoints: (g) => [npt(g, "x1", "y1"), npt(g, "x2", "y2")],
+        slope: (g) => M(g("slope")),
+        xintercept: (g) => M(g("xintercept")),
+        yintercept: (g) => M(g("yintercept")),
+        coeff0: (g) => M(g("coeff0")),
+        coeffvar1: (g) => M(g("coeffvar1")),
+        coeffvar2: (g) => M(g("coeffvar2")),
+        numericalCoeff0: (g) => g("coeff0"),
+        numericalCoeffvar1: (g) => g("coeffvar1"),
+        numericalCoeffvar2: (g) => g("coeffvar2"),
+        // The cells core keeps coefficients, not an equation; the tests
+        // compare equations semantically, so this form is as good as any.
+        equation: (g) =>
+            me.fromAst([
+                "=",
+                [
+                    "+",
+                    ["*", g("coeffvar1"), "x"],
+                    ["*", g("coeffvar2"), "y"],
+                    g("coeff0"),
+                ],
+                0,
+            ]),
+        variables: () => [me.fromAst("x"), me.fromAst("y")],
+        numDimensions: () => 2,
+    },
+    lineSegment: {
+        endpoints: (g) => [pt(g, "x1", "y1"), pt(g, "x2", "y2")],
+        numericalEndpoints: (g) => [npt(g, "x1", "y1"), npt(g, "x2", "y2")],
+    },
+    polygon: {
+        numVertices: (g) => g("numVertices"),
+        vertices: (g) =>
+            items("x", "y", g("numVertices")).map(([x, y]) => pt(g, x, y)),
+        numericalVertices: (g) =>
+            items("x", "y", g("numVertices")).map(([x, y]) => npt(g, x, y)),
+    },
+    mathInput: valueReaders,
+    math: valueReaders,
+    number: valueReaders,
+    numberInput: valueReaders,
+    slider: valueReaders,
+    booleanInput: { value: (g) => g("value") !== 0 },
+};
+
+function stripPositions(o: any): any {
+    if (Array.isArray(o)) return o.map(stripPositions);
+    if (o && typeof o === "object") {
+        const r: any = {};
+        for (const [k, v] of Object.entries(o)) {
+            if (k === "position" || k === "sources") continue;
+            r[k] = stripPositions(v);
+        }
+        return r;
+    }
+    return o;
+}
+
+/** A latex string typed into a mathInput, as the number the cells core stores. */
+function latexToNumber(latex: string): number {
+    const text = latex.trim();
+    if (text === "") return NaN;
+    if (text === "\\infty") return Infinity;
+    if (text === "-\\infty") return -Infinity;
+    try {
+        const v = me.fromLatex(text).evaluate_to_constant();
+        return typeof v === "number" ? v : NaN;
+    } catch {
+        return NaN;
+    }
+}
+
+export async function createTestCoreCells({
+    doenetML,
+    requestedVariantIndex = 1,
+    externalDoenetMLs = {},
+    initializeCounters = {},
+    ...rest
+}: {
+    doenetML: string;
+    requestedVariantIndex?: number;
+    externalDoenetMLs?: Record<string, string>;
+    initializeCounters?: Record<string, number>;
+    [key: string]: unknown;
+}) {
+    for (const option of UNSUPPORTED_OPTIONS) {
+        if (rest[option] !== undefined) {
+            throw new CellsCoreGap(`createTestCore option \`${option}\``);
+        }
+    }
+    if (requestedVariantIndex !== 1)
+        throw new CellsCoreGap("variants (`requestedVariantIndex`)");
+    if (Object.keys(initializeCounters).length > 0)
+        throw new CellsCoreGap("`initializeCounters`");
+    if (Object.keys(externalDoenetMLs).length > 0)
+        throw new CellsCoreGap("`externalDoenetMLs`");
+
+    const wasmDir =
+        process.env.CELLS_WASM_DIR ??
+        path.resolve(
+            import.meta.dirname,
+            "../../../../../../experiments/cells-prototype/web/src/wasm",
+        );
+    const mod = await import(
+        pathToFileURL(path.join(wasmDir, "cells_wasm.js")).href
+    );
+    await mod.default(
+        fs.readFileSync(path.join(wasmDir, "cells_wasm_bg.wasm")),
+    );
+
+    const dast = stripPositions(
+        normalizeDocumentDast(lezerToDast(doenetML), true),
+    );
+    let core_: any;
+    try {
+        core_ = new mod.Core(new TextEncoder().encode(JSON.stringify(dast)));
+    } catch (e) {
+        throw new CellsCoreGap(`load: ${String(e)}`);
+    }
+    const cells = core_;
+
+    let actionCount = 0;
+    const rawValues = new Map<number, string>();
+
+    function assertCurrent(takenAt: number, what: string) {
+        if (takenAt !== actionCount) {
+            throw new StaleSnapshotRead(
+                `${what}, from a snapshot taken before the last ${actionCount - takenAt} action(s)`,
+            );
+        }
+    }
+
+    function propCells(idx: number, prop: string): Uint32Array {
+        return cells.prop_cells(idx, prop) as Uint32Array;
+    }
+
+    function getter(idx: number, componentType: string): Get {
+        return (prop: string) => {
+            const c = propCells(idx, prop);
+            if (c.length === 0)
+                throw new CellsCoreGap(`prop \`${componentType}.${prop}\``);
+            return cells.cell_value(c[0]);
+        };
+    }
+
+    function stateValue(
+        idx: number,
+        componentType: string,
+        name: string,
+    ): unknown {
+        const reader = STATE[componentType]?.[name];
+        if (!reader)
+            throw new CellsCoreGap(
+                `state variable \`${componentType}.${name}\``,
+            );
+        const v = reader(getter(idx, componentType));
+        if (process.env.CELLS_TRACE) {
+            console.log(
+                `[cells]   read ${componentType}#${idx}.${name} = ${JSON.stringify(v, (_k, x) => (x && x.tree !== undefined ? x.tree : x))}`,
+            );
+        }
+        return v;
+    }
+
+    function componentEntry(
+        componentIdx: number,
+        componentType: string,
+        takenAt: number,
+    ) {
+        const stateValues = new Proxy(
+            {},
+            {
+                get(_target, name) {
+                    if (typeof name !== "string") return undefined;
+                    assertCurrent(takenAt, `\`${componentType}.${name}\``);
+                    return stateValue(componentIdx, componentType, name);
+                },
+                has(_target, name) {
+                    return (
+                        typeof name === "string" &&
+                        STATE[componentType]?.[name] !== undefined
+                    );
+                },
+                ownKeys() {
+                    throw new CellsCoreGap(
+                        `enumerating every state variable of \`${componentType}\``,
+                    );
+                },
+            },
+        );
+        const unsupported = (field: string) => () => {
+            throw new CellsCoreGap(`\`${field}\` of \`${componentType}\``);
+        };
+        return Object.defineProperties(
+            { componentIdx, componentType, stateValues },
+            Object.fromEntries(
+                [
+                    "activeChildren",
+                    "replacements",
+                    "replacementsToWithhold",
+                    "replacementOf",
+                    "sharedParameters",
+                ].map((f) => [f, { get: unsupported(f) }]),
+            ),
+        );
+    }
+
+    /** Points moved together are one point group (ADR 0006): the core keeps
+     * them a translation apart when one of them is constrained. The pairs
+     * come in x, y order per point. */
+    function request(reqs: [number, number][], points = false) {
+        const idx = new Uint32Array(reqs.map((r) => r[0]));
+        const vals = new Float64Array(reqs.map((r) => r[1]));
+        if (points && reqs.length % 2 === 0) cells.request_points(idx, vals);
+        else cells.request(idx, vals);
+        if (process.env.CELLS_TRACE) {
+            const after = reqs
+                .map(([c]) => `${c}=${cells.cell_value(c)}`)
+                .join(" ");
+            console.log(
+                `[cells]   requests ${JSON.stringify(reqs)} -> ${after}; dropped ${cells.last_dropped()}`,
+            );
+        }
+    }
+
+    /** Requests on the coordinate props of one point-valued prop pair. */
+    function pointRequests(
+        idx: number,
+        componentType: string,
+        x: string,
+        y: string,
+        coords: (number | undefined)[],
+    ): [number, number][] {
+        const g = (prop: string) => {
+            const c = propCells(idx, prop);
+            if (c.length === 0)
+                throw new CellsCoreGap(`prop \`${componentType}.${prop}\``);
+            return c[0];
+        };
+        const out: [number, number][] = [];
+        if (coords[0] !== undefined) out.push([g(x), Number(coords[0])]);
+        if (coords[1] !== undefined) out.push([g(y), Number(coords[1])]);
+        if (coords.length > 2 && coords[2] !== undefined)
+            throw new CellsCoreGap(`3D ${componentType}`);
+        return out;
+    }
+
+    const core = {
+        async returnAllStateVariables(
+            _consoleLog?: boolean,
+            _dontRemoveFunctionsMath?: boolean,
+        ) {
+            const takenAt = actionCount;
+            return new Proxy({} as Record<number, any>, {
+                get(_target, key) {
+                    if (typeof key !== "string" || !/^-?\d+$/.test(key))
+                        return undefined;
+                    assertCurrent(takenAt, `component ${key}`);
+                    const componentIdx = Number(key);
+                    const componentType =
+                        componentIdx >= 0
+                            ? cells.component_tag(componentIdx)
+                            : undefined;
+                    return componentType === undefined
+                        ? undefined
+                        : componentEntry(componentIdx, componentType, takenAt);
+                },
+                ownKeys() {
+                    throw new CellsCoreGap("enumerating every component");
+                },
+            });
+        },
+
+        async requestAction({
+            componentIdx,
+            actionName,
+            args = {},
+        }: {
+            componentIdx: number | undefined;
+            actionName: string;
+            args?: Record<string, any>;
+        }) {
+            if (componentIdx === undefined || componentIdx < 0) {
+                throw new CellsCoreGap(
+                    `action \`${actionName}\` on an unresolved component`,
+                );
+            }
+            const componentType = cells.component_tag(componentIdx) ?? "(none)";
+            actionCount++;
+            if (process.env.CELLS_TRACE) {
+                console.log(
+                    `[cells] ${componentType}#${componentIdx}.${actionName} ${JSON.stringify(args)}`,
+                );
+            }
+            switch (actionName) {
+                case "movePoint":
+                    request(
+                        pointRequests(componentIdx, componentType, "x", "y", [
+                            args.x,
+                            args.y,
+                            args.z,
+                        ]),
+                    );
+                    return;
+                case "moveCircle":
+                    request(
+                        pointRequests(
+                            componentIdx,
+                            componentType,
+                            "cx",
+                            "cy",
+                            args.center ?? [],
+                        ),
+                        true,
+                    );
+                    return;
+                case "changeRadius":
+                    request([
+                        [
+                            propCells(componentIdx, "radius")[0],
+                            Number(args.radius),
+                        ],
+                    ]);
+                    return;
+                case "moveLine": {
+                    // As the JavaScript core's action: a line based on a slope
+                    // or direction translates with its first point only.
+                    const based = cells.cell_value(
+                        propCells(componentIdx, "basedOnDirection")[0],
+                    );
+                    let reqs = pointRequests(
+                        componentIdx,
+                        componentType,
+                        "x1",
+                        "y1",
+                        args.point1coords ?? [],
+                    );
+                    if (!based)
+                        reqs = reqs.concat(
+                            pointRequests(
+                                componentIdx,
+                                componentType,
+                                "x2",
+                                "y2",
+                                args.point2coords ?? [],
+                            ),
+                        );
+                    request(reqs, true);
+                    return;
+                }
+                case "moveLineSegment":
+                    request(
+                        [
+                            ...pointRequests(
+                                componentIdx,
+                                componentType,
+                                "x1",
+                                "y1",
+                                args.point1coords ?? [],
+                            ),
+                            ...pointRequests(
+                                componentIdx,
+                                componentType,
+                                "x2",
+                                "y2",
+                                args.point2coords ?? [],
+                            ),
+                        ],
+                        true,
+                    );
+                    return;
+                case "movePolygon":
+                case "movePolyline": {
+                    const reqs: [number, number][] = [];
+                    for (const [i, coords] of Object.entries(
+                        args.pointCoords ?? {},
+                    )) {
+                        const k = Number(i) + 1;
+                        reqs.push(
+                            ...pointRequests(
+                                componentIdx,
+                                componentType,
+                                `x${k}`,
+                                `y${k}`,
+                                coords as number[],
+                            ),
+                        );
+                    }
+                    request(reqs, true);
+                    return;
+                }
+                case "updateRawValue":
+                    rawValues.set(
+                        componentIdx,
+                        String(args.rawRendererValue ?? ""),
+                    );
+                    return;
+                case "updateImmediateValue":
+                    rawValues.set(
+                        componentIdx,
+                        String(
+                            args.mathExpression?.toLatex?.() ??
+                                args.rawRendererValue ??
+                                "",
+                        ),
+                    );
+                    return;
+                case "updateValue": {
+                    const latex = rawValues.get(componentIdx) ?? "";
+                    request([
+                        [
+                            propCells(componentIdx, "value")[0],
+                            latexToNumber(latex),
+                        ],
+                    ]);
+                    return;
+                }
+                case "updateBoolean":
+                    request([
+                        [
+                            propCells(componentIdx, "value")[0],
+                            args.boolean ? 1 : 0,
+                        ],
+                    ]);
+                    return;
+                default:
+                    throw new CellsCoreGap(
+                        `action \`${componentType}.${actionName}\``,
+                    );
+            }
+        },
+    };
+
+    async function resolvePathToNodeIdx(name: string, _origin = 0) {
+        const idx = cells.resolve_path(name);
+        return idx === 0xffffffff ? -1 : idx;
+    }
+
+    return {
+        core: withJavascriptOnlyGaps(core),
+        cells,
+        resolvePathToNodeIdx,
+        scoreState: unreported("scoreState"),
+        pendingReports: unreported("pendingReports"),
+        lastStateReport: unreported("lastStateReport"),
+    };
+}
+
+function unreported(name: string) {
+    return new Proxy(
+        {},
+        {
+            get(_target, key) {
+                if (typeof key !== "string" || key === "then") return undefined;
+                throw new CellsCoreGap(`core API \`${name}.${key}\``);
+            },
+        },
+    );
+}
+
+function withJavascriptOnlyGaps<T extends object>(core: T): T {
+    const internals = new Proxy(
+        {},
+        {
+            get(_target, key) {
+                if (typeof key !== "string" || key === "then") return undefined;
+                throw new CellsCoreGap(
+                    `JavaScript core internals \`core.core.${key}\``,
+                );
+            },
+        },
+    );
+    return new Proxy(core, {
+        get(target, key, receiver) {
+            if (key in target) return Reflect.get(target, key, receiver);
+            if (key === "core") return internals;
+            if (
+                typeof key === "string" &&
+                key in PublicDoenetMLCoreJavascript.prototype
+            ) {
+                throw new CellsCoreGap(`core API \`core.${key}\``);
+            }
+            return undefined;
+        },
+    });
+}
