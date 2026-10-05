@@ -423,7 +423,8 @@ async function findReferentType(
         // composite `s`, and that replacement's type is the one we want; without the
         // index we would only learn that `s` is a `<select>`. (Indices whose value is
         // itself a macro cannot be resolved statically, so those fall through to the
-        // index-less attempt, which then reports them as unresolved.)
+        // index-less attempt, which then reports them as unresolved, unless they
+        // index the entries of a list component; see below.)
         for (const keepIndices of [true, false]) {
             if (keepIndices && !hasOnlyLiteralIndices(pathParts)) {
                 continue;
@@ -448,6 +449,9 @@ async function findReferentType(
             // A list component, such as a `<selectFromSequence>`, is one component
             // whose entries a parent sees as children, so `$s[1]` resolves to no node
             // of its own; it names one entry, of the type the list's entries have.
+            // Every entry has that type, so a dynamic index (`$s[$n]`) is typed too.
+            // An index past the last entry is not caught: the number of entries of
+            // a sampler is not known until it draws.
             const entryType = (
                 core.core.core?.components?.[referentIdx]?.constructor as
                     { listEntryComponentType?: string } | undefined
