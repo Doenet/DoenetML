@@ -1905,6 +1905,22 @@ describe("regressions found by the fourteenth review", () => {
         expect(toXml(res.dast)).toContain(`<number extend="$s[1]" />`);
     });
 
+    it("resolves an entry of a list component by the type of its entries", async () => {
+        // A `<sequence>` or a sampler is one component whose values a parent sees as
+        // children, so `s[2]` is no node of its own; its type is that of the entries.
+        source = `<sequence name="s" type="letters" from="a" to="c" /><copy source="s[2]" name="k" /><copy source="s" name="k2" />`;
+        let res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).toEqual(
+            `<sequence name="s" type="letters" from="a" to="c" /><text extend="$s[2]" name="k" /><sequence extend="$s" name="k2" />`,
+        );
+
+        source = `<sequence name="s" from="1" to="3" /><map><template><p>$(x{displayDigits="3"})</p></template><sources alias="x">$s</sources></map>`;
+        res = await updateSyntaxFromV06toV07(source);
+        expect(toXml(res.dast)).toEqual(
+            `<sequence name="s" from="1" to="3" /><repeat for="$s" valueName="x"><p><number displayDigits="3" extend="$x" /></p></repeat>`,
+        );
+    });
+
     it("still resolves an index-free path through a group", async () => {
         source = `<group name="g"><math name="m">x</math></group><copy source="g.m" />`;
         const res = await updateSyntaxFromV06toV07(source);

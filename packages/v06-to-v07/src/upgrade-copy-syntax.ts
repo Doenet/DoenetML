@@ -33,6 +33,11 @@ type ReferentInfo = {
     componentType: string;
     /** Whether the reference copies to several components, like `$poly.vertices`. */
     isMultiple: boolean;
+    /**
+     * The type of each entry, if the referent is a list component such as a
+     * `<sequence>`, whose values a parent sees as children of that type.
+     */
+    entryType?: string;
 };
 
 /**
@@ -393,6 +398,7 @@ async function findReferentType(
     let unresolvedIndex: DastMacroPathPart["index"] = [];
     let unresolvedProps: DastMacroPathPart[] = [];
     let referentType: string | undefined = undefined;
+    let listEntryType: string | undefined = undefined;
 
     // A repeat's `valueName` or `indexName` hides any other component of that name
     // inside the repeat, and it is not something the lookup core can find by name: it
@@ -439,6 +445,30 @@ async function findReferentType(
                 continue;
             }
             referentType = foundType;
+            // A list component, such as a `<selectFromSequence>`, is one component
+            // whose entries a parent sees as children, so `$s[1]` resolves to no node
+            // of its own; it names one entry, of the type the list's entries have.
+            const entryType = (
+                core.core.core?.components?.[referentIdx]?.constructor as
+                    { listEntryComponentType?: string } | undefined
+            )?.listEntryComponentType;
+            if (entryType !== undefined) {
+                listEntryType = entryType;
+                const lastPart = pathParts[pathParts.length - 1];
+                if (
+                    !keepIndices &&
+                    lastPart.index.length === 1 &&
+                    pathParts.every(
+                        (part) => part === lastPart || part.index.length === 0,
+                    )
+                ) {
+                    referentType = entryType;
+                    listEntryType = undefined;
+                    unresolvedIndex = [];
+                    unresolvedProps = path.slice(i);
+                    break search;
+                }
+            }
             // `printPathWithoutIndices` drops the indices from *every* part, not just
             // the last, so all of them are unaccounted for. A dynamic index on an
             // earlier segment (`g[$i].m`) has to count too: `g.m` may well resolve, but
@@ -475,7 +505,11 @@ async function findReferentType(
     }
 
     if (referentType) {
-        return { componentType: referentType, isMultiple };
+        return {
+            componentType: referentType,
+            isMultiple,
+            entryType: unresolvedProps.length === 0 ? listEntryType : undefined,
+        };
     }
 
     throw new Error(`Could not find referent type for "${referentName}"`);
@@ -608,6 +642,9 @@ async function referenceItemType(
     }
     if (referent.isMultiple) {
         return referent.componentType;
+    }
+    if (referent.entryType !== undefined) {
+        return referent.entryType;
     }
     const listItemType = referent.componentType.replace(/List$/, "");
     if (
