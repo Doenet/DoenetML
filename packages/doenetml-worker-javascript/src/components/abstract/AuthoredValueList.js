@@ -49,6 +49,9 @@ export default class AuthoredValueList extends ValueListComponent {
     static componentType = "_authoredValueList";
 
     static listEntriesFixedByDefault = false;
+
+    // A `copy=` of the list holds its values, as they are.
+    static serializeUnlinkedAsValues = true;
     static listEntryDisplaySettingsVariable = "entryDisplaySettings";
 
     static includeBlankStringChildren = true;
@@ -173,6 +176,16 @@ export default class AuthoredValueList extends ValueListComponent {
                 componentTypes: ["string"],
             },
         ];
+    }
+
+    async serialize(parameters = {}) {
+        const serialized = await super.serialize(parameters);
+        if (parameters.copyAll) {
+            serialized.state.entryDisplaySettingsShadow = [
+                ...(await this.stateValues.entryDisplaySettings),
+            ];
+        }
+        return serialized;
     }
 
     static returnStateVariableDefinitions() {
@@ -674,6 +687,19 @@ export default class AuthoredValueList extends ValueListComponent {
             },
         };
 
+        // The display settings of the entries of the list a `copy=` holds
+        // the values of (`serializeUnlinkedAsValues`), as they were there.
+        stateVariableDefinitions.entryDisplaySettingsShadow = {
+            defaultValue: null,
+            hasEssential: true,
+            returnDependencies: () => ({}),
+            definition: () => ({
+                useEssentialOrDefaultValue: {
+                    entryDisplaySettingsShadow: true,
+                },
+            }),
+        };
+
         // The display settings each entry is shown with, `null` for the
         // list's.
         stateVariableDefinitions.entryDisplaySettings = {
@@ -694,6 +720,10 @@ export default class AuthoredValueList extends ValueListComponent {
                     ],
                     variablesOptional: true,
                 },
+                shadow: {
+                    dependencyType: "stateVariable",
+                    variableName: "entryDisplaySettingsShadow",
+                },
                 ...Object.fromEntries(
                     displayNames.map((name) => [
                         name,
@@ -702,6 +732,19 @@ export default class AuthoredValueList extends ValueListComponent {
                 ),
             }),
             definition({ dependencyValues, usedDefault }) {
+                if (dependencyValues.shadow !== null) {
+                    return {
+                        setValue: {
+                            entryDisplaySettings:
+                                dependencyValues.entryStructure.map(
+                                    (source) =>
+                                        dependencyValues.shadow[
+                                            source.shadowInd
+                                        ] ?? null,
+                                ),
+                        },
+                    };
+                }
                 const listSettings = {};
                 const listSetsDisplay = {};
                 for (const name of displayNames) {

@@ -210,6 +210,15 @@ export default class BaseComponent {
     static serializeChildrenOnlyIfUnlinked = false;
 
     /**
+     * For a list component, whether an unlinked copy of it (`copy=`) is made
+     * holding the list's values as they are, in the state variable that
+     * takes the values of a shadowed array (`primaryStateVariableForDefinition`),
+     * without its children, as the copies of a composite's replacements
+     * were.
+     */
+    static serializeUnlinkedAsValues = false;
+
+    /**
      * The class a component serialized as `serializedComponent` is created
      * as: this one, unless a subclass decides it from the component's
      * primitive attributes, which the document fixes for the component's
@@ -1601,9 +1610,13 @@ export default class BaseComponent {
         // A component whose linked copy reads everything it shows from the
         // component it copies (`serializeChildrenOnlyIfUnlinked`) is copied
         // without its children unless the copy is unlinked (`copyAll`).
-        let includeDefiningChildren =
-            !this.constructor.serializeChildrenOnlyIfUnlinked ||
+        const unlinkedAsValues =
+            this.constructor.serializeUnlinkedAsValues &&
             Boolean(parameters.copyAll);
+        let includeDefiningChildren =
+            (!this.constructor.serializeChildrenOnlyIfUnlinked ||
+                Boolean(parameters.copyAll)) &&
+            !unlinkedAsValues;
         // let stateVariablesToInclude = [];
 
         const serializedComponent = {
@@ -1746,6 +1759,16 @@ export default class BaseComponent {
             Object.keys(this.essentialState).length > 0
         ) {
             serializedComponent.state = deepClone(this.essentialState);
+        }
+
+        if (unlinkedAsValues) {
+            serializedComponent.state[
+                this.constructor.primaryStateVariableForDefinition
+            ] = [
+                ...(await this.stateValues[
+                    this.constructor.listValuesArrayName
+                ]),
+            ];
         }
 
         if (
