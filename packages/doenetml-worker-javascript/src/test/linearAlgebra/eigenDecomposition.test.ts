@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
+import { componentOrListEntry } from "../utils/list-entries";
 //@ts-expect-error no type declaration
 import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
@@ -107,16 +108,28 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
                 .value,
         ).eq(-1);
         expect(
-            stateVariables[await resolvePathToNodeIdx("Aevsa[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "Aevsa[1]",
+                )
+            ).stateValues.value,
         ).eq(-1);
         expect(
             stateVariables[await resolvePathToNodeIdx("Aev2")].stateValues
                 .value,
         ).eq(3);
         expect(
-            stateVariables[await resolvePathToNodeIdx("Aevsa[2]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "Aevsa[2]",
+                )
+            ).stateValues.value,
         ).eq(3);
 
         expect(
@@ -188,12 +201,24 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
                 .im,
         ).closeTo(2, 1e-14);
         expect(
-            stateVariables[await resolvePathToNodeIdx("Bevsa[1]")].stateValues
-                .value.re,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "Bevsa[1]",
+                )
+            ).stateValues.value.re,
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[await resolvePathToNodeIdx("Bevsa[1]")].stateValues
-                .value.im,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "Bevsa[1]",
+                )
+            ).stateValues.value.im,
         ).closeTo(2, 1e-14);
         expect(
             stateVariables[await resolvePathToNodeIdx("Bev2")].stateValues.value
@@ -204,12 +229,24 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
                 .im,
         ).closeTo(-2, 1e-14);
         expect(
-            stateVariables[await resolvePathToNodeIdx("Bevsa[2]")].stateValues
-                .value.re,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "Bevsa[2]",
+                )
+            ).stateValues.value.re,
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[await resolvePathToNodeIdx("Bevsa[2]")].stateValues
-                .value.im,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "Bevsa[2]",
+                )
+            ).stateValues.value.im,
         ).closeTo(-2, 1e-14);
 
         let ratio = divide(
@@ -398,16 +435,28 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
                 .value,
         ).eq(-1);
         expect(
-            stateVariables[await resolvePathToNodeIdx("Aevsa[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "Aevsa[1]",
+                )
+            ).stateValues.value,
         ).eq(-1);
         expect(
             stateVariables[await resolvePathToNodeIdx("Aev2")].stateValues
                 .value,
         ).eq(3);
         expect(
-            stateVariables[await resolvePathToNodeIdx("Aevsa[2]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "Aevsa[2]",
+                )
+            ).stateValues.value,
         ).eq(3);
 
         expect(
@@ -479,12 +528,24 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
                 .im,
         ).closeTo(2, 1e-14);
         expect(
-            stateVariables[await resolvePathToNodeIdx("Bevsa[1]")].stateValues
-                .value.re,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "Bevsa[1]",
+                )
+            ).stateValues.value.re,
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[await resolvePathToNodeIdx("Bevsa[1]")].stateValues
-                .value.im,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "Bevsa[1]",
+                )
+            ).stateValues.value.im,
         ).closeTo(2, 1e-14);
         expect(
             stateVariables[await resolvePathToNodeIdx("Bev2")].stateValues.value
@@ -495,12 +556,24 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
                 .im,
         ).closeTo(-2, 1e-14);
         expect(
-            stateVariables[await resolvePathToNodeIdx("Bevsa[2]")].stateValues
-                .value.re,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "Bevsa[2]",
+                )
+            ).stateValues.value.re,
         ).closeTo(1, 1e-14);
         expect(
-            stateVariables[await resolvePathToNodeIdx("Bevsa[2]")].stateValues
-                .value.im,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "Bevsa[2]",
+                )
+            ).stateValues.value.im,
         ).closeTo(-2, 1e-14);
 
         let ratio = divide(
@@ -888,16 +961,28 @@ describe("EigenDecomposition Tag Tests @group1", async () => {
                 .value,
         ).eq(0.9);
         expect(
-            stateVariables[await resolvePathToNodeIdx("Aevsa[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "Aevsa[1]",
+                )
+            ).stateValues.value,
         ).eq(0.9);
         expect(
             stateVariables[await resolvePathToNodeIdx("Aev2")].stateValues
                 .value,
         ).eq(0.9);
         expect(
-            stateVariables[await resolvePathToNodeIdx("Aevsa[2]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "Aevsa[2]",
+                )
+            ).stateValues.value,
         ).eq(0.9);
 
         expect(

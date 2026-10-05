@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
+import { componentOrListEntry } from "../utils/list-entries";
 import { cleanLatex } from "../utils/math";
 import {
     movePoint,
@@ -5805,58 +5806,112 @@ describe("Function tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mnl[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mnl[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("2");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mxl[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mxl[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("8");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("exl[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "exl[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-4");
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mnv[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mnv[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("1");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mxv[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mxv[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("9");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("exv[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "exv[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("4");
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mn1[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mn1[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-5");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mx1[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mx1[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("4");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ex1[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ex1[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-5");
 
@@ -5889,58 +5944,112 @@ describe("Function tag tests @group4", async () => {
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mnl[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mnl[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-7");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mxl[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mxl[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-4");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("exl[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "exl[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-7");
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mnv[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mnv[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-5");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mxv[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mxv[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("4");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("exv[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "exv[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-5");
 
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mn1[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mn1[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-7");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("mx1[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "mx1[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-4");
         expect(
             cleanLatex(
-                stateVariables[await resolvePathToNodeIdx("ex1[1]")].stateValues
-                    .latex,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        "ex1[1]",
+                    )
+                ).stateValues.latex,
             ),
         ).eq("-7");
     }

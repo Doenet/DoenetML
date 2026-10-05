@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
+import { componentOrListEntry } from "../utils/list-entries";
 import {
     submitAnswer,
     updateBooleanInputValue,
@@ -1840,12 +1841,22 @@ describe("Feedback tag tests @group1", async () => {
             stateVariables[await resolvePathToNodeIdx("fback2b")].stateValues
                 .hidden,
         ).eq(true);
-        expect(stateVariables[await resolvePathToNodeIdx("rs[1]")]).eq(
-            undefined,
-        );
-        expect(stateVariables[await resolvePathToNodeIdx("rs[2]")]).eq(
-            undefined,
-        );
+        expect(
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "rs[1]",
+            ),
+        ).eq(undefined);
+        expect(
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "rs[2]",
+            ),
+        ).eq(undefined);
 
         await submitAnswer({
             componentIdx: await resolvePathToNodeIdx("ans"),
@@ -1873,12 +1884,24 @@ describe("Feedback tag tests @group1", async () => {
                 .hidden,
         ).eq(true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[1]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[1]",
+                )
+            ).stateValues.value.tree,
         ).eq("\uff3f");
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[2]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[2]",
+                )
+            ).stateValues.value.tree,
         ).eq("\uff3f");
 
         await updateMathInputValue({
@@ -1908,12 +1931,24 @@ describe("Feedback tag tests @group1", async () => {
                 .hidden,
         ).eq(false);
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[1]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[1]",
+                )
+            ).stateValues.value.tree,
         ).eq("\uff3f");
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[2]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[2]",
+                )
+            ).stateValues.value.tree,
         ).eq("\uff3f");
 
         await submitAnswer({
@@ -1942,12 +1977,24 @@ describe("Feedback tag tests @group1", async () => {
                 .hidden,
         ).eq(false);
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[1]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[1]",
+                )
+            ).stateValues.value.tree,
         ).eq("\uff3f");
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[2]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[2]",
+                )
+            ).stateValues.value.tree,
         ).eq("y");
 
         await updateMathInputValue({
@@ -1977,12 +2024,24 @@ describe("Feedback tag tests @group1", async () => {
                 .hidden,
         ).eq(true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[1]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[1]",
+                )
+            ).stateValues.value.tree,
         ).eq("\uff3f");
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[2]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[2]",
+                )
+            ).stateValues.value.tree,
         ).eq("y");
 
         await submitAnswer({
@@ -2011,12 +2070,24 @@ describe("Feedback tag tests @group1", async () => {
                 .hidden,
         ).eq(true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[1]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[1]",
+                )
+            ).stateValues.value.tree,
         ).eq("x");
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[2]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[2]",
+                )
+            ).stateValues.value.tree,
         ).eq("y");
 
         await updateMathInputValue({
@@ -2046,12 +2117,24 @@ describe("Feedback tag tests @group1", async () => {
                 .hidden,
         ).eq(true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[1]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[1]",
+                )
+            ).stateValues.value.tree,
         ).eq("x");
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[2]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[2]",
+                )
+            ).stateValues.value.tree,
         ).eq("y");
 
         await submitAnswer({
@@ -2080,12 +2163,24 @@ describe("Feedback tag tests @group1", async () => {
                 .hidden,
         ).eq(true);
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[1]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[1]",
+                )
+            ).stateValues.value.tree,
         ).eq("x");
         expect(
-            stateVariables[await resolvePathToNodeIdx("rs[2]")].stateValues
-                .value.tree,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "rs[2]",
+                )
+            ).stateValues.value.tree,
         ).eq("\uff3f");
     });
 
