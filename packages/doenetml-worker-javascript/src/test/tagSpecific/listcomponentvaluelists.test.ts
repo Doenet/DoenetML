@@ -1,0 +1,450 @@
+import { describe, expect, it, vi } from "vitest";
+import { createTestCore } from "../utils/test-core";
+import {
+    updateBooleanInputValue,
+    updateMathInputValue,
+    updateTextInputValue,
+} from "../utils/actions";
+
+const Mock = vi.fn();
+vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
+
+/**
+ * `<numberList>`, `<mathList>`, `<textList>`, `<booleanList>` and
+ * `<intervalList>` as list components (Doenet/DoenetML#2160): one component
+ * that holds its values, which a parent reads, and the viewer draws, as one
+ * child per value.
+ */
+describe("Value lists as list components @group4", async () => {
+    async function textsOf(
+        core: any,
+        resolvePathToNodeIdx: any,
+        names: string[],
+    ) {
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const texts: Record<string, string> = {};
+        for (const name of names) {
+            texts[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.text;
+        }
+        return texts;
+    }
+
+    it("each kind of parent reads the values as children", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <numberList name="nl">1 2.5 3</numberList>
+    <mathList name="ml">x y+1 (a,b)</mathList>
+    <textList name="tl">a b c</textList>
+    <booleanList name="bl">true false true</booleanList>
+    <intervalList name="il">(1,2) [3,4]</intervalList>
+    <p name="pnl">$nl</p>
+    <p name="pml">$ml</p>
+    <p name="ptl">$tl</p>
+    <p name="pbl">$bl</p>
+    <p name="pil">$il</p>
+    <math name="mathNl">$nl</math>
+    <math name="mathMl">$ml + 1</math>
+    <text name="textTl">$tl</text>
+    <p name="sumNl"><sum>$nl</sum></p>
+    <p name="countTl"><count>$tl</count></p>
+    <numberList name="nl2">$nl 4</numberList>
+    <mathList name="ml2">$ml z</mathList>
+    <textList name="tl2">$tl d</textList>
+    <booleanList name="bl2">$bl false</booleanList>
+    <p name="pnl2">$nl2</p>
+    <p name="pml2">$ml2</p>
+    <p name="ptl2">$tl2</p>
+    <p name="pbl2">$bl2</p>
+    <p name="index">$nl[2] $ml[3] $tl[1] $bl[2] $il[2]</p>
+    <p name="indexBy">$tl[$nl[1]]</p>
+    <point name="P">($nl[1], $ml[1])</point>
+    <p name="pP">$P</p>
+    <p name="all"><boolean>$bl[1] and $bl[3]</boolean></p>
+    `,
+        });
+
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "pnl",
+                "pml",
+                "ptl",
+                "pbl",
+                "pil",
+                "mathNl",
+                "mathMl",
+                "textTl",
+                "sumNl",
+                "countTl",
+                "pnl2",
+                "pml2",
+                "ptl2",
+                "pbl2",
+                "index",
+                "indexBy",
+                "pP",
+                "all",
+            ]),
+        ).eqls({
+            pnl: "1, 2.5, 3",
+            pml: "x, y + 1, (a, b)",
+            ptl: "a, b, c",
+            pbl: "true, false, true",
+            pil: "(1, 2), [3, 4]",
+            mathNl: "1, 2.5, 3",
+            mathMl: "(x, y + 1, (a, b)) + 1",
+            textTl: "a, b, c",
+            sumNl: "6.5",
+            countTl: "3",
+            pnl2: "1, 2.5, 3, 4",
+            pml2: "x, y + 1, (a, b), z",
+            ptl2: "a, b, c, d",
+            pbl2: "true, false, true, false",
+            index: "2.5 (a, b) a false [3, 4]",
+            indexBy: "a",
+            pP: "(1, x)",
+            all: "true",
+        });
+    });
+
+    it("a list of one is a single value", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <numberList name="one">7</numberList>
+    <mathList name="oneM">x</mathList>
+    <textList name="oneT">hello</textList>
+    <booleanList name="oneB">true</booleanList>
+    <math name="m">2 $one</math>
+    <number name="n">$one + 1</number>
+    <math name="m2">$oneM^2</math>
+    <text name="t">$oneT there</text>
+    <boolean name="b">$oneB</boolean>
+    <math name="dd" displayDigits="$one">1.23456789</math>
+    <p name="index">$nl[$one]</p>
+    <numberList name="nl">1 2 3 4 5 6 7 8</numberList>
+    `,
+        });
+
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "m",
+                "n",
+                "m2",
+                "t",
+                "b",
+                "dd",
+                "index",
+            ]),
+        ).eqls({
+            m: "2 * 7",
+            n: "8",
+            m2: "x²",
+            t: "hello there",
+            b: "true",
+            dd: "1.234568",
+            index: "7",
+        });
+    });
+
+    it("an empty list is nothing", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <numberList name="empty" />
+    <mathList name="emptyM" />
+    <textList name="emptyT" />
+    <p name="p">a $empty b</p>
+    <math name="m">$empty</math>
+    <math name="m2">$emptyM + 1</math>
+    <p name="sum"><sum>$empty</sum></p>
+    <p name="sum2"><sum>$empty 2</sum></p>
+    <text name="t">$emptyT</text>
+    <p name="count"><count>$empty</count></p>
+    <numberList name="nl">$empty 1</numberList>
+    <p name="pnl">$nl</p>
+    `,
+        });
+
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "p",
+                "m",
+                "m2",
+                "sum",
+                "sum2",
+                "t",
+                "count",
+                "pnl",
+            ]),
+        ).eqls({
+            p: "a  b",
+            m: "＿",
+            m2: "＿ + 1",
+            sum: "＿",
+            sum2: "2",
+            t: "",
+            count: "＿",
+            pnl: "1",
+        });
+    });
+
+    it("a list mixing text, authored children and references", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="a">q</math>
+    <number name="n">5</number>
+    <text name="t">hi</text>
+    <boolean name="bo">false</boolean>
+    <mathList name="ml">x <math>y</math> $a $n z</mathList>
+    <numberList name="nl">1 <number>2</number> $n <math>3+1</math> 6</numberList>
+    <textList name="tl">a <text>b</text> $t c</textList>
+    <booleanList name="bl">true <boolean>false</boolean> $bo</booleanList>
+    <p name="pml">$ml</p>
+    <p name="pnl">$nl</p>
+    <p name="ptl">$tl</p>
+    <p name="pbl">$bl</p>
+    <p name="index">$ml[2] $ml[3] $nl[3] $tl[3] $bl[3]</p>
+    <mathInput name="ma" bindValueTo="$a" />
+    <mathInput name="mn" bindValueTo="$n" />
+    `,
+        });
+
+        async function check(expected: Record<string, string>) {
+            expect(
+                await textsOf(core, resolvePathToNodeIdx, [
+                    "pml",
+                    "pnl",
+                    "ptl",
+                    "pbl",
+                    "index",
+                ]),
+            ).eqls(expected);
+        }
+
+        await check({
+            pml: "x, y, q, 5, z",
+            pnl: "1, 2, 5, 4, 6",
+            ptl: "a, b, hi, c",
+            pbl: "true, false, false",
+            index: "y q 5 hi false",
+        });
+
+        await updateMathInputValue({
+            latex: "r",
+            componentIdx: await resolvePathToNodeIdx("ma"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "9",
+            componentIdx: await resolvePathToNodeIdx("mn"),
+            core,
+        });
+        await check({
+            pml: "x, y, r, 9, z",
+            pnl: "1, 2, 9, 4, 6",
+            ptl: "a, b, hi, c",
+            pbl: "true, false, false",
+            index: "y r 9 hi false",
+        });
+    });
+
+    it("a nested list contributes its entries, and mergeMathLists splits a list-valued math", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="outer">a <mathList>b c</mathList> d</mathList>
+    <numberList name="outerN">1 <numberList>2 3</numberList> 4</numberList>
+    <math name="lm">1, 2, 3</math>
+    <mathList name="merged">$lm</mathList>
+    <mathList name="notMerged">$lm 4</mathList>
+    <mathList name="mergedForced" mergeMathLists>$lm 4</mathList>
+    <numberList name="mergedN">$lm</numberList>
+    <p name="pouter">$outer</p>
+    <p name="pouterN">$outerN</p>
+    <p name="pmerged">$merged</p>
+    <p name="pnotMerged">$notMerged</p>
+    <p name="pmergedForced">$mergedForced</p>
+    <p name="pmergedN">$mergedN</p>
+    <p name="index">$outer[3] $outerN[3] $merged[2] $mergedForced[4] $mergedN[3]</p>
+    <p name="counts"><count>$outer</count> <count>$merged</count> <count>$notMerged</count> <count>$mergedForced</count></p>
+    <mathInput name="mi" bindValueTo="$merged[2]" />
+    <mathInput name="mi2" bindValueTo="$outer[2]" />
+    `,
+        });
+
+        async function check(expected: Record<string, string>) {
+            expect(
+                await textsOf(core, resolvePathToNodeIdx, [
+                    "pouter",
+                    "pouterN",
+                    "pmerged",
+                    "pnotMerged",
+                    "pmergedForced",
+                    "pmergedN",
+                    "index",
+                    "counts",
+                ]),
+            ).eqls(expected);
+        }
+
+        await check({
+            pouter: "a, b, c, d",
+            pouterN: "1, 2, 3, 4",
+            pmerged: "1, 2, 3",
+            pnotMerged: "1, 2, 3, 4",
+            pmergedForced: "1, 2, 3, 4",
+            pmergedN: "1, 2, 3",
+            index: "c 3 2 4 3",
+            counts: "4 3 2 4",
+        });
+
+        await updateMathInputValue({
+            latex: "7",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "e",
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+        await check({
+            pouter: "a, e, c, d",
+            pouterN: "1, 2, 3, 4",
+            pmerged: "1, 7, 3",
+            pnotMerged: "1, 7, 3, 4",
+            pmergedForced: "1, 7, 3, 4",
+            pmergedN: "1, 7, 3",
+            index: "c 3 7 4 3",
+            counts: "4 3 2 4",
+        });
+    });
+
+    it("a value written through an entry, before and after a reload", async () => {
+        const doenetML = `
+    <math name="a">q</math>
+    <numberList name="nl">1 2 3</numberList>
+    <mathList name="ml">x <math>y</math> $a</mathList>
+    <textList name="tl">a b c</textList>
+    <booleanList name="bl">true false</booleanList>
+    <p name="pnl">$nl</p>
+    <p name="pml">$ml</p>
+    <p name="ptl">$tl</p>
+    <p name="pbl">$bl</p>
+    <p name="pa">$a</p>
+    <mathInput name="mn" bindValueTo="$nl[2]" />
+    <mathInput name="mm1" bindValueTo="$ml[1]" />
+    <mathInput name="mm2" bindValueTo="$ml[2]" />
+    <mathInput name="mm3" bindValueTo="$ml[3]" />
+    <textInput name="ti" bindValueTo="$tl[3]" />
+    <booleanInput name="bi" bindValueTo="$bl[2]" />
+    `;
+        const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
+            { doenetML },
+        );
+
+        const names = ["pnl", "pml", "ptl", "pbl", "pa"];
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls({
+            pnl: "1, 2, 3",
+            pml: "x, y, q",
+            ptl: "a, b, c",
+            pbl: "true, false",
+            pa: "q",
+        });
+
+        await updateMathInputValue({
+            latex: "9",
+            componentIdx: await resolvePathToNodeIdx("mn"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "u",
+            componentIdx: await resolvePathToNodeIdx("mm1"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "v",
+            componentIdx: await resolvePathToNodeIdx("mm2"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "w",
+            componentIdx: await resolvePathToNodeIdx("mm3"),
+            core,
+        });
+        await updateTextInputValue({
+            text: "zz",
+            componentIdx: await resolvePathToNodeIdx("ti"),
+            core,
+        });
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+
+        const written = {
+            pnl: "1, 9, 3",
+            pml: "u, v, w",
+            ptl: "a, b, zz",
+            pbl: "true, true",
+            pa: "w",
+        };
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls(written);
+
+        await core.core!.saveImmediately();
+        const reloaded = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        });
+        expect(
+            await textsOf(reloaded.core, reloaded.resolvePathToNodeIdx, names),
+        ).eqls(written);
+    });
+
+    it("lists as attributes keep reading the values", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <numberList name="nl">3 4</numberList>
+    <point name="P" xs="1 2" />
+    <point name="Q" xs="$nl" />
+    <polygon name="pg" vertices="(0,0) (1,0) (0,1)" />
+    <p name="pP">$P</p>
+    <p name="pQ">$Q</p>
+    <p name="pv">$pg.vertices</p>
+    <function name="f" domain="(0,1)">x^2</function>
+    <p name="pd">$f.domain</p>
+    `,
+        });
+
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, ["pP", "pQ", "pv", "pd"]),
+        ).eqls({
+            pP: "(1, 2)",
+            pQ: "(3, 4)",
+            pv: "(0, 0), (1, 0), (0, 1)",
+            pd: "(0, 1)",
+        });
+    });
+
+    it("display settings of the list and of an authored child", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="ml" displayDigits="5">3.14159265 2.718281828 <math>1.41421356</math></mathList>
+    <numberList name="nl" displayDecimals="1">3.14159265 2.718281828 <number>1.41421356</number></numberList>
+    <p name="pml">$ml</p>
+    <p name="pnl">$nl</p>
+    <p name="index">$ml[1] $nl[3]</p>
+    `,
+        });
+
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, ["pml", "pnl", "index"]),
+        ).eqls({
+            pml: "3.1416, 2.7183, 1.4142",
+            pnl: "3.1, 2.7, 1.4",
+            index: "3.1416 1.4",
+        });
+    });
+});
