@@ -880,6 +880,67 @@ export default class AuthoredValueList extends ValueListComponent {
 
         // The display settings each entry is shown with, `null` for the
         // list's.
+        // Each display setting of each entry, as an array, which an entry
+        // read by itself (`$l[2]`, `<math copy="$l[2]"/>`) takes as its own,
+        // so that it is shown as it is in the list.
+        const valuesShadowing = {};
+        for (const name of displayNames) {
+            const entryArrayName = `entry${name[0].toUpperCase()}${name.slice(1)}`;
+            stateVariableDefinitions[entryArrayName] = {
+                isArray: true,
+                entryPrefixes: [entryArrayName],
+                companionOfEachEntry: true,
+                shadowVariable: true,
+                returnArraySizeDependencies: () => ({
+                    numEntries: {
+                        dependencyType: "stateVariable",
+                        variableName: "numEntries",
+                    },
+                }),
+                returnArraySize({ dependencyValues }) {
+                    return [dependencyValues.numEntries];
+                },
+                returnArrayDependenciesByKey: () => ({
+                    globalDependencies: {
+                        entryDisplaySettings: {
+                            dependencyType: "stateVariable",
+                            variableName: "entryDisplaySettings",
+                        },
+                        listSetting: {
+                            dependencyType: "stateVariable",
+                            variableName: name,
+                        },
+                    },
+                }),
+                arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
+                    const values = {};
+                    for (const arrayKey of arrayKeys) {
+                        values[arrayKey] =
+                            globalDependencyValues.entryDisplaySettings[
+                                arrayKey
+                            ]?.[name] ?? globalDependencyValues.listSetting;
+                    }
+                    return { setValue: { [entryArrayName]: values } };
+                },
+            };
+            valuesShadowing[name] = {
+                ...stateVariableDefinitions[arrayName].shadowingInstructions
+                    .addAttributeComponentsShadowingStateVariables[name],
+                stateVariableToShadow: entryArrayName,
+            };
+        }
+        if (displayNames.length > 0) {
+            const shadowingInstructions =
+                stateVariableDefinitions[arrayName].shadowingInstructions;
+            stateVariableDefinitions[arrayName].shadowingInstructions = {
+                ...shadowingInstructions,
+                addAttributeComponentsShadowingStateVariables: {
+                    ...shadowingInstructions.addAttributeComponentsShadowingStateVariables,
+                    ...valuesShadowing,
+                },
+            };
+        }
+
         stateVariableDefinitions.entryDisplaySettings = {
             // A reference to the whole list reads them from the list.
             shadowVariable: true,

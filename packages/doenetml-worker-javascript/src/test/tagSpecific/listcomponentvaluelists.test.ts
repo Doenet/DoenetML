@@ -906,4 +906,38 @@ describe("Value lists as list components @group4", async () => {
             p1: "0, 8 2",
         });
     });
+
+    it("an entry read by itself is shown with the display settings it has in the list", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="dd" prefill="6" />
+    <mathList name="l"><math displayDigits="$dd">2.7182818</math> 3.14159265</mathList>
+    <p name="pl">$l</p>
+    <p name="pIndex">$l[1] $l[2]</p>
+    <math name="m" copy="$l[1]" />
+    <p name="pCopy">$m</p>
+    `,
+        });
+
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "pl",
+                "pIndex",
+                "pCopy",
+            ]),
+        ).eqls({
+            pl: "2.71828, 3.14",
+            pIndex: "2.71828 3.14",
+            pCopy: "2.71828",
+        });
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("dd"),
+            core,
+        });
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, ["pl", "pIndex"]),
+        ).eqls({ pl: "2.7, 3.14", pIndex: "2.7 3.14" });
+    });
 });

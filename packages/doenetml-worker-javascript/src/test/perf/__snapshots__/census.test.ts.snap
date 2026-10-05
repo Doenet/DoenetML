@@ -157,10 +157,10 @@ exports[`component census of the micro-documents > numberList $l[1] 1`] = `
   },
   "components": 4,
   "copies": 0,
-  "dependencies": 307,
+  "dependencies": 332,
   "shadows": 0,
-  "stateVariables": 198,
-  "stateVariablesResolved": 132,
+  "stateVariables": 213,
+  "stateVariablesResolved": 142,
 }
 `;
 
@@ -180,7 +180,7 @@ exports[`component census of the micro-documents > point $P 1`] = `
   "copies": 1,
   "dependencies": 783,
   "shadows": 1,
-  "stateVariables": 682,
+  "stateVariables": 687,
   "stateVariablesResolved": 366,
 }
 `;
@@ -205,7 +205,7 @@ exports[`component census of the micro-documents > point $P.x 1`] = `
   "copies": 1,
   "dependencies": 690,
   "shadows": 6,
-  "stateVariables": 846,
+  "stateVariables": 851,
   "stateVariablesResolved": 321,
 }
 `;

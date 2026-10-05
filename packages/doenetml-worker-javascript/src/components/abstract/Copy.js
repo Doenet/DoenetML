@@ -2926,19 +2926,35 @@ export async function replacementFromProp({
                                         ].stateVariableToShadow;
                                     let attributeStateVarObj =
                                         target.state[vName];
-                                    let attributeValue =
-                                        await attributeStateVarObj.value;
-                                    if (attributeStateVarObj.isArray) {
-                                        // Assume attribute has same dimensions as original
-                                        // TODO: multidimensional arrays?
+                                    let attributeValue;
+                                    let usedDefault;
+                                    if (attributeStateVarObj) {
                                         attributeValue =
-                                            attributeValue[
-                                                attributeStateVarObj.keyToIndex[
-                                                    arrayKey
-                                                ]
+                                            await attributeStateVarObj.value;
+                                        usedDefault =
+                                            attributeStateVarObj.usedDefault;
+                                    } else {
+                                        // an entry, not read yet, of an
+                                        // array holding the companion of
+                                        // each entry: read from the array
+                                        const companionArray =
+                                            target.state[
+                                                arrayStateVarObj
+                                                    .shadowingInstructions
+                                                    .addAttributeComponentsShadowingStateVariables[
+                                                    attrName
+                                                ].stateVariableToShadow
                                             ];
+                                        attributeValue = (
+                                            await companionArray.value
+                                        )[
+                                            arrayStateVarObj.keyToIndex(
+                                                arrayKey,
+                                            )
+                                        ];
+                                        usedDefault = false;
                                     }
-                                    if (!target.state[vName].usedDefault) {
+                                    if (!usedDefault) {
                                         additionalAttributes[attrName] =
                                             attributeValue;
                                     }

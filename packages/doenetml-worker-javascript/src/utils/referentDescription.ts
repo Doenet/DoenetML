@@ -74,13 +74,22 @@ export function describeReferentVariable(
     ]) {
         for (const name in shadowing ?? {}) {
             const target = shadowing[name].stateVariableToShadow;
-            // an entry's array companion would need the entry's own key
-            if (
-                !(name in companions) &&
-                component.state[target] &&
-                !component.state[target].isArray
-            ) {
+            if (name in companions || !component.state[target]) {
+                continue;
+            }
+            if (!component.state[target].isArray) {
                 companions[name] = target;
+            } else if (component.state[target].companionOfEachEntry) {
+                // an array holding the companion of each entry (the display
+                // settings of each entry of a list): the entry's own
+                const entryName = sameEntryOfArray(
+                    arrayStateVarObj,
+                    component.state[target],
+                    variableName,
+                );
+                if (entryName !== undefined) {
+                    companions[name] = entryName;
+                }
             }
         }
     }
@@ -158,4 +167,25 @@ function arrayOfUnmadeEntry(component: any, variableName: string) {
                 variableName.length > prefix.length,
         );
     return prefix === undefined ? undefined : component.state[prefixes[prefix]];
+}
+
+/**
+ * The name of the entry of the one-dimensional array `otherArray` at the
+ * index that `variableName`, an entry of `array`, has (`entryDisplayDigits2`
+ * for `math2`); `undefined` when `variableName` is not such an entry.
+ */
+function sameEntryOfArray(
+    array: any,
+    otherArray: any,
+    variableName: string,
+): string | undefined {
+    const prefix = (array?.entryPrefixes ?? []).find((prefix: string) =>
+        variableName.startsWith(prefix),
+    );
+    const index = prefix === undefined ? "" : variableName.slice(prefix.length);
+    const otherPrefix = otherArray.entryPrefixes?.[0];
+    if (!/^[1-9]\d*$/.test(index) || otherPrefix === undefined) {
+        return undefined;
+    }
+    return `${otherPrefix}${index}`;
 }
