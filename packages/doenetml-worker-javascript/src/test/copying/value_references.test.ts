@@ -284,9 +284,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
         });
 
         it("an index into a list resolves itself and re-resolves as the index changes", async () => {
-            // A `<numberList>` makes a `<number>` of each entry, so `$l[$i]`
-            // reads a number whatever the index, and is a reference of its
-            // own. The `$i` between its brackets reads a `<mathInput>`, a
+            // The entries of a `<numberList>` are numbers, so `$l[$i]` reads
+            // a number whatever the index, and is a reference of its own. The `$i` between its brackets reads a `<mathInput>`, a
             // math, and stays a copy.
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
@@ -321,16 +320,10 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 expect(censusOfCore(core).copies).eq(1);
             }
 
-            // past the last entry: the warning the copy gave, once, and no
-            // info about a property
+            // past the last entry: the reference reads nothing, as one to a
+            // list component does (`NaN` above), with no info about a
+            // property
             const diagnostics = getDiagnosticsByType(core);
-            const noReferent = diagnostics.warnings.filter(
-                (w) => w.code === "doenet-w0104",
-            );
-            expect(noReferent).toHaveLength(1);
-            expect(noReferent[0].message).eq(
-                "No referent found for reference: `$l[$i]`",
-            );
             expect(
                 diagnostics.infos.filter((i) => i.code === "doenet-i0018"),
             ).toHaveLength(0);
@@ -418,74 +411,6 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(census.byType.integer).eq(3);
         });
 
-        it("an index into each list whose class fixes the type of its entries", async () => {
-            // Every class that declares `replacementComponentType`, apart
-            // from those whose type starts with `_`, which no author writes
-            // (the three operator bases and `_variableNameList`), with a
-            // document whose replacements are checked against it: a class
-            // that declares a type its replacements do not have would hand
-            // a reference's parent a value of the wrong kind.
-            const lists: Record<string, string> = {
-                numberList: `<numberList name="c">1 2 3</numberList>`,
-                mathList: `<mathList name="c">x y z</mathList>`,
-                matrixRow: `<matrixRow name="c">x y z</matrixRow>`,
-                matrixColumn: `<matrixColumn name="c">x y z</matrixColumn>`,
-                tupleList: `<tupleList name="c">(1,2) (3,4)</tupleList>`,
-                textList: `<textList name="c">a b c</textList>`,
-                booleanList: `<booleanList name="c">true false</booleanList>`,
-            };
-
-            let declared: string[] | undefined;
-            for (const [listType, listDoenetML] of Object.entries(lists)) {
-                const { core: firstCore } = await createTestCore({
-                    doenetML: listDoenetML,
-                });
-                const allComponentClasses =
-                    firstCore.core!.componentInfoObjects.allComponentClasses;
-                const entryType =
-                    allComponentClasses[listType].replacementComponentType;
-                declared ??= Object.entries(allComponentClasses)
-                    .filter(
-                        ([type, componentClass]: [string, any]) =>
-                            componentClass.replacementComponentType !==
-                                undefined && !type.startsWith("_"),
-                    )
-                    .map(([type]) => type)
-                    .sort();
-
-                // held by a component of the entries' own type
-                const { core, resolvePathToNodeIdx } = await createTestCore({
-                    doenetML: `${listDoenetML}
-    <${entryType} name="x">$c[2]</${entryType}>
-    `,
-                });
-                const list =
-                    core.core!._components[await resolvePathToNodeIdx("c")];
-                const entries = list.replacements.filter(
-                    (r: any) => typeof r === "object",
-                );
-                expect(
-                    entries.map((r: any) => r.componentType),
-                    listType,
-                ).eqls(entries.map(() => entryType));
-
-                const xIdx = await resolvePathToNodeIdx("x");
-                const ref = valueRefs(core).find(
-                    (ref) => ref.parentIdx === xIdx,
-                );
-                expect(ref?.refResolution, listType).toBeDefined();
-                expect(
-                    (await ref.stateValues.referentInfo).componentIdx,
-                    listType,
-                ).eq(entries[1].componentIdx);
-                expect(await ref.stateValues.value, listType).eqls(
-                    await entries[1].stateValues.value,
-                );
-                expect(censusOfCore(core).copies, listType).eq(0);
-            }
-            expect(declared).eqls(Object.keys(lists).sort());
-        });
-
         it("an index into each list component reads an entry of its array", async () => {
             // Every class that declares `listEntryComponentType`, apart from
             // those whose type starts with `_`, which no author writes. A list
@@ -510,6 +435,14 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 samplePrimeNumbers: `<samplePrimeNumbers name="c" numSamples="3" />`,
                 selectPrimeNumbers: `<selectPrimeNumbers name="c" numToSelect="3" />`,
                 sampleMultivariateRandomNumber: `<sampleMultivariateRandomNumber name="c" type="hypergeometric" numInCategories="3 4 5" numDraws="5" />`,
+                numberList: `<numberList name="c">1 2 3</numberList>`,
+                mathList: `<mathList name="c">x y z</mathList>`,
+                matrixRow: `<matrixRow name="c">x y z</matrixRow>`,
+                matrixColumn: `<matrixColumn name="c">x y z</matrixColumn>`,
+                tupleList: `<tupleList name="c">(1,2) (3,4)</tupleList>`,
+                textList: `<textList name="c">a b c</textList>`,
+                booleanList: `<booleanList name="c">true false</booleanList>`,
+                intervalList: `<intervalList name="c">(1,2) [3,4]</intervalList>`,
             };
 
             let declared: string[] | undefined;
@@ -1136,7 +1069,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(primary).eqls([true, false, false]);
         });
 
-        it("a position that renders, or a list, still gets a full copy", async () => {
+        it("a position that renders still gets a full copy, and one in a list is a value reference", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <number name="n">5</number>
@@ -1144,7 +1077,10 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     <mathList name="ml">$n</mathList>
     `,
             });
-            expect(valueRefs(core)).toHaveLength(0);
+            // the list reads the values of its children
+            expect(valueRefs(core).map((ref) => ref.parentIdx)).eqls([
+                await resolvePathToNodeIdx("ml"),
+            ]);
             const stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
@@ -2672,7 +2608,10 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 // run time, so `$mc.values[1]` keeps its copy, which makes a
                 // value reference with its referent fixed. That reference
                 // has no `valueMissing`: the copy makes none for an entry
-                // that is not there.
+                // that is not there. `$mc.values[2]` in a `<math>` reads a
+                // number entry as a math, which a copy made at run time does
+                // with a `<number>` it makes (the document's own references
+                // read the entry's `math`, `planListEntryAdapterReference`).
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
     <setup><module name="mod"><moduleAttributes><numberList name="values"/></moduleAttributes></module></setup>
@@ -2695,7 +2634,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     valueRefs(core).filter(
                         (ref) => ref.doenetAttributes.fixedReferent,
                     ),
-                ).toHaveLength(2);
+                ).toHaveLength(1);
                 expect(await submitted(core, directIdx)).eqls({
                     responses: [1, 1],
                     types: ["number", "math"],
