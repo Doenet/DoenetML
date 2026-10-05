@@ -285,6 +285,102 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             ).eqls(["+", 3.14159, 1]);
         });
 
+        it("a collect of a reference to a component takes the referent's settings, and its copies keep its value", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <booleanInput name="h" />
+    <math name="m" hide="$h" styleNumber="3" renderMode="display">x+1</math>
+    <text name="t" hide="$h" styleNumber="4">hi</text>
+    <mathInput name="mi" prefill="y" />
+    <p name="p">$m $t $mi</p>
+    <collect name="cm" componentType="math" from="$p" />
+    <collect name="ct" componentType="text" from="$p" />
+    <math name="copied" copy="$cm[2]" />
+    `,
+            });
+
+            async function collected(name: string) {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                return stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].replacements!.map((r: any) => {
+                    const { hidden, styleNumber, renderMode, text } =
+                        stateVariables[r.componentIdx].stateValues;
+                    return { hidden, styleNumber, renderMode, text };
+                });
+            }
+
+            expect(await collected("cm")).eqls([
+                {
+                    hidden: false,
+                    styleNumber: 3,
+                    renderMode: "display",
+                    text: "x + 1",
+                },
+                {
+                    hidden: false,
+                    styleNumber: 1,
+                    renderMode: "inline",
+                    text: "y",
+                },
+            ]);
+            expect(await collected("ct")).eqls([
+                {
+                    hidden: false,
+                    styleNumber: 4,
+                    renderMode: undefined,
+                    text: "hi",
+                },
+            ]);
+            // an unlinked copy of what was collected for `$mi`
+            expect(await textOf(core, resolvePathToNodeIdx, "copied")).eq("y");
+
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("h"),
+                core,
+            });
+            expect((await collected("cm")).map((c: any) => c.hidden)).eqls([
+                true,
+                false,
+            ]);
+            expect((await collected("ct")).map((c: any) => c.hidden)).eqls([
+                true,
+            ]);
+        });
+
+        it("a collect does not find a reference with nothing to read", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <numberList name="l">7 8</numberList>
+    <mathInput name="i" prefill="2" />
+    <p name="p">[$l[$i]]</p>
+    <collect name="c" componentType="number" from="$p" />
+    <p name="pc">[$c]</p>
+    `,
+            });
+
+            expect(await textOf(core, resolvePathToNodeIdx, "pc")).eq("[8]");
+
+            await updateMathInputValue({
+                latex: "3",
+                componentIdx: await resolvePathToNodeIdx("i"),
+                core,
+            });
+            expect(await textOf(core, resolvePathToNodeIdx, "p")).eq("[]");
+            expect(await textOf(core, resolvePathToNodeIdx, "pc")).eq("[]");
+
+            await updateMathInputValue({
+                latex: "1",
+                componentIdx: await resolvePathToNodeIdx("i"),
+                core,
+            });
+            expect(await textOf(core, resolvePathToNodeIdx, "pc")).eq("[7]");
+        });
+
         it("a click on a reference to a click target is a click on it", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `

@@ -715,6 +715,28 @@ export default class ValueRef extends BaseComponent {
                 },
             };
         }
+        // When what it reads cannot move to another referent or variable
+        // (its path has no component between its brackets), it is copied as
+        // the component a `_copy` made for it was: shadowing the variable it
+        // reads on the referent rather than this reference, so that an
+        // unlinked copy of it has a value to copy. One that stands for a copy
+        // of its referent (`copiesReferent`) shadows it as that copy did, as
+        // its implicit prop, and so takes the referent's attributes too
+        // (`hide`, `styleNumber`, `renderMode`, …). One whose referent moves
+        // (`$l[$i]`) shadows this reference, which follows it.
+        if (
+            referentInfo &&
+            (this.fixedReferent || !pathHasIndexComponents(this.refResolution))
+        ) {
+            serialized.shadowsVariableOf = {
+                componentIdx: referentInfo.componentIdx,
+                variableName: referentInfo.variableName,
+            };
+            if (this.doenetAttributes.copiesReferent) {
+                serialized.shadowsVariableOf.fromImplicitProp = true;
+                serialized.doenetAttributes.fromImplicitProp = true;
+            }
+        }
         return serialized;
     }
 

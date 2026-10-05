@@ -245,6 +245,11 @@ export default class Collect extends CompositeComponent {
                     // A list of maths is collected by `componentType="math"`,
                     // as the maths of the composite it replaced were.
                     matchListsByEntryType: true,
+                    // A value reference drawn with nothing to read
+                    // (`$l[$i]` with `i` past the end) is not collected:
+                    // the copy made for it made no component.
+                    variableNames: ["valueMissing"],
+                    variablesOptional: true,
                 };
 
                 return {
@@ -259,10 +264,12 @@ export default class Collect extends CompositeComponent {
                 // console.log(`definition of collectedComponents for ${componentIdx}`)
                 // console.log(dependencyValues)
 
-                let collectedComponents = dependencyValues.descendants;
-                if (!collectedComponents) {
-                    collectedComponents = [];
-                }
+                let collectedComponents = (dependencyValues.descendants ?? [])
+                    .filter((x) => !x.stateValues?.valueMissing)
+                    .map(({ componentIdx, componentType }) => ({
+                        componentIdx,
+                        componentType,
+                    }));
 
                 if (
                     dependencyValues.maxNumber !== null &&

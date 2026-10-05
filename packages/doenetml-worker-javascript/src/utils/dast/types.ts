@@ -27,7 +27,16 @@ export type SerializedComponent = {
      * (`ValueRef.serialize`); a linked copy turns it into a `referenceShadow`
      * (`postProcessCopy`).
      */
-    shadowsVariableOf?: { componentIdx: number; variableName: string };
+    shadowsVariableOf?: {
+        componentIdx: number;
+        variableName: string;
+        /**
+         * The variable is the implicit prop of a component of a type whose
+         * implicit prop is of its own type, so the shadow takes that
+         * component's attributes too, as a copy of it does.
+         */
+        fromImplicitProp?: boolean;
+    };
     state: Record<string, any>;
     skipSugar?: boolean;
     preSugarInd?: number;

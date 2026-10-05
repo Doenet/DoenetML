@@ -32,17 +32,24 @@ export function postProcessCopy({
             // made by a serialization to shadow one state variable of a
             // component (`ValueRef.serialize`), which a linked copy keeps
             if (addShadowDependencies) {
-                const { componentIdx: shadowedIdx, variableName } =
-                    component.shadowsVariableOf;
-                component.downstreamDependencies = {
-                    [shadowedIdx]: [
-                        {
-                            dependencyType: "referenceShadow",
-                            compositeIdx: componentIdx,
-                            propVariable: variableName,
-                        },
-                    ],
+                const {
+                    componentIdx: shadowedIdx,
+                    variableName,
+                    fromImplicitProp,
+                } = component.shadowsVariableOf;
+                const dependency = {
+                    dependencyType: "referenceShadow",
+                    compositeIdx: componentIdx,
+                    propVariable: variableName,
                 };
+                if (fromImplicitProp) {
+                    dependency.fromImplicitProp = true;
+                }
+                component.downstreamDependencies = {
+                    [shadowedIdx]: [dependency],
+                };
+            } else if (component.originalIdx != undefined) {
+                component.unlinkedCopySource = component.originalIdx;
             }
             delete component.shadowsVariableOf;
         } else if (component.originalIdx != undefined) {
