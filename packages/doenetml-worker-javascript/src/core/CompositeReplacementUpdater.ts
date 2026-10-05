@@ -28,6 +28,7 @@ import {
     createNewComponentIndices,
 } from "../utils/componentIndices";
 import { rethrowIfCircular } from "./dependencies/CircularDependencyError";
+import { giveListEntriesToIndexParent } from "./listEntryResolverNodes";
 
 /**
  * Loose-typed bag describing one entry in the `componentChanges` array
@@ -611,6 +612,12 @@ export class CompositeReplacementUpdater {
                 await this.processChildChangesAndRecurseToShadows(component);
             }
         }
+
+        // A list component among the items is indexed by its entries.
+        await giveListEntriesToIndexParent({
+            core: this.core,
+            composite: component,
+        });
 
         const results = {
             success: true,

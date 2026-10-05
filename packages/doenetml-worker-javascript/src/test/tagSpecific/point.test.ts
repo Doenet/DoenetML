@@ -13,6 +13,7 @@ import { PublicDoenetMLCore } from "../../CoreWorker";
 import me from "math-expressions";
 import { superSubscriptsToUnicode } from "../../utils/math";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { componentOrListEntry } from "../utils/list-entries";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -3675,8 +3676,11 @@ describe("Point tag tests @group4", async () => {
             await resolvePathToNodeIdx("seq"),
             math2Name,
         ]);
+        // The sequence is a list component, which stays a child however
+        // many entries it has, and the math reads its entries as children.
         expect(x1.activeChildren.map((x) => x.componentIdx)).eqls([
             math1Name,
+            await resolvePathToNodeIdx("seq"),
             math2Name,
         ]);
         expect(
@@ -3694,10 +3698,7 @@ describe("Point tag tests @group4", async () => {
             core,
         });
 
-        let math3 =
-            core.core!.components![await resolvePathToNodeIdx("seq")]
-                .replacements[0].adapterUsed;
-        let math3Name = math3.componentIdx;
+        stateVariables = await core.returnAllStateVariables(false, true);
         expect(x1.definingChildren.map((x) => x.componentIdx)).eqls([
             math1Name,
             await resolvePathToNodeIdx("seq"),
@@ -3705,7 +3706,7 @@ describe("Point tag tests @group4", async () => {
         ]);
         expect(x1.activeChildren.map((x) => x.componentIdx)).eqls([
             math1Name,
-            math3Name,
+            await resolvePathToNodeIdx("seq"),
             math2Name,
         ]);
         expect(
@@ -4615,9 +4616,14 @@ describe("Point tag tests @group4", async () => {
                 ).eq(nDim);
 
                 expect(
-                    stateVariables[
-                        await resolvePathToNodeIdx(`coordsAll[${i}]`)
-                    ].stateValues.text,
+                    (
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            `coordsAll[${i}]`,
+                        )
+                    ).stateValues.text,
                 ).eq(coordsString);
             }
 
@@ -5596,13 +5602,13 @@ describe("Point tag tests @group4", async () => {
         ).eq("(32.25, 0.0673, 5)");
         // TODO: fix display digits propagation for math lists
         // expect(
-        //     stateVariables[await resolvePathToNodeIdx("Pxs[1]")].stateValues.text,
+        //     (await componentOrListEntry(core, stateVariables, resolvePathToNodeIdx, "Pxs[1]")).stateValues.text,
         // ).eq("32");
         // expect(
-        //     stateVariables[await resolvePathToNodeIdx("Pxs[2]")].stateValues.text,
+        //     (await componentOrListEntry(core, stateVariables, resolvePathToNodeIdx, "Pxs[2]")).stateValues.text,
         // ).eq("0.067");
         // expect(
-        //     stateVariables[await resolvePathToNodeIdx("Pxs[3]")].stateValues.text,
+        //     (await componentOrListEntry(core, stateVariables, resolvePathToNodeIdx, "Pxs[3]")).stateValues.text,
         // ).eq("5");
         expect(
             stateVariables[await resolvePathToNodeIdx("Qx1")].stateValues.text,

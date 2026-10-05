@@ -160,6 +160,71 @@ export function planValueReference({
 }
 
 /**
+ * For a reference to the value of an entry of a list component
+ * (`listClass`, `$l[$i]`) whose parent takes no component of the entries'
+ * type (`valueComponentType`) but takes that of one of its adapters (a
+ * `<number>` adapts to a `<math>` through its `math`): the entry property
+ * the adapter would read, which the list provides (`$l[$i].math`), and the
+ * type the reference then presents as. A component of the entries' type
+ * standing there would have been given that adapter.
+ */
+export function planListEntryAdapterReference({
+    parentClass,
+    listClass,
+    valueComponentType,
+    componentInfoObjects,
+}: {
+    parentClass: any;
+    listClass: any;
+    valueComponentType: string;
+    componentInfoObjects: ComponentInfoObjects;
+}): { presentedComponentType: string; entryProperty: string } | undefined {
+    // A parent that `planValueReference` turns away for every reference
+    // (a composite, such as a `<numberList>`, which copies an entry's
+    // display settings from a `_copy`) is turned away here too.
+    if (
+        !parentClass ||
+        parentClass.renderChildren ||
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: parentClass.componentType,
+            baseComponentType: "_composite",
+        })
+    ) {
+        return undefined;
+    }
+    const valueClass =
+        componentInfoObjects.allComponentClasses[valueComponentType];
+    for (let n = 0; n < (valueClass?.numAdapters ?? 0); n++) {
+        const adapter = valueClass.adapters[n];
+        if (
+            typeof adapter !== "string" &&
+            adapter.substituteForPrimaryStateVariable
+        ) {
+            continue;
+        }
+        const entryProperty =
+            typeof adapter === "string" ? adapter : adapter.stateVariable;
+        const adapterType = valueClass.getAdapterComponentType(
+            n,
+            componentInfoObjects.publicStateVariableInfo,
+        );
+        if (
+            isValueComponentType(adapterType, componentInfoObjects) &&
+            listClass.listEntryStateVariables[entryProperty] !== undefined &&
+            listEntryPropertyType(
+                listClass,
+                entryProperty,
+                componentInfoObjects,
+            ) === adapterType &&
+            childGroupAccepts(parentClass, adapterType, componentInfoObjects)
+        ) {
+            return { presentedComponentType: adapterType, entryProperty };
+        }
+    }
+    return undefined;
+}
+
+/**
  * What a reference to a component of `targetComponentType` with the
  * remaining path `unresolvedPath` reads, worked out from the type alone:
  * the type of the component the value is read from (`referentComponentType`),
@@ -185,10 +250,16 @@ export function planValueReference({
  */
 export function staticValueReferenceTarget({
     targetComponentType,
+    targetClass: givenTargetClass,
     unresolvedPath,
     componentInfoObjects,
 }: {
     targetComponentType: string;
+    /**
+     * The class the target is created as, when it is not the one registered
+     * for its type (`classForSerializedComponent`).
+     */
+    targetClass?: any;
     unresolvedPath: { name: string; index: unknown[] }[] | null | undefined;
     componentInfoObjects: ComponentInfoObjects;
 }):
@@ -196,9 +267,12 @@ export function staticValueReferenceTarget({
           referentComponentType: string;
           valueComponentType: string;
           fromImplicitProp: boolean;
+          /** The entry property read, for an entry of a list component. */
+          listEntryProperty?: string;
       }
     | undefined {
     const targetClass =
+        givenTargetClass ??
         componentInfoObjects.allComponentClasses[targetComponentType];
     if (!targetClass) {
         return undefined;
@@ -247,6 +321,7 @@ export function staticValueReferenceTarget({
                   referentComponentType: targetComponentType,
                   valueComponentType,
                   fromImplicitProp: false,
+                  listEntryProperty: listEntryPath.entryProperty,
               };
     }
 

@@ -41,6 +41,11 @@ export function ensureListEntryPropertyArray({
     const listVariable =
         listClass.listEntryStateVariables[derived?.from ?? entryProperty];
     const perEntry = listClass.listPerEntryVariables.includes(listVariable);
+    // The list's variable when it is itself an array (the values), whose
+    // entries are read one by one.
+    const listArray = component.state[listVariable]?.isArray
+        ? component.state[listVariable]
+        : undefined;
     // A property the list does not provide is the default every entry has.
     const defaultValue =
         listVariable === undefined
@@ -76,30 +81,94 @@ export function ensureListEntryPropertyArray({
         returnArraySize({ dependencyValues }: any) {
             return [dependencyValues.numEntries];
         },
-        returnArrayDependenciesByKey: () =>
-            listVariable === undefined
-                ? {}
-                : {
-                      globalDependencies: {
-                          value: {
-                              dependencyType: "stateVariable",
-                              variableName: listVariable,
-                          },
-                      },
-                  },
-        arrayDefinitionByKey({ globalDependencyValues, arrayKeys }: any) {
+        // An entry of an array of the list is read by itself, so that the
+        // entry depends on its own value alone.
+        returnArrayDependenciesByKey: ({ arrayKeys }: any) => {
+            if (listVariable === undefined) {
+                return {};
+            }
+            if (listArray) {
+                const dependenciesByKey: Record<string, any> = {};
+                for (const arrayKey of arrayKeys) {
+                    dependenciesByKey[arrayKey] = {
+                        value: {
+                            dependencyType: "stateVariable",
+                            variableName: `${listArray.entryPrefixes[0]}${Number(arrayKey) + 1}`,
+                            variablesOptional: true,
+                        },
+                    };
+                }
+                return { dependenciesByKey };
+            }
+            return {
+                globalDependencies: {
+                    value: {
+                        dependencyType: "stateVariable",
+                        variableName: listVariable,
+                    },
+                },
+            };
+        },
+        arrayDefinitionByKey({
+            globalDependencyValues,
+            dependencyValuesByKey,
+            arrayKeys,
+        }: any) {
             const values: Record<string, any> = {};
             for (const arrayKey of arrayKeys) {
                 const value =
                     listVariable === undefined
                         ? defaultValue
-                        : perEntry
-                          ? (globalDependencyValues.value[arrayKey] ?? null)
-                          : globalDependencyValues.value;
+                        : listArray
+                          ? (dependencyValuesByKey[arrayKey]?.value ?? null)
+                          : perEntry
+                            ? (globalDependencyValues.value[arrayKey] ?? null)
+                            : globalDependencyValues.value;
                 values[arrayKey] =
                     derived && value !== null ? derived.compute(value) : value;
             }
             return { setValue: { [arrayName]: values } };
+        },
+        // A write to an entry's property is a write to the list's variable
+        // for it at that entry, or, for a derived property that can be
+        // inverted (`invert`), to the entry property it derives from; one
+        // shared by every entry, a default or another derived property is
+        // not written through an entry.
+        inverseArrayDefinitionByKey({
+            desiredStateVariableValues,
+            dependencyNamesByKey,
+        }: any) {
+            if (
+                listVariable === undefined ||
+                !perEntry ||
+                (derived && !(derived.invert && listArray))
+            ) {
+                return { success: false };
+            }
+            const desired = desiredStateVariableValues[arrayName];
+            if (listArray) {
+                // an entry past the end of the list takes no write
+                const instructions = Object.keys(desired)
+                    .filter((arrayKey) => dependencyNamesByKey[arrayKey])
+                    .map((arrayKey) => ({
+                        setDependency: dependencyNamesByKey[arrayKey].value,
+                        desiredValue: derived
+                            ? derived.invert(desired[arrayKey])
+                            : desired[arrayKey],
+                    }));
+                return instructions.length > 0
+                    ? { success: true, instructions }
+                    : { success: false };
+            }
+            return {
+                success: true,
+                instructions: [
+                    {
+                        setDependency: "value",
+                        desiredValue: { ...desired },
+                    },
+                ],
+            };
         },
     };
     normalizeArrayStateVariableDefaults(definition, arrayName);

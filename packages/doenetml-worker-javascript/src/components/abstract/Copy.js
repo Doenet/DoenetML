@@ -584,15 +584,31 @@ export default class Copy extends CompositeComponent {
                 "replacementSourceIdentities",
                 "unresolvedPath",
                 "implicitProp",
+                "usedReplacements",
+                "extendedComponent",
             ],
             additionalStateVariablesDefined: ["effectivePropNameBySource"],
-            returnDependencies: function ({ stateValues }) {
+            returnDependencies: function ({
+                stateValues,
+                componentInfoObjects,
+            }) {
                 let dependencies = {
                     replacementSourceIdentities: {
                         dependencyType: "stateVariable",
                         variableName: "replacementSourceIdentities",
                     },
                 };
+
+                // An index left over on a composite (`$g[2]`) is past the items
+                // it is indexed by, and is passed on to each replacement. A list
+                // component (`listEntryComponentType`) among them takes one of
+                // those items, so the index would read one of its entries as an
+                // item past the list (`$g[2]` of `<group name="g"><sequence /></group>`).
+                const indexPastComposite =
+                    stateValues.usedReplacements &&
+                    stateValues.extendedComponent?.componentType !== "_copy" &&
+                    !stateValues.implicitProp &&
+                    stateValues.unresolvedPath?.[0]?.name === "";
 
                 if (stateValues.replacementSourceIdentities !== null) {
                     for (let [
@@ -620,7 +636,13 @@ export default class Copy extends CompositeComponent {
                                 value: thisUnresolvedPath,
                             };
 
-                            if (typeof source === "string") {
+                            if (
+                                typeof source === "string" ||
+                                (indexPastComposite &&
+                                    componentInfoObjects.allComponentClasses[
+                                        source.componentType
+                                    ]?.listEntryComponentType !== undefined)
+                            ) {
                                 continue;
                             }
 

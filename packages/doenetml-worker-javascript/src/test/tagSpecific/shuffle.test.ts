@@ -3,6 +3,7 @@ import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { movePoint, updateMathInputValue } from "../utils/actions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import { PublicDoenetMLCore } from "../../CoreWorker";
+import { componentOrListEntry } from "../utils/list-entries";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -688,8 +689,14 @@ describe("Shuffle tag tests @group1", async () => {
 
         for (let i = 0; i < 12; i++) {
             result.push(
-                stateVariables[await resolvePathToNodeIdx(`xs[${i + 1}]`)]
-                    .stateValues.value.tree,
+                (
+                    await componentOrListEntry(
+                        core,
+                        stateVariables,
+                        resolvePathToNodeIdx,
+                        `xs[${i + 1}]`,
+                    )
+                ).stateValues.value.tree,
             );
         }
 

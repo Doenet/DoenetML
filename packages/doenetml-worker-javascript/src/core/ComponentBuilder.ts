@@ -332,6 +332,9 @@ export async function createIsolatedComponents({
                 ];
         }
 
+        componentClass =
+            componentClass.classForSerializedComponent(serializedComponent);
+
         if (!serializedComponent.doenetAttributes) {
             serializedComponent.doenetAttributes = {};
         }
@@ -862,6 +865,22 @@ export async function checkForStateVariablesUpdatesForNewComponent({
     let comp = core._components[componentIdx];
     const stateId = comp.stateId;
     if (stateId in core.updateInfo.stateVariableUpdatesForMissingComponents) {
+        // A list component (`ValueListComponent`) saves the values written
+        // to its entries in an array sized by its values, so restoring them
+        // evaluates the values. A sampler that is told its values were just
+        // restored keeps them rather than drawing again, so it is told
+        // before they are evaluated.
+        if (
+            comp.constructor.processWhenJustUpdatedForNewComponent &&
+            comp.constructor.listEntryComponentType !== undefined
+        ) {
+            for (const vName in core.updateInfo
+                .stateVariableUpdatesForMissingComponents[stateId]) {
+                if (comp.state[vName]) {
+                    comp.state[vName].justUpdatedForNewComponent = true;
+                }
+            }
+        }
         let result = await core.processNewStateVariableValues(
             {
                 [componentIdx]:

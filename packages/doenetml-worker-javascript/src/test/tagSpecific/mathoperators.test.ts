@@ -8,6 +8,10 @@ import type {
     std as StdType,
     variance as VarianceType,
 } from "mathjs";
+import {
+    componentOrListEntry,
+    childrenAsPresented,
+} from "../utils/list-entries";
 const { mod, std, variance } = me.math as {
     mod: ModType;
     std: StdType;
@@ -2690,9 +2694,11 @@ describe("Math operator tests @group2", async () => {
                 .tree,
         ).eq(clamp(x));
 
-        let g2children = stateVariables[
-            await resolvePathToNodeIdx("g2")
-        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
+        let g2children = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("g2"),
+        );
         expect((await g2children[0].stateValues.xs)[0].tree).eq(x);
         expect((await g2children[0].stateValues.xs)[1].tree).eq(y);
         expect((await g2children[1].stateValues.xs)[0].tree).eq(clamp(x));
@@ -2735,9 +2741,11 @@ describe("Math operator tests @group2", async () => {
                 .tree,
         ).eq(clamp(x));
 
-        g2children = stateVariables[
-            await resolvePathToNodeIdx("g2")
-        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
+        g2children = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("g2"),
+        );
         expect((await g2children[0].stateValues.xs)[0].tree).eq(x);
         expect((await g2children[0].stateValues.xs)[1].tree).eq(y);
         expect((await g2children[1].stateValues.xs)[0].tree).eq(clamp(x));
@@ -2781,9 +2789,11 @@ describe("Math operator tests @group2", async () => {
                 .tree,
         ).eq(clamp(x));
 
-        g2children = stateVariables[
-            await resolvePathToNodeIdx("g2")
-        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
+        g2children = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("g2"),
+        );
         expect((await g2children[0].stateValues.xs)[0].tree).eq(clamp(x));
         expect((await g2children[0].stateValues.xs)[1].tree).eq(wrap(y));
         expect((await g2children[1].stateValues.xs)[0].tree).eq(clamp(x));
@@ -2827,9 +2837,11 @@ describe("Math operator tests @group2", async () => {
                 .tree,
         ).eq(clamp(x));
 
-        g2children = stateVariables[
-            await resolvePathToNodeIdx("g2")
-        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
+        g2children = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("g2"),
+        );
         expect((await g2children[0].stateValues.xs)[0].tree).eq(clamp(x));
         expect((await g2children[0].stateValues.xs)[1].tree).eq(wrap(y));
         expect((await g2children[1].stateValues.xs)[0].tree).eq(clamp(x));
@@ -2876,9 +2888,11 @@ describe("Math operator tests @group2", async () => {
                 .tree,
         ).eq(clamp(x));
 
-        g2children = stateVariables[
-            await resolvePathToNodeIdx("g2")
-        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
+        g2children = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("g2"),
+        );
         expect((await g2children[0].stateValues.xs)[0].tree).eq(x);
         expect((await g2children[0].stateValues.xs)[1].tree).eq(y);
         expect((await g2children[1].stateValues.xs)[0].tree).eq(clamp(x));
@@ -2926,9 +2940,11 @@ describe("Math operator tests @group2", async () => {
                 .tree,
         ).eq(clamp(x));
 
-        g2children = stateVariables[
-            await resolvePathToNodeIdx("g2")
-        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
+        g2children = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("g2"),
+        );
         expect((await g2children[0].stateValues.xs)[0].tree).eq(clamp(x));
         expect((await g2children[0].stateValues.xs)[1].tree).eq(wrap(y));
         expect((await g2children[1].stateValues.xs)[0].tree).eq(clamp(x));
@@ -2976,9 +2992,11 @@ describe("Math operator tests @group2", async () => {
                 .tree,
         ).eq(clamp(x));
 
-        g2children = stateVariables[
-            await resolvePathToNodeIdx("g2")
-        ].activeChildren.map((x) => stateVariables[x.componentIdx]);
+        g2children = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("g2"),
+        );
         expect((await g2children[0].stateValues.xs)[0].tree).eq(clamp(x));
         expect((await g2children[0].stateValues.xs)[1].tree).eq(wrap(y));
         expect((await g2children[1].stateValues.xs)[0].tree).eq(clamp(x));
@@ -3337,9 +3355,14 @@ describe("Math operator tests @group2", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let p =
-            await stateVariables[await resolvePathToNodeIdx("p[1]")].stateValues
-                .value;
+        let p = await (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "p[1]",
+            )
+        ).stateValues.value;
         expect(
             stateVariables[await resolvePathToNodeIdx("convertSetToList1")]
                 .stateValues.value.tree,
@@ -4706,10 +4729,11 @@ describe("Math operator tests @group2", async () => {
                 .value.tree,
         ).eq(4.25);
         expect(
-            stateVariables[
-                stateVariables[await resolvePathToNodeIdx("pPrimeb")]
-                    .activeChildren[1].componentIdx
-            ].stateValues.value.tree,
+            childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("pPrimeb"),
+            )[1].stateValues.value.tree,
         ).eq(4.25);
         expect(
             stateVariables[await resolvePathToNodeIdx("mean100")].stateValues
@@ -4720,10 +4744,11 @@ describe("Math operator tests @group2", async () => {
                 .value.tree,
         ).eq(50.5);
         expect(
-            stateVariables[
-                stateVariables[await resolvePathToNodeIdx("p100b")]
-                    .activeChildren[1].componentIdx
-            ].stateValues.value.tree,
+            childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("p100b"),
+            )[1].stateValues.value.tree,
         ).eq(50.5);
     });
 
@@ -5582,10 +5607,11 @@ describe("Math operator tests @group2", async () => {
                 .stateValues.value.tree,
         ).closeTo(variancePrimes, 1e-12);
         expect(
-            stateVariables[
-                stateVariables[await resolvePathToNodeIdx("pPrimeb")]
-                    .activeChildren[1].componentIdx
-            ].stateValues.value.tree,
+            childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("pPrimeb"),
+            )[1].stateValues.value.tree,
         ).closeTo(variancePrimes, 1e-12);
         expect(
             stateVariables[await resolvePathToNodeIdx("variance100")]
@@ -5596,10 +5622,11 @@ describe("Math operator tests @group2", async () => {
                 .stateValues.value.tree,
         ).closeTo(variance100, 1e-12);
         expect(
-            stateVariables[
-                stateVariables[await resolvePathToNodeIdx("p100b")]
-                    .activeChildren[1].componentIdx
-            ].stateValues.value.tree,
+            childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("p100b"),
+            )[1].stateValues.value.tree,
         ).closeTo(variance100, 1e-12);
     });
 
@@ -5842,10 +5869,11 @@ describe("Math operator tests @group2", async () => {
                 .stateValues.value.tree,
         ).closeTo(variancePrimes, 1e-12);
         expect(
-            stateVariables[
-                stateVariables[await resolvePathToNodeIdx("pPrimeb")]
-                    .activeChildren[1].componentIdx
-            ].stateValues.value.tree,
+            childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("pPrimeb"),
+            )[1].stateValues.value.tree,
         ).closeTo(variancePrimes, 1e-12);
         expect(
             stateVariables[await resolvePathToNodeIdx("variance100")]
@@ -5856,10 +5884,11 @@ describe("Math operator tests @group2", async () => {
                 .stateValues.value.tree,
         ).closeTo(variance100, 1e-12);
         expect(
-            stateVariables[
-                stateVariables[await resolvePathToNodeIdx("p100b")]
-                    .activeChildren[1].componentIdx
-            ].stateValues.value.tree,
+            childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("p100b"),
+            )[1].stateValues.value.tree,
         ).closeTo(variance100, 1e-12);
     });
 
@@ -6284,10 +6313,11 @@ describe("Math operator tests @group2", async () => {
             ].stateValues.value.tree,
         ).closeTo(stdPrimes, 1e-12);
         expect(
-            stateVariables[
-                stateVariables[await resolvePathToNodeIdx("pPrimeb")]
-                    .activeChildren[1].componentIdx
-            ].stateValues.value.tree,
+            childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("pPrimeb"),
+            )[1].stateValues.value.tree,
         ).closeTo(stdPrimes, 1e-12);
         expect(
             stateVariables[await resolvePathToNodeIdx("standardDeviation100")]
@@ -6298,10 +6328,11 @@ describe("Math operator tests @group2", async () => {
                 .stateValues.value.tree,
         ).closeTo(std100, 1e-12);
         expect(
-            stateVariables[
-                stateVariables[await resolvePathToNodeIdx("p100b")]
-                    .activeChildren[1].componentIdx
-            ].stateValues.value.tree,
+            childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("p100b"),
+            )[1].stateValues.value.tree,
         ).closeTo(std100, 1e-12);
     });
 
@@ -6548,10 +6579,11 @@ describe("Math operator tests @group2", async () => {
             ].stateValues.value.tree,
         ).closeTo(stdPrimes, 1e-12);
         expect(
-            stateVariables[
-                stateVariables[await resolvePathToNodeIdx("pPrimeb")]
-                    .activeChildren[1].componentIdx
-            ].stateValues.value.tree,
+            childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("pPrimeb"),
+            )[1].stateValues.value.tree,
         ).closeTo(stdPrimes, 1e-12);
         expect(
             stateVariables[await resolvePathToNodeIdx("standardDeviation100")]
@@ -6562,10 +6594,11 @@ describe("Math operator tests @group2", async () => {
                 .stateValues.value.tree,
         ).closeTo(std100, 1e-12);
         expect(
-            stateVariables[
-                stateVariables[await resolvePathToNodeIdx("p100b")]
-                    .activeChildren[1].componentIdx
-            ].stateValues.value.tree,
+            childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("p100b"),
+            )[1].stateValues.value.tree,
         ).closeTo(std100, 1e-12);
     });
 
@@ -7419,10 +7452,11 @@ describe("Math operator tests @group2", async () => {
                 .stateValues.value.tree,
         ).eq(4);
         expect(
-            stateVariables[
-                stateVariables[await resolvePathToNodeIdx("pPrimeb")]
-                    .activeChildren[1].componentIdx
-            ].stateValues.value.tree,
+            childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("pPrimeb"),
+            )[1].stateValues.value.tree,
         ).eq(4);
         expect(
             stateVariables[await resolvePathToNodeIdx("count100")].stateValues
@@ -7433,10 +7467,11 @@ describe("Math operator tests @group2", async () => {
                 .value.tree,
         ).eq(100);
         expect(
-            stateVariables[
-                stateVariables[await resolvePathToNodeIdx("p100b")]
-                    .activeChildren[1].componentIdx
-            ].stateValues.value.tree,
+            childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("p100b"),
+            )[1].stateValues.value.tree,
         ).eq(100);
     });
 

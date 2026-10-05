@@ -11,6 +11,7 @@ import {
     removeFunctionsMathExpressionClass,
     isUnspecifiedComponentValue,
 } from "../utils/math";
+import { giveListEntriesToIndexParent } from "./listEntryResolverNodes";
 
 /**
  * Loose-typed bag of `componentIdx → varName → newValue` entries that the
@@ -136,8 +137,12 @@ export class EssentialValueWriter {
             return;
         }
         const computedNumEntries = await list.stateValues.computedNumEntries;
-        if (computedNumEntries === (await list.stateValues.numEntries)) {
+        const previousNumEntries = await list.stateValues.numEntries;
+        if (computedNumEntries === previousNumEntries) {
             return;
+        }
+        if (computedNumEntries < previousNumEntries) {
+            this.dropListEntryWritesFrom(list, computedNumEntries);
         }
         list.entryCountChanged = true;
         try {
@@ -147,6 +152,46 @@ export class EssentialValueWriter {
             });
         } finally {
             list.entryCountChanged = false;
+        }
+
+        // A composite indexed by the entries of the list, or of a reference
+        // to it, is indexed by their new number.
+        const lists = [list];
+        for (const changed of lists) {
+            lists.push(...(changed.shadowedBy ?? []));
+            if (changed.replacementOf) {
+                await giveListEntriesToIndexParent({
+                    core: this.core,
+                    composite: changed.replacementOf,
+                    changedOwnItems: true,
+                });
+            }
+        }
+    }
+
+    /**
+     * Drop the values written to the entries of `list` from `numEntries` on
+     * (`ValueListComponent`'s `entryWrites`), when it has fewer entries
+     * than before. An entry it gets back later shows the value the list
+     * computes, as a composite gave a replacement it stopped withholding a
+     * newly computed value (`<sequence fixed="false">` shortened and
+     * lengthened again), and a saved state holds no write past the end.
+     */
+    dropListEntryWritesFrom(list: any, numEntries: number) {
+        const writes = list.essentialState?.entryWrites;
+        if (Array.isArray(writes) && writes.length > numEntries) {
+            writes.length = numEntries;
+        }
+        const saved =
+            this.core.cumulativeStateVariableChanges[list.stateId]?.entryWrites;
+        if (Array.isArray(saved)) {
+            saved.length = Math.min(saved.length, numEntries);
+        } else if (typeof saved === "object" && saved !== null) {
+            for (const key of Object.keys(saved)) {
+                if (key !== "mergeObject" && Number(key) >= numEntries) {
+                    delete saved[key];
+                }
+            }
         }
     }
 
@@ -1127,17 +1172,27 @@ export class EssentialValueWriter {
                             );
                         }
                         let arrayKey = newInstruction.arrayKey;
-                        if (
-                            childSource.entryIndex !== undefined &&
-                            this.core._components[cIdx].state[varName]?.isArray
-                        ) {
-                            arrayKey = String(childSource.entryIndex);
+                        let value = newInstruction.desiredValue;
+                        const list = this.core._components[cIdx];
+                        if (childSource.entryIndex !== undefined) {
+                            if (list.state[varName]?.isArray) {
+                                arrayKey = String(childSource.entryIndex);
+                            } else if (
+                                list.constructor.listPerEntryVariables.includes(
+                                    varName,
+                                )
+                            ) {
+                                // A variable holding a plain array of one
+                                // value per entry is written at the entry
+                                // alone.
+                                value = { [childSource.entryIndex]: value };
+                            }
                         }
                         await this._recurseInto({
                             inst: {
                                 componentIdx: cIdx,
                                 stateVariable: varName,
-                                value: newInstruction.desiredValue,
+                                value,
                                 overrideFixed: instruction.overrideFixed,
                                 arrayKey,
                             },

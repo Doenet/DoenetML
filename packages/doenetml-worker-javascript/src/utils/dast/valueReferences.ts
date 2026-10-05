@@ -17,10 +17,12 @@ import {
     unwrapSource,
 } from "./convertNormalizedDast";
 import {
+    planListEntryAdapterReference,
     planValueReference,
     RESPONSE_MARKS,
     staticValueReferenceTarget,
 } from "../valueReference";
+import { sequenceEntryComponentType } from "../sequence";
 
 /**
  * Turn, in place, every `_copy` that can be a value reference into a `_ref`.
@@ -110,36 +112,35 @@ export function convertCopiesToValueReferences({
     }
 
     /**
-     * The type a `<repeatForSequence>` makes its value as: its `type`
-     * attribute, read as the attribute itself is (`validateAttributeValue`:
-     * lower-cased and trimmed, and a value the attribute does not allow,
-     * such as `type="text"`, falls back to its default, `number`), with
-     * `letters` making a `text`. `undefined` when the attribute is not a
-     * literal.
+     * The type a `<repeatForSequence>` makes its value as, from its `type`
+     * attribute (`sequenceEntryComponentType`). `undefined` when the
+     * attribute is not a literal.
      */
     function sequenceValueType(
         repeat: SerializedComponent,
     ): string | undefined {
-        const spec =
-            componentInfoObjects.allComponentClasses[
-                repeat.componentType
-            ].createAttributesObject().type;
-        const typeAttribute = repeat.attributes.type;
-        let type: string;
-        if (typeAttribute === undefined) {
-            type = spec.defaultPrimitiveValue;
-        } else if (typeAttribute.type === "primitive") {
-            type = String(typeAttribute.primitive.value).toLowerCase().trim();
-        } else {
+        return sequenceEntryComponentType(repeat.attributes.type);
+    }
+
+    /**
+     * The class the component a reference resolved to will be created as,
+     * of type `componentType`: for a list whose entries' type a primitive
+     * attribute decides (`<sequence type="letters">`), the class for the
+     * type its attribute gives (`classForSerializedComponent`). `undefined`
+     * when that attribute cannot be read from the document, as for a
+     * component an `extend` will make.
+     */
+    function referentClass(nodeIdx: number, componentType: string) {
+        const componentClass =
+            componentInfoObjects.allComponentClasses[componentType];
+        if (componentClass?.listEntryTypeAttribute === undefined) {
+            return componentClass;
+        }
+        const node = componentsByIdx.get(nodeIdx);
+        if (node === undefined || node.componentType !== componentType) {
             return undefined;
         }
-        const allowed = spec.validValues?.map(
-            (entry: { value: string }) => entry.value,
-        );
-        if (allowed && !allowed.includes(type)) {
-            type = spec.defaultPrimitiveValue;
-        }
-        return type === "letters" ? "text" : type;
+        return componentClass.classForSerializedComponent(node);
     }
 
     function typeMadeByCopy(copy: SerializedComponent | undefined) {
@@ -188,8 +189,16 @@ export function convertCopiesToValueReferences({
         if (targetComponentType === undefined) {
             return;
         }
+        const targetClass = referentClass(
+            refResolution.nodeIdx,
+            targetComponentType,
+        );
+        if (targetClass === undefined) {
+            return;
+        }
         const target = staticValueReferenceTarget({
             targetComponentType,
+            targetClass,
             unresolvedPath: refResolution.unresolvedPath,
             componentInfoObjects,
         });
@@ -227,7 +236,7 @@ export function convertCopiesToValueReferences({
         if (!parentClass) {
             return;
         }
-        const plan = planValueReference({
+        let plan = planValueReference({
             parentClass,
             targetComponentType: target.referentComponentType,
             valueComponentType: target.valueComponentType,
@@ -235,6 +244,26 @@ export function convertCopiesToValueReferences({
             hasAttributes: false,
             componentInfoObjects,
         });
+        let valueComponentType = target.valueComponentType;
+        let listEntryAdapterProperty: string | undefined;
+        if (!plan && target.listEntryProperty === "value") {
+            // An entry of a list component, in a parent that takes what
+            // the entries adapt to: the reference reads the entry's property
+            // that the adapter would have read (`$l[$i]` as `$l[$i].math`).
+            const adapted = planListEntryAdapterReference({
+                parentClass,
+                listClass: targetClass,
+                valueComponentType: target.valueComponentType,
+                componentInfoObjects,
+            });
+            if (adapted) {
+                plan = {
+                    presentedComponentType: adapted.presentedComponentType,
+                };
+                valueComponentType = adapted.presentedComponentType;
+                listEntryAdapterProperty = adapted.entryProperty;
+            }
+        }
         if (!plan) {
             return;
         }
@@ -259,8 +288,12 @@ export function convertCopiesToValueReferences({
         }
         makeValueReference(component, {
             ...plan,
-            valueComponentType: target.valueComponentType,
+            valueComponentType,
         });
+        if (listEntryAdapterProperty !== undefined) {
+            component.doenetAttributes.listEntryAdapterProperty =
+                listEntryAdapterProperty;
+        }
     }
 
     walk(serializedComponents, undefined, [], convertReference);

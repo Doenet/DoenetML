@@ -18,6 +18,11 @@ import {
 } from "../../utils/randomNumbers";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import type { mean as MeanType, variance as VarianceType } from "mathjs";
+import {
+    childrenAsPresented,
+    componentOrListEntry,
+    entriesOrReplacements,
+} from "../utils/list-entries";
 const { mean, variance } = me.math as {
     mean: MeanType;
     variance: VarianceType;
@@ -79,9 +84,11 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 const componentIdx = await resolvePathToNodeIdx(name);
 
                 samples.push(
-                    ...stateVariables[componentIdx].replacements!.map(
-                        (x) => stateVariables[x.componentIdx].stateValues.value,
-                    ),
+                    ...entriesOrReplacements(
+                        core,
+                        stateVariables,
+                        componentIdx,
+                    ).map((x) => x.stateValues.value),
                 );
 
                 if (expectedMean !== undefined && i == 0 && group === 0) {
@@ -828,8 +835,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
     ) {
         const stateVariables = await core.returnAllStateVariables(false, true);
         const componentIdx = await resolvePathToNodeIdx(name);
-        return stateVariables[componentIdx].replacements!.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
+        return entriesOrReplacements(core, stateVariables, componentIdx).map(
+            (x) => x.stateValues.value,
         );
     }
 
@@ -860,9 +867,11 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             expect(Number.isNaN(stateValues[property]), property).eq(true);
         }
 
-        const values = stateVariables[componentIdx].replacements!.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
+        const values = entriesOrReplacements(
+            core,
+            stateVariables,
+            componentIdx,
+        ).map((x) => x.stateValues.value);
         expect(values.length).eq(numSamples);
         for (const value of values) {
             expect(Number.isNaN(value), `sample ${value}`).eq(true);
@@ -893,9 +902,12 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         const componentIdx = await resolvePathToNodeIdx("s");
 
         expect(stateVariables[componentIdx].stateValues.mean).closeTo(4, 1e-10);
-        for (const replacement of stateVariables[componentIdx].replacements!) {
-            const value =
-                stateVariables[replacement.componentIdx].stateValues.value;
+        for (const replacement of entriesOrReplacements(
+            core,
+            stateVariables,
+            componentIdx,
+        )) {
+            const value = replacement.stateValues.value;
             expect(Number.isInteger(value)).eq(true);
             expect(value).gte(0);
             expect(value).lte(10);
@@ -1925,14 +1937,12 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(numExplanations(core)).eq(1);
-        for (const replacement of stateVariables[
-            await resolvePathToNodeIdx("s")
-        ].replacements!) {
-            expect(
-                Number.isNaN(
-                    stateVariables[replacement.componentIdx].stateValues.value,
-                ),
-            ).eq(true);
+        for (const replacement of entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("s"),
+        )) {
+            expect(Number.isNaN(replacement.stateValues.value)).eq(true);
         }
     });
 
@@ -2275,12 +2285,12 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             numDraws: 4,
         });
 
-        for (const replacement of stateVariables[componentIdx].replacements!) {
-            expect(
-                Number.isNaN(
-                    stateVariables[replacement.componentIdx].stateValues.value,
-                ),
-            ).eq(true);
+        for (const replacement of entriesOrReplacements(
+            core,
+            stateVariables,
+            componentIdx,
+        )) {
+            expect(Number.isNaN(replacement.stateValues.value)).eq(true);
         }
     });
 
@@ -2302,7 +2312,8 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             const componentIdx = await resolvePathToNodeIdx("s");
             // the count matches what the long-standing loops produce, i.e. the ceiling
             expect(
-                stateVariables[componentIdx].replacements!.length,
+                entriesOrReplacements(core, stateVariables, componentIdx)
+                    .length,
                 `numSamples="${numSamples}"`,
             ).eq(expected);
         }
@@ -2322,9 +2333,11 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
                 true,
             );
             const componentIdx = await resolvePathToNodeIdx("s");
-            const values = stateVariables[componentIdx].replacements!.map(
-                (x) => stateVariables[x.componentIdx].stateValues.value,
-            );
+            const values = entriesOrReplacements(
+                core,
+                stateVariables,
+                componentIdx,
+            ).map((x) => x.stateValues.value);
             expect(values.length, parameters).eq(2);
             for (const value of values) {
                 expect(Number.isNaN(value)).eq(true);
@@ -2343,8 +2356,11 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             });
             const componentIdx = await resolvePathToNodeIdx("s");
             expect(
-                (await core.returnAllStateVariables(false, true))[componentIdx]
-                    .replacements!.length,
+                entriesOrReplacements(
+                    core,
+                    await core.returnAllStateVariables(false, true),
+                    componentIdx,
+                ).length,
             ).eq(0);
 
             await callAction({
@@ -2353,8 +2369,11 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             });
 
             expect(
-                (await core.returnAllStateVariables(false, true))[componentIdx]
-                    .replacements!.length,
+                entriesOrReplacements(
+                    core,
+                    await core.returnAllStateVariables(false, true),
+                    componentIdx,
+                ).length,
             ).eq(0);
         }
     });
@@ -2375,12 +2394,12 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         expect(warnings.length).eq(1);
         expect(warnings[0].args).eqls({ mean: 0, standardDeviation: NaN });
 
-        for (const replacement of stateVariables[componentIdx].replacements!) {
-            expect(
-                Number.isNaN(
-                    stateVariables[replacement.componentIdx].stateValues.value,
-                ),
-            ).eq(true);
+        for (const replacement of entriesOrReplacements(
+            core,
+            stateVariables,
+            componentIdx,
+        )) {
+            expect(Number.isNaN(replacement.stateValues.value)).eq(true);
         }
     });
 
@@ -2424,9 +2443,12 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             1000000,
             1e-10,
         );
-        for (const replacement of stateVariables[componentIdx].replacements!) {
-            const value =
-                stateVariables[replacement.componentIdx].stateValues.value;
+        for (const replacement of entriesOrReplacements(
+            core,
+            stateVariables,
+            componentIdx,
+        )) {
+            const value = replacement.stateValues.value;
             expect(Number.isInteger(value)).eq(true);
             expect(value).closeTo(1000000, 20000);
         }
@@ -2813,9 +2835,12 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             1e-10,
         );
 
-        for (let replacement of stateVariables[componentIdx].replacements!) {
-            const value =
-                stateVariables[replacement.componentIdx].stateValues.value;
+        for (let replacement of entriesOrReplacements(
+            core,
+            stateVariables,
+            componentIdx,
+        )) {
+            const value = replacement.stateValues.value;
             expect([0, 1].includes(value)).eq(true);
         }
     });
@@ -3179,44 +3204,104 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
         results.push(
-            stateVariables[await resolvePathToNodeIdx("s[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s[1]",
+                )
+            ).stateValues.value,
         );
         results.push(
-            stateVariables[await resolvePathToNodeIdx("s[2]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s[2]",
+                )
+            ).stateValues.value,
         );
         results.push(
-            stateVariables[await resolvePathToNodeIdx("s[3]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s[3]",
+                )
+            ).stateValues.value,
         );
         results.push(
-            stateVariables[await resolvePathToNodeIdx("s[4]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s[4]",
+                )
+            ).stateValues.value,
         );
         results.push(
-            stateVariables[await resolvePathToNodeIdx("s[5]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s[5]",
+                )
+            ).stateValues.value,
         );
         results2.push(
-            stateVariables[await resolvePathToNodeIdx("s3[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s3[1]",
+                )
+            ).stateValues.value,
         );
         results2.push(
-            stateVariables[await resolvePathToNodeIdx("s3[2]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s3[2]",
+                )
+            ).stateValues.value,
         );
         results2.push(
-            stateVariables[await resolvePathToNodeIdx("s3[3]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s3[3]",
+                )
+            ).stateValues.value,
         );
         results2.push(
-            stateVariables[await resolvePathToNodeIdx("s3[4]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s3[4]",
+                )
+            ).stateValues.value,
         );
         results2.push(
-            stateVariables[await resolvePathToNodeIdx("s3[5]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s3[5]",
+                )
+            ).stateValues.value,
         );
 
         for (let num of results) {
@@ -3260,17 +3345,23 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let sample1replacements =
-            stateVariables[await resolvePathToNodeIdx("sample1")].replacements!;
-        let sample2replacements =
-            stateVariables[await resolvePathToNodeIdx("sample2")].replacements!;
+        let sample1replacements = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("sample1"),
+        );
+        let sample2replacements = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("sample2"),
+        );
         expect(sample1replacements.length).eq(20);
         expect(sample2replacements.length).eq(10);
         let sample1numbers = sample1replacements.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
+            (x) => x.stateValues.value,
         );
         let sample2numbers = sample2replacements.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
+            (x) => x.stateValues.value,
         );
 
         for (let num of sample1numbers) {
@@ -3304,21 +3395,23 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        sample1replacements =
-            stateVariables[await resolvePathToNodeIdx("sample1")].replacements!;
-        sample2replacements =
-            stateVariables[await resolvePathToNodeIdx("sample2")].replacements!;
+        sample1replacements = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("sample1"),
+        );
+        sample2replacements = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("sample2"),
+        );
 
-        expect(
-            sample1replacements.map(
-                (x) => stateVariables[x.componentIdx].stateValues.value,
-            ),
-        ).eqls(sample1numbers);
-        expect(
-            sample2replacements.map(
-                (x) => stateVariables[x.componentIdx].stateValues.value,
-            ),
-        ).eqls(sample2numbers);
+        expect(sample1replacements.map((x) => x.stateValues.value)).eqls(
+            sample1numbers,
+        );
+        expect(sample2replacements.map((x) => x.stateValues.value)).eqls(
+            sample2numbers,
+        );
     });
 
     it("sampled number does change dynamically", async () => {
@@ -3339,17 +3432,23 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let sample1replacements =
-            stateVariables[await resolvePathToNodeIdx("sample1")].replacements!;
-        let sample2replacements =
-            stateVariables[await resolvePathToNodeIdx("sample2")].replacements!;
+        let sample1replacements = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("sample1"),
+        );
+        let sample2replacements = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("sample2"),
+        );
         expect(sample1replacements.length).eq(50);
         expect(sample2replacements.length).eq(180);
         let sample1numbers = sample1replacements.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
+            (x) => x.stateValues.value,
         );
         let sample2numbers = sample2replacements.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
+            (x) => x.stateValues.value,
         );
 
         for (let num of sample1numbers) {
@@ -3379,22 +3478,16 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        let sample1numbersb = stateVariables[
-            await resolvePathToNodeIdx("sample1")
-        ].replacements!.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let sample2numbersb = stateVariables[
-            await resolvePathToNodeIdx("sample2")
-        ]
-            .replacements!.slice(
-                0,
-                stateVariables[await resolvePathToNodeIdx("sample2")]
-                    .replacements!.length -
-                    (stateVariables[await resolvePathToNodeIdx("sample2")]
-                        .replacementsToWithhold ?? 0),
-            )
-            .map((x) => stateVariables[x.componentIdx].stateValues.value);
+        let sample1numbersb = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("sample1"),
+        ).map((x) => x.stateValues.value);
+        let sample2numbersb = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("sample2"),
+        ).map((x) => x.stateValues.value);
         expect(sample1numbersb.length).eq(70);
         expect(sample2numbersb.length).eq(160);
 
@@ -3432,22 +3525,16 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        let sample1numbersc = stateVariables[
-            await resolvePathToNodeIdx("sample1")
-        ].replacements!.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let sample2numbersc = stateVariables[
-            await resolvePathToNodeIdx("sample2")
-        ]
-            .replacements!.slice(
-                0,
-                stateVariables[await resolvePathToNodeIdx("sample2")]
-                    .replacements!.length -
-                    (stateVariables[await resolvePathToNodeIdx("sample2")]
-                        .replacementsToWithhold ?? 0),
-            )
-            .map((x) => stateVariables[x.componentIdx].stateValues.value);
+        let sample1numbersc = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("sample1"),
+        ).map((x) => x.stateValues.value);
+        let sample2numbersc = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("sample2"),
+        ).map((x) => x.stateValues.value);
         expect(sample1numbersc.length).eq(70);
         expect(sample2numbersc.length).eq(160);
 
@@ -3483,57 +3570,51 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             );
 
             expect(
-                stateVariables[
-                    await resolvePathToNodeIdx("p1")
-                ].activeChildren.map(
-                    (child) =>
-                        stateVariables[child.componentIdx].stateValues.value,
-                ),
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("p1"),
+                ).map((child) => child.stateValues.value),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[
-                    await resolvePathToNodeIdx("p2")
-                ].activeChildren.map(
-                    (child) =>
-                        stateVariables[child.componentIdx].stateValues.value,
-                ),
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("p2"),
+                ).map((child) => child.stateValues.value),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[
-                    await resolvePathToNodeIdx("p3")
-                ].activeChildren.map(
-                    (child) =>
-                        stateVariables[child.componentIdx].stateValues.value,
-                ),
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("p3"),
+                ).map((child) => child.stateValues.value),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[
-                    await resolvePathToNodeIdx("p4")
-                ].activeChildren.map(
-                    (child) =>
-                        stateVariables[child.componentIdx].stateValues.value,
-                ),
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("p4"),
+                ).map((child) => child.stateValues.value),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[
-                    await resolvePathToNodeIdx("p5")
-                ].activeChildren.map(
-                    (child) =>
-                        stateVariables[child.componentIdx].stateValues.value,
-                ),
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("p5"),
+                ).map((child) => child.stateValues.value),
             ).eqls(sampledNumbers);
 
             expect(
-                stateVariables[
-                    await resolvePathToNodeIdx("p6")
-                ].activeChildren.map(
-                    (child) =>
-                        stateVariables[child.componentIdx].stateValues.value,
-                ),
+                childrenAsPresented(
+                    core,
+                    stateVariables,
+                    await resolvePathToNodeIdx("p6"),
+                ).map((child) => child.stateValues.value),
             ).eqls(sampledNumbers);
         }
 
@@ -3551,8 +3632,14 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
 
         let stateVariables = await core.returnAllStateVariables(false, true);
         sampledNumbers.push(
-            stateVariables[await resolvePathToNodeIdx("repeat1[1].n[1]")]
-                .stateValues.value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "repeat1[1].n[1]",
+                )
+            ).stateValues.value,
         );
         await check_sampled_numbers(sampledNumbers);
 
@@ -3580,15 +3667,30 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        let n1 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[1].n[1]")]
-                .stateValues.value;
-        let n2 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[2].n[1]")]
-                .stateValues.value;
-        let n3 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[3].n[1]")]
-                .stateValues.value;
+        let n1 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[1].n[1]",
+            )
+        ).stateValues.value;
+        let n2 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[2].n[1]",
+            )
+        ).stateValues.value;
+        let n3 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[3].n[1]",
+            )
+        ).stateValues.value;
         expect(n1).eq(sampledNumbers[0]);
         sampledNumbers.push(n2);
         sampledNumbers.push(n3);
@@ -3618,24 +3720,54 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         });
 
         stateVariables = await core.returnAllStateVariables(false, true);
-        n1 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[1].n[1]")]
-                .stateValues.value;
-        n2 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[2].n[1]")]
-                .stateValues.value;
-        n3 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[3].n[1]")]
-                .stateValues.value;
-        let n4 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[4].n[1]")]
-                .stateValues.value;
-        let n5 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[5].n[1]")]
-                .stateValues.value;
-        let n6 =
-            stateVariables[await resolvePathToNodeIdx("repeat1[6].n[1]")]
-                .stateValues.value;
+        n1 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[1].n[1]",
+            )
+        ).stateValues.value;
+        n2 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[2].n[1]",
+            )
+        ).stateValues.value;
+        n3 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[3].n[1]",
+            )
+        ).stateValues.value;
+        let n4 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[4].n[1]",
+            )
+        ).stateValues.value;
+        let n5 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[5].n[1]",
+            )
+        ).stateValues.value;
+        let n6 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "repeat1[6].n[1]",
+            )
+        ).stateValues.value;
         expect(n1).eq(sampledNumbers[0]);
         expect(n2).eq(sampledNumbers[1]);
         expect(n3).eq(sampledNumbers[2]);
@@ -3735,47 +3867,72 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let n1 =
-            stateVariables[await resolvePathToNodeIdx("n1[1]")].stateValues
-                .value;
-        let n2 =
-            stateVariables[await resolvePathToNodeIdx("n2[1]")].stateValues
-                .value;
-        let n3 =
-            stateVariables[await resolvePathToNodeIdx("n3[1]")].stateValues
-                .value;
-        let n4 =
-            stateVariables[await resolvePathToNodeIdx("n4[1]")].stateValues
-                .value;
-        let n5 =
-            stateVariables[await resolvePathToNodeIdx("n5[1]")].stateValues
-                .value;
+        let n1 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n1[1]",
+            )
+        ).stateValues.value;
+        let n2 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n2[1]",
+            )
+        ).stateValues.value;
+        let n3 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n3[1]",
+            )
+        ).stateValues.value;
+        let n4 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n4[1]",
+            )
+        ).stateValues.value;
+        let n5 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n5[1]",
+            )
+        ).stateValues.value;
 
-        let nums1 = stateVariables[
-            await resolvePathToNodeIdx("nums1")
-        ].replacements!.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let nums2 = stateVariables[
-            await resolvePathToNodeIdx("nums2")
-        ].replacements!.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let nums3 = stateVariables[
-            await resolvePathToNodeIdx("nums3")
-        ].replacements!.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let nums4 = stateVariables[
-            await resolvePathToNodeIdx("nums4")
-        ].replacements!.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
-        let nums5 = stateVariables[
-            await resolvePathToNodeIdx("nums5")
-        ].replacements!.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
+        let nums1 = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("nums1"),
+        ).map((x) => x.stateValues.value);
+        let nums2 = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("nums2"),
+        ).map((x) => x.stateValues.value);
+        let nums3 = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("nums3"),
+        ).map((x) => x.stateValues.value);
+        let nums4 = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("nums4"),
+        ).map((x) => x.stateValues.value);
+        let nums5 = entriesOrReplacements(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("nums5"),
+        ).map((x) => x.stateValues.value);
 
         expect(nums1.length).eq(n1);
         expect(nums2.length).eq(n2);
@@ -3862,62 +4019,150 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let n1 =
-            stateVariables[await resolvePathToNodeIdx("n1[1]")].stateValues
-                .value;
-        let n2 =
-            stateVariables[await resolvePathToNodeIdx("n2[1]")].stateValues
-                .value;
-        let n3 =
-            stateVariables[await resolvePathToNodeIdx("n3[1]")].stateValues
-                .value;
-        let n4 =
-            stateVariables[await resolvePathToNodeIdx("n4[1]")].stateValues
-                .value;
-        let n5 =
-            stateVariables[await resolvePathToNodeIdx("n5[1]")].stateValues
-                .value;
-        let n6 =
-            stateVariables[await resolvePathToNodeIdx("n6[1]")].stateValues
-                .value;
-        let n7 =
-            stateVariables[await resolvePathToNodeIdx("n7[1]")].stateValues
-                .value;
-        let n8 =
-            stateVariables[await resolvePathToNodeIdx("n8[1]")].stateValues
-                .value;
+        let n1 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n1[1]",
+            )
+        ).stateValues.value;
+        let n2 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n2[1]",
+            )
+        ).stateValues.value;
+        let n3 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n3[1]",
+            )
+        ).stateValues.value;
+        let n4 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n4[1]",
+            )
+        ).stateValues.value;
+        let n5 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n5[1]",
+            )
+        ).stateValues.value;
+        let n6 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n6[1]",
+            )
+        ).stateValues.value;
+        let n7 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n7[1]",
+            )
+        ).stateValues.value;
+        let n8 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "n8[1]",
+            )
+        ).stateValues.value;
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("n1[1]")].stateValues
-                .text,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n1[1]",
+                )
+            ).stateValues.text,
         ).eq(String(Math.round(n1 * 10 ** 8) / 10 ** 8));
         expect(
-            stateVariables[await resolvePathToNodeIdx("n2[1]")].stateValues
-                .text,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n2[1]",
+                )
+            ).stateValues.text,
         ).eq(String(Math.round(n2 * 10 ** 1) / 10 ** 1));
         expect(
-            stateVariables[await resolvePathToNodeIdx("n3[1]")].stateValues
-                .text,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n3[1]",
+                )
+            ).stateValues.text,
         ).eq(String(Math.round(n3 * 10 ** 3) / 10 ** 3));
         expect(
-            stateVariables[await resolvePathToNodeIdx("n4[1]")].stateValues
-                .text,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n4[1]",
+                )
+            ).stateValues.text,
         ).eq(String(n4) + ".0");
         expect(
-            stateVariables[await resolvePathToNodeIdx("n5[1]")].stateValues
-                .text,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n5[1]",
+                )
+            ).stateValues.text,
         ).eq(String(Math.round(n5 * 10 ** 8) / 10 ** 8));
         expect(
-            stateVariables[await resolvePathToNodeIdx("n6[1]")].stateValues
-                .text,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n6[1]",
+                )
+            ).stateValues.text,
         ).eq(String(Math.round(n6 * 10 ** 1) / 10 ** 1));
         expect(
-            stateVariables[await resolvePathToNodeIdx("n7[1]")].stateValues
-                .text,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n7[1]",
+                )
+            ).stateValues.text,
         ).eq(String(Math.round(n7 * 10 ** 3) / 10 ** 3));
         expect(
-            stateVariables[await resolvePathToNodeIdx("n8[1]")].stateValues
-                .text,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "n8[1]",
+                )
+            ).stateValues.text,
         ).eq(String(n8) + ".0");
 
         expect(
@@ -3994,13 +4239,11 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
             checkAllSamples = true,
             stateVariables,
         }) {
-            let nReplacements = sampleComponent.replacements.length;
-            if (sampleComponent.replacementsToWithhold) {
-                nReplacements -= sampleComponent.replacementsToWithhold;
-            }
-            let samples = sampleComponent.replacements
-                .slice(0, nReplacements)
-                .map((x) => stateVariables[x.componentIdx].stateValues.value);
+            let samples = entriesOrReplacements(
+                core,
+                stateVariables,
+                sampleComponent.componentIdx,
+            ).map((x) => x.stateValues.value);
             expect(samples.length).eq(numSamples);
 
             expect(
@@ -4415,11 +4658,11 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let samples = stateVariables[
-            await resolvePathToNodeIdx("p1")
-        ].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
+        let samples = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("p1"),
+        ).map((x) => x.stateValues.value);
 
         expect(samples.length).eq(100);
 
@@ -4435,11 +4678,11 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        let samples2 = stateVariables[
-            await resolvePathToNodeIdx("p1")
-        ].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
+        let samples2 = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("p1"),
+        ).map((x) => x.stateValues.value);
 
         expect(samples2).eqls(samples);
 
@@ -4450,11 +4693,11 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        samples2 = stateVariables[
-            await resolvePathToNodeIdx("p1")
-        ].activeChildren.map(
-            (x) => stateVariables[x.componentIdx].stateValues.value,
-        );
+        samples2 = childrenAsPresented(
+            core,
+            stateVariables,
+            await resolvePathToNodeIdx("p1"),
+        ).map((x) => x.stateValues.value);
 
         expect(samples2.length).eq(100);
 
@@ -4485,15 +4728,30 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        rn1 =
-            stateVariables[await resolvePathToNodeIdx("srn1[1]")].stateValues
-                .value;
-        rn2 =
-            stateVariables[await resolvePathToNodeIdx("srn1[2]")].stateValues
-                .value;
-        rn3 =
-            stateVariables[await resolvePathToNodeIdx("srn2[1]")].stateValues
-                .value;
+        rn1 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "srn1[1]",
+            )
+        ).stateValues.value;
+        rn2 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "srn1[2]",
+            )
+        ).stateValues.value;
+        rn3 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "srn2[1]",
+            )
+        ).stateValues.value;
 
         expect(rn1).gt(1).lt(10);
         expect(rn2).gt(1).lt(10);
@@ -4502,8 +4760,14 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         let rn1Rounded = Math.round(rn1 * 100) / 100;
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("srn1[1]")].stateValues
-                .text,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "srn1[1]",
+                )
+            ).stateValues.text,
         ).eq(rn1Rounded.toString());
 
         await callAction({
@@ -4513,15 +4777,30 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        rn1b =
-            stateVariables[await resolvePathToNodeIdx("srn1[1]")].stateValues
-                .value;
-        rn2b =
-            stateVariables[await resolvePathToNodeIdx("srn1[2]")].stateValues
-                .value;
-        rn3b =
-            stateVariables[await resolvePathToNodeIdx("srn2[1]")].stateValues
-                .value;
+        rn1b = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "srn1[1]",
+            )
+        ).stateValues.value;
+        rn2b = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "srn1[2]",
+            )
+        ).stateValues.value;
+        rn3b = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "srn2[1]",
+            )
+        ).stateValues.value;
 
         expect(rn1b).gt(1).lt(10);
         expect(rn2b).gt(1).lt(10);
@@ -4534,8 +4813,14 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
         let rn3Rounded = Math.round(rn3 * 100) / 100;
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("srn2[1]")].stateValues
-                .text,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "srn2[1]",
+                )
+            ).stateValues.text,
         ).eq(rn3Rounded.toString());
 
         await callAction({
@@ -4545,15 +4830,30 @@ describe("SelectRandomNumbers and SampleRandomNumbers tag tests @group4", async 
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        let rn1c =
-            stateVariables[await resolvePathToNodeIdx("srn1[1]")].stateValues
-                .value;
-        let rn2c =
-            stateVariables[await resolvePathToNodeIdx("srn1[2]")].stateValues
-                .value;
-        let rn3c =
-            stateVariables[await resolvePathToNodeIdx("srn2[1]")].stateValues
-                .value;
+        let rn1c = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "srn1[1]",
+            )
+        ).stateValues.value;
+        let rn2c = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "srn1[2]",
+            )
+        ).stateValues.value;
+        let rn3c = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "srn2[1]",
+            )
+        ).stateValues.value;
 
         expect(rn1c).gt(1).lt(10);
         expect(rn2c).gt(1).lt(10);

@@ -572,6 +572,7 @@ export default class VectorListComponent extends CompositeComponent {
                 copyChildSource = {
                     componentIdx: cIdx,
                     componentType: components[cIdx].componentType,
+                    component: components[cIdx],
                 };
             }
         }

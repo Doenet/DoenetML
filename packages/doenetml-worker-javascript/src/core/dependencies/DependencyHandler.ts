@@ -22,6 +22,7 @@ import {
     ancestorsIncludingComposites,
     gatherDescendants,
 } from "../../utils/descendants";
+import { newChangeRecord } from "./Dependency";
 import { dependencyTypeClasses } from "./registry";
 import { CircularCheckMarks, ON_PATH, PASSED } from "./circularCheckMarks";
 import { CircularDependencyError } from "./CircularDependencyError";
@@ -1585,13 +1586,12 @@ export class DependencyHandler {
                         // non-array-entry variables; change records are now
                         // deleted on consumption, so absence is normal.)
                         upValuesChanged = upDep.valuesChanged[ind][varName] =
-                            {};
+                            newChangeRecord();
                     } else if (Object.isFrozen(upValuesChanged)) {
                         // the shared initial change record — replace it
                         // before recording metadata on it
-                        upValuesChanged = upDep.valuesChanged[ind][varName] = {
-                            changed: upValuesChanged.changed,
-                        };
+                        upValuesChanged = upDep.valuesChanged[ind][varName] =
+                            newChangeRecord(upValuesChanged.changed);
                     }
 
                     if (

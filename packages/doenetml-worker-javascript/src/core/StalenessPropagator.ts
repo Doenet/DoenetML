@@ -1,4 +1,5 @@
 import type Core from "../Core";
+import { newChangeRecord } from "./dependencies/Dependency";
 import type { ComponentInstance } from "../types/componentInstance";
 import { returnActiveChildrenIndicesToRender } from "./ChildMatcher";
 import {
@@ -457,9 +458,7 @@ export class StalenessPropagator {
                             // shared frozen initial record — (re)create it
                             changeRecord = upDep.valuesChanged[componentInd][
                                 varName
-                            ] = changeRecord
-                                ? { changed: changeRecord.changed }
-                                : {};
+                            ] = newChangeRecord(changeRecord?.changed);
                         }
                         changeRecord.potentialChange = true;
 
@@ -479,7 +478,8 @@ export class StalenessPropagator {
 
                         if (!upDep.valuesChanged) {
                             upDep.valuesChanged = {
-                                [upDep.downstreamVariableNameIfNoVariables]: {},
+                                [upDep.downstreamVariableNameIfNoVariables]:
+                                    newChangeRecord(),
                             };
                         }
 

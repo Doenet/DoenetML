@@ -10,6 +10,7 @@ import {
     doenetMLDollarsForReference,
     doenetMLStringForReference,
 } from "../../utils/sourceLocation";
+import { listEntryAtResolverNode } from "../listEntryResolverNodes";
 
 /**
  * The same path with every index emptied.
@@ -589,6 +590,32 @@ export class RefResolutionDependency extends Dependency {
                 success: true,
                 downstreamComponentIndices: [],
                 downstreamComponentTypes: [],
+            };
+        }
+
+        // An entry of a list component that a composite is indexed by is a
+        // node of the resolver with no component
+        // (`listEntryResolverNodes.ts`); it is read as an index into the
+        // list, as `$l[2]` is.
+        const listEntry = listEntryAtResolverNode(
+            this.dependencyHandler.core,
+            refResolution.nodeIdx,
+        );
+        if (listEntry) {
+            refResolution = {
+                ...refResolution,
+                nodeIdx: listEntry.listIdx,
+                unresolvedPath: [
+                    {
+                        name: "",
+                        index: [
+                            {
+                                value: [String(listEntry.entryIndex + 1)],
+                            },
+                        ],
+                    },
+                    ...(refResolution.unresolvedPath ?? []),
+                ],
             };
         }
 

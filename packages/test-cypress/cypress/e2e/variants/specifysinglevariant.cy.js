@@ -1,5 +1,17 @@
 import { cesc } from "@doenet/utils";
 
+/**
+ * The value of a component, or of the one entry of a list component, such as
+ * a `<selectFromSequence>`, which holds its values in an array.
+ */
+function valueOf(component) {
+    const stateValues = component.stateValues;
+    return (
+        stateValues.value ??
+        (stateValues.numbers ?? stateValues.maths ?? stateValues.texts)?.[0]
+    );
+}
+
 describe(
     "Specifying single variant document tests",
     { tags: ["@group3"] },
@@ -77,9 +89,9 @@ describe(
                         firstStringsToInd[p.activeChildren[0].trim()];
                     expect(variantInd).not.eq(undefined);
 
-                    let secondValue =
-                        stateVariables[p.activeChildren[1].componentIdx]
-                            .stateValues.value;
+                    let secondValue = valueOf(
+                        stateVariables[p.activeChildren[1].componentIdx],
+                    );
 
                     if (variantInd === 0) {
                         let i = [
@@ -159,9 +171,9 @@ describe(
                             firstStringsToInd[p.activeChildren[0].trim()];
                         expect(variantInd2).eq(variantInd);
 
-                        let secondValue2 =
-                            stateVariables[p.activeChildren[1].componentIdx]
-                                .stateValues.value;
+                        let secondValue2 = valueOf(
+                            stateVariables[p.activeChildren[1].componentIdx],
+                        );
                         expect(secondValue2).eq(secondValue);
 
                         cy.get("#textInput1_input").type(`{end}X`);
@@ -428,12 +440,8 @@ describe(
                     indexChosen2 =
                         stateVariables[await win.resolvePath1("n")].stateValues
                             .selectedIndices[0];
-                    m =
-                        stateVariables[await win.resolvePath1("m[1]")]
-                            .stateValues.value;
-                    n =
-                        stateVariables[await win.resolvePath1("n[1]")]
-                            .stateValues.value;
+                    m = valueOf(stateVariables[await win.resolvePath1("m")]);
+                    n = valueOf(stateVariables[await win.resolvePath1("n")]);
 
                     cy.get("#mathInput1" + " textarea").type(`${m}{enter}`, {
                         force: true,
@@ -487,12 +495,14 @@ describe(
                                 .stateValues.selectedIndices[0],
                         ).eq(indexChosen2);
                         expect(
-                            stateVariables[await win.resolvePath1("m[1]")]
-                                .stateValues.value,
+                            valueOf(
+                                stateVariables[await win.resolvePath1("m")],
+                            ),
                         ).eq(m);
                         expect(
-                            stateVariables[await win.resolvePath1("n[1]")]
-                                .stateValues.value,
+                            valueOf(
+                                stateVariables[await win.resolvePath1("n")],
+                            ),
                         ).eq(n);
                     });
 
@@ -594,12 +604,8 @@ describe(
                 let choiceOrder =
                     stateVariables[await win.resolvePath1("ci")].stateValues
                         .choiceOrder;
-                let n =
-                    stateVariables[await win.resolvePath1("n[1]")].stateValues
-                        .value;
-                let m =
-                    stateVariables[await win.resolvePath1("m[1]")].stateValues
-                        .value;
+                let n = valueOf(stateVariables[await win.resolvePath1("n")]);
+                let m = valueOf(stateVariables[await win.resolvePath1("m")]);
 
                 let mathInput1Idx =
                     stateVariables[await win.resolvePath1(`g.ans`)].stateValues
@@ -712,12 +718,10 @@ describe(
                     let stateVariables = await win.returnAllStateVariables1();
 
                     expect(
-                        stateVariables[await win.resolvePath1("g2.n[1]")]
-                            .stateValues.value,
+                        valueOf(stateVariables[await win.resolvePath1("g2.n")]),
                     ).eq(n);
                     expect(
-                        stateVariables[await win.resolvePath1("g3.n[1]")]
-                            .stateValues.value,
+                        valueOf(stateVariables[await win.resolvePath1("g3.n")]),
                     ).eq(n);
                     expect(
                         stateVariables[await win.resolvePath1("g2.ci")]
@@ -789,20 +793,16 @@ describe(
                     let stateVariables = await win.returnAllStateVariables1();
 
                     expect(
-                        stateVariables[await win.resolvePath1("g.n[1]")]
-                            .stateValues.value,
+                        valueOf(stateVariables[await win.resolvePath1("g.n")]),
                     ).eq(n);
                     expect(
-                        stateVariables[await win.resolvePath1("g2.n[1]")]
-                            .stateValues.value,
+                        valueOf(stateVariables[await win.resolvePath1("g2.n")]),
                     ).eq(n);
                     expect(
-                        stateVariables[await win.resolvePath1("g3.n[1]")]
-                            .stateValues.value,
+                        valueOf(stateVariables[await win.resolvePath1("g3.n")]),
                     ).eq(n);
                     expect(
-                        stateVariables[await win.resolvePath1("m[1]")]
-                            .stateValues.value,
+                        valueOf(stateVariables[await win.resolvePath1("m")]),
                     ).eq(m);
 
                     expect(

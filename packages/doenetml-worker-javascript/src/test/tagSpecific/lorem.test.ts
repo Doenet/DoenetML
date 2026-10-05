@@ -1,6 +1,7 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { updateMathInputValue } from "../utils/actions";
+import { componentOrListEntry } from "../utils/list-entries";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -66,9 +67,14 @@ describe("lorem tag tests @group2", async () => {
                 await resolvePathToNodeIdx("paragraphs.lPars")
             ].replacements!.entries()) {
                 expect(
-                    stateVariables[
-                        await resolvePathToNodeIdx(`lPars[${ind + 1}]`)
-                    ].stateValues.text,
+                    (
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            `lPars[${ind + 1}]`,
+                        )
+                    ).stateValues.text,
                 ).eq(stateVariables[repl.componentIdx].activeChildren[0]);
             }
 
@@ -80,9 +86,14 @@ describe("lorem tag tests @group2", async () => {
                 }
 
                 expect(
-                    stateVariables[
-                        await resolvePathToNodeIdx(`lSens[${ind / 2 + 1}]`)
-                    ].stateValues.text,
+                    (
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            `lSens[${ind / 2 + 1}]`,
+                        )
+                    ).stateValues.text,
                 ).eq(stateVariables[repl.componentIdx].activeChildren[0]);
             }
 
@@ -94,9 +105,14 @@ describe("lorem tag tests @group2", async () => {
                 }
 
                 expect(
-                    stateVariables[
-                        await resolvePathToNodeIdx(`lWords[${ind / 2 + 1}]`)
-                    ].stateValues.text,
+                    (
+                        await componentOrListEntry(
+                            core,
+                            stateVariables,
+                            resolvePathToNodeIdx,
+                            `lWords[${ind / 2 + 1}]`,
+                        )
+                    ).stateValues.text,
                 ).eq(stateVariables[repl.componentIdx].activeChildren[0]);
             }
             return stateVariables;
@@ -144,9 +160,14 @@ describe("lorem tag tests @group2", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        const n1 =
-            stateVariables[await resolvePathToNodeIdx("s[1]")].stateValues
-                .value;
+        const n1 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "s[1]",
+            )
+        ).stateValues.value;
 
         expect(
             stateVariables[await resolvePathToNodeIdx("lPars")].replacements!
@@ -160,8 +181,14 @@ describe("lorem tag tests @group2", async () => {
             ].activeChildren[0];
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("lPars[1]")].stateValues
-                .text,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "lPars[1]",
+                )
+            ).stateValues.text,
         ).eq(paragraph1);
 
         ({ core, resolvePathToNodeIdx } = await createTestCore({
@@ -175,8 +202,14 @@ describe("lorem tag tests @group2", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("s[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s[1]",
+                )
+            ).stateValues.value,
         ).eq(n1);
         expect(
             stateVariables[await resolvePathToNodeIdx("lPars")].replacements!
@@ -191,8 +224,14 @@ describe("lorem tag tests @group2", async () => {
         ).eq(paragraph1);
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("lPars[1]")].stateValues
-                .text,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "lPars[1]",
+                )
+            ).stateValues.text,
         ).eq(paragraph1);
 
         ({ core, resolvePathToNodeIdx } = await createTestCore({
@@ -205,9 +244,14 @@ describe("lorem tag tests @group2", async () => {
 
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        const n2 =
-            stateVariables[await resolvePathToNodeIdx("s[1]")].stateValues
-                .value;
+        const n2 = (
+            await componentOrListEntry(
+                core,
+                stateVariables,
+                resolvePathToNodeIdx,
+                "s[1]",
+            )
+        ).stateValues.value;
         expect(n2).eq(3 - n1);
         expect(
             stateVariables[await resolvePathToNodeIdx("lPars")].replacements!
@@ -222,8 +266,14 @@ describe("lorem tag tests @group2", async () => {
         expect(paragraph2).not.eq(paragraph1);
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("lPars[1]")].stateValues
-                .text,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "lPars[1]",
+                )
+            ).stateValues.text,
         ).eq(paragraph2);
 
         ({ core, resolvePathToNodeIdx } = await createTestCore({
@@ -238,8 +288,14 @@ describe("lorem tag tests @group2", async () => {
         stateVariables = await core.returnAllStateVariables(false, true);
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("s[1]")].stateValues
-                .value,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "s[1]",
+                )
+            ).stateValues.value,
         ).eq(n2);
         expect(
             stateVariables[await resolvePathToNodeIdx("lPars")].replacements!
@@ -254,8 +310,14 @@ describe("lorem tag tests @group2", async () => {
         ).eq(paragraph2);
 
         expect(
-            stateVariables[await resolvePathToNodeIdx("lPars[1]")].stateValues
-                .text,
+            (
+                await componentOrListEntry(
+                    core,
+                    stateVariables,
+                    resolvePathToNodeIdx,
+                    "lPars[1]",
+                )
+            ).stateValues.text,
         ).eq(paragraph2);
     });
 });
