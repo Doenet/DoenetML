@@ -442,7 +442,13 @@ export default class Collect extends CompositeComponent {
             };
         }
 
-        serializedReplacements = [await collectedComponent.serialize()];
+        // a value reference drawn in what is searched is collected as a
+        // component of its type (`ValueRef.serialize`)
+        serializedReplacements = [
+            await collectedComponent.serialize({
+                valueReferenceAsComponent: true,
+            }),
+        ];
 
         let res = createNewComponentIndices(
             serializedReplacements,

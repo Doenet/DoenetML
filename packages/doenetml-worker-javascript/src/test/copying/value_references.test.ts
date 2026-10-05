@@ -1018,8 +1018,12 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             // `extend` sets `createComponentOfType`, so even under a parent
             // that only reads values the reference is not a `_ref`: the
             // `number` it asks for exists, carries the name, and can itself
-            // be referenced
-            expect(valueRefs(core)).toHaveLength(0);
+            // be referenced. The two references to it in the paragraph are
+            // drawn value references.
+            expect(valueRefs(core).map((ref) => ref.parentIdx)).eqls([
+                await resolvePathToNodeIdx("p"),
+                await resolvePathToNodeIdx("p"),
+            ]);
             const stateVariables = await core.returnAllStateVariables(
                 false,
                 true,
@@ -1070,7 +1074,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(primary).eqls([true, false, false]);
         });
 
-        it("a position that renders still gets a full copy, and one in a list is a value reference", async () => {
+        it("a position that renders draws a value reference, and one in a list reads one", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <number name="n">5</number>
@@ -1078,9 +1082,13 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     <mathList name="ml">$n</mathList>
     `,
             });
-            // the list reads the values of its children
-            expect(valueRefs(core).map((ref) => ref.parentIdx)).eqls([
-                await resolvePathToNodeIdx("ml"),
+            // the paragraph draws its reference; the list reads the values
+            // of its children
+            expect(
+                valueRefs(core).map((ref) => [ref.parentIdx, ref.isDrawn]),
+            ).eqls([
+                [await resolvePathToNodeIdx("p"), true],
+                [await resolvePathToNodeIdx("ml"), false],
             ]);
             const stateVariables = await core.returnAllStateVariables(
                 false,

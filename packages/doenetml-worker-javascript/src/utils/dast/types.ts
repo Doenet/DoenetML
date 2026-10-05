@@ -21,6 +21,13 @@ export type SerializedComponent = {
     childrenPosition?: Position;
     extending?: Source<SerializedRefResolution>;
     originalIdx?: number;
+    /**
+     * Set by a serialization on a component it made with no live
+     * counterpart, to shadow one state variable of a live component
+     * (`ValueRef.serialize`); a linked copy turns it into a `referenceShadow`
+     * (`postProcessCopy`).
+     */
+    shadowsVariableOf?: { componentIdx: number; variableName: string };
     state: Record<string, any>;
     skipSugar?: boolean;
     preSugarInd?: number;

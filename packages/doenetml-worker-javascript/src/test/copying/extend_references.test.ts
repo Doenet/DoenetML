@@ -18,6 +18,7 @@ import {
 import me from "math-expressions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { typeAsPresented } from "../utils/list-entries";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -2370,8 +2371,10 @@ describe("Extend and references tests @group2", async () => {
 
         expect(stateVariables[Pref].stateValues.fixed).eq(true);
         expect(stateVariables[Pref].stateValues.fixLocation).eq(true);
-        expect(stateVariables[Pxref].stateValues.fixed).eq(true);
-        expect(stateVariables[Pxref].stateValues.fixLocation).eq(true);
+        // `$P.x` in a paragraph is a drawn value reference, which has no
+        // `fixed` of its own: a write through it goes to `P`, which is fixed
+        expect(stateVariables[Pxref].componentType).eq("_ref");
+        expect(stateVariables[Pxref].stateValues.fixed).eq(undefined);
         expect(
             stateVariables[await resolvePathToNodeIdx("P2")].stateValues.fixed,
         ).eq(true);
@@ -6059,7 +6062,8 @@ describe("Extend and references tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("pextend3")]
                 .activeChildren[0].componentIdx;
 
-        expect(stateVariables[macrom1Name].componentType).eq("math");
+        // `$mi` in a paragraph is a value reference drawn as a math
+        expect(typeAsPresented(core, stateVariables, macrom1Name)).eq("math");
         expect(stateVariables[extendm1Name].componentType).eq("math");
         expect(stateVariables[extendm2Name].componentType).eq("math");
         expect(stateVariables[extendmi3Name].componentType).eq("mathInput");
@@ -6229,8 +6233,13 @@ describe("Extend and references tests @group2", async () => {
         expect(stateVariables[refmi2Name].componentType).eq("mathInput");
         expect(stateVariables[refIndmi1Name].componentType).eq("mathInput");
         expect(stateVariables[refIndmi2Name].componentType).eq("mathInput");
-        expect(stateVariables[refSubnamem1Name].componentType).eq("math");
-        expect(stateVariables[refSubnamem2Name].componentType).eq("math");
+        // `$repeat[1].mi` in a paragraph is a value reference drawn as a math
+        expect(typeAsPresented(core, stateVariables, refSubnamem1Name)).eq(
+            "math",
+        );
+        expect(typeAsPresented(core, stateVariables, refSubnamem2Name)).eq(
+            "math",
+        );
         expect(stateVariables[refmi1Name].stateValues.value.tree).eq("x");
         expect(stateVariables[refmi2Name].stateValues.value.tree).eq("y");
         expect(stateVariables[refIndmi1Name].stateValues.value.tree).eq("x");

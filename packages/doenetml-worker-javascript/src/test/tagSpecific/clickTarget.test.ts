@@ -177,15 +177,21 @@ describe("Click target tests @group1", async () => {
         const nIdx = await resolvePathToNodeIdx("n");
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        const copyIdx =
-            stateVariables[await resolvePathToNodeIdx("p1")].activeChildren[0]
-                .componentIdx;
-        expect(stateVariables[copyIdx].componentType).eq("text");
-        expect(stateVariables[copyIdx].stateValues.clickTarget).eq(true);
+        // `$t` is drawn as a text that is a click target, and a click on it
+        // is a click on `t`
+        const rendererState = (core as any).core.rendererInstructionBuilder
+            .rendererState;
+        const drawn = rendererState[
+            await resolvePathToNodeIdx("p1")
+        ].childrenInstructions.find((child: any) => child?.componentType);
+        expect(drawn.rendererType).eq("text");
+        expect(rendererState[drawn.componentIdx].stateValues.clickTarget).eq(
+            true,
+        );
         expect(stateVariables[t2Idx].stateValues.clickTarget).eq(false);
 
         await clickComponent({
-            componentIdx: copyIdx,
+            componentIdx: drawn.actions.textClicked.componentIdx,
             actionName: "textClicked",
             core,
         });

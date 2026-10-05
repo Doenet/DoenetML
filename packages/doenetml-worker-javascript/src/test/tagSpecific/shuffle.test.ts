@@ -3,7 +3,7 @@ import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { movePoint, updateMathInputValue } from "../utils/actions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import { PublicDoenetMLCore } from "../../CoreWorker";
-import { componentOrListEntry } from "../utils/list-entries";
+import { componentOrListEntry, typeAsPresented } from "../utils/list-entries";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -429,11 +429,12 @@ describe("Shuffle tag tests @group1", async () => {
         ).eq(pText);
 
         if (replacements_all_of_type) {
+            // an entry copied from a list is drawn as a value reference of
+            // its type
             let replacementTypes = stateVariables[
                 await resolvePathToNodeIdx("pList")
-            ].activeChildren.map(
-                (child: { componentIdx: number }) =>
-                    stateVariables[child.componentIdx].componentType,
+            ].activeChildren.map((child: { componentIdx: number }) =>
+                typeAsPresented(core, stateVariables, child.componentIdx),
             );
 
             expect(replacementTypes).eqls(

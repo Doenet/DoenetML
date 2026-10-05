@@ -7,6 +7,7 @@ import {
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { getDiagnosticsByType } from "../utils/diagnostics";
+import { typeAsPresented } from "../utils/list-entries";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -34,10 +35,12 @@ describe("Sort tag tests @group4", async () => {
         ).eq(pText);
 
         if (replacements_all_of_type) {
+            // an entry copied from a list is drawn as a value reference of
+            // its type
             let replacementTypes = stateVariables[
                 await resolvePathToNodeIdx(pName)
-            ].activeChildren.map(
-                (child) => stateVariables[child.componentIdx].componentType,
+            ].activeChildren.map((child) =>
+                typeAsPresented(core, stateVariables, child.componentIdx),
             );
 
             expect(replacementTypes).eqls(

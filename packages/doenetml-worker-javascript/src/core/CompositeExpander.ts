@@ -514,9 +514,18 @@ async function expandShadowingComposite({
         }
     }
 
+    // A copy given a type (`<text extend="$cc"/>`) makes components of
+    // that type, so a value reference among the replacements it copies is
+    // copied as a component (`ValueRef.serialize`); a copy that is not
+    // given one stands where the composite it copies does, and copies a
+    // value reference as one.
+    const valueReferenceAsComponent =
+        component.attributes.createComponentOfType?.primitive != null;
     for (let [idx, repl] of shadowedComposite.replacements.entries()) {
         if (typeof repl === "object") {
-            const serializedComponent = await repl.serialize();
+            const serializedComponent = await repl.serialize({
+                valueReferenceAsComponent,
+            });
 
             if (component.constructor.useSerializedChildrenComponentIndices) {
                 const res = createComponentIndicesFromSerializedChildren(

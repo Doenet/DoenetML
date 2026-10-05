@@ -28,7 +28,24 @@ export function postProcessCopy({
             componentIndicesFound.push(component.componentIdx);
         }
 
-        if (component.originalIdx != undefined) {
+        if (component.shadowsVariableOf) {
+            // made by a serialization to shadow one state variable of a
+            // component (`ValueRef.serialize`), which a linked copy keeps
+            if (addShadowDependencies) {
+                const { componentIdx: shadowedIdx, variableName } =
+                    component.shadowsVariableOf;
+                component.downstreamDependencies = {
+                    [shadowedIdx]: [
+                        {
+                            dependencyType: "referenceShadow",
+                            compositeIdx: componentIdx,
+                            propVariable: variableName,
+                        },
+                    ],
+                };
+            }
+            delete component.shadowsVariableOf;
+        } else if (component.originalIdx != undefined) {
             // preserializedNamesFound[component.originalIdx] = component;
 
             if (!component.dontShadowOriginalIndex) {
@@ -44,6 +61,7 @@ export function postProcessCopy({
                             },
                         ],
                     };
+
                     if (init) {
                         downDep[
                             component.originalIdx

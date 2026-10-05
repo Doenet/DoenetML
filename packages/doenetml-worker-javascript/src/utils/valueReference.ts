@@ -36,15 +36,53 @@ export type ValueReferencePlan = {
 };
 
 /**
+ * The component types (with their subclasses) that render their children
+ * but in which a value reference is not drawn: a `<graph>` places a
+ * `<number>`, `<math>` or `<text>` child at an anchor the reader can drag,
+ * and an input or a slider reads its value children as its choices or its
+ * initial value. A reference there stays the component it was.
+ */
+const PARENTS_NOT_DRAWING_VALUE_REFERENCES = [
+    "graph",
+    "_input",
+    "slider",
+    "matrixInput",
+    "fractionInput",
+];
+
+/**
+ * Whether a value reference whose parent is of class `parentClass` can be
+ * drawn there (`ValueRef.js`): the parent renders its children and is not
+ * one of `PARENTS_NOT_DRAWING_VALUE_REFERENCES`.
+ */
+export function parentDrawsValueReferences(
+    parentClass: any,
+    componentInfoObjects: ComponentInfoObjects,
+): boolean {
+    return (
+        Boolean(parentClass?.renderChildren) &&
+        !PARENTS_NOT_DRAWING_VALUE_REFERENCES.some((baseComponentType) =>
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: parentClass.componentType,
+                baseComponentType,
+            }),
+        )
+    );
+}
+
+/**
  * Decide whether a linked reference to one state variable of a component of
  * `targetComponentType` can be a value reference, and if so as what type
  * and reading which variable.
  *
  * It can when it stands where only a value is read: the parent that will
- * hold it is neither a composite nor a component that renders its children,
- * the variable's type is one of `VALUE_COMPONENT_TYPES`, the reference
- * carries no attributes of its own, and the parent accepts the type in a
- * child group. When the parent does not accept the type but would accept one
+ * hold it is not a composite and does not render its children, the
+ * variable's type is one of `VALUE_COMPONENT_TYPES`, the reference carries
+ * no attributes of its own, and the parent accepts the type in a child
+ * group. With `allowDrawn`, a parent that renders its children qualifies
+ * too when it draws value references (`parentDrawsValueReferences`): the
+ * reference is then drawn there, as the type it presents as, with no
+ * component (`$n` in `<p>The value is $n.</p>`). When the parent does not accept the type but would accept one
  * of the type's adapters (`$n` in a `<math>`: `number` adapts to `math`
  * through its `math` variable), the reference presents as the adapter's type
  * and reads the adapter's variable on the referent instead, which is what the
@@ -62,6 +100,7 @@ export function planValueReference({
     valueComponentType,
     fromImplicitProp,
     hasAttributes,
+    allowDrawn = false,
     componentInfoObjects,
 }: {
     parentClass: any;
@@ -69,9 +108,23 @@ export function planValueReference({
     valueComponentType: string | undefined;
     fromImplicitProp: boolean;
     hasAttributes: boolean;
+    /**
+     * Whether the reference may be one its parent draws. Not for one entry
+     * of many (`Copy.js`'s `arrayListReplacement` asks whether a parent
+     * reads values, and makes one list component where it draws them).
+     */
+    allowDrawn?: boolean;
     componentInfoObjects: ComponentInfoObjects;
 }): ValueReferencePlan | undefined {
-    if (hasAttributes || !parentClass || parentClass.renderChildren) {
+    if (
+        hasAttributes ||
+        !parentClass ||
+        (parentClass.renderChildren &&
+            !(
+                allowDrawn &&
+                parentDrawsValueReferences(parentClass, componentInfoObjects)
+            ))
+    ) {
         return undefined;
     }
     if (
@@ -157,6 +210,32 @@ export function planValueReference({
     }
 
     return undefined;
+}
+
+/**
+ * Whether a value reference planned as `plan`, to the implicit prop of a
+ * component of class `targetClass` when `fromImplicitProp`, stands for a copy
+ * of its referent: the referent's implicit prop is of the referent's own type
+ * (`implicitPropReturnsSameType`, `$n` of a `<number>`) and the reference
+ * reads it as it is. The component a copy made for such a reference shadowed
+ * all of the referent's attributes, so where the reference is drawn it shows
+ * as the referent does (`hide`, `styleNumber`, `renderMode`, …; `ValueRef.js`).
+ * `$n.value`, and `$mi` of a `<mathInput>`, are not copies of the referent.
+ */
+export function copiesReferent({
+    fromImplicitProp,
+    targetClass,
+    plan,
+}: {
+    fromImplicitProp: boolean;
+    targetClass: any;
+    plan: ValueReferencePlan;
+}): boolean {
+    return (
+        fromImplicitProp &&
+        Boolean(targetClass?.implicitPropReturnsSameType) &&
+        plan.adapterVariable === undefined
+    );
 }
 
 /**
@@ -413,6 +492,7 @@ export function serializeValueReference({
     componentIdx,
     stateId,
     responseMarks = {},
+    copiesReferent = false,
 }: ValueReferencePlan & {
     /** The referent's variable the author's reference resolved to. */
     referencedVariable: string;
@@ -423,6 +503,8 @@ export function serializeValueReference({
     stateId: string;
     /** The response marks the copy gives its replacement. */
     responseMarks?: Record<string, any>;
+    /** Whether the reference stands for a copy of `target` (`copiesReferent`). */
+    copiesReferent?: boolean;
 }) {
     const description = describeReferentVariable(target, referencedVariable);
     const doenetAttributes: Record<string, any> = {
@@ -439,6 +521,9 @@ export function serializeValueReference({
     };
     if (adapterVariable !== undefined) {
         doenetAttributes.adapterVariable = adapterVariable;
+    }
+    if (copiesReferent) {
+        doenetAttributes.copiesReferent = true;
     }
     return {
         type: "serialized",

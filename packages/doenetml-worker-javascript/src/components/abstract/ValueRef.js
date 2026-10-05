@@ -1,7 +1,10 @@
 import me from "math-expressions";
 import BaseComponent from "./BaseComponent";
 import { reportInternalError } from "../../utils/internalErrors";
-import { variableOfReferentVariable } from "../../utils/valueReference";
+import {
+    parentDrawsValueReferences,
+    variableOfReferentVariable,
+} from "../../utils/valueReference";
 
 /**
  * A value reference: the component a bare `$n` becomes when it stands where
@@ -38,8 +41,15 @@ import { variableOfReferentVariable } from "../../utils/valueReference";
  * awards reads as a response (`isPotentialResponse`, `isResponse`); the
  * answer asks for them, and they are made on demand like the rest and read
  * the reference's own marks. The answer then records the referenced value
- * as it is on the referent (`valueAsResponse`). It has no renderer either;
- * it is not made in a position whose parent renders its children.
+ * as it is on the referent (`valueAsResponse`).
+ *
+ * In a parent that renders its children (`$n` in
+ * `<p>The value is $n.</p>`, `parentDrawsValueReferences`), it is drawn by
+ * the renderer of the type it presents as (`isDrawn`), from the few of its
+ * variables that renderer reads outside a graph (`rendererVariables`):
+ * `text` or `latex` with the referent's display settings, `selectedStyle`
+ * and `hidden`. Everything else the renderer reads is sent at a value a
+ * component of that type has by default (`rendererConstants`).
  *
  * Part of Doenet/DoenetML#2128.
  */
@@ -60,12 +70,39 @@ export default class ValueRef extends BaseComponent {
             createComponentOfType: this.presentedComponentType,
         };
 
+        // A drawn reference that stands for a copy of its referent is
+        // clicked and focused as its referent is: the copy made for it was
+        // a click target when the referent was.
+        if (this.doenetAttributes.copiesReferent && this.isDrawn) {
+            this.externalActions = {};
+            for (const actionName of this._referentActionNames()) {
+                Object.defineProperty(this.externalActions, actionName, {
+                    enumerable: true,
+                    get: async () => {
+                        const referentInfo =
+                            this.fixedReferent ??
+                            (await this.stateValues.referentInfo);
+                        return referentInfo
+                            ? {
+                                  componentIdx: referentInfo.componentIdx,
+                                  actionName,
+                              }
+                            : undefined;
+                    },
+                });
+            }
+        }
+
         // What is known at construction trims the resolution chain. A
         // reference whose referent a copy fixed (`fixedReferent`) resolves
         // nothing: `referentInfo` is that constant, and the variables that
         // would be determined by it read it directly. One whose path has no
         // component between its brackets has no index values to wait for
-        // before resolving.
+        // before resolving. Only a drawn reference's `hidden` reads its
+        // referent.
+        if (this.doenetAttributes.fixedReferent || !this.isDrawn) {
+            this.state.hidden.stateVariablesDeterminingDependencies = undefined;
+        }
         if (this.doenetAttributes.fixedReferent) {
             for (const name of [
                 "referentInfo",
@@ -113,6 +150,118 @@ export default class ValueRef extends BaseComponent {
      */
     get presentedComponentType() {
         return this.doenetAttributes.presentedComponentType;
+    }
+
+    /**
+     * Whether this reference is drawn: its parent renders its children and
+     * draws value references there (`parentDrawsValueReferences`).
+     */
+    get isDrawn() {
+        const parentClass = this.ancestors?.[0]?.componentClass;
+        if (this._drawnInParentClass !== parentClass) {
+            this._drawnInParentClass = parentClass;
+            this._isDrawn = parentDrawsValueReferences(
+                parentClass,
+                this.componentInfoObjects,
+            );
+        }
+        return this._isDrawn;
+    }
+
+    /**
+     * The renderer of the type this reference presents as, when it is
+     * drawn; none otherwise.
+     */
+    get rendererType() {
+        if (!this.isDrawn) {
+            return undefined;
+        }
+        return this.componentInfoObjects.allComponentClasses[
+            this.presentedComponentType
+        ]?.rendererType;
+    }
+
+    /**
+     * The state variables a drawn reference sends its renderer, as an
+     * object keyed by their names (the shape of
+     * `Core.rendererVariablesByComponentType`, which these take the place
+     * of): those of the presented type's renderer variables
+     * (`rendererVariablesByComponentType`) that it reads outside a graph and
+     * that vary, `DRAWN_REFERENCE_VARIABLES`. None when the reference is not
+     * drawn, so no change to it queues a renderer update.
+     */
+    get rendererVariables() {
+        if (!this.isDrawn) {
+            return NO_RENDERER_VARIABLES;
+        }
+        if (this._rendererVariables === undefined) {
+            this._rendererVariables = {};
+            for (const name of this._presentedRendererVariableNames()) {
+                if (
+                    DRAWN_REFERENCE_VARIABLES.has(name) ||
+                    (this.doenetAttributes.copiesReferent &&
+                        COPIED_REFERENT_VARIABLES.has(name))
+                ) {
+                    this._rendererVariables[name] = true;
+                }
+            }
+        }
+        return this._rendererVariables;
+    }
+
+    /**
+     * What a drawn reference sends its renderer for the rest of the
+     * presented type's renderer variables: the value a component of that
+     * type with no attributes has (`DRAWN_REFERENCE_CONSTANTS`), except
+     * those it reads from its referent when it stands for a copy of it
+     * (`copiesReferent`). A reference is not drawn in a graph, so what
+     * places it on one is not sent.
+     */
+    get rendererConstants() {
+        const constants = {};
+        for (const name of this._presentedRendererVariableNames()) {
+            if (
+                name in DRAWN_REFERENCE_CONSTANTS &&
+                !(name in this.rendererVariables)
+            ) {
+                constants[name] = DRAWN_REFERENCE_CONSTANTS[name];
+            }
+        }
+        return constants;
+    }
+
+    /**
+     * The actions by which the renderer of the presented type reports a
+     * click or a focus (`REFERENT_ACTIONS`).
+     */
+    _referentActionNames() {
+        for (const baseType in REFERENT_ACTIONS) {
+            if (
+                this.componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: this.presentedComponentType,
+                    baseComponentType: baseType,
+                })
+            ) {
+                return REFERENT_ACTIONS[baseType];
+            }
+        }
+        return [];
+    }
+
+    /** The names of the renderer variables of the presented type. */
+    _presentedRendererVariableNames() {
+        if (this._presentedRendererNames === undefined) {
+            const presentedClass =
+                this.componentInfoObjects.allComponentClasses[
+                    this.presentedComponentType
+                ];
+            this._presentedRendererNames = Object.keys(
+                presentedClass?.returnStateVariableInfo({
+                    onlyForRenderer: true,
+                }).stateVariableDescriptions ?? {},
+            );
+        }
+        return this._presentedRendererNames;
     }
 
     /**
@@ -384,24 +533,55 @@ export default class ValueRef extends BaseComponent {
         };
 
         // A reference is hidden with its parent or with the composite that
-        // made it, never with its referent: `$n` shows the value of a hidden
-        // `n`.
+        // made it. One that is read for its value is never hidden with its
+        // referent: `<math>$n+1</math>` uses the value of a hidden `n`. One
+        // that is drawn is hidden where the copy made for it would not have
+        // been shown: when it has nothing to read (`valueMissing`; the copy
+        // made no component) and, when it stands for a copy of its referent
+        // (`copiesReferent`), with the referent's `hide`, which that copy
+        // shadowed (`$t` of `<text hide>`; not `$t.value`).
         stateVariableDefinitions.hidden = {
-            returnDependencies: () => ({
-                parentHidden: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "hidden",
-                },
-                sourceCompositeHidden: {
-                    dependencyType: "sourceCompositeStateVariable",
-                    variableName: "hidden",
-                },
-            }),
+            stateVariablesDeterminingDependencies: ["referentInfo"],
+            returnDependencies({ stateValues = {} }) {
+                const dependencies = {
+                    parentHidden: {
+                        dependencyType: "parentStateVariable",
+                        variableName: "hidden",
+                    },
+                    sourceCompositeHidden: {
+                        dependencyType: "sourceCompositeStateVariable",
+                        variableName: "hidden",
+                    },
+                };
+                const component = this.svComponent;
+                if (!component.isDrawn) {
+                    return dependencies;
+                }
+                if (!component.fixedReferent) {
+                    dependencies.valueMissing = {
+                        dependencyType: "stateVariable",
+                        variableName: "valueMissing",
+                    };
+                }
+                const referentInfo =
+                    component.fixedReferent ?? stateValues.referentInfo;
+                if (component.doenetAttributes.copiesReferent && referentInfo) {
+                    dependencies.referentHide = {
+                        dependencyType: "stateVariable",
+                        componentIdx: referentInfo.componentIdx,
+                        variableName: "hide",
+                        variablesOptional: true,
+                    };
+                }
+                return dependencies;
+            },
             definition: ({ dependencyValues }) => ({
                 setValue: {
                     hidden: Boolean(
                         dependencyValues.parentHidden ||
-                        dependencyValues.sourceCompositeHidden,
+                        dependencyValues.sourceCompositeHidden ||
+                        dependencyValues.valueMissing ||
+                        dependencyValues.referentHide,
                     ),
                 },
             }),
@@ -469,6 +649,73 @@ export default class ValueRef extends BaseComponent {
         });
 
         return stateVariableDefinitions;
+    }
+
+    /**
+     * Serialize this reference. It is copied as a value reference, which
+     * reads what this one reads: within a component being copied (a `<p>` or
+     * `<math>` holding it), and as the replacement of a copy of the
+     * composite that made it, which stands where that composite does. Asked
+     * for as a component (`valueReferenceAsComponent`), when it is what a
+     * `<collect>` found or what a reference names (`<text extend="$cc"/>` of
+     * a composite that made it, `$s[2]` of a `<sort>`), it is copied as a
+     * component of the type it presents as, which a linked copy makes shadow
+     * this reference, as the copy of the component a `_copy` made for it
+     * did. That component took the settings that travel with the referenced
+     * value (`fixed`, the display settings) as attribute components
+     * shadowing the referent's (`addAttributeComponentsShadowingStateVariables`
+     * in `Copy.js`), and so does this copy: attribute components shadowing
+     * the variables of the referent this reference reads them from
+     * (`companions`; `shadowsVariableOf`, `utils/copy.js`).
+     */
+    async serialize(parameters = {}) {
+        const serialized = await super.serialize(parameters);
+        if (
+            !parameters.valueReferenceAsComponent ||
+            parameters.serializingDescendant
+        ) {
+            return serialized;
+        }
+        serialized.componentType = this.presentedComponentType;
+        delete serialized.extending;
+        for (const name of VALUE_REFERENCE_DOENET_ATTRIBUTES) {
+            delete serialized.doenetAttributes[name];
+            delete serialized.originalDoenetAttributes[name];
+        }
+
+        const referentInfo =
+            this.fixedReferent ?? (await this.stateValues.referentInfo);
+        const attributesObject =
+            this.componentInfoObjects.allComponentClasses[
+                this.presentedComponentType
+            ]?.createAttributesObject() ?? {};
+        for (const name in referentInfo?.companions ?? {}) {
+            const attributeComponentType =
+                attributesObject[name]?.createComponentOfType;
+            if (!attributeComponentType || name in serialized.attributes) {
+                continue;
+            }
+            serialized.attributes[name] = {
+                type: "component",
+                name,
+                component: {
+                    type: "serialized",
+                    componentType: attributeComponentType,
+                    // no component of its own to copy; given an index with
+                    // the copy's others (`createNewComponentIndices`)
+                    componentIdx: -1,
+                    shadowsVariableOf: {
+                        componentIdx: referentInfo.componentIdx,
+                        variableName: referentInfo.companions[name],
+                    },
+                    attributes: {},
+                    doenetAttributes: {},
+                    state: {},
+                    children: [],
+                },
+            };
+        }
+        return serialized;
     }
 
     /**
@@ -555,6 +802,25 @@ export default class ValueRef extends BaseComponent {
                 ],
             ];
         }
+        // A drawn reference that stands for a copy of its referent shows as
+        // the referent does: the copy made for it shadowed the referent's
+        // attributes.
+        if (
+            this.doenetAttributes.copiesReferent &&
+            this.isDrawn &&
+            COPIED_REFERENT_VARIABLES.has(stateVariable)
+        ) {
+            return [
+                [
+                    stateVariable,
+                    readsReferentVariable(
+                        stateVariable,
+                        stateVariable,
+                        this.fixedReferent,
+                    ),
+                ],
+            ];
+        }
         const referentVariable = variableOfReferentVariable(stateVariable);
         if (referentVariable !== undefined) {
             return [
@@ -619,6 +885,74 @@ export default class ValueRef extends BaseComponent {
         ]);
     }
 }
+
+/**
+ * The `doenetAttributes` that make a component a value reference, which a
+ * copy of one made as a component of its presented type does not keep.
+ */
+const VALUE_REFERENCE_DOENET_ATTRIBUTES = [
+    "presentedComponentType",
+    "referencedComponentType",
+    "adapterVariable",
+    "fixedReferent",
+    "copiesReferent",
+    "listEntryAdapterProperty",
+];
+
+/** The renderer variables of a reference that is not drawn. */
+const NO_RENDERER_VARIABLES = Object.freeze({});
+
+/**
+ * The renderer variables of `<number>`, `<math>`, `<text>` and `<boolean>`
+ * that a drawn reference sends from its own state (`rendererVariables`).
+ * Its `hidden` is its own; the rest are made on demand from the presented
+ * type's definitions, with the referent's display settings.
+ */
+const DRAWN_REFERENCE_VARIABLES = new Set([
+    "hidden",
+    "text",
+    "latex",
+    "value",
+    "selectedStyle",
+]);
+
+/**
+ * The renderer variables, read outside a graph, that a drawn reference
+ * sends at the value a component of its presented type with no attributes
+ * has (`rendererConstants`): a reference takes no attributes, and these are
+ * not among the settings that travel with a value. One that stands for a
+ * copy of its referent (`copiesReferent`) reads them from the referent
+ * instead (`COPIED_REFERENT_VARIABLES`).
+ */
+const DRAWN_REFERENCE_CONSTANTS = Object.freeze({
+    renderAsMath: false,
+    renderMode: "inline",
+    clickTarget: false,
+});
+
+/**
+ * The renderer variables a drawn reference that stands for a copy of its
+ * referent (`copiesReferent`) reads from the referent as they are there,
+ * because the copy made for it shadowed the attributes they come from:
+ * the style, how it is typeset, and whether it is a click target that
+ * takes clicks (`fixed`).
+ */
+const COPIED_REFERENT_VARIABLES = new Set([
+    "selectedStyle",
+    "fixed",
+    ...Object.keys(DRAWN_REFERENCE_CONSTANTS),
+]);
+
+/**
+ * The actions by which the renderer of a type reports a click or a focus,
+ * which a drawn reference that stands for a copy of its referent passes on
+ * to the referent (`externalActions`).
+ */
+const REFERENT_ACTIONS = {
+    number: ["numberClicked", "numberFocused"],
+    math: ["mathClicked", "mathFocused"],
+    text: ["textClicked", "textFocused"],
+};
 
 /**
  * Whether the reference's path has a component written between its brackets

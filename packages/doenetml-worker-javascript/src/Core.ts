@@ -765,6 +765,19 @@ export default class Core {
             .componentsWithChangedChildrenToRender;
     }
 
+    /**
+     * The variables whose change `component`'s renderer is sent, keyed by
+     * name: those of its type (`rendererVariablesByComponentType`), or, for
+     * a value reference (`_ref`), the ones it names, which are none unless
+     * it is drawn (`ValueRef.rendererVariables`).
+     */
+    rendererVariablesOf(component: any): Record<string, any> {
+        return (
+            component.rendererVariables ??
+            this.rendererVariablesByComponentType[component.componentType]
+        );
+    }
+
     get rendererState(): any {
         return this.rendererInstructionBuilder.rendererState;
     }

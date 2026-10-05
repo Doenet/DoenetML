@@ -16,12 +16,18 @@ export function gatherDescendants({
 
     // With `matchListsByEntryType`, a list component
     // (`listEntryComponentType`) is matched by the type of its entries too,
-    // as the composite it replaced was matched by its replacements.
+    // as the composite it replaced was matched by its replacements. A value
+    // reference that is drawn (`$n` in a `<p>`, `ValueRef.isDrawn`) is
+    // matched as the type it is drawn as, as the component a copy made for
+    // it was; one that is not drawn (`$n` in a `<math>`) is matched only as
+    // a `_ref`.
     let matchChildToTypes = (child) =>
         descendantTypes.some(
             (ct) =>
                 componentInfoObjects.isInheritedComponentType({
-                    inheritedComponentType: child.componentType,
+                    inheritedComponentType: child.isDrawn
+                        ? child.presentedComponentType
+                        : child.componentType,
                     baseComponentType: ct,
                 }) ||
                 (matchListsByEntryType &&
