@@ -513,6 +513,8 @@ describe("List operator results as children @group4", async () => {
     <p name="pMixed"><sort>$c 5</sort></p>
     <p name="pByNumber"><sort sortByProp="number">$c3</sort></p>
     <p name="pIndicesByNumber"><sortIndices sortByProp="number">$c3</sortIndices></p>
+    <p name="pByMissing"><sort sortByProp="nope">$c3 <math>0</math></sort></p>
+    <p name="pIndicesByMissing"><sortIndices sortByProp="nope">$c3</sortIndices></p>
     <sort name="s">$c</sort>
     <p name="pIndexed">$s[2]</p>
     `,
@@ -524,6 +526,9 @@ describe("List operator results as children @group4", async () => {
             pMixed: "5, 9.1, 10, 10",
             pByNumber: "8, 9.5, 10",
             pIndicesByNumber: "3, 1, 2",
+            // entries without the property are kept, in their order
+            pByMissing: "9.5, 10, 8, 0",
+            pIndicesByMissing: "1, 2, 3",
             pIndexed: "10",
         });
 

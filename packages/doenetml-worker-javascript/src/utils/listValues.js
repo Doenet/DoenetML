@@ -404,6 +404,14 @@ export function returnListValueStateVariableDefinitions({
                         componentType: item.componentType,
                         stateValues: { value: values?.[item.listInd] },
                     };
+                } else if (typeof item === "object" && !component) {
+                    // An entry without the property is kept, as a child
+                    // without it is, and compares as having no value.
+                    component = {
+                        componentIdx: item.componentIdx,
+                        componentType: item.componentType,
+                        stateValues: {},
+                    };
                 }
                 if (!component) {
                     continue;
