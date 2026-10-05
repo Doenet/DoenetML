@@ -447,4 +447,144 @@ describe("Value lists as list components @group4", async () => {
             index: "3.1416 1.4",
         });
     });
+
+    it("an authored child shows the display settings it sets, and the list's fill in the rest", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="a" displayDigits="5">1.41421356</math>
+    <mathList name="ml" displayDigits="2">3.14159265 <math displayDigits="6">2.718281828</math> <math padZeros>1</math></mathList>
+    <mathList name="refs" displayDigits="2">$a</mathList>
+    <mathList name="refsNoSetting">$a</mathList>
+    <p name="pml">$ml</p>
+    <p name="prefs">$refs</p>
+    <p name="prefsNoSetting">$refsNoSetting</p>
+    `,
+        });
+
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "pml",
+                "prefs",
+                "prefsNoSetting",
+            ]),
+        ).eqls({
+            // the second child's own digits; the third's padding with the
+            // list's digits
+            pml: "3.1, 2.71828, 1.0",
+            // the list's setting wins over what a reference reads
+            prefs: "1.4",
+            prefsNoSetting: "1.4142",
+        });
+    });
+
+    it("the entries are drawn by the renderers of their types, with no component for a piece of text", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="pn"><numberList name="nl">1 <number displayDigits="1">2.6</number></numberList></p>
+    <p name="pb"><booleanList name="bl">true false</booleanList></p>
+    <p name="pt"><textList name="tl">a b</textList></p>
+    `,
+        });
+
+        const rendererState = (core as any).core.rendererInstructionBuilder
+            .rendererState;
+        async function drawn(name: string) {
+            return rendererState[
+                await resolvePathToNodeIdx(name)
+            ].childrenInstructions
+                .filter((child: any) => typeof child === "object" && child)
+                .map((child: any) => [
+                    child.componentType,
+                    child.rendererType,
+                    child.id,
+                    rendererState[child.componentIdx].stateValues.text,
+                ]);
+        }
+
+        expect(await drawn("pn")).eqls([
+            ["number", "number", "nl:1", "1"],
+            ["number", "number", "nl:2", "3"],
+        ]);
+        expect(await drawn("pb")).eqls([
+            ["boolean", "boolean", "bl:1", "true"],
+            ["boolean", "boolean", "bl:2", "false"],
+        ]);
+        expect(await drawn("pt")).eqls([
+            ["text", "text", "tl:1", "a"],
+            ["text", "text", "tl:2", "b"],
+        ]);
+
+        // the text pieces make no component; the authored child is one
+        const types = Object.values(
+            await core.returnAllStateVariables(false, true),
+        ).map((c: any) => c.componentType);
+        expect(types.filter((t) => t === "number")).toHaveLength(1);
+        expect(types.filter((t) => t === "text")).toHaveLength(0);
+        expect(types.filter((t) => t === "boolean")).toHaveLength(0);
+    });
+
+    it("a reference to an array of values is one list, which takes writes", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <point name="P" displayDigits="2">(1.23456, 2.34567)</point>
+    <cumulativeSum name="c">1 2 3</cumulativeSum>
+    <p name="pxs">$P.xs</p>
+    <p name="ptext">$c.text</p>
+    <mathList name="l" extend="$P.xs" />
+    <p name="pl">$l</p>
+    <mathInput name="mi" bindValueTo="$l[2]" />
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const childTypes = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].activeChildren.map(
+                (child: any) => child.componentType,
+            );
+        expect(await childTypes("pxs")).eqls(["mathList"]);
+        expect(await childTypes("ptext")).eqls(["textList"]);
+
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, ["pxs", "ptext", "pl"]),
+        ).eqls({ pxs: "1.2, 2.3", ptext: "1, 3, 6", pl: "1.2, 2.3" });
+
+        await updateMathInputValue({
+            latex: "7",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await textsOf(core, resolvePathToNodeIdx, ["pxs", "pl"])).eqls({
+            pxs: "1.2, 7",
+            pl: "1.2, 7",
+        });
+    });
+
+    it("a copy of a list holds its values as they are", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi" prefill="x" />
+    <mathList name="l">$mi <math displayDigits="5" name="h">3.14159265</math></mathList>
+    <mathList name="c" copy="$l" />
+    <p name="pl">$l</p>
+    <p name="pc">$c</p>
+    `,
+        });
+
+        expect(await textsOf(core, resolvePathToNodeIdx, ["pl", "pc"])).eqls({
+            pl: "x, 3.1416",
+            pc: "x, 3.1416",
+        });
+        // the copy holds the values, not the children
+        expect(await resolvePathToNodeIdx("c.h")).eq(-1);
+
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await textsOf(core, resolvePathToNodeIdx, ["pl", "pc"])).eqls({
+            pl: "y, 3.1416",
+            pc: "x, 3.1416",
+        });
+    });
 });

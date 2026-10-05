@@ -218,6 +218,13 @@ export default class ValueListComponent extends BaseComponent {
             for (const name in returnNumberDisplayAttributes()) {
                 variables[name] = name;
             }
+            // The display settings an entry is shown with when they are its
+            // own (`listEntryDisplaySettingsVariable`), which a list holding
+            // this one reads.
+            if (this.listEntryDisplaySettingsVariable !== undefined) {
+                variables.displaySettings =
+                    this.listEntryDisplaySettingsVariable;
+            }
         }
         return variables;
     }
@@ -282,6 +289,9 @@ export default class ValueListComponent extends BaseComponent {
             "entryLatexes",
             "entryIsNumbers",
             "entryValuesForDisplay",
+            ...(this.listEntryDisplaySettingsVariable === undefined
+                ? []
+                : [this.listEntryDisplaySettingsVariable]),
         ];
     }
 

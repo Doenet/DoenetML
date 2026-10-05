@@ -733,6 +733,7 @@ export default class AuthoredValueList extends ValueListComponent {
                     childGroups: componentGroups,
                     variableNames: [
                         ...displayNames,
+                        "displaySettings",
                         "referentInfo",
                         "entryOfReference",
                     ],
@@ -930,11 +931,18 @@ function childDisplaySettings({
         }
     }
 
+    // An entry of a list among the children that is shown with settings of
+    // its own (`displaySettings`) has set all of them.
+    const ownSettings = child.stateValues.displaySettings ?? undefined;
+
     for (const names of groups) {
-        const childValues = names.map((name) => child.stateValues[name]);
+        const childValues = names.map((name) =>
+            ownSettings ? ownSettings[name] : child.stateValues[name],
+        );
         const childSets =
             childValues.every((value) => value !== undefined) &&
-            names.some((name) => !childUsedDefault?.[name]);
+            (ownSettings !== undefined ||
+                names.some((name) => !childUsedDefault?.[name]));
         const listSets = names.some((name) => listSetsDisplay[name]);
         const useChild = childSets && !(isReference && listSets);
         for (const [i, name] of names.entries()) {
