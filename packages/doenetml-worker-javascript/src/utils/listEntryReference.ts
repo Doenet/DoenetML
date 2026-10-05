@@ -6,12 +6,13 @@
  * every entry, one value per entry, as a reference reads the property of
  * each component of the entries' type. An entry property is a public state
  * variable of the entries' type (with its aliases and in any case) that the
- * list provides for its entries (`listEntryStateVariables`), or that a
- * component of that type takes from an attribute with a default
- * (`$l[2].simplify`), which an entry, written with no attributes, has
- * (`listEntryDefaultValue`). The list's own
- * properties (`listOwnProperties`) and its other variables are read from the
- * list as usual: `$l.styleNumber` is one value, as is `$l.numEntries`.
+ * list provides for its entries (`listEntryStateVariables`), that the list
+ * computes from another entry property (`listEntryDerivedProperties`,
+ * `$l[2].numDimensions`), or that a component of that type takes from an
+ * attribute with a default (`$l[2].simplify`), which an entry, written with
+ * no attributes, has (`listEntryDefaultValue`). The list's own properties
+ * (`listOwnProperties`) and its other variables are read from the list as
+ * usual: `$l.styleNumber` is one value, as is `$l.numEntries`.
  *
  * The reference resolves such a path to an array of the list, with one value
  * per entry: the list's own array of values for `value`
@@ -20,8 +21,9 @@
  * (`ensureListEntryPropertyArray` in
  * `core/listEntryPropertyArrays.ts`), which reads the list's variable for the
  * property, entry by entry or, for a variable the entries share, the same
- * value for each, or holds the default of every entry. The array's entries
- * are made as components of the type of the entries' property.
+ * value for each, computes the property from the entry property it derives
+ * from, or holds the default of every entry. The array's entries are made as
+ * components of the type of the entries' property.
  */
 import type { ComponentInfoObjects } from "./componentInfoObjects";
 import { publicCaseInsensitiveAliasSubstitutions } from "../StateVariableNameResolver";
@@ -64,6 +66,7 @@ function entryPropertyOf(
         property.startsWith("__not_public_") ||
         !(
             property in listClass.listEntryStateVariables ||
+            property in listClass.listEntryDerivedProperties ||
             listEntryDefaultValue(entryClass, property) !== undefined
         )
     ) {
@@ -197,6 +200,10 @@ export function listEntryPropertyType(
     entryProperty: string,
     componentInfoObjects: ComponentInfoObjects,
 ): string | undefined {
+    const derived = listClass.listEntryDerivedProperties[entryProperty];
+    if (derived) {
+        return derived.componentType;
+    }
     const type = (
         componentInfoObjects.publicStateVariableInfo[
             listClass.listEntryComponentType

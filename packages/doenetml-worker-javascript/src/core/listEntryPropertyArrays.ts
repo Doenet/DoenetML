@@ -35,7 +35,11 @@ export function ensureListEntryPropertyArray({
     }
     const listClass = component.constructor;
     const entryProperty = arrayName.slice(LIST_ENTRY_ARRAY_PREFIX.length);
-    const listVariable = listClass.listEntryStateVariables[entryProperty];
+    // A derived property is computed, entry by entry, from the entry
+    // property it derives from.
+    const derived = listClass.listEntryDerivedProperties[entryProperty];
+    const listVariable =
+        listClass.listEntryStateVariables[derived?.from ?? entryProperty];
     const perEntry = listClass.listPerEntryVariables.includes(listVariable);
     // A property the list does not provide is the default every entry has.
     const defaultValue =
@@ -57,7 +61,11 @@ export function ensureListEntryPropertyArray({
                 entryProperty,
                 core.componentInfoObjects,
             ),
-            ...entryCompanions(core, listClass, entryProperty),
+            ...entryCompanions(
+                core,
+                listClass,
+                derived ? derived.companionsOf : entryProperty,
+            ),
         },
         returnArraySizeDependencies: () => ({
             numEntries: {
@@ -82,12 +90,14 @@ export function ensureListEntryPropertyArray({
         arrayDefinitionByKey({ globalDependencyValues, arrayKeys }: any) {
             const values: Record<string, any> = {};
             for (const arrayKey of arrayKeys) {
-                values[arrayKey] =
+                const value =
                     listVariable === undefined
                         ? defaultValue
                         : perEntry
                           ? (globalDependencyValues.value[arrayKey] ?? null)
                           : globalDependencyValues.value;
+                values[arrayKey] =
+                    derived && value !== null ? derived.compute(value) : value;
             }
             return { setValue: { [arrayName]: values } };
         },
@@ -106,17 +116,24 @@ export function ensureListEntryPropertyArray({
  * The variables that travel with `entryProperty` of an entry, as they do
  * with that property of a component of the entries' type (the display
  * settings with a `<math>`'s `number`), read from the list's variables the
- * entries share.
+ * entries share. None for a derived property that names no property to
+ * travel with (`companionsOf`).
  */
-function entryCompanions(core: any, listClass: any, entryProperty: string) {
+function entryCompanions(
+    core: any,
+    listClass: any,
+    entryProperty: string | undefined,
+) {
     const entryClass =
         core.componentInfoObjects.allComponentClasses[
             listClass.listEntryComponentType
         ];
     const instructions =
-        getClassStateVariableDefinitions(core, entryClass).combined[
-            entryProperty
-        ]?.shadowingInstructions ?? {};
+        (entryProperty !== undefined &&
+            getClassStateVariableDefinitions(core, entryClass).combined[
+                entryProperty
+            ]?.shadowingInstructions) ||
+        {};
     const companions: Record<string, any> = {};
     for (const kind of [
         "addAttributeComponentsShadowingStateVariables",

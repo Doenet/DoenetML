@@ -630,6 +630,70 @@ describe("List operator results as children @group4", async () => {
         });
     });
 
+    it("a property a math computes from its value reads as that of a math", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="ai" prefill="1.5" />
+    <mathInput name="ddi" prefill="2" />
+    <number name="dd">$ddi</number>
+    <cumulativeSum name="c" displayDigits="$dd">$ai 2.34567</cumulativeSum>
+    <cumulativeSum name="e">1 /</cumulativeSum>
+
+    <p name="pX">$c[2].x</p>
+    <p name="pVector">$c[2].vector</p>
+    <p name="pList">$c[2].list</p>
+    <p name="pMatrix">$c[2].matrix</p>
+    <p name="pSizes">$c[2].matrixSize $c[2].numRows $c[2].numColumns $c[2].numDimensions $c[2].numListItems</p>
+    <p name="pNumeric">$c[2].isNumeric $e[2].isNumeric</p>
+    <text name="tDoenetML">$c[2].doenetML</text>
+    <math name="mX">$c[2].x + 1</math>
+    <number name="nDimensions">$c[2].numDimensions + 1</number>
+    <p name="pAllX">$c.x</p>
+    <p name="pAllMatrix">$c.matrix</p>
+    <p name="pAllSizes">$c.matrixSize</p>
+    <p name="pAllNumeric">$e.isNumeric</p>
+    <p name="pAllDoenetML">$c.doenetML</p>
+    `,
+        });
+
+        const doenetML = `<cumulativeSum name="c" displayDigits="$dd">$ai 2.34567</cumulativeSum>`;
+
+        await expectTexts(core, resolvePathToNodeIdx, {
+            pX: "3.8",
+            pVector: "3.8",
+            pList: "3.8",
+            pMatrix: "[[3.8]]",
+            pSizes: "1, 1 1 1 1 1",
+            pNumeric: "true false",
+            tDoenetML: doenetML,
+            mX: "3.85 + 1",
+            nDimensions: "2",
+            pAllX: "1.5, 3.8",
+            pAllMatrix: "[[1.5]], [[3.8]]",
+            pAllSizes: "1, 1, 1, 1",
+            pAllNumeric: "true, false",
+            pAllDoenetML: doenetML,
+        });
+
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: await resolvePathToNodeIdx("ddi"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: await resolvePathToNodeIdx("ai"),
+            core,
+        });
+
+        await expectTexts(core, resolvePathToNodeIdx, {
+            pX: "x + 2.346",
+            pMatrix: "[[x + 2.346]]",
+            pNumeric: "false false",
+            pAllX: "x, x + 2.346",
+        });
+    });
+
     it("a copy of a result follows display settings given by reference", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

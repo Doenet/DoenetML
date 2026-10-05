@@ -17,10 +17,11 @@ import {
     roundForDisplay,
     superSubscriptsToUnicode,
 } from "../../utils/math";
+import { returnMathVectorMatrixStateVariableDefinitions } from "../../utils/mathVectorMatrixStateVariables";
 
 /**
- * Base class for a list component: one component that holds a list of values
- * and renders them itself, which a parent sees as one child per value, of
+ * Base class for a list component: one component that holds a list of values,
+ * which a parent sees, and the viewer draws, as one child per value, of
  * type `listEntryComponentType` (see `BaseComponent`). Part of
  * Doenet/DoenetML#2157.
  *
@@ -99,6 +100,7 @@ export default class ValueListComponent extends BaseComponent {
             fixLocation: "fixLocation",
             selectedStyle: "selectedStyle",
             styleNumber: "styleNumber",
+            doenetML: "doenetML",
         };
         for (const name in returnTextStyleDescriptionDefinitions()) {
             variables[name] = name;
@@ -120,7 +122,17 @@ export default class ValueListComponent extends BaseComponent {
         "modifyIndirectly",
         "isResponse",
         "permid",
+        "doenetML",
     ];
+
+    // The properties of a `<math>` entry that a `<math>` computes from its
+    // value (`$l[2].numDimensions`, `$l[2].x`), computed from the entry's
+    // value in the same way.
+    static get listEntryDerivedProperties() {
+        return this.listEntryComponentType === "math"
+            ? MATH_ENTRY_DERIVED_PROPERTIES
+            : {};
+    }
 
     static get listPerEntryVariables() {
         return [
@@ -582,6 +594,118 @@ const ENTRY_RENDERER_DEFAULTS = {
     renderMode: () => "inline",
     renderAsMath: () => false,
     clickTarget: () => false,
+};
+
+const mathStructure = returnMathVectorMatrixStateVariableDefinitions();
+
+function entryNumDimensions(value) {
+    return mathStructure.numDimensions.definition({
+        dependencyValues: { value },
+    }).setValue.numDimensions;
+}
+
+function entryMatrixSize(value) {
+    return mathStructure.matrixSize.definition({ dependencyValues: { value } })
+        .setValue.matrixSize;
+}
+
+// The entry's components as a vector: the value itself when it has one
+// dimension, otherwise a tuple of its components.
+function entryVector(value) {
+    const numDimensions = entryNumDimensions(value);
+    const { vector } = mathStructure.vector.arrayDefinitionByKey({
+        globalDependencyValues: { value },
+        arraySize: [numDimensions],
+    }).setValue;
+    if (numDimensions === 1) {
+        return vector[0];
+    }
+    return me.fromAst([
+        "tuple",
+        ...Array.from({ length: numDimensions }, (_, i) => vector[i].tree),
+    ]);
+}
+
+// The entry as a matrix (a number is a 1 × 1 matrix).
+function entryMatrix(value) {
+    const [numRows, numColumns] = entryMatrixSize(value);
+    const { matrix } = mathStructure.matrix.arrayDefinitionByKey({
+        globalDependencyValues: { value },
+        arraySize: [numRows, numColumns],
+    }).setValue;
+    const rows = Array.from({ length: numRows }, (_, i) => [
+        "tuple",
+        ...Array.from(
+            { length: numColumns },
+            (_, j) => matrix[`${i},${j}`]?.tree ?? "\uff3f",
+        ),
+    ]);
+    return me.fromAst([
+        "matrix",
+        ["tuple", numRows, numColumns],
+        ["tuple", ...rows],
+    ]);
+}
+
+/**
+ * The properties of a `<math>` entry computed from one of its values (`from`,
+ * an entry property), with the type of the component that holds each, and
+ * the property of a `<math>` whose display settings it travels with.
+ */
+const MATH_ENTRY_DERIVED_PROPERTIES = {
+    numDimensions: {
+        from: "value",
+        componentType: "integer",
+        compute: entryNumDimensions,
+    },
+    matrixSize: {
+        from: "value",
+        componentType: "numberList",
+        compute: entryMatrixSize,
+    },
+    numRows: {
+        from: "value",
+        componentType: "integer",
+        compute: (value) => entryMatrixSize(value)[0],
+    },
+    numColumns: {
+        from: "value",
+        componentType: "integer",
+        compute: (value) => entryMatrixSize(value)[1],
+    },
+    isNumeric: {
+        from: "number",
+        componentType: "boolean",
+        compute: (number) => Number.isFinite(number),
+    },
+    x1: {
+        from: "value",
+        componentType: "math",
+        companionsOf: "vector",
+        compute: (value) =>
+            mathStructure.vector.arrayDefinitionByKey({
+                globalDependencyValues: { value },
+                arraySize: [entryNumDimensions(value)],
+            }).setValue.vector[0],
+    },
+    vector: {
+        from: "value",
+        componentType: "math",
+        companionsOf: "vector",
+        compute: entryVector,
+    },
+    list: {
+        from: "value",
+        componentType: "math",
+        companionsOf: "list",
+        compute: entryVector,
+    },
+    matrix: {
+        from: "value",
+        componentType: "math",
+        companionsOf: "matrix",
+        compute: entryMatrix,
+    },
 };
 
 function mathValueForDisplay(value, displaySettings) {

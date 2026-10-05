@@ -153,17 +153,18 @@ export default class BaseComponent {
 
     /**
      * Set on a list component: one component that holds its entries as
-     * arrays and renders itself, but that a parent sees as one child of this
-     * type per entry. Its parent's child groups match it by this type, and a
-     * child dependency gives one record per entry (`childDependencies.ts`).
-     * Part of Doenet/DoenetML#2157.
+     * arrays, but that a parent sees as one child of this type per entry,
+     * and that the viewer draws as one renderer of this type per entry
+     * (`RendererInstructionBuilder`). Its parent's child groups match it by
+     * this type, and a child dependency gives one record per entry
+     * (`childDependencies.ts`). Part of Doenet/DoenetML#2157.
      */
     static listEntryComponentType = undefined;
 
     /**
      * For a list component, the variable of its own that each variable of an
-     * entry reads. An entry variable not named
-     * here is absent from an entry, as an optional variable is.
+     * entry reads. An entry variable not named here is absent from an entry
+     * that a parent reads, as an optional variable is.
      *
      * `listPerEntryVariables` names the variables of the list that hold one
      * value per entry, in an array; entry `j` reads the `j`th. Every other
@@ -171,6 +172,25 @@ export default class BaseComponent {
      * the variable that holds the number of entries.
      */
     static listEntryStateVariables = {};
+    static listPerEntryVariables = [];
+    static listEntryCountVariable = undefined;
+
+    /**
+     * For a list component, the properties of an entry that a reference
+     * computes from another entry property (`from`) with `compute`, as a
+     * component of the entries' type computes them from its value
+     * (`$l[2].numDimensions`), held in a component of `componentType`
+     * (`utils/listEntryReference.ts`).
+     */
+    static listEntryDerivedProperties = {};
+
+    /**
+     * For a list component, the properties that a reference to the whole
+     * list reads once, from the list (`$l.styleNumber`), where a reference
+     * to the whole list reads every other entry property once per entry
+     * (`utils/listEntryReference.ts`).
+     */
+    static listOwnProperties = [];
 
     /**
      * Whether a linked copy of this component (a shadow, `serialize`
@@ -178,17 +198,6 @@ export default class BaseComponent {
      * shows is shadowed from the component it copies.
      */
     static serializeChildrenOnlyIfUnlinked = false;
-    static listPerEntryVariables = [];
-    static listEntryCountVariable = undefined;
-
-    /**
-     * For a list component, the entry properties (keys of
-     * `listEntryStateVariables`) that a reference to the whole list reads
-     * once, from the list (`$l.styleNumber`). A reference to the whole list
-     * reads every other entry property once per entry
-     * (`utils/listEntryReference.ts`).
-     */
-    static listOwnProperties = [];
 
     static get rendererType() {
         return this.componentType;
