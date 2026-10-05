@@ -587,4 +587,90 @@ describe("Value lists as list components @group4", async () => {
             pc: "x, 3.1416",
         });
     });
+
+    it("a value written to an entry of a copy is kept by the copy, before and after a reload", async () => {
+        const doenetML = `
+    <mathList name="ml">x <math>y</math> z</mathList>
+    <mathList name="mc" copy="$ml" />
+    <textList name="tl">a <text>b</text></textList>
+    <textList name="tc" copy="$tl" />
+    <booleanList name="bl">true false</booleanList>
+    <booleanList name="bc" copy="$bl" />
+    <intervalList name="il">(1,2) [3,4]</intervalList>
+    <intervalList name="ic" copy="$il" />
+    <p name="pml">$ml</p>
+    <p name="pmc">$mc</p>
+    <p name="ptc">$tc</p>
+    <p name="pbc">$bc</p>
+    <p name="pic">$ic</p>
+    <mathInput name="m1" bindValueTo="$mc[1]" />
+    <mathInput name="m2" bindValueTo="$mc[2]" />
+    <textInput name="t2" bindValueTo="$tc[2]" />
+    <booleanInput name="b2" bindValueTo="$bc[2]" />
+    <mathInput name="i2" bindValueTo="$ic[2]" />
+    `;
+        const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
+            { doenetML },
+        );
+        const names = ["pml", "pmc", "ptc", "pbc", "pic"];
+
+        await updateMathInputValue({
+            latex: "q",
+            componentIdx: await resolvePathToNodeIdx("m1"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "r^2",
+            componentIdx: await resolvePathToNodeIdx("m2"),
+            core,
+        });
+        await updateTextInputValue({
+            text: "zz",
+            componentIdx: await resolvePathToNodeIdx("t2"),
+            core,
+        });
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b2"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "(7,8)",
+            componentIdx: await resolvePathToNodeIdx("i2"),
+            core,
+        });
+
+        const written = {
+            pml: "x, y, z",
+            pmc: "q, r², z",
+            ptc: "a, zz",
+            pbc: "true, true",
+            pic: "(1, 2), (7, 8)",
+        };
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls(written);
+
+        await core.core!.saveImmediately();
+        const reloaded = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        });
+        expect(
+            await textsOf(reloaded.core, reloaded.resolvePathToNodeIdx, names),
+        ).eqls(written);
+    });
+
+    it("a maxNumber below zero leaves no entries", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <numberList name="nl" maxNumber="-1">1 2 3</numberList>
+    <p name="p">$nl</p>
+    <p name="n">$nl.numValues</p>
+    `,
+        });
+
+        expect(await textsOf(core, resolvePathToNodeIdx, ["p", "n"])).eqls({
+            p: "",
+            n: "0",
+        });
+    });
 });

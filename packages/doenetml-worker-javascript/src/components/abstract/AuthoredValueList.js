@@ -238,6 +238,18 @@ export default class AuthoredValueList extends ValueListComponent {
                     listValuesShadow: true,
                 },
             }),
+            // A `copy=` of the list holds its values here
+            // (`serializeUnlinkedAsValues`), and a value written to one of
+            // its entries is kept here.
+            inverseDefinition: ({ desiredStateVariableValues }) => ({
+                success: true,
+                instructions: [
+                    {
+                        setEssentialValue: "listValuesShadow",
+                        value: desiredStateVariableValues.listValuesShadow,
+                    },
+                ],
+            }),
         };
 
         // What a piece of text is parsed with; a `<mathList>` gives its
@@ -485,7 +497,7 @@ export default class AuthoredValueList extends ValueListComponent {
                 if (entryStructure.length > dependencyValues.maxNumber) {
                     entryStructure = entryStructure.slice(
                         0,
-                        dependencyValues.maxNumber,
+                        Math.max(0, dependencyValues.maxNumber),
                     );
                 }
 
@@ -895,7 +907,10 @@ function entrySourceValue({ source, dependencyValues, shadow, entryType }) {
         return dependencyValues?.child?.[0]?.stateValues.value;
     }
     if (source?.shadowInd !== undefined) {
-        return shadow?.[source.shadowInd];
+        const value = shadow?.[source.shadowInd];
+        return value === undefined
+            ? undefined
+            : restoredValue(value, entryKind(entryType));
     }
     return undefined;
 }
@@ -984,8 +999,8 @@ function valueForChild(value, child) {
 }
 
 /**
- * A value written to a piece of text, as the entry holds it. A saved state
- * keeps a math as its tree.
+ * A value written to a piece of text, or to an entry of the values a copy
+ * holds, as the entry holds it. A saved state keeps a math as its tree.
  */
 function restoredValue(value, kind) {
     if (kind === "math" && !(value instanceof me.class)) {
