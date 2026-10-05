@@ -1,5 +1,6 @@
 import AuthoredValueList from "./abstract/AuthoredValueList";
-import { evaluateToNumber, textToMathFactory } from "../utils/math";
+import { plainComplex } from "../utils/math";
+import { numberFromString } from "./Number";
 
 export default class NumberList extends AuthoredValueList {
     static componentType = "numberList";
@@ -37,16 +38,9 @@ export default class NumberList extends AuthoredValueList {
         return attributes;
     }
 
-    // A number is read from text as a `<number>` reads it: the text as
-    // math, evaluated.
+    // A number is read from text as a `<number>` reads it.
     static parseTextPiece(text) {
-        try {
-            return evaluateToNumber(
-                textToMathFactory({ splitSymbols: false })(text),
-            );
-        } catch (e) {
-            return NaN;
-        }
+        return plainComplex(numberFromString(text));
     }
 
     // A single math child whose value is a list (`1, 2, 3`) is one entry

@@ -185,6 +185,16 @@ export default class BaseComponent {
     static listEntryDerivedProperties = {};
 
     /**
+     * The derived property `name` of an entry
+     * (`listEntryDerivedProperties`), or `undefined`.
+     */
+    static derivedEntryProperty(name) {
+        return Object.hasOwn(this.listEntryDerivedProperties, name)
+            ? this.listEntryDerivedProperties[name]
+            : undefined;
+    }
+
+    /**
      * For a list component, the properties that a reference to the whole
      * list reads once, from the list (`$l.styleNumber`), where a reference
      * to the whole list reads every other entry property once per entry

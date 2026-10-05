@@ -7,6 +7,8 @@
 
 import { Dependency, INITIAL_CHANGE_RECORD } from "./Dependency";
 import { gatherDescendants } from "../../utils/descendants";
+import { LIST_ENTRY_ARRAY_PREFIX } from "../../utils/listEntryReference";
+import { ensureListEntryPropertyArray } from "../listEntryPropertyArrays";
 
 export class ChildDependency extends Dependency {
     static dependencyType = "child";
@@ -663,10 +665,24 @@ export class ChildDependency extends Dependency {
                 presented.adapterVariable !== undefined && name === "value"
                     ? presented.adapterVariable
                     : name;
-            return (
-                listClass.listEntryStateVariables[entryVariable] ??
-                `__${entryVariable}_not_a_list_entry_variable`
-            );
+            const listVariable =
+                listClass.listEntryStateVariables[entryVariable];
+            if (listVariable !== undefined) {
+                return listVariable;
+            }
+            // A property the list computes for each entry from its value
+            // (`numDimensions`, `x2` of a math read as a point) is an array
+            // made on the list when first asked for.
+            if (listClass.derivedEntryProperty(entryVariable) !== undefined) {
+                const arrayName = `${LIST_ENTRY_ARRAY_PREFIX}${entryVariable}`;
+                ensureListEntryPropertyArray({
+                    core: this.dependencyHandler.core,
+                    component: downComponent,
+                    arrayName,
+                });
+                return arrayName;
+            }
+            return `__${entryVariable}_not_a_list_entry_variable`;
         });
         mapped.push(listClass.listEntryCountVariable);
 
@@ -768,9 +784,9 @@ export class ChildDependency extends Dependency {
                 varInd,
                 originalName,
             ] of this.originalDownstreamVariableNames.entries()) {
-                isArray[originalName] = perEntryVariables.includes(
-                    mappedNames[varInd],
-                );
+                isArray[originalName] =
+                    perEntryVariables.includes(mappedNames[varInd]) ||
+                    mappedNames[varInd].startsWith(LIST_ENTRY_ARRAY_PREFIX);
             }
 
             const firstInd = expanded.length;

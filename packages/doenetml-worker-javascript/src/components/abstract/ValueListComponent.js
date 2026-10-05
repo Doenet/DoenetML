@@ -246,6 +246,22 @@ export default class ValueListComponent extends BaseComponent {
         return kind === "number" ? NUMBER_ENTRY_DERIVED_PROPERTIES : {};
     }
 
+    // A coordinate of a `<math>` entry (`x2`, `$l[2].x3`) is its component
+    // at that index, as for a `<math>`, besides the properties listed.
+    static derivedEntryProperty(name) {
+        const derived = super.derivedEntryProperty(name);
+        if (derived !== undefined) {
+            return derived;
+        }
+        // `x1` and the other coordinates are listed here rather than in
+        // `MATH_ENTRY_DERIVED_PROPERTIES`, for any index.
+        const match = /^x([1-9]\d*)$/.exec(name);
+        if (match && entryKind(this.listEntryComponentType) === "math") {
+            return entryCoordinateProperty(Number(match[1]));
+        }
+        return undefined;
+    }
+
     static get listPerEntryVariables() {
         const kind = entryKind(this.listEntryComponentType);
         if (kind === "boolean") {
@@ -737,6 +753,52 @@ export default class ValueListComponent extends BaseComponent {
             }),
         };
 
+        // Where a write to the coordinates of math entries (`x1`, `x2` of an
+        // entry read as a point) is gathered: one write can set several
+        // coordinates of an entry, each through an array of its own
+        // (`entryCoordinateProperty`), and the entry takes them together.
+        if (kind === "math") {
+            stateVariableDefinitions.entryCoordinateWrites = {
+                returnDependencies: () => ({
+                    values: {
+                        dependencyType: "stateVariable",
+                        variableName: arrayName,
+                    },
+                }),
+                definition: () => ({
+                    setValue: { entryCoordinateWrites: null },
+                }),
+                inverseDefinition({
+                    desiredStateVariableValues,
+                    dependencyValues,
+                    workspace,
+                }) {
+                    if (!workspace.coordinates) {
+                        workspace.coordinates = {};
+                    }
+                    const desiredValue = {};
+                    for (const [entryKey, coordinates] of Object.entries(
+                        desiredStateVariableValues.entryCoordinateWrites,
+                    )) {
+                        workspace.coordinates[entryKey] = {
+                            ...workspace.coordinates[entryKey],
+                            ...coordinates,
+                        };
+                        desiredValue[entryKey] = withCoordinates(
+                            dependencyValues.values[entryKey],
+                            workspace.coordinates[entryKey],
+                        );
+                    }
+                    return {
+                        success: true,
+                        instructions: [
+                            { setDependency: "values", desiredValue },
+                        ],
+                    };
+                },
+            };
+        }
+
         stateVariableDefinitions.entriesUnordered = {
             returnDependencies: () => ({}),
             definition: () => ({ setValue: { entriesUnordered: false } }),
@@ -1183,14 +1245,28 @@ export function entryValueOfType(value, entryType) {
     if (kind === "text") {
         return value instanceof me.class ? value.toString() : String(value);
     }
+    // A number is kept, and so is a complex number (math.js's `Complex`),
+    // which a `<number>` holds as it is.
     let number =
         value instanceof me.class
             ? (plainComplex(value.evaluate_to_constant()) ?? NaN)
-            : Number(value);
+            : typeof value === "number" || isComplex(value)
+              ? value
+              : Number(value);
     if (entryType === "integer" && typeof number === "number") {
         number = Math.round(number);
     }
     return number;
+}
+
+/** Whether `value` is a complex number as math.js holds one. */
+function isComplex(value) {
+    return (
+        typeof value === "object" &&
+        value !== null &&
+        typeof value.re === "number" &&
+        typeof value.im === "number"
+    );
 }
 
 /**
@@ -1291,16 +1367,6 @@ const MATH_ENTRY_DERIVED_PROPERTIES = {
         componentType: "boolean",
         compute: (number) => Number.isFinite(number),
     },
-    x1: {
-        from: "value",
-        componentType: "math",
-        companionsOf: "vector",
-        compute: (value) =>
-            mathStructure.vector.arrayDefinitionByKey({
-                globalDependencyValues: { value },
-                arraySize: [entryNumDimensions(value)],
-            }).setValue.vector[0],
-    },
     vector: {
         from: "value",
         componentType: "math",
@@ -1320,6 +1386,59 @@ const MATH_ENTRY_DERIVED_PROPERTIES = {
         compute: entryMatrix,
     },
 };
+
+const coordinatePropertiesByIndex = new Map();
+
+/**
+ * `value` with the coordinates `coordinates` (`{ 2: 7 }`, from 1) in place
+ * of its own: a tuple with those components, or the coordinate itself for
+ * a value of one dimension written its first.
+ */
+function withCoordinates(value, coordinates) {
+    const numDimensions = Math.max(
+        entryNumDimensions(value),
+        ...Object.keys(coordinates).map(Number),
+    );
+    const components = mathStructure.vector.arrayDefinitionByKey({
+        globalDependencyValues: { value },
+        arraySize: [entryNumDimensions(value)],
+    }).setValue.vector;
+    const trees = Array.from({ length: numDimensions }, (_, i) => {
+        const coordinate = coordinates[i + 1] ?? components[i];
+        return coordinate === undefined
+            ? "\uff3f"
+            : convertValueToMathExpression(coordinate).tree;
+    });
+    return me.fromAst(numDimensions === 1 ? trees[0] : ["tuple", ...trees]);
+}
+
+/**
+ * Coordinate `n` (from 1) of a `<math>` entry, as `MATH_ENTRY_DERIVED_PROPERTIES`
+ * describes a property: the entry's component at that index, blank past its
+ * dimensions.
+ */
+function entryCoordinateProperty(n) {
+    if (!coordinatePropertiesByIndex.has(n)) {
+        coordinatePropertiesByIndex.set(n, {
+            from: "value",
+            componentType: "math",
+            companionsOf: "vector",
+            writeThrough: "entryCoordinateWrites",
+            writeThroughValue: (coordinate) => ({ [n]: coordinate }),
+            compute(value) {
+                const numDimensions = entryNumDimensions(value);
+                if (n > numDimensions) {
+                    return me.fromAst("\uff3f");
+                }
+                return mathStructure.vector.arrayDefinitionByKey({
+                    globalDependencyValues: { value },
+                    arraySize: [numDimensions],
+                }).setValue.vector[n - 1];
+            },
+        });
+    }
+    return coordinatePropertiesByIndex.get(n);
+}
 
 /**
  * The properties of a `<number>` entry computed from its value, as

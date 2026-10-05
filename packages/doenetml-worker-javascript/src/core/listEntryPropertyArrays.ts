@@ -37,7 +37,7 @@ export function ensureListEntryPropertyArray({
     const entryProperty = arrayName.slice(LIST_ENTRY_ARRAY_PREFIX.length);
     // A derived property is computed, entry by entry, from the entry
     // property it derives from.
-    const derived = listClass.listEntryDerivedProperties[entryProperty];
+    const derived = listClass.derivedEntryProperty(entryProperty);
     const listVariable =
         listClass.listEntryStateVariables[derived?.from ?? entryProperty];
     const perEntry = listClass.listPerEntryVariables.includes(listVariable);
@@ -87,6 +87,18 @@ export function ensureListEntryPropertyArray({
             if (listVariable === undefined) {
                 return {};
             }
+            // A property written through another variable of the list
+            // (`writeThrough`), which gathers what one write sets of each
+            // entry (the coordinates of a math read as a point).
+            const globalDependencies: Record<string, any> =
+                derived?.writeThrough
+                    ? {
+                          writeThrough: {
+                              dependencyType: "stateVariable",
+                              variableName: derived.writeThrough,
+                          },
+                      }
+                    : {};
             if (listArray) {
                 const dependenciesByKey: Record<string, any> = {};
                 for (const arrayKey of arrayKeys) {
@@ -98,10 +110,11 @@ export function ensureListEntryPropertyArray({
                         },
                     };
                 }
-                return { dependenciesByKey };
+                return { globalDependencies, dependenciesByKey };
             }
             return {
                 globalDependencies: {
+                    ...globalDependencies,
                     value: {
                         dependencyType: "stateVariable",
                         variableName: listVariable,
@@ -138,6 +151,21 @@ export function ensureListEntryPropertyArray({
             desiredStateVariableValues,
             dependencyNamesByKey,
         }: any) {
+            if (derived?.writeThrough) {
+                const desired = desiredStateVariableValues[arrayName];
+                const desiredValue: Record<string, any> = {};
+                for (const arrayKey in desired) {
+                    desiredValue[arrayKey] = derived.writeThroughValue(
+                        desired[arrayKey],
+                    );
+                }
+                return {
+                    success: true,
+                    instructions: [
+                        { setDependency: "writeThrough", desiredValue },
+                    ],
+                };
+            }
             if (
                 listVariable === undefined ||
                 !perEntry ||

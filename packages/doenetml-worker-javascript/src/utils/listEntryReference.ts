@@ -98,7 +98,7 @@ function entryPropertyOf(
         property.startsWith("__not_public_") ||
         !(
             property in listClass.listEntryStateVariables ||
-            property in listClass.listEntryDerivedProperties ||
+            listClass.derivedEntryProperty(property) !== undefined ||
             listEntryDefaultValue(entryClass, property) !== undefined
         )
     ) {
@@ -256,7 +256,7 @@ export function listEntryPropertyType(
     entryProperty: string,
     componentInfoObjects: ComponentInfoObjects,
 ): string | undefined {
-    const derived = listClass.listEntryDerivedProperties[entryProperty];
+    const derived = listClass.derivedEntryProperty(entryProperty);
     if (derived) {
         return derived.componentType;
     }
