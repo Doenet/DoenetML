@@ -697,10 +697,18 @@ export function getSchema(
             // component types when determining schema relationships
 
             // A list component (`listEntryComponentType`) is likewise treated as
-            // the type of its entries, which is how its parent sees it.
+            // the type of its entries, which is how its parent sees it, unless
+            // the class itself sets `allowInSchemaAsComponent` to nothing to
+            // keep out of the schema (`<controlVectors>`, which only
+            // `<bezierControls>` holds).
             const cClass = componentClasses[type2];
+            const listOptsOut =
+                Object.hasOwn(cClass, "allowInSchemaAsComponent") &&
+                !cClass.allowInSchemaAsComponent;
             const alternativeTypes = cClass.listEntryComponentType
-                ? [cClass.listEntryComponentType]
+                ? listOptsOut
+                    ? undefined
+                    : [cClass.listEntryComponentType]
                 : componentInfoObjects.isInheritedComponentType({
                         inheritedComponentType: type2,
                         baseComponentType: "_composite",

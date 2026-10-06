@@ -1,5 +1,6 @@
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { ResolvePathToNodeIdx } from "./test-core";
+import { coordinatesOf } from "../../components/abstract/GraphicalValueList";
 
 /**
  * Reading the entries of a list component (`listEntryComponentType`;
@@ -50,6 +51,35 @@ export function listEntryRecord(
         )
             ? value?.[entryIndex]
             : value;
+    }
+    // The properties the list computes from an entry's value (`xs` of a
+    // point, `numDimensions`), and its coordinates `x1`, `x2`, … by those
+    // names and by `x`, `y`, `z`.
+    for (const [name, derived] of Object.entries(
+        (listClass.listEntryDerivedProperties ?? {}) as Record<string, any>,
+    )) {
+        const from = stateValues[derived.from];
+        if (!(name in stateValues) && from !== undefined && from !== null) {
+            stateValues[name] = derived.compute(from);
+        }
+    }
+    // A vector's `displacement` is the array of its coordinates, as a
+    // `<vector>` holds it.
+    if (
+        listClass.listEntryComponentType === "vector" &&
+        stateValues.displacement?.tree !== undefined
+    ) {
+        stateValues.displacement = coordinatesOf(stateValues.displacement);
+    }
+    if (Array.isArray(stateValues.xs)) {
+        for (const [ind, x] of stateValues.xs.entries()) {
+            stateValues[`x${ind + 1}`] = x;
+        }
+        for (const [ind, name] of ["x", "y", "z"].entries()) {
+            if (ind < stateValues.xs.length) {
+                stateValues[name] = stateValues.xs[ind];
+            }
+        }
     }
     return {
         componentIdx: listIdx,
@@ -170,4 +200,78 @@ export function typeAsPresented(
         (core as any).core?._components?.[idx]?.presentedComponentType ??
         stateVariables[idx].componentType
     );
+}
+
+/**
+ * `testCore` (what `createTestCore` gives), with each entry of a list
+ * component readable and draggable as a component is, for tests written
+ * when the entries were components (`resolvePathToNodeIdx("vs[2]")`, then
+ * `stateVariables[idx]` and `movePoint({ componentIdx: idx })`).
+ *
+ * A name ending with an index into a list component resolves to the index
+ * the entry's renderer has (`rendererIdxForListEntry`), to which an action
+ * the renderer would send goes, and `returnAllStateVariables` gives a record
+ * for each such entry (`listEntryRecord`).
+ */
+export function withListEntriesAsComponents<
+    T extends {
+        core: PublicDoenetMLCore;
+        resolvePathToNodeIdx: ResolvePathToNodeIdx;
+    },
+>(testCore: T): T {
+    const { core, resolvePathToNodeIdx } = testCore;
+    const builder = (core as any).core.rendererInstructionBuilder;
+
+    async function resolveWithEntries(name: string) {
+        const idx = await resolvePathToNodeIdx(name);
+        if (idx !== -1) {
+            return idx;
+        }
+        const match = /^(.*)\[(\d+)\]$/.exec(name);
+        if (!match) {
+            return idx;
+        }
+        const listIdx = await resolvePathToNodeIdx(match[1]);
+        const list = (core as any).core._components[listIdx];
+        const listClass = list?.constructor;
+        const entryIndex = Number(match[2]) - 1;
+        if (
+            listClass?.listEntryComponentType === undefined ||
+            !(
+                entryIndex >= 0 &&
+                entryIndex <
+                    (await list.stateValues[listClass.listEntryCountVariable])
+            )
+        ) {
+            return idx;
+        }
+        return builder.rendererIdxForListEntry(list, entryIndex);
+    }
+
+    const returnAllStateVariables = core.returnAllStateVariables.bind(core);
+    const coreWithEntries = Object.create(core);
+    coreWithEntries.returnAllStateVariables = async (...args: any[]) => {
+        const stateVariables = await (returnAllStateVariables as any)(...args);
+        for (const [idx, entry] of builder.listEntryOfRendererIdx as Map<
+            number,
+            { listIdx: number; entryIndex: number }
+        >) {
+            const record = listEntryRecord(
+                core,
+                stateVariables,
+                entry.listIdx,
+                entry.entryIndex,
+            );
+            if (record) {
+                stateVariables[idx] = { ...record, componentIdx: idx };
+            }
+        }
+        return stateVariables;
+    };
+
+    return {
+        ...testCore,
+        core: coreWithEntries,
+        resolvePathToNodeIdx: resolveWithEntries,
+    };
 }

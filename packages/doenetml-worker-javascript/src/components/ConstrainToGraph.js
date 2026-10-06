@@ -1,4 +1,5 @@
 import ConstraintComponent from "./abstract/ConstraintComponent";
+import { CONSTRAINED_ANCESTOR_TYPES } from "../utils/constraints";
 import { findFiniteNumericalValue } from "../utils/math";
 
 export default class ConstrainToGraph extends ConstraintComponent {
@@ -43,7 +44,7 @@ export default class ConstrainToGraph extends ConstraintComponent {
             returnDependencies: () => ({
                 constraintAncestor: {
                     dependencyType: "ancestor",
-                    componentType: "_graphical",
+                    componentType: CONSTRAINED_ANCESTOR_TYPES,
                     variableNames: [
                         "graphXmin",
                         "graphXmax",

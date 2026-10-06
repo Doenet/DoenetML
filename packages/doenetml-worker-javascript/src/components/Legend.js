@@ -179,6 +179,18 @@ export default class Legend extends GraphicalComponent {
                     ) {
                         let graphicalElement =
                             dependencyValues[`graphicalElement${ind}`];
+                        // a list of points or vectors stands for them all,
+                        // with its own style
+                        const entryType =
+                            componentInfoObjects.allComponentClasses[
+                                graphicalElement?.componentType
+                            ]?.listEntryComponentType;
+                        if (entryType !== undefined) {
+                            graphicalElement = {
+                                ...graphicalElement,
+                                componentType: entryType,
+                            };
+                        }
                         let adapter =
                             dependencyValues[
                                 `graphicalElement${ind}AdapterSource`

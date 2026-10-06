@@ -110,6 +110,77 @@ function entryPropertyOf(
     return property;
 }
 
+/**
+ * The entry property that `part`, a property of the entries with one index
+ * (`xs[2]`), reads: for an array property with the index written as a
+ * number, the entry of that array as an entry of the entries' type names it
+ * (`x2`), when the list provides it; for a property that is not an array
+ * (`coords[1]`), the property, as an index into it is ignored for a
+ * component of the entries' type. `undefined` otherwise.
+ */
+function indexedEntryProperty(
+    listClass: any,
+    part: PathPart,
+    componentInfoObjects: ComponentInfoObjects,
+): string | undefined {
+    const property = entryPropertyOf(
+        listClass,
+        part.name,
+        componentInfoObjects,
+    );
+    if (
+        property !== undefined &&
+        !(
+            componentInfoObjects.stateVariableInfo[
+                listClass.listEntryComponentType
+            ]?.stateVariableDescriptions[property] as any
+        )?.isArray
+    ) {
+        return property;
+    }
+    const indexValue = part.index[0]?.value;
+    if (
+        !Array.isArray(indexValue) ||
+        indexValue.length !== 1 ||
+        typeof indexValue[0] !== "string"
+    ) {
+        return undefined;
+    }
+    const index = Number(indexValue[0]);
+    if (!Number.isInteger(index) || index < 1) {
+        return undefined;
+    }
+    const entryClass =
+        componentInfoObjects.allComponentClasses[
+            listClass.listEntryComponentType
+        ];
+    if (!entryClass) {
+        return undefined;
+    }
+    const [arrayName] = publicCaseInsensitiveAliasSubstitutions({
+        stateVariables: [part.name],
+        componentClass: entryClass,
+        componentInfoObjects,
+    });
+    const prefixes =
+        componentInfoObjects.stateVariableInfo[listClass.listEntryComponentType]
+            ?.arrayEntryPrefixes ?? {};
+    const prefix = Object.keys(prefixes).find(
+        (prefix) =>
+            prefixes[prefix].arrayVariableName === arrayName &&
+            // a prefix naming one entry, not a row of a matrix
+            !prefixes[prefix].numDimensions,
+    );
+    if (prefix === undefined) {
+        return undefined;
+    }
+    return entryPropertyOf(
+        listClass,
+        `${prefix}${index}`,
+        componentInfoObjects,
+    );
+}
+
 const attributeDefaultsByClass = new WeakMap<any, Record<string, unknown>>();
 
 /**
@@ -218,6 +289,74 @@ export function listEntryPropertyPath({
                 isEntry: true,
             };
         }
+    }
+
+    // A property of an entry with an index into it (`$l[2].xs[1]`) reads
+    // the entry property that names that entry of the property's array
+    // (`x1`).
+    if (
+        unresolvedPath.length === 2 &&
+        first.name === "" &&
+        first.index.length === 1 &&
+        second.index.length === 1
+    ) {
+        const entryProperty = indexedEntryProperty(
+            listClass,
+            second,
+            componentInfoObjects,
+        );
+        if (entryProperty === undefined) {
+            return undefined;
+        }
+        return {
+            path: [
+                {
+                    ...second,
+                    name: arrayForEntryProperty(
+                        listClass,
+                        entryProperty,
+                        componentInfoObjects,
+                    ),
+                    index: first.index,
+                },
+            ],
+            entryProperty,
+            isEntry: true,
+        };
+    }
+
+    // The same of every entry (`$l.xs[1]`).
+    if (
+        unresolvedPath.length === 1 &&
+        first.name !== "" &&
+        first.index.length === 1
+    ) {
+        const entryProperty = indexedEntryProperty(
+            listClass,
+            first,
+            componentInfoObjects,
+        );
+        if (
+            entryProperty === undefined ||
+            listClass.listOwnProperties.includes(entryProperty)
+        ) {
+            return undefined;
+        }
+        return {
+            path: [
+                {
+                    ...first,
+                    name: arrayForEntryProperty(
+                        listClass,
+                        entryProperty,
+                        componentInfoObjects,
+                    ),
+                    index: [],
+                },
+            ],
+            entryProperty,
+            isEntry: false,
+        };
     }
 
     if (

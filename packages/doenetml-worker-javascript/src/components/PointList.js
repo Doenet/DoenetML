@@ -1,755 +1,363 @@
-import CompositeComponent from "./abstract/CompositeComponent";
-import { returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens } from "./commonsugar/lists";
+import GraphicalValueList, {
+    coordinatesOf,
+    numericalCoordinates,
+    vectorOf,
+    withNumDimensions,
+} from "./abstract/GraphicalValueList";
+import me from "math-expressions";
 import {
-    addShadowNumberDisplayAttributes,
-    gatherRawNumberDisplayFixedResponseAttributes,
-    returnNumberDisplayAttributes,
-} from "../utils/numberDisplay";
-import { postProcessCopy } from "../utils/copy";
-import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
-import { returnUnorderedListStateVariableDefinitions } from "../utils/unorderedLists";
+    convertValueToMathExpression,
+    returnGraphicalStyleDescriptionDefinitions,
+} from "@doenet/utils";
+import {
+    applyConstraintFromComponentConstraints,
+    returnConstraintGraphInfoDefinitions,
+} from "../utils/constraints";
 
-export default class PointList extends CompositeComponent {
+/**
+ * A list of points, held as the math of each point's coordinates
+ * (`pointCoords`), which a parent reads, and the viewer draws, as one point
+ * per entry, dragged entry by entry (Doenet/DoenetML#2162).
+ *
+ * A constraint among the children (`<constrainToGrid/>`) constrains every
+ * entry, as it constrains a `<point>` it is a child of: when the entry is
+ * computed and when it is written.
+ */
+export default class PointList extends GraphicalValueList {
+    constructor(args) {
+        super(args);
+
+        Object.assign(this.actions, {
+            movePoint: this.movePoint.bind(this),
+            switchPoint: this.switchPoint.bind(this),
+            pointClicked: this.pointClicked.bind(this),
+            pointFocused: this.pointFocused.bind(this),
+        });
+    }
+
     static componentType = "pointList";
 
     static componentDocs = {
         summary: "A list of points",
     };
-    static stateVariableToEvaluateAfterReplacements =
-        "readyToExpandWhenResolved";
 
-    static includeBlankStringChildren = true;
-    static removeBlankStringChildrenPostSugar = true;
-
-    // when another component has an attribute that is a pointList,
-    // use the points state variable to populate that attribute
-    static stateVariableToBeShadowed = "points";
-    static primaryStateVariableForDefinition = "pointsShadow";
+    static listEntryComponentType = "point";
 
     static allowInSchemaAsComponent = ["point"];
 
-    // even if inside a component that turned on descendantCompositesMustHaveAReplacement
-    // don't required composite replacements
-    static descendantCompositesMustHaveAReplacement = false;
+    static listChildGroups = [
+        {
+            group: "points",
+            componentTypes: ["point"],
+        },
+    ];
 
-    static doNotExpandAsShadowed = true;
+    static listOtherChildGroups = [
+        {
+            group: "constraints",
+            componentTypes: ["_constraint"],
+        },
+    ];
 
-    static createAttributesObject() {
-        let attributes = super.createAttributesObject();
+    // A component that has a point list as an attribute, or a variable
+    // shadowed as one (a polygon's `vertices`), holds the points as the
+    // arrays of their coordinates.
+    static stateVariableToBeShadowed = "points";
+    static primaryStateVariableForDefinition = "pointsShadow";
 
-        attributes.unordered = {
-            createComponentOfType: "boolean",
-            createStateVariable: "unorderedPrelim",
-            defaultValue: false,
-            description:
-                "Whether the order of points in this list should be treated as unordered (e.g. for matching).",
-        };
+    static listValuesEntryPrefix = "pointValue";
 
-        attributes.maxNumber = {
-            description: "Maximum number of points to retain in the list.",
-            createComponentOfType: "number",
-            createStateVariable: "maxNumber",
-            defaultValue: Infinity,
-            public: true,
-        };
-
-        attributes.fixed = {
-            leaveRaw: true,
-            description:
-                "Whether this component's value is fixed and cannot be modified.",
-        };
-
-        attributes.isResponse = {
-            leaveRaw: true,
-            description:
-                "Whether this component is treated as a response for the purposes of assessment.",
-        };
-        attributes.isPotentialResponse = {
-            leaveRaw: true,
-            excludeFromSchema: true,
-        };
-
-        attributes.asList = {
-            createPrimitiveOfType: "boolean",
-            createStateVariable: "asList",
-            defaultValue: true,
-            description:
-                "Whether to render the items separated by commas (true) or with no separator (false).",
-        };
-
-        const numberDisplayAttrs = returnNumberDisplayAttributes();
-        for (let attrName in numberDisplayAttrs) {
-            attributes[attrName] = {
-                leaveRaw: true,
-                description: numberDisplayAttrs[attrName].description,
-            };
-        }
-
-        return attributes;
+    // An authored `<endpoint>` among the entries is drawn open or closed,
+    // and switched, as it is on its own.
+    static get listEntryChildRendererVariables() {
+        return [...super.listEntryChildRendererVariables, "open", "switchable"];
     }
 
-    // Include children that can be added due to sugar
-    static additionalSchemaChildren = ["string", "math"];
+    static listEntryAdditionalRendererVariables = ["open", "switchable"];
 
-    static returnSugarInstructions() {
-        let sugarInstructions = super.returnSugarInstructions();
-
-        let groupIntoPointsSeparatedBySpacesOutsideParens =
-            returnGroupIntoComponentTypeSeparatedBySpacesOutsideParens({
-                componentType: "point",
-            });
-
-        sugarInstructions.push({
-            replacementFunction: function ({
-                matchedChildren,
-                nComponents,
-                stateIdInfo,
-            }) {
-                return groupIntoPointsSeparatedBySpacesOutsideParens({
-                    matchedChildren,
-                    nComponents,
-                    stateIdInfo,
-                });
-            },
-        });
-
-        return sugarInstructions;
+    // A point that is not an endpoint has no `open`, which leaves its
+    // renderer to its marker style.
+    static get listEntryRendererDefaults() {
+        return {
+            ...super.listEntryRendererDefaults,
+            open: () => undefined,
+            switchable: () => false,
+        };
     }
 
-    static returnChildGroups() {
+    static coordinatesArrayName = "points";
+    static coordinatesArrayPrefix = "pointX";
+
+    static returnEntryStyleDescriptionDefinitions() {
+        return {
+            ...super.returnEntryStyleDescriptionDefinitions(),
+            ...returnGraphicalStyleDescriptionDefinitions({
+                kind: "marker",
+                noun: "point",
+            }),
+        };
+    }
+
+    static buildListEntryStateVariables() {
+        const variables = super.buildListEntryStateVariables();
+        variables.numericalXs = "entryNumericalXs";
+        variables.nearestPoint = "entryNearestPoints";
+        variables.constraintUsed = "entryConstraintsUsed";
+        return variables;
+    }
+
+    static get listPerEntryVariables() {
         return [
-            {
-                group: "points",
-                componentTypes: ["point"],
-            },
+            ...super.listPerEntryVariables,
+            "entryNumericalXs",
+            "entryNearestPoints",
+            "entryConstraintsUsed",
         ];
+    }
+
+    // An entry's coordinates as a list (`$pl.xs`, `$pl[2].xs`) and as one
+    // math (`$pl[2].coords`), as a point's.
+    static get listEntryDerivedProperties() {
+        return {
+            ...super.listEntryDerivedProperties,
+            coords: {
+                from: "value",
+                componentType: "coords",
+                companionsOf: "coords",
+                compute: (value) => value,
+                invert: (value) => value,
+            },
+            xs: {
+                from: "value",
+                componentType: "mathList",
+                compute: coordinatesOf,
+            },
+        };
+    }
+
+    static entryValueAdjustmentDependencies() {
+        return {
+            constraintChildren: {
+                dependencyType: "child",
+                childGroups: ["constraints"],
+                variableNames: ["applyConstraint", "applyComponentConstraint"],
+                variablesOptional: true,
+            },
+        };
+    }
+
+    static entryValuesAreAdjusted({ constraintChildren }) {
+        return constraintChildren.length > 0;
+    }
+
+    static adjustEntryValues(entries, { constraintChildren }) {
+        if (constraintChildren.length === 0) {
+            return;
+        }
+        for (const arrayKey in entries) {
+            entries[arrayKey] = applyConstraints(
+                entries[arrayKey],
+                constraintChildren,
+            ).value;
+        }
     }
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
-        Object.assign(
-            stateVariableDefinitions,
-            returnUnorderedListStateVariableDefinitions(),
-        );
+        const arrayName = this.listValuesArrayName;
+        const componentGroups = this.listChildGroups.map((x) => x.group);
 
-        stateVariableDefinitions.pointsShadow = {
-            defaultValue: null,
-            hasEssential: true,
-            returnDependencies: () => ({}),
-            definition: () => ({
-                useEssentialOrDefaultValue: {
-                    pointsShadow: true,
-                },
-            }),
-        };
+        // The graph's limits and scales, which a constraint among the
+        // children applies itself with, as for a `<point>`.
+        for (const [name, definition] of Object.entries(
+            returnConstraintGraphInfoDefinitions(),
+        )) {
+            stateVariableDefinitions[name] = { ...definition, public: false };
+            delete stateVariableDefinitions[name].shadowingInstructions;
+        }
 
         stateVariableDefinitions.numPoints = {
-            description: "The number of points in the list.",
-            public: true,
-            shadowingInstructions: {
-                createComponentOfType: "number",
-            },
-            returnDependencies: () => ({
-                maxNumber: {
-                    dependencyType: "stateVariable",
-                    variableName: "maxNumber",
-                },
-                pointChildren: {
-                    dependencyType: "child",
-                    childGroups: ["points"],
-                    skipComponentIndices: true,
-                },
-                pointsShadow: {
-                    dependencyType: "stateVariable",
-                    variableName: "pointsShadow",
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                let numPoints = 0;
-
-                if (dependencyValues.pointChildren.length > 0) {
-                    numPoints = dependencyValues.pointChildren.length;
-                } else if (dependencyValues.pointsShadow !== null) {
-                    numPoints = dependencyValues.pointsShadow.length;
-                }
-
-                let maxNum = dependencyValues.maxNumber;
-                if (numPoints > maxNum) {
-                    numPoints = maxNum;
-                }
-
-                return {
-                    setValue: { numPoints },
-                    checkForActualChange: { numPoints: true },
-                };
-            },
-        };
-
-        stateVariableDefinitions.numDimensions = {
-            returnDependencies: () => ({
-                maxNumber: {
-                    dependencyType: "stateVariable",
-                    variableName: "maxNumber",
-                },
-                pointChildren: {
-                    dependencyType: "child",
-                    childGroups: ["points"],
-                    variableNames: ["numDimensions"],
-                    skipComponentIndices: true,
-                },
-                pointsShadow: {
-                    dependencyType: "stateVariable",
-                    variableName: "pointsShadow",
-                },
-            }),
-            definition: function ({ dependencyValues }) {
-                let numDimensions;
-
-                let numDimensionsByPoint = [];
-                if (dependencyValues.pointChildren.length > 0) {
-                    for (let point of dependencyValues.pointChildren) {
-                        if (Number.isFinite(point.stateValues.numDimensions)) {
-                            numDimensionsByPoint.push(
-                                point.stateValues.numDimensions,
-                            );
-                        } else {
-                            numDimensionsByPoint.push(1);
-                        }
-                    }
-                } else if (dependencyValues.pointsShadow !== null) {
-                    for (let point of dependencyValues.pointsShadow) {
-                        numDimensionsByPoint.push(point.length);
-                    }
-                }
-
-                let maxNum = dependencyValues.maxNumber;
-                if (numDimensionsByPoint.length > maxNum) {
-                    numDimensionsByPoint = numDimensionsByPoint.slice(
-                        0,
-                        maxNum,
-                    );
-                }
-
-                if (numDimensionsByPoint.length === 0) {
-                    numDimensions = 2;
-                } else {
-                    numDimensions = Math.max(...numDimensionsByPoint);
-                }
-                return {
-                    setValue: { numDimensions },
-                    checkForActualChange: { numDimensions: true },
-                };
-            },
-        };
-
-        stateVariableDefinitions.childIndicesByPoint = {
-            isArray: true,
-            returnArraySizeDependencies: () => ({
-                numPoints: {
-                    dependencyType: "stateVariable",
-                    variableName: "numPoints",
-                },
-            }),
-            returnArraySize({ dependencyValues }) {
-                return [dependencyValues.numPoints];
-            },
-            returnArrayDependenciesByKey({ arrayKeys }) {
-                let dependenciesByKey = {};
-
-                for (let arrayKey of arrayKeys) {
-                    dependenciesByKey[arrayKey] = {
-                        pointChild: {
-                            dependencyType: "child",
-                            childGroups: ["points"],
-                            childIndices: [arrayKey],
-                        },
-                    };
-                }
-
-                return { dependenciesByKey };
-            },
-            arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
-                let childIndicesByPoint = {};
-
-                for (let arrayKey of arrayKeys) {
-                    let pointChild =
-                        dependencyValuesByKey[arrayKey].pointChild[0];
-
-                    if (pointChild) {
-                        childIndicesByPoint[arrayKey] = pointChild.componentIdx;
-                    }
-                }
-
-                return { setValue: { childIndicesByPoint } };
-            },
-        };
-
-        stateVariableDefinitions.points = {
-            isArray: true,
-            numDimensions: 2,
-            entryPrefixes: ["pointX", "point"],
-            stateVariablesDeterminingDependencies: ["childIndicesByPoint"],
-            returnEntryDimensions: (prefix) => (prefix === "point" ? 1 : 0),
-            getArrayKeysFromVarName({
-                arrayEntryPrefix,
-                varEnding,
-                arraySize,
-            }) {
-                if (arrayEntryPrefix === "pointX") {
-                    // pointX1_2 is the 2nd component of the first point
-                    let indices = varEnding
-                        .split("_")
-                        .map((x) => Number(x) - 1);
-                    if (
-                        indices.length === 2 &&
-                        indices.every((x, i) => Number.isInteger(x) && x >= 0)
-                    ) {
-                        if (arraySize) {
-                            if (indices.every((x, i) => x < arraySize[i])) {
-                                return [String(indices)];
-                            } else {
-                                return [];
-                            }
-                        } else {
-                            // If not given the array size,
-                            // then return the array keys assuming the array is large enough.
-                            // Must do this as it is used to determine potential array entries.
-                            return [String(indices)];
-                        }
-                    } else {
-                        return [];
-                    }
-                } else {
-                    // point3 is all components of the third point
-
-                    let pointInd = Number(varEnding) - 1;
-                    if (!(Number.isInteger(pointInd) && pointInd >= 0)) {
-                        return [];
-                    }
-
-                    if (!arraySize) {
-                        // If don't have array size, we just need to determine if it is a potential entry.
-                        // Return the first entry assuming array is large enough
-                        return [pointInd + ",0"];
-                    }
-                    if (pointInd < arraySize[0]) {
-                        // array of "pointInd,i", where i=0, ..., arraySize[1]-1
-                        return Array.from(
-                            Array(arraySize[1]),
-                            (_, i) => pointInd + "," + i,
-                        );
-                    } else {
-                        return [];
-                    }
-                }
-            },
-            arrayVarNameFromPropIndex(propIndex, varName) {
-                if (varName === "points") {
-                    if (propIndex.length === 1) {
-                        return "point" + propIndex[0];
-                    } else {
-                        // if propIndex has additional entries, ignore them
-                        return `pointX${propIndex[0]}_${propIndex[1]}`;
-                    }
-                }
-                if (varName.slice(0, 5) === "point") {
-                    // could be point or pointX
-                    let pointNum = Number(varName.slice(5));
-                    if (Number.isInteger(pointNum) && pointNum > 0) {
-                        // if propIndex has additional entries, ignore them
-                        return `pointX${pointNum}_${propIndex[0]}`;
-                    }
-                }
-                return null;
-            },
-            returnArraySizeDependencies: () => ({
-                numPoints: {
-                    dependencyType: "stateVariable",
-                    variableName: "numPoints",
-                },
-                numDimensions: {
-                    dependencyType: "stateVariable",
-                    variableName: "numDimensions",
-                },
-            }),
-            returnArraySize({ dependencyValues }) {
-                return [
-                    dependencyValues.numPoints,
-                    dependencyValues.numDimensions,
-                ];
-            },
-            returnArrayDependenciesByKey({ arrayKeys, stateValues }) {
-                let dependenciesByKey = {};
-                let globalDependencies = {
-                    childIndicesByPoint: {
-                        dependencyType: "stateVariable",
-                        variableName: "childIndicesByPoint",
-                    },
-                    pointsShadow: {
-                        dependencyType: "stateVariable",
-                        variableName: "pointsShadow",
-                    },
-                };
-
-                for (let arrayKey of arrayKeys) {
-                    let [pointInd, dim] = arrayKey.split(",");
-                    let childIndices = [];
-                    if (stateValues.childIndicesByPoint[pointInd]) {
-                        childIndices = [pointInd];
-                    }
-                    dependenciesByKey[arrayKey] = {
-                        pointChild: {
-                            dependencyType: "child",
-                            childGroups: ["points"],
-                            variableNames: ["x" + (Number(dim) + 1)],
-                            childIndices,
-                        },
-                    };
-                }
-
-                return { dependenciesByKey, globalDependencies };
-            },
-            arrayDefinitionByKey({
-                dependencyValuesByKey,
-                globalDependencyValues,
-                arrayKeys,
-            }) {
-                // console.log("array definition of points for pointlist");
-                // console.log(JSON.parse(JSON.stringify(dependencyValuesByKey)));
-                // console.log(arrayKeys);
-
-                let points = {};
-
-                for (let arrayKey of arrayKeys) {
-                    let [pointInd, dim] = arrayKey.split(",");
-
-                    let pointChild =
-                        dependencyValuesByKey[arrayKey].pointChild[0];
-                    if (pointChild) {
-                        points[arrayKey] =
-                            pointChild.stateValues["x" + (Number(dim) + 1)];
-                    } else {
-                        points[arrayKey] =
-                            globalDependencyValues.pointsShadow[pointInd][dim];
-                    }
-                }
-
-                // console.log("result")
-                // console.log(JSON.parse(JSON.stringify(points)));
-
-                return { setValue: { points } };
-            },
-            inverseArrayDefinitionByKey({
-                desiredStateVariableValues,
-                globalDependencyValues,
-                dependencyValuesByKey,
-                dependencyNamesByKey,
-                workspace,
-            }) {
-                // console.log('array inverse definition of points of pointlist')
-                // console.log(desiredStateVariableValues)
-                // console.log(arrayKeys);
-
-                let instructions = [];
-                for (let arrayKey in desiredStateVariableValues.points) {
-                    if (!dependencyValuesByKey[arrayKey]) {
-                        continue;
-                    }
-
-                    let pointChild =
-                        dependencyValuesByKey[arrayKey].pointChild[0];
-
-                    if (pointChild) {
-                        instructions.push({
-                            setDependency:
-                                dependencyNamesByKey[arrayKey].pointChild,
-                            desiredValue:
-                                desiredStateVariableValues.points[arrayKey],
-                            childIndex: 0,
-                            variableIndex: 0,
-                        });
-                    } else if (globalDependencyValues.pointsShadow !== null) {
-                        if (!workspace.desiredPointsShadow) {
-                            workspace.desiredPointsShadow = [
-                                ...globalDependencyValues.pointsShadow,
-                            ];
-                        }
-
-                        let [pointInd, dim] = arrayKey.split(",");
-
-                        workspace.desiredPointsShadow[pointInd][dim] =
-                            desiredStateVariableValues.texts[arrayKey];
-                    }
-                }
-
-                if (workspace.desiredPointsShadow) {
-                    instructions.push({
-                        setDependency: "pointsShadow",
-                        desiredValue: workspace.desiredPointsShadow,
-                    });
-                }
-
-                return {
-                    success: true,
-                    instructions,
-                };
-            },
-        };
-
-        stateVariableDefinitions.numValues = {
             isAlias: true,
-            targetVariableName: "numPoints",
+            targetVariableName: "numComponents",
             description: "The number of points in the list.",
         };
 
-        stateVariableDefinitions.values = {
-            isAlias: true,
-            targetVariableName: "points",
-            description: "The list's points.",
-        };
-
-        stateVariableDefinitions.readyToExpandWhenResolved = {
+        // The coordinates of each entry as numbers, which its renderer draws.
+        stateVariableDefinitions.entryNumericalXs = {
             returnDependencies: () => ({
-                childIndicesByPoint: {
+                values: {
                     dependencyType: "stateVariable",
-                    variableName: "childIndicesByPoint",
-                },
-                numDimensions: {
-                    dependencyType: "stateVariable",
-                    variableName: "numDimensions",
+                    variableName: arrayName,
                 },
             }),
-            // When this state variable is marked stale
-            // it indicates we should update replacements.
-            // For this to work, must set
-            // stateVariableToEvaluateAfterReplacements
-            // to this variable so that it is marked fresh
-            markStale: () => ({ updateReplacements: true }),
-            definition: function () {
-                return { setValue: { readyToExpandWhenResolved: true } };
-            },
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    entryNumericalXs:
+                        dependencyValues.values.map(numericalCoordinates),
+                },
+            }),
+        };
+
+        // Whether a constraint was applied to each entry, as a point's
+        // `constraintUsed`: one of the point the entry is from, or one among
+        // the list's children. The list's constraints are applied again to
+        // the constrained entry, which they report as constrained when they
+        // constrained it.
+        stateVariableDefinitions.entryConstraintsUsed = {
+            returnDependencies: () => ({
+                entryStructure: {
+                    dependencyType: "stateVariable",
+                    variableName: "entryStructure",
+                },
+                children: {
+                    dependencyType: "child",
+                    childGroups: componentGroups,
+                    variableNames: ["constraintUsed"],
+                    variablesOptional: true,
+                },
+                values: {
+                    dependencyType: "stateVariable",
+                    variableName: arrayName,
+                },
+                ...this.entryValueAdjustmentDependencies(),
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    entryConstraintsUsed: dependencyValues.entryStructure.map(
+                        (source, ind) =>
+                            Boolean(
+                                dependencyValues.children[source.componentInd]
+                                    ?.stateValues.constraintUsed,
+                            ) ||
+                            applyConstraints(
+                                dependencyValues.values[ind],
+                                dependencyValues.constraintChildren,
+                            ).constraintUsed,
+                    ),
+                },
+            }),
+        };
+
+        // For each entry, the point nearest to a given point, which is the
+        // entry, as for a `<point>` (`<constrainTo>$pl</constrainTo>`).
+        stateVariableDefinitions.entryNearestPoints = {
+            returnDependencies: () => ({
+                entryNumericalXs: {
+                    dependencyType: "stateVariable",
+                    variableName: "entryNumericalXs",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    entryNearestPoints: dependencyValues.entryNumericalXs.map(
+                        (xs) =>
+                            function () {
+                                if (!xs.every(Number.isFinite)) {
+                                    return {};
+                                }
+                                const result = {};
+                                for (const [ind, x] of xs.entries()) {
+                                    result[`x${ind + 1}`] = x;
+                                }
+                                return result;
+                            },
+                    ),
+                },
+            }),
         };
 
         return stateVariableDefinitions;
     }
 
-    static async createSerializedReplacements({
-        component,
-        components,
-        componentInfoObjects,
-        workspace,
-        nComponents,
-    }) {
-        if (workspace.replacementsCreated === undefined) {
-            workspace.replacementsCreated = 0;
+    /**
+     * A drag of the renderer of entry `listEntryIndex` to `x`, `y`, `z`: the
+     * entry's other coordinates are kept.
+     */
+    async movePoint({ x, y, z, listEntryIndex, pointRole = "point", ...args }) {
+        if (pointRole !== "point") {
+            console.warn(`Invalid pointRole: ${pointRole}`);
+            return;
         }
-
-        const stateIdInfo = {
-            prefix: `${component.stateId}|`,
-            num: workspace.replacementsCreated,
-        };
-
-        let diagnostics = [];
-
-        let replacements = [];
-        let componentsCopied = [];
-
-        // For attributes that were left raw, we convert them and add them to the replacements
-        let attributesToConvert = gatherRawNumberDisplayFixedResponseAttributes(
-            component,
-            components,
+        if (!(await this.entryCanBeDragged(listEntryIndex))) {
+            return;
+        }
+        const coordinates = coordinatesOf(
+            (await this.stateValues[this.constructor.listValuesArrayName])[
+                listEntryIndex
+            ],
         );
-
-        const copyChild =
-            component.definingChildren.length === 1 &&
-            component.definingChildren[0].componentType === "_copy"
-                ? component.definingChildren[0]
-                : null;
-        let copyChildSource;
-        if (copyChild) {
-            const cIdx = await copyChild.stateValues.extendIdx;
-            if (cIdx !== -1) {
-                copyChildSource = {
-                    componentIdx: cIdx,
-                    componentType: components[cIdx].componentType,
-                    component: components[cIdx],
-                };
+        for (const [ind, value] of [x, y, z].entries()) {
+            if (value !== undefined && ind < coordinates.length) {
+                coordinates[ind] = me.fromAst(value);
             }
         }
-
-        let childIndicesByPoint =
-            await component.stateValues.childIndicesByPoint;
-
-        let numPoints = await component.stateValues.numPoints;
-        let numDimensions = await component.stateValues.numDimensions;
-        for (let i = 0; i < numPoints; i++) {
-            // allow one to override the fixed, isResponse, and isPotentialResponse attributes
-            // as well as rounding settings
-            // by specifying it on the list
-            let attributes = {};
-
-            if (Object.keys(attributesToConvert).length > 0) {
-                const res = convertUnresolvedAttributesForComponentType({
-                    attributes: attributesToConvert,
-                    componentType: "point",
-                    componentInfoObjects,
-                    nComponents,
-                    stateIdInfo,
-                });
-
-                attributes = JSON.parse(JSON.stringify(res.attributes));
-                nComponents = res.nComponents;
-            }
-
-            if (copyChildSource) {
-                nComponents = addShadowNumberDisplayAttributes({
-                    nComponents,
-                    stateIdInfo,
-                    source: copyChildSource,
-                    compositeIdx: copyChild.componentIdx,
-                    attributes,
-                    componentInfoObjects,
-                });
-            }
-
-            let childIdx = childIndicesByPoint[i];
-            let replacementSource = components[childIdx];
-
-            if (replacementSource) {
-                componentsCopied.push(replacementSource.componentIdx);
-            }
-
-            const mathListChildren = [];
-
-            for (let dim = 0; dim < numDimensions; dim++) {
-                mathListChildren.push({
-                    type: "serialized",
-                    componentType: "math",
-                    componentIdx: nComponents++,
-                    stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
-                    attributes: {},
-                    doenetAttributes: {},
-                    children: [],
-                    state: {},
-                    downstreamDependencies: {
-                        [component.componentIdx]: [
-                            {
-                                dependencyType: "referenceShadow",
-                                compositeIdx: component.componentIdx,
-                                propVariable: `pointX${i + 1}_${dim + 1}`,
-                            },
-                        ],
-                    },
-                });
-            }
-
-            const mathList = {
-                type: "serialized",
-                componentType: "mathList",
-                componentIdx: nComponents++,
-                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
-                attributes: {},
-                doenetAttributes: {},
-                children: mathListChildren,
-                state: {},
-            };
-
-            attributes.xs = {
-                type: "component",
-                name: "xs",
-                component: mathList,
-            };
-
-            replacements.push({
-                type: "serialized",
-                componentType: "point",
-                componentIdx: nComponents++,
-                stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
-                attributes,
-                doenetAttributes: {},
-                children: [],
-                state: {},
-            });
-        }
-
-        replacements = postProcessCopy({
-            serializedComponents: replacements,
-            componentIdx: component.componentIdx,
-            addShadowDependencies: true,
-            markAsPrimaryShadow: true,
-        });
-
-        workspace.componentsCopied = componentsCopied;
-        workspace.numPoints = numPoints;
-
-        workspace.replacementsCreated = stateIdInfo.num;
-
-        return {
-            replacements,
-            diagnostics,
-            nComponents,
-        };
-    }
-
-    static async calculateReplacementChanges({
-        component,
-        components,
-        componentInfoObjects,
-        workspace,
-        nComponents,
-    }) {
-        let diagnostics = [];
-
-        let numPoints = await component.stateValues.numPoints;
-
-        if (numPoints === workspace.numPoints) {
-            let componentsToCopy = [];
-
-            let childIndicesByPoint =
-                await component.stateValues.childIndicesByPoint;
-
-            for (let childIdx of childIndicesByPoint) {
-                let replacementSource = components[childIdx];
-
-                if (replacementSource) {
-                    componentsToCopy.push(replacementSource.componentIdx);
-                }
-            }
-
-            if (
-                componentsToCopy.length == workspace.componentsCopied.length &&
-                workspace.componentsCopied.every(
-                    (x, i) => x === componentsToCopy[i],
-                )
-            ) {
-                return { replacementChanges: [], diagnostics, nComponents };
-            }
-        }
-
-        // for now, just recreate
-        let replacementResults = await this.createSerializedReplacements({
-            component,
-            components,
-            componentInfoObjects,
-            workspace,
-            nComponents,
-        });
-
-        let replacements = replacementResults.replacements;
-        diagnostics.push(...replacementResults.diagnostics);
-        nComponents = replacementResults.nComponents;
-
-        let replacementChanges = [
-            {
-                changeType: "add",
-                changeTopLevelReplacements: true,
-                firstReplacementInd: 0,
-                numberReplacementsToReplace: component.replacements.length,
-                serializedReplacements: replacements,
+        return await this.writeEntryFromAction({
+            ...args,
+            listEntryIndex,
+            values: {
+                [this.constructor.listValuesArrayName]: vectorOf(coordinates),
             },
-        ];
-
-        return { replacementChanges, diagnostics, nComponents };
+            result: { x, y, z },
+        });
     }
+
+    // A switch of an entry from an authored `<endpoint>` is the endpoint's.
+    async switchPoint(args) {
+        await this.performOnEntryChild({ actionName: "switchPoint", args });
+    }
+
+    async pointClicked(args) {
+        await this.performOnEntryChild({
+            actionName: "pointClicked",
+            triggeringAction: "click",
+            args,
+        });
+    }
+
+    async pointFocused(args) {
+        await this.performOnEntryChild({
+            actionName: "pointFocused",
+            triggeringAction: "focus",
+            args,
+        });
+    }
+}
+
+/**
+ * `value`, the coordinates of a point, constrained by
+ * `constraintChildren` in turn, as a `<point>` with those constraint children
+ * is, and whether one of them was applied (`constraintUsed`).
+ */
+function applyConstraints(value, constraintChildren) {
+    const coordinates = coordinatesOf(value);
+    let constraintUsed = false;
+    let variables = {};
+    for (const [ind, x] of coordinates.entries()) {
+        variables[`x${ind + 1}`] = x;
+    }
+    for (const constraintChild of constraintChildren) {
+        const result = constraintChild.stateValues.applyConstraint
+            ? constraintChild.stateValues.applyConstraint(variables)
+            : applyConstraintFromComponentConstraints(
+                  variables,
+                  constraintChild.stateValues.applyComponentConstraint,
+              );
+        if (result.constrained) {
+            constraintUsed = true;
+            variables = { ...variables };
+            for (const varName in result.variables) {
+                variables[varName] = convertValueToMathExpression(
+                    result.variables[varName],
+                );
+            }
+        }
+    }
+    return {
+        value: withNumDimensions(
+            vectorOf(coordinates.map((_, ind) => variables[`x${ind + 1}`])),
+            coordinates.length,
+        ),
+        constraintUsed,
+    };
 }

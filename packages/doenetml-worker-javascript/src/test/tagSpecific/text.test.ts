@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore } from "../utils/test-core";
+import { createTestCore as createTestCoreWithoutListEntries } from "../utils/test-core";
+import { withListEntriesAsComponents } from "../utils/list-entries";
 import { cleanLatex } from "../utils/math";
 import {
     moveText,
@@ -13,6 +14,16 @@ import { test_in_graph } from "../utils/in-graph";
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
+
+// The entries of point and vector lists, which are not components, are read
+// and dragged here as components (`vs[2]`), as they were written for.
+async function createTestCore(
+    ...args: Parameters<typeof createTestCoreWithoutListEntries>
+) {
+    return withListEntriesAsComponents(
+        await createTestCoreWithoutListEntries(...args),
+    );
+}
 
 describe("Text tag tests @group2", async () => {
     it("spaces preserved between tags", async () => {

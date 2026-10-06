@@ -1,5 +1,6 @@
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import me from "math-expressions";
+import { vectorOperators } from "@doenet/utils";
 import {
     roundForDisplay,
     isNumericConstant,
@@ -469,7 +470,11 @@ export default class Angle extends GraphicalComponent {
                 let foundBadThroughPoint = false;
                 for (let [ind, prescribedPoint] of prescribedPoints.entries()) {
                     for (let i = 0; i < 2; i++) {
-                        if (prescribedPoint[i]) {
+                        // A point list gives a point that is not one (`(0,0),`)
+                        // the coordinates it has, as one blank coordinate
+                        // padded with 0s, so a blank or a tuple for a
+                        // coordinate is as bad as a missing one.
+                        if (isValidCoordinate(prescribedPoint[i])) {
                             points[`${ind},${i}`] = prescribedPoint[i];
                         } else {
                             points[`${ind},${i}`] = me.fromAst("\uff3f");
@@ -902,4 +907,16 @@ function calculateLineIntersection(line1, line2) {
     let x = (c2 * b1 - c1 * b2) / d;
     let y = (c1 * a2 - c2 * a1) / d;
     return [me.fromAst(x), me.fromAst(y)];
+}
+
+/** Whether `x` is one coordinate: a math that is neither blank nor a tuple. */
+function isValidCoordinate(x) {
+    if (!x) {
+        return false;
+    }
+    const tree = x.tree;
+    if (Array.isArray(tree) && vectorOperators.includes(tree[0])) {
+        return false;
+    }
+    return !JSON.stringify(tree).includes("\uff3f");
 }

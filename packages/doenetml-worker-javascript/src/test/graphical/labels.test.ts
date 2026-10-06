@@ -1,11 +1,25 @@
 import { describe, expect, it, vi } from "vitest";
-import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
+import {
+    createTestCore as createTestCoreWithoutListEntries,
+    ResolvePathToNodeIdx,
+} from "../utils/test-core";
+import { withListEntriesAsComponents } from "../utils/list-entries";
 import { updateTextInputValue } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
 vi.mock("hyperformula");
+
+// The entries of point and vector lists, which are not components, are read
+// and dragged here as components (`vs[2]`), as they were written for.
+async function createTestCore(
+    ...args: Parameters<typeof createTestCoreWithoutListEntries>
+) {
+    return withListEntriesAsComponents(
+        await createTestCoreWithoutListEntries(...args),
+    );
+}
 
 describe("Label tests @group3", async () => {
     async function test_labelIsName_preserved_shadowed_or_no_link(

@@ -624,13 +624,21 @@ export class AncestorDependency extends Dependency {
 
                 ancestorsExamined.push(ancestor.componentIdx);
 
+                // `componentType` may be several types, any of which matches
+                const componentTypes: string[] = Array.isArray(
+                    this.componentType,
+                )
+                    ? this.componentType
+                    : [this.componentType];
                 if (
-                    this.dependencyHandler.componentInfoObjects.isInheritedComponentType(
-                        {
-                            inheritedComponentType:
-                                ancestorComponent.componentType,
-                            baseComponentType: this.componentType,
-                        },
+                    componentTypes.some((baseComponentType) =>
+                        this.dependencyHandler.componentInfoObjects.isInheritedComponentType(
+                            {
+                                inheritedComponentType:
+                                    ancestorComponent.componentType,
+                                baseComponentType,
+                            },
+                        ),
                     )
                 ) {
                     return {

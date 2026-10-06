@@ -4815,10 +4815,12 @@ describe("Extend and references tests @group2", async () => {
                 stateVariables[await resolvePathToNodeIdx("p6")].stateValues
                     .text,
             ).eq(`${P12}, ${P22}`);
+            // A coordinate past the points' dimensions is blank in each
+            // point of the list, as for a math list's entries.
             expect(
                 stateVariables[await resolvePathToNodeIdx("p7")].stateValues
                     .text,
-            ).eq(``);
+            ).eq(`＿, ＿`);
 
             // XXX: restore this assertion
             // expect(

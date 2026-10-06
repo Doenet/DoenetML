@@ -115,6 +115,24 @@ export default class ValueListComponent extends BaseComponent {
     // (`listEntryTypeFromAttribute`).
     static listEntryTypeAttribute = undefined;
 
+    // What the renderer of an entry reads beyond its value, with the value
+    // each has for an entry (`ENTRY_RENDERER_DEFAULTS`), as a list state
+    // variable of that name.
+    static get listEntryRendererDefaults() {
+        return ENTRY_RENDERER_DEFAULTS;
+    }
+
+    // Variables the renderer of an entry reads that a component of the
+    // entries' type has no renderer variable for (an `<endpoint>`'s `open`,
+    // drawn by the `point` renderer), sent with the others
+    // (`RendererInstructionBuilder.listEntryRendererState`).
+    static listEntryAdditionalRendererVariables = [];
+
+    // The prefix of the name of one value (`math2`).
+    static get listValuesEntryPrefix() {
+        return this.listEntryComponentType;
+    }
+
     static get listValuesArrayName() {
         return ENTRY_TYPES[this.listEntryComponentType].arrayName;
     }
@@ -219,7 +237,7 @@ export default class ValueListComponent extends BaseComponent {
         for (const name in returnTextStyleDescriptionDefinitions()) {
             variables[name] = name;
         }
-        for (const name in ENTRY_RENDERER_DEFAULTS) {
+        for (const name in this.listEntryRendererDefaults) {
             variables[name] = name;
         }
         if (hasNumberDisplay(kind)) {
@@ -354,7 +372,7 @@ export default class ValueListComponent extends BaseComponent {
         const kind = entryKind(entryType);
         const writeBasisVariable = this.listEntryWriteBasisVariable;
         const arrayName = this.listValuesArrayName;
-        const entryPrefix = entryType;
+        const entryPrefix = this.listValuesEntryPrefix;
 
         // A reference to the whole list (`$l`), and a `<collect>` that
         // gathers the list by the type of its entries, show the entries,
@@ -1133,7 +1151,9 @@ export default class ValueListComponent extends BaseComponent {
 
         // What the renderer of an entry reads beyond its value, at the
         // values a `<math>` or `<number>` has by default.
-        for (const [name, value] of Object.entries(ENTRY_RENDERER_DEFAULTS)) {
+        for (const [name, value] of Object.entries(
+            this.listEntryRendererDefaults,
+        )) {
             stateVariableDefinitions[name] = {
                 forRenderer: true,
                 returnDependencies: () => ({}),
@@ -1159,6 +1179,14 @@ const ENTRY_TYPES = {
         arrayName: "booleans",
         rendererType: "boolean",
         kind: "boolean",
+    },
+    // A point or vector is held as the math of its coordinates (a point's
+    // `coords`, a vector's displacement), which is shown as a math is.
+    point: { arrayName: "pointCoords", rendererType: "point", kind: "math" },
+    vector: {
+        arrayName: "vectorDisplacements",
+        rendererType: "vector",
+        kind: "math",
     },
 };
 

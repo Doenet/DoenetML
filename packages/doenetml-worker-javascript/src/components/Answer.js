@@ -1889,6 +1889,10 @@ export default class Answer extends InlineComponent {
                         ct = "text";
                     } else if (ct === "booleanList") {
                         ct = "boolean";
+                    } else if (ct === "pointList") {
+                        ct = "point";
+                    } else if (ct === "vectorList") {
+                        ct = "vector";
                     }
 
                     if (Array.isArray(component.stateValues.values)) {
