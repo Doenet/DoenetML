@@ -1629,4 +1629,48 @@ describe("Point and vector lists as list components @group4", async () => {
             pP: "(3, 4)",
         });
     });
+
+    it("an authored entry of a list with fixLocation takes the list's fixLocation", async () => {
+        // A drag of an entry from an authored point or vector is the
+        // child's own; the child is fixLocation as its list is.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+      <vectorList fixLocation><vector name="v" tail="(1,1)" head="(2,3)" /></vectorList>
+      <pointList fixLocation><point name="P">(1,2)</point></pointList>
+    </graph>
+    <p name="pv">$v.tail $v.head</p>
+    <p name="pP">$P</p>
+    `,
+        });
+
+        const rendererState = (core as any).core.rendererInstructionBuilder
+            .rendererState;
+        const drawn = await drawnIn(core, resolvePathToNodeIdx, "g");
+        expect(
+            drawn.map(
+                (child: any) =>
+                    rendererState[child.componentIdx].stateValues.fixLocation,
+            ),
+        ).eqls([true, true]);
+
+        for (const [index, actionName, args] of [
+            [0, "moveVector", { headcoords: [7, 7] }],
+            [0, "moveVector", { tailcoords: [0, 0], headcoords: [5, 5] }],
+            [1, "movePoint", { x: 9, y: 9 }],
+        ] as const) {
+            await dragEntry({
+                core,
+                resolvePathToNodeIdx,
+                graph: "g",
+                index,
+                actionName,
+                args,
+            });
+        }
+        expect(await textsOf(core, resolvePathToNodeIdx, ["pv", "pP"])).eqls({
+            pv: "(1, 1) (2, 3)",
+            pP: "(1, 2)",
+        });
+    });
 });
