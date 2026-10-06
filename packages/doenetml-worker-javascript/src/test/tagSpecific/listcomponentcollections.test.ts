@@ -1828,8 +1828,10 @@ describe("Collect, sort and shuffle of values @group4", async () => {
 
         // only the drags each source allows move it
         for (const [name, args] of [
-            ["E1", { headcoords: [9, 9] }],
+            // the whole vector first, so that a head drag that moved it
+            // would show
             ["E1", { tailcoords: [1, 1], headcoords: [2, 3] }],
+            ["E1", { headcoords: [9, 9] }],
             ["E2", { tailcoords: [-1, -1] }],
             ["E2", { headcoords: [-5, -5] }],
             ["E3", { headcoords: [10, 10] }],
