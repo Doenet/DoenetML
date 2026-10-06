@@ -1777,6 +1777,78 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         expect(drawn).eqls([expected, expected]);
     });
 
+    it("an extend of a collected vector takes its source's label and draggables, and drags respect them", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+      <vector name="a" headDraggable="false"><label>u</label>(1,2)</vector>
+      <vector name="b" tailDraggable="false">(3,4)</vector>
+      <vector name="c" draggable="false" headDraggable>(5,6)</vector>
+      <vector name="d" fixed>(7,8)</vector>
+    </graph>
+    <collect name="cv" from="$g" componentType="vector" />
+    <graph>
+      <vector name="E1" extend="$cv[1]" />
+      <vector name="E2" extend="$cv[2]" />
+      <vector name="E3" extend="$cv[3]" />
+      <vector name="E4" extend="$cv[4]" />
+    </graph>
+    <p name="p">$a.tail $a.head; $b.tail $b.head; $c.tail $c.head; $d.tail $d.head</p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const names = ["E1", "E2", "E3", "E4"];
+        const states = [];
+        for (const name of names) {
+            const { label, fixed, draggable, headDraggable, tailDraggable } =
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            states.push({
+                label,
+                fixed,
+                draggable,
+                headDraggable,
+                tailDraggable,
+            });
+        }
+        const free = {
+            label: "",
+            fixed: false,
+            draggable: true,
+            headDraggable: true,
+            tailDraggable: true,
+        };
+        expect(states).eqls([
+            { ...free, label: "u", headDraggable: false },
+            { ...free, tailDraggable: false },
+            // the source's own `headDraggable` wins over its `draggable`
+            { ...free, draggable: false, tailDraggable: false },
+            { ...free, fixed: true },
+        ]);
+
+        // only the drags each source allows move it
+        for (const [name, args] of [
+            ["E1", { headcoords: [9, 9] }],
+            ["E1", { tailcoords: [1, 1], headcoords: [2, 3] }],
+            ["E2", { tailcoords: [-1, -1] }],
+            ["E2", { headcoords: [-5, -5] }],
+            ["E3", { headcoords: [10, 10] }],
+            ["E3", { tailcoords: [1, 1], headcoords: [2, 2] }],
+            ["E4", { headcoords: [10, 10] }],
+        ] as const) {
+            await core.requestAction({
+                componentIdx: await resolvePathToNodeIdx(name),
+                actionName: "moveVector",
+                args,
+            });
+        }
+        expect(
+            (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx("p")
+            ].stateValues.text,
+        ).eq("(1, 1) (2, 3); (0, 0) (-5, -5); (0, 0) (10, 10); (0, 0) (7, 8)");
+    });
+
     it("shuffled points and vectors have the order of the variant", async () => {
         const doenetML = `
     <graph name="g"><shuffle name="sh"><point>(1,1)</point><point>(2,2)</point><point>(3,3)</point><point>(4,4)</point></shuffle></graph>
