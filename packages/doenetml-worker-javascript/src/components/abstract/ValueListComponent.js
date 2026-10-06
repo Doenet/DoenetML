@@ -1262,7 +1262,7 @@ function writeEntries(desired, convert, dependencyName = "values") {
  * Whether two values the list computed for an entry are the same, as a
  * number, a string or a math expression written the same way.
  */
-function sameEntryValue(a, b) {
+export function sameEntryValue(a, b) {
     if (a instanceof me.class || b instanceof me.class) {
         return (
             a instanceof me.class &&
@@ -1279,7 +1279,7 @@ function sameEntryValue(a, b) {
  * for a math entry's value and, when it was written over the value the list
  * computed (`overIsValue`), for what it was written over.
  */
-function restoredEntryWrite(write, entryType, overIsValue) {
+export function restoredEntryWrite(write, entryType, overIsValue) {
     if (!write || entryKind(entryType) !== "math") {
         return write;
     }

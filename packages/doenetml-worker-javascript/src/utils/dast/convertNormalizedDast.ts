@@ -31,6 +31,7 @@ import { applySugar } from "./sugar";
 import { convertRefsToCopies } from "./convertToCopy";
 import { convertCopiesToValueReferences } from "./valueReferences";
 import { convertToListForms } from "./listForms";
+import { convertRepeatsToLists } from "./repeatLists";
 import { DiagnosticRecord } from "@doenet/utils";
 import {
     codedDiagnostic,
@@ -347,6 +348,15 @@ export async function normalizedDastToSerializedComponents(
         serializedComponents: sugarResult.components,
         componentInfoObjects,
     });
+
+    // After the value references, which decide whether a repeat's value and
+    // index are lists and make the references that read them value
+    // references, a repeat whose template is one value becomes a list.
+    nComponents = convertRepeatsToLists({
+        serializedComponents: sugarResult.components,
+        componentInfoObjects,
+        nComponents,
+    }).nComponents;
 
     const document = sugarResult.components[0] as SerializedComponent;
 
