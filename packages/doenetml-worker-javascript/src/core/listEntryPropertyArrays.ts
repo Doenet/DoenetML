@@ -9,6 +9,7 @@ import {
 } from "./StateVariableInitializer";
 import {
     LIST_ENTRY_ARRAY_PREFIX,
+    LIST_ENTRY_PREFIX,
     listEntryDefaultValue,
     listEntryPropertyType,
 } from "../utils/listEntryReference";
@@ -59,7 +60,7 @@ export function ensureListEntryPropertyArray({
 
     const definition = {
         isArray: true,
-        entryPrefixes: [`__listEntry_${entryProperty}_`],
+        entryPrefixes: [`${LIST_ENTRY_PREFIX}${entryProperty}_`],
         // A property of an entry is a value the entry holds, as the values
         // are (`recursiveDependencyBoundary` of the list's values array): an
         // answer that reads `$l[2].math` sees a change elsewhere in the list

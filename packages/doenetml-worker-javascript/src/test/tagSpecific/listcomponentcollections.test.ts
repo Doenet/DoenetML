@@ -677,4 +677,148 @@ describe("Collect, sort and shuffle of values @group4", async () => {
             });
         }
     });
+
+    it("the properties of a collected value are those of its source", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <section name="s">
+      <math name="m" styleNumber="2" anchor="(1,2)">x</math>
+      <text name="t" hide>a</text>
+      <text>b</text>
+    </section>
+    <collect name="c" componentType="math" from="$s" />
+    <p name="p1">$c[1].styleNumber $c[1].anchor $c.styleNumber $c[1].text</p>
+    <collect name="ct" componentType="text" from="$s" />
+    <p name="p2">[$ct]</p>
+    <p name="p3">[$ct[1]] [$ct[2]] $ct.hide $ct[1].hidden</p>
+    <collect name="ct2" componentType="text" from="$s" hide="false" />
+    <p name="p4">[$ct2] [$ct2[1]]</p>
+    `,
+        });
+
+        await expectTexts(core, resolvePathToNodeIdx, {
+            p1: "2 (1, 2) 2 x",
+            p2: "[b]",
+            p3: "[] [b] true, false true",
+            p4: "[a, b] [a]",
+        });
+    });
+
+    it("a sorted or shuffled reference to a hidden value is hidden", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <number name="a" hide>5</number>
+    <number name="b">3</number>
+    <text name="t" hide>q</text>
+    <p name="p1">[<sort>$a 1 $b</sort>]</p>
+    <p name="p2">[<shuffle>$a $b</shuffle>]</p>
+    <p name="p3">[<sort name="st">$t z</sort>] [$st[2]]</p>
+    <p name="p4">[<sort><number hide>4</number><number>2</number></sort>]</p>
+    <math name="m"><sort>$a 1 $b</sort></math>
+    `,
+        });
+
+        await expectTexts(core, resolvePathToNodeIdx, {
+            p1: "[1, 3]",
+            p2: "[3]",
+            p3: "[z] []",
+            p4: "[2]",
+            m: "1, 3, 5",
+        });
+    });
+
+    it("sort reads text as values of the type it looks like", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p name="p1"><sort>10 9 100 2</sort></p>
+    <p name="p2"><sort>b a 10 2</sort></p>
+    <p name="p3"><sort type="math">x 2 (1,2)</sort></p>
+    <p name="p4"><sort type="boolean">true false x=x</sort></p>
+    <p name="p5"><sort type="text">10 9 100</sort></p>
+    <p name="p6"><sort>pi 3 sqrt(10)</sort></p>
+    <p name="p7"><sort>1/2 0.4</sort></p>
+    `,
+        });
+
+        await expectTexts(core, resolvePathToNodeIdx, {
+            p1: "2, 9, 10, 100",
+            p2: "10, 2, a, b",
+            p3: "(1, 2), 2, x",
+            p4: "false, true, true",
+            p5: "10, 100, 9",
+            p6: "3, 3.14, 3.16",
+            p7: "0.4, 0.5",
+        });
+    });
+
+    it("shuffle gives the same order for each variant", async () => {
+        const doenetML = `
+    <p name="p1"><shuffle>a b c d e f</shuffle></p>
+    <p name="p2"><shuffle><math>x</math><math>y</math><math>z</math></shuffle></p>
+    <numberList name="nl">1 2 3</numberList>
+    <p name="p3"><shuffle>$nl 9</shuffle></p>
+    <p name="p4"><shuffle type="number">5 6 7 8</shuffle></p>
+    <number name="a">1</number><number name="b">2</number>
+    <p name="p5"><shuffle>$a $b</shuffle></p>
+    <p name="p6"><shuffle><text>q</text> <text>r</text> <text>s</text></shuffle></p>
+    `;
+
+        const expected: Record<number, Record<string, string>> = {
+            1: {
+                p1: "d, a, e, f, b, c",
+                p2: "y, z, x",
+                p3: "2, 1, 3, 9",
+                p4: "6, 8, 7, 5",
+                p5: "2, 1",
+                p6: "s, r, q",
+            },
+            2: {
+                p1: "c, b, d, e, a, f",
+                p2: "y, x, z",
+                p3: "1, 9, 3, 2",
+                p4: "8, 5, 6, 7",
+                p5: "2, 1",
+                p6: "q, r, s",
+            },
+            3: {
+                p1: "b, d, c, a, e, f",
+                p2: "y, x, z",
+                p3: "9, 3, 1, 2",
+                p4: "6, 5, 7, 8",
+                p5: "2, 1",
+                p6: "r, s, q",
+            },
+        };
+
+        for (const [variantIndex, texts] of Object.entries(expected)) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+                requestedVariantIndex: Number(variantIndex),
+            });
+            await expectTexts(core, resolvePathToNodeIdx, texts);
+        }
+    });
+
+    it("an empty collect, and sort in parents that read values", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="m"><sort>3 1 2</sort></math>
+    <math name="m2"><sort>3 1 2</sort> + 1</math>
+    <number name="n"><sum><sort>3 1</sort></sum></number>
+    <text name="t"><sort>b a</sort></text>
+    <section name="empty" />
+    <p name="pe">[<collect componentType="math" from="$empty" />]</p>
+    <math name="me"><collect componentType="math" from="$empty" /></math>
+    `,
+        });
+
+        await expectTexts(core, resolvePathToNodeIdx, {
+            m: "1, 2, 3",
+            m2: "(1, 2, 3) + 1",
+            n: "4",
+            t: "a, b",
+            pe: "[]",
+            me: "＿",
+        });
+    });
 });

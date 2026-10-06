@@ -33,11 +33,17 @@ type PathPart = { name: string; index: any[]; [key: string]: any };
 /** The prefix of the arrays made for entry properties. */
 export const LIST_ENTRY_ARRAY_PREFIX = "__listEntries_";
 
+/**
+ * The prefix of the entries of those arrays, followed by the property
+ * (`__listEntry_value_2`).
+ */
+export const LIST_ENTRY_PREFIX = "__listEntry_";
+
 /** Whether `name` is an array made for an entry property, or one of its entries. */
 export function isListEntryPropertyVariable(name: string): boolean {
     return (
         name.startsWith(LIST_ENTRY_ARRAY_PREFIX) ||
-        name.startsWith("__listEntry_")
+        name.startsWith(LIST_ENTRY_PREFIX)
     );
 }
 

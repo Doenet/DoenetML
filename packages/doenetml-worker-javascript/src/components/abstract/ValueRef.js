@@ -2,6 +2,7 @@ import me from "math-expressions";
 import BaseComponent from "./BaseComponent";
 import { reportInternalError } from "../../utils/internalErrors";
 import { currentReferentValue } from "../../utils/referentDescription";
+import { LIST_ENTRY_PREFIX } from "../../utils/listEntryReference";
 import {
     parentDrawsValueReferences,
     variableOfCopiedReferentVariable,
@@ -596,18 +597,68 @@ export default class ValueRef extends BaseComponent {
                         variablesOptional: true,
                     };
                 }
+                // An entry of a list that shows each entry as its source
+                // (`<collect>`, `<sort>`) is hidden as the copy of the entry
+                // was: by the source's own `hide`, unless the list sets one.
+                // Not a property of the entry (`$c[1].hidden`).
+                if (referentInfo?.listEntryPosition !== undefined) {
+                    dependencies.entryPosition = {
+                        dependencyType: "value",
+                        value: referentInfo.listEntryPosition,
+                    };
+                    dependencies.referentVariable = {
+                        dependencyType: "value",
+                        value: referentInfo.variableName,
+                    };
+                    dependencies.referentEntryPrefix = {
+                        dependencyType: "stateVariable",
+                        componentIdx: referentInfo.componentIdx,
+                        variableName: "listEntryVariablePrefix",
+                        variablesOptional: true,
+                    };
+                    dependencies.referentEntryPresentation = {
+                        dependencyType: "stateVariable",
+                        componentIdx: referentInfo.componentIdx,
+                        variableName: "entryPresentation",
+                        variablesOptional: true,
+                    };
+                    dependencies.referentListHide = {
+                        dependencyType: "stateVariable",
+                        componentIdx: referentInfo.componentIdx,
+                        variableName: "hide",
+                        variablesOptional: true,
+                    };
+                }
                 return dependencies;
             },
-            definition: ({ dependencyValues }) => ({
-                setValue: {
-                    hidden: Boolean(
-                        dependencyValues.parentHidden ||
-                        dependencyValues.sourceCompositeHidden ||
-                        dependencyValues.valueMissing ||
-                        dependencyValues.referentHide,
-                    ),
-                },
-            }),
+            definition: ({ dependencyValues, usedDefault }) => {
+                let entryHide = false;
+                const position = dependencyValues.entryPosition;
+                if (
+                    dependencyValues.referentEntryPresentation &&
+                    (dependencyValues.referentVariable ===
+                        `${dependencyValues.referentEntryPrefix}${position}` ||
+                        dependencyValues.referentVariable ===
+                            `${LIST_ENTRY_PREFIX}value_${position}`)
+                ) {
+                    entryHide = usedDefault.referentListHide
+                        ? dependencyValues.referentEntryPresentation[
+                              dependencyValues.entryPosition - 1
+                          ]?.hide
+                        : dependencyValues.referentListHide;
+                }
+                return {
+                    setValue: {
+                        hidden: Boolean(
+                            dependencyValues.parentHidden ||
+                            dependencyValues.sourceCompositeHidden ||
+                            dependencyValues.valueMissing ||
+                            dependencyValues.referentHide ||
+                            entryHide,
+                        ),
+                    },
+                };
+            },
             markStale: () => ({ updateParentRenderedChildren: true }),
         };
 

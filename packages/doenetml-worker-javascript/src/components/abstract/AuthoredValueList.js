@@ -13,6 +13,18 @@ import { returnUnorderedListStateVariableDefinitions } from "../../utils/unorder
 import { codedDiagnostic } from "../../utils/diagnostics";
 import { copiedReferentVariableName } from "../../utils/valueReference";
 
+// A reference to the whole list reads these of the list itself, as they were
+// the list's own when it was a composite (`$l.unordered`).
+const AUTHORED_LIST_OWN_PROPERTIES = [
+    ...ValueListComponent.listOwnProperties,
+    "unordered",
+    "maxNumber",
+    "mergeMathLists",
+    "functionSymbols",
+    "splitSymbols",
+    "parseScientificNotation",
+];
+
 /**
  * Base class for the lists an author writes out: `<numberList>`,
  * `<mathList>`, `<textList>`, `<booleanList>` and `<intervalList>`. Each is a
@@ -81,18 +93,6 @@ export default class AuthoredValueList extends ValueListComponent {
     // Include children that can be added due to sugar
     static additionalSchemaChildren = ["string"];
 
-    // A reference to the whole list reads these of the list itself, as
-    // they were the list's own when it was a composite (`$l.unordered`).
-    static listOwnProperties = [
-        ...ValueListComponent.listOwnProperties,
-        "unordered",
-        "maxNumber",
-        "mergeMathLists",
-        "functionSymbols",
-        "splitSymbols",
-        "parseScientificNotation",
-    ];
-
     // The child groups whose children are entries, besides text.
     static listChildGroups = [];
 
@@ -103,6 +103,17 @@ export default class AuthoredValueList extends ValueListComponent {
     // `<shuffle>` made was (`entryPresentation`). Otherwise every entry is
     // shown in the list's style.
     static listEntriesShownAsSources = false;
+
+    // A list shown as its sources has the style and `hide` of each source,
+    // which a reference to every entry's (`$c.styleNumber`) reads entry by
+    // entry, as it read them of each copy the composite made.
+    static get listOwnProperties() {
+        return this.listEntriesShownAsSources
+            ? AUTHORED_LIST_OWN_PROPERTIES.filter(
+                  (name) => name !== "styleNumber" && name !== "hide",
+              )
+            : AUTHORED_LIST_OWN_PROPERTIES;
+    }
 
     static buildListEntryStateVariables() {
         const variables = super.buildListEntryStateVariables();
