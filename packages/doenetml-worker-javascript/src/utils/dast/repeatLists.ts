@@ -582,8 +582,14 @@ export function convertRepeatsToLists({
                 entryReferences.push({ reference });
                 return true;
             }
-            // a value outside the template, the same in every iteration
-            if (pathReads(refResolution, forbidden)) {
+            // a value outside the template, the same in every iteration,
+            // which the list reads as a math or number, as the template does
+            // when the reference presents as one; a `<number>` reads a text
+            // or boolean child (`<number>$t</number>`) its own way
+            if (
+                pathReads(refResolution, forbidden) ||
+                !presentsAsMathOrNumber(reference)
+            ) {
                 return false;
             }
             constants.push(reference);
@@ -867,6 +873,19 @@ function isPlainBooleanLiteral(attribute: SerializedAttribute): boolean {
         .trim()
         .toLowerCase();
     return text === "" || text === "true" || text === "false";
+}
+
+/**
+ * Whether the value reference `reference` presents as a math or a number
+ * (`presentedComponentType`), the types the template's codes read.
+ */
+function presentsAsMathOrNumber(reference: SerializedComponent): boolean {
+    const presented = reference.doenetAttributes?.presentedComponentType;
+    return (
+        presented === "math" ||
+        presented === "number" ||
+        presented === "integer"
+    );
 }
 
 /** Whether `attribute` is written as a literal, with no reference. */

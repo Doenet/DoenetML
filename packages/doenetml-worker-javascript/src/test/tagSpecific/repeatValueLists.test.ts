@@ -640,6 +640,10 @@ describe("Repeats whose template is one value @group4", () => {
             // a nested boolean attribute other than true or false, which a
             // <boolean> evaluates
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math><math expand="1">($v x+1)^2</math></math></repeatForSequence>`,
+            // a text or boolean read alone by a <number>, which reads it its
+            // own way
+            `<text name="t">5</text><repeatForSequence name="r" from="1" to="2" valueName="v"><number>$t</number></repeatForSequence>`,
+            `<boolean name="b">true</boolean><repeatForSequence name="r" from="1" to="2" valueName="v"><number>$b</number></repeatForSequence>`,
             // a math operator
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math><abs>$v</abs></math></repeatForSequence>`,
             // more than one component
