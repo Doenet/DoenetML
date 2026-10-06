@@ -720,6 +720,17 @@ export function convertRepeatsToLists({
             repeatNameAttribute?.type === "primitive"
                 ? String(repeatNameAttribute.primitive.value)
                 : undefined;
+        // A container of the same name (`<group name="r">` around the
+        // repeat `r`) leaves a path to the name ambiguous, so an index after
+        // it is read as copying a child, which keeps the composite.
+        const repeatNameIsOwn =
+            containers.filter((idx) => {
+                const name = componentsByIdx.get(idx)?.attributes.name;
+                return (
+                    name?.type === "primitive" &&
+                    String(name.primitive.value) === repeatName
+                );
+            }).length <= 1;
         function readsAPart(
             targetIdx: number,
             path: SerializedRefResolutionPathPart[],
@@ -730,7 +741,7 @@ export function convertRepeatsToLists({
                     if (!containerNames.has(part.name)) {
                         return true;
                     }
-                    atRepeat = part.name === repeatName;
+                    atRepeat = part.name === repeatName && repeatNameIsOwn;
                 }
                 if (part.index.length > 0) {
                     if (atRepeat) {

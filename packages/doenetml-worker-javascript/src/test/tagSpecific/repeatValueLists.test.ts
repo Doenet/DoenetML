@@ -621,6 +621,8 @@ describe("Repeats whose template is one value @group4", () => {
             // a whole child of what holds it, named by an index
             `<repeatForSequence name="outer" from="1" to="2"><group name="gg"><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></group></repeatForSequence><graph>$outer[1]</graph>`,
             `<group name="gg"><group><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></group></group><group name="q" extend="$gg" /><graph>$q[1]</graph>`,
+            // ...including through a container of the repeat's own name
+            `<group name="r2"><group name="r"><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></group></group><group name="q" extend="$r2" /><graph>$q.r[1]</graph>`,
             // copied
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence><math copy="$r[1]" />`,
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence><repeatForSequence copy="$r" />`,
