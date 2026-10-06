@@ -677,10 +677,11 @@ const COPIED_REFERENT_VARIABLE_PREFIX = "__copiedReferent_";
 /**
  * The name under which a `_ref` exposes `variableName` of its referent when
  * it stands for a copy of its referent (`copiesReferent`: `$t`, not
- * `$t.value`), as the copy made for it shadowed the referent's attributes;
- * `null` for any other reference. A list that shows each entry as its source
- * shows it (`AuthoredValueList.listEntriesShownAsSources`) reads a
- * reference's `hide`, style and `renderMode` this way.
+ * `$t.value`), as the copy made for it shadowed the referent's attributes.
+ * Any other reference gives `null` under that name. A list that shows each
+ * entry as its source shows itself
+ * (`AuthoredValueList.listEntriesShownAsSources`) reads a reference's
+ * `hide`, style and `renderMode` this way.
  */
 export function copiedReferentVariableName(variableName: string): string {
     return COPIED_REFERENT_VARIABLE_PREFIX + variableName;

@@ -287,6 +287,33 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         });
     });
 
+    it("a collect that stays a composite counts the entries of a list too", async () => {
+        // `styleNumber` is passed on to the copies, so these stay composites.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <group name="g"><cumulativeSum>1 2 3</cumulativeSum><math>x</math></group>
+    <p name="pMax"><collect componentType="math" from="$g" maxNumber="2" styleNumber="2" name="cMax" /></p>
+    <p name="pAll"><collect componentType="math" from="$g" styleNumber="2" name="c" /></p>
+    <p name="pIndex">$c[2] $c[4]</p>
+    <p name="pStyle">$c[1].styleNumber $c[4].styleNumber</p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["cMax", "c"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].componentType,
+                name,
+            ).eq("collect");
+        }
+        await expectTexts(core, resolvePathToNodeIdx, {
+            pMax: "1, 3",
+            pAll: "1, 3, 6, x",
+            pIndex: "3 x",
+            pStyle: "2 2",
+        });
+    });
+
     it("collected values are shown as their sources show them", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

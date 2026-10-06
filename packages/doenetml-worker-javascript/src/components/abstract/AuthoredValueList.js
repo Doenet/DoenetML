@@ -143,9 +143,11 @@ export default class AuthoredValueList extends ValueListComponent {
     }
 
     // The attributes a component made from one entry (`<number
-    // extend="$c[2]"/>`, `$c[2]` drawn) takes from the arrays of a list
-    // shown as its sources, as the copy of the entry's source took them
-    // (`addAttributeComponentsShadowingStateVariables`).
+    // extend="$c[2]"/>`) takes from the arrays of a list shown as its
+    // sources, as the copy of the entry's source took them
+    // (`addAttributeComponentsShadowingStateVariables`). A drawn `$c[2]`
+    // takes all but `renderMode`, which a drawn reference sends as a
+    // constant.
     static get listEntryCopiedAttributes() {
         if (!this.listEntriesShownAsSources) {
             return {};
@@ -1204,9 +1206,9 @@ export default class AuthoredValueList extends ValueListComponent {
                 returnEntryPresentationDefinitions(listClass),
             );
             // An entry read by itself (`<number extend="$c[1]"/>`, `$c[1]`
-            // drawn, in a `<group>` or in a `<sort>` that stays a composite)
-            // takes the entry's `hide`, style and `renderMode`, as the copy
-            // of the entry's source did.
+            // in a `<sort>` that stays a composite) takes the entry's `hide`,
+            // style and `renderMode`, as the copy of the entry's source did;
+            // `$c[1]` drawn, or in a `<group>`, takes all but `renderMode`.
             const shadowingInstructions =
                 stateVariableDefinitions[arrayName].shadowingInstructions;
             stateVariableDefinitions[arrayName].shadowingInstructions = {
@@ -1572,8 +1574,11 @@ const LIST_SETTING_OF_PRESENTATION = {
 /**
  * The arrays of a value per entry of a list shown as its sources
  * (`ENTRY_PRESENTATION_ARRAYS`), computed from its `entryPresentation` and
- * the list's own `hide`, `hidden`, `selectedStyle` and `renderMode`. Changing which
- * entries are hidden changes the children the parent draws.
+ * the list's own variable of the same name, or the list's `hide` or
+ * `styleNumber` where it sets one (`LIST_SETTING_OF_PRESENTATION`). Those an
+ * entry read by itself takes as attributes (`ENTRY_ATTRIBUTE_TYPES`) are
+ * arrays with an entry per entry (`entryAttributeArrayDefinition`). Changing
+ * which entries are hidden changes the children the parent draws.
  */
 export function returnEntryPresentationArrays(listClass) {
     const definitions = {};
@@ -1644,9 +1649,9 @@ export function returnEntryPresentationArrays(listClass) {
 
 /**
  * The entry presentation variables that a component made from one entry
- * (`<number extend="$c[2]"/>`, `$c[2]` drawn) takes as attributes of its
- * own, as the copy of the entry's source took them, with the type of each
- * attribute.
+ * (`<number extend="$c[2]"/>`) takes as attributes of its own, as the copy
+ * of the entry's source took them, with the type of each attribute. A drawn
+ * `$c[2]` takes all but `renderMode`.
  */
 export const ENTRY_ATTRIBUTE_TYPES = Object.freeze({
     hide: "boolean",
