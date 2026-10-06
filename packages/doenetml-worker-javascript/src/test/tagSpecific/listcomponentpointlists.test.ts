@@ -765,6 +765,246 @@ describe("Point and vector lists as list components @group4", async () => {
         });
     });
 
+    it("an entry read by itself takes its authored point's or vector's label, fixed and draggable", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pointList name="pl"><point><label>P</label>(5,6)</point> <point fixed>(1,2)</point> <point draggable="false">(3,4)</point> (7,8)</pointList>
+    <vectorList name="vl"><vector headDraggable="false"><label>u</label>(1,2)</vector> <vector tailDraggable="false">(3,4)</vector> (5,6)</vectorList>
+    <graph name="g">$pl[1] $pl[2] $pl[3] $pl[4] <point extend="$pl[1]" /></graph>
+    <graph name="gv">$vl[1] $vl[2] $vl[3]</graph>
+    <p name="ppl">$pl</p>
+    `,
+        });
+
+        const rendererState = (core as any).core.rendererInstructionBuilder
+            .rendererState;
+        const drawnState = async (graph: string, names: string[]) =>
+            (await drawnIn(core, resolvePathToNodeIdx, graph)).map(
+                (child: any) =>
+                    Object.fromEntries(
+                        names.map((name) => [
+                            name,
+                            rendererState[child.componentIdx].stateValues[name],
+                        ]),
+                    ),
+            );
+        expect(await drawnState("g", ["label", "fixed", "draggable"])).eqls([
+            { label: "P", fixed: false, draggable: true },
+            { label: "", fixed: true, draggable: true },
+            { label: "", fixed: false, draggable: false },
+            { label: "", fixed: false, draggable: true },
+            { label: "P", fixed: false, draggable: true },
+        ]);
+        expect(
+            await drawnState("gv", [
+                "label",
+                "draggable",
+                "headDraggable",
+                "tailDraggable",
+            ]),
+        ).eqls([
+            {
+                label: "u",
+                draggable: true,
+                headDraggable: false,
+                tailDraggable: true,
+            },
+            {
+                label: "",
+                draggable: true,
+                headDraggable: true,
+                tailDraggable: false,
+            },
+            {
+                label: "",
+                draggable: true,
+                headDraggable: true,
+                tailDraggable: true,
+            },
+        ]);
+
+        // the fixed and undraggable entries stay; the others move
+        for (const [index, x] of [
+            [0, -1],
+            [1, -2],
+            [2, -3],
+            [3, -4],
+        ]) {
+            await dragEntry({
+                core,
+                resolvePathToNodeIdx,
+                graph: "g",
+                index,
+                args: { x, y: 0 },
+            });
+        }
+        expect(await textsOf(core, resolvePathToNodeIdx, ["ppl"])).eqls({
+            ppl: "(-1, 0), (1, 2), (3, 4), (-4, 0)",
+        });
+    });
+
+    it("an entry of a fixed list read by itself is fixed", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pointList name="pl" fixed><point draggable="false">(1,2)</point> (3,4)</pointList>
+    <vectorList name="vl" fixed>(1,2)</vectorList>
+    <graph>
+      <point name="P1" extend="$pl[1]" />
+      <point name="P2" extend="$pl[2]" />
+      <vector name="V1" extend="$vl[1]" />
+    </graph>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["P1", "P2", "V1"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .fixed,
+                name,
+            ).eq(true);
+        }
+        expect(
+            stateVariables[await resolvePathToNodeIdx("P1")].stateValues
+                .draggable,
+        ).eq(false);
+    });
+
+    it("a vector made from an entry with draggable given has its head and tail follow it, unless its source sets them", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <vectorList name="vl">(1,2) <vector headDraggable="false">(3,4)</vector></vectorList>
+    <graph>
+      <vector name="V1" extend="$vl[1]" draggable="false" />
+      <vector name="V2" extend="$vl[2]" />
+      <vector name="V3" extend="$vl[2]" draggable="false" tailDraggable="true" />
+    </graph>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const drag = async (name: string) => {
+            const { draggable, headDraggable, tailDraggable } =
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            return { draggable, headDraggable, tailDraggable };
+        };
+        expect(await drag("V1")).eqls({
+            draggable: false,
+            headDraggable: false,
+            tailDraggable: false,
+        });
+        expect(await drag("V2")).eqls({
+            draggable: true,
+            headDraggable: false,
+            tailDraggable: true,
+        });
+        expect(await drag("V3")).eqls({
+            draggable: false,
+            headDraggable: false,
+            tailDraggable: true,
+        });
+    });
+
+    it("a copy of a vector made from an entry keeps its source's draggable head and tail", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <vectorList name="vl"><vector headDraggable="false">(1,2)</vector> <vector draggable="false" headDraggable>(3,4)</vector></vectorList>
+    <graph>
+      <vector name="E1" extend="$vl[1]" />
+      <vector name="C1" extend="$E1" />
+      <vector name="E2" extend="$vl[2]" />
+      <vector name="C2" extend="$E2" />
+    </graph>
+    <p name="p">$vl</p>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const drag = async (name: string) => {
+            const { draggable, headDraggable, tailDraggable } =
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            return { draggable, headDraggable, tailDraggable };
+        };
+        for (const name of ["E1", "C1"]) {
+            expect(await drag(name), name).eqls({
+                draggable: true,
+                headDraggable: false,
+                tailDraggable: true,
+            });
+        }
+        for (const name of ["E2", "C2"]) {
+            expect(await drag(name), name).eqls({
+                draggable: false,
+                headDraggable: true,
+                tailDraggable: false,
+            });
+        }
+
+        // a head drag through the copy is refused, as at the source
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("C1"),
+            actionName: "moveVector",
+            args: { headcoords: [7, 7] },
+        });
+        expect(await textsOf(core, resolvePathToNodeIdx, ["p"])).eqls({
+            p: "(1, 2), (3, 4)",
+        });
+    });
+
+    it("a copy of a point made from an entry is labeled as that point is", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pointList name="pl"><point><label>A</label>(1,2)</point> <point><label>B</label>(3,4)</point></pointList>
+    <graph>
+      <point name="X" extend="$pl[2]" />
+      <point name="X2" extend="$pl[2]" labelIsName />
+      <point name="X3" extend="$pl[1]"><label>own</label></point>
+    </graph>
+    <graph>
+      <point name="Y" extend="$X" />
+      <point name="Y2" extend="$X2" />
+      <point name="Y3" extend="$X3" />
+    </graph>
+    <textInput name="ti" bindValueTo="$X.label" />
+    `,
+        });
+
+        async function labels() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result: Record<string, string> = {};
+            for (const name of ["X", "X2", "X3", "Y", "Y2", "Y3"]) {
+                result[name] =
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.label;
+            }
+            return result;
+        }
+
+        expect(await labels()).eqls({
+            X: "B",
+            X2: "X2",
+            X3: "own",
+            Y: "B",
+            Y2: "X2",
+            Y3: "own",
+        });
+
+        await updateTextInputValue({
+            text: "new",
+            componentIdx: await resolvePathToNodeIdx("ti"),
+            core,
+        });
+        expect(await labels()).eqls({
+            X: "new",
+            X2: "X2",
+            X3: "own",
+            Y: "new",
+            Y2: "X2",
+            Y3: "own",
+        });
+    });
+
     it("a click on an entry from an authored point is a click on the point", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

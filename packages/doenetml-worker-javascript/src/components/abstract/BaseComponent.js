@@ -1903,6 +1903,7 @@ export default class BaseComponent {
 
         // delete serializedComponent.attributes.name;
         delete serializedComponent.doenetAttributes.prescribedName;
+        dropListEntryLabel(serializedComponent.doenetAttributes);
 
         return serializedComponent;
     }
@@ -1979,6 +1980,7 @@ export default class BaseComponent {
                 serializedComponent.doenetAttributes,
             );
             delete serializedCopy.doenetAttributes.prescribedName;
+            dropListEntryLabel(serializedCopy.doenetAttributes);
         }
 
         if (serializedComponent.attributes != undefined) {
@@ -2326,5 +2328,27 @@ export default class BaseComponent {
         if (doenetML) {
             this.coreFunctions.copyToClipboard({ text: doenetML, actionId });
         }
+    }
+}
+
+/**
+ * Remove, from the `doenetAttributes` of a copy of a component made from a
+ * list entry (`listEntrySourceDoenetAttributes` in `Copy.js`), the label it
+ * reads from the list: the copy is labeled as that component is (through its
+ * shadow source or, unlinked, the label state copied with it). The other
+ * variables it reads from the list (a vector's draggable head and tail),
+ * which are not attributes and so are not copied with it, it keeps reading
+ * there.
+ */
+function dropListEntryLabel(doenetAttributes) {
+    const listEntrySource = doenetAttributes.listEntrySource;
+    if (!listEntrySource) {
+        return;
+    }
+    const { label, labelHasLatex, ...variables } = listEntrySource.variables;
+    if (Object.keys(variables).length === 0) {
+        delete doenetAttributes.listEntrySource;
+    } else {
+        doenetAttributes.listEntrySource = { ...listEntrySource, variables };
     }
 }

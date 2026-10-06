@@ -70,6 +70,23 @@ export default class VectorList extends GraphicalValueList {
         ];
     }
 
+    // A vector made from one entry reads whether its head and tail can be
+    // dragged where the entry's source sets them apart from its
+    // `draggable` (`entrySourceHeadDraggables`, `entrySourceTailDraggables`),
+    // and otherwise has them follow its own `draggable`, as the copy of the
+    // source did. They are not given to it as attributes, which would hold a
+    // value even where the source sets none and so override a `draggable`
+    // given to the vector. A value the source sets equal to its `draggable`
+    // is not told apart from one it leaves to follow `draggable`, so a
+    // `draggable` given to the vector overrides it.
+    static get listEntrySourceVariables() {
+        return {
+            ...super.listEntrySourceVariables,
+            headDraggable: "entrySourceHeadDraggables",
+            tailDraggable: "entrySourceTailDraggables",
+        };
+    }
+
     static get listEntryRendererDefaults() {
         return {
             ...super.listEntryRendererDefaults,
@@ -702,6 +719,35 @@ export default class VectorList extends GraphicalValueList {
                 return { success: true, instructions };
             },
         };
+
+        // Whether the head and the tail of each entry's source can be dragged,
+        // where that differs from whether the source can be, and `null`
+        // otherwise (`listEntrySourceVariables`).
+        for (const end of ["head", "tail"]) {
+            const arrayName = `entrySource${end[0].toUpperCase()}${end.slice(1)}Draggables`;
+            const variable = `${end}Draggable`;
+            stateVariableDefinitions[arrayName] = {
+                returnDependencies: () => ({
+                    entryChildren: {
+                        dependencyType: "stateVariable",
+                        variableName: "entryChildren",
+                    },
+                }),
+                definition: ({ dependencyValues }) => ({
+                    setValue: {
+                        [arrayName]: dependencyValues.entryChildren.map(
+                            (child) => {
+                                const value = child?.stateValues[variable];
+                                return typeof value === "boolean" &&
+                                    value !== child.stateValues.draggable
+                                    ? value
+                                    : null;
+                            },
+                        ),
+                    },
+                }),
+            };
+        }
 
         return stateVariableDefinitions;
     }
