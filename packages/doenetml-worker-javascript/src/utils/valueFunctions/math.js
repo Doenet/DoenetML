@@ -249,8 +249,8 @@ export function mathCodesAdjacentToStrings({ content, codePre, format }) {
         if (typeof child === "string") {
             let nextChild = content[ind + 1];
             if (nextChild !== undefined && typeof nextChild === "string") {
-                // if following child is also a string, we'll skip the first string
-                // which means, when inverting, the first string will just be set to blank
+                // if following child is also a string, skip the first string:
+                // it gets no entry (see the doc comment above)
                 continue;
             }
 
@@ -328,7 +328,8 @@ export function mathStringsFromExpressionWithCodes({
     for (let stringCodes of codesAdjacentToStrings) {
         let thisString = stringExpr;
         if (Object.keys(stringCodes).length === 0) {
-            // string was skipped, so set it to an empty string
+            // an entry with no codes, so set the string to empty
+            // (an entry has a code whenever there are math children)
             strings.push("");
         } else {
             if (stringCodes.prevCode) {
