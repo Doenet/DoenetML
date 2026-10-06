@@ -385,78 +385,10 @@ export default class GraphicalValueList extends AuthoredValueList {
         // locations (`isLocation`), as are `points` below and a vector
         // list's tails and heads, so `fixLocation` keeps them from being
         // written, as it keeps a point's coordinates.
-        const baseValues = stateVariableDefinitions[arrayName];
-        stateVariableDefinitions[arrayName] = {
-            ...baseValues,
-            isLocation: true,
-            returnArrayDependenciesByKey(args) {
-                const dependencies =
-                    baseValues.returnArrayDependenciesByKey(args);
-                dependencies.globalDependencies = {
-                    ...dependencies.globalDependencies,
-                    numDimensions: {
-                        dependencyType: "stateVariable",
-                        variableName: "numDimensions",
-                    },
-                    ...listClass.entryValueAdjustmentDependencies(),
-                };
-                return dependencies;
-            },
-            arrayDefinitionByKey(args) {
-                const result = baseValues.arrayDefinitionByKey(args);
-                const entries = result.setValue[arrayName];
-                const { numDimensions } = args.globalDependencyValues;
-                for (const arrayKey in entries) {
-                    entries[arrayKey] = withNumDimensions(
-                        entries[arrayKey],
-                        numDimensions,
-                    );
-                }
-                listClass.adjustEntryValues(
-                    entries,
-                    args.globalDependencyValues,
-                );
-                return result;
-            },
-            async inverseArrayDefinitionByKey(args) {
-                const { numDimensions } = args.globalDependencyValues;
-                // A coordinate the write leaves unspecified (a copy of an
-                // entry writing one coordinate at a time) keeps the value
-                // it has, or was given earlier in the same write.
-                if (!args.workspace.writtenEntries) {
-                    args.workspace.writtenEntries = {};
-                }
-                const written = args.workspace.writtenEntries;
-                const desired = {};
-                for (const [arrayKey, value] of Object.entries(
-                    args.desiredStateVariableValues[arrayName],
-                )) {
-                    let entry = withNumDimensions(
-                        coordinatesValue(convertValueToMathExpression(value)),
-                        numDimensions,
-                    );
-                    if (hasUnspecifiedCoordinate(entry)) {
-                        const current =
-                            written[arrayKey] ??
-                            (await args.stateValues[arrayName])[arrayKey];
-                        entry = withSpecifiedCoordinates(entry, current);
-                    }
-                    written[arrayKey] = entry;
-                    desired[arrayKey] = entry;
-                }
-                listClass.adjustEntryValues(
-                    desired,
-                    args.globalDependencyValues,
-                );
-                return baseValues.inverseArrayDefinitionByKey({
-                    ...args,
-                    desiredStateVariableValues: {
-                        ...args.desiredStateVariableValues,
-                        [arrayName]: desired,
-                    },
-                });
-            },
-        };
+        stateVariableDefinitions[arrayName] = graphicalEntryValuesDefinition({
+            listClass,
+            baseValues: stateVariableDefinitions[arrayName],
+        });
 
         // Whether the values are adjusted beyond their number of dimensions
         // (`adjustEntryValues`), so that a coordinate is read from the whole
@@ -970,6 +902,82 @@ export default class GraphicalValueList extends AuthoredValueList {
             });
         }
     }
+}
+
+/**
+ * The array of values `baseValues` of a list of graphical objects, with each
+ * entry given every dimension of the list (a coordinate it does not have is
+ * 0) and adjusted further by the list class (`adjustEntryValues`), as
+ * computed and as written. The values are the entries' locations
+ * (`isLocation`), so `fixLocation` keeps them from being written, as it
+ * keeps a point's coordinates.
+ */
+export function graphicalEntryValuesDefinition({ listClass, baseValues }) {
+    const arrayName = listClass.listValuesArrayName;
+    return {
+        ...baseValues,
+        isLocation: true,
+        returnArrayDependenciesByKey(args) {
+            const dependencies = baseValues.returnArrayDependenciesByKey(args);
+            dependencies.globalDependencies = {
+                ...dependencies.globalDependencies,
+                numDimensions: {
+                    dependencyType: "stateVariable",
+                    variableName: "numDimensions",
+                },
+                ...listClass.entryValueAdjustmentDependencies(),
+            };
+            return dependencies;
+        },
+        arrayDefinitionByKey(args) {
+            const result = baseValues.arrayDefinitionByKey(args);
+            const entries = result.setValue[arrayName];
+            const { numDimensions } = args.globalDependencyValues;
+            for (const arrayKey in entries) {
+                entries[arrayKey] = withNumDimensions(
+                    entries[arrayKey],
+                    numDimensions,
+                );
+            }
+            listClass.adjustEntryValues(entries, args.globalDependencyValues);
+            return result;
+        },
+        async inverseArrayDefinitionByKey(args) {
+            const { numDimensions } = args.globalDependencyValues;
+            // A coordinate the write leaves unspecified (a copy of an
+            // entry writing one coordinate at a time) keeps the value
+            // it has, or was given earlier in the same write.
+            if (!args.workspace.writtenEntries) {
+                args.workspace.writtenEntries = {};
+            }
+            const written = args.workspace.writtenEntries;
+            const desired = {};
+            for (const [arrayKey, value] of Object.entries(
+                args.desiredStateVariableValues[arrayName],
+            )) {
+                let entry = withNumDimensions(
+                    coordinatesValue(convertValueToMathExpression(value)),
+                    numDimensions,
+                );
+                if (hasUnspecifiedCoordinate(entry)) {
+                    const current =
+                        written[arrayKey] ??
+                        (await args.stateValues[arrayName])[arrayKey];
+                    entry = withSpecifiedCoordinates(entry, current);
+                }
+                written[arrayKey] = entry;
+                desired[arrayKey] = entry;
+            }
+            listClass.adjustEntryValues(desired, args.globalDependencyValues);
+            return baseValues.inverseArrayDefinitionByKey({
+                ...args,
+                desiredStateVariableValues: {
+                    ...args.desiredStateVariableValues,
+                    [arrayName]: desired,
+                },
+            });
+        },
+    };
 }
 
 /** `rendererVariables` of each list class, made once per class. */
