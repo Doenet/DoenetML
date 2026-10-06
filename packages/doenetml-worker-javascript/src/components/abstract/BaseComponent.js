@@ -1903,6 +1903,10 @@ export default class BaseComponent {
 
         // delete serializedComponent.attributes.name;
         delete serializedComponent.doenetAttributes.prescribedName;
+        // A copy of a component made from a list entry is labeled as that
+        // component is (its shadow source), not from the list entry
+        // (`labelOfEntryDoenetAttributes` in `Copy.js`)
+        delete serializedComponent.doenetAttributes.labelOfListEntry;
 
         return serializedComponent;
     }
@@ -1979,6 +1983,7 @@ export default class BaseComponent {
                 serializedComponent.doenetAttributes,
             );
             delete serializedCopy.doenetAttributes.prescribedName;
+            delete serializedCopy.doenetAttributes.labelOfListEntry;
         }
 
         if (serializedComponent.attributes != undefined) {

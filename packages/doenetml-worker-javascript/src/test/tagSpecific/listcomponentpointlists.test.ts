@@ -843,6 +843,63 @@ describe("Point and vector lists as list components @group4", async () => {
         });
     });
 
+    it("a copy of a point made from an entry is labeled as that point is", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pointList name="pl"><point><label>A</label>(1,2)</point> <point><label>B</label>(3,4)</point></pointList>
+    <graph>
+      <point name="X" extend="$pl[2]" />
+      <point name="X2" extend="$pl[2]" labelIsName />
+      <point name="X3" extend="$pl[1]"><label>own</label></point>
+    </graph>
+    <graph>
+      <point name="Y" extend="$X" />
+      <point name="Y2" extend="$X2" />
+      <point name="Y3" extend="$X3" />
+    </graph>
+    <textInput name="ti" bindValueTo="$X.label" />
+    `,
+        });
+
+        async function labels() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const result: Record<string, string> = {};
+            for (const name of ["X", "X2", "X3", "Y", "Y2", "Y3"]) {
+                result[name] =
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.label;
+            }
+            return result;
+        }
+
+        expect(await labels()).eqls({
+            X: "B",
+            X2: "X2",
+            X3: "own",
+            Y: "B",
+            Y2: "X2",
+            Y3: "own",
+        });
+
+        await updateTextInputValue({
+            text: "new",
+            componentIdx: await resolvePathToNodeIdx("ti"),
+            core,
+        });
+        expect(await labels()).eqls({
+            X: "new",
+            X2: "X2",
+            X3: "own",
+            Y: "new",
+            Y2: "X2",
+            Y3: "own",
+        });
+    });
+
     it("a click on an entry from an authored point is a click on the point", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
