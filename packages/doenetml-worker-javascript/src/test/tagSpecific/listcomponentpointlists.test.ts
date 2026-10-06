@@ -1133,4 +1133,81 @@ describe("Point and vector lists as list components @group4", async () => {
             list: "(7, 8), (3, 4), (a, b)",
         });
     });
+
+    it("PreFigure output, graph controls and a legend find each entry, as they find points and vectors", async () => {
+        // the same graphs, with the items as a list and as components
+        function doenetML(asList: boolean) {
+            const points = (name: string) =>
+                asList
+                    ? `<pointList name="${name}" styleNumber="2">(1,2) (3,4)</pointList>`
+                    : `<point styleNumber="2">(1,2)</point><point styleNumber="2">(3,4)</point>`;
+            const vectors = asList
+                ? `<vectorList>(1,2) (3,4)</vectorList>`
+                : `<vector>(1,2)</vector><vector>(3,4)</vector>`;
+            return `
+    <graph name="gp" renderer="prefigure">${points("plp")}${vectors}</graph>
+    <graph name="gc" addControls>${points("pl")}</graph>
+    <graph name="gl">${points("pll")}<legend name="legend"><label>A</label></legend></graph>
+    <p name="ppl">$pl</p>
+    `;
+        }
+        const withList = await createTestCore({ doenetML: doenetML(true) });
+        const withComponents = await createTestCore({
+            doenetML: doenetML(false),
+        });
+
+        async function stateOf(testCore: any) {
+            const stateVariables = await testCore.core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await testCore.resolvePathToNodeIdx(name)]
+                    .stateValues;
+            const xml: string = (await sv("gp")).prefigureXML;
+            return {
+                numPointElements: xml.match(/<point\b/g)?.length ?? 0,
+                numVectorElements: xml.match(/<vector\b/g)?.length ?? 0,
+                controls: (await sv("gc")).graphicalDescendantsForControls.map(
+                    (control: any) => [
+                        control.controlType,
+                        control.x,
+                        control.y,
+                    ],
+                ),
+                legend: (await sv("legend")).legendElements.map(
+                    (element: any) => [
+                        element.swatchType,
+                        element.markerColor,
+                        element.label.value,
+                    ],
+                ),
+            };
+        }
+
+        const expected = await stateOf(withComponents);
+        expect(expected.numPointElements).eq(2);
+        expect(expected.numVectorElements).eq(2);
+        expect(expected.controls).toHaveLength(2);
+        expect(await stateOf(withList)).eqls(expected);
+
+        // a control moves its entry
+        const stateVariables = await withList.core.returnAllStateVariables(
+            false,
+            true,
+        );
+        const control =
+            stateVariables[await withList.resolvePathToNodeIdx("gc")]
+                .stateValues.graphicalDescendantsForControls[1];
+        await withList.core.requestAction({
+            componentIdx: control.componentIdx,
+            actionName: "movePoint",
+            args: { x: 7, y: 8 },
+        });
+        expect(
+            await textsOf(withList.core, withList.resolvePathToNodeIdx, [
+                "ppl",
+            ]),
+        ).eqls({ ppl: "(1, 2), (7, 8)" });
+    });
 });

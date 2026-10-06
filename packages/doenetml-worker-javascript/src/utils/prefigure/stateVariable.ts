@@ -8,7 +8,11 @@ interface DescendantDependency {
     componentTypes: string[];
     variableNames: string[];
     variablesOptional?: boolean;
+    presentListsAsEntries?: boolean;
 }
+
+/** The types a list component holds entries of that are drawn in a graph. */
+const LIST_ENTRY_TYPES = new Set(["point", "vector"]);
 
 // PreFigure conversion architecture and extension guide:
 // see src/utils/prefigure/README.md
@@ -182,6 +186,12 @@ function descendantDependency({
 
     if (variablesOptional) {
         dependency.variablesOptional = true;
+    }
+
+    // Each entry of a list of points or vectors (`<pointList>`) is drawn,
+    // as a point or vector is.
+    if (LIST_ENTRY_TYPES.has(componentType)) {
+        dependency.presentListsAsEntries = true;
     }
 
     return dependency;
