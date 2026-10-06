@@ -870,7 +870,6 @@ function withCoordinates(value, numbers) {
     );
 }
 
-/** The sum of two maths of coordinates, coordinate by coordinate. */
 /**
  * `values`, the definition of the values (displacements) of a vector list,
  * with a displacement written to an entry that has a tail and head of its
@@ -993,6 +992,7 @@ export function writesToVector(written, stateValues) {
     return writes;
 }
 
+/** The sum of two maths of coordinates, coordinate by coordinate. */
 export function sumOf(a, b) {
     const bs = coordinatesOf(b);
     return vectorOf(coordinatesOf(a).map((x, i) => x.add(bs[i]).simplify()));
