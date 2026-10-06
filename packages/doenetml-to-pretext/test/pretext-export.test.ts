@@ -656,6 +656,13 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("text written straight into an introduction or a conclusion is given a paragraph", async () => {
+        source = `<section><introduction>Read this first.</introduction><p>Body</p><conclusion>That is all.</conclusion></section>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<introduction><p>Read this first.</p></introduction><p>Body</p><conclusion><p>That is all.</p></conclusion>`,
+        );
+    });
+
     it("a solution keeps its content, for the publisher to show or hide", async () => {
         source = `<problem><statement><p>What is 1+1?</p></statement><solution><p>It is 2.</p></solution></problem>`;
         expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
@@ -895,6 +902,14 @@ describe("Pretext export", async () => {
         source = `<p><label>Before <delete>gone</delete> </label></p>`;
         expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
             `<p>Before <delete>gone</delete></p>`,
+        );
+    });
+
+    it("a label copied from another prints a lone \\( or \\) as written", async () => {
+        // A label with no children of its own has only its string to print.
+        source = `<textInput name="t"><label>a \\) b</label></textInput><p>$t.label</p><p><label extend="$t.label"/></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<p>a \\) b</p><p>a \\) b</p>`,
         );
     });
 
