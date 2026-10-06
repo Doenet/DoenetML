@@ -300,6 +300,43 @@ describe("An entry of a list component as a target @group4", async () => {
         expect(await legendLabels()).eqls([]);
     });
 
+    it("an entry named far past the end of the list does not slow it", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+      <pointList name="pl">(1,2) (3,4)</pointList>
+    </graph>
+    <number name="n">0</number>
+    <updateValue target="$n" newValue="$n+1" triggerWhenObjectsClicked="$pl[4000000000]" />
+    `,
+        });
+
+        // Each move of an entry updates the list's entries; only those drawn
+        // or named are visited, not every index up to the one named.
+        const drawn = await drawnIn(core, resolvePathToNodeIdx, "g");
+        for (const x of [5, 6, 7]) {
+            await core.requestAction({
+                componentIdx: drawn[0].componentIdx,
+                actionName: "movePoint",
+                args: { x, y: 2 },
+            });
+        }
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[
+                await resolvePathToNodeIdx("pl")
+            ].stateValues.points[0].map((x: any) => x.tree),
+        ).eqls([7, 2]);
+        await actOnEntry({
+            core,
+            resolvePathToNodeIdx,
+            graph: "g",
+            index: 1,
+            actionName: "pointClicked",
+        });
+        expect((await valuesOf(core, resolvePathToNodeIdx, ["n"])).n).eq(0);
+    });
+
     it("a click on an entry of a math list in a graph", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

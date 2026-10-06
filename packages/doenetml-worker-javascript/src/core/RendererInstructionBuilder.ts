@@ -92,10 +92,12 @@ export class RendererInstructionBuilder {
     /** Whether an idle-lane chunk is waiting for the viewer to draw it. */
     _awaitingRendererAck: boolean;
     /**
-     * The renderer index of each entry of each list component drawn so far,
-     * by the list's index (see `rendererIdxForListEntry`).
+     * The renderer index of each entry of each list component drawn or
+     * named so far, by the list's index and then the entry's (see
+     * `rendererIdxForListEntry`). A map, not an array, as an entry named far
+     * past the end of the list (`$pl[$i]`) holds a renderer index alone.
      */
-    listEntryRendererIndices: Map<number, number[]>;
+    listEntryRendererIndices: Map<number, Map<number, number>>;
     /** The list and entry each of those renderer indices stands for. */
     listEntryOfRendererIdx: Map<
         number,
@@ -414,10 +416,7 @@ export class RendererInstructionBuilder {
                 this.listEntryRendererIndices.get(componentIdx);
             if (listEntryIndices) {
                 const list = this.core._components[componentIdx];
-                for (const [
-                    entryIndex,
-                    entryIdx,
-                ] of listEntryIndices.entries()) {
+                for (const [entryIndex, entryIdx] of listEntryIndices) {
                     if (list && entryIdx in this.componentsToRender) {
                         const stateValues = await this.listEntryRendererState(
                             list,
@@ -855,10 +854,10 @@ export class RendererInstructionBuilder {
     rendererIdxForListEntry(list: any, entryIndex: number): number {
         let indices = this.listEntryRendererIndices.get(list.componentIdx);
         if (!indices) {
-            indices = [];
+            indices = new Map();
             this.listEntryRendererIndices.set(list.componentIdx, indices);
         }
-        let idx = indices[entryIndex];
+        let idx = indices.get(entryIndex);
         if (idx === undefined) {
             idx = this.core._components.length;
             this.core._components[idx] = undefined;
@@ -866,7 +865,7 @@ export class RendererInstructionBuilder {
                 listIdx: list.componentIdx,
                 entryIndex,
             });
-            indices[entryIndex] = idx;
+            indices.set(entryIndex, idx);
         }
         return idx;
     }

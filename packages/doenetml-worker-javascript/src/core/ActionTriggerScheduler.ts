@@ -313,7 +313,7 @@ export class ActionTriggerScheduler {
 
             if (entryIndex !== undefined) {
                 addActionsChangedTo(
-                    builder.listEntryRendererIndices.get(cIdx)?.[entryIndex],
+                    builder.listEntryRendererIndices.get(cIdx)?.get(entryIndex),
                 );
             }
             addActionsChangedTo(cIdx);
