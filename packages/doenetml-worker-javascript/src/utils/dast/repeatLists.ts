@@ -159,7 +159,7 @@ export function convertRepeatsToLists({
         ) as SerializedRefResolution;
         addTo(referencesByTarget, refResolution.nodeIdx, reference);
         for (const part of new Set(
-            refResolution.originalPath.slice(1).map((part) => part.name),
+            (refResolution.unresolvedPath ?? []).map((part) => part.name),
         )) {
             addTo(referencesByPathName, part, reference);
         }
@@ -318,6 +318,8 @@ export function convertRepeatsToLists({
 
         // The template's name, reached another way, as through an outer
         // repeat (`$a[2][1][3].c`), names a component the list does not have.
+        // Only the path left to resolve can reach it so; a resolved one
+        // (`$g.m` of another `m`) names the component it resolved to.
         if (topName !== undefined) {
             for (const { component } of referencesByPathName.get(topName) ??
                 []) {
@@ -326,9 +328,9 @@ export function convertRepeatsToLists({
                 ) as SerializedRefResolution;
                 if (
                     !rewrites.includes(refResolution) &&
-                    refResolution.originalPath
-                        .slice(1)
-                        .some((part) => part.name === topName)
+                    (refResolution.unresolvedPath ?? []).some(
+                        (part) => part.name === topName,
+                    )
                 ) {
                     return;
                 }
@@ -484,7 +486,10 @@ export function convertRepeatsToLists({
                     !(top ? allowed.top : allowed.nested).has(
                         name.toLowerCase(),
                     ) ||
-                    !isLiteral(attribute)
+                    !isLiteral(attribute) ||
+                    (!top &&
+                        BOOLEAN_NODE_ATTRIBUTES.has(name.toLowerCase()) &&
+                        !isPlainBooleanLiteral(attribute))
                 ) {
                     return false;
                 }
@@ -646,7 +651,9 @@ export function convertRepeatsToLists({
      * Whether the repeat, or a component holding it, is referenced, copied or
      * extended from inside a `<graph>` (`$r`, or `<group extend="$g"/>` of a
      * `<group name="g">` around it), or copied or extended as one
-     * (`<graph extend="$g"/>`), following copies of those copies:
+     * (`<graph extend="$g"/>`), following copies of those copies, up to but
+     * not including the document. Only a reference to a whole component
+     * copies it; one with a path reads a value or part of it:
      * where each iteration's component would be drawn and dragged at an
      * anchor of its own, which an entry of the list has none of.
      */
@@ -656,7 +663,9 @@ export function convertRepeatsToLists({
         function addWithAncestors(idx: number) {
             for (
                 let component = componentsByIdx.get(idx);
-                component && !seen.has(component.componentIdx);
+                component &&
+                component.componentType !== "document" &&
+                !seen.has(component.componentIdx);
                 component = parentByIdx.get(component.componentIdx)
             ) {
                 seen.add(component.componentIdx);
@@ -671,6 +680,16 @@ export function convertRepeatsToLists({
         for (let i = 0; i < containers.length; i++) {
             for (const { component } of referencesByTarget.get(containers[i]) ??
                 []) {
+                // A reference with a path reads a value or a part
+                // (`$r[2]`, `$sec.title`), not a copy of what holds the
+                // repeat; a reference to an entry in a graph is drawn as the
+                // list's entry is.
+                const refResolution = unwrapSource(
+                    component.extending!,
+                ) as SerializedRefResolution;
+                if (refResolution.unresolvedPath?.length) {
+                    continue;
+                }
                 if (inGraph(component) || makesGraph(component)) {
                     return true;
                 }
@@ -754,6 +773,35 @@ function collectNodes(
             collectNodes(child, nodes);
         }
     }
+}
+
+/**
+ * The boolean attributes of a nested component, which the list reads itself
+ * (`utils/repeatTemplate.js`), as only `true`, `false` or nothing.
+ */
+const BOOLEAN_NODE_ATTRIBUTES = new Set(["expand", "fixed"]);
+
+/**
+ * Whether the boolean `attribute` is written as `true`, `false` or nothing
+ * (`expand`), which the list reads as a `<boolean>` would; another literal
+ * (`expand="1"`) keeps the composite, whose `<boolean>` evaluates it.
+ */
+function isPlainBooleanLiteral(attribute: SerializedAttribute): boolean {
+    if (attribute.type === "primitive") {
+        return typeof attribute.primitive.value === "boolean";
+    }
+    if (attribute.type !== "component") {
+        return false;
+    }
+    const value = attribute.component.state?.value;
+    if (typeof value === "boolean") {
+        return true;
+    }
+    const text = (attribute.component.children as string[])
+        .join("")
+        .trim()
+        .toLowerCase();
+    return text === "" || text === "true" || text === "false";
 }
 
 /** Whether `attribute` is written as a literal, with no reference. */

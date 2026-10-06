@@ -414,7 +414,13 @@ function canBeModified(code, context) {
     if (node.string !== undefined || node.codes.length === 0) {
         return true;
     }
-    if (node.type === "number" || node.numStrings === 0) {
+    // One child alone is written as it is, as `<math>` and `<number>` write
+    // a single child; more than one, side by side, are a product, which
+    // `mathInverseAnalysis` decides, as `<math>` does.
+    if (
+        node.type === "number" ||
+        (node.numStrings === 0 && node.codes.length === 1)
+    ) {
         return node.codes.some((inner) => canBeModified(inner, context));
     }
     return mathInverseAnalysis({

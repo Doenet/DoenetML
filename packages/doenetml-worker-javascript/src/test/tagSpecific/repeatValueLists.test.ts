@@ -252,6 +252,87 @@ describe("Repeats whose template is one value @group4", () => {
         expect(texts).toEqual({ p: "1, 2, 3", pc: "18" });
     });
 
+    it("codes side by side are a product, which takes no write when two can be written", async () => {
+        const texts = await compare({
+            doenetML: `
+<numberList name="l">1 2 3</numberList>
+<math name="k">2</math>
+<math name="c">5</math>
+<p name="p"><repeatForSequence name="r" from="1" to="3" indexName="i"><math>$l[$i]$k</math></repeatForSequence></p>
+<p><math name="o">$r[2] + $c</math></p>
+<mathInput name="mi" bindValueTo="$o" />
+<p name="pc">$c</p>
+`,
+            names: ["p", "pc"],
+            afterLoad: async (core, resolvePathToNodeIdx) => {
+                await updateMathInputValue({
+                    latex: "20",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+            },
+        });
+        expect(texts.pc).toBe("16");
+    });
+
+    it("a reference to the whole list reports its entries writable as the list does", async () => {
+        // `$q.r` is a copy of the whole list, holding no template; it reads
+        // whether the entries take a write from the list. A literal entry
+        // takes one, so `$o` writes it, and the copy's entry takes one too.
+        await compare({
+            doenetML: `
+<math name="c">5</math>
+<p name="p"><repeatForSequence name="r" from="1" to="3" valueName="v"><math>x</math></repeatForSequence></p>
+<p name="q" extend="$p" />
+<p><math name="o">$q.r[2] + $c</math></p>
+<mathInput name="mi" bindValueTo="$o" />
+<mathInput name="mi2" bindValueTo="$q.r[3]" />
+<p name="pc">$c</p>
+`,
+            names: ["p", "q", "pc"],
+            afterLoad: async (core, resolvePathToNodeIdx) => {
+                await updateMathInputValue({
+                    latex: "20",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+                await updateMathInputValue({
+                    latex: "30",
+                    componentIdx: await resolvePathToNodeIdx("mi2"),
+                    core,
+                });
+            },
+        });
+    });
+
+    it("an unrelated reference through a path to another component of the template's name leaves it a list", async () => {
+        await compare({
+            doenetML: `
+<group name="g"><math name="m">y</math></group>
+<p name="q">$g.m</p>
+<p name="p"><repeatForSequence name="r" from="1" to="2" valueName="v"><math name="m">$v</math></repeatForSequence></p>
+<p name="p2">$r[2].m</p>
+`,
+            names: ["p", "q", "p2"],
+        });
+    });
+
+    it("values plotted from a repeat, or read in a graph, leave it a list", async () => {
+        await compare({
+            doenetML: `
+<section name="sec"><title>Squares</title>
+<p name="p"><repeatForSequence name="r" from="1" to="3" valueName="v"><number>$v^2</number></repeatForSequence></p>
+</section>
+<graph name="g">
+  <point name="P">($r[2], 1)</point>
+  <label>$sec.title</label>
+</graph>
+<p name="pP">$P</p>
+`,
+            names: ["p", "pP"],
+        });
+    });
+
     it("a list read with modifyIndirectly false takes no write, so the other value does", async () => {
         const texts = await compare({
             doenetML: `
@@ -492,6 +573,9 @@ describe("Repeats whose template is one value @group4", () => {
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence><p>$r[1].v</p>`,
             // an index computed
             `<numberList name="l">1 2 3</numberList><repeatForSequence name="r" from="1" to="2" indexName="i"><math>$l[$i+1]</math></repeatForSequence>`,
+            // a nested boolean attribute other than true or false, which a
+            // <boolean> evaluates
+            `<repeatForSequence name="r" from="1" to="2" valueName="v"><math><math expand="1">($v x+1)^2</math></math></repeatForSequence>`,
             // a math operator
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math><abs>$v</abs></math></repeatForSequence>`,
             // more than one component
