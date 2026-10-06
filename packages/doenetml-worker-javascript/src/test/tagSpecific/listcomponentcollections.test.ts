@@ -1520,6 +1520,86 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         });
     });
 
+    it("a collected or sorted vector read by itself has its tail, and a drag of it goes to the source", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g1">
+      <vector name="u" tail="(1,1)" head="(3,4)" />
+      <vectorList name="vl"><vector name="w" tail="(2,0)">(1,1)</vector></vectorList>
+    </graph>
+    <collect componentType="vector" from="$g1" name="cv" />
+    <sort name="sv">$u</sort>
+    <graph name="g2">$cv[1] $cv[2] $sv[1]</graph>
+    <graph name="g3"><vector extend="$cv[1]" name="ve" /></graph>
+    <mathInput name="mi" bindValueTo="$cv[1].tail" />
+    <p name="pu">$u.tail $u.head | $w.tail $w.head</p>
+    <p name="pe">$ve.tail $ve.head</p>
+    `,
+        });
+
+        const endpoints = async (graph: string) =>
+            (await graphicalDrawnIn(core, resolvePathToNodeIdx, graph)).map(
+                (x: any) => x.coords,
+            );
+        expect(await endpoints("g2")).eqls([
+            [
+                [1, 1],
+                [3, 4],
+            ],
+            [
+                [2, 0],
+                [3, 1],
+            ],
+            [
+                [1, 1],
+                [3, 4],
+            ],
+        ]);
+        expect(await endpoints("g3")).eqls([
+            [
+                [1, 1],
+                [3, 4],
+            ],
+        ]);
+
+        // the tail, the head, and both, of a collected `<vector>`, of a
+        // collected entry of a vector list, and of a sorted `<vector>`
+        await dragDrawn(core, resolvePathToNodeIdx, "g2", 0, "moveVector", {
+            tailcoords: [5, 5],
+        });
+        await expectTexts(core, resolvePathToNodeIdx, {
+            pu: "(5, 5) (3, 4) | (2, 0) (3, 1)",
+        });
+        await dragDrawn(core, resolvePathToNodeIdx, "g2", 0, "moveVector", {
+            headcoords: [6, 6],
+        });
+        await dragDrawn(core, resolvePathToNodeIdx, "g2", 1, "moveVector", {
+            tailcoords: [0, 0],
+            headcoords: [1, 0],
+        });
+        await expectTexts(core, resolvePathToNodeIdx, {
+            pu: "(5, 5) (6, 6) | (0, 0) (1, 0)",
+        });
+        await dragDrawn(core, resolvePathToNodeIdx, "g2", 2, "moveVector", {
+            tailcoords: [1, 1],
+            headcoords: [2, 2],
+        });
+        await expectTexts(core, resolvePathToNodeIdx, {
+            pu: "(1, 1) (2, 2) | (0, 0) (1, 0)",
+        });
+
+        // a tail written to the entry keeps the displacement
+        await updateMathInputValue({
+            latex: "(7,7)",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await expectTexts(core, resolvePathToNodeIdx, {
+            pu: "(7, 7) (8, 8) | (0, 0) (1, 0)",
+            pe: "(7, 7) (8, 8)",
+        });
+    });
+
     it("sorted points and vectors are ordered by a coordinate and follow a drag", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

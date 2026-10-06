@@ -468,13 +468,15 @@ function arrayForEntryProperty(
         return ownArray;
     }
     const listVariable = listClass.listEntryStateVariables[entryProperty];
+    // The values are an array whatever the class is registered as (a list
+    // form of `<collect>` of vectors is registered as one of numbers).
     const description = (
         componentInfoObjects.stateVariableInfo[listClass.componentType]
             ?.stateVariableDescriptions as any
     )?.[listVariable];
     if (
         listClass.listPerEntryVariables.includes(listVariable) &&
-        description?.isArray
+        (description?.isArray || listVariable === listClass.listValuesArrayName)
     ) {
         return listVariable;
     }

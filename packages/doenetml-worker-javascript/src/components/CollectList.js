@@ -18,7 +18,11 @@ import TextList from "./TextList";
 import BooleanList from "./BooleanList";
 import IntervalList from "./IntervalList";
 import PointList from "./PointList";
-import VectorList, { sumOf, writesToVector } from "./VectorList";
+import VectorList, {
+    sumOf,
+    withDisplacementsWrittenWithTails,
+    writesToVector,
+} from "./VectorList";
 import {
     coordinatesOf,
     coordinatesValue,
@@ -603,6 +607,12 @@ function collectListClass(Base) {
 }
 
 /**
+ * The variables of a `<vector>` that `writesToVector` writes, by the index it
+ * gives each.
+ */
+const VECTOR_WRITTEN_VARIABLES = ["tail", "head", "displacement"];
+
+/**
  * The definitions a list form of `<collect>` of points or vectors replaces
  * those of `GraphicalValueList` with, which read the list's children, by
  * reading the components it collects instead (`collectedSources`): the
@@ -611,7 +621,8 @@ function collectListClass(Base) {
  * as (`entryChildren`: label, style, `draggable`, `fixed`, `hide`, and the
  * source a click or a drag of a vector goes to); and, for vectors, the tail
  * and head of each (`entryChildEndpoints`), a write to which goes to the
- * source as a drag of it does (`writesToVector`). An entry of a list
+ * source as a drag of it does (`writesToVector`), with a displacement written
+ * to an entry (`$c[1]` dragged) written with its tail. An entry of a list
  * collected is drawn as that list draws it, with its tail.
  */
 function returnCollectedGraphicalDefinitions(listClass, definitions) {
@@ -754,6 +765,14 @@ function returnCollectedGraphicalDefinitions(listClass, definitions) {
     };
 
     if (isVector) {
+        // A displacement written to an entry is written with its tail, to
+        // its source (`entryChildEndpoints`), as a vector list writes one
+        // from a `<vector>` child.
+        collected[arrayName] = withDisplacementsWrittenWithTails(
+            collected[arrayName],
+            arrayName,
+        );
+
         collected.entryChildEndpoints = {
             shadowVariable: true,
             stateVariablesDeterminingDependencies: ["collectedSources"],
@@ -786,6 +805,19 @@ function returnCollectedGraphicalDefinitions(listClass, definitions) {
                             ],
                             variablesOptional: true,
                         };
+                        // what a write goes to, by the index `writesToVector`
+                        // gives each variable
+                        for (const [
+                            variableIndex,
+                            variableName,
+                        ] of VECTOR_WRITTEN_VARIABLES.entries()) {
+                            dependencies[`write${ind}_${variableIndex}`] = {
+                                dependencyType: "stateVariable",
+                                componentIdx: source.componentIdx,
+                                variableName,
+                                variablesOptional: true,
+                            };
+                        }
                     } else {
                         // the entry of a vector list: its tail and its
                         // displacement
@@ -896,9 +928,8 @@ function returnCollectedGraphicalDefinitions(listClass, definitions) {
                         stateValues,
                     )) {
                         instructions.push({
-                            setDependency: `source${collectedInd}`,
+                            setDependency: `write${collectedInd}_${variableIndex}`,
                             desiredValue: coordinatesOf(value),
-                            variableIndex,
                         });
                     }
                 }
