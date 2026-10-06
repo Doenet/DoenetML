@@ -3319,6 +3319,45 @@ describe("UpdateValue tag tests @group1", async () => {
         await check_coords([5, 6], [7, 8], [10]);
     });
 
+    it("update every entry of a list, or a property of every entry", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <numberList name="nl">1 2</numberList>
+    <textList name="tl">a b</textList>
+    <pointList name="pl">(1,2) (3,4)</pointList>
+    <updateValue name="uvNumbers" target="$nl" newValue="5" type="number" />
+    <updateValue name="uvTexts" target="$tl" newValue="z" type="text" />
+    <updateValue name="uvX" target="$pl.x" newValue="7" />
+    <updateValue name="uvOne" target="$nl[2]" newValue="9" type="number" />
+    <p name="p">$nl | $tl | $pl</p>
+    `,
+        });
+
+        async function text() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx("p")].stateValues
+                .text;
+        }
+
+        for (const name of ["uvNumbers", "uvTexts", "uvX"]) {
+            await updateValue({
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+        }
+        expect(await text()).eq("5, 5 | z, z | (7, 2), (7, 4)");
+
+        // an index picks one entry
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uvOne"),
+            core,
+        });
+        expect(await text()).eq("5, 9 | z, z | (7, 2), (7, 4)");
+    });
+
     it("updateValue warnings with invalid targets", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
