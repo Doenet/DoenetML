@@ -230,6 +230,28 @@ describe("Repeats whose template is one value @group4", () => {
         expect(texts).toEqual({ p: "11, 17, 13", pl: "1, 7, 3" });
     });
 
+    it("a list read with modifyIndirectly false takes no write, so the other value does", async () => {
+        const texts = await compare({
+            doenetML: `
+<numberList name="l" modifyIndirectly="false">1 2 3</numberList>
+<number name="c">5</number>
+<p name="p"><repeatForSequence name="r" from="1" to="3" indexName="i"><number>$l[$i] + $c</number></repeatForSequence></p>
+<mathInput name="mi" bindValueTo="$r[2]" />
+<p name="pl">$l</p>
+<p name="pc">$c</p>
+`,
+            names: ["p", "pl", "pc"],
+            afterLoad: async (core, resolvePathToNodeIdx) => {
+                await updateMathInputValue({
+                    latex: "20",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+            },
+        });
+        expect(texts).toEqual({ p: "19, 20, 21", pl: "1, 2, 3", pc: "18" });
+    });
+
     it("a write through a value outside the template changes every entry", async () => {
         const texts = await compare({
             doenetML: `

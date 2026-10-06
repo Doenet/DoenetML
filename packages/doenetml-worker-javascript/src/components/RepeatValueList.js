@@ -270,6 +270,12 @@ export default class RepeatValueList extends ValueListComponent {
                         variableName: "entriesCanBeModified",
                         variablesOptional: true,
                     };
+                    dependencies[`modifyIndirectly${e}`] = {
+                        dependencyType: "stateVariable",
+                        componentIdx,
+                        variableName: "modifyIndirectly",
+                        variablesOptional: true,
+                    };
                 }
                 return dependencies;
             },
@@ -278,8 +284,12 @@ export default class RepeatValueList extends ValueListComponent {
                 const entryListsCanBeModified = [];
                 for (let e = 0; `prefix${e}` in dependencyValues; e++) {
                     entryListPrefixes.push(dependencyValues[`prefix${e}`]);
+                    // As a reference to an entry (`ValueRef`), which reads
+                    // its list's `modifyIndirectly` too, so that a write the
+                    // template can take elsewhere goes there.
                     entryListsCanBeModified.push(
-                        dependencyValues[`canBeModified${e}`] ?? false,
+                        (dependencyValues[`canBeModified${e}`] ?? false) &&
+                            dependencyValues[`modifyIndirectly${e}`] !== false,
                     );
                 }
                 return {

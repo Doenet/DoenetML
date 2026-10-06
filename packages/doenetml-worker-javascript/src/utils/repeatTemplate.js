@@ -256,7 +256,13 @@ export function invertRepeatTemplate({
             return {
                 success: true,
                 writes: [],
-                texts: { [ind]: { string: String(number) } },
+                // as a `<number>` writes its text, which a complex number,
+                // held as `{ re, im }`, needs
+                texts: {
+                    [ind]: {
+                        string: numberToMathExpression(number).toString(),
+                    },
+                },
             };
         }
         if (node.codes.length === 0) {
@@ -265,7 +271,13 @@ export function invertRepeatTemplate({
             return {
                 success: true,
                 writes: [],
-                texts: { [ind]: { string: String(number) } },
+                // as a `<number>` writes its text, which a complex number,
+                // held as `{ re, im }`, needs
+                texts: {
+                    [ind]: {
+                        string: numberToMathExpression(number).toString(),
+                    },
+                },
             };
         }
         const code = node.codes[0];
