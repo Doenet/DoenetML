@@ -114,6 +114,38 @@ export default class GraphicalValueList extends AuthoredValueList {
         return variables;
     }
 
+    /**
+     * The variables whose change queues an update of the list's renderer,
+     * keyed by name (`Core.rendererVariablesOf`): its own renderer
+     * variables, and the variables of the list its entries' renderers read
+     * (`listEntryStateVariables`, as
+     * `RendererInstructionBuilder.listEntryRendererState` reads them). So an
+     * entry is drawn again when its tail, or the label or style of the child
+     * it is from, changes without its value changing.
+     */
+    get rendererVariables() {
+        const listClass = this.constructor;
+        let variables = rendererVariablesOfListClass.get(listClass);
+        if (variables === undefined) {
+            const classes = this.componentInfoObjects.allComponentClasses;
+            const rendererVariablesOf = (componentClass) =>
+                componentClass.returnStateVariableInfo({
+                    onlyForRenderer: true,
+                }).stateVariableDescriptions;
+            variables = { ...rendererVariablesOf(listClass) };
+            for (const name in rendererVariablesOf(
+                classes[listClass.listEntryComponentType],
+            )) {
+                const listVariable = listClass.listEntryStateVariables[name];
+                if (listVariable !== undefined) {
+                    variables[listVariable] = true;
+                }
+            }
+            rendererVariablesOfListClass.set(listClass, variables);
+        }
+        return variables;
+    }
+
     static get listPerEntryVariables() {
         return [
             ...super.listPerEntryVariables,
@@ -894,6 +926,9 @@ export default class GraphicalValueList extends AuthoredValueList {
         });
     }
 }
+
+/** `rendererVariables` of each list class, made once per class. */
+const rendererVariablesOfListClass = new WeakMap();
 
 /** The array of a list holding variable `name` of each entry's renderer. */
 export function entryVariableName(name) {

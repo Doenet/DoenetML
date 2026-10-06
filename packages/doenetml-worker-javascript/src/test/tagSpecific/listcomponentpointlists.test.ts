@@ -1,6 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
-import { updateMathInputValue } from "../utils/actions";
+import { updateMathInputValue, updateTextInputValue } from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -1379,5 +1379,77 @@ describe("Point and vector lists as list components @group4", async () => {
                 "ppl",
             ]),
         ).eqls({ ppl: "(1, 2), (7, 8)" });
+    });
+
+    it("an entry is drawn again when its tail, or its child's label or style, changes", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+      <vectorList name="vl">(1,2)</vectorList>
+      <pointList name="pl"><point styleNumber="$n" layer="$n">(3,4)<label>$t</label></point></pointList>
+    </graph>
+    <mathInput name="tail" bindValueTo="$vl[1].tail" />
+    <mathInput name="n" prefill="1" />
+    <textInput name="t" prefill="A" />
+    `,
+        });
+
+        async function drawnEntries() {
+            const rendererState =
+                core.core!.rendererInstructionBuilder.rendererState;
+            return (await drawnIn(core, resolvePathToNodeIdx, "g")).map(
+                (child: any) => {
+                    const stateValues =
+                        rendererState[child.componentIdx].stateValues;
+                    return {
+                        coords: child.coords,
+                        label: stateValues.label,
+                        layer: stateValues.layer,
+                        markerStyle: stateValues.selectedStyle.markerStyle,
+                    };
+                },
+            );
+        }
+        expect(await drawnEntries()).eqls([
+            {
+                coords: [
+                    [0, 0],
+                    [1, 2],
+                ],
+                label: "",
+                layer: 0,
+                markerStyle: "circle",
+            },
+            { coords: [3, 4], label: "A", layer: 1, markerStyle: "circle" },
+        ]);
+
+        // none of these changes the value of an entry
+        await updateMathInputValue({
+            latex: "(2,2)",
+            componentIdx: await resolvePathToNodeIdx("tail"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await updateTextInputValue({
+            text: "B",
+            componentIdx: await resolvePathToNodeIdx("t"),
+            core,
+        });
+        expect(await drawnEntries()).eqls([
+            {
+                coords: [
+                    [2, 2],
+                    [3, 4],
+                ],
+                label: "",
+                layer: 0,
+                markerStyle: "circle",
+            },
+            { coords: [3, 4], label: "B", layer: 3, markerStyle: "triangle" },
+        ]);
     });
 });
