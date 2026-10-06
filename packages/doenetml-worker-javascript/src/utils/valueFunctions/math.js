@@ -238,8 +238,9 @@ export function mathDisplayString({
  * For each string piece that is followed by a math child or ends the content,
  * the codes just before and after it in the written expression
  * (`{prevCode, nextCode}`), from which `mathStringsFromExpressionWithCodes`
- * recovers the piece. A string piece followed by another string piece gets
- * nothing, and is set to empty by an inverse.
+ * recovers the piece. A string piece followed by another string piece is
+ * skipped: it gets no entry, so it is not set to empty by an inverse, and
+ * the entries after it are one string piece out of line.
  */
 export function mathCodesAdjacentToStrings({ content, codePre, format }) {
     let codesAdjacentToStrings = [];
@@ -293,10 +294,12 @@ export function mathCodesAdjacentToStrings({ content, codePre, format }) {
 }
 
 /**
- * The string pieces that write a new `expressionWithCodes`, one for each
- * string piece of the content. With no math children, the first piece gets
- * the whole expression and the others are empty. Otherwise each piece is the
- * text between the codes adjacent to it (`mathCodesAdjacentToStrings`).
+ * The string pieces that write a new `expressionWithCodes`, the `k`th
+ * written to string piece `k`. With no math children, the first piece gets
+ * the whole expression and the others are empty. Otherwise there is one for
+ * each entry of `codesAdjacentToStrings`, the text between those codes, so
+ * a string piece followed by another gets none (see
+ * `mathCodesAdjacentToStrings`).
  *
  * @returns {string[]}
  */
