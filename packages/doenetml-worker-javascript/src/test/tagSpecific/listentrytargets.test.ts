@@ -337,6 +337,85 @@ describe("An entry of a list component as a target @group4", async () => {
         expect((await valuesOf(core, resolvePathToNodeIdx, ["n"])).n).eq(0);
     });
 
+    it("an action on an entry a point list does not have fires nothing", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+      <pointList name="pl">(1,2) (3,4)</pointList>
+    </graph>
+    <number name="n">0</number>
+    <updateValue target="$n" newValue="$n+1" triggerWhenObjectsClicked="$pl[5] $pl" />
+    <callAction name="ca" target="$pl[5]" actionName="pointClicked" />
+    `,
+        });
+
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("ca"),
+            actionName: "callAction",
+            args: {},
+        });
+        expect((await valuesOf(core, resolvePathToNodeIdx, ["n"])).n).eq(0);
+    });
+
+    it("a click or focus on an entry of an interval list in a graph, and a callAction on one", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+      <intervalList name="il">(1,2) [3,4]</intervalList>
+    </graph>
+    <number name="n2">0</number>
+    <number name="nAll">0</number>
+    <number name="nFocus">0</number>
+    <updateValue target="$n2" newValue="$n2+1" triggerWhenObjectsClicked="$il[2]" />
+    <updateValue target="$nAll" newValue="$nAll+1" triggerWhenObjectsClicked="$il" />
+    <updateValue target="$nFocus" newValue="$nFocus+1" triggerWhenObjectsFocused="$il[1]" />
+    <callAction name="ca" target="$il[2]" actionName="mathClicked" />
+    <callAction name="other" target="$il[2]" actionName="numberClicked" />
+    `,
+        });
+        const names = ["n2", "nAll", "nFocus"];
+
+        await actOnEntry({
+            core,
+            resolvePathToNodeIdx,
+            graph: "g",
+            index: 2,
+            actionName: "mathClicked",
+        });
+        await actOnEntry({
+            core,
+            resolvePathToNodeIdx,
+            graph: "g",
+            index: 1,
+            actionName: "mathFocused",
+        });
+        expect(await valuesOf(core, resolvePathToNodeIdx, names)).eqls({
+            n2: 1,
+            nAll: 1,
+            nFocus: 1,
+        });
+
+        for (const name of ["ca", "other"]) {
+            await core.requestAction({
+                componentIdx: await resolvePathToNodeIdx(name),
+                actionName: "callAction",
+                args: {},
+            });
+        }
+        expect(await valuesOf(core, resolvePathToNodeIdx, names)).eqls({
+            n2: 2,
+            nAll: 2,
+            nFocus: 1,
+        });
+        expect(
+            getDiagnosticsByType(core).warnings.some(
+                (x) =>
+                    x.message.includes("numberClicked") &&
+                    x.message.includes("$il[2]"),
+            ),
+        ).eq(true);
+    });
+
     it("a click or focus on an entry of a math, number or text list in a graph", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

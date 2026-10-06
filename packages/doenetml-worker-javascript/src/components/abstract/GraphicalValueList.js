@@ -930,9 +930,9 @@ export default class GraphicalValueList extends AuthoredValueList {
     /**
      * A click or focus on entry `listEntryIndex`. For an entry from a child,
      * the child's own action (`actionName`), with the entry's index when the
-     * child is a list, which fires what is chained to the child. Then, unless
-     * the entry is fixed, the actions chained to the entry (`$pl[2]`) and to
-     * the list (`$pl`; `triggerChainedActions`).
+     * child is a list, which fires what is chained to the child. Then, if the
+     * list has the entry and it is not fixed, the actions chained to the
+     * entry (`$pl[2]`) and to the list (`$pl`; `triggerChainedActions`).
      */
     async performOnEntryChild({ actionName, triggeringAction, args }) {
         const { listEntryIndex, actionId, sourceInformation = {} } = args;
@@ -952,9 +952,11 @@ export default class GraphicalValueList extends AuthoredValueList {
                 },
             });
         }
+        // An entry the list does not have (a `<callAction>` naming `$pl[5]`
+        // of two) has no `entryFixed` and fires nothing.
         if (
             triggeringAction !== undefined &&
-            !(await this.stateValues.entryFixed)[listEntryIndex]
+            (await this.stateValues.entryFixed)[listEntryIndex] === false
         ) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction,
