@@ -839,6 +839,19 @@ export default class VectorList extends GraphicalValueList {
         const child = (await this.stateValues.entryChildren)[listEntryIndex];
         if (child) {
             const { componentIdx: _, ...childArgs } = args;
+            // A drag gives the coordinates it moves (two, in a graph); the
+            // child's others are kept, as for an entry from text.
+            const endpoints = (await this.stateValues.entryChildEndpoints)[
+                listEntryIndex
+            ];
+            if (endpoints) {
+                tailcoords = withCurrentNumbers(tailcoords, endpoints.tail);
+                headcoords = withCurrentNumbers(headcoords, endpoints.head);
+                displacement = withCurrentNumbers(
+                    displacement,
+                    differenceOf(endpoints.head, endpoints.tail),
+                );
+            }
             return await this.coreFunctions.performAction({
                 componentIdx: child.componentIdx,
                 actionName: "moveVector",
@@ -970,6 +983,17 @@ function withCoordinates(value, numbers) {
     );
 }
 
+/**
+ * `numbers`, coordinates a drag gives, followed by the numerical values of
+ * the coordinates of `current` past them; `undefined` stays so.
+ */
+function withCurrentNumbers(numbers, current) {
+    if (numbers === undefined) {
+        return undefined;
+    }
+    return [...numbers, ...numericalCoordinates(current).slice(numbers.length)];
+}
+
 /** The sum of two maths of coordinates, coordinate by coordinate. */
 function sumOf(a, b) {
     const bs = coordinatesOf(b);
@@ -990,8 +1014,9 @@ function differenceOf(a, b) {
  * dimensions, for a segment of length greater than 0.
  */
 function nearestPointOfSegment(endpoints, numDimensions) {
-    const [A1, A2] = endpoints[0] ?? [];
-    const [B1, B2] = endpoints[1] ?? [];
+    // in one dimension, the endpoints are numbers
+    const [A1, A2] = numDimensions === 2 ? endpoints[0] : [];
+    const [B1, B2] = numDimensions === 2 ? endpoints[1] : [];
     const skip =
         numDimensions !== 2 ||
         ![A1, A2, B1, B2].every(Number.isFinite) ||

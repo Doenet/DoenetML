@@ -1502,4 +1502,49 @@ describe("Point and vector lists as list components @group4", async () => {
             [undefined, false],
         ]);
     });
+
+    it("an authored vector in three dimensions dragged in a graph keeps its third coordinates", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+      <vectorList name="vl"><vector name="v">(1,2,3)</vector></vectorList>
+    </graph>
+    <p name="pv">$v.tail $v.head</p>
+    `,
+        });
+
+        // a drag in a graph gives two coordinates
+        for (const [args, expected] of [
+            [{ headcoords: [5, 6] }, "(0, 0, 0) (5, 6, 3)"],
+            [{ tailcoords: [1, 1] }, "(1, 1, 0) (5, 6, 3)"],
+            [{ tailcoords: [2, 2], headcoords: [4, 4] }, "(2, 2, 0) (4, 4, 3)"],
+        ] as const) {
+            await dragEntry({
+                core,
+                resolvePathToNodeIdx,
+                graph: "g",
+                index: 0,
+                actionName: "moveVector",
+                args,
+            });
+            expect(
+                await textsOf(core, resolvePathToNodeIdx, ["pv"]),
+                JSON.stringify(args),
+            ).eqls({ pv: expected });
+        }
+    });
+
+    it("a list of vectors in one dimension as the target of a constraint", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <vectorList name="vl">(1) (2)</vectorList>
+    <graph><point name="P">(3,4)<constrainTo>$vl</constrainTo></point></graph>
+    <p name="pP">$P</p>
+    `,
+        });
+        // a vector in one dimension gives no nearest point, as on its own
+        expect(await textsOf(core, resolvePathToNodeIdx, ["pP"])).eqls({
+            pP: "(3, 4)",
+        });
+    });
 });
