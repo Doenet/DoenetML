@@ -998,4 +998,46 @@ describe("Point and vector lists as list components @group4", async () => {
             ],
         ]);
     });
+
+    it("a constraint among the children reads the graph the list is in", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g" xMin="-10" xMax="10" yMin="-10" yMax="10">
+      <pointList name="pl">
+        <constrainToGraph />
+        (20,3) (1,2)
+      </pointList>
+      <point name="P">(20,3)<constrainToGraph /></point>
+    </graph>
+    <graph name="g2" xMin="0" xMax="100" yMin="0" yMax="1">
+      <pointList name="pl2">
+        <attractTo threshold="0.05" relativeToGraphScales><point>(50, 0.5)</point></attractTo>
+        (53, 0.5) (50, 0.6)
+      </pointList>
+      <point name="Q1">(53, 0.5)<attractTo threshold="0.05" relativeToGraphScales><point>(50, 0.5)</point></attractTo></point>
+      <point name="Q2">(50, 0.6)<attractTo threshold="0.05" relativeToGraphScales><point>(50, 0.5)</point></attractTo></point>
+    </graph>
+    <p name="ppl">$pl</p>
+    <p name="pP">$P</p>
+    <p name="ppl2">$pl2</p>
+    <p name="pQ">$Q1, $Q2</p>
+    `,
+        });
+
+        // as a point with the same constraint, the first is moved inside
+        // the graph
+        const { pP } = await textsOf(core, resolvePathToNodeIdx, ["pP"]);
+        expect(await textsOf(core, resolvePathToNodeIdx, ["ppl"])).eqls({
+            ppl: `${pP.split(")")[0]}), (1, 2)`,
+        });
+        expect(pP).not.eq("(20, 3)");
+
+        // relative to the graph's scales, as for points: 3 of 100 in x is
+        // near, 0.1 of 1 in y is not
+        const { pQ } = await textsOf(core, resolvePathToNodeIdx, ["pQ"]);
+        expect(pQ).eq("(50, 0.5), (50, 0.6)");
+        expect(await textsOf(core, resolvePathToNodeIdx, ["ppl2"])).eqls({
+            ppl2: pQ,
+        });
+    });
 });

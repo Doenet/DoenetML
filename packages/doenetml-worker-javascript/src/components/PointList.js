@@ -6,7 +6,10 @@ import GraphicalValueList, {
 } from "./abstract/GraphicalValueList";
 import me from "math-expressions";
 import { convertValueToMathExpression } from "@doenet/utils";
-import { applyConstraintFromComponentConstraints } from "../utils/constraints";
+import {
+    applyConstraintFromComponentConstraints,
+    returnConstraintGraphInfoDefinitions,
+} from "../utils/constraints";
 
 /**
  * A list of points, held as the math of each point's coordinates
@@ -130,6 +133,15 @@ export default class PointList extends GraphicalValueList {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         const arrayName = this.listValuesArrayName;
+
+        // The graph's limits and scales, which a constraint among the
+        // children applies itself with, as for a `<point>`.
+        for (const [name, definition] of Object.entries(
+            returnConstraintGraphInfoDefinitions(),
+        )) {
+            stateVariableDefinitions[name] = { ...definition, public: false };
+            delete stateVariableDefinitions[name].shadowingInstructions;
+        }
 
         stateVariableDefinitions.numPoints = {
             isAlias: true,
