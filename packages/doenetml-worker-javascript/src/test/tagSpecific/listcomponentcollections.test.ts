@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
+    movePoint,
+    moveVector,
     updateBooleanInputValue,
     updateMathInputValue,
     updateTextInputValue,
@@ -1973,25 +1975,60 @@ describe("Collect, sort and shuffle of values @group4", async () => {
                 .fixLocation,
         ).eq(true);
 
-        // the fixed entry and the one with fixLocation are not moved; the
-        // other is, to its source
-        for (const [name, x] of [
-            ["E1", -1],
-            ["E2", -2],
-            ["E3", -3],
-        ] as const) {
-            await core.requestAction({
-                componentIdx: await resolvePathToNodeIdx(name),
-                actionName: "movePoint",
-                args: { x, y: 0 },
-            });
-        }
+        // the fixed entries and the one with fixLocation are not moved, nor
+        // are their sources (a drag of a fixed one used to move its source)
         const coordsOf = async (name: string) =>
             (await stateValuesOf(core, resolvePathToNodeIdx, name)).xs.map(
                 (x: any) => x.tree,
             );
-        expect(await coordsOf("B")).eqls([-3, 0]);
+        const vectorOf = async (name: string) => {
+            const stateValues = await stateValuesOf(
+                core,
+                resolvePathToNodeIdx,
+                name,
+            );
+            return [stateValues.head, stateValues.tail].map((coords: any) =>
+                coords.map((x: any) => x.tree),
+            );
+        };
+        for (const [name, x] of [
+            ["E1", -1],
+            ["E2", -2],
+            ["L2", -4],
+        ] as const) {
+            await movePoint({
+                componentIdx: await resolvePathToNodeIdx(name),
+                x,
+                y: 0,
+                core,
+            });
+        }
+        await moveVector({
+            componentIdx: await resolvePathToNodeIdx("W1"),
+            headcoords: [9, 9],
+            tailcoords: [-9, -9],
+            core,
+        });
+        expect(await coordsOf("B")).eqls([3, 4]);
         expect(await coordsOf("F")).eqls([5, 6]);
+        expect(
+            (
+                await stateValuesOf(core, resolvePathToNodeIdx, "pl")
+            ).points[1].map((x: any) => x.tree),
+        ).eqls([9, 10]);
+        expect(await vectorOf("v")).eqls([
+            [1, 2],
+            [0, 0],
+        ]);
+
+        // the other is moved, to its source
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("E3"),
+            x: -3,
+            y: 0,
+            core,
+        });
+        expect(await coordsOf("B")).eqls([-3, 0]);
     });
 
     it("an entry of a fixed sort read by itself is fixed, and a drag of it does not reach its source", async () => {
