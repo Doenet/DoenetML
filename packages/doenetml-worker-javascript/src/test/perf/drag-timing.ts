@@ -37,6 +37,53 @@ function median(values: number[]): number {
 }
 
 /**
+ * The index `movePoint` is sent to for `target`, and how to read the first
+ * coordinate of what it moves. The target is a `<point>`, or entry k of a
+ * list of points: `Ps[k]`, or `Ps[k].P` when `Ps` is a repeat of a point
+ * named `P` made a list of points (Doenet/DoenetML#2163), whose entry k is
+ * the iteration's point. An entry has no component; its renderer's index
+ * stands for it.
+ */
+export async function resolveDragTarget(testCore: TestCore, target: string) {
+    const core: any = testCore.core.core;
+    const pointIdx = await testCore.resolvePathToNodeIdx(target);
+    const point: any = core._components[pointIdx];
+    if (point?.componentType === "point") {
+        return {
+            pointIdx,
+            firstCoordinate: async () =>
+                (await point.stateValues.numericalXs)[0],
+        };
+    }
+    const entryMatch = /^(.*)\[(\d+)\](\.[^.[\]]+)?$/.exec(target);
+    if (entryMatch) {
+        const list: any =
+            core._components[
+                await testCore.resolvePathToNodeIdx(entryMatch[1])
+            ];
+        const entryIndex = Number(entryMatch[2]) - 1;
+        if (
+            list?.constructor.listEntryComponentType === "point" &&
+            entryIndex >= 0 &&
+            entryIndex < (await list.stateValues.numEntries)
+        ) {
+            return {
+                pointIdx:
+                    core.rendererInstructionBuilder.rendererIdxForListEntry(
+                        list,
+                        entryIndex,
+                    ),
+                firstCoordinate: async () =>
+                    (await list.stateValues.entryNumericalXs)[entryIndex][0],
+            };
+        }
+    }
+    throw new Error(
+        `Drag target ${target} resolved to ${point?.componentType ?? "nothing"}, not a point.`,
+    );
+}
+
+/**
  * Resolve `target` by name, sweep it from x = 0 to x = 100 in `numDrags`
  * transient, skippable `movePoint` actions, which is what the renderer sends
  * on every pointermove, and report the median and maximum wall-clock time of
@@ -53,14 +100,11 @@ export async function measureDrag(
         settleMs = 400,
     }: { numDrags?: number; settleMs?: number } = {},
 ): Promise<DragMeasurement> {
-    const pointIdx = await testCore.resolvePathToNodeIdx(target);
-    const point: any = (testCore.core.core as any)._components[pointIdx];
-    if (!point || point.componentType !== "point") {
-        throw new Error(
-            `Drag target ${target} resolved to ${point?.componentType ?? "nothing"}, not a point.`,
-        );
-    }
-    const xBefore = (await point.stateValues.numericalXs)[0];
+    const { pointIdx, firstCoordinate } = await resolveDragTarget(
+        testCore,
+        target,
+    );
+    const xBefore = await firstCoordinate();
     const samples: number[] = [];
     for (let i = 0; i < numDrags; i++) {
         const x = (i / Math.max(numDrags - 1, 1)) * 100;
@@ -73,7 +117,7 @@ export async function measureDrag(
         samples.push(performance.now() - t0);
     }
     await new Promise((resolve) => setTimeout(resolve, settleMs));
-    const xAfter = (await point.stateValues.numericalXs)[0];
+    const xAfter = await firstCoordinate();
     return {
         target,
         pointIdx,
