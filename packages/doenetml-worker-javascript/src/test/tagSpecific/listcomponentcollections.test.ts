@@ -1902,21 +1902,27 @@ describe("Collect, sort and shuffle of values @group4", async () => {
       <point name="B">(3,4)</point>
       <point name="F" fixLocation>(5,6)</point>
       <vector name="v">(1,2)</vector>
+      <vector name="vF" fixLocation>(1,3)</vector>
     </graph>
     <collect name="c" componentType="point" from="$g" />
     <collect name="cv" componentType="vector" from="$g" />
     <pointList name="pl"><point fixLocation>(7,8)</point> (9,10)</pointList>
+    <pointList name="plF" fixLocation>(1,2) <point>(3,4)</point></pointList>
     <graph name="gf" fixed>
       <point name="E1" extend="$c[1]" />
       $c[1]
       <vector name="W1" extend="$cv[1]" />
       <point name="L2" extend="$pl[2]" />
+      <point name="U1" copy="$c[1]" link="false" />
     </graph>
     <graph name="g2">
       <point name="E2" extend="$c[2]" />
       <point name="E3" extend="$c[1]" />
       <point name="U2" copy="$c[2]" link="false" />
       <point name="L1" extend="$pl[1]" />
+      <vector name="W2" extend="$cv[2]" />
+      <point name="UF1" copy="$plF[1]" link="false" />
+      <point name="UF2" copy="$plF[2]" link="false" />
     </graph>
     `,
         });
@@ -1932,8 +1938,8 @@ describe("Collect, sort and shuffle of values @group4", async () => {
                 fixLocation: stateValues.fixLocation,
             };
         };
-        // in a fixed graph, as `$B` there would be
-        for (const name of ["E1", "W1", "L2"]) {
+        // in a fixed graph, as `$B` there would be, linked or not
+        for (const name of ["E1", "W1", "L2", "U1"]) {
             expect(await fixedOf(name), name).eqls({
                 fixed: true,
                 fixLocation: false,
@@ -1943,11 +1949,22 @@ describe("Collect, sort and shuffle of values @group4", async () => {
             (await graphicalDrawnIn(core, resolvePathToNodeIdx, "gf")).map(
                 (x: any) => x.fixed,
             ),
-        ).eqls([true, true, true, true]);
-        // the source's fixLocation, linked or not
-        expect(await fixedOf("E2")).eqls({ fixed: false, fixLocation: true });
-        expect(await fixedOf("U2")).eqls({ fixed: false, fixLocation: true });
-        expect(await fixedOf("L1")).eqls({ fixed: false, fixLocation: true });
+        ).eqls([true, true, true, true, true]);
+        // the source's fixLocation, linked or not, for a point or a vector
+        for (const name of ["E2", "U2", "L1", "W2"]) {
+            expect(await fixedOf(name), name).eqls({
+                fixed: false,
+                fixLocation: true,
+            });
+        }
+        // an unlinked copy of an entry of a list with fixLocation has it,
+        // whether the entry is the list's own or a child's
+        for (const name of ["UF1", "UF2"]) {
+            expect(await fixedOf(name), name).eqls({
+                fixed: false,
+                fixLocation: true,
+            });
+        }
         expect(await fixedOf("E3")).eqls({ fixed: false, fixLocation: false });
         const rendererState = (core as any).core.rendererInstructionBuilder
             .rendererState;

@@ -3,6 +3,7 @@ import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
     movePoint,
     updateBooleanInputValue,
+    updateMathInputValue,
     updateTextInputValue,
     updateValue,
 } from "../utils/actions";
@@ -666,6 +667,47 @@ describe("Base component property tests @group4", async () => {
             y: C[1],
             core,
         });
+    });
+
+    it("an extend of a component fixed by its graph or group is fixed, unless its own graph sets fixed", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+  <graph fixed><point name="P">(1,2)</point></graph>
+  <group fixed><mathInput name="mi">x</mathInput></group>
+
+  <graph><point name="Q" extend="$P" /></graph>
+  <graph fixed="false"><point name="Qf" extend="$P" /></graph>
+  <mathInput name="mi2" extend="$mi" />
+  `,
+        });
+
+        const stateValuesOf = async (name: string) =>
+            (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx(name)
+            ].stateValues;
+
+        expect((await stateValuesOf("Q")).fixed).eq(true);
+        expect((await stateValuesOf("mi2")).fixed).eq(true);
+        expect((await stateValuesOf("Qf")).fixed).eq(false);
+
+        // as before, a drag or a change of one of them does not reach its source
+        for (const name of ["Q", "Qf"]) {
+            await movePoint({
+                componentIdx: await resolvePathToNodeIdx(name),
+                x: 5,
+                y: 6,
+                core,
+            });
+        }
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi2"),
+            core,
+        });
+        expect((await stateValuesOf("P")).xs.map((x: any) => x.tree)).eqls([
+            1, 2,
+        ]);
+        expect((await stateValuesOf("mi")).value.tree).eq("x");
     });
 
     it("change disabled, inverse direction", async () => {
