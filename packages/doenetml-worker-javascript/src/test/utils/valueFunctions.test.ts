@@ -14,9 +14,18 @@ import {
 } from "../../utils/valueFunctions/math";
 import {
     numberDisplayString,
+    numberFromDesiredText,
+    numberFromDesiredValue,
+    numberFromString,
     numberValueForDisplay,
+    numberValueFromCodes,
 } from "../../utils/valueFunctions/number";
-import { textChildValuesFromDesired } from "../../utils/valueFunctions/text";
+import {
+    textChildValuesFromDesired,
+    textFromMath,
+    textToMath,
+} from "../../utils/valueFunctions/text";
+import { booleanValueFromCodes } from "../../utils/valueFunctions/boolean";
 
 /**
  * The value functions used the way a list that evaluates a template at each
@@ -231,5 +240,215 @@ describe("value functions", () => {
                 numChildren: 2,
             }),
         ).eq(null);
+    });
+
+    it("a math with no math children is written whole", () => {
+        expect(
+            mathInverseAnalysis({
+                expressionWithCodes: me.fromText("x+1"),
+                codePre: "math",
+                childCanBeModified: [],
+                modifyIndirectly: true,
+                fixed: false,
+                fixLocation: false,
+            }).canBeModified,
+        ).eq(true);
+        expect(
+            mathInverseAnalysis({
+                expressionWithCodes: me.fromText("x+1"),
+                codePre: "math",
+                childCanBeModified: [],
+                modifyIndirectly: true,
+                fixed: true,
+                fixLocation: false,
+            }).canBeModified,
+        ).eq(false);
+
+        const desiredValue = me.fromText("y");
+        const common = {
+            desiredValue,
+            codeValues: [],
+            childCanBeModified: [],
+            childrenToSkip: [],
+            analysis: {},
+            expressionWithCodes: me.fromText("x"),
+            codePre: "math",
+            simplify: "none",
+            expand: false,
+            createVectors: false,
+            createIntervals: false,
+        };
+        expect(invertMathValue({ ...common, numStrings: 2 })).eqls({
+            success: true,
+            expressionWithCodes: desiredValue,
+        });
+        expect(
+            invertMathValue({
+                ...common,
+                numStrings: 0,
+                expressionWithCodes: null,
+            }),
+        ).eqls({ success: true, valueShadow: desiredValue });
+
+        // the first string piece gets the expression, the others are emptied
+        expect(
+            mathStringsFromExpressionWithCodes({
+                expressionWithCodes: me.fromText("x+1"),
+                format: "text",
+                numStrings: 3,
+                numMaths: 0,
+                codesAdjacentToStrings: [],
+            }),
+        ).eqls(["x + 1", "", ""]);
+    });
+
+    it("an inverse leaves a skipped child alone and refuses a value that does not match", () => {
+        const content = ["(", CHILD, ",", CHILD, ")"];
+        const { codePre, expressionWithCodes } = parse(content);
+        const childCanBeModified = [true, true];
+        const analysis = mathInverseAnalysis({
+            expressionWithCodes,
+            codePre,
+            childCanBeModified,
+            modifyIndirectly: true,
+            fixed: false,
+            fixLocation: false,
+        });
+        const common = {
+            numStrings: 3,
+            codeValues: [me.fromAst(1), me.fromAst(2)],
+            childCanBeModified,
+            analysis,
+            expressionWithCodes,
+            codePre,
+            simplify: "none",
+            expand: false,
+            createVectors: false,
+            createIntervals: false,
+        };
+        const inverse = invertMathValue({
+            ...common,
+            desiredValue: me.fromText("(5, 7)"),
+            childrenToSkip: [0],
+        });
+        expect(inverse.success).eq(true);
+        expect(Object.keys(inverse.childValues)).eqls(["1"]);
+        expect(inverse.childValues[1].tree).eq(7);
+
+        expect(
+            invertMathValue({
+                ...common,
+                desiredValue: me.fromText("5"),
+                childrenToSkip: [],
+            }),
+        ).eqls({ success: false });
+    });
+
+    it("in LaTeX the codes beside a string piece are operator names", () => {
+        expect(
+            mathCodesAdjacentToStrings({
+                content: ["(", CHILD, ", 1)"],
+                codePre: "math",
+                format: "latex",
+            }),
+        ).eqls([
+            { nextCode: "\\operatorname{math0}" },
+            { prevCode: "\\operatorname{math0}" },
+        ]);
+        // a string piece followed by another gets no entry
+        expect(
+            mathCodesAdjacentToStrings({
+                content: ["x", "+ ", CHILD],
+                codePre: "math",
+                format: "text",
+            }),
+        ).eqls([{ nextCode: "math0" }]);
+        expect(
+            mathDisplayString({
+                valueForDisplay: me.fromText("x^2"),
+                format: "latex",
+                ...display,
+            }),
+        ).eq("x^{2}");
+    });
+
+    it("a number from its children's values by code", () => {
+        // 2 a + b, with a math child a = 3 and a number child b = 4
+        const parsedExpression = me.fromAst(["+", ["*", 2, "a"], "b"]);
+        expect(
+            numberValueFromCodes({
+                parsedExpression,
+                mathValuesByCode: { a: me.fromAst(3) },
+                numberValuesByCode: { b: 4 },
+                valueOnNaN: NaN,
+            }),
+        ).eq(10);
+        // a currency marker is dropped
+        expect(
+            numberValueFromCodes({
+                parsedExpression: me.fromAst(["*", 2, "$"]),
+                mathValuesByCode: {},
+                numberValuesByCode: {},
+                valueOnNaN: NaN,
+            }),
+        ).eq(2);
+        // a free variable is not a number: the caller falls back
+        expect(
+            numberValueFromCodes({
+                parsedExpression,
+                mathValuesByCode: { a: me.fromAst("x") },
+                numberValuesByCode: { b: 4 },
+                valueOnNaN: NaN,
+            }),
+        ).eq(null);
+    });
+
+    it("a number from a string, and from a desired value or text", () => {
+        expect(numberFromString("1e3")).eq(1000);
+        expect(numberFromString("pi")).eq(Math.PI);
+        expect(numberFromString("")).eqls(NaN);
+        expect(numberFromString("x", { valueOnNaN: 0 })).eq(0);
+        expect(numberFromString("1 < 2")).eqls(NaN);
+        expect(numberFromString("1 < 2", { convertBoolean: true })).eq(1);
+
+        expect(numberFromDesiredValue(me.fromText("2+3"), NaN)).eq(5);
+        expect(numberFromDesiredValue(me.fromText("x"), 7)).eq(7);
+        expect(numberFromDesiredValue("4", NaN)).eq(4);
+        expect(numberFromDesiredValue("a", 7)).eq(7);
+
+        expect(numberFromDesiredText("1e3")).eq(1000);
+        expect(numberFromDesiredText("pi")).eq(Math.PI);
+        expect(numberFromDesiredText("x")).eq(null);
+        expect(numberFromDesiredText("Infinity")).eq(null);
+    });
+
+    it("a text read as math and written from math", () => {
+        expect(textToMath({ value: "x^2", isLatex: false }).tree).eqls([
+            "^",
+            "x",
+            2,
+        ]);
+        expect(textToMath({ value: "\\frac{1}{2}", isLatex: true }).tree).eqls([
+            "/",
+            1,
+            2,
+        ]);
+        expect(textToMath({ value: "(", isLatex: false }).tree).eq("＿");
+        expect(textFromMath({ math: me.fromText("x^2"), isLatex: true })).eq(
+            "x^{2}",
+        );
+        expect(textFromMath({ math: me.fromText("x^2"), isLatex: false })).eq(
+            "x^2",
+        );
+    });
+
+    it("a boolean whose content did not parse is false", () => {
+        expect(
+            booleanValueFromCodes({
+                parsedExpression: null,
+                childrenAndSettings: {},
+                canOverrideUnorderedCompare: true,
+            }),
+        ).eq(false);
     });
 });
