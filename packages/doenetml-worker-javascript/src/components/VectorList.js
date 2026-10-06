@@ -839,19 +839,6 @@ export default class VectorList extends GraphicalValueList {
         const child = (await this.stateValues.entryChildren)[listEntryIndex];
         if (child) {
             const { componentIdx: _, ...childArgs } = args;
-            // A drag gives the coordinates it moves (two, in a graph); the
-            // child's others are kept, as for an entry from text.
-            const endpoints = (await this.stateValues.entryChildEndpoints)[
-                listEntryIndex
-            ];
-            if (endpoints) {
-                tailcoords = withCurrentNumbers(tailcoords, endpoints.tail);
-                headcoords = withCurrentNumbers(headcoords, endpoints.head);
-                displacement = withCurrentNumbers(
-                    displacement,
-                    differenceOf(endpoints.head, endpoints.tail),
-                );
-            }
             return await this.coreFunctions.performAction({
                 componentIdx: child.componentIdx,
                 actionName: "moveVector",
@@ -981,17 +968,6 @@ function withCoordinates(value, numbers) {
                   i < numbers.length ? me.fromAst(numbers[i]) : x,
               ),
     );
-}
-
-/**
- * `numbers`, coordinates a drag gives, followed by the numerical values of
- * the coordinates of `current` past them; `undefined` stays so.
- */
-function withCurrentNumbers(numbers, current) {
-    if (numbers === undefined) {
-        return undefined;
-    }
-    return [...numbers, ...numericalCoordinates(current).slice(numbers.length)];
 }
 
 /** The sum of two maths of coordinates, coordinate by coordinate. */

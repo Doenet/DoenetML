@@ -1503,34 +1503,46 @@ describe("Point and vector lists as list components @group4", async () => {
         ]);
     });
 
-    it("an authored vector in three dimensions dragged in a graph keeps its third coordinates", async () => {
-        const { core, resolvePathToNodeIdx } = await createTestCore({
-            doenetML: `
-    <graph name="g">
-      <vectorList name="vl"><vector name="v">(1,2,3)</vector></vectorList>
-    </graph>
+    it("an authored vector in three dimensions is dragged in a graph as it is on its own", async () => {
+        // A drag in a graph gives two coordinates. The entry is the
+        // vector's own drag, so it keeps a symbolic coordinate as the vector
+        // does on its own (and, given by its displacement, has the third
+        // coordinate of its head made NaN as the vector does on its own).
+        for (const vector of [
+            `<vector name="v">(1,2,pi)</vector>`,
+            `<vector name="v" tail="(0,0,a)" head="(1,2,pi)" />`,
+            `<vector name="v" head="(1,2,pi)" displacement="(1,1,a)" />`,
+            `<vector name="v" tail="(0,0,a)" displacement="(1,2,pi)" />`,
+        ]) {
+            for (const args of [
+                { headcoords: [5, 6] },
+                { tailcoords: [1, 1] },
+                { tailcoords: [2, 2], headcoords: [4, 4] },
+            ]) {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <graph name="g"><vectorList>${vector}</vectorList></graph>
+    <graph name="g2">${vector.replace(`name="v"`, `name="w"`)}</graph>
     <p name="pv">$v.tail $v.head</p>
+    <p name="pw">$w.tail $w.head</p>
     `,
-        });
-
-        // a drag in a graph gives two coordinates
-        for (const [args, expected] of [
-            [{ headcoords: [5, 6] }, "(0, 0, 0) (5, 6, 3)"],
-            [{ tailcoords: [1, 1] }, "(1, 1, 0) (5, 6, 3)"],
-            [{ tailcoords: [2, 2], headcoords: [4, 4] }, "(2, 2, 0) (4, 4, 3)"],
-        ] as const) {
-            await dragEntry({
-                core,
-                resolvePathToNodeIdx,
-                graph: "g",
-                index: 0,
-                actionName: "moveVector",
-                args,
-            });
-            expect(
-                await textsOf(core, resolvePathToNodeIdx, ["pv"]),
-                JSON.stringify(args),
-            ).eqls({ pv: expected });
+                });
+                for (const graph of ["g", "g2"]) {
+                    await dragEntry({
+                        core,
+                        resolvePathToNodeIdx,
+                        graph,
+                        index: 0,
+                        actionName: "moveVector",
+                        args,
+                    });
+                }
+                const { pv, pw } = await textsOf(core, resolvePathToNodeIdx, [
+                    "pv",
+                    "pw",
+                ]);
+                expect(pv, `${vector} ${JSON.stringify(args)}`).eq(pw);
+            }
         }
     });
 
