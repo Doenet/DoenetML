@@ -1295,4 +1295,55 @@ describe("Collect, sort and shuffle of values @group4", async () => {
             p3: "123",
         });
     });
+
+    it("a sort shown in a graph through an extend is drawn at its sources' anchors", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <sort name="s"><math anchor="(3,4)">x</math><math anchor="(1,1)">y</math></sort>
+    <sort extend="$s" name="e" />
+    <graph name="g">$e</graph>
+    `,
+        });
+
+        const rendererState = (core as any).core.rendererInstructionBuilder
+            .rendererState;
+        function anchorsDrawnIn(idx: number): any[] {
+            return (rendererState[idx]?.childrenInstructions ?? [])
+                .filter((child: any) => child && typeof child === "object")
+                .flatMap((child: any) =>
+                    child.rendererType === "math"
+                        ? [rendererState[child.componentIdx].stateValues.anchor]
+                        : anchorsDrawnIn(child.componentIdx),
+                );
+        }
+        expect(anchorsDrawnIn(await resolvePathToNodeIdx("g"))).eqls([
+            ["vector", 3, 4],
+            ["vector", 1, 1],
+        ]);
+    });
+
+    it("a collect has no maximum number unless given, and takes every display setting", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <section name="sec">
+      <number>123456789012345678901234</number>
+      <number>0.00000000000001234</number>
+    </section>
+    <collect name="c" componentType="number" from="$sec" />
+    <collect name="c2" componentType="number" from="$sec" maxNumber="3" />
+    <p name="p">[$c.maxNumber] [$c2.maxNumber]</p>
+    <p name="p1"><collect name="c3" componentType="number" from="$sec" avoidScientificNotation /></p>
+    `,
+        });
+
+        await expectTexts(core, resolvePathToNodeIdx, {
+            p: "[NaN] [3]",
+            p1: "123456789012345690000000, 0.0000000000000123",
+        });
+        // held as a list, not copied
+        expect(
+            (core as any).core._components[await resolvePathToNodeIdx("c3")]
+                .constructor.listEntryComponentType,
+        ).eq("number");
+    });
 });

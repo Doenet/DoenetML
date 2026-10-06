@@ -95,6 +95,8 @@ function collectListClass(Base) {
             let attributes = super.createAttributesObject();
             const collectAttributes = Collect.createAttributesObject();
             attributes.from = collectAttributes.from;
+            // no limit unless given, as for `<collect>` (`$c.maxNumber`)
+            attributes.maxNumber = collectAttributes.maxNumber;
             attributes.componentType = {
                 createPrimitiveOfType: "string",
                 description: collectAttributes.componentType.description,

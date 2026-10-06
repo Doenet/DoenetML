@@ -63,6 +63,7 @@ const LIST_FORM_ATTRIBUTES: Record<string, Set<string>> = {
         "displaydecimals",
         "displaysmallaszero",
         "padzeros",
+        "avoidscientificnotation",
     ]),
     sort: new Set([
         "name",
@@ -97,6 +98,7 @@ const LIST_FORM_COPY_ATTRIBUTES: Record<string, Set<string>> = {
         "displaydecimals",
         "displaysmallaszero",
         "padzeros",
+        "avoidscientificnotation",
     ]),
     sort: new Set([
         ...COPY_MECHANICS,
@@ -222,18 +224,52 @@ export function convertToListForms({
     }
 
     /**
-     * Whether the component at `idx` is drawn in a graph: it is inside
-     * one, or it or an ancestor is referenced from inside one.
+     * Whether the component at `idx` is drawn in a graph: it is inside one,
+     * or something that shows it is. What shows it is the component, its
+     * ancestors, and, through any chain of them, each `extend` or `copy` of
+     * one of those, the component that copy makes and the copy's ancestors.
+     * A reference to any of them from inside a graph draws it there.
      */
     function drawnInGraph(idx: number) {
-        if (insideGraph(idx)) {
-            return true;
+        const showing = new Set([idx, ...ancestorsOf(idx)]);
+        let added = true;
+        while (added) {
+            added = false;
+            for (const reference of references) {
+                if (
+                    showing.has(reference.componentIdx) ||
+                    !showing.has(unwrapSource(reference.extending!).nodeIdx)
+                ) {
+                    continue;
+                }
+                const createdIdx =
+                    reference.attributes.createComponentIdx?.type ===
+                    "primitive"
+                        ? Number(
+                              reference.attributes.createComponentIdx.primitive
+                                  .value,
+                          )
+                        : undefined;
+                for (const shown of [
+                    reference.componentIdx,
+                    ...(createdIdx === undefined ? [] : [createdIdx]),
+                    ...ancestorsOf(reference.componentIdx),
+                ]) {
+                    showing.add(shown);
+                }
+                added = true;
+            }
         }
-        const named = new Set([idx, ...ancestorsOf(idx)]);
-        return references.some(
-            (reference) =>
-                named.has(unwrapSource(reference.extending!).nodeIdx) &&
-                insideGraph(reference.componentIdx),
+        return (
+            [...showing].some(
+                (shownIdx) =>
+                    componentsByIdx.has(shownIdx) && insideGraph(shownIdx),
+            ) ||
+            references.some(
+                (reference) =>
+                    showing.has(unwrapSource(reference.extending!).nodeIdx) &&
+                    insideGraph(reference.componentIdx),
+            )
         );
     }
 
