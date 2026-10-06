@@ -987,12 +987,13 @@ const LIST_VARIABLE_OF_ENTRY_SOURCE_ATTRIBUTE = Object.freeze({
 /**
  * The array `arrayName` of attribute `attribute` of the source of each entry
  * (`entrySourceAttributeArrays`), which a component made from one entry takes
- * as its own attribute (`companionOfEachEntry`): the source's value
+ * as its own attribute (`companionOfEachEntry`; for `fixed` and
+ * `fixLocation`, only an unlinked copy does): the source's value
  * (`entryChildren`) where it is not `defaultValue`, and otherwise a default,
  * so that the component's attribute is marked as not set. An entry of a
  * fixed list is fixed, and of a list with `fixLocation` has `fixLocation`
- * (`LIST_VARIABLE_OF_ENTRY_SOURCE_ATTRIBUTE`; the array for `fixed` replaces
- * `entriesFixed` as the component's `fixed` attribute).
+ * (`LIST_VARIABLE_OF_ENTRY_SOURCE_ATTRIBUTE`; for an unlinked copy, the array
+ * for `fixed` replaces `entriesFixed` as its `fixed` attribute).
  */
 function entrySourceAttributeDefinition({
     attribute,
