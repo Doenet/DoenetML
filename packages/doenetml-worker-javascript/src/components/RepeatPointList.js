@@ -221,7 +221,7 @@ export default class RepeatPointList extends PointList {
 
         for (let n = 1; n <= NUM_COORDINATE_ARRAYS; n++) {
             stateVariableDefinitions[`entryCoordinates${n}`] =
-                coordinateArrayDefinition({ n, arrayName });
+                coordinateArrayDefinition({ n, arrayName, listClass: this });
         }
 
         // The style of the entries, with the marker style and size the
@@ -249,9 +249,11 @@ Object.assign(RepeatPointList, REPEAT_LIST_STATICS);
  * constraint is independent by coordinate (`independentConstraints`), as a
  * point constrains it (`returnConstraintDefinitions`). Otherwise it is the
  * coordinate of the whole entry (`arrayName`). A value written to it is
- * written through that coordinate of the template.
+ * constrained as a point constrains a value written to one coordinate (with
+ * the entry's other coordinates, when the constraints are not by
+ * coordinate), and written through that coordinate of the template alone.
  */
-function coordinateArrayDefinition({ n, arrayName }) {
+function coordinateArrayDefinition({ n, arrayName, listClass }) {
     const name = `entryCoordinates${n}`;
     const variable = `x${n}`;
     const blank = () => me.fromAst("\uff3f");
@@ -275,7 +277,8 @@ function coordinateArrayDefinition({ n, arrayName }) {
     return {
         isArray: true,
         entryPrefixes: [`entryCoordinate${n}_`],
-        // A reference to the whole list reads the list's.
+        // A reference to the whole list (a polygon's `vertices="$Ps"`)
+        // reads the list's: it holds no template to compute them from.
         shadowVariable: true,
         // a reference to the coordinates of every entry (`$Ps.x`) is a math
         // for each
@@ -326,7 +329,10 @@ function coordinateArrayDefinition({ n, arrayName }) {
                 constraintChildren: {
                     dependencyType: "child",
                     childGroups: ["constraints"],
-                    variableNames: ["applyComponentConstraint"],
+                    variableNames: [
+                        "applyConstraint",
+                        "applyComponentConstraint",
+                    ],
                     variablesOptional: true,
                 },
                 independentConstraints: {
@@ -339,11 +345,14 @@ function coordinateArrayDefinition({ n, arrayName }) {
                 const index = Number(arrayKey) + 1;
                 const dependencies = {};
                 if (!stateValues.independentConstraints) {
+                    // the coordinate is read from the constrained entry
                     dependencies.entry = {
                         dependencyType: "stateVariable",
                         variableName: `pointValue${index}`,
                     };
-                } else if (coordinateNode !== undefined) {
+                }
+                // what the coordinate is written through
+                if (coordinateNode !== undefined) {
                     dependencies.write = {
                         dependencyType: "stateVariable",
                         variableName: `entryWrite${index}`,
@@ -419,15 +428,24 @@ function coordinateArrayDefinition({ n, arrayName }) {
                     continue;
                 }
                 const value = convertValueToMathExpression(desired);
-                if (!globalDependencyValues.independentConstraints) {
-                    // the whole entry, with this coordinate changed
+                let desiredValue;
+                if (globalDependencyValues.independentConstraints) {
+                    desiredValue = applyComponentConstraints(
+                        value,
+                        globalDependencyValues.constraintChildren,
+                    );
+                } else {
+                    // As a point does: the entry with this coordinate
+                    // changed is constrained, and only this coordinate of
+                    // the result is written; the others keep their values.
                     const coordinates = coordinatesOf(dependencyValues.entry);
                     coordinates[n - 1] = value;
-                    instructions.push({
-                        setDependency: dependencyNamesByKey[arrayKey].entry,
-                        desiredValue: vectorOf(coordinates),
+                    const constrained = { 0: vectorOf(coordinates) };
+                    listClass.adjustEntryValues(constrained, {
+                        constraintChildren:
+                            globalDependencyValues.constraintChildren,
                     });
-                    continue;
+                    desiredValue = coordinatesOf(constrained[0])[n - 1];
                 }
                 const inverse = invertRepeatTemplate({
                     ...templateContext({
@@ -435,10 +453,7 @@ function coordinateArrayDefinition({ n, arrayName }) {
                         dependencyValues,
                         writability: await readWritability(stateValues),
                     }),
-                    desiredValue: applyComponentConstraints(
-                        value,
-                        globalDependencyValues.constraintChildren,
-                    ),
+                    desiredValue,
                     ind: coordinateNode,
                 });
                 if (!inverse.success) {

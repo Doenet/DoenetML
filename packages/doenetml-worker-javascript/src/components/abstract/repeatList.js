@@ -119,12 +119,8 @@ export function addRepeatListDefinitions(stateVariableDefinitions) {
 
     // As the repeat counts its iterations: the items of its `for`, or
     // the values of its sequence (`RepeatForSequence.forValues`).
-    // A reference to the whole list reads the list's.
     stateVariableDefinitions.numIterates = {
-        shadowVariable: true,
-        additionalStateVariablesDefined: [
-            { variableName: "forValues", shadowVariable: true },
-        ],
+        additionalStateVariablesDefined: ["forValues"],
         stateVariablesDeterminingDependencies: ["sourcesComponentIdx"],
         returnDependencies({ stateValues }) {
             if (stateValues.sourcesComponentIdx !== null) {
