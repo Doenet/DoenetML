@@ -268,7 +268,7 @@ Step 4 alone reaches the number and math fixtures (the unit-circle boolean's nes
 - **What qualifies, beyond [Qualification](#qualification):**
   - the template is a `<math>` or `<number>`, and a nested component is an unnamed `<math>`;
   - the attributes are, on the template, `simplify`, `expand`, `fixed` and the number display settings, and on a nested `<math>`, `simplify` and `expand`, each written as a literal;
-  - a reference from elsewhere is `$r`, `$r[k]` or `$r[k].m`, not an `extend` or `copy`, not named by a reference attribute (#2181), and does not reach the template's name another way, as through an outer repeat (`$a[2][1][3].m`);
+  - a reference from elsewhere is `$r`, `$r[k]` or `$r[k].m` (or `$g.r[k].m`, naming the repeat through another; not `$r[k][j].m`, which names nothing in the composite), not an `extend` or `copy`, not named by a reference attribute (#2181), and does not reach the template's name another way, as through an outer repeat (`$a[2][1][3].m`);
   - the repeat is not in a `<graph>` (#2186);
   - a `<repeat>`'s `for` is one reference to a whole list (`$l`, not `$l.maths`).
 - **The list** (`RepeatValueList.js`) counts its entries as the repeat counted its iterations. It analyses the template once (`templateAnalysis`, `utils/repeatTemplate.js`). Entry k depends on entry k of each list the template reads (by the list's `listEntryVariablePrefix`), on the constants, and on the list's `simplify` and `expand`, and is computed with the value functions. Its `entryValuesForDisplay` rounds, then simplifies and expands, as a `<math>`'s `valueForDisplay` does.
