@@ -169,10 +169,17 @@ describe("Repeats whose template is one value @group4", () => {
 <p name="p"><repeatForSequence name="r" from="1" to="3" valueName="v"><math name="m">$v^2</math></repeatForSequence></p>
 <p name="p1">$r[2].m</p>
 <p name="p2">$r[3]</p>
+<group name="g"><repeatForSequence name="r2" from="1" to="3" valueName="v"><math name="n">$v^2</math></repeatForSequence></group>
+<p name="p3">$g.r2[2].n</p>
 `,
-            names: ["p", "p1", "p2"],
+            names: ["p", "p1", "p2", "p3"],
         });
-        expect(texts).toEqual({ p: "1², 2², 3²", p1: "2²", p2: "3²" });
+        expect(texts).toEqual({
+            p: "1², 2², 3²",
+            p1: "2²",
+            p2: "3²",
+            p3: "2²",
+        });
     });
 
     it("a change in the number of iterations", async () => {
@@ -426,6 +433,11 @@ describe("Repeats whose template is one value @group4", () => {
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence><updateValue triggerWhenObjectsClicked="$r[1]" target="$x" newValue="2" /><number name="x">1</number>`,
             // a nested component named
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math><math name="inner">$v</math>+1</math></repeatForSequence>`,
+            // the template's name reached through an outer repeat
+            `<repeatForSequence name="a" from="1" to="2"><p><repeatForSequence name="r" from="1" to="2" valueName="v"><math name="m">$v</math></repeatForSequence></p></repeatForSequence><p>$a[2].r[1].m</p>`,
+            // the template's name read after an index into the iteration,
+            // which names nothing there
+            `<repeatForSequence name="r" from="1" to="2" valueName="v"><math name="m">$v</math></repeatForSequence><p>$r[1][1].m</p>`,
             // the value read past its first part
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence><p>$r[1].v</p>`,
             // an index computed
@@ -439,13 +451,14 @@ describe("Repeats whose template is one value @group4", () => {
             // a sampler
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v + <selectFromSequence from="1" to="5"/></math></repeatForSequence>`,
         ]) {
-            const { core, resolvePathToNodeIdx } = await createTestCore({
-                doenetML,
-            });
+            const { core } = await createTestCore({ doenetML });
             expect(
-                await typeOf(core, resolvePathToNodeIdx, "r"),
+                Object.values(core.core!._components).some(
+                    (component: any) =>
+                        component?.componentType === "_repeatValueList",
+                ),
                 doenetML,
-            ).not.toBe("_repeatValueList");
+            ).toBe(false);
         }
     });
 

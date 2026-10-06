@@ -305,6 +305,7 @@ export function convertRepeatsToLists({
             }
             if (
                 path.length === 2 &&
+                path[0].index.length === 1 &&
                 topName !== undefined &&
                 path[1].name === topName &&
                 path[1].index.length === 0
@@ -338,9 +339,14 @@ export function convertRepeatsToLists({
             for (const refResolution of rewrites) {
                 refResolution.unresolvedPath =
                     refResolution.unresolvedPath!.slice(0, 1);
-                const [first, second] = refResolution.originalPath;
-                if (second?.name === topName) {
-                    refResolution.originalPath = [first];
+                // `.m` ends the path as written too, which may name the
+                // repeat through others first (`$g.r[2].m`)
+                const written = refResolution.originalPath;
+                if (
+                    written.length > 1 &&
+                    written[written.length - 1].name === topName
+                ) {
+                    refResolution.originalPath = written.slice(0, -1);
                 }
             }
 
