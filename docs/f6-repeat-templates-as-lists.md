@@ -1,6 +1,6 @@
 # F6 design: a repeat whose template is one value becomes a list
 
-Design for #2163, step F6 of stream F (#2157) of #2125. Status: decisions settled 2026-10-06; #2172 (F5) and #2177 (F4) merged the same day, and #2187 and #2189 since. Steps 1 to 3 are done (see [Phasing](#phasing)). Line numbers are on `main` at 682ff8f28 (#2171); the `Math.js` ones are from before step 2 moved that code out. Paths are under `packages/doenetml-worker-javascript/src/` unless they start with `packages/`.
+Design for #2163, step F6 of stream F (#2157) of #2125. Status: decisions settled 2026-10-06; #2172 (F5) and #2177 (F4) merged the same day, and #2187 and #2189 since. Steps 1 to 4 are done, step 4 for number and math templates (see [Phasing](#phasing)). Line numbers are on `main` at 682ff8f28 (#2171); the `Math.js` ones are from before step 2 moved that code out. Paths are under `packages/doenetml-worker-javascript/src/` unless they start with `packages/`.
 
 ## Summary
 
@@ -247,7 +247,8 @@ Not relevant to F6: #2179 (a standalone `<vector>`), #2182 (an authored child's 
 | 1. Pinning tests on `main` | nothing | `tagSpecific/repeatTemplateLists.test.ts` | done |
 | 2. Extract the value functions for math, number, text and boolean; the components call them | nothing | `Math.js`, `Number.js`, `Text.js`, `Boolean.js`, `utils/valueFunctions/` | done |
 | 3. `ValueListComponent`'s copies call the functions | #2172, #2177 (merged) | `ValueListComponent.js` | done |
-| 4. Qualification pass and `_repeatValueList` for number, math, text and boolean templates | #2177 (the listForms pass, the `valueReferences.ts` refactor) | `utils/dast/`, `Repeat.js`, `RepeatForSequence.js`, new list class | now |
+| 4. Qualification pass and `_repeatValueList` for number and math templates | #2177 (the listForms pass, the `valueReferences.ts` refactor) | `utils/dast/repeatLists.ts`, `utils/repeatTemplate.js`, `RepeatValueList.js` | done |
+| 4b. Text and boolean templates | step 4 | the same | when evidence asks |
 | 5. `_repeatGraphicalList` for point and vector templates | #2172 | new list class on `GraphicalValueList` | now |
 | later | evidence | samplers, per-entry attributes, computed indices, the values of a `<repeat>` over anything but one list, the math operators (including `$$f(…)`) | — |
 
@@ -260,7 +261,21 @@ Not relevant to F6: #2179 (a standalone `<vector>`), #2182 (an authored child's 
 - a saved state round trip within one version;
 - a shrink and a regrow.
 
-Step 4 alone reaches the number, math and boolean fixtures (a boolean's nested `<point>` waits for step 5), the measures-of-spread sums, and the Riemann-sum templates that read `$v` of a `<repeat>` over a list. The Riemann-sum templates that evaluate `$$p(…)` or `$$ldeltat(…)` wait for the math operators. Step 5 reaches the dot plots and measures-of-spread, where the template content is 52% and 34% of resolved state variables (#2163). Each step pastes its census rows, per #2125.
+Step 4 alone reaches the number and math fixtures (the unit-circle boolean's nested `<point>` waits for step 5), the measures-of-spread sums, and the Riemann-sum templates that read `$v` of a `<repeat>` over a list. The Riemann-sum templates that evaluate `$$p(…)` or `$$ldeltat(…)` wait for the math operators. Step 5 reaches the dot plots and measures-of-spread, where the template content is 52% and 34% of resolved state variables (#2163). Each step pastes its census rows, per #2125.
+
+**Step 4, as built.**
+- **The pass** (`utils/dast/repeatLists.ts`) runs after the value-reference pass, which has decided whether the value and index are lists (`_repeatValues`, `_repeatIndices`). It retypes a qualifying repeat to `_repeatValueList` and keeps the template as its one serialized child (`repeatTemplate`). Each reference in the template that reads the same value at every index moves out to be a child of the list (`repeatTemplateConstant`), and the template keeps a placeholder for it. Each reference that reads entry k of a list is marked (`repeatEntry`); `$v` of a `<repeat>` over one list is pointed at that list. The template's own attributes become the list's, and its name is dropped from `$r[k].m`.
+- **What qualifies, beyond [Qualification](#qualification):**
+  - the template is a `<math>` or `<number>`, and a nested component is an unnamed `<math>`;
+  - the attributes are, on the template, `simplify`, `expand`, `fixed` and the number display settings, and on a nested `<math>`, `simplify` and `expand`, each written as a literal;
+  - a reference from elsewhere is `$r`, `$r[k]` or `$r[k].m`, not an `extend` or `copy`, not named by a reference attribute (#2181), and does not reach the template's name another way, as through an outer repeat (`$a[2][1][3].m`);
+  - the repeat is not in a `<graph>` (#2186);
+  - a `<repeat>`'s `for` is one reference to a whole list (`$l`, not `$l.maths`).
+- **The list** (`RepeatValueList.js`) counts its entries as the repeat counted its iterations. It analyses the template once (`templateAnalysis`, `utils/repeatTemplate.js`). Entry k depends on entry k of each list the template reads (by the list's `listEntryVariablePrefix`), on the constants, and on the list's `simplify` and `expand`, and is computed with the value functions. Its `entryValuesForDisplay` rounds, then simplifies and expands, as a `<math>`'s `valueForDisplay` does.
+- **Writes.** A write to entry k is inverted through the template (`invertRepeatTemplate`) to the entries and constants it reads at k. Where the template takes the value by changing its own text, as `<math>($v, 0)</math>` takes `(2, 5)` by changing its `0`, or `<number>7</number>` takes `9`, the list keeps entry k's copy of that component's text (`entryWrites`, by node: the expression with codes, or the number's string), as the composite changed that iteration's text. It keeps the text of an entry past the end while the repeat is shorter (`listKeepsEntryWritesPastEnd`, which `EssentialValueWriter` reads before `dropListEntryWritesFrom`), as the composite kept a withheld iteration. A nested `<math>` that takes a value by changing its text has its text kept the same way, by its node.
+- **Randomness.** The list draws its seed from its parent as the repeat did (`setUpVariantSeedAndRng`), and has no variant descendants, so its `generatedVariantInfo` has no subvariants.
+- **Tests.** `tagSpecific/repeatValueLists.test.ts` loads each document with and without the pass (`setRepeatListsEnabled`) and compares what is shown, after writes and changes. The step 1 pinning tests pass unchanged.
+- **Census.** `repeatForSequence $i^2 x4`: 23 components, 1059 dependencies, 461 state variables resolved, to 7, 289 and 131. `repeatForSequence literal x4`: 14, 665, 282 to 6, 257, 118. The heavy fixtures change less, since their points wait for step 5: unit-circle-labeling (one list) 3256 components and 59549 dependencies to 3109 and 59143; measures-of-spread (two lists) 8672 and 210140 to 8374 and 205978. Load times did not change beyond their noise.
 
 ## Decisions to settle
 
