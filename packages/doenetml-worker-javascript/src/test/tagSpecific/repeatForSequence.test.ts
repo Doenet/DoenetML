@@ -1025,11 +1025,8 @@ describe("RepeatForSequence tag tests @group3", async () => {
     });
 
     it("repeatForSequence points to adapt to math", async () => {
-        // Note: math1 ends up getting math children from the repeatForSequence.
-        // We aren't worrying about the interpretation of
-        // the juxtaposition of vectors that the children represent.
-        // We're just checking that the points from the repeatForSequence
-        // are adapted into maths due to their math parent.
+        // Note: the points of the repeatForSequence are read by math1 as
+        // maths, one vector for each.
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p>Number of points: <mathInput name="number"/></p>
@@ -1054,29 +1051,28 @@ describe("RepeatForSequence tag tests @group3", async () => {
                 false,
                 true,
             );
-            expect(
-                stateVariables[await resolvePathToNodeIdx("math1")]
-                    .activeChildren.length,
-            ).eq(numPoints);
+            // The repeat is a list of its points (`RepeatPointList.js`),
+            // which the math reads as one list of vectors.
+            const value =
+                stateVariables[await resolvePathToNodeIdx("math1")].stateValues
+                    .value.tree;
+            const items =
+                numPoints === 0
+                    ? []
+                    : numPoints === 1
+                      ? [value]
+                      : value.slice(1);
+            if (numPoints > 1) {
+                expect(value[0]).eq("list");
+            }
+            expect(items.length).eq(numPoints);
 
             for (let i = 0; i < numPoints; i++) {
                 let n = from + i * step;
-                let child =
-                    stateVariables[
-                        stateVariables[await resolvePathToNodeIdx("math1")]
-                            .activeChildren[i].componentIdx
-                    ];
-                // Note: coords is a type of math
-                expect(child.componentType).eq("coords");
-
                 if (Number.isInteger(n)) {
-                    expect(child.stateValues.value.tree).eqls([
-                        "vector",
-                        n,
-                        ["apply", "sin", n],
-                    ]);
+                    expect(items[i]).eqls(["vector", n, ["apply", "sin", n]]);
                 } else {
-                    let val = child.stateValues.value.tree;
+                    let val = items[i];
                     expect(val[0]).eq("vector");
                     expect(val[1]).eq(n);
                     expect(val[2]).closeTo(Math.sin(n), 1e14);

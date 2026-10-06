@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { setRepeatListsEnabled } from "../../utils/dast/repeatLists";
 import {
     componentOrListEntry,
     entriesOrReplacements,
@@ -3451,7 +3452,10 @@ describe("Collect tag tests @group4", async () => {
 
     it("allChildrenOrdered consistent with dynamic collect and adapters", async () => {
         // `draggable`, which a `<collect>` passes to the copies it makes, keeps
-        // it the composite whose replacements this checks.
+        // it the composite whose replacements this checks; the repeat is kept
+        // a composite too, rather than a list of points
+        // (`utils/dast/repeatLists.ts`).
+        setRepeatListsEnabled(false);
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathInput prefill="2" name='n' />
@@ -3469,6 +3473,7 @@ describe("Collect tag tests @group4", async () => {
     <p name="p2">Hello <collect componentType="point" from="$p1" name="collect1" draggable /> there</p>
     `,
         });
+        setRepeatListsEnabled(true);
 
         async function checkAllChildren() {
             let stateVariables = await core.returnAllStateVariables(
