@@ -1102,6 +1102,44 @@ describe("Point and vector lists as list components @group4", async () => {
         });
     });
 
+    it("a moved copy= of an entry is restored where it was moved", async () => {
+        const doenetML = `
+    <pointList name="pl"><point><label>P</label>(1,2)</point> (3,4)</pointList>
+    <vectorList name="vl"><vector tail="(1,1)"><label>u</label>(2,3)</vector></vectorList>
+    <graph>
+      <point name="A" copy="$pl[1]" />
+      <vector name="U" copy="$vl[1]" />
+    </graph>
+    <p name="pcopies">$A $A.label | $U.tail $U.head $U.label</p>
+    `;
+        const first = await createTestCore({ doenetML });
+        await first.core.requestAction({
+            componentIdx: await first.resolvePathToNodeIdx("A"),
+            actionName: "movePoint",
+            args: { x: -3, y: -4 },
+        });
+        await first.core.requestAction({
+            componentIdx: await first.resolvePathToNodeIdx("U"),
+            actionName: "moveVector",
+            args: { tailcoords: [4, 5], headcoords: [6, 6] },
+        });
+        const moved = { pcopies: "(-3, -4) P | (4, 5) (6, 6) u" };
+        expect(
+            await textsOf(first.core, first.resolvePathToNodeIdx, ["pcopies"]),
+        ).eqls(moved);
+
+        await first.core.saveImmediately();
+        const second = await createTestCore({
+            doenetML,
+            initialState: first.scoreState.state as string,
+        });
+        expect(
+            await textsOf(second.core, second.resolvePathToNodeIdx, [
+                "pcopies",
+            ]),
+        ).eqls(moved);
+    });
+
     it("a click on an entry from an authored point is a click on the point", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
