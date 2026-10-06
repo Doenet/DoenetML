@@ -1381,6 +1381,76 @@ describe("Point and vector lists as list components @group4", async () => {
         ).eqls({ ppl: "(1, 2), (7, 8)" });
     });
 
+    it("an authored point or vector, or a nested list, is drawn and given a control once, as its entry", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="gp" renderer="prefigure">
+      <point name="A">(0,0)</point>
+      <pointList><point><label>B</label>(1,2)</point> (3,4) $A <pointList>(5,6) (7,8)</pointList></pointList>
+      <vectorList><vector head="(1,2)"/> (3,4)</vectorList>
+    </graph>
+    <graph name="gc" addControls>
+      <pointList><point>(1,2)</point> (3,4) <pointList>(5,6) (7,8)</pointList></pointList>
+    </graph>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+
+        // A, and the five entries of the list
+        const xml: string = (await sv("gp")).prefigureXML;
+        expect(
+            xml
+                .match(/<point\b[^>]*p="[^"]*"/g)
+                ?.map((p) => p.match(/p="([^"]*)"/)![1]),
+        ).eqls(["(0,0)", "(1,2)", "(3,4)", "(0,0)", "(5,6)", "(7,8)"]);
+        expect(xml.match(/<vector\b/g)).toHaveLength(2);
+        expect(
+            (await sv("gc")).graphicalDescendantsForControls.map(
+                (control: any) => [control.x, control.y],
+            ),
+        ).eqls([
+            [1, 2],
+            [3, 4],
+            [5, 6],
+            [7, 8],
+        ]);
+    });
+
+    it("an answer's responses from a point or vector list are points and vectors", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <pointList name="pl">(1,2) (3,4)</pointList>
+      <vectorList name="vl">(5,6)</vectorList>
+    </graph>
+    <answer name="a"><award referencesAreResponses="$pl $vl"><when>$pl = (1,2), (3,4) and $vl = (5,6)</when></award></answer>
+    <p name="pr">$a.currentResponses</p>
+    <graph name="g">$a.currentResponses</graph>
+    `,
+        });
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("a"),
+            actionName: "submitAnswer",
+            args: {},
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        expect((await sv("a")).submittedResponsesComponentType).eqls([
+            "point",
+            "point",
+            "vector",
+        ]);
+        expect((await sv("pr")).text).eq("(1, 2), (3, 4), (5, 6)");
+        expect(
+            core.core.rendererInstructionBuilder.rendererState[
+                await resolvePathToNodeIdx("g")
+            ].childrenInstructions.map((child: any) => child.componentType),
+        ).eqls(["point", "point", "vector"]);
+    });
+
     it("an entry is drawn again when its tail, or its child's label or style, changes", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

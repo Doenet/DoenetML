@@ -1271,6 +1271,8 @@ export class DescendantDependency extends Dependency {
             ignoreReplacementsOfEncounteredComposites:
                 this.ignoreReplacementsOfEncounteredComposites,
             matchListsByEntryType: this.matchListsByEntryType,
+            // an authored point in a list is drawn as its entry, not again
+            listsAreOpaque: this.presentListsAsEntries,
             componentInfoObjects: this.dependencyHandler.componentInfoObjects,
         });
 

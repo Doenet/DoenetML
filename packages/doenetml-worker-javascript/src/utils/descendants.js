@@ -8,6 +8,7 @@ export function gatherDescendants({
     ignoreReplacementsOfMatchedComposites = false,
     ignoreReplacementsOfEncounteredComposites = false,
     matchListsByEntryType = false,
+    listsAreOpaque = false,
     init = true,
     componentInfoObjects,
 }) {
@@ -39,6 +40,10 @@ export function gatherDescendants({
                     })),
         );
 
+    // With `listsAreOpaque`, the children of a list component are not
+    // searched: the list stands for what it draws, its entries, which hold
+    // its authored points or vectors (and nested lists) already.
+    //
     // With `useReplacementsForComposites`, a list component
     // (`listEntryComponentType`) stands for its entries, as a composite
     // stands for its replacements: its own children are not searched, and a
@@ -210,7 +215,7 @@ export function gatherDescendants({
         if (
             (!matchedChild || recurseToMatchedChildren) &&
             child.placeholderInd === undefined &&
-            !(useReplacementsForComposites && isList(child))
+            !((useReplacementsForComposites || listsAreOpaque) && isList(child))
         ) {
             // recurse
             let additionalDescendants = gatherDescendants({
@@ -223,6 +228,7 @@ export function gatherDescendants({
                 ignoreReplacementsOfMatchedComposites,
                 ignoreReplacementsOfEncounteredComposites,
                 matchListsByEntryType,
+                listsAreOpaque,
                 init: false,
                 componentInfoObjects,
             });
