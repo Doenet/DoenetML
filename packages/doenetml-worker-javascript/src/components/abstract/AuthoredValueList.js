@@ -290,6 +290,22 @@ export default class AuthoredValueList extends ValueListComponent {
             // is made with, also as part of an unlinked copy of a
             // `<repeat>` (`copyPrimaryEssential`).
             delete serialized.state.listValuesShadow;
+            // A linked copy of the list (in an `extend` of its parent) has
+            // no children of its own (`serializeChildrenOnlyIfUnlinked`).
+            // An unlinked copy of it is made from the children of the list
+            // it copies.
+            const source =
+                parameters.copyAll &&
+                this.shadows &&
+                parameters.components?.[this.shadows.componentIdx];
+            if (source) {
+                const serializedSource = await source.serialize(parameters);
+                serialized.children = serializedSource.children;
+                serialized.state = {
+                    ...serializedSource.state,
+                    ...serialized.state,
+                };
+            }
         } else if (parameters.copyAll && !parameters.serializingDescendant) {
             serialized.state.entryDisplaySettingsShadow = [
                 ...(await this.stateValues.entryDisplaySettings),

@@ -1018,6 +1018,81 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         });
     });
 
+    it("a copy of an extend that holds a list form reads the same sources", async () => {
+        const doenetML = `
+    <setup>
+      <styleDefinition styleNumber="3" textColor="green" />
+    </setup>
+    <mathInput name="mi" prefill="7" />
+    <section name="s">
+      <number hide>3</number>
+      <number styleNumber="3">4</number>
+      <number>$mi</number>
+    </section>
+    <p name="p"><sort name="srt"><number hide>9</number><number styleNumber="3">2</number><number>$mi</number></sort></p>
+    <p extend="$p" name="pe" />
+    <p copy="$pe" name="pec" />
+    <section name="sc"><p name="q"><collect componentType="number" from="$s" name="c" /></p></section>
+    <section extend="$sc" name="sce" />
+    <section copy="$sce" name="scec" />
+    <mathInput name="w" bindValueTo="$pec.srt[1]" />
+    `;
+        const first = await createTestCore({ doenetML });
+        const { core, resolvePathToNodeIdx } = first;
+
+        const number = (shown: string, textColor = "black") => ({
+            rendererType: "number",
+            shown,
+            textColor,
+        });
+        async function expectDrawn(
+            core: PublicDoenetMLCore,
+            resolvePathToNodeIdx: ResolvePathToNodeIdx,
+            entries: Record<string, any[]>,
+        ) {
+            for (const [name, expected] of Object.entries(entries)) {
+                expect(
+                    await drawn(core, resolvePathToNodeIdx, name),
+                    name,
+                ).eqls(expected);
+            }
+        }
+
+        // A copy shows each value as its source shows itself. (A collect
+        // in an extend shows its values, so a copy of it does too.)
+        await expectDrawn(core, resolvePathToNodeIdx, {
+            pec: [number("2", "green"), number("7")],
+            "scec.q": [number("4", "green"), number("7")],
+        });
+
+        // It follows the sources, and a value written to it goes to the
+        // source (`$mi`).
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("w"),
+            core,
+        });
+        const afterWrite = {
+            p: [number("2", "green"), number("5")],
+            pec: [number("2", "green"), number("5")],
+            "scec.q": [number("4", "green"), number("5")],
+        };
+        await expectDrawn(core, resolvePathToNodeIdx, afterWrite);
+
+        // And it is the same after a reload.
+        await core.saveImmediately();
+        const second = await createTestCore({
+            doenetML,
+            initialState: first.scoreState.state as string,
+        });
+        await expectDrawn(second.core, second.resolvePathToNodeIdx, afterWrite);
+    });
+
     it("a sort or shuffle of a type built on a value type keeps the type", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
