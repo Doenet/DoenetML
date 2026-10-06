@@ -32,6 +32,7 @@ Each template was classified against the rule in [Qualification](#qualification)
 | tests | 323 | 121 | 0 | 4 | 198 |
 
 Notes on the table:
+- The qualify column counts a template with a random sampler inside as qualifying; the survey flagged those. The first version leaves samplers out ([Randomness](#randomness)). 4 of the docs' 8 have a sampler, so 4 docs templates qualify for the first version. The real and fixture templates counted as qualifying have none. The tests row was not split by samplers.
 - 76 of the 90 qualifying real maps are one cloned family of Riemann-sum documents (`<math simplify="numbers">$$p(…($i-1+$side))*$deltat</math>`).
 - In real content the qualifying types are math (8 distinct) and point (6). In the fixtures they are point (4), number (4), math (1) and boolean (1). No template anywhere is an interval.
 - 103 of the 122 layout or multi-component composites in real content hold an input or an answer.
@@ -209,7 +210,7 @@ Each repeat calls `setUpVariantSeedAndRng(useSubpartVariantRng: true)` (`utils/v
 
 **The list must make the same draw from its parent.** Otherwise every random component after the repeat in the document changes its value. This is a variant-stability requirement, and it gets a test that passes on `main`. Example: a qualifying repeat followed by a `<selectRandomNumbers>`, with the same variant before and after.
 
-**Samplers inside a template are left out at first.** To keep their values, the list would draw one subpart seed per iteration, in order, and seed each entry's sampler from it. None of the qualifying real templates have samplers. 4 of the docs' 8 qualifying templates do.
+**Samplers inside a template are left out at first.** To keep their values, the list would draw one subpart seed per iteration, in order, and seed each entry's sampler from it. The survey's qualify counts include templates with a sampler inside. None of the real or fixture ones have one. 4 of the docs' 8 do, so 4 docs templates qualify for the first version.
 
 ### Saved state
 
