@@ -230,14 +230,33 @@ export class UpdateExecutor {
                 componentIdx!,
             );
         if (listEntry) {
-            const action = listEntry.list?.actions?.[actionName];
+            const listActions = listEntry.list?.actions ?? {};
+            let action = listActions[actionName];
+            if (!action && caseInsensitiveMatch) {
+                const actionNameLower = actionName.toLowerCase();
+                const matched = Object.keys(listActions).find(
+                    (aName) => aName.toLowerCase() === actionNameLower,
+                );
+                if (matched) {
+                    action = listActions[matched];
+                }
+            }
             if (action) {
+                if (event) {
+                    this.core.requestRecordEvent(event);
+                }
                 await action({
                     ...args,
                     listEntryIndex: listEntry.entryIndex,
                 });
+                return { actionId: args?.actionId };
             }
-            return { actionId: args?.actionId };
+            // A `<callAction>` naming an action the entry does not have, as
+            // for a component below. An action the renderer of an entry
+            // sends that its list does not take is ignored.
+            return caseInsensitiveMatch && listEntry.list
+                ? { actionUnavailable: true }
+                : { actionId: args?.actionId };
         }
 
         let component = this.core._components[componentIdx!];

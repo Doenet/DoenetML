@@ -69,6 +69,12 @@ export default class AuthoredValueList extends ValueListComponent {
                 moveNumber: this.moveEntry.bind(this),
                 moveText: this.moveEntry.bind(this),
             });
+            for (const kind of ["math", "number", "text"]) {
+                this.actions[`${kind}Clicked`] = (args) =>
+                    this.entryTriggered({ triggeringAction: "click", args });
+                this.actions[`${kind}Focused`] = (args) =>
+                    this.entryTriggered({ triggeringAction: "focus", args });
+            }
         }
     }
 
@@ -1350,6 +1356,48 @@ export default class AuthoredValueList extends ValueListComponent {
             listEntryIndex,
             values: { entryAnchor: me.fromAst(components) },
             result: { x, y, z },
+        });
+    }
+
+    /**
+     * A click or focus on entry `listEntryIndex`, unless the entry is fixed:
+     * the actions chained to the component it is placed as
+     * (`entryGraphSources`), as a click on that component fires them, then
+     * those chained to the entry (`$ml[2]`) and to the list (`$ml`;
+     * `triggerChainedActions`).
+     */
+    async entryTriggered({ triggeringAction, args }) {
+        const {
+            listEntryIndex,
+            actionId,
+            sourceInformation = {},
+            skipRendererUpdate = false,
+        } = args;
+        if (
+            !Number.isInteger(listEntryIndex) ||
+            (await this.stateValues.entryFixed)[listEntryIndex] !== false
+        ) {
+            return;
+        }
+        const source = (await this.stateValues.entryGraphSources)[
+            listEntryIndex
+        ];
+        if (typeof source === "number") {
+            await this.coreFunctions.triggerChainedActions({
+                triggeringAction,
+                componentIdx: source,
+                actionId,
+                sourceInformation,
+                skipRendererUpdate: true,
+            });
+        }
+        await this.coreFunctions.triggerChainedActions({
+            triggeringAction,
+            componentIdx: this.componentIdx,
+            listEntryIndex,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
         });
     }
 

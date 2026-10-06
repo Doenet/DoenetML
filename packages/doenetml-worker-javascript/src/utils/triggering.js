@@ -1,3 +1,5 @@
+import { targetIdxOfRefResolution } from "./refTargets";
+
 export function returnStandardTriggeringAttributes(triggerActionOnChange) {
     return {
         triggerWhen: {
@@ -82,33 +84,24 @@ export function addStandardTriggeringStateVariableDefinitions(
             ) {
                 return { setValue: { triggerWith: null } };
             } else {
+                // A reference to one entry of a list component (`$pl[2]`)
+                // names the entry (`targetIdxOfRefResolution`).
                 let triggerWith = [];
-                if (dependencyValues.triggerWith !== null) {
-                    for (let refResolution of dependencyValues.triggerWith) {
-                        if (refResolution.unresolvedPath === null) {
-                            triggerWith.push({
-                                target: refResolution.componentIdx,
-                            });
-                        }
-                    }
-                }
-                if (dependencyValues.triggerWhenObjectsClicked !== null) {
-                    for (let refResolution of dependencyValues.triggerWhenObjectsClicked) {
-                        if (refResolution.unresolvedPath === null) {
-                            triggerWith.push({
-                                target: refResolution.componentIdx,
-                                triggeringAction: "click",
-                            });
-                        }
-                    }
-                }
-                if (dependencyValues.triggerWhenObjectsFocused !== null) {
-                    for (let refResolution of dependencyValues.triggerWhenObjectsFocused) {
-                        if (refResolution.unresolvedPath === null) {
-                            triggerWith.push({
-                                target: refResolution.componentIdx,
-                                triggeringAction: "focus",
-                            });
+                for (const [attributeName, triggeringAction] of [
+                    ["triggerWith", undefined],
+                    ["triggerWhenObjectsClicked", "click"],
+                    ["triggerWhenObjectsFocused", "focus"],
+                ]) {
+                    for (const refResolution of dependencyValues[
+                        attributeName
+                    ] ?? []) {
+                        const target = targetIdxOfRefResolution(refResolution);
+                        if (target !== null) {
+                            triggerWith.push(
+                                triggeringAction === undefined
+                                    ? { target }
+                                    : { target, triggeringAction },
+                            );
                         }
                     }
                 }

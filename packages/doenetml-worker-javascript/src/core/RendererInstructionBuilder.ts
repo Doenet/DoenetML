@@ -849,6 +849,8 @@ export class RendererInstructionBuilder {
      * any renderer, by a component index; the entry has no component, so an
      * index is reserved for it, as for an adapter, and kept for as long as
      * the document is, so the entry keeps its renderer while it is drawn.
+     * Only the entry asked for is given one: a reference to an entry far
+     * past the end of the list (`listEntryTargets.ts`) reserves one index.
      */
     rendererIdxForListEntry(list: any, entryIndex: number): number {
         let indices = this.listEntryRendererIndices.get(list.componentIdx);
@@ -856,16 +858,17 @@ export class RendererInstructionBuilder {
             indices = [];
             this.listEntryRendererIndices.set(list.componentIdx, indices);
         }
-        while (indices.length <= entryIndex) {
-            const idx = this.core._components.length;
+        let idx = indices[entryIndex];
+        if (idx === undefined) {
+            idx = this.core._components.length;
             this.core._components[idx] = undefined;
             this.listEntryOfRendererIdx.set(idx, {
                 listIdx: list.componentIdx,
-                entryIndex: indices.length,
+                entryIndex,
             });
-            indices.push(idx);
+            indices[entryIndex] = idx;
         }
-        return indices[entryIndex];
+        return idx;
     }
 
     /**

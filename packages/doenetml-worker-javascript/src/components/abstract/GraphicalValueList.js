@@ -928,10 +928,11 @@ export default class GraphicalValueList extends AuthoredValueList {
     }
 
     /**
-     * A click or focus on entry `listEntryIndex`: for an entry from a child,
+     * A click or focus on entry `listEntryIndex`. For an entry from a child,
      * the child's own action (`actionName`), with the entry's index when the
-     * child is a list; for another entry, the actions chained to the list,
-     * unless the entry is fixed.
+     * child is a list, which fires what is chained to the child. Then, unless
+     * the entry is fixed, the actions chained to the entry (`$pl[2]`) and to
+     * the list (`$pl`; `triggerChainedActions`).
      */
     async performOnEntryChild({ actionName, triggeringAction, args }) {
         const { listEntryIndex, actionId, sourceInformation = {} } = args;
@@ -950,7 +951,6 @@ export default class GraphicalValueList extends AuthoredValueList {
                         : { listEntryIndex: child.listEntryIndex }),
                 },
             });
-            return;
         }
         if (
             triggeringAction !== undefined &&
@@ -959,6 +959,7 @@ export default class GraphicalValueList extends AuthoredValueList {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction,
                 componentIdx: this.componentIdx,
+                listEntryIndex,
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

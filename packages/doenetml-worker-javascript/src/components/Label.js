@@ -13,6 +13,7 @@ import { textFromChildren } from "../utils/text";
 import { latexToText, textToLatex } from "../utils/math";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { addClickTargetStateVariableDefinition } from "../utils/triggering";
+import { targetIdxOfRefResolution } from "../utils/refTargets";
 
 export default class Label extends InlineComponent {
     constructor(args) {
@@ -496,7 +497,11 @@ export default class Label extends InlineComponent {
             },
         };
 
+        // `forObjectListEntry`: for one entry of a list component, the list
+        // and the entry's index (from 0), by which a legend finds the entry
+        // among the list's.
         stateVariableDefinitions.forObjectComponentIdx = {
+            additionalStateVariablesDefined: ["forObjectListEntry"],
             returnDependencies: () => ({
                 forObject: {
                     dependencyType: "attributeRefResolutions",
@@ -505,11 +510,28 @@ export default class Label extends InlineComponent {
             }),
             definition({ dependencyValues }) {
                 let forObjectComponentIdx;
+                let forObjectListEntry = null;
 
                 if (dependencyValues.forObject?.length === 1) {
-                    if (dependencyValues.forObject[0].unresolvedPath === null) {
-                        forObjectComponentIdx =
-                            dependencyValues.forObject[0].componentIdx;
+                    // One entry of a list component (`$pl[2]`) is named by
+                    // the index reserved for it (`targetIdxOfRefResolution`).
+                    const target = targetIdxOfRefResolution(
+                        dependencyValues.forObject[0],
+                    );
+                    if (target !== null) {
+                        forObjectComponentIdx = target;
+                        const listEntry =
+                            dependencyValues.forObject[0].listEntry;
+                        if (
+                            dependencyValues.forObject[0].unresolvedPath !==
+                                null &&
+                            listEntry
+                        ) {
+                            forObjectListEntry = {
+                                listIdx: listEntry.listIdx,
+                                entryIndex: listEntry.entryIndex,
+                            };
+                        }
                     } else {
                         // if there was a `forObject` attribute but it didn't match  an object,
                         // then set `forObjectComponentIdx` to `-1`
@@ -520,7 +542,9 @@ export default class Label extends InlineComponent {
                     forObjectComponentIdx = null;
                 }
 
-                return { setValue: { forObjectComponentIdx } };
+                return {
+                    setValue: { forObjectComponentIdx, forObjectListEntry },
+                };
             },
         };
 
