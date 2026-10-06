@@ -367,6 +367,56 @@ describe("Value lists drawn in a graph @group4", async () => {
         ]);
     });
 
+    it("an entry from a component of another type is drawn and dragged as that component", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+      <mathList name="ml"><number name="n" anchor="(1,2)" layer="3">5</number></mathList>
+      <textList><math name="m" anchor="(3,4)" fixed>x</math></textList>
+    </graph>
+    <p name="p">$ml[1].anchor</p>
+    `,
+        });
+
+        const drawn = await drawnIn(core, resolvePathToNodeIdx, "g");
+        expect(drawn.map((entry) => entry.anchor)).eqls([
+            ["vector", 1, 2],
+            ["vector", 3, 4],
+        ]);
+        expect(drawn.map((entry) => entry.layer)).eqls([3, 0]);
+        expect(drawn.map((entry) => entry.fixed)).eqls([false, true]);
+
+        await drag({
+            core,
+            resolvePathToNodeIdx,
+            graph: "g",
+            index: 0,
+            x: 5,
+            y: 6,
+        });
+        await drag({
+            core,
+            resolvePathToNodeIdx,
+            graph: "g",
+            index: 1,
+            x: 7,
+            y: 8,
+        });
+        expect(
+            (await stateValuesOf(core, resolvePathToNodeIdx, "n")).anchor.tree,
+        ).eqls(["vector", 5, 6]);
+        expect(
+            (await stateValuesOf(core, resolvePathToNodeIdx, "m")).anchor.tree,
+        ).eqls(["vector", 3, 4]);
+        expect(await anchorsDrawnIn(core, resolvePathToNodeIdx, "g")).eqls([
+            ["vector", 5, 6],
+            ["vector", 3, 4],
+        ]);
+        expect((await stateValuesOf(core, resolvePathToNodeIdx, "p")).text).eq(
+            "(5, 6)",
+        );
+    });
+
     it("a reference to the whole list drawn in a graph is placed and dragged as the list's entries", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

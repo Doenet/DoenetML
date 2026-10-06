@@ -1488,9 +1488,9 @@ function returnEntryGraphDefinitions(listClass) {
     const componentGroups = listClass.listChildGroups.map((x) => x.group);
     const definitions = {};
 
-    definitions.entryGraphSources = {
-        // A reference to the whole list reads the list's.
-        shadowVariable: true,
+    // The component each entry comes from among the children, which, for a
+    // child an adapter made (a `<number>` in a `<mathList>`), is that adapter.
+    definitions.entryChildGraphSources = {
         returnDependencies: () => ({
             entryStructure: {
                 dependencyType: "stateVariable",
@@ -1505,7 +1505,7 @@ function returnEntryGraphDefinitions(listClass) {
         }),
         definition: ({ dependencyValues }) => ({
             setValue: {
-                entryGraphSources: dependencyValues.entryStructure.map(
+                entryChildGraphSources: dependencyValues.entryStructure.map(
                     (source) =>
                         source.componentInd === undefined
                             ? null
@@ -1514,6 +1514,45 @@ function returnEntryGraphDefinitions(listClass) {
                                       source.componentInd
                                   ],
                               ),
+                ),
+            },
+            checkForActualChange: { entryChildGraphSources: true },
+        }),
+    };
+
+    // Each entry is placed as the component it comes from, the one the
+    // author wrote, which an adapter was made from.
+    definitions.entryGraphSources = {
+        // A reference to the whole list reads the list's.
+        shadowVariable: true,
+        stateVariablesDeterminingDependencies: ["entryChildGraphSources"],
+        returnDependencies({ stateValues }) {
+            const dependencies = {
+                entryChildGraphSources: {
+                    dependencyType: "stateVariable",
+                    variableName: "entryChildGraphSources",
+                },
+            };
+            for (const sourceIdx of new Set(
+                stateValues.entryChildGraphSources,
+            )) {
+                if (typeof sourceIdx === "number") {
+                    dependencies[`adaptedFrom${sourceIdx}`] = {
+                        dependencyType: "adapterSource",
+                        componentIdx: sourceIdx,
+                    };
+                }
+            }
+            return dependencies;
+        },
+        definition: ({ dependencyValues }) => ({
+            setValue: {
+                entryGraphSources: dependencyValues.entryChildGraphSources.map(
+                    (sourceIdx) =>
+                        typeof sourceIdx === "number"
+                            ? (dependencyValues[`adaptedFrom${sourceIdx}`]
+                                  ?.componentIdx ?? sourceIdx)
+                            : null,
                 ),
             },
             checkForActualChange: { entryGraphSources: true },
