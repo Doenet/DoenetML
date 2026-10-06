@@ -557,6 +557,10 @@ describe("Repeats whose template is one value @group4", () => {
             `<group name="g"><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></group><group extend="$g" name="g2" /><graph>$g2</graph>`,
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence><graph>$r</graph>`,
             `<group name="g"><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></group><graph extend="$g" />`,
+            // a copy of what holds it, named through a path
+            `<p name="p"><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></p><p name="q" extend="$p" /><graph>$q.r</graph>`,
+            `<section name="sec"><p name="p"><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></p></section><section name="s2" extend="$sec"><graph>$s2.p</graph></section>`,
+            `<repeatForSequence name="outer" from="1" to="2"><group name="gg"><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></group></repeatForSequence><graph>$outer[1].gg</graph>`,
             // copied
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence><math copy="$r[1]" />`,
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence><repeatForSequence copy="$r" />`,

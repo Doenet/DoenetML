@@ -44,6 +44,7 @@ import type {
     SerializedAttribute,
     SerializedComponent,
     SerializedRefResolution,
+    SerializedRefResolutionPathPart,
 } from "./types";
 import { unwrapSource } from "./convertNormalizedDast";
 import { documentReferents } from "./valueReferences";
@@ -652,8 +653,8 @@ export function convertRepeatsToLists({
      * extended from inside a `<graph>` (`$r`, or `<group extend="$g"/>` of a
      * `<group name="g">` around it), or copied or extended as one
      * (`<graph extend="$g"/>`), following copies of those copies, up to but
-     * not including the document. Only a reference to a whole component
-     * copies it; one with a path reads a value or part of it:
+     * not including the document. A reference whose path reads a value or a
+     * part of one (`$r[2]`, `$sec.title`) copies nothing that holds it:
      * where each iteration's component would be drawn and dragged at an
      * anchor of its own, which an entry of the list has none of.
      */
@@ -677,17 +678,41 @@ export function convertRepeatsToLists({
             }
         }
         addWithAncestors(repeat.componentIdx);
+
+        // The names of the repeat and what holds it, which a path to a copy
+        // of one of them names.
+        const containerNames = new Set<string>();
+        for (const idx of containers) {
+            const name = componentsByIdx.get(idx)?.attributes.name;
+            if (name?.type === "primitive") {
+                containerNames.add(String(name.primitive.value));
+            }
+        }
+        function readsAPart(path: SerializedRefResolutionPathPart[]) {
+            if (path.length === 0) {
+                return false;
+            }
+            return (
+                path[path.length - 1].index.length > 0 ||
+                path.some(
+                    (part) =>
+                        part.name !== "" && !containerNames.has(part.name),
+                )
+            );
+        }
+
         for (let i = 0; i < containers.length; i++) {
             for (const { component } of referencesByTarget.get(containers[i]) ??
                 []) {
-                // A reference with a path reads a value or a part
-                // (`$r[2]`, `$sec.title`), not a copy of what holds the
-                // repeat; a reference to an entry in a graph is drawn as the
-                // list's entry is.
+                // A reference whose path reads a value or a part (`$r[2]`,
+                // `$sec.title`) copies nothing that holds the repeat; a
+                // reference to an entry in a graph is drawn as the list's
+                // entry is. One whose path names only the repeat or what
+                // holds it (`$q.r`, `$s2.p`, `$outer[1].gg`) copies it.
                 const refResolution = unwrapSource(
                     component.extending!,
                 ) as SerializedRefResolution;
-                if (refResolution.unresolvedPath?.length) {
+                if (readsAPart(refResolution.unresolvedPath ?? [])) {
                     continue;
                 }
                 if (inGraph(component) || makesGraph(component)) {
