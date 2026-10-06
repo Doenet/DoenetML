@@ -63,18 +63,18 @@ export default class AuthoredValueList extends ValueListComponent {
     constructor(args) {
         super(args);
 
+        // The actions of a component of the entries' type: an `<interval>`
+        // is drawn, and acted on, as a `<math>` is.
         if (this.constructor.listEntriesAnchoredBySources) {
+            const kind = entryKind(this.constructor.listEntryComponentType);
+            const Kind = kind[0].toUpperCase() + kind.slice(1);
             Object.assign(this.actions, {
-                moveMath: this.moveEntry.bind(this),
-                moveNumber: this.moveEntry.bind(this),
-                moveText: this.moveEntry.bind(this),
+                [`move${Kind}`]: this.moveEntry.bind(this),
+                [`${kind}Clicked`]: (args) =>
+                    this.entryTriggered({ triggeringAction: "click", args }),
+                [`${kind}Focused`]: (args) =>
+                    this.entryTriggered({ triggeringAction: "focus", args }),
             });
-            for (const kind of ["math", "number", "text"]) {
-                this.actions[`${kind}Clicked`] = (args) =>
-                    this.entryTriggered({ triggeringAction: "click", args });
-                this.actions[`${kind}Focused`] = (args) =>
-                    this.entryTriggered({ triggeringAction: "focus", args });
-            }
         }
     }
 

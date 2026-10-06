@@ -488,6 +488,14 @@ describe("An entry of a list component as a target @group4", async () => {
     <updateValue target="$n" newValue="$n+1" triggerWhenObjectsClicked="$pl[2]" />
     <callAction name="ca" target="$pl[2]" actionName="POINTclicked" />
     <callAction name="bad" target="$pl[2]" actionName="noSuchAction" />
+    <graph>
+      <mathList name="ml">x y</mathList>
+    </graph>
+    <number name="nm">0</number>
+    <updateValue target="$nm" newValue="$nm+1" triggerWhenObjectsClicked="$ml[2]" />
+    <callAction name="otherType" target="$ml[2]" actionName="numberClicked" />
+    <callAction name="otherMove" target="$ml[2]" actionName="moveNumber" />
+    <callAction name="copy" target="$pl[2]" actionName="copyDoenetMLToClipboard" />
     `,
         });
 
@@ -511,6 +519,31 @@ describe("An entry of a list component as a target @group4", async () => {
                     x.message.includes("$pl[2]"),
             ),
         ).eq(true);
+
+        // An action of another type of component, or of the list as a
+        // whole, is not the entry's: it does nothing and warns.
+        for (const name of ["otherType", "otherMove", "copy"]) {
+            await core.requestAction({
+                componentIdx: await resolvePathToNodeIdx(name),
+                actionName: "callAction",
+                args: {},
+            });
+        }
+        expect((await valuesOf(core, resolvePathToNodeIdx, ["nm"])).nm).eq(0);
+        const warningsAfter = getDiagnosticsByType(core).warnings;
+        for (const [action, reference] of [
+            ["numberClicked", "$ml[2]"],
+            ["moveNumber", "$ml[2]"],
+            ["copyDoenetMLToClipboard", "$pl[2]"],
+        ]) {
+            expect(
+                warningsAfter.some(
+                    (x) =>
+                        x.message.includes(action) &&
+                        x.message.includes(reference),
+                ),
+            ).eq(true);
+        }
     });
 
     it("a PreFigure annotation of an entry", async () => {

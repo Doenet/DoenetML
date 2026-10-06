@@ -5,6 +5,7 @@ import { addComponents } from "./ComponentBuilder";
 import { deleteComponents } from "./DeletionEngine";
 import { createNewComponentIndices } from "../utils/componentIndices";
 import { reportTimerError, TimerLabels } from "../utils/timerErrors";
+import { listEntryActionNames } from "./RendererInstructionBuilder";
 
 /**
  * Source-side metadata about *how* an update originated. Indexed by
@@ -230,17 +231,20 @@ export class UpdateExecutor {
                 componentIdx!,
             );
         if (listEntry) {
+            // Only an action of a component of the entries' type: the list
+            // has actions of its own (copying its DoenetML, a move of
+            // another type of entry) that are not the entry's.
             const listActions = listEntry.list?.actions ?? {};
-            let action = listActions[actionName];
-            if (!action && caseInsensitiveMatch) {
-                const actionNameLower = actionName.toLowerCase();
-                const matched = Object.keys(listActions).find(
-                    (aName) => aName.toLowerCase() === actionNameLower,
-                );
-                if (matched) {
-                    action = listActions[matched];
-                }
-            }
+            const entryActionNames = listEntryActionNames(
+                listEntry.list?.constructor.listEntryComponentType,
+            );
+            const actionNameLower = actionName.toLowerCase();
+            const matched = entryActionNames.find((aName) =>
+                caseInsensitiveMatch
+                    ? aName.toLowerCase() === actionNameLower
+                    : aName === actionName,
+            );
+            const action = matched ? listActions[matched] : undefined;
             if (action) {
                 if (event) {
                     this.core.requestRecordEvent(event);

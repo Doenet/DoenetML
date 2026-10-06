@@ -55,6 +55,16 @@ const LIST_ENTRY_ACTIONS: Record<string, string[]> = {
 };
 
 /**
+ * The actions an entry of a list component whose entries are of type
+ * `componentType` takes (`LIST_ENTRY_ACTIONS`): those its renderer sends,
+ * and the only ones a `<callAction>` naming the entry can run, as a
+ * component of that type has no others but the one for copying DoenetML.
+ */
+export function listEntryActionNames(componentType: string): string[] {
+    return LIST_ENTRY_ACTIONS[componentType] ?? [];
+}
+
+/**
  * Builds the dast/instruction stream sent to the renderer. Owns the
  * per-component "what's currently rendered" registry, the cached
  * renderer state used for save/restore, and the queue of components
