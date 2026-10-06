@@ -86,6 +86,7 @@ import Option from "./components/Option";
 import Sequence from "./components/Sequence";
 import Repeat from "./components/Repeat";
 import RepeatForSequence from "./components/RepeatForSequence";
+import { RepeatValues, RepeatIndices } from "./components/RepeatIterationLists";
 import Slider from "./components/Slider";
 import Markers from "./components/Markers";
 import Pegboard from "./components/Pegboard";
@@ -316,6 +317,8 @@ const componentTypeArray = [
     Panel,
     Repeat,
     RepeatForSequence,
+    RepeatValues,
+    RepeatIndices,
     Pegboard,
     Constraints,
     ConstrainToGrid,

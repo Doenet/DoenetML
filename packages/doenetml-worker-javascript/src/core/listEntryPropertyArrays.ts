@@ -60,6 +60,11 @@ export function ensureListEntryPropertyArray({
     const definition = {
         isArray: true,
         entryPrefixes: [`__listEntry_${entryProperty}_`],
+        // A property of an entry is a value the entry holds, as the values
+        // are (`recursiveDependencyBoundary` of the list's values array): an
+        // answer that reads `$l[2].math` sees a change elsewhere in the list
+        // (its length) as no change to it.
+        recursiveDependencyBoundary: true,
         shadowingInstructions: {
             createComponentOfType: listEntryPropertyType(
                 listClass,

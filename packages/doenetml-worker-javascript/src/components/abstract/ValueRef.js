@@ -624,18 +624,36 @@ export default class ValueRef extends BaseComponent {
         // Whether a write through this reference can succeed. Inputs have no
         // `canBeModified`; a `math` standing in for one answers from the
         // referent's `fixed` and `modifyIndirectly`.
+        // An entry of a list component answers from the list's
+        // `entriesCanBeModified` in place of its `fixed`: the entries of a
+        // `<sequence>` are fixed while the list's own `fixed` is not, and a
+        // `<math>` that holds one (`$q$s[1]^2`) must solve for its other
+        // operands, as it did for the fixed component a copy made for the
+        // entry. The list's `modifyIndirectly` still applies, as the write
+        // to the list is refused when it is false.
         stateVariableDefinitions.canBeModified = referentOrFallback({
             stateVariable: "canBeModified",
-            fallbackDependencies: (referentIdx) =>
+            fallbackDependencies: (referentIdx, referentInfo) =>
                 referentIdx === undefined
                     ? {}
                     : {
-                          targetFixed: {
-                              dependencyType: "stateVariable",
-                              componentIdx: referentIdx,
-                              variableName: "fixed",
-                              variablesOptional: true,
-                          },
+                          ...(referentInfo.listEntryPosition !== undefined
+                              ? {
+                                    entriesCanBeModified: {
+                                        dependencyType: "stateVariable",
+                                        componentIdx: referentIdx,
+                                        variableName: "entriesCanBeModified",
+                                        variablesOptional: true,
+                                    },
+                                }
+                              : {
+                                    targetFixed: {
+                                        dependencyType: "stateVariable",
+                                        componentIdx: referentIdx,
+                                        variableName: "fixed",
+                                        variablesOptional: true,
+                                    },
+                                }),
                           modifyIndirectly: {
                               dependencyType: "stateVariable",
                               componentIdx: referentIdx,
@@ -644,7 +662,9 @@ export default class ValueRef extends BaseComponent {
                           },
                       },
             fallback: (dependencyValues) =>
-                !dependencyValues.targetFixed &&
+                ("entriesCanBeModified" in dependencyValues
+                    ? dependencyValues.entriesCanBeModified !== false
+                    : !dependencyValues.targetFixed) &&
                 dependencyValues.modifyIndirectly !== false,
         });
 
@@ -1357,6 +1377,7 @@ function referentOrFallback({
                 this.svComponent.fixedReferent ?? stateValues.referentInfo;
             const dependencies = fallbackDependencies(
                 referentInfo?.componentIdx,
+                referentInfo,
             );
             if (referentInfo?.referencedPrimaryValue) {
                 dependencies.fromReferent = {

@@ -407,9 +407,10 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             }
             const census = censusOfCore(core);
             expect(census.copies).eq(0);
-            // the repeat's own index, one per iteration, and no integer made
-            // from an index between brackets
-            expect(census.byType.integer).eq(3);
+            // the repeat's indices, held once for the repeat, and no integer
+            // made from an index between brackets
+            expect(census.byType._repeatIndices).eq(1);
+            expect(census.byType.integer).eq(undefined);
         });
 
         it("an index into each list component reads an entry of its array", async () => {
@@ -3052,6 +3053,109 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 for (const ref of refs) {
                     expect(await ref.stateValues.isPotentialResponse).eq(true);
                 }
+            });
+        });
+
+        describe("references to an entry of a list", () => {
+            it("a math holding a fixed entry solves for its other operands", async () => {
+                // The entries of a `<sequence>` are fixed while the list's
+                // own `fixed` is not; the math must not try to write the
+                // entry, as it did not write the fixed component a copy made.
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <sequence name="s" from="2" to="3" />
+    <graph>
+      <point name="P">($r$s[1]^2, 1)</point>
+    </graph>
+    <math name="r">1</math>
+    `,
+                });
+                await movePoint({
+                    componentIdx: await resolvePathToNodeIdx("P"),
+                    x: 8,
+                    y: 1,
+                    core,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("r")].stateValues
+                        .value.tree,
+                ).eq(2);
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("s")].stateValues
+                        .numbers,
+                ).eqls([2, 3]);
+            });
+
+            it("a math holding an entry of a list that is not modified indirectly solves for its other operands", async () => {
+                // The list's `modifyIndirectly` refuses the write to the
+                // entry, so the math must not try it.
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <numberList name="l" modifyIndirectly="false">2 3</numberList>
+    <graph>
+      <point name="P">($q$l[1], 1)</point>
+    </graph>
+    <math name="q">1</math>
+    `,
+                });
+                await movePoint({
+                    componentIdx: await resolvePathToNodeIdx("P"),
+                    x: 8,
+                    y: 1,
+                    core,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("q")].stateValues
+                        .value.tree,
+                ).eq(4);
+                expect(
+                    stateVariables[await resolvePathToNodeIdx("l")].stateValues
+                        .numbers,
+                ).eqls([2, 3]);
+            });
+
+            it("an answer reading an entry inside a math stays submitted as the list grows", async () => {
+                // A property of an entry (`$l[1].math`, which `$l[1]` in a
+                // `<math>` reads) is a value the entry holds, as the entry's
+                // value is: a change to the list's length is no change to it.
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <mathInput name="n" prefill="2" />
+    <sequence name="s" length="$n" />
+    <answer name="ans"><mathInput name="mi" /><award><math>$s[1]+1</math></award></answer>
+    `,
+                });
+                await updateMathInputValue({
+                    latex: "2",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+                await submitAnswer({
+                    componentIdx: await resolvePathToNodeIdx("ans"),
+                    core,
+                });
+                await updateMathInputValue({
+                    latex: "3",
+                    componentIdx: await resolvePathToNodeIdx("n"),
+                    core,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const answer =
+                    stateVariables[await resolvePathToNodeIdx("ans")]
+                        .stateValues;
+                expect(answer.creditAchieved).eq(1);
+                expect(answer.justSubmitted).eq(true);
             });
         });
     },

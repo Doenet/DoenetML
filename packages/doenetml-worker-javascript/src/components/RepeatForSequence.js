@@ -11,7 +11,13 @@ import {
 } from "../utils/sequence";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../utils/componentIndices";
-import { copyStateFromUnlinkedSource, remapExtendIndices } from "./Repeat";
+import {
+    copyStateFromUnlinkedSource,
+    hasIterationList,
+    iterationEntryMapping,
+    remapExtendIndices,
+    templateChildIndices,
+} from "./Repeat";
 export default class RepeatForSequence extends CompositeComponent {
     static componentType = "repeatForSequence";
 
@@ -31,11 +37,7 @@ export default class RepeatForSequence extends CompositeComponent {
         "readyToExpandWhenResolved";
 
     static keepChildrenSerialized({ serializedComponent }) {
-        if (serializedComponent.children === undefined) {
-            return [];
-        } else {
-            return Object.keys(serializedComponent.children);
-        }
+        return templateChildIndices(serializedComponent);
     }
 
     // since don't have child groups, tell schema about children here
@@ -760,7 +762,7 @@ async function addAndLinkAliasComponents(
 
     let valueComponentIdx;
 
-    if (valueName) {
+    if (valueName && !hasIterationList(component, "_repeatValues")) {
         valueComponentIdx = nComponents++;
         const valueDummyIdx = await component.stateValues.valueDummyIdx;
         if (valueDummyIdx != null) {
@@ -796,7 +798,7 @@ async function addAndLinkAliasComponents(
 
     const indexName = await component.stateValues.indexName;
 
-    if (indexName) {
+    if (indexName && !hasIterationList(component, "_repeatIndices")) {
         const indexComponentIdx = nComponents++;
         const indexDummyIdx = await component.stateValues.indexDummyIdx;
         if (indexDummyIdx != null) {
@@ -823,14 +825,26 @@ async function addAndLinkAliasComponents(
 
     const newRepl = { ...thisRepl };
 
-    if (Object.keys(extendIdxMapping).length > 0) {
+    // The value and index that are lists of the repeat's own
+    // (`_repeatValues`, `_repeatIndices`) are read at this iteration's entry.
+    const entryIdxMapping = iterationEntryMapping(component, iter);
+
+    if (
+        Object.keys(extendIdxMapping).length > 0 ||
+        Object.keys(entryIdxMapping).length > 0
+    ) {
         newRepl.children = remapExtendIndices(
             thisRepl.children,
             extendIdxMapping,
+            entryIdxMapping,
         );
     }
 
-    newRepl.children.push(setupComponent);
+    // A `<setup>` only for the components named after the value and index
+    // that are not lists of the repeat's.
+    if (setupComponent.children.length > 0) {
+        newRepl.children.push(setupComponent);
+    }
 
     return { replacement: newRepl, nComponents, valueComponentIdx };
 }
