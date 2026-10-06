@@ -36,7 +36,7 @@ exports[`component census of the micro-documents > collect numbers x4 1`] = `
   "copies": 1,
   "dependencies": 806,
   "shadows": 0,
-  "stateVariables": 557,
+  "stateVariables": 558,
   "stateVariablesResolved": 347,
 }
 `;
@@ -279,7 +279,7 @@ exports[`component census of the micro-documents > shuffle literal x4 1`] = `
   "copies": 0,
   "dependencies": 301,
   "shadows": 0,
-  "stateVariables": 200,
+  "stateVariables": 201,
   "stateVariablesResolved": 140,
 }
 `;
@@ -298,7 +298,7 @@ exports[`component census of the micro-documents > sort $l of 4 1`] = `
   "copies": 1,
   "dependencies": 505,
   "shadows": 1,
-  "stateVariables": 388,
+  "stateVariables": 389,
   "stateVariablesResolved": 225,
 }
 `;

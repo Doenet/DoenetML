@@ -1395,9 +1395,13 @@ export function restoredValue(value, kind) {
 
 /**
  * The arrays of a list shown as its sources (`listEntriesShownAsSources`)
- * holding, for each entry, the entry variable they are named by.
+ * holding, for each entry, the entry variable they are named by. An entry's
+ * `hide` is the list's, if the list sets one, else its source's; a list that
+ * reads the entry (`<sort>$c</sort>`) hides it by that. Its `hidden` is also
+ * true when the list is hidden.
  */
 const ENTRY_PRESENTATION_ARRAYS = Object.freeze({
+    hide: "entryHides",
     hidden: "entryHiddens",
     selectedStyle: "entrySelectedStyles",
     styleNumber: "entryStyleNumbers",
@@ -1528,6 +1532,7 @@ function returnEntryPresentationDefinitions(listClass) {
  * made.
  */
 const LIST_SETTING_OF_PRESENTATION = {
+    hide: "hide",
     hidden: "hide",
     selectedStyle: "styleNumber",
     styleNumber: "styleNumber",
@@ -1536,7 +1541,7 @@ const LIST_SETTING_OF_PRESENTATION = {
 /**
  * The arrays of a value per entry of a list shown as its sources
  * (`ENTRY_PRESENTATION_ARRAYS`), computed from its `entryPresentation` and
- * the list's own `hidden`, `selectedStyle` and `renderMode`. Changing which
+ * the list's own `hide`, `hidden`, `selectedStyle` and `renderMode`. Changing which
  * entries are hidden changes the children the parent draws.
  */
 export function returnEntryPresentationArrays(listClass) {
@@ -1545,7 +1550,8 @@ export function returnEntryPresentationArrays(listClass) {
     for (const [entryVariable, arrayName] of Object.entries(arrays)) {
         const listSetting = LIST_SETTING_OF_PRESENTATION[entryVariable];
         definitions[arrayName] = {
-            forRenderer: true,
+            // No renderer reads an entry's `hide`.
+            forRenderer: entryVariable !== "hide",
             returnDependencies: () => ({
                 entryPresentation: {
                     dependencyType: "stateVariable",
@@ -1575,13 +1581,18 @@ export function returnEntryPresentationArrays(listClass) {
                         if (listSets) {
                             return dependencyValues.listValue;
                         }
-                        return entryVariable === "hidden"
-                            ? Boolean(
-                                  dependencyValues.listValue ||
-                                  presentation.hide,
-                              )
-                            : (presentation[entryVariable] ??
-                                  dependencyValues.listValue);
+                        if (entryVariable === "hidden") {
+                            return Boolean(
+                                dependencyValues.listValue || presentation.hide,
+                            );
+                        }
+                        if (entryVariable === "hide") {
+                            return Boolean(presentation.hide);
+                        }
+                        return (
+                            presentation[entryVariable] ??
+                            dependencyValues.listValue
+                        );
                     },
                 );
                 return { setValue: { [arrayName]: values } };

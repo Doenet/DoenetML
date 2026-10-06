@@ -727,6 +727,62 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         });
     });
 
+    it("a sort or shuffle of a list form hides the entries it hides", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <setup>
+      <styleDefinition styleNumber="2" textColor="red" />
+    </setup>
+    <booleanInput name="h" prefill="true" />
+    <section name="s">
+      <number hide="$h">3</number>
+      <number styleNumber="2">1</number>
+      <number>2</number>
+    </section>
+    <collect componentType="number" from="$s" name="c" />
+    <collect componentType="number" from="$s" name="cShown" hide="false" />
+    <section name="hiddenSection" hide>
+      <collect componentType="number" from="$s" name="cInHidden" />
+    </section>
+    <sort name="sa"><number hide="$h">7</number><number>6</number></sort>
+    <p name="p1">[<sort>$c</sort>]</p>
+    <p name="p2">[<shuffle>$c</shuffle>]</p>
+    <p name="p3">[<sort>$sa 5</sort>]</p>
+    <p name="p4">[<sort><sort><number hide="$h">9</number><number>8</number></sort><number>4</number></sort>]</p>
+    <p name="p5">[<sort>$cShown</sort>]</p>
+    <p name="p6">[<sort>$cInHidden</sort>]</p>
+    `,
+        });
+
+        await expectTexts(core, resolvePathToNodeIdx, {
+            p1: "[1, 2]",
+            p2: "[2, 1]",
+            p3: "[5, 6]",
+            p4: "[4, 8]",
+            p5: "[1, 2, 3]",
+            p6: "[1, 2]",
+        });
+        expect(await drawn(core, resolvePathToNodeIdx, "p1")).eqls([
+            { rendererType: "number", shown: "1", textColor: "red" },
+            { rendererType: "number", shown: "2", textColor: "black" },
+        ]);
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("h"),
+            core,
+        });
+        await expectTexts(core, resolvePathToNodeIdx, {
+            p1: "[1, 2, 3]",
+            p2: "[2, 3, 1]",
+            p3: "[5, 6, 7]",
+            p4: "[4, 8, 9]",
+            p5: "[1, 2, 3]",
+            p6: "[1, 2, 3]",
+        });
+        await expectRenderedText(core, resolvePathToNodeIdx, ["p1", "p3"]);
+    });
+
     it("sort reads text as values of the type it looks like", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
