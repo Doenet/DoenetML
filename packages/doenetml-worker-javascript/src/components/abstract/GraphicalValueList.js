@@ -1,6 +1,10 @@
 import AuthoredValueList from "./AuthoredValueList";
 import me from "math-expressions";
-import { convertValueToMathExpression, vectorOperators } from "@doenet/utils";
+import {
+    convertValueToMathExpression,
+    returnTextStyleDescriptionDefinitions,
+    vectorOperators,
+} from "@doenet/utils";
 import {
     evaluateToNumber,
     isUnspecifiedComponentValue,
@@ -87,9 +91,22 @@ export default class GraphicalValueList extends AuthoredValueList {
         };
     }
 
+    /**
+     * The definitions of the descriptions of a style that a point or vector
+     * has (`styleDescription`, `textColor`), which an entry has of the style
+     * it is drawn with (`entrySelectedStyle`), in an array of the list with
+     * one per entry (`entryVariableName`).
+     */
+    static returnEntryStyleDescriptionDefinitions() {
+        return returnTextStyleDescriptionDefinitions();
+    }
+
     static buildListEntryStateVariables() {
         const variables = super.buildListEntryStateVariables();
-        for (const name of this.listEntryChildRendererVariables) {
+        for (const name of [
+            ...this.listEntryChildRendererVariables,
+            ...Object.keys(this.returnEntryStyleDescriptionDefinitions()),
+        ]) {
             variables[name] = entryVariableName(name);
         }
         variables.hidden = "entryHidden";
@@ -101,6 +118,9 @@ export default class GraphicalValueList extends AuthoredValueList {
         return [
             ...super.listPerEntryVariables,
             ...this.listEntryChildRendererVariables.map(entryVariableName),
+            ...Object.keys(this.returnEntryStyleDescriptionDefinitions()).map(
+                entryVariableName,
+            ),
             "entryHidden",
             "entryFixed",
         ];
@@ -632,6 +652,41 @@ export default class GraphicalValueList extends AuthoredValueList {
                                 child?.stateValues[name] === undefined
                                     ? dependencyValues.listValue
                                     : child.stateValues[name],
+                        ),
+                    },
+                }),
+            };
+        }
+
+        // Each description of an entry's style, as a point or vector
+        // describes its own, of the style the entry is drawn with.
+        for (const [name, definition] of Object.entries(
+            this.returnEntryStyleDescriptionDefinitions(),
+        )) {
+            const entryName = entryVariableName(name);
+            stateVariableDefinitions[entryName] = {
+                returnDependencies() {
+                    // the entry's style in place of the list's
+                    const dependencies = definition.returnDependencies();
+                    delete dependencies.selectedStyle;
+                    return {
+                        ...dependencies,
+                        entrySelectedStyle: {
+                            dependencyType: "stateVariable",
+                            variableName: "entrySelectedStyle",
+                        },
+                    };
+                },
+                definition: ({ dependencyValues }) => ({
+                    setValue: {
+                        [entryName]: dependencyValues.entrySelectedStyle.map(
+                            (selectedStyle) =>
+                                definition.definition({
+                                    dependencyValues: {
+                                        ...dependencyValues,
+                                        selectedStyle,
+                                    },
+                                }).setValue[name],
                         ),
                     },
                 }),

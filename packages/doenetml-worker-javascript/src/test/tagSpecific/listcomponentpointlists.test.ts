@@ -1189,6 +1189,121 @@ describe("Point and vector lists as list components @group4", async () => {
         });
     });
 
+    it("an entry from a list among the children, or of a copy of the list, is written as a vector", async () => {
+        async function writeTo(
+            doenetML: string,
+            bindValueTo: string,
+            latex: string,
+        ) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `${doenetML}
+    <mathInput name="mi" bindValueTo="${bindValueTo}"/>
+    <p name="p">$vl; $vl.tail; $vl.head</p>
+    <p name="q">$w; $w.tail; $w.head</p>
+    `,
+            });
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+            return textsOf(core, resolvePathToNodeIdx, ["p", "q"]);
+        }
+
+        const vl = `<vectorList name="vl">(1,2) <vector tail="(1,1)" head="(4,5)"/></vectorList>`;
+
+        // a list among the children is written its entries' displacements
+        for (const doenetML of [
+            `${vl}<vectorList name="w">$vl (5,6)</vectorList>`,
+            `<vectorList name="w">${vl} (5,6)</vectorList>`,
+        ]) {
+            expect(await writeTo(doenetML, "$w[1]", "(7,8)")).eqls({
+                p: "(7, 8), (3, 4); (0, 0), (1, 1); (7, 8), (4, 5)",
+                q: "(7, 8), (3, 4), (5, 6); (0, 0), (1, 1), (0, 0); (7, 8), (4, 5), (5, 6)",
+            });
+            expect(await writeTo(doenetML, "$w[2].head", "(7,8)")).eqls({
+                p: "(1, 2), (6, 7); (0, 0), (1, 1); (1, 2), (7, 8)",
+                q: "(1, 2), (6, 7), (5, 6); (0, 0), (1, 1), (0, 0); (1, 2), (7, 8), (5, 6)",
+            });
+        }
+
+        // a copy of the list is written, not the list
+        const copy = `${vl}<vectorList name="w" copy="$vl"/>`;
+        const unchanged = "(1, 2), (3, 4); (0, 0), (1, 1); (1, 2), (4, 5)";
+        expect(await writeTo(copy, "$w[1].headX1", "9")).eqls({
+            p: unchanged,
+            q: "(9, 2), (3, 4); (0, 0), (1, 1); (9, 2), (4, 5)",
+        });
+        expect(await writeTo(copy, "$w[2].magnitude", "10")).eqls({
+            p: unchanged,
+            q: "(1, 2), (6, 8); (0, 0), (1, 1); (1, 2), (7, 9)",
+        });
+
+        // a coordinate of the head of a copy of an authored vector's entry
+        // keeps the other coordinates
+        expect(
+            await writeTo(
+                `${vl}<vector name="v" extend="$vl[2]"/><vectorList name="w"/>`,
+                "$v.headX1",
+                "8",
+            ),
+        ).eqls({
+            p: "(1, 2), (7, 4); (0, 0), (1, 1); (1, 2), (8, 5)",
+            q: "; ; ",
+        });
+    });
+
+    it("an entry describes its style and whether a constraint was used, as a point or vector does", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+        <pointList name="pl">(1,2) <point styleNumber="3">(3,4)</point> <point>(1.2,3.7)<constrainToGrid/></point></pointList>
+        <pointList name="pc">(1.2,2.7) (8,4)<constrainToGrid/></pointList>
+        <vectorList name="vl" styleNumber="2">(1,2) <vector styleNumber="3" head="(3,4)"/></vectorList>
+    </graph>
+    <p name="pStyle">$pl.styleDescription; $pl[2].styleDescriptionWithNoun; $pl[2].textColor</p>
+    <p name="vStyle">$vl.styleDescription; $vl[1].styleDescriptionWithNoun</p>
+    <p name="constraints">$pl.constraintUsed; $pc.constraintUsed</p>
+    <p name="coords">$pl[2].coords[1]; $pl.coords[1]</p>
+    `,
+        });
+
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "pStyle",
+                "vStyle",
+                "constraints",
+                "coords",
+            ]),
+        ).eqls({
+            // an authored point or vector's entry is described in its style
+            pStyle: "blue, orange, blue; orange triangle; orange",
+            vStyle: "red, orange; red vector",
+            constraints: "false, false, true; true, true",
+            // an index into coordinates, which are not an array, is ignored
+            coords: "(3, 4); (1, 2), (3, 4), (1, 4)",
+        });
+
+        // a vector's label is at its center
+        const rendererState =
+            core.core.rendererInstructionBuilder.rendererState;
+        const labelPositions = (
+            await drawnIn(core, resolvePathToNodeIdx, "g")
+        ).map(
+            (child: any) =>
+                rendererState[child.componentIdx].stateValues.labelPosition,
+        );
+        expect(labelPositions).eqls([
+            "upperright",
+            "upperright",
+            "upperright",
+            "upperright",
+            "upperright",
+            "center",
+            "center",
+        ]);
+    });
+
     it("PreFigure output, graph controls and a legend find each entry, as they find points and vectors", async () => {
         // the same graphs, with the items as a list and as components
         function doenetML(asList: boolean) {

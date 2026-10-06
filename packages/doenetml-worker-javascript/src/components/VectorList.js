@@ -8,7 +8,10 @@ import GraphicalValueList, {
     withNumDimensions,
 } from "./abstract/GraphicalValueList";
 import me from "math-expressions";
-import { convertValueToMathExpression } from "@doenet/utils";
+import {
+    convertValueToMathExpression,
+    returnGraphicalStyleDescriptionDefinitions,
+} from "@doenet/utils";
 
 /**
  * A list of vectors, held as the math of each vector's displacement
@@ -17,7 +20,7 @@ import { convertValueToMathExpression } from "@doenet/utils";
  * entry, dragged entry by entry (Doenet/DoenetML#2162).
  *
  * An entry the list reads from text (`(1, 2)`) is a displacement, with its
- * tail at the origin until it is dragged; the list keeps a tail written to
+ * tail at the origin until its tail is moved; the list keeps a tail written to
  * it with the text it came from (`pieceTailWrites`). An entry from an
  * authored `<vector>` has the vector's tail and head, and a drag of it is a
  * drag of that vector.
@@ -70,8 +73,19 @@ export default class VectorList extends GraphicalValueList {
     static get listEntryRendererDefaults() {
         return {
             ...super.listEntryRendererDefaults,
+            labelPosition: () => "center",
             headDraggable: () => true,
             tailDraggable: () => true,
+        };
+    }
+
+    static returnEntryStyleDescriptionDefinitions() {
+        return {
+            ...super.returnEntryStyleDescriptionDefinitions(),
+            ...returnGraphicalStyleDescriptionDefinitions({
+                kind: "stroke",
+                noun: "vector",
+            }),
         };
     }
 
@@ -224,6 +238,7 @@ export default class VectorList extends GraphicalValueList {
                         "basedOnHead",
                         "basedOnTail",
                         "basedOnDisplacement",
+                        "displacementCoords",
                     ],
                     variablesOptional: true,
                 },
@@ -256,7 +271,8 @@ export default class VectorList extends GraphicalValueList {
             // each computed from the tail and displacement written, as a drag
             // of the vector writes them (`Vector.moveVector`), so that none
             // is computed from another's value from before the write. The
-            // entry of a list among the children is written its tail.
+            // entry of a list among the children (a `copy=` of a list holds
+            // one) is written its tail and its displacement.
             inverseDefinition({
                 desiredStateVariableValues,
                 dependencyValues,
@@ -298,6 +314,9 @@ export default class VectorList extends GraphicalValueList {
                     if (basedOnHead === undefined) {
                         if (written.tail !== undefined) {
                             write(0, written.tail);
+                        }
+                        if (written.displacement !== undefined) {
+                            write(6, written.displacement);
                         }
                         continue;
                     }
@@ -378,18 +397,35 @@ export default class VectorList extends GraphicalValueList {
                     if (await args.stateValues.entriesFixed) {
                         return { success: false };
                     }
+                    // A coordinate the write leaves unspecified (a copy of
+                    // the entry writing one coordinate of its head) keeps
+                    // the value it has, or was given earlier in the same
+                    // write.
+                    if (!args.workspace.writtenEntries) {
+                        args.workspace.writtenEntries = {};
+                    }
+                    const writtenEntries = args.workspace.writtenEntries;
                     const written = {};
                     for (const [arrayKey, value] of Object.entries(
                         toChildren,
                     )) {
-                        written[arrayKey] = {
-                            displacement: withNumDimensions(
-                                coordinatesValue(
-                                    convertValueToMathExpression(value),
-                                ),
-                                args.globalDependencyValues.numDimensions,
+                        let displacement = withNumDimensions(
+                            coordinatesValue(
+                                convertValueToMathExpression(value),
                             ),
-                        };
+                            args.globalDependencyValues.numDimensions,
+                        );
+                        if (hasUnspecifiedCoordinate(displacement)) {
+                            displacement = withSpecifiedCoordinates(
+                                displacement,
+                                writtenEntries[arrayKey] ??
+                                    (await args.stateValues[arrayName])[
+                                        arrayKey
+                                    ],
+                            );
+                        }
+                        writtenEntries[arrayKey] = displacement;
+                        written[arrayKey] = { displacement };
                     }
                     instructions.push({
                         setDependency: "entryChildEndpoints",

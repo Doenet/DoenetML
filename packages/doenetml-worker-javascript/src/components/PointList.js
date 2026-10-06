@@ -5,7 +5,10 @@ import GraphicalValueList, {
     withNumDimensions,
 } from "./abstract/GraphicalValueList";
 import me from "math-expressions";
-import { convertValueToMathExpression } from "@doenet/utils";
+import {
+    convertValueToMathExpression,
+    returnGraphicalStyleDescriptionDefinitions,
+} from "@doenet/utils";
 import {
     applyConstraintFromComponentConstraints,
     returnConstraintGraphInfoDefinitions,
@@ -67,10 +70,21 @@ export default class PointList extends GraphicalValueList {
     static coordinatesArrayName = "points";
     static coordinatesArrayPrefix = "pointX";
 
+    static returnEntryStyleDescriptionDefinitions() {
+        return {
+            ...super.returnEntryStyleDescriptionDefinitions(),
+            ...returnGraphicalStyleDescriptionDefinitions({
+                kind: "marker",
+                noun: "point",
+            }),
+        };
+    }
+
     static buildListEntryStateVariables() {
         const variables = super.buildListEntryStateVariables();
         variables.numericalXs = "entryNumericalXs";
         variables.nearestPoint = "entryNearestPoints";
+        variables.constraintUsed = "entryConstraintsUsed";
         return variables;
     }
 
@@ -79,6 +93,7 @@ export default class PointList extends GraphicalValueList {
             ...super.listPerEntryVariables,
             "entryNumericalXs",
             "entryNearestPoints",
+            "entryConstraintsUsed",
         ];
     }
 
@@ -122,10 +137,10 @@ export default class PointList extends GraphicalValueList {
             return;
         }
         for (const arrayKey in entries) {
-            entries[arrayKey] = constrainedPoint(
+            entries[arrayKey] = applyConstraints(
                 entries[arrayKey],
                 constraintChildren,
-            );
+            ).value;
         }
     }
 
@@ -133,6 +148,7 @@ export default class PointList extends GraphicalValueList {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
         const arrayName = this.listValuesArrayName;
+        const componentGroups = this.listChildGroups.map((x) => x.group);
 
         // The graph's limits and scales, which a constraint among the
         // children applies itself with, as for a `<point>`.
@@ -161,6 +177,46 @@ export default class PointList extends GraphicalValueList {
                 setValue: {
                     entryNumericalXs:
                         dependencyValues.values.map(numericalCoordinates),
+                },
+            }),
+        };
+
+        // Whether a constraint was applied to each entry, as a point's
+        // `constraintUsed`: one of the point the entry is from, or one among
+        // the list's children. The list's constraints are applied again to
+        // the constrained entry, which they report as constrained when they
+        // constrained it.
+        stateVariableDefinitions.entryConstraintsUsed = {
+            returnDependencies: () => ({
+                entryStructure: {
+                    dependencyType: "stateVariable",
+                    variableName: "entryStructure",
+                },
+                children: {
+                    dependencyType: "child",
+                    childGroups: componentGroups,
+                    variableNames: ["constraintUsed"],
+                    variablesOptional: true,
+                },
+                values: {
+                    dependencyType: "stateVariable",
+                    variableName: arrayName,
+                },
+                ...this.entryValueAdjustmentDependencies(),
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    entryConstraintsUsed: dependencyValues.entryStructure.map(
+                        (source, ind) =>
+                            Boolean(
+                                dependencyValues.children[source.componentInd]
+                                    ?.stateValues.constraintUsed,
+                            ) ||
+                            applyConstraints(
+                                dependencyValues.values[ind],
+                                dependencyValues.constraintChildren,
+                            ).constraintUsed,
+                    ),
                 },
             }),
         };
@@ -250,10 +306,11 @@ export default class PointList extends GraphicalValueList {
 /**
  * `value`, the coordinates of a point, constrained by
  * `constraintChildren` in turn, as a `<point>` with those constraint children
- * is.
+ * is, and whether one of them was applied (`constraintUsed`).
  */
-function constrainedPoint(value, constraintChildren) {
+function applyConstraints(value, constraintChildren) {
     const coordinates = coordinatesOf(value);
+    let constraintUsed = false;
     let variables = {};
     for (const [ind, x] of coordinates.entries()) {
         variables[`x${ind + 1}`] = x;
@@ -266,6 +323,7 @@ function constrainedPoint(value, constraintChildren) {
                   constraintChild.stateValues.applyComponentConstraint,
               );
         if (result.constrained) {
+            constraintUsed = true;
             variables = { ...variables };
             for (const varName in result.variables) {
                 variables[varName] = convertValueToMathExpression(
@@ -274,8 +332,11 @@ function constrainedPoint(value, constraintChildren) {
             }
         }
     }
-    return withNumDimensions(
-        vectorOf(coordinates.map((_, ind) => variables[`x${ind + 1}`])),
-        coordinates.length,
-    );
+    return {
+        value: withNumDimensions(
+            vectorOf(coordinates.map((_, ind) => variables[`x${ind + 1}`])),
+            coordinates.length,
+        ),
+        constraintUsed,
+    };
 }

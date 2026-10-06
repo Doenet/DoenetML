@@ -111,16 +111,33 @@ function entryPropertyOf(
 }
 
 /**
- * The entry property that `part`, an array property of the entries with one
- * index written as a number (`xs[2]`), reads: the entry of that array as an
- * entry of the entries' type names it (`x2`), when the list provides it.
- * `undefined` otherwise.
+ * The entry property that `part`, a property of the entries with one index
+ * (`xs[2]`), reads: for an array property with the index written as a
+ * number, the entry of that array as an entry of the entries' type names it
+ * (`x2`), when the list provides it; for a property that is not an array
+ * (`coords[1]`), the property, as an index into it is ignored for a
+ * component of the entries' type. `undefined` otherwise.
  */
 function indexedEntryProperty(
     listClass: any,
     part: PathPart,
     componentInfoObjects: ComponentInfoObjects,
 ): string | undefined {
+    const property = entryPropertyOf(
+        listClass,
+        part.name,
+        componentInfoObjects,
+    );
+    if (
+        property !== undefined &&
+        !(
+            componentInfoObjects.stateVariableInfo[
+                listClass.listEntryComponentType
+            ]?.stateVariableDescriptions[property] as any
+        )?.isArray
+    ) {
+        return property;
+    }
     const indexValue = part.index[0]?.value;
     if (
         !Array.isArray(indexValue) ||
