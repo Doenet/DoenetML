@@ -1906,8 +1906,8 @@ export default class BaseComponent {
         // A copy of a component made from a list entry is labeled as that
         // component is (through its shadow source or, unlinked, the label
         // state copied with it), not from the list entry
-        // (`labelOfEntryDoenetAttributes` in `Copy.js`)
-        delete serializedComponent.doenetAttributes.labelOfListEntry;
+        // (`listEntrySourceDoenetAttributes` in `Copy.js`)
+        delete serializedComponent.doenetAttributes.listEntrySource;
 
         return serializedComponent;
     }
@@ -1984,7 +1984,7 @@ export default class BaseComponent {
                 serializedComponent.doenetAttributes,
             );
             delete serializedCopy.doenetAttributes.prescribedName;
-            delete serializedCopy.doenetAttributes.labelOfListEntry;
+            delete serializedCopy.doenetAttributes.listEntrySource;
         }
 
         if (serializedComponent.attributes != undefined) {

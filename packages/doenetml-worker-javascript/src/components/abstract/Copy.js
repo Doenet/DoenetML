@@ -2897,7 +2897,7 @@ export async function replacementFromProp({
                             componentIdx: nComponents++,
                             stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                             attributes: attributesForReplacement,
-                            doenetAttributes: labelOfEntryDoenetAttributes({
+                            doenetAttributes: listEntrySourceDoenetAttributes({
                                 arrayStateVarObj,
                                 arrayKey,
                                 target,
@@ -4280,24 +4280,29 @@ async function arrayListReplacement({
 /**
  * The `doenetAttributes` of a component made from entry `arrayKey` of the
  * array `arrayStateVarObj` of `target`: when the array is a list's values
- * and the list holds the label of each entry (`labelOfEachEntry`, a list of
- * points or vectors), `labelOfListEntry`, which names the list, the arrays
- * holding each entry's label and whether it has LaTeX, and the entry's
- * index into them, so that the component is labeled as the entry's source
- * is (`utils/label.ts`), as the copy of the source it stood for was.
+ * and the list holds, for each entry, variables of the entry's source that
+ * are not attributes (`listEntrySourceVariables`, a list of points or
+ * vectors: the label, and a vector's draggable head and tail),
+ * `listEntrySource`, which names the list, the arrays holding them, and the
+ * entry's index into them, so that the component reads them as the copy of
+ * the source it stood for had them (`utils/label.ts`, `Vector.js`).
  */
-function labelOfEntryDoenetAttributes({ arrayStateVarObj, arrayKey, target }) {
-    const labelOfEachEntry =
-        arrayStateVarObj.shadowingInstructions.labelOfEachEntry;
+function listEntrySourceDoenetAttributes({
+    arrayStateVarObj,
+    arrayKey,
+    target,
+}) {
+    const variables =
+        arrayStateVarObj.shadowingInstructions.listEntrySourceVariables;
     const index = arrayStateVarObj.keyToIndex(arrayKey);
-    if (!labelOfEachEntry || !Number.isInteger(index)) {
+    if (!variables || !Number.isInteger(index)) {
         return {};
     }
     return {
-        labelOfListEntry: {
+        listEntrySource: {
             componentIdx: target.componentIdx,
             index,
-            ...labelOfEachEntry,
+            variables,
         },
     };
 }

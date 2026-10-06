@@ -74,37 +74,29 @@ export default class GraphicalValueList extends AuthoredValueList {
     }
 
     /**
-     * The attributes, besides `fixed`, by which an entry's source stops it
-     * from being dragged, which a component made from one entry (`$c[1]`
-     * in a graph, `<point extend="$c[1]"/>`) takes from it
-     * (`entrySourceAttributeArrays`).
+     * The attributes a component made from one entry (`$c[1]` in a graph,
+     * `<point extend="$c[1]"/>`) takes from the entry's source, as the copy
+     * of the source it stood for did, with the array of the list holding
+     * each, an entry per entry, and the value the attribute has when the
+     * source does not stop the entry being dragged by it.
      */
-    static get listEntryDragAttributes() {
-        return ["draggable"];
-    }
+    static entrySourceAttributeArrays = Object.freeze({
+        fixed: { arrayName: "entrySourceFixeds", defaultValue: false },
+        draggable: { arrayName: "entrySourceDraggables", defaultValue: true },
+    });
 
     /**
-     * The attributes a component made from one entry takes from the entry's
-     * source, as the copy of the source it stood for did, with the array of
-     * the list holding each, an entry per entry, and the value the
-     * attribute has when the source leaves it to where the component is:
-     * `fixed`, unless the source is fixed, and each of
-     * `listEntryDragAttributes`, unless the source sets it false.
+     * The variables of the entry's source that a component made from one
+     * entry reads from the list, as they are not attributes it could take
+     * (`listEntrySourceVariables` in the values array's shadowing
+     * instructions, read through `listEntrySource` by `utils/label.ts`), with
+     * the array of the list holding each.
      */
-    static get entrySourceAttributeArrays() {
-        if (!Object.hasOwn(this, "builtEntrySourceAttributeArrays")) {
-            const arrays = {
-                fixed: { arrayName: "entrySourceFixeds", defaultValue: false },
-            };
-            for (const name of this.listEntryDragAttributes) {
-                arrays[name] = {
-                    arrayName: `entrySource${name[0].toUpperCase()}${name.slice(1)}s`,
-                    defaultValue: true,
-                };
-            }
-            this.builtEntrySourceAttributeArrays = Object.freeze(arrays);
-        }
-        return this.builtEntrySourceAttributeArrays;
+    static get listEntrySourceVariables() {
+        return {
+            label: entryVariableName("label"),
+            labelHasLatex: entryVariableName("labelHasLatex"),
+        };
     }
 
     // How an entry of a list of graphical objects is drawn when it is not
@@ -825,11 +817,12 @@ export default class GraphicalValueList extends AuthoredValueList {
         };
 
         // A component made from one entry (`$c[1]` in a graph, `<point
-        // extend="$c[1]"/>`) takes the `fixed` and draggable attributes of
+        // extend="$c[1]"/>`) takes the `fixed` and `draggable` attributes of
         // the entry's source, where they stop it being dragged
         // (`entrySourceAttributeArrays`), as the copy of the source it stood
-        // for took them, and its label (`labelOfEachEntry`, which `Copy.js`
-        // records on the component for `utils/label.ts`).
+        // for took them, and reads its label from the list
+        // (`listEntrySourceVariables`, which `Copy.js` records on the
+        // component).
         const attributeArrays = this.entrySourceAttributeArrays;
         for (const [
             attribute,
@@ -857,10 +850,7 @@ export default class GraphicalValueList extends AuthoredValueList {
                     ),
                 ),
             },
-            labelOfEachEntry: {
-                label: entryVariableName("label"),
-                labelHasLatex: entryVariableName("labelHasLatex"),
-            },
+            listEntrySourceVariables: this.listEntrySourceVariables,
         };
 
         // Whether an entry that leaves the graph is shown by an indicator at
@@ -975,7 +965,9 @@ export function entryVariableName(name) {
  * (`entrySourceAttributeArrays`), which a component made from one entry takes
  * as its own attribute (`companionOfEachEntry`): the source's value
  * (`entryChildren`) where it is not `defaultValue`, and otherwise a default,
- * so that the component's attribute is marked as not set.
+ * so that the component's attribute is marked as not set. An entry of a
+ * fixed list is fixed (`entriesFixed`, which this array replaces as the
+ * component's `fixed` attribute).
  */
 function entrySourceAttributeDefinition({
     attribute,
@@ -1005,16 +997,24 @@ function entrySourceAttributeDefinition({
                     dependencyType: "stateVariable",
                     variableName: "entryChildren",
                 },
+                ...(attribute === "fixed"
+                    ? {
+                          entriesFixed: {
+                              dependencyType: "stateVariable",
+                              variableName: "entriesFixed",
+                          },
+                      }
+                    : {}),
             },
         }),
         arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
             const values = {};
             const defaults = {};
             for (const arrayKey of arrayKeys) {
-                const fromSource =
-                    globalDependencyValues.entryChildren[arrayKey]?.stateValues[
-                        attribute
-                    ];
+                const fromSource = globalDependencyValues.entriesFixed
+                    ? true
+                    : globalDependencyValues.entryChildren[arrayKey]
+                          ?.stateValues[attribute];
                 if (
                     typeof fromSource === "boolean" &&
                     fromSource !== defaultValue

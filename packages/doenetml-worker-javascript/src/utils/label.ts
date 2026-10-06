@@ -405,25 +405,25 @@ export function returnLabelStateVariableDefinitions({
 
             // A component made from an entry of a list of points or vectors
             // (`$c[1]` in a graph) is labeled as the entry's source is
-            // (`labelOfEntryDoenetAttributes` in `Copy.js`).
-            const labelOfListEntry =
-                this.svComponent?.doenetAttributes?.labelOfListEntry;
-            if (labelOfListEntry) {
+            // (`listEntrySourceDoenetAttributes` in `Copy.js`).
+            const listEntrySource =
+                this.svComponent?.doenetAttributes?.listEntrySource;
+            if (listEntrySource?.variables.label) {
                 dependencies.listEntryLabel = {
                     dependencyType: "stateVariable",
-                    componentIdx: labelOfListEntry.componentIdx,
-                    variableName: labelOfListEntry.label,
+                    componentIdx: listEntrySource.componentIdx,
+                    variableName: listEntrySource.variables.label,
                     variablesOptional: true,
                 };
                 dependencies.listEntryLabelHasLatex = {
                     dependencyType: "stateVariable",
-                    componentIdx: labelOfListEntry.componentIdx,
-                    variableName: labelOfListEntry.labelHasLatex,
+                    componentIdx: listEntrySource.componentIdx,
+                    variableName: listEntrySource.variables.labelHasLatex,
                     variablesOptional: true,
                 };
                 dependencies.listEntryIndex = {
                     dependencyType: "value",
-                    value: labelOfListEntry.index,
+                    value: listEntrySource.index,
                 };
             }
 

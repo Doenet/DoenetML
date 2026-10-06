@@ -401,18 +401,25 @@ export default class Vector extends GraphicalComponent {
             },
             hasEssential: true,
             forRenderer: true,
-            returnDependencies: () => ({
-                tailDraggableAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "tailDraggable",
-                    variableNames: ["value"],
-                },
-                draggable: {
-                    dependencyType: "stateVariable",
-                    variableName: "draggable",
-                },
-            }),
+            returnDependencies() {
+                return {
+                    tailDraggableAttr: {
+                        dependencyType: "attributeComponent",
+                        attributeName: "tailDraggable",
+                        variableNames: ["value"],
+                    },
+                    draggable: {
+                        dependencyType: "stateVariable",
+                        variableName: "draggable",
+                    },
+                    ...listEntrySourceDependencies(
+                        this.svComponent,
+                        "tailDraggable",
+                    ),
+                };
+            },
             definition({ dependencyValues }) {
+                const fromListEntry = listEntrySourceValue(dependencyValues);
                 if (dependencyValues.tailDraggableAttr) {
                     return {
                         setValue: {
@@ -421,6 +428,8 @@ export default class Vector extends GraphicalComponent {
                                     .value,
                         },
                     };
+                } else if (typeof fromListEntry === "boolean") {
+                    return { setValue: { tailDraggable: fromListEntry } };
                 } else {
                     return {
                         useEssentialOrDefaultValue: {
@@ -442,18 +451,25 @@ export default class Vector extends GraphicalComponent {
             },
             hasEssential: true,
             forRenderer: true,
-            returnDependencies: () => ({
-                headDraggableAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "headDraggable",
-                    variableNames: ["value"],
-                },
-                draggable: {
-                    dependencyType: "stateVariable",
-                    variableName: "draggable",
-                },
-            }),
+            returnDependencies() {
+                return {
+                    headDraggableAttr: {
+                        dependencyType: "attributeComponent",
+                        attributeName: "headDraggable",
+                        variableNames: ["value"],
+                    },
+                    draggable: {
+                        dependencyType: "stateVariable",
+                        variableName: "draggable",
+                    },
+                    ...listEntrySourceDependencies(
+                        this.svComponent,
+                        "headDraggable",
+                    ),
+                };
+            },
             definition({ dependencyValues }) {
+                const fromListEntry = listEntrySourceValue(dependencyValues);
                 if (dependencyValues.headDraggableAttr) {
                     return {
                         setValue: {
@@ -462,6 +478,8 @@ export default class Vector extends GraphicalComponent {
                                     .value,
                         },
                     };
+                } else if (typeof fromListEntry === "boolean") {
+                    return { setValue: { headDraggable: fromListEntry } };
                 } else {
                     return {
                         useEssentialOrDefaultValue: {
@@ -2918,4 +2936,41 @@ export default class Vector extends GraphicalComponent {
             });
         }
     }
+}
+
+/**
+ * The dependencies by which a vector made from an entry of a vector list
+ * (`listEntrySource`, recorded by `Copy.js`) reads `variable` of the entry's
+ * source from the list (`VectorList.listEntrySourceVariables`); none for
+ * another vector.
+ */
+function listEntrySourceDependencies(component, variable) {
+    const listEntrySource = component?.doenetAttributes?.listEntrySource;
+    const arrayName = listEntrySource?.variables[variable];
+    if (!arrayName) {
+        return {};
+    }
+    return {
+        listEntryValues: {
+            dependencyType: "stateVariable",
+            componentIdx: listEntrySource.componentIdx,
+            variableName: arrayName,
+            variablesOptional: true,
+        },
+        listEntryIndex: {
+            dependencyType: "value",
+            value: listEntrySource.index,
+        },
+    };
+}
+
+/**
+ * The value read by `listEntrySourceDependencies`: the source's, or `null`
+ * where the source sets none.
+ */
+function listEntrySourceValue(dependencyValues) {
+    return (
+        dependencyValues.listEntryValues?.[dependencyValues.listEntryIndex] ??
+        null
+    );
 }
