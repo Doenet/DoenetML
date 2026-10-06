@@ -1134,6 +1134,61 @@ describe("Point and vector lists as list components @group4", async () => {
         });
     });
 
+    it("a coordinate of an entry's head or tail, and its magnitude, are written as a vector's", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <vectorList name="vl">(3,4) <vector name="v" tail="(1,1)" head="(4,5)"/> (1,2,3)</vectorList>
+    <mathInput name="headX1" bindValueTo="$vl[1].headX1"/>
+    <mathInput name="tail2" bindValueTo="$vl[1].tail[2]"/>
+    <mathInput name="magnitude" bindValueTo="$vl[1].magnitude"/>
+    <mathInput name="vHeadX2" bindValueTo="$vl[2].headX2"/>
+    <mathInput name="vTailX1" bindValueTo="$vl[2].tailX1"/>
+    <mathInput name="vTail" bindValueTo="$vl[2].tail"/>
+    <p name="first">$vl[1].tail $vl[1].head</p>
+    <p name="second">$vl[2].tail $vl[2].head; $v.tail $v.head</p>
+    `,
+        });
+
+        async function write(name: string, latex: string) {
+            await updateMathInputValue({
+                latex,
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+            return textsOf(core, resolvePathToNodeIdx, ["first", "second"]);
+        }
+
+        // a coordinate of the head keeps the tail; one of the tail keeps the
+        // displacement; the magnitude scales the displacement
+        expect(await write("headX1", "9")).eqls({
+            first: "(0, 0, 0) (9, 4, 0)",
+            second: "(1, 1, 0) (4, 5, 0); (1, 1) (4, 5)",
+        });
+        expect(await write("tail2", "7")).eqls({
+            first: "(0, 7, 0) (9, 11, 0)",
+            second: "(1, 1, 0) (4, 5, 0); (1, 1) (4, 5)",
+        });
+        expect(await write("magnitude", "10")).eqls({
+            first: "(0, 7, 0) (9.14, 11.06, 0)",
+            second: "(1, 1, 0) (4, 5, 0); (1, 1) (4, 5)",
+        });
+
+        // an authored vector in two dimensions, among entries in three, is
+        // written in its own two
+        expect(await write("vHeadX2", "8")).eqls({
+            first: "(0, 7, 0) (9.14, 11.06, 0)",
+            second: "(1, 1, 0) (4, 8, 0); (1, 1) (4, 8)",
+        });
+        expect(await write("vTailX1", "2")).eqls({
+            first: "(0, 7, 0) (9.14, 11.06, 0)",
+            second: "(2, 1, 0) (5, 8, 0); (2, 1) (5, 8)",
+        });
+        expect(await write("vTail", "(3,3)")).eqls({
+            first: "(0, 7, 0) (9.14, 11.06, 0)",
+            second: "(3, 3, 0) (6, 10, 0); (3, 3) (6, 10)",
+        });
+    });
+
     it("PreFigure output, graph controls and a legend find each entry, as they find points and vectors", async () => {
         // the same graphs, with the items as a list and as components
         function doenetML(asList: boolean) {

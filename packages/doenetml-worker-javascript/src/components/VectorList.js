@@ -111,6 +111,8 @@ export default class VectorList extends GraphicalValueList {
                 from: "value",
                 componentType: "math",
                 compute: magnitudeOf,
+                writeThrough: "entryEndpointWrites",
+                writeThroughValue: (magnitude) => ({ magnitude }),
             },
         };
     }
@@ -301,9 +303,18 @@ export default class VectorList extends GraphicalValueList {
                     }
                     const tail = coordinatesValue(child.stateValues.tail);
                     const head = coordinatesValue(child.stateValues.head);
-                    const newTail = written.tail ?? tail;
+                    // A vector with fewer dimensions than the list's entries
+                    // is written its own (the rest are the 0s of the entry).
+                    const ownDimensions = (value) =>
+                        withNumDimensions(value, coordinatesOf(tail).length);
+                    const newTail =
+                        written.tail === undefined
+                            ? tail
+                            : ownDimensions(written.tail);
                     const newDisplacement =
-                        written.displacement ?? differenceOf(head, tail);
+                        written.displacement === undefined
+                            ? differenceOf(head, tail)
+                            : ownDimensions(written.displacement);
                     const tailIsDerived =
                         basedOnHead && basedOnDisplacement && !basedOnTail;
                     if (basedOnHead) {
@@ -650,6 +661,112 @@ export default class VectorList extends GraphicalValueList {
             }),
         };
 
+        // Where a write to a coordinate of an entry's head or tail
+        // (`$vl[2].headX1`, through `endpointCoordinateProperty`) or to its
+        // magnitude is gathered, and written as a vector writes them: a
+        // coordinate of the tail moves the tail and keeps the displacement,
+        // one of the head keeps the tail, and the magnitude scales the
+        // displacement. One write can set several coordinates of an entry,
+        // each through an array of its own, and the entry takes them
+        // together.
+        stateVariableDefinitions.entryEndpointWrites = {
+            returnDependencies: () => ({
+                values: {
+                    dependencyType: "stateVariable",
+                    variableName: arrayName,
+                },
+                entryTails: {
+                    dependencyType: "stateVariable",
+                    variableName: "entryTails",
+                },
+                entryHeads: {
+                    dependencyType: "stateVariable",
+                    variableName: "entryHeads",
+                },
+            }),
+            definition: () => ({
+                setValue: { entryEndpointWrites: null },
+            }),
+            inverseDefinition({
+                desiredStateVariableValues,
+                dependencyValues,
+                workspace,
+            }) {
+                if (!workspace.endpointCoordinates) {
+                    workspace.endpointCoordinates = { tail: {}, head: {} };
+                }
+                const desired = { tail: {}, head: {}, values: {} };
+                for (const [key, write] of Object.entries(
+                    desiredStateVariableValues.entryEndpointWrites,
+                )) {
+                    for (const endpoint of ["tail", "head"]) {
+                        if (write[endpoint] === undefined) {
+                            continue;
+                        }
+                        const written = {
+                            ...workspace.endpointCoordinates[endpoint][key],
+                            ...write[endpoint],
+                        };
+                        workspace.endpointCoordinates[endpoint][key] = written;
+                        const current = coordinatesOf(
+                            dependencyValues[
+                                endpoint === "tail"
+                                    ? "entryTails"
+                                    : "entryHeads"
+                            ][key],
+                        );
+                        desired[endpoint][key] = vectorOf(
+                            current.map((x, i) =>
+                                written[i + 1] === undefined
+                                    ? x
+                                    : convertValueToMathExpression(
+                                          written[i + 1],
+                                      ),
+                            ),
+                        );
+                    }
+                    if (write.magnitude !== undefined) {
+                        const displacement = coordinatesOf(
+                            dependencyValues.values[key],
+                        ).map((x) => x.evaluate_to_constant());
+                        const length = Math.sqrt(
+                            displacement.reduce((a, x) => a + x * x, 0),
+                        );
+                        const magnitude = convertValueToMathExpression(
+                            write.magnitude,
+                        ).evaluate_to_constant();
+                        if (
+                            !displacement.every(Number.isFinite) ||
+                            !(length > 0) ||
+                            !Number.isFinite(magnitude) ||
+                            magnitude < 0
+                        ) {
+                            return { success: false };
+                        }
+                        desired.values[key] = vectorOf(
+                            displacement.map((x) =>
+                                me.fromAst((x / length) * magnitude),
+                            ),
+                        );
+                    }
+                }
+                const instructions = [];
+                for (const [dependency, desiredValue] of [
+                    ["entryTails", desired.tail],
+                    ["entryHeads", desired.head],
+                    ["values", desired.values],
+                ]) {
+                    if (Object.keys(desiredValue).length > 0) {
+                        instructions.push({
+                            setDependency: dependency,
+                            desiredValue,
+                        });
+                    }
+                }
+                return { success: true, instructions };
+            },
+        };
+
         return stateVariableDefinitions;
     }
 
@@ -901,6 +1018,10 @@ function endpointCoordinateProperty(endpoint, n) {
         endpointCoordinateProperties.set(key, {
             from: endpoint,
             componentType: "math",
+            writeThrough: "entryEndpointWrites",
+            writeThroughValue: (coordinate) => ({
+                [endpoint]: { [n]: coordinate },
+            }),
             compute: (value) =>
                 coordinatesOf(value)[n - 1] ?? me.fromAst("\uff3f"),
         });
