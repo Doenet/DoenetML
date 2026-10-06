@@ -337,20 +337,29 @@ describe("An entry of a list component as a target @group4", async () => {
         expect((await valuesOf(core, resolvePathToNodeIdx, ["n"])).n).eq(0);
     });
 
-    it("a click on an entry of a math list in a graph", async () => {
+    it("a click or focus on an entry of a math, number or text list in a graph", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph name="g">
       <mathList name="ml"><math name="a">x</math> y</mathList>
     </graph>
+    <graph name="g2">
+      <numberList name="nl">1 2</numberList>
+      <textList name="tl">a b</textList>
+    </graph>
     <number name="na">0</number>
     <number name="n1">0</number>
     <number name="n2">0</number>
+    <number name="nn">0</number>
+    <number name="nt">0</number>
     <updateValue target="$na" newValue="$na+1" triggerWhenObjectsClicked="$a" />
     <updateValue target="$n1" newValue="$n1+1" triggerWhenObjectsClicked="$ml[1]" />
     <updateValue target="$n2" newValue="$n2+1" triggerWhenObjectsClicked="$ml[2]" />
+    <updateValue target="$nn" newValue="$nn+1" triggerWhenObjectsFocused="$nl[2]" />
+    <updateValue target="$nt" newValue="$nt+1" triggerWhenObjectsClicked="$tl" />
     `,
         });
+        const names = ["na", "n1", "n2", "nn", "nt"];
 
         await actOnEntry({
             core,
@@ -359,9 +368,13 @@ describe("An entry of a list component as a target @group4", async () => {
             index: 1,
             actionName: "mathClicked",
         });
-        expect(
-            await valuesOf(core, resolvePathToNodeIdx, ["na", "n1", "n2"]),
-        ).eqls({ na: 1, n1: 1, n2: 0 });
+        expect(await valuesOf(core, resolvePathToNodeIdx, names)).eqls({
+            na: 1,
+            n1: 1,
+            n2: 0,
+            nn: 0,
+            nt: 0,
+        });
 
         await actOnEntry({
             core,
@@ -370,9 +383,37 @@ describe("An entry of a list component as a target @group4", async () => {
             index: 2,
             actionName: "mathClicked",
         });
-        expect(
-            await valuesOf(core, resolvePathToNodeIdx, ["na", "n1", "n2"]),
-        ).eqls({ na: 1, n1: 1, n2: 1 });
+        expect(await valuesOf(core, resolvePathToNodeIdx, names)).eqls({
+            na: 1,
+            n1: 1,
+            n2: 1,
+            nn: 0,
+            nt: 0,
+        });
+
+        // entries 1 and 2 of nl, then 1 and 2 of tl
+        for (const [index, actionName] of [
+            [2, "numberClicked"],
+            [1, "numberFocused"],
+            [2, "numberFocused"],
+            [3, "textFocused"],
+            [4, "textClicked"],
+        ] as const) {
+            await actOnEntry({
+                core,
+                resolvePathToNodeIdx,
+                graph: "g2",
+                index,
+                actionName,
+            });
+        }
+        expect(await valuesOf(core, resolvePathToNodeIdx, names)).eqls({
+            na: 1,
+            n1: 1,
+            n2: 1,
+            nn: 1,
+            nt: 1,
+        });
     });
 
     it("a legend's label for an entry", async () => {
