@@ -78,24 +78,38 @@ export default class GraphicalValueList extends AuthoredValueList {
      * `<point extend="$c[1]"/>`) takes from the entry's source, as the copy
      * of the source it stood for did, with the array of the list holding
      * each, an entry per entry, and the value the attribute has when the
-     * source does not stop the entry being dragged by it.
+     * source does not stop the entry being dragged by it. A linked component
+     * reads `fixed` and `fixLocation` from the list instead
+     * (`listEntrySourceVariables`); an unlinked copy (`<point copy="$c[1]"
+     * link="false"/>`) takes them as attributes where they are not that
+     * value.
      */
     static entrySourceAttributeArrays = Object.freeze({
         fixed: { arrayName: "entrySourceFixeds", defaultValue: false },
+        fixLocation: {
+            arrayName: "entrySourceFixLocations",
+            defaultValue: false,
+        },
         draggable: { arrayName: "entrySourceDraggables", defaultValue: true },
     });
 
     /**
      * The variables of the entry's source that a component made from one
-     * entry reads from the list, as they are not attributes it could take
-     * (`listEntrySourceVariables` in the values array's shadowing
-     * instructions, read through `listEntrySource` by `utils/label.ts`), with
-     * the array of the list holding each.
+     * entry reads from the list (`listEntrySourceVariables` in the values
+     * array's shadowing instructions, read through `listEntrySource` by
+     * `utils/label.ts` and `utils/listEntrySource.ts`), with the array of the
+     * list holding each: the label, which is not an attribute it could take,
+     * and `fixed` and `fixLocation`, which it reads alongside its parent's
+     * (`BaseComponent`), as an attribute holding them would override its
+     * parent's even where the source sets neither (`Copy.js` gives a linked
+     * component no attribute for a variable it reads here).
      */
     static get listEntrySourceVariables() {
         return {
             label: entryVariableName("label"),
             labelHasLatex: entryVariableName("labelHasLatex"),
+            fixed: "entryFixed",
+            fixLocation: entryVariableName("fixLocation"),
         };
     }
 
@@ -817,10 +831,11 @@ export default class GraphicalValueList extends AuthoredValueList {
         };
 
         // A component made from one entry (`$c[1]` in a graph, `<point
-        // extend="$c[1]"/>`) takes the `fixed` and `draggable` attributes of
-        // the entry's source, where they stop it being dragged
-        // (`entrySourceAttributeArrays`), as the copy of the source it stood
-        // for took them, and reads its label from the list
+        // extend="$c[1]"/>`) takes the `draggable` attribute of the entry's
+        // source, and an unlinked copy also `fixed` and `fixLocation`, where
+        // they stop it being dragged (`entrySourceAttributeArrays`), as the
+        // copy of the source it stood for took them. A linked one reads its
+        // label, `fixed` and `fixLocation` from the list
         // (`listEntrySourceVariables`, which `Copy.js` records on the
         // component).
         const attributeArrays = this.entrySourceAttributeArrays;
@@ -961,19 +976,31 @@ export function entryVariableName(name) {
 }
 
 /**
+ * The variable of the list that, when true, sets attribute `attribute` of
+ * every entry (`entrySourceAttributeDefinition`).
+ */
+const LIST_VARIABLE_OF_ENTRY_SOURCE_ATTRIBUTE = Object.freeze({
+    fixed: "entriesFixed",
+    fixLocation: "fixLocation",
+});
+
+/**
  * The array `arrayName` of attribute `attribute` of the source of each entry
  * (`entrySourceAttributeArrays`), which a component made from one entry takes
- * as its own attribute (`companionOfEachEntry`): the source's value
+ * as its own attribute (`companionOfEachEntry`; for `fixed` and
+ * `fixLocation`, only an unlinked copy does): the source's value
  * (`entryChildren`) where it is not `defaultValue`, and otherwise a default,
  * so that the component's attribute is marked as not set. An entry of a
- * fixed list is fixed (`entriesFixed`, which this array replaces as the
- * component's `fixed` attribute).
+ * fixed list is fixed, and of a list with `fixLocation` has `fixLocation`
+ * (`LIST_VARIABLE_OF_ENTRY_SOURCE_ATTRIBUTE`; for an unlinked copy, the array
+ * for `fixed` replaces `entriesFixed` as its `fixed` attribute).
  */
 function entrySourceAttributeDefinition({
     attribute,
     arrayName,
     defaultValue,
 }) {
+    const listVariable = LIST_VARIABLE_OF_ENTRY_SOURCE_ATTRIBUTE[attribute];
     return {
         isArray: true,
         entryPrefixes: [arrayName.slice(0, -1)],
@@ -997,11 +1024,11 @@ function entrySourceAttributeDefinition({
                     dependencyType: "stateVariable",
                     variableName: "entryChildren",
                 },
-                ...(attribute === "fixed"
+                ...(listVariable
                     ? {
-                          entriesFixed: {
+                          listValue: {
                               dependencyType: "stateVariable",
-                              variableName: "entriesFixed",
+                              variableName: listVariable,
                           },
                       }
                     : {}),
@@ -1011,7 +1038,7 @@ function entrySourceAttributeDefinition({
             const values = {};
             const defaults = {};
             for (const arrayKey of arrayKeys) {
-                const fromSource = globalDependencyValues.entriesFixed
+                const fromSource = globalDependencyValues.listValue
                     ? true
                     : globalDependencyValues.entryChildren[arrayKey]
                           ?.stateValues[attribute];

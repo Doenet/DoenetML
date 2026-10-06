@@ -2840,6 +2840,19 @@ export async function replacementFromProp({
                     } else if (link) {
                         let attributesForReplacement = {};
 
+                        const doenetAttributesForReplacement =
+                            listEntrySourceDoenetAttributes({
+                                arrayStateVarObj,
+                                arrayKey,
+                                target,
+                            });
+                        // a variable read from the list is not also an
+                        // attribute, which would override the component's
+                        // parent's (`fixed`)
+                        const readFromList =
+                            doenetAttributesForReplacement.listEntrySource
+                                ?.variables ?? {};
+
                         if (attributeComponentsShadowingStateVariables) {
                             let classOfComponentToCreate =
                                 componentInfoObjects.allComponentClasses[
@@ -2849,6 +2862,9 @@ export async function replacementFromProp({
                                 classOfComponentToCreate.createAttributesObject();
 
                             for (let attrName in attributeComponentsShadowingStateVariables) {
+                                if (attrName in readFromList) {
+                                    continue;
+                                }
                                 let stateVariableToShadow =
                                     attributeComponentsShadowingStateVariables[
                                         attrName
@@ -2898,11 +2914,7 @@ export async function replacementFromProp({
                             componentIdx: nComponents++,
                             stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                             attributes: attributesForReplacement,
-                            doenetAttributes: listEntrySourceDoenetAttributes({
-                                arrayStateVarObj,
-                                arrayKey,
-                                target,
-                            }),
+                            doenetAttributes: doenetAttributesForReplacement,
                             children: [],
                             state: {},
                             downstreamDependencies: {
@@ -4275,11 +4287,13 @@ async function arrayListReplacement({
  * The `doenetAttributes` of a component made from entry `arrayKey` of the
  * array `arrayStateVarObj` of `target`: when the array is a list's values
  * and the list holds, for each entry, variables of the entry's source that
- * are not attributes (`listEntrySourceVariables`, a list of points or
- * vectors: the label, and a vector's draggable head and tail),
+ * the component reads from the list rather than takes as attributes
+ * (`listEntrySourceVariables`, a list of points or vectors: the label,
+ * `fixed`, `fixLocation`, and a vector's draggable head and tail),
  * `listEntrySource`, which names the list, the arrays holding them, and the
  * entry's index into them, so that the component reads them as the copy of
- * the source it stood for had them (`utils/label.ts`, `Vector.js`).
+ * the source it stood for had them (`utils/label.ts`,
+ * `utils/listEntrySource.ts`).
  */
 function listEntrySourceDoenetAttributes({
     arrayStateVarObj,
@@ -4303,8 +4317,9 @@ function listEntrySourceDoenetAttributes({
 
 /**
  * For an unlinked copy of entry `arrayKey` of a list (`copy="$pl[1]"`), the
- * variables of the entry's source that are not attributes
- * (`listEntrySourceVariables`), as they are when it is made: the label, as a
+ * variables of the entry's source that a linked component reads from the list
+ * (`listEntrySourceVariables`) and that the copy does not take as attributes,
+ * as they are when it is made: the label, as a
  * `<label>` child as an unlinked copy of a labeled point has, and any other
  * (a vector's `headDraggable` and `tailDraggable`) the source sets, as state.
  * A linked component reads them from the list instead
@@ -4326,9 +4341,19 @@ async function listEntrySourceSnapshot({
         return { children, state, nComponents };
     }
 
+    // `fixed` and `fixLocation`, which an unlinked copy takes as attributes
+    // (`addAttributeComponentsShadowingStateVariables`), where the source
+    // sets them
+    const attributes =
+        arrayStateVarObj.shadowingInstructions
+            .addAttributeComponentsShadowingStateVariables ?? {};
+
     for (const [variable, arrayName] of Object.entries(variables)) {
         if (variable === "labelHasLatex") {
             // carried by the label's text (`Label`'s `hasLatex`)
+            continue;
+        }
+        if (variable in attributes) {
             continue;
         }
         const value = (await target.state[arrayName].value)[index];

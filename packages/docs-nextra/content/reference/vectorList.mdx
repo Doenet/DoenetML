@@ -15,8 +15,9 @@ A vector written as `(x, y)` in the list's text is its displacement, with
 its tail at the origin until its tail, or the whole vector, is dragged. A `<vector>{:dn}` among its
 children, or a reference such as `$v`, is one of its vectors too, with its
 own tail and head, label and style. Taken on its own, as `$vs[1]` in a
-graph, such a vector keeps its label, and is fixed or undraggable (as a
-whole, by its head or by its tail) when that vector is.
+graph, such a vector keeps its label, and is fixed, undraggable (as a
+whole, by its head or by its tail) or has `fixLocation` when that vector
+does. It is also fixed in a fixed graph.
 
 When creating a `<vectorList>{:dn}`, separate items by **spaces**, not commas.
 The component will default to displaying the list with commas. (The commas

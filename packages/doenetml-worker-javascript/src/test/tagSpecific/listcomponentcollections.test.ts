@@ -1,6 +1,8 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import {
+    movePoint,
+    moveVector,
     updateBooleanInputValue,
     updateMathInputValue,
     updateTextInputValue,
@@ -1893,6 +1895,303 @@ describe("Collect, sort and shuffle of values @group4", async () => {
             fixed: true,
         };
         expect(drawn).eqls([expected, expected]);
+    });
+
+    it("an entry read by itself takes its graph's fixed and its source's fixLocation", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+      <point name="B">(3,4)</point>
+      <point name="F" fixLocation>(5,6)</point>
+      <vector name="v">(1,2)</vector>
+      <vector name="vF" fixLocation>(1,3)</vector>
+    </graph>
+    <collect name="c" componentType="point" from="$g" />
+    <collect name="cv" componentType="vector" from="$g" />
+    <pointList name="pl"><point fixLocation>(7,8)</point> (9,10)</pointList>
+    <pointList name="plF" fixLocation>(1,2) <point>(3,4)</point></pointList>
+    <graph name="gf" fixed>
+      <point name="E1" extend="$c[1]" />
+      $c[1]
+      <vector name="W1" extend="$cv[1]" />
+      <point name="L2" extend="$pl[2]" />
+      <point name="U1" copy="$c[1]" link="false" />
+    </graph>
+    <graph name="g2">
+      <point name="E2" extend="$c[2]" />
+      <point name="E3" extend="$c[1]" />
+      <point name="U2" copy="$c[2]" link="false" />
+      <point name="L1" extend="$pl[1]" />
+      <vector name="W2" extend="$cv[2]" />
+      <point name="UF1" copy="$plF[1]" link="false" />
+      <point name="UF2" copy="$plF[2]" link="false" />
+    </graph>
+    `,
+        });
+
+        const fixedOf = async (name: string) => {
+            const stateValues = await stateValuesOf(
+                core,
+                resolvePathToNodeIdx,
+                name,
+            );
+            return {
+                fixed: stateValues.fixed,
+                fixLocation: stateValues.fixLocation,
+            };
+        };
+        // in a fixed graph, as `$B` there would be, linked or not
+        for (const name of ["E1", "W1", "L2", "U1"]) {
+            expect(await fixedOf(name), name).eqls({
+                fixed: true,
+                fixLocation: false,
+            });
+        }
+        expect(
+            (await graphicalDrawnIn(core, resolvePathToNodeIdx, "gf")).map(
+                (x: any) => x.fixed,
+            ),
+        ).eqls([true, true, true, true, true]);
+        // the source's fixLocation, linked or not, for a point or a vector
+        for (const name of ["E2", "U2", "L1", "W2"]) {
+            expect(await fixedOf(name), name).eqls({
+                fixed: false,
+                fixLocation: true,
+            });
+        }
+        // an unlinked copy of an entry of a list with fixLocation has it,
+        // whether the entry is the list's own or a child's
+        for (const name of ["UF1", "UF2"]) {
+            expect(await fixedOf(name), name).eqls({
+                fixed: false,
+                fixLocation: true,
+            });
+        }
+        expect(await fixedOf("E3")).eqls({ fixed: false, fixLocation: false });
+        const rendererState = (core as any).core.rendererInstructionBuilder
+            .rendererState;
+        expect(
+            rendererState[await resolvePathToNodeIdx("E2")].stateValues
+                .fixLocation,
+        ).eq(true);
+
+        // the fixed entries and the one with fixLocation are not moved, nor
+        // are their sources (a drag of a fixed one used to move its source)
+        const coordsOf = async (name: string) =>
+            (await stateValuesOf(core, resolvePathToNodeIdx, name)).xs.map(
+                (x: any) => x.tree,
+            );
+        const vectorOf = async (name: string) => {
+            const stateValues = await stateValuesOf(
+                core,
+                resolvePathToNodeIdx,
+                name,
+            );
+            return [stateValues.head, stateValues.tail].map((coords: any) =>
+                coords.map((x: any) => x.tree),
+            );
+        };
+        for (const [name, x] of [
+            ["E1", -1],
+            ["E2", -2],
+            ["L2", -4],
+        ] as const) {
+            await movePoint({
+                componentIdx: await resolvePathToNodeIdx(name),
+                x,
+                y: 0,
+                core,
+            });
+        }
+        await moveVector({
+            componentIdx: await resolvePathToNodeIdx("W1"),
+            headcoords: [9, 9],
+            tailcoords: [-9, -9],
+            core,
+        });
+        expect(await coordsOf("B")).eqls([3, 4]);
+        expect(await coordsOf("F")).eqls([5, 6]);
+        expect(
+            (
+                await stateValuesOf(core, resolvePathToNodeIdx, "pl")
+            ).points[1].map((x: any) => x.tree),
+        ).eqls([9, 10]);
+        expect(await vectorOf("v")).eqls([
+            [1, 2],
+            [0, 0],
+        ]);
+
+        // the other is moved, to its source
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("E3"),
+            x: -3,
+            y: 0,
+            core,
+        });
+        expect(await coordsOf("B")).eqls([-3, 0]);
+    });
+
+    it("an unlinked copy of a component made from an entry keeps what the source had when it was made", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="b" />
+    <graph name="g">
+      <point name="A" fixed="$b">(1,2)</point>
+      <point name="F" fixLocation>(5,6)</point>
+      <vector name="v" headDraggable="false">(1,2)</vector>
+      <point name="K" fixed>(9,9)</point>
+    </graph>
+    <collect name="c" componentType="point" from="$g" />
+    <collect name="cv" componentType="vector" from="$g" />
+    <graph>
+      <point name="E" extend="$c[1]" />
+      <point name="U" copy="$E" />
+      <point name="EF" extend="$c[2]" />
+      <point name="UF" copy="$EF" />
+      <vector name="EV" extend="$cv[1]" />
+      <vector name="UV" copy="$EV" />
+    </graph>
+    <graph>
+      <point name="EK" extend="$c[3]" />
+      <point name="UK" copy="$EK" />
+    </graph>
+    <graph fixed><point name="UG" copy="$E" /></graph>
+    <graph fixed="false" fixLocation="false">
+      <point name="UH" copy="$E" />
+      <point name="UHF" copy="$EF" />
+      <point name="UHA" copy="$A" />
+    </graph>
+    `,
+        });
+
+        const stateOf = async () => {
+            const result: Record<string, any> = {};
+            for (const name of [
+                "E",
+                "U",
+                "UF",
+                "UV",
+                "UG",
+                "UH",
+                "UHF",
+                "UHA",
+                "EK",
+                "UK",
+            ]) {
+                const stateValues = await stateValuesOf(
+                    core,
+                    resolvePathToNodeIdx,
+                    name,
+                );
+                result[name] = {
+                    fixed: stateValues.fixed,
+                    fixLocation: stateValues.fixLocation,
+                };
+            }
+            result.UVheadDraggable = (
+                await stateValuesOf(core, resolvePathToNodeIdx, "UV")
+            ).headDraggable;
+            return result;
+        };
+        const unfixed = { fixed: false, fixLocation: false };
+        const expected = {
+            E: unfixed,
+            U: unfixed,
+            UF: { fixed: false, fixLocation: true },
+            UV: unfixed,
+            UG: { fixed: true, fixLocation: false },
+            // under a parent that sets them false, the source's fixLocation
+            // is kept, as an unlinked copy of a point keeps it (UH and UHA,
+            // whose source is not fixed, are controls; UK, below, shows that
+            // a copy does not take its source's fixed)
+            UH: unfixed,
+            UHF: { fixed: false, fixLocation: true },
+            UHA: unfixed,
+            // a source fixed when the copy is made does not fix the copy
+            EK: { fixed: true, fixLocation: false },
+            UK: unfixed,
+            UVheadDraggable: false,
+        };
+        expect(await stateOf()).eqls(expected);
+
+        // fixing the source fixes the linked component, not the unlinked copy
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        expect(await stateOf()).eqls({
+            ...expected,
+            E: { fixed: true, fixLocation: false },
+        });
+
+        // the unlinked copy is dragged on its own; the ones with fixLocation
+        // are not, even under a parent that sets fixLocation false
+        for (const [name, x] of [
+            ["U", 7],
+            ["UF", 0],
+            ["UHF", 0],
+            ["UK", 3],
+        ] as const) {
+            await core.requestAction({
+                componentIdx: await resolvePathToNodeIdx(name),
+                actionName: "movePoint",
+                args: { x, y: x },
+            });
+        }
+        const coordsOf = async (name: string) =>
+            (await stateValuesOf(core, resolvePathToNodeIdx, name)).xs.map(
+                (x: any) => x.tree,
+            );
+        expect(await coordsOf("U")).eqls([7, 7]);
+        expect(await coordsOf("A")).eqls([1, 2]);
+        expect(await coordsOf("UF")).eqls([5, 6]);
+        expect(await coordsOf("UHF")).eqls([5, 6]);
+        expect(await coordsOf("UK")).eqls([3, 3]);
+        expect(await coordsOf("K")).eqls([9, 9]);
+    });
+
+    it("an entry of a fixed sort read by itself is fixed, and a drag of it does not reach its source", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+      <point name="A">(3,1)</point>
+      <point name="B">(1,5)</point>
+    </graph>
+    <sort name="s" fixed>$A $B</sort>
+    <shuffle name="sh" fixed>$A</shuffle>
+    <graph>
+      <point name="S1" extend="$s[1]" />
+      <point name="S2" extend="$S1" />
+      <point name="H1" extend="$sh[1]" />
+    </graph>
+    `,
+        });
+
+        for (const name of ["S1", "S2", "H1"]) {
+            expect(
+                (await stateValuesOf(core, resolvePathToNodeIdx, name)).fixed,
+                name,
+            ).eq(true);
+        }
+        for (const name of ["S1", "S2", "H1"]) {
+            await core.requestAction({
+                componentIdx: await resolvePathToNodeIdx(name),
+                actionName: "movePoint",
+                args: { x: 9, y: 9 },
+            });
+        }
+        for (const [name, coords] of [
+            ["A", [3, 1]],
+            ["B", [1, 5]],
+        ] as const) {
+            expect(
+                (await stateValuesOf(core, resolvePathToNodeIdx, name)).xs.map(
+                    (x: any) => x.tree,
+                ),
+                name,
+            ).eqls(coords);
+        }
     });
 
     it("an extend of a collected vector takes its source's label and draggables, and drags respect them", async () => {

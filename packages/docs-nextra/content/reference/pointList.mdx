@@ -14,8 +14,9 @@ dragged on its own.
 A point written as `(x, y)` in the list's text is held by the list. A
 `<point>{:dn}` among its children, or a reference such as `$P`, is one of
 its points too, drawn with that point's label and style. Taken on its own,
-as `$pts[1]` in a graph, such a point keeps its label, and is fixed or
-undraggable when that point is. All the points
+as `$pts[1]` in a graph, such a point keeps its label, and is fixed,
+undraggable or has `fixLocation` when that point does. It is also fixed in
+a fixed graph. All the points
 have the same number of coordinates, the most any of them has: a point
 with fewer has 0 in the coordinates it lacks.
 
