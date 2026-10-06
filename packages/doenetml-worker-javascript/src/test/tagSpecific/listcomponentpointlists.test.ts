@@ -1460,6 +1460,9 @@ describe("Point and vector lists as list components @group4", async () => {
       <pointList name="pl"><endpoint name="E" open switchable>(1,2)</endpoint> (3,4)</pointList>
     </graph>
     <p name="pE">$E.open</p>
+    <number name="n">0</number>
+    <updateValue name="uv" target="$n" newValue="$n+1" triggerWith="$pl" />
+    <p name="pn">$n</p>
     `,
         });
 
@@ -1489,8 +1492,10 @@ describe("Point and vector lists as list components @group4", async () => {
                 args: {},
             });
         }
-        expect(await textsOf(core, resolvePathToNodeIdx, ["pE"])).eqls({
+        // a switch is not an action chained to the list
+        expect(await textsOf(core, resolvePathToNodeIdx, ["pE", "pn"])).eqls({
             pE: "false",
+            pn: "0",
         });
         expect(await drawnOpen()).eqls([
             [false, true],
