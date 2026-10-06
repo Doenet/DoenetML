@@ -2,12 +2,10 @@ import BaseComponent from "./BaseComponent";
 import me from "math-expressions";
 import {
     convertValueToMathExpression,
-    normalizeMathExpression,
     returnSelectedStyleStateVariableDefinition,
     returnTextStyleDescriptionDefinitions,
 } from "@doenet/utils";
 import {
-    buildNumberDisplayParameters,
     returnNumberDisplayAttributeComponentShadowing,
     returnNumberDisplayAttributes,
     returnNumberDisplayStateVariableDefinitions,
@@ -15,10 +13,16 @@ import {
 import {
     numberToMathExpression,
     plainComplex,
-    roundForDisplay,
-    superSubscriptsToUnicode,
     textToMathFactory,
 } from "../../utils/math";
+import {
+    mathDisplayString,
+    mathValueForDisplay,
+} from "../../utils/valueFunctions/math";
+import {
+    numberDisplayString,
+    numberValueForDisplay,
+} from "../../utils/valueFunctions/number";
 import { returnMathVectorMatrixStateVariableDefinitions } from "../../utils/mathVectorMatrixStateVariables";
 import { booleanFromWord, booleanWord } from "../../utils/booleanWords";
 import {
@@ -334,14 +338,21 @@ export default class ValueListComponent extends BaseComponent {
             return { value: "", text: "" };
         }
         const blank = me.fromAst("\uff3f");
-        const params = buildNumberDisplayParameters({});
         return {
             value: blank,
             math: blank,
             number: NaN,
             isNumber: false,
-            text: mathText(blank, params),
-            latex: mathLatex(blank, params),
+            text: displayString({
+                kind: "math",
+                valueForDisplay: blank,
+                format: "text",
+            }),
+            latex: displayString({
+                kind: "math",
+                valueForDisplay: blank,
+                format: "latex",
+            }),
         };
     }
 
@@ -1053,9 +1064,16 @@ export default class ValueListComponent extends BaseComponent {
                                 dependencyValues,
                                 ind,
                             );
+                            // An entry's math is rounded for display, but
+                            // not simplified or expanded.
                             return kind === "math"
-                                ? mathValueForDisplay(value, settings)
-                                : numberValueForDisplay(value, settings);
+                                ? mathValueForDisplay({
+                                      ...settings,
+                                      value,
+                                      simplify: "none",
+                                      expand: false,
+                                  })
+                                : numberValueForDisplay({ ...settings, value });
                         },
                     );
                     return { setValue: { entryValuesForDisplay } };
@@ -1074,16 +1092,16 @@ export default class ValueListComponent extends BaseComponent {
                 definition({ dependencyValues }) {
                     const entryTexts =
                         dependencyValues.entryValuesForDisplay.map(
-                            (value, ind) => {
-                                const params = buildNumberDisplayParameters(
-                                    entrySettings(dependencyValues, ind),
-                                );
-                                return kind === "math"
-                                    ? mathText(value, params)
-                                    : numberToMathExpression(value).toString(
-                                          params,
-                                      );
-                            },
+                            (value, ind) =>
+                                displayString({
+                                    kind,
+                                    valueForDisplay: value,
+                                    format: "text",
+                                    settings: entrySettings(
+                                        dependencyValues,
+                                        ind,
+                                    ),
+                                }),
                         );
                     return { setValue: { entryTexts } };
                 },
@@ -1101,16 +1119,16 @@ export default class ValueListComponent extends BaseComponent {
                 definition({ dependencyValues }) {
                     const entryLatexes =
                         dependencyValues.entryValuesForDisplay.map(
-                            (value, ind) => {
-                                const params = buildNumberDisplayParameters(
-                                    entrySettings(dependencyValues, ind),
-                                );
-                                return kind === "math"
-                                    ? mathLatex(value, params)
-                                    : numberToMathExpression(value).toLatex(
-                                          params,
-                                      );
-                            },
+                            (value, ind) =>
+                                displayString({
+                                    kind,
+                                    valueForDisplay: value,
+                                    format: "latex",
+                                    settings: entrySettings(
+                                        dependencyValues,
+                                        ind,
+                                    ),
+                                }),
                         );
                     return { setValue: { entryLatexes } };
                 },
@@ -1522,35 +1540,18 @@ const NUMBER_ENTRY_DERIVED_PROPERTIES = {
     },
 };
 
-function mathValueForDisplay(value, displaySettings) {
-    return normalizeMathExpression({
-        value: roundForDisplay({ value, dependencyValues: displaySettings }),
-        simplify: "none",
-        expand: false,
-    });
-}
-
-function numberValueForDisplay(value, displaySettings) {
-    return plainComplex(
-        roundForDisplay({
-            value: numberToMathExpression(value),
-            dependencyValues: displaySettings,
-        }).evaluate_to_constant(),
-    );
-}
-
-function mathText(valueForDisplay, params) {
-    try {
-        return superSubscriptsToUnicode(valueForDisplay.toString(params));
-    } catch (e) {
-        return "＿";
-    }
-}
-
-function mathLatex(valueForDisplay, params) {
-    try {
-        return valueForDisplay.toLatex(params);
-    } catch (e) {
-        return "＿";
-    }
+/**
+ * The text (`format: "text"`) or LaTeX of an entry of `kind` shown with
+ * `settings`, as a `<math>` or `<number>` writes its own. An entry's math
+ * that cannot be written is a blank, as a `<math>` with `displayBlanks`.
+ */
+function displayString({ kind, valueForDisplay, format, settings = {} }) {
+    return kind === "math"
+        ? mathDisplayString({
+              ...settings,
+              valueForDisplay,
+              format,
+              displayBlanks: true,
+          })
+        : numberDisplayString({ ...settings, valueForDisplay, format });
 }

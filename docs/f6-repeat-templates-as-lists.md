@@ -1,6 +1,6 @@
 # F6 design: a repeat whose template is one value becomes a list
 
-Design for #2163, step F6 of stream F (#2157) of #2125. Status: decisions settled 2026-10-06; #2172 (F5) and #2177 (F4) merged the same day. Steps 1 and 2 are done (see [Phasing](#phasing)). Line numbers are on `main` at 682ff8f28 (#2171); the `Math.js` ones are from before step 2 moved that code out. Paths are under `packages/doenetml-worker-javascript/src/` unless they start with `packages/`.
+Design for #2163, step F6 of stream F (#2157) of #2125. Status: decisions settled 2026-10-06; #2172 (F5) and #2177 (F4) merged the same day, and #2187 and #2189 since. Steps 1 to 3 are done (see [Phasing](#phasing)). Line numbers are on `main` at 682ff8f28 (#2171); the `Math.js` ones are from before step 2 moved that code out. Paths are under `packages/doenetml-worker-javascript/src/` unless they start with `packages/`.
 
 ## Summary
 
@@ -11,7 +11,7 @@ Design for #2163, step F6 of stream F (#2157) of #2125. Status: decisions settle
   The components call the same functions, so the logic is written once.
 - **The list holds one array per template node.** A nested component, such as the dot plot's `<number fixed>` inside its `<point>`, is a node of its own whose array feeds its parent's codes.
 - **Phasing.** Number, math, text and boolean templates need F4's document pass (#2177) but not F5. Point and vector templates need F5's `GraphicalValueList` (#2172), which already applies constraints per entry. The extraction from `Math.js`, `Number.js`, `Text.js` and `Boolean.js` touches no file either PR touches, and can start now.
-- **What qualifies.** The heavy fixtures qualify: the dot plots, measures-of-spread and unit-circle-labeling. Real content qualifies less often: 14 of 98 distinct templates in the fall 2025 corpus. Most templates that stay composites hold inputs or answer blanks.
+- **What qualifies.** The heavy fixtures qualify: the dot plots, measures-of-spread and unit-circle-labeling. Real content qualifies less often: at most 5 of 98 distinct templates in the fall 2025 corpus, all of them through a `<repeat>` over a list (see the corrections below the table). Most templates that stay composites hold inputs or answer blanks.
 - **Rule changes against #2163.**
   - A name on the single top-level component is allowed. It names the entry. The issue's own example, the dot plot's `<point name="P">`, needs this.
   - Templates that would need per-entry renderer attributes are left out. There are 2 such templates outside tests.
@@ -32,9 +32,16 @@ Each template was classified against the rule in [Qualification](#qualification)
 | tests | 323 | 121 | 0 | 4 | 198 |
 
 Notes on the table:
+- **Corrected after step 2.** The survey script counted `$$f(…)` as a reference, but it is a nested `<evaluate>`, which is left out with the other math operators. It also treated a point's `x` and `y` attributes as its value, so it did not apply rule 5 to them, and it counted the value of a `<repeat>` as `$v`, which rule 4 did not allow until the decision of 2026-10-06 (below). Rechecked by hand, the real templates it counted as qualifying are:
+  - out: the Riemann-sum templates that evaluate `$$p(…)` or `$$ldeltat(…)` (3 distinct, 44 maps); the math templates that read `$v.vertex1` of collected rectangles (3, 3 maps), since the `for` is not a list of values; the draggable points with `x='$i - 3'`, `x='$i - 2'` or `x='$j - 2'`, where `$i` and `$j` are the value of a `<sequence>` (3, 3 maps), by rule 5;
+  - in, when the repeat's `for` is one list: the Riemann-sum `<math simplify="numbers">$v/$deltat</math>` over a list of terms (2 distinct, 32 maps) and the points `($equi, $equi)`, `($i, $v)` and `($v,0)` (3, 8 maps).
+
+  That is all 14 distinct (math 8, point 6) and all 90 maps: 50 out, 40 in.
+
+  The columns of the table are as the script gave them; the qualify counts of the other rows were not rechecked against these corrections.
 - The qualify column counts a template with a random sampler inside as qualifying; the survey flagged those. The first version leaves samplers out ([Randomness](#randomness)). 4 of the docs' 8 have a sampler, so 4 docs templates qualify for the first version. The real and fixture templates counted as qualifying have none. The tests row was not split by samplers.
-- 76 of the 90 qualifying real maps are one cloned family of Riemann-sum documents (`<math simplify="numbers">$$p(…($i-1+$side))*$deltat</math>`).
-- In real content the qualifying types are math (8 distinct) and point (6). In the fixtures they are point (4), number (4), math (1) and boolean (1). No template anywhere is an interval.
+- 76 of the 90 maps the script counted are one cloned family of Riemann-sum documents. 44 of them evaluate `$$p(…)` or `$$ldeltat(…)` and are out (above).
+- In real content, the script's qualifying types are math (8 distinct) and point (6); after the corrections, math (2) and point (3). In the fixtures they are point (4), number (4), math (1) and boolean (1). No template anywhere is an interval.
 - 103 of the 122 layout or multi-component composites in real content hold an input or an answer.
 - The single math operators would qualify only if the operators that subclass `<math>` are treated as math. That is a later extension.
 
@@ -59,9 +66,10 @@ The rule is applied to the document by a pass in the style of F4's `utils/dast/l
 4. Every reference reads one of:
    - a value outside the template, which is the same at every index;
    - `$i` or `$v` (a `<repeatForSequence>`'s value) directly;
-   - `$l[$i]` or `$l[$v]`, an entry of a list at exactly the iteration index.
+   - `$l[$i]` or `$l[$v]`, an entry of a list at exactly the iteration index;
+   - `$v` of a `<repeat>` whose `for` is one reference to a list (`for="$l"`), which is read as `$l[$i]` (decided 2026-10-06). The repeat already iterates over such a list entry by entry (`sourcesChildIndices`).
 
-   #2171's planning already decides that last case. Its check that "every reference plans as an entry" is the one to reuse.
+   #2171's planning already decides the entry case. Its check that "every reference plans as an entry" is the one to reuse.
 5. No attribute or non-content child depends on `$i` or `$v`. Constraint children and attributes such as `labelPosition`, `styleNumber` or `dx="$dx"` become the list's own.
 
 **A template stays a composite when any of the following hold:**
@@ -69,7 +77,8 @@ The rule is applied to the document by a pass in the style of F4's `utils/dast/l
 - A nested component is named.
 - The template references itself, like `$P` or `$dragPoint.x` inside its own label.
 - An index is computed: `$l[$i+1]` or `$l[$perm[$i]]`. This could be added later with per-key dynamic dependencies. No qualifying fixture needs it.
-- The template reads the value of a `<repeat>`. #2171 keeps that value as a component of each iteration, because it is a copy of an item, not a value.
+- The template reads the value of a `<repeat>` whose `for` is not one list. #2171 keeps that value as a component of each iteration, because it is a copy of an item, not a value.
+- The template contains a math operator, including the `<evaluate>` that `$$f(…)` makes.
 - The template contains a random sampler. See [Randomness](#randomness).
 - The template contains a point in a sticky group, or a point with `link="false"`. The latter is a free point with state of its own, not an expression.
 - The repeat is referenced in a way the pass cannot see statically, such as `<group extend="$Ps[2]">` followed by `$g.P`. This is the same guard #2171 uses for `$g.i`.
@@ -158,7 +167,7 @@ Two pieces need real work:
   - `evaluateLogic` and `buildParsedExpression` take a `dependencyValues` bag of `{componentType, stateValues}` children and call `componentInfoObjects`. They take kinds directly instead. (Not in step 2: they keep their interfaces, and `booleanValueFromCodes` wraps `evaluateLogic`.)
   - `mathChildrenFunctionSymbols` compares reference identity (its definition in `Math.js`). It becomes an input to `analyze`, computed by the caller. As built, it is `mathExpressionWithCodes`'s `functionSymbolChildIndices`.
 
-**One copy of each type's logic.** The list components of F1 to F3 already re-implement parts of these chains: `entryValueOfType`, `mathValueForDisplay` and `numberValueForDisplay` in `ValueListComponent.js:1253-1516`. They have small differences. For example, `mathValueForDisplay` always uses `simplify: "none"` and ignores `displayBlanks`. Once the functions exist, those copies call them. This step waits for F4 and F5, which edit that file.
+**One copy of each type's logic.** The list components of F1 to F3 re-implemented parts of these chains: `entryValueOfType`, `mathValueForDisplay`, `numberValueForDisplay`, `mathText` and `mathLatex` in `ValueListComponent.js:1253-1516`. They had small differences. For example, the list's `mathValueForDisplay` always used `simplify: "none"`, and its `mathText` and `mathLatex` ignored `displayBlanks`. As built (step 3), those copies are gone: the list's display state calls `mathValueForDisplay`, `numberValueForDisplay`, `mathDisplayString` and `numberDisplayString`, passing those differences as settings, so what a list shows is unchanged. `entryValueOfType` stays: it converts a value to an entry's type, which no value function does.
 
 **Settings that come from outside the template are resolved once.** These are:
 - the parse settings that fall back to the parent and source composite (`functionSymbols`, `splitSymbols`, `referencesAreFunctionSymbols`, `parseScientificNotation`; `Math.js:194-227`);
@@ -218,13 +227,14 @@ Not a constraint. Version 0.8 cannot read state saved by 0.7, because the format
 
 ## Open list-entry issues
 
-Several issues filed while reviewing F4 and F5 are gaps in what a list entry can do that a component can. Each would be a regression for a repeat that F6 converts, because today its iterations are components. F6 does not fix them. The qualification pass keeps the composite wherever a document would hit one, as `listForms.ts` keeps it for `drawnInGraph`, and each guard gets a test that fails with the guard disabled. Fixing an issue later lifts its guard.
+Several issues filed while reviewing F4 and F5 are gaps in what a list entry can do that a component can. Each would be a regression for a repeat that F6 converts, because today its iterations are components. F6 does not fix them. The qualification pass keeps the composite wherever a document would hit one, and each guard gets a test that fails with the guard disabled. Fixing an issue later lifts its guard.
 
 | issue | what an entry lacks | guard in the qualification pass |
 |---|---|---|
 | #2181 | an entry as the target of `triggerWhenObjectsClicked`/`Focused`, `<label forObject>`, a PreFigure `annotation ref`, `<ref to>`, `<callAction target>` | an entry of the repeat (`$Ps[k]`, `$Ps[k].P`) named as any of these |
-| #2185 | an entry referenced on its own does not take its source's `label`, `fixed` or `draggable` | to check: whether an entry referenced on its own reads the list's own (template) values of these. If not, an entry of the repeat referenced on its own in a graph |
-| #2186 | a value-type entry drawn in a graph ignores its own `anchor`, `draggable` and `layer` | a number, math, text or boolean template inside a `<graph>` (reuse `drawnInGraph`) |
+| #2185 | an entry referenced on its own does not take its source's `label`, `fixed` or `draggable` | fixed by #2187 for point and vector lists, which read them from each entry's source (`entryChildren`). An entry of the repeat's list has no source component, so step 5 gives it the template's values of these as the list's own, or guards an entry referenced on its own in a graph |
+| #2191 | a point made from an entry ignores its graph's `fixed` and its source's `fixLocation` | step 5: an entry of the repeat referenced on its own in a graph, unless #2191 is fixed first |
+| #2186 | a value-type entry drawn in a graph ignores its own `anchor`, `draggable` and `layer` | fixed by #2189, which places each entry at its source's anchor (`entryGraphSources`). An entry of the repeat's list has no source to take an anchor from, so a number, math, text or boolean template inside a `<graph>` keeps the composite |
 | #2184 | a `copy=` of a point or vector entry is placed at the origin | a `copy=` of an entry of the repeat |
 | #2176 | (a `copy=` of a repeat with written children fails to load) | an `extend`/`copy` of the repeat itself, at first |
 
@@ -236,10 +246,10 @@ Not relevant to F6: #2179 (a standalone `<vector>`), #2182 (an authored child's 
 |---|---|---|---|
 | 1. Pinning tests on `main` | nothing | `tagSpecific/repeatTemplateLists.test.ts` | done |
 | 2. Extract the value functions for math, number, text and boolean; the components call them | nothing | `Math.js`, `Number.js`, `Text.js`, `Boolean.js`, `utils/valueFunctions/` | done |
-| 3. `ValueListComponent`'s copies call the functions | #2172, #2177 (merged) | `ValueListComponent.js` | now |
+| 3. `ValueListComponent`'s copies call the functions | #2172, #2177 (merged) | `ValueListComponent.js` | done |
 | 4. Qualification pass and `_repeatValueList` for number, math, text and boolean templates | #2177 (the listForms pass, the `valueReferences.ts` refactor) | `utils/dast/`, `Repeat.js`, `RepeatForSequence.js`, new list class | now |
 | 5. `_repeatGraphicalList` for point and vector templates | #2172 | new list class on `GraphicalValueList` | now |
-| later | evidence | samplers, per-entry attributes, computed indices, `<repeat>` values, the math operators | — |
+| later | evidence | samplers, per-entry attributes, computed indices, the values of a `<repeat>` over anything but one list, the math operators (including `$$f(…)`) | — |
 
 **Step 1, pinning tests.** These all pass on `main`. Each records today's behaviour for a qualifying template:
 - the values and the rendered text;
@@ -250,7 +260,7 @@ Not relevant to F6: #2179 (a standalone `<vector>`), #2182 (an authored child's 
 - a saved state round trip within one version;
 - a shrink and a regrow.
 
-Step 4 alone reaches the Riemann-sum family and the number and math fixtures. Step 5 reaches the dot plots and measures-of-spread, where the template content is 52% and 34% of resolved state variables (#2163). Each step pastes its census rows, per #2125.
+Step 4 alone reaches the number, math and boolean fixtures (a boolean's nested `<point>` waits for step 5), the measures-of-spread sums, and the Riemann-sum templates that read `$v` of a `<repeat>` over a list. The Riemann-sum templates that evaluate `$$p(…)` or `$$ldeltat(…)` wait for the math operators. Step 5 reaches the dot plots and measures-of-spread, where the template content is 52% and 34% of resolved state variables (#2163). Each step pastes its census rows, per #2125.
 
 ## Decisions to settle
 
