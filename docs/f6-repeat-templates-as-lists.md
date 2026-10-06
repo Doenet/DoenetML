@@ -1,6 +1,6 @@
 # F6 design: a repeat whose template is one value becomes a list
 
-Design for #2163, step F6 of stream F (#2157) of #2125. Status: decisions settled 2026-10-06; #2172 (F5) and #2177 (F4) merged the same day. Steps 1 and 2 are done (see [Phasing](#phasing)). Line numbers are on `main` at 682ff8f28 (#2171). Paths are under `packages/doenetml-worker-javascript/src/`.
+Design for #2163, step F6 of stream F (#2157) of #2125. Status: decisions settled 2026-10-06; #2172 (F5) and #2177 (F4) merged the same day. Steps 1 and 2 are done (see [Phasing](#phasing)). Line numbers are on `main` at 682ff8f28 (#2171); the `Math.js` ones are from before step 2 moved that code out. Paths are under `packages/doenetml-worker-javascript/src/` unless they start with `packages/`.
 
 ## Summary
 
@@ -38,14 +38,14 @@ Notes on the table:
 - The single math operators would qualify only if the operators that subclass `<math>` are treated as math. That is a later extension.
 
 Examples:
-- `fixtures.ts:134` and `measures-of-spread.doenet:51`, the case that matters most:
+- `test/perf/fixtures.ts:134` and `test/perf/fixtures/measures-of-spread.doenet:51` (the repeat; the point is on the next line), the case that matters most:
 
   ```xml
   <point name="P" labelPosition="top">($values[$i], <number fixed>0.5 ($sortedPos[$i] - $first[$i])</number>)<constrainToGraph/><constrainToGrid dx="$dx" dy="0.5"/></point>
   ```
-- `unit-circle-labeling.doenet:9`: `<point styleNumber="2" …>(cos($k/24*2pi), sin($k/24*2pi))</point>`
-- `unit-circle-labeling.doenet:25`: `<boolean>$P=<point>$points[$ka]</point></boolean>`. This is a nested point inside a boolean.
-- `docs/guides/charting-a-simulation.mdx:201`: `<number>0.9 * $h - 90 + $noise[$i]</number>`
+- `test/perf/fixtures/unit-circle-labeling.doenet:9`: `<point styleNumber="2" …>(cos($k/24*2pi), sin($k/24*2pi))</point>`
+- `test/perf/fixtures/unit-circle-labeling.doenet:25`: `<boolean>$P=<point>$points[$ka]</point></boolean>`. This is a nested point inside a boolean.
+- `packages/docs-nextra/content/guides/charting-a-simulation.mdx:201` (the repeat): `<number>0.9 * $h - 90 + $noise[$i]</number>`
 
 ## Qualification
 
@@ -137,25 +137,25 @@ invert(analysis, desired, currentCodeValues) => Writes
 | evaluate, per index | `mathValueFromCodes`, then `normalizeMathExpression`, `mathValueForDisplay`, `mathDisplayString` | `numberValueFromCodes`, `numberFromString`, `numberValueForDisplay`, `numberDisplayString` | `textFromChildren` (in `text.ts`), `textToMath` | `booleanValueFromCodes` |
 | invert, per index | `invertMathValue`, `mathStringsFromExpressionWithCodes` | `numberFromDesiredValue`, `numberFromDesiredText` | `textChildValuesFromDesired`, `textFromMath` | (one child or nothing; inline) |
 
-`invertMathValue` is synchronous; `<math>`'s inverse definition awaits what it reads (`canBeModified`, the analysis, `preprocessMathInverseDefinition`) and calls it. `test/utils/valueFunctions.test.ts` uses the functions as the list will: parse once, then evaluate and invert at several indices.
+`invertMathValue` is synchronous; `<math>`'s inverse definition awaits what it reads (`canBeModified`, the analysis, `preprocessMathInverseDefinition`) and calls it. `test/utils/valueFunctions.test.ts` uses the functions as the list will: parse once, then evaluate at several indices, and invert.
 
 **Why `analyze` is the large part.**
-- Math's `expressionWithCodes` and `determineCanBeModified` depend only on the strings, the attributes and which codes can be modified. Today, every iteration of a qualifying template redoes them with identical inputs.
+- Math's `expressionWithCodes` and `determineCanBeModified` (as built, `mathInverseAnalysis`) depend only on the strings, the attributes and which codes can be modified. Today, every iteration of a qualifying template redoes them with identical inputs.
 - Boolean's `buildParsedExpression` depends only on the strings and the child kinds.
 
 So the list runs `analyze` once and runs `evaluate` N times. The per-index work is `substitute`, then `normalizeMathExpression`, `roundForDisplay` and `toLatex`/`toString`.
 
 **Most of the code exists.** These are already pure or nearly so (agent survey, `Math.js` and `utils/`):
-- `calculateExpressionWithCodes`, `calculateMathValue`, `calculateCodesAdjacentToStrings`, `determineCanBeModified` and `checkForLinearExpression` (module functions in `Math.js:1289-1785`);
+- `calculateExpressionWithCodes`, `calculateMathValue`, `calculateCodesAdjacentToStrings`, `determineCanBeModified` and `checkForLinearExpression` (module functions in `Math.js:1289-1785`; as built, their logic is `mathExpressionWithCodes`, `mathValueFromCodes`, `mathCodesAdjacentToStrings` and `mathInverseAnalysis`, and `checkForLinearExpression` moved with them);
 - `createInputStringFromChildren`, `normalizeMathExpression`, `roundForDisplay` and `buildNumberDisplayParameters`;
 - `numberFromString`, `buildParsedExpression` and `evaluateLogic`;
 - `textFromChildren`.
 
 Two pieces need real work:
-- **Math's `invertMath` and `getExpressionPieces`** (`Math.js:1787-2041`). They are async and read `await stateValues.*` and the workspace. They become a synchronous `invert` over an `Analysis`, with the component's inverse definition as a thin caller that awaits its inputs first. `preprocessMathInverseDefinition`'s fill of unspecified vector components takes the current value as an argument.
+- **Math's `invertMath` and `getExpressionPieces`** (`Math.js:1787-2041`). They are async and read `await stateValues.*` and the workspace. They become a synchronous `invert` over an `Analysis`, with the component's inverse definition as a thin caller that awaits its inputs first. `preprocessMathInverseDefinition`'s fill of unspecified vector components takes the current value as an argument. As built, `invertMathValue` (with `getExpressionPieces` as `mathExpressionPieces`) is the synchronous part; `preprocessMathInverseDefinition` is unchanged and `invertMath` still calls it with `stateValues` and the workspace.
 - **The dependency-shaped inputs.**
-  - `evaluateLogic` and `buildParsedExpression` take a `dependencyValues` bag of `{componentType, stateValues}` children and call `componentInfoObjects`. They take kinds directly instead.
-  - `mathChildrenFunctionSymbols` compares reference identity (`Math.js:434`). It becomes an input to `analyze`, computed by the caller.
+  - `evaluateLogic` and `buildParsedExpression` take a `dependencyValues` bag of `{componentType, stateValues}` children and call `componentInfoObjects`. They take kinds directly instead. (Not in step 2: they keep their interfaces, and `booleanValueFromCodes` wraps `evaluateLogic`.)
+  - `mathChildrenFunctionSymbols` compares reference identity (its definition in `Math.js`). It becomes an input to `analyze`, computed by the caller. As built, it is `mathExpressionWithCodes`'s `functionSymbolChildIndices`.
 
 **One copy of each type's logic.** The list components of F1 to F3 already re-implement parts of these chains: `entryValueOfType`, `mathValueForDisplay` and `numberValueForDisplay` in `ValueListComponent.js:1253-1516`. They have small differences. For example, `mathValueForDisplay` always uses `simplify: "none"` and ignores `displayBlanks`. Once the functions exist, those copies call them. This step waits for F4 and F5, which edit that file.
 
@@ -188,7 +188,7 @@ This is the part that waits for #2172. Its hooks (`entryValueAdjustmentDependenc
   - or to the nested node's array, which inverts in turn.
 - **A string-piece write** (`<point>($i, 0)</point>`, dragging y, which today edits the `0` in that iteration's `<math>`) is saved on the list as a per-entry `entryWrites` value. This follows F1's `{value, over}` scheme.
 - **Writes outlive a shrink.** Today a repeat that shrinks withholds its last iterations, keeping their state, so a point dragged in iteration 3 is where it was dragged when the repeat grows back to 3 (pinned in `repeatTemplateLists.test.ts`). A list drops the writes past its end (`dropListEntryWritesFrom`, `EssentialValueWriter.ts`), so the repeat's list must keep them instead.
-- **A write to a constant code changes every entry.** Today's composite does the same, because every iteration's child references the one referent. This should be pinned before changing anything.
+- **A write to a constant code changes every entry.** Today's composite does the same, because every iteration's child references the one referent. This is pinned in `repeatTemplateLists.test.ts`.
 - **Modifiability per code can differ by entry**, for example in an authored `<numberList>` with some fixed entries. `analyze` depends on which codes can be modified, so it is memoised by that signature: usually one analysis, at most a few.
 - **Refused writes.** `$i` is fixed. `$v` follows #2171: drags through a `<sequence>` entry solve for the other operand.
 
