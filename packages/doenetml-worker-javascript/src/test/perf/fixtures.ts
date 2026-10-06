@@ -99,8 +99,7 @@ const DOT_PLOT_SAMPLES = [
  * The dot-plot document from Doenet/DoenetML#2023: a `<module>` holding a
  * `<repeatForSequence>` of constrained points with a computed stack height,
  * copied `numPlots` times with 50 random values each. Its points cannot be
- * dragged (the module copies are `fixed`, and a point inside a repeat that
- * indexes a module-attribute list refuses a move even when they are not), so
+ * dragged (the module copies are `fixed`, and so are the random values), so
  * it is a load fixture only; `dragDotPlotDocument` is the one that drags. One plot is about
  * 4,000 components on `main` at 00a3551fc; the count grows linearly.
  */

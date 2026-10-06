@@ -1795,4 +1795,107 @@ ${moduleDefinition}
             ).eq(-6);
         });
     });
+
+    describe("point in a repeat over a module-attribute list of random values", async () => {
+        // A point in a repeat whose x is the module attribute's entry at
+        // the repeat index, `$values[$i]`, with the module copied with
+        // `values="$v"` for a random selection or sample `v`.
+        function dotPlotDoenetML(source: string) {
+            return `
+<setup>
+  <module name="m">
+    <moduleAttributes><numberList name="values"/></moduleAttributes>
+    <count name="n">$values</count>
+    <graph>
+      <repeatForSequence from="1" to="$n" indexName="i" name="Ps">
+        <point name="P">($values[$i], 0)</point>
+      </repeatForSequence>
+    </graph>
+  </module>
+</setup>
+${source}
+<module copy="$m" name="mc" values="$v"/>
+`;
+        }
+
+        async function checkDrags({
+            doenetML,
+            draggable,
+        }: {
+            doenetML: string;
+            draggable: boolean;
+        }) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+
+            const P1Idx = await resolvePathToNodeIdx("mc.Ps[1].P");
+            const P2Idx = await resolvePathToNodeIdx("mc.Ps[2].P");
+            const vIdx = await resolvePathToNodeIdx("v");
+
+            async function getValues() {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                return {
+                    x1: stateVariables[P1Idx].stateValues.numericalXs[0],
+                    x2: stateVariables[P2Idx].stateValues.numericalXs[0],
+                    v: stateVariables[vIdx].stateValues.numbers,
+                };
+            }
+
+            const before = await getValues();
+            expect(before.v).toHaveLength(2);
+            expect(before.x1).eq(before.v[0]);
+            expect(before.x2).eq(before.v[1]);
+
+            await movePoint({ componentIdx: P1Idx, x: 20, y: 0, core });
+            let values = await getValues();
+            if (draggable) {
+                expect(values).toEqual({
+                    x1: 20,
+                    x2: before.x2,
+                    v: [20, before.x2],
+                });
+            } else {
+                expect(values).toEqual(before);
+            }
+
+            await movePoint({ componentIdx: P2Idx, x: -3, y: 0, core });
+            values = await getValues();
+            if (draggable) {
+                expect(values).toEqual({ x1: 20, x2: -3, v: [20, -3] });
+            } else {
+                expect(values).toEqual(before);
+            }
+        }
+
+        it("selection not fixed", async () => {
+            await checkDrags({
+                doenetML: dotPlotDoenetML(
+                    `<selectRandomNumbers name="v" numToSelect="2" fixed="false"/>`,
+                ),
+                draggable: true,
+            });
+        });
+
+        it("sample not fixed", async () => {
+            await checkDrags({
+                doenetML: dotPlotDoenetML(
+                    `<sampleRandomNumbers name="v" numSamples="2" fixed="false"/>`,
+                ),
+                draggable: true,
+            });
+        });
+
+        it("selection fixed by default", async () => {
+            await checkDrags({
+                doenetML: dotPlotDoenetML(
+                    `<selectRandomNumbers name="v" numToSelect="2"/>`,
+                ),
+                draggable: false,
+            });
+        });
+    });
 });
