@@ -45,6 +45,10 @@ export function reorderedValueListClass(Base) {
 
         static listEntriesShownAsSources = true;
 
+        // A `copy=` of the list is made from the same children and
+        // attributes, so it reads the same sources.
+        static serializeUnlinkedAsValues = false;
+
         // The type of the entries, which the document pass records.
         static listEntryTypeAttribute = "type";
 
@@ -155,8 +159,7 @@ export function reorderedValueListClass(Base) {
                 listClass.returnEntryOrderDefinitions(),
             );
 
-            // Where each entry comes from, in the order given. The values a
-            // `copy=` holds (`listValuesShadow`) are in order already.
+            // Where each entry comes from, in the order given.
             stateVariableDefinitions.entryStructure = {
                 returnDependencies: () => ({
                     childOrderEntryStructure: {
@@ -173,9 +176,7 @@ export function reorderedValueListClass(Base) {
                         dependencyValues.childOrderEntryStructure;
                     const order = dependencyValues.entryOrder;
                     const entryStructure =
-                        childOrder.some(
-                            (source) => source.shadowInd !== undefined,
-                        ) || order.length !== childOrder.length
+                        order.length !== childOrder.length
                             ? childOrder
                             : order.map((ind) => childOrder[ind]);
                     return {

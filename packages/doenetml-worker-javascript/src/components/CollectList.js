@@ -55,6 +55,10 @@ function collectListClass(Base) {
 
         static listEntriesShownAsSources = true;
 
+        // A `copy=` of the list is made from the same children and
+        // attributes, so it reads the same sources.
+        static serializeUnlinkedAsValues = false;
+
         // The type collected, which the document pass records.
         static listEntryTypeAttribute = "componentType";
 
@@ -207,30 +211,19 @@ function collectListClass(Base) {
                 },
             };
 
-            // One entry for each component or list entry collected, or, for
-            // a `copy=` of the list, for each value it holds
-            // (`listValuesShadow`).
+            // One entry for each component or list entry collected.
             stateVariableDefinitions.entryStructure = {
                 returnDependencies: () => ({
                     collectedSources: {
                         dependencyType: "stateVariable",
                         variableName: "collectedSources",
                     },
-                    shadow: {
-                        dependencyType: "stateVariable",
-                        variableName: "listValuesShadow",
-                    },
                 }),
                 definition: ({ dependencyValues }) => ({
                     setValue: {
-                        entryStructure:
-                            dependencyValues.shadow === null
-                                ? dependencyValues.collectedSources.map(
-                                      (_, collectedInd) => ({ collectedInd }),
-                                  )
-                                : dependencyValues.shadow.map(
-                                      (_, shadowInd) => ({ shadowInd }),
-                                  ),
+                        entryStructure: dependencyValues.collectedSources.map(
+                            (_, collectedInd) => ({ collectedInd }),
+                        ),
                     },
                     checkForActualChange: { entryStructure: true },
                 }),
@@ -251,16 +244,6 @@ function collectListClass(Base) {
                             variableName: "entryStructure",
                         },
                     };
-                    if (
-                        stateValues.entryStructure.some(
-                            (source) => source.shadowInd !== undefined,
-                        )
-                    ) {
-                        globalDependencies.shadow = {
-                            dependencyType: "stateVariable",
-                            variableName: "listValuesShadow",
-                        };
-                    }
                     const dependenciesByKey = {};
                     for (const arrayKey of arrayKeys) {
                         const collected =
@@ -282,22 +265,11 @@ function collectListClass(Base) {
                     }
                     return { globalDependencies, dependenciesByKey };
                 },
-                arrayDefinitionByKey({
-                    globalDependencyValues,
-                    dependencyValuesByKey,
-                    arrayKeys,
-                }) {
+                arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
                     const entries = {};
                     const unchangedChecks = {};
                     for (const arrayKey of arrayKeys) {
-                        const source =
-                            globalDependencyValues.entryStructure[arrayKey];
-                        const value =
-                            source?.shadowInd !== undefined
-                                ? globalDependencyValues.shadow?.[
-                                      source.shadowInd
-                                  ]
-                                : dependencyValuesByKey[arrayKey]?.source;
+                        const value = dependencyValuesByKey[arrayKey]?.source;
                         entries[arrayKey] =
                             value === undefined || value === null
                                 ? blankValue(kind)
@@ -318,13 +290,11 @@ function collectListClass(Base) {
                     dependencyValuesByKey,
                     dependencyNamesByKey,
                     stateValues,
-                    workspace,
                 }) {
                     if (await stateValues.entriesFixed) {
                         return { success: false };
                     }
                     const instructions = [];
-                    let wroteShadow = false;
                     for (const arrayKey in desiredStateVariableValues[
                         arrayName
                     ]) {
@@ -337,16 +307,6 @@ function collectListClass(Base) {
                             desiredStateVariableValues[arrayName][arrayKey],
                             entryType,
                         );
-                        if (source.shadowInd !== undefined) {
-                            if (!workspace.shadowWrites) {
-                                workspace.shadowWrites = [
-                                    ...globalDependencyValues.shadow,
-                                ];
-                            }
-                            workspace.shadowWrites[source.shadowInd] = value;
-                            wroteShadow = true;
-                            continue;
-                        }
                         if (!dependencyNamesByKey[arrayKey]?.source) {
                             continue;
                         }
@@ -359,12 +319,6 @@ function collectListClass(Base) {
                                         ?.source,
                                 },
                             }),
-                        });
-                    }
-                    if (wroteShadow) {
-                        instructions.push({
-                            setDependency: "shadow",
-                            desiredValue: workspace.shadowWrites,
                         });
                     }
                     return { success: true, instructions };
@@ -387,10 +341,6 @@ function collectListClass(Base) {
                         collectedSources: {
                             dependencyType: "stateVariable",
                             variableName: "collectedSources",
-                        },
-                        shadow: {
-                            dependencyType: "stateVariable",
-                            variableName: "entryDisplaySettingsShadow",
                         },
                     };
                     if (displayNames.length === 0) {
@@ -421,23 +371,13 @@ function collectListClass(Base) {
                     return dependencies;
                 },
                 definition({ dependencyValues, usedDefault }) {
-                    const { entryStructure, collectedSources, shadow } =
+                    const { entryStructure, collectedSources } =
                         dependencyValues;
                     if (displayNames.length === 0) {
                         return {
                             setValue: {
                                 entryDisplaySettings: entryStructure.map(
                                     () => null,
-                                ),
-                            },
-                        };
-                    }
-                    if (shadow !== null) {
-                        return {
-                            setValue: {
-                                entryDisplaySettings: entryStructure.map(
-                                    (source) =>
-                                        shadow[source.shadowInd] ?? null,
                                 ),
                             },
                         };

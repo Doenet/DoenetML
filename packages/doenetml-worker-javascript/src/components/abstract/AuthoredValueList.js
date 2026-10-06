@@ -285,7 +285,12 @@ export default class AuthoredValueList extends ValueListComponent {
 
     async serialize(parameters = {}) {
         const serialized = await super.serialize(parameters);
-        if (parameters.copyAll && !parameters.serializingDescendant) {
+        if (!this.constructor.serializeUnlinkedAsValues) {
+            // A copy reads its values from the children and attributes it
+            // is made with, also as part of an unlinked copy of a
+            // `<repeat>` (`copyPrimaryEssential`).
+            delete serialized.state.listValuesShadow;
+        } else if (parameters.copyAll && !parameters.serializingDescendant) {
             serialized.state.entryDisplaySettingsShadow = [
                 ...(await this.stateValues.entryDisplaySettings),
             ];

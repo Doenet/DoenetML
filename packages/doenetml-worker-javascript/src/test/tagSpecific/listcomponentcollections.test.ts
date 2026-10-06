@@ -931,6 +931,93 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         ]);
     });
 
+    it("a copy of a collect, sort or shuffle reads the same sources", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <setup>
+      <styleDefinition styleNumber="3" textColor="green" />
+    </setup>
+    <mathInput name="mi" prefill="7" />
+    <booleanInput name="bi" />
+    <section name="s">
+      <number hide="$bi">3</number>
+      <number styleNumber="3">4</number>
+      <number>$mi</number>
+      <math renderMode="display" displayDigits="2">1.23456</math>
+    </section>
+    <p name="pc"><collect componentType="number" from="$s" name="c" /></p>
+    <p name="pcc"><collect copy="$c" name="cc" /></p>
+    <p name="pcm"><collect copy="$cm" /></p>
+    <collect componentType="math" from="$s" name="cm" />
+    <p name="ps"><sort name="srt"><number hide="$bi">9</number><number styleNumber="3">2</number><number>$mi</number></sort></p>
+    <p name="psc"><sort copy="$srt" /></p>
+    <p name="pshc"><shuffle copy="$sh" /></p>
+    <shuffle name="sh"><number styleNumber="3">5</number><number hide>6</number></shuffle>
+    <repeatForSequence length="1" name="r"><p name="q"><collect componentType="number" from="$s" /></p></repeatForSequence>
+    <repeatForSequence copy="$r" name="r2" />
+    <mathInput name="w" bindValueTo="$cc[3]" />
+    `,
+        });
+
+        const number = (shown: string, textColor = "black") => ({
+            rendererType: "number",
+            shown,
+            textColor,
+        });
+        async function expectDrawn(entries: Record<string, any[]>) {
+            for (const [name, expected] of Object.entries(entries)) {
+                expect(
+                    await drawn(core, resolvePathToNodeIdx, name),
+                    name,
+                ).eqls(expected);
+            }
+        }
+
+        // A copy shows each value as its source shows itself.
+        await expectDrawn({
+            pcc: [number("3"), number("4", "green"), number("7")],
+            pcm: [
+                {
+                    rendererType: "math",
+                    shown: "1.2",
+                    textColor: "black",
+                    renderMode: "display",
+                },
+            ],
+            psc: [number("2", "green"), number("7"), number("9")],
+            pshc: [number("5", "green")],
+            "r2[1].q": [number("3"), number("4", "green"), number("7")],
+        });
+
+        // It follows the sources as they change.
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await expectDrawn({
+            pcc: [number("4", "green"), number("1")],
+            psc: [number("1"), number("2", "green")],
+            "r2[1].q": [number("4", "green"), number("1")],
+        });
+
+        // A value written to it goes to the source.
+        await updateMathInputValue({
+            latex: "8",
+            componentIdx: await resolvePathToNodeIdx("w"),
+            core,
+        });
+        await expectDrawn({
+            pc: [number("4", "green"), number("8")],
+            pcc: [number("4", "green"), number("8")],
+        });
+    });
+
     it("a sort or shuffle of a type built on a value type keeps the type", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
