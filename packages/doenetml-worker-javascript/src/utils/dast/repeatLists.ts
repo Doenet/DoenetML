@@ -358,8 +358,11 @@ export function convertRepeatsToLists({
                         Ref: {
                             nodeIdx: listIdx,
                             unresolvedPath: null,
-                            originalPath: unwrapSource(reference.extending!)
-                                .originalPath,
+                            originalPath: (
+                                unwrapSource(
+                                    reference.extending!,
+                                ) as SerializedRefResolution
+                            ).originalPath,
                             nodesInResolvedPath: [
                                 reference.componentIdx,
                                 listIdx,
