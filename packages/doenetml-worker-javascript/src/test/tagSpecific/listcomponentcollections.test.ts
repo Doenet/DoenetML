@@ -721,7 +721,7 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         await expectTexts(core, resolvePathToNodeIdx, {
             p1: "[1, 3]",
             p2: "[3]",
-            p3: "[z] []",
+            p3: "[z] [z]",
             p4: "[2]",
             m: "1, 3, 5",
         });
@@ -737,6 +737,8 @@ describe("Collect, sort and shuffle of values @group4", async () => {
     <p name="p5"><sort type="text">10 9 100</sort></p>
     <p name="p6"><sort>pi 3 sqrt(10)</sort></p>
     <p name="p7"><sort>1/2 0.4</sort></p>
+    <text name="q">q</text>
+    <p name="p8"><sort>$q z a</sort></p>
     `,
         });
 
@@ -748,6 +750,7 @@ describe("Collect, sort and shuffle of values @group4", async () => {
             p5: "10, 100, 9",
             p6: "3, 3.14, 3.16",
             p7: "0.4, 0.5",
+            p8: "a, q, z",
         });
     });
 

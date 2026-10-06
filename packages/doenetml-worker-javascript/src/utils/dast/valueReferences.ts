@@ -181,8 +181,12 @@ export function convertCopiesToValueReferences({
         const isResponse =
             naming.length > 0 || Object.keys(component.attributes).length > 0;
 
+        // the class the parent will be created as, which a list whose
+        // entries' type an attribute gives decides from it
         const parentClass =
-            componentInfoObjects.allComponentClasses[parent.componentType];
+            componentInfoObjects.allComponentClasses[
+                parent.componentType
+            ]?.classForSerializedComponent(parent);
         if (!parentClass) {
             return;
         }
