@@ -227,17 +227,22 @@ export function convertRepeatsToLists({
             if (setup !== undefined) {
                 return;
             }
+            // The values a template that reads them reads as numbers or
+            // maths; a template that does not (`<number>7</number>` over
+            // letters) reads none.
+            const readsValues = [...iterationLists.values()].some(
+                (list) => list.componentType === "_repeatValues",
+            );
             const entryType = sequenceEntryComponentType(
                 repeat.attributes.type,
             );
-            if (entryType === undefined || !ENTRY_VALUE_TYPES.has(entryType)) {
+            if (
+                readsValues &&
+                (entryType === undefined || !ENTRY_VALUE_TYPES.has(entryType))
+            ) {
                 return;
             }
         } else {
-            forList = forListOf(repeat);
-            if (forList === undefined) {
-                return;
-            }
             for (const child of setup?.children ?? []) {
                 if (typeof child === "string") {
                     continue;
@@ -246,6 +251,13 @@ export function convertRepeatsToLists({
                     return;
                 }
                 valueDummyIdx = child.componentIdx;
+            }
+            const readsValue =
+                valueDummyIdx !== undefined &&
+                (referencesByTarget.get(valueDummyIdx)?.length ?? 0) > 0;
+            forList = forListOf(repeat, readsValue);
+            if (forList === undefined) {
+                return;
             }
         }
 
@@ -601,9 +613,10 @@ export function convertRepeatsToLists({
 
     /**
      * For a `<repeat>`, the list its `for` is, when that is one reference to
-     * a whole list whose entries are values of `ENTRY_VALUE_TYPES` (`$l`).
+     * a whole list (`$l`), whose entries are values of `ENTRY_VALUE_TYPES`
+     * when the template reads them (`readsValue`).
      */
-    function forListOf(repeat: SerializedComponent) {
+    function forListOf(repeat: SerializedComponent, readsValue: boolean) {
         const forAttribute = repeat.attributes.for;
         if (forAttribute?.type !== "component") {
             return;
@@ -628,7 +641,7 @@ export function convertRepeatsToLists({
         }
         if (
             refResolution.unresolvedPath?.length ||
-            !isEntryList(refResolution.nodeIdx)
+            !isEntryList(refResolution.nodeIdx, readsValue)
         ) {
             return;
         }
@@ -639,13 +652,16 @@ export function convertRepeatsToLists({
      * Whether the component under `nodeIdx` is a list whose entries are
      * values of `ENTRY_VALUE_TYPES`.
      */
-    function isEntryList(nodeIdx: number) {
+    function isEntryList(nodeIdx: number, ofValueTypes = true) {
         const type = referentType(nodeIdx);
         if (type === undefined) {
             return false;
         }
-        const listClass = referentClass(nodeIdx, type) as any;
-        return ENTRY_VALUE_TYPES.has(listClass?.listEntryComponentType);
+        const entryType = (referentClass(nodeIdx, type) as any)
+            ?.listEntryComponentType;
+        return ofValueTypes
+            ? ENTRY_VALUE_TYPES.has(entryType)
+            : entryType !== undefined;
     }
 
     /**
@@ -688,17 +704,36 @@ export function convertRepeatsToLists({
                 containerNames.add(String(name.primitive.value));
             }
         }
-        function readsAPart(path: SerializedRefResolutionPathPart[]) {
-            if (path.length === 0) {
-                return false;
+        // Whether a reference to `targetIdx` with the path left to resolve
+        // `path` reads a value or a part: a name that is not the repeat's or
+        // a container's, or an index into the repeat itself (an entry).
+        // An index into a container (`$outer[1]` of an outer repeat, `$q[1]`
+        // of a copy of a group) copies a whole child of it.
+        const repeatNameAttribute = repeat.attributes.name;
+        const repeatName =
+            repeatNameAttribute?.type === "primitive"
+                ? String(repeatNameAttribute.primitive.value)
+                : undefined;
+        function readsAPart(
+            targetIdx: number,
+            path: SerializedRefResolutionPathPart[],
+        ) {
+            let atRepeat = targetIdx === repeat.componentIdx;
+            for (const part of path) {
+                if (part.name !== "") {
+                    if (!containerNames.has(part.name)) {
+                        return true;
+                    }
+                    atRepeat = part.name === repeatName;
+                }
+                if (part.index.length > 0) {
+                    if (atRepeat) {
+                        return true;
+                    }
+                    atRepeat = false;
+                }
             }
-            return (
-                path[path.length - 1].index.length > 0 ||
-                path.some(
-                    (part) =>
-                        part.name !== "" && !containerNames.has(part.name),
-                )
-            );
+            return false;
         }
 
         for (let i = 0; i < containers.length; i++) {
@@ -712,7 +747,12 @@ export function convertRepeatsToLists({
                 const refResolution = unwrapSource(
                     component.extending!,
                 ) as SerializedRefResolution;
-                if (readsAPart(refResolution.unresolvedPath ?? [])) {
+                if (
+                    readsAPart(
+                        refResolution.nodeIdx,
+                        refResolution.unresolvedPath ?? [],
+                    )
+                ) {
                     continue;
                 }
                 if (inGraph(component) || makesGraph(component)) {

@@ -250,9 +250,9 @@ export default class RepeatValueList extends ValueListComponent {
         };
 
         // For each list the template reads an entry of, the prefix of the
-        // names of its entries (`number3`), and whether they take writes.
+        // names of its entries (`number3`), by which the values depend on
+        // them.
         stateVariableDefinitions.entryListPrefixes = {
-            additionalStateVariablesDefined: ["entryListsCanBeModified"],
             stateVariablesDeterminingDependencies: ["templateAnalysis"],
             returnDependencies({ stateValues }) {
                 const dependencies = {};
@@ -265,6 +265,32 @@ export default class RepeatValueList extends ValueListComponent {
                         componentIdx,
                         variableName: "listEntryVariablePrefix",
                     };
+                }
+                return dependencies;
+            },
+            definition({ dependencyValues }) {
+                const entryListPrefixes = [];
+                for (let e = 0; `prefix${e}` in dependencyValues; e++) {
+                    entryListPrefixes.push(dependencyValues[`prefix${e}`]);
+                }
+                return { setValue: { entryListPrefixes } };
+            },
+        };
+
+        // Whether the entries of each of those lists take a write, read only
+        // when a value is written, apart from what the values depend on, as
+        // it may read the values (`<numberList fixed="$r[1]=1">`). As a
+        // reference to an entry (`ValueRef`), which reads its list's
+        // `modifyIndirectly` too, so that a write the template can take
+        // elsewhere goes there.
+        stateVariableDefinitions.entryListsCanBeModified = {
+            stateVariablesDeterminingDependencies: ["templateAnalysis"],
+            returnDependencies({ stateValues }) {
+                const dependencies = {};
+                for (const [
+                    e,
+                    componentIdx,
+                ] of stateValues.templateAnalysis.entryLists.entries()) {
                     dependencies[`canBeModified${e}`] = {
                         dependencyType: "stateVariable",
                         componentIdx,
@@ -281,22 +307,35 @@ export default class RepeatValueList extends ValueListComponent {
                 return dependencies;
             },
             definition({ dependencyValues }) {
-                const entryListPrefixes = [];
                 const entryListsCanBeModified = [];
-                for (let e = 0; `prefix${e}` in dependencyValues; e++) {
-                    entryListPrefixes.push(dependencyValues[`prefix${e}`]);
-                    // As a reference to an entry (`ValueRef`), which reads
-                    // its list's `modifyIndirectly` too, so that a write the
-                    // template can take elsewhere goes there.
+                for (let e = 0; `canBeModified${e}` in dependencyValues; e++) {
                     entryListsCanBeModified.push(
                         (dependencyValues[`canBeModified${e}`] ?? false) &&
                             dependencyValues[`modifyIndirectly${e}`] !== false,
                     );
                 }
-                return {
-                    setValue: { entryListPrefixes, entryListsCanBeModified },
-                };
+                return { setValue: { entryListsCanBeModified } };
             },
+        };
+
+        // Whether each value the template reads at every index takes a write.
+        stateVariableDefinitions.constantsCanBeModified = {
+            returnDependencies: () => ({
+                constants: {
+                    dependencyType: "child",
+                    childGroups: ["constants"],
+                    variableNames: ["canBeModified"],
+                    variablesOptional: true,
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    constantsCanBeModified: dependencyValues.constants.map(
+                        (constant) =>
+                            constant.stateValues.canBeModified === true,
+                    ),
+                },
+            }),
         };
 
         // An entry takes a write when the template does, as the iteration's
@@ -374,19 +413,15 @@ export default class RepeatValueList extends ValueListComponent {
                         dependencyType: "stateVariable",
                         variableName: "templateAnalysis",
                     },
+                    // What decides whether a write is taken is read only
+                    // when one is (`writability`), so the values do not
+                    // depend on it, which may itself read the values
+                    // (`<p fixLocation="$r[1]=1">` around the repeat).
                     constants: {
                         dependencyType: "child",
                         childGroups: ["constants"],
-                        variableNames: ["value", "canBeModified"],
+                        variableNames: ["value"],
                         variablesOptional: true,
-                    },
-                    entryListsCanBeModified: {
-                        dependencyType: "stateVariable",
-                        variableName: "entryListsCanBeModified",
-                    },
-                    fixLocation: {
-                        dependencyType: "stateVariable",
-                        variableName: "fixLocation",
                     },
                     ...settingsDependencies,
                 };
@@ -443,6 +478,13 @@ export default class RepeatValueList extends ValueListComponent {
                 if (await stateValues.entriesFixed) {
                     return { success: false };
                 }
+                const writability = {
+                    entryListsCanBeModified:
+                        await stateValues.entryListsCanBeModified,
+                    constantsCanBeModified:
+                        await stateValues.constantsCanBeModified,
+                    fixLocation: await stateValues.fixLocation,
+                };
                 const instructions = [];
                 for (const arrayKey in desiredStateVariableValues[arrayName]) {
                     const dependencyValues = dependencyValuesByKey[arrayKey];
@@ -453,6 +495,7 @@ export default class RepeatValueList extends ValueListComponent {
                         ...templateContext({
                             globalDependencyValues,
                             dependencyValues,
+                            writability,
                         }),
                         desiredValue: entryValueOfType(
                             desiredStateVariableValues[arrayName][arrayKey],
@@ -577,9 +620,15 @@ export default class RepeatValueList extends ValueListComponent {
 
 /**
  * The template's settings, the text of its components as written to one
- * entry, and the values of its codes at that entry's index.
+ * entry, and the values of its codes at that entry's index. `writability`,
+ * read only when a value is written, says which codes take a write and
+ * whether the list is under `fixLocation`.
  */
-function templateContext({ globalDependencyValues, dependencyValues }) {
+function templateContext({
+    globalDependencyValues,
+    dependencyValues,
+    writability,
+}) {
     const constants = globalDependencyValues.constants;
     return {
         analysis: globalDependencyValues.templateAnalysis,
@@ -588,14 +637,14 @@ function templateContext({ globalDependencyValues, dependencyValues }) {
             expand: globalDependencyValues.expand,
         },
         texts: dependencyValues.write ?? undefined,
-        fixLocation: globalDependencyValues.fixLocation,
+        fixLocation: writability?.fixLocation ?? false,
         codeValue: (code) =>
             code.entry !== undefined
                 ? dependencyValues[`entry${code.entry}`]
                 : constants[code.constant]?.stateValues.value,
         codeCanBeModified: (code) =>
             code.entry !== undefined
-                ? globalDependencyValues.entryListsCanBeModified[code.entry]
-                : constants[code.constant]?.stateValues.canBeModified === true,
+                ? writability?.entryListsCanBeModified[code.entry] === true
+                : writability?.constantsCanBeModified[code.constant] === true,
     };
 }

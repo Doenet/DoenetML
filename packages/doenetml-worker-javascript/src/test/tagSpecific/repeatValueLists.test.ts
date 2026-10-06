@@ -365,6 +365,31 @@ describe("Repeats whose template is one value @group4", () => {
         });
     });
 
+    it("what decides a write may read the list's own values", async () => {
+        await compare({
+            doenetML: `
+<numberList name="l" fixed="$r3[1]=1">1 2 3</numberList>
+<math name="c" fixed="$r2[1]=6">5</math>
+<p name="p" fixLocation="$r[1]=1"><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></p>
+<p name="p2"><repeatForSequence name="r2" from="1" to="2" valueName="v"><math>$v + $c</math></repeatForSequence></p>
+<p name="p3"><repeatForSequence name="r3" from="1" to="3" indexName="i"><number>$l[$i]</number></repeatForSequence></p>
+`,
+            names: ["p", "p2", "p3"],
+        });
+    });
+
+    it("a template that reads no value repeats over letters or any list", async () => {
+        const texts = await compare({
+            doenetML: `
+<textList name="tl">a b c</textList>
+<p name="p"><repeatForSequence name="r" type="letters" length="3"><number>7</number></repeatForSequence></p>
+<p name="p2"><repeat name="r2" for="$tl" indexName="i"><number>$i^2</number></repeat></p>
+`,
+            names: ["p", "p2"],
+        });
+        expect(texts).toEqual({ p: "7, 7, 7", p2: "1, 4, 9" });
+    });
+
     it("a list read with modifyIndirectly false takes no write, so the other value does", async () => {
         const texts = await compare({
             doenetML: `
@@ -593,6 +618,9 @@ describe("Repeats whose template is one value @group4", () => {
             `<p name="p"><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></p><p name="q" extend="$p" /><graph>$q.r</graph>`,
             `<section name="sec"><p name="p"><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></p></section><section name="s2" extend="$sec"><graph>$s2.p</graph></section>`,
             `<repeatForSequence name="outer" from="1" to="2"><group name="gg"><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></group></repeatForSequence><graph>$outer[1].gg</graph>`,
+            // a whole child of what holds it, named by an index
+            `<repeatForSequence name="outer" from="1" to="2"><group name="gg"><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></group></repeatForSequence><graph>$outer[1]</graph>`,
+            `<group name="gg"><group><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></group></group><group name="q" extend="$gg" /><graph>$q[1]</graph>`,
             // copied
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence><math copy="$r[1]" />`,
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence><repeatForSequence copy="$r" />`,
