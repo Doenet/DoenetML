@@ -227,24 +227,6 @@ export default class Repeat extends CompositeComponent {
             },
         };
 
-        // How many iterations the repeat has made, with the ones it withholds
-        // while it has fewer items: the entries the lists of its values and
-        // indices hold (`RepeatIterationLists.js`), so that a withheld
-        // iteration keeps reading its own while it waits to be shown again.
-        stateVariableDefinitions.numIterationsMade = {
-            returnDependencies: () => ({
-                iterations: {
-                    dependencyType: "replacement",
-                    includeWithheldReplacements: true,
-                },
-            }),
-            definition: ({ dependencyValues }) => ({
-                setValue: {
-                    numIterationsMade: dependencyValues.iterations.length,
-                },
-            }),
-        };
-
         stateVariableDefinitions.readyToExpandWhenResolved = {
             returnDependencies: () => ({
                 numIterates: {

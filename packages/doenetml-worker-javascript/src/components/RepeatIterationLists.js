@@ -2,8 +2,8 @@ import ValueListComponent from "./abstract/ValueListComponent";
 import { sequenceEntryComponentType } from "../utils/sequence";
 
 /**
- * The values of the iterations a `<repeatForSequence>` has made
- * (`iterationValues`), held once for the whole repeat. Part of
+ * The values of the iterations a `<repeatForSequence>` shows (`forValues`),
+ * held once for the whole repeat. Part of
  * Doenet/DoenetML#2128 (the iteration scaffold).
  *
  * The repeat's `valueName` (`$v`) is the entry of this list for the
@@ -45,14 +45,14 @@ export class RepeatValues extends ValueListComponent {
 
         stateVariableDefinitions.repeatValues = {
             returnDependencies: () => ({
-                iterationValues: {
+                forValues: {
                     dependencyType: "parentStateVariable",
-                    variableName: "iterationValues",
+                    variableName: "forValues",
                 },
             }),
             definition: ({ dependencyValues }) => ({
                 setValue: {
-                    repeatValues: dependencyValues.iterationValues ?? [],
+                    repeatValues: dependencyValues.forValues ?? [],
                 },
             }),
         };
@@ -63,12 +63,15 @@ export class RepeatValues extends ValueListComponent {
 
 /**
  * The indices of a `<repeat>` or `<repeatForSequence>`, 1 to the number of
- * iterations it has made (`numIterationsMade`, with the ones it withholds),
- * held once for the whole repeat: the repeat's `indexName`
- * (`$i`) is the entry of this list for the iteration it is read in, as
- * `RepeatValues` is for `valueName`. The pass that makes value references
- * turns the `integer` the repeat's sugar made for `indexName` into this list;
- * its entries are integers (`listEntryComponentType`) and fixed.
+ * iterations it shows (`numIterates`), held once for the whole repeat: the
+ * repeat's `indexName` (`$i`) is the entry of this list for the iteration it
+ * is read in, as `RepeatValues` is for `valueName`. The pass that makes value
+ * references turns the `integer` the repeat's sugar made for `indexName` into
+ * this list; its entries are integers (`listEntryComponentType`) and fixed.
+ *
+ * Neither list holds an entry for an iteration the repeat withholds while it
+ * has fewer items. Such an iteration reads nothing until it is shown again,
+ * as the components it read before did.
  */
 export class RepeatIndices extends ValueListComponent {
     static componentType = "_repeatIndices";
@@ -83,17 +86,15 @@ export class RepeatIndices extends ValueListComponent {
 
         stateVariableDefinitions.repeatIndices = {
             returnDependencies: () => ({
-                numIterationsMade: {
+                numIterates: {
                     dependencyType: "parentStateVariable",
-                    variableName: "numIterationsMade",
+                    variableName: "numIterates",
                 },
             }),
             definition: ({ dependencyValues }) => ({
                 setValue: {
                     repeatIndices: [
-                        ...Array(
-                            dependencyValues.numIterationsMade ?? 0,
-                        ).keys(),
+                        ...Array(dependencyValues.numIterates ?? 0).keys(),
                     ].map((ind) => ind + 1),
                 },
             }),
