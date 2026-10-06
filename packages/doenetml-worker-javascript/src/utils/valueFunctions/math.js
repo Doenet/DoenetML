@@ -458,8 +458,8 @@ export function mathInverseAnalysis({
 /**
  * What to write so that the value becomes `desiredValue`, which has been
  * preprocessed (`preprocessMathInverseDefinition`). The caller has checked
- * that the value can be modified, and handled the case of a single math child
- * and no strings.
+ * that the value can be modified (unless it is overriding `fixed`), and
+ * handled the case of a single math child and no strings.
  *
  * Returns `{success: false}`, or `{success: true}` with any of
  * - `childValues`: a desired value for each math child to write, by index;

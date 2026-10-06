@@ -148,7 +148,8 @@ function isNumberOrComplex(number) {
  * each code replaced by the value of its child, evaluated, ignoring units if
  * it has none otherwise. `null` if that is not a number, in which case
  * `<number>` gives `valueOnNaN` or, with `convertBoolean`, evaluates the
- * expression as logic.
+ * expression as logic. If evaluating throws, `valueOnNaN` when that is a
+ * number, else `null`.
  *
  * @param {object} args
  * @param {any} args.parsedExpression
