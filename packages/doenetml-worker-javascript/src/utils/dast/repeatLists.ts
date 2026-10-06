@@ -143,10 +143,27 @@ export function convertRepeatsToLists({
 
     // Every reference of the document, with whether a reference attribute
     // names it (`createReferences`), as a trigger or a `<ref>`'s `to` does.
-    const references: { component: SerializedComponent; named: boolean }[] = [];
-    forEachReference(serializedComponents, (component, named) =>
-        references.push({ component, named }),
-    );
+    // Each is kept under the component it reads, and under each name
+    // written after the first part of its path (`$a[2].m`), so that a
+    // repeat looks at the references that can reach it, not at all of them.
+    // A plan carried out changes references only to read a list in place of
+    // a repeat's value, or to drop a name, so what a repeat looks up here
+    // holds every reference that can reach it.
+    type Reference = { component: SerializedComponent; named: boolean };
+    const referencesByTarget = new Map<number, Reference[]>();
+    const referencesByPathName = new Map<string, Reference[]>();
+    forEachReference(serializedComponents, (component, named) => {
+        const reference = { component, named };
+        const refResolution = unwrapSource(
+            component.extending!,
+        ) as SerializedRefResolution;
+        addTo(referencesByTarget, refResolution.nodeIdx, reference);
+        for (const part of new Set(
+            refResolution.originalPath.slice(1).map((part) => part.name),
+        )) {
+            addTo(referencesByPathName, part, reference);
+        }
+    });
 
     for (const repeat of repeats) {
         const plan = planRepeat(repeat);
@@ -257,7 +274,10 @@ export function convertRepeatsToLists({
 
         // References to the repeat, or into the template, from elsewhere.
         const rewrites: SerializedRefResolution[] = [];
-        for (const { component, named } of references) {
+        for (const { component, named } of [
+            repeat.componentIdx,
+            ...nodes.keys(),
+        ].flatMap((idx) => referencesByTarget.get(idx) ?? [])) {
             if (nodes.has(component.componentIdx) || isInside(component)) {
                 continue;
             }
@@ -298,7 +318,8 @@ export function convertRepeatsToLists({
         // The template's name, reached another way, as through an outer
         // repeat (`$a[2][1][3].c`), names a component the list does not have.
         if (topName !== undefined) {
-            for (const { component } of references) {
+            for (const { component } of referencesByPathName.get(topName) ??
+                []) {
                 const refResolution = unwrapSource(
                     component.extending!,
                 ) as SerializedRefResolution;
@@ -627,6 +648,15 @@ export function convertRepeatsToLists({
             parent = parentByIdx.get(parent.componentIdx);
         }
         return false;
+    }
+}
+
+function addTo<K, V>(map: Map<K, V[]>, key: K, value: V) {
+    const values = map.get(key);
+    if (values) {
+        values.push(value);
+    } else {
+        map.set(key, [value]);
     }
 }
 
