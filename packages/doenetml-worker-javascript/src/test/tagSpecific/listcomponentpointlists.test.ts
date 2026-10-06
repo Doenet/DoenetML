@@ -1040,4 +1040,97 @@ describe("Point and vector lists as list components @group4", async () => {
             ppl2: pQ,
         });
     });
+
+    it("points and vectors of lists sort and are found by a coordinate, as points and vectors are", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pointList name="pl">(3,1) (1,2) (2,0)</pointList>
+    <vectorList name="vl">
+      <vector tail="(5,6)" head="(7,9)"/>
+      <vector tail="(1,1)" head="(2,0)"/>
+      <vector tail="(3,0)" head="(3,5)"/>
+    </vectorList>
+    <p name="byX"><sort>$pl</sort></p>
+    <p name="byY"><sort sortByComponent="2">$pl</sort></p>
+    <p name="byProp"><sort sortByProp="y">$pl</sort></p>
+    <p name="mixed"><sort>$pl (0,5) <point>(2.5, 1)</point></sort></p>
+    <p name="indices"><sortIndices>$pl</sortIndices></p>
+    <p name="vByDisplacement"><sort>$vl</sort></p>
+    <p name="vByTail"><sort sortVectorsBy="tail">$vl</sort></p>
+    <p name="vByTailY"><sort sortVectorsBy="tail" sortByComponent="2">$vl</sort></p>
+    <p name="index"><indexOf target="2">$pl</indexOf></p>
+    <p name="searched"><searchSorted target="2"><sort>$pl</sort></searchSorted></p>
+    `,
+        });
+
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "byX",
+                "byY",
+                "byProp",
+                "mixed",
+                "indices",
+                "vByDisplacement",
+                "vByTail",
+                "vByTailY",
+                "index",
+                "searched",
+            ]),
+        ).eqls({
+            byX: "(1, 2), (2, 0), (3, 1)",
+            byY: "(2, 0), (3, 1), (1, 2)",
+            byProp: "(2, 0), (3, 1), (1, 2)",
+            mixed: "(1, 2), (2, 0), (2.5, 1), (3, 1)",
+            indices: "2, 3, 1",
+            vByDisplacement: "(0, 5), (1, -1), (2, 3)",
+            vByTail: "(1, -1), (0, 5), (2, 3)",
+            vByTailY: "(0, 5), (1, -1), (2, 3)",
+            index: "3",
+            searched: "2",
+        });
+    });
+
+    it("an entry of a vector list has a vector's displacement, magnitude, and head and tail coordinates", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <vectorList name="vl">(3,4) <vector tail="(1,1)" head="(4,5)"/> (a,b)</vectorList>
+    <p name="displacement">$vl[2].displacement</p>
+    <p name="displacements">$vl.displacement</p>
+    <p name="magnitudes">$vl.magnitude</p>
+    <p name="heads">$vl[2].headX1 $vl[2].head[2] $vl.headX1</p>
+    <p name="tails">$vl[2].tailX1 $vl[2].tail[2] $vl.tailX2</p>
+    <p name="past">$vl[2].headX3</p>
+    <mathInput name="mi" bindValueTo="$vl[1].displacement"/>
+    <p name="list">$vl</p>
+    `,
+        });
+
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "displacement",
+                "displacements",
+                "magnitudes",
+                "heads",
+                "tails",
+                "past",
+            ]),
+        ).eqls({
+            displacement: "(3, 4)",
+            displacements: "(3, 4), (3, 4), (a, b)",
+            magnitudes: "5, 5, sqrt(a² + b²)",
+            heads: "4 5 3, 4, a",
+            tails: "1 1 0, 1, 0",
+            past: "＿",
+        });
+
+        // a displacement written through the entry is the entry's
+        await updateMathInputValue({
+            latex: "(7,8)",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        expect(await textsOf(core, resolvePathToNodeIdx, ["list"])).eqls({
+            list: "(7, 8), (3, 4), (a, b)",
+        });
+    });
 });

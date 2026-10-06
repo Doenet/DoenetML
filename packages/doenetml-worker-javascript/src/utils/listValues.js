@@ -288,9 +288,14 @@ export function returnListValueStateVariableDefinitions({
     stateVariableDefinitions.listValues = {
         additionalStateVariablesDefined: ["allAreNumeric"],
         stateVariablesDeterminingDependencies: supportProps
-            ? ["componentIndicesForValues", "sortByComponent", "propName"]
+            ? [
+                  "componentIndicesForValues",
+                  "sortByComponent",
+                  "sortVectorsBy",
+                  "propName",
+              ]
             : ["componentIndicesForValues"],
-        returnDependencies({ stateValues }) {
+        returnDependencies({ stateValues, componentInfoObjects }) {
             let dependencies = {
                 componentIndicesForValues: {
                     dependencyType: "stateVariable",
@@ -333,21 +338,8 @@ export function returnListValueStateVariableDefinitions({
                     if (typeof cIdx === "object") {
                         // The property of an entry of a list component, read
                         // as `$l[2].prop` reads it.
-                        dependencies[`component${ind}`] = {
-                            dependencyType: "stateVariableFromUnresolvedPath",
-                            componentIdx: cIdx.componentIdx,
-                            unresolvedPath: [
-                                {
-                                    name: "",
-                                    index: [{ value: [`${cIdx.listInd + 1}`] }],
-                                },
-                                { name: stateValues.propName, index: [] },
-                            ],
-                            variablesOptional: true,
-                            caseInsensitiveVariableMatch: true,
-                            publicStateVariablesOnly: true,
-                            returnAsComponentObject: true,
-                        };
+                        dependencies[`component${ind}`] =
+                            entryPropertyDependency(cIdx, stateValues.propName);
                         continue;
                     }
                     dependencies[`component${ind}`] = {
@@ -369,6 +361,20 @@ export function returnListValueStateVariableDefinitions({
                     cIdx,
                 ] of stateValues.componentIndicesForValues.entries()) {
                     if (typeof cIdx === "object") {
+                        // A point or vector entry is compared by the
+                        // coordinate a point or vector is (`$l[2].x1`).
+                        const coordinateName = entryCoordinateName({
+                            componentType: cIdx.componentType,
+                            componentInfoObjects,
+                            sortVectorsBy: supportProps
+                                ? stateValues.sortVectorsBy
+                                : undefined,
+                            sortByComponent,
+                        });
+                        if (coordinateName !== undefined) {
+                            dependencies[`component${ind}`] =
+                                entryPropertyDependency(cIdx, coordinateName);
+                        }
                         continue;
                     }
                     dependencies[`component${ind}`] = {
@@ -394,7 +400,32 @@ export function returnListValueStateVariableDefinitions({
             for (let ind = 0; ind < numValues; ind++) {
                 const item = dependencyValues.componentIndicesForValues[ind];
                 let component = dependencyValues[`component${ind}`];
-                if (typeof item === "object" && !dependencyValues.propName) {
+                if (
+                    typeof item === "object" &&
+                    !dependencyValues.propName &&
+                    component
+                ) {
+                    // A point or vector entry, which compares by the
+                    // coordinate read for it, as a point or vector does.
+                    const coordinateName = entryCoordinateName({
+                        componentType: item.componentType,
+                        componentInfoObjects,
+                        sortVectorsBy: dependencyValues.sortVectorsBy,
+                        sortByComponent: dependencyValues.sortByComponent,
+                    });
+                    component = {
+                        componentIdx: item.componentIdx,
+                        componentType: item.componentType,
+                        stateValues: {
+                            [coordinateName]: Object.values(
+                                component.stateValues,
+                            )[0],
+                        },
+                    };
+                } else if (
+                    typeof item === "object" &&
+                    !dependencyValues.propName
+                ) {
                     // An entry of a list component, which compares as a
                     // component of its type holding its value does.
                     const values =
@@ -449,6 +480,55 @@ export function returnListValueStateVariableDefinitions({
     };
 
     return stateVariableDefinitions;
+}
+
+/**
+ * A dependency on property `name` of the entry `item` of a list component
+ * (`{ componentIdx, listInd }`), read as `$l[2].name` reads it.
+ */
+function entryPropertyDependency(item, name) {
+    return {
+        dependencyType: "stateVariableFromUnresolvedPath",
+        componentIdx: item.componentIdx,
+        unresolvedPath: [
+            {
+                name: "",
+                index: [{ value: [`${item.listInd + 1}`] }],
+            },
+            { name, index: [] },
+        ],
+        variablesOptional: true,
+        caseInsensitiveVariableMatch: true,
+        publicStateVariablesOnly: true,
+        returnAsComponentObject: true,
+    };
+}
+
+/**
+ * The coordinate a point or vector of `componentType` is compared by
+ * (`x1`, or `tailX1` for a vector with `sortVectorsBy="tail"`), as
+ * `extractComparableValue` reads it; `undefined` for another type.
+ */
+function entryCoordinateName({
+    componentType,
+    componentInfoObjects,
+    sortVectorsBy = "displacement",
+    sortByComponent = 1,
+}) {
+    const isVector = componentInfoObjects.isInheritedComponentType({
+        inheritedComponentType: componentType,
+        baseComponentType: "vector",
+    });
+    const isPoint = componentInfoObjects.isInheritedComponentType({
+        inheritedComponentType: componentType,
+        baseComponentType: "point",
+    });
+    if (!isPoint && !isVector) {
+        return undefined;
+    }
+    return isVector && sortVectorsBy !== "displacement"
+        ? `tailX${sortByComponent}`
+        : `x${sortByComponent}`;
 }
 
 /**

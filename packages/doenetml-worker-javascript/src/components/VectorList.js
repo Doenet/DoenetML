@@ -95,16 +95,38 @@ export default class VectorList extends GraphicalValueList {
         ];
     }
 
-    // An entry's displacement as coordinates (`$vl[2].displacement`).
+    // An entry's displacement (`$vl[2].displacement`), shown as a vector's
+    // is, and its magnitude, as a vector's.
     static get listEntryDerivedProperties() {
         return {
             ...super.listEntryDerivedProperties,
             displacement: {
                 from: "value",
-                componentType: "mathList",
-                compute: coordinatesOf,
+                componentType: "math",
+                companionsOf: "displacement",
+                compute: (value) => value,
+                invert: (value) => value,
+            },
+            magnitude: {
+                from: "value",
+                componentType: "math",
+                compute: magnitudeOf,
             },
         };
+    }
+
+    // A coordinate of an entry's head or tail (`$vl[2].headX1`,
+    // `$vl[2].tail[2]`), as a vector's, besides the properties listed.
+    static derivedEntryProperty(name) {
+        const derived = super.derivedEntryProperty(name);
+        if (derived !== undefined) {
+            return derived;
+        }
+        const match = /^(head|tail)X([1-9]\d*)$/.exec(name);
+        if (match) {
+            return endpointCoordinateProperty(match[1], Number(match[2]));
+        }
+        return undefined;
     }
 
     async serialize(parameters = {}) {
@@ -846,4 +868,42 @@ function nearestPointOfSegment(endpoints, numDimensions) {
         }
         return result;
     };
+}
+
+/**
+ * The magnitude of `displacement`, the math of a vector's displacement, as a
+ * `<vector>` computes it: a number when every coordinate is one, otherwise
+ * the square root of the sum of the squares.
+ */
+function magnitudeOf(displacement) {
+    const coordinates = coordinatesOf(displacement);
+    const numbers = coordinates.map((x) => x.evaluate_to_constant());
+    if (numbers.every(Number.isFinite)) {
+        return me.fromAst(Math.sqrt(numbers.reduce((a, x) => a + x * x, 0)));
+    }
+    return me.fromAst([
+        "apply",
+        "sqrt",
+        ["+", ...coordinates.map((x) => ["^", x.tree, 2])],
+    ]);
+}
+
+const endpointCoordinateProperties = new Map();
+
+/**
+ * The entry property that is coordinate `n` of an entry's head or tail
+ * (`endpoint`), computed from the entry's head or tail: `＿` past the
+ * entries' dimensions, as `x3` of an entry is.
+ */
+function endpointCoordinateProperty(endpoint, n) {
+    const key = `${endpoint}X${n}`;
+    if (!endpointCoordinateProperties.has(key)) {
+        endpointCoordinateProperties.set(key, {
+            from: endpoint,
+            componentType: "math",
+            compute: (value) =>
+                coordinatesOf(value)[n - 1] ?? me.fromAst("\uff3f"),
+        });
+    }
+    return endpointCoordinateProperties.get(key);
 }

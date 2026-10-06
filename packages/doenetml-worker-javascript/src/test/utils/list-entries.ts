@@ -1,5 +1,6 @@
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { ResolvePathToNodeIdx } from "./test-core";
+import { coordinatesOf } from "../../components/abstract/GraphicalValueList";
 
 /**
  * Reading the entries of a list component (`listEntryComponentType`;
@@ -61,6 +62,14 @@ export function listEntryRecord(
         if (!(name in stateValues) && from !== undefined && from !== null) {
             stateValues[name] = derived.compute(from);
         }
+    }
+    // A vector's `displacement` is the array of its coordinates, as a
+    // `<vector>` holds it.
+    if (
+        listClass.listEntryComponentType === "vector" &&
+        stateValues.displacement?.tree !== undefined
+    ) {
+        stateValues.displacement = coordinatesOf(stateValues.displacement);
     }
     if (Array.isArray(stateValues.xs)) {
         for (const [ind, x] of stateValues.xs.entries()) {
