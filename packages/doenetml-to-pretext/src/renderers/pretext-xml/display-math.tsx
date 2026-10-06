@@ -37,8 +37,8 @@ function singleEquation(latex: string, numbered: boolean) {
  * their `\amp`s only when each is its own `<mrow>`; a single run of rows separated by
  * `\\` has nothing to align them in, and every `\amp` is a "Misplaced &". PreTeXt numbers
  * the equations itself, so a row says only whether it is numbered (`mrow/@number`), and
- * the display as a whole what its rows default to (`md/@number`). Both are written out
- * whether numbered or not, since a PreTeXt document can number equations by default.
+ * the display as a whole what its rows default to (`md/@number`). The display's is written
+ * out whether numbered or not, since a PreTeXt document can number equations by default.
  */
 function displayMath(latex: string, numbered: boolean) {
     const rows = parseDisplayRows(latex);
