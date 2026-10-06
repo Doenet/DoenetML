@@ -1,10 +1,10 @@
 import InlineComponent from "./abstract/InlineComponent";
 import {
-    evaluateLogic,
     buildParsedExpression,
     returnChildrenByCodeStateVariableDefinitions,
 } from "../utils/booleanLogic";
 import { returnSimplifyExpandOnCompareWarning } from "../utils/answer";
+import { booleanValueFromCodes } from "../utils/valueFunctions/boolean";
 import { booleanFromWord, booleanWord } from "../utils/booleanWords";
 import {
     contentTranslator,
@@ -334,27 +334,17 @@ export default class BooleanComponent extends InlineComponent {
                             value: true,
                         },
                     };
-                } else if (dependencyValues.parsedExpression === null) {
-                    // if don't have parsed expression
-                    // (which could occur if have invalid form)
-                    // return false
-                    return {
-                        setValue: { value: false },
-                    };
                 }
 
-                // evaluate logic in parsedExpression
-
-                let canOverrideUnorderedCompare = usedDefault.unorderedCompare;
-
-                let fractionSatisfied = evaluateLogic({
-                    logicTree: dependencyValues.parsedExpression.tree,
-                    canOverrideUnorderedCompare,
-                    dependencyValues,
-                });
-
                 return {
-                    setValue: { value: fractionSatisfied === 1 },
+                    setValue: {
+                        value: booleanValueFromCodes({
+                            parsedExpression: dependencyValues.parsedExpression,
+                            childrenAndSettings: dependencyValues,
+                            canOverrideUnorderedCompare:
+                                usedDefault.unorderedCompare,
+                        }),
+                    },
                 };
             },
             inverseDefinition: function ({
