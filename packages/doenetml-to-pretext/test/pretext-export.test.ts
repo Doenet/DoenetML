@@ -866,6 +866,12 @@ describe("Pretext export", async () => {
             `"<p>First: Which? <ol><li>◯ A</li><li>◯ B</li></ol></p>"`,
         );
 
+        // A list item holds blocks of its own, even in a list inside a paragraph.
+        source = `<p>Questions: <ol><li>Which? <choiceInput><label>L</label><choice>A</choice><choice>B</choice></choiceInput></li></ol></p>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<p>Which?</p><p>L </p><ol><li>◯ A</li><li>◯ B</li></ol>`,
+        );
+
         // A label it inherits from its answer is printed once, by the answer.
         source = `<p><answer><label>Pick</label><choiceInput><choice>A</choice><choice>B</choice></choiceInput></answer></p>`;
         const exported = await coreRunner.processToFlatDastAsFragment(source);
