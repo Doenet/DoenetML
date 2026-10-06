@@ -210,6 +210,11 @@ export function evaluateRepeatTemplate({
         return NaN;
     }
     const value = valueOf(node.codes[0]);
+    if (value === undefined || value === null) {
+        // what it reads is missing, as an entry past the end of a list
+        // (`$l[$i]`), which the component reads as no number
+        return NaN;
+    }
     if (!(value instanceof me.class)) {
         return plainComplex(value);
     }

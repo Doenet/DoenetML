@@ -645,7 +645,8 @@ export function convertRepeatsToLists({
     /**
      * Whether the repeat, or a component holding it, is referenced, copied or
      * extended from inside a `<graph>` (`$r`, or `<group extend="$g"/>` of a
-     * `<group name="g">` around it), following copies of those copies:
+     * `<group name="g">` around it), or copied or extended as one
+     * (`<graph extend="$g"/>`), following copies of those copies:
      * where each iteration's component would be drawn and dragged at an
      * anchor of its own, which an entry of the list has none of.
      */
@@ -670,7 +671,7 @@ export function convertRepeatsToLists({
         for (let i = 0; i < containers.length; i++) {
             for (const { component } of referencesByTarget.get(containers[i]) ??
                 []) {
-                if (inGraph(component)) {
+                if (inGraph(component) || makesGraph(component)) {
                     return true;
                 }
                 addWithAncestors(component.componentIdx);
@@ -681,6 +682,28 @@ export function convertRepeatsToLists({
             }
         }
         return false;
+    }
+
+    /**
+     * Whether `component` is an `extend` or `copy` that makes a `<graph>`
+     * (`<graph extend="$g"/>`), whose copies are drawn in it.
+     */
+    function makesGraph(component: SerializedComponent) {
+        const created = component.attributes.createComponentOfType;
+        if (created?.type !== "primitive") {
+            return false;
+        }
+        const type =
+            componentInfoObjects.componentTypeLowerCaseMapping[
+                String(created.primitive.value).toLowerCase()
+            ];
+        return (
+            type !== undefined &&
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: type,
+                baseComponentType: "graph",
+            })
+        );
     }
 
     /** Whether `component` is inside a `<graph>`. */

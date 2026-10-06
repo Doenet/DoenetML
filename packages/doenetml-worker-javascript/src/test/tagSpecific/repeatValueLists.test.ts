@@ -113,8 +113,9 @@ describe("Repeats whose template is one value @group4", () => {
 <numberList name="l">10 20</numberList>
 <p name="p"><repeatForSequence name="r" from="1" to="3" indexName="i"><math>$l[$i] + 1</math></repeatForSequence></p>
 <p name="pn"><repeatForSequence name="rn" from="1" to="3" indexName="i"><number>$l[$i] + 1</number></repeatForSequence></p>
+<p name="pd"><repeatForSequence name="rd" from="1" to="3" indexName="i"><number>$l[$i]</number></repeatForSequence></p>
 `,
-            names: ["p", "pn"],
+            names: ["p", "pn", "pd"],
         });
     });
 
@@ -474,6 +475,7 @@ describe("Repeats whose template is one value @group4", () => {
             `<group name="g"><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></group><graph><group extend="$g" /></graph>`,
             `<group name="g"><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></group><group extend="$g" name="g2" /><graph>$g2</graph>`,
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence><graph>$r</graph>`,
+            `<group name="g"><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></group><graph extend="$g" />`,
             // copied
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence><math copy="$r[1]" />`,
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence><repeatForSequence copy="$r" />`,
