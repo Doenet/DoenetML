@@ -1090,6 +1090,9 @@ describe("Sort tag tests @group4", async () => {
             ),
         ).eq(true);
     });
+    // A composite's replacements. A `<sort>` of points or values of one type
+    // is a list (`listcomponentcollections.test.ts`); `hide="false"`, which
+    // changes nothing, keeps it a composite.
     describe("reordering reuses the replacements", async () => {
         async function replacementIndices(
             core: PublicDoenetMLCore,
@@ -1440,7 +1443,7 @@ describe("Sort tag tests @group4", async () => {
       <point name="D">(200,0)</point>
       <point name="E">(300,0)</point>
     </graph>
-    <sort name="s">$A $B $C $D $E</sort>
+    <sort name="s" hide="false">$A $B $C $D $E</sort>
     <p name="pList">$s</p>
     <p name="pProp">$s.x</p>
   `,
@@ -1668,7 +1671,7 @@ describe("Sort tag tests @group4", async () => {
       <point name="E">(200,0)</point>
       <point name="F">(300,0)</point>
     </graph>
-    <graph name="g2"><sort name="s">$A $B $C $D $E $F</sort></graph>
+    <graph name="g2"><sort name="s" hide="false">$A $B $C $D $E $F</sort></graph>
     <p name="pList">$s</p>
   `,
             });

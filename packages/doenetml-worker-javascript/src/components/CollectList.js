@@ -17,6 +17,14 @@ import MathList from "./MathList";
 import TextList from "./TextList";
 import BooleanList from "./BooleanList";
 import IntervalList from "./IntervalList";
+import PointList from "./PointList";
+import VectorList, { sumOf, writesToVector } from "./VectorList";
+import {
+    coordinatesOf,
+    coordinatesValue,
+    entryVariableName,
+    withNumDimensions,
+} from "./abstract/GraphicalValueList";
 
 /**
  * The lists, by the type collected, that the list form of `<collect>` is
@@ -28,6 +36,8 @@ export const COLLECT_LIST_BASES = {
     text: TextList,
     boolean: BooleanList,
     interval: IntervalList,
+    point: PointList,
+    vector: VectorList,
 };
 
 /**
@@ -577,9 +587,327 @@ function collectListClass(Base) {
                 },
             };
 
+            if (this.listEntryChildRendererVariables !== undefined) {
+                Object.assign(
+                    stateVariableDefinitions,
+                    returnCollectedGraphicalDefinitions(
+                        this,
+                        stateVariableDefinitions,
+                    ),
+                );
+            }
+
             return stateVariableDefinitions;
         }
     };
+}
+
+/**
+ * The definitions a list form of `<collect>` of points or vectors replaces
+ * those of `GraphicalValueList` with, which read the list's children, by
+ * reading the components it collects instead (`collectedSources`): the
+ * number of dimensions, the largest of theirs; the values, with that many
+ * coordinates each; each entry's source as the child its renderer is drawn
+ * as (`entryChildren`: label, style, `draggable`, `fixed`, `hide`, and the
+ * source a click or a drag of a vector goes to); and, for vectors, the tail
+ * and head of each (`entryChildEndpoints`), a write to which goes to the
+ * source as a drag of it does (`writesToVector`). An entry of a list
+ * collected is drawn as that list draws it, with its tail.
+ */
+function returnCollectedGraphicalDefinitions(listClass, definitions) {
+    const arrayName = listClass.listValuesArrayName;
+    const childRendererVariables = listClass.listEntryChildRendererVariables;
+    const isVector = listClass.listEntryComponentType === "vector";
+    const collected = {};
+
+    collected.numDimensions = {
+        ...definitions.numDimensions,
+        stateVariablesDeterminingDependencies: ["collectedSources"],
+        returnDependencies({ stateValues }) {
+            const dependencies = {};
+            for (const [
+                ind,
+                source,
+            ] of stateValues.collectedSources.entries()) {
+                dependencies[`source${ind}`] = {
+                    dependencyType: "stateVariable",
+                    componentIdx: source.componentIdx,
+                    variableName: "numDimensions",
+                    variablesOptional: true,
+                };
+            }
+            return dependencies;
+        },
+        definition({ dependencyValues }) {
+            let numDimensions = 0;
+            for (const n of Object.values(dependencyValues)) {
+                numDimensions = Math.max(
+                    numDimensions,
+                    Number.isFinite(n) ? n : 1,
+                );
+            }
+            return {
+                setValue: { numDimensions: numDimensions || 2 },
+                checkForActualChange: { numDimensions: true },
+            };
+        },
+    };
+
+    // Each value has the list's number of dimensions, as a point or vector
+    // list's does.
+    const values = definitions[arrayName];
+    collected[arrayName] = {
+        ...values,
+        returnArrayDependenciesByKey(args) {
+            const dependencies = values.returnArrayDependenciesByKey(args);
+            dependencies.globalDependencies = {
+                ...dependencies.globalDependencies,
+                numDimensions: {
+                    dependencyType: "stateVariable",
+                    variableName: "numDimensions",
+                },
+            };
+            return dependencies;
+        },
+        arrayDefinitionByKey(args) {
+            const result = values.arrayDefinitionByKey(args);
+            const entries = result.setValue[arrayName];
+            for (const arrayKey in entries) {
+                entries[arrayKey] = withNumDimensions(
+                    entries[arrayKey],
+                    args.globalDependencyValues.numDimensions,
+                );
+            }
+            return result;
+        },
+    };
+
+    collected.entryChildren = {
+        shadowVariable: true,
+        stateVariablesDeterminingDependencies: ["collectedSources"],
+        returnDependencies({ stateValues }) {
+            const dependencies = {
+                entryStructure: {
+                    dependencyType: "stateVariable",
+                    variableName: "entryStructure",
+                },
+                collectedSources: {
+                    dependencyType: "stateVariable",
+                    variableName: "collectedSources",
+                },
+            };
+            for (const [
+                ind,
+                source,
+            ] of stateValues.collectedSources.entries()) {
+                dependencies[`source${ind}`] = {
+                    dependencyType: "multipleStateVariables",
+                    componentIdx: source.componentIdx,
+                    variableNames:
+                        source.listInd === undefined
+                            ? [...childRendererVariables, "hide", "fixed"]
+                            : [
+                                  ...childRendererVariables.map(
+                                      entryVariableName,
+                                  ),
+                                  "entryFixed",
+                              ],
+                    variablesOptional: true,
+                };
+            }
+            return dependencies;
+        },
+        definition({ dependencyValues }) {
+            const { entryStructure, collectedSources } = dependencyValues;
+            const entryChildren = entryStructure.map(({ collectedInd }) => {
+                const source = collectedSources[collectedInd];
+                if (!source) {
+                    return null;
+                }
+                const sourceValues =
+                    dependencyValues[`source${collectedInd}`]?.stateValues ??
+                    {};
+                if (source.listInd === undefined) {
+                    return {
+                        componentIdx: source.componentIdx,
+                        stateValues: { ...sourceValues },
+                    };
+                }
+                // an entry of a list, as the list draws it
+                const stateValues = {};
+                for (const name of childRendererVariables) {
+                    const value =
+                        sourceValues[entryVariableName(name)]?.[source.listInd];
+                    if (value !== undefined) {
+                        stateValues[name] = value;
+                    }
+                }
+                stateValues.fixed = sourceValues.entryFixed?.[source.listInd];
+                return {
+                    componentIdx: source.componentIdx,
+                    listEntryIndex: source.listInd,
+                    stateValues,
+                };
+            });
+            return { setValue: { entryChildren } };
+        },
+    };
+
+    if (isVector) {
+        collected.entryChildEndpoints = {
+            shadowVariable: true,
+            stateVariablesDeterminingDependencies: ["collectedSources"],
+            returnDependencies({ stateValues }) {
+                const dependencies = {
+                    entryStructure: {
+                        dependencyType: "stateVariable",
+                        variableName: "entryStructure",
+                    },
+                    collectedSources: {
+                        dependencyType: "stateVariable",
+                        variableName: "collectedSources",
+                    },
+                };
+                for (const [
+                    ind,
+                    source,
+                ] of stateValues.collectedSources.entries()) {
+                    if (source.listInd === undefined) {
+                        dependencies[`source${ind}`] = {
+                            dependencyType: "multipleStateVariables",
+                            componentIdx: source.componentIdx,
+                            variableNames: [
+                                "tail",
+                                "head",
+                                "displacement",
+                                "basedOnHead",
+                                "basedOnTail",
+                                "basedOnDisplacement",
+                            ],
+                            variablesOptional: true,
+                        };
+                    } else {
+                        // the entry of a vector list: its tail and its
+                        // displacement
+                        dependencies[`tail${ind}`] = {
+                            dependencyType: "stateVariable",
+                            componentIdx: source.componentIdx,
+                            variableName: `entryTail${source.listInd + 1}`,
+                            variablesOptional: true,
+                        };
+                        dependencies[`displacement${ind}`] = {
+                            dependencyType: "stateVariable",
+                            componentIdx: source.componentIdx,
+                            variableName: source.entryVariable,
+                            variablesOptional: true,
+                        };
+                    }
+                }
+                return dependencies;
+            },
+            definition({ dependencyValues }) {
+                const { entryStructure, collectedSources } = dependencyValues;
+                const entryChildEndpoints = entryStructure.map(
+                    ({ collectedInd }) => {
+                        const source = collectedSources[collectedInd];
+                        if (!source) {
+                            return null;
+                        }
+                        if (source.listInd !== undefined) {
+                            const tail =
+                                dependencyValues[`tail${collectedInd}`];
+                            const displacement =
+                                dependencyValues[`displacement${collectedInd}`];
+                            if (tail == null || displacement == null) {
+                                return null;
+                            }
+                            return {
+                                tail: coordinatesValue(tail),
+                                head: sumOf(
+                                    coordinatesValue(tail),
+                                    coordinatesValue(displacement),
+                                ),
+                            };
+                        }
+                        const stateValues =
+                            dependencyValues[`source${collectedInd}`]
+                                ?.stateValues;
+                        if (stateValues?.tail === undefined) {
+                            return null;
+                        }
+                        return {
+                            tail: coordinatesValue(stateValues.tail),
+                            head: coordinatesValue(stateValues.head),
+                        };
+                    },
+                );
+                return { setValue: { entryChildEndpoints } };
+            },
+            // A tail or displacement written to an entry
+            // (`{ [index]: { tail, displacement } }`) is written to its
+            // source: a `<vector>` as `writesToVector` writes one, the entry
+            // of a vector list to its tail and its displacement.
+            inverseDefinition({
+                desiredStateVariableValues,
+                dependencyValues,
+                workspace,
+            }) {
+                if (!workspace.written) {
+                    workspace.written = {};
+                }
+                const instructions = [];
+                for (const [key, desired] of Object.entries(
+                    desiredStateVariableValues.entryChildEndpoints,
+                )) {
+                    const written = (workspace.written[key] = {
+                        ...workspace.written[key],
+                        ...desired,
+                    });
+                    const collectedInd =
+                        dependencyValues.entryStructure[Number(key)]
+                            ?.collectedInd;
+                    const source =
+                        dependencyValues.collectedSources[collectedInd];
+                    if (!source) {
+                        continue;
+                    }
+                    if (source.listInd !== undefined) {
+                        if (written.tail !== undefined) {
+                            instructions.push({
+                                setDependency: `tail${collectedInd}`,
+                                desiredValue: written.tail,
+                            });
+                        }
+                        if (written.displacement !== undefined) {
+                            instructions.push({
+                                setDependency: `displacement${collectedInd}`,
+                                desiredValue: written.displacement,
+                            });
+                        }
+                        continue;
+                    }
+                    const stateValues =
+                        dependencyValues[`source${collectedInd}`]?.stateValues;
+                    if (stateValues?.tail === undefined) {
+                        continue;
+                    }
+                    for (const [variableIndex, value] of writesToVector(
+                        written,
+                        stateValues,
+                    )) {
+                        instructions.push({
+                            setDependency: `source${collectedInd}`,
+                            desiredValue: coordinatesOf(value),
+                            variableIndex,
+                        });
+                    }
+                }
+                return { success: true, instructions };
+            },
+        };
+    }
+
+    return collected;
 }
 
 /**

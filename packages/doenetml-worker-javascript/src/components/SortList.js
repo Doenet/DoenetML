@@ -5,12 +5,15 @@ import {
 import { entryKind } from "./abstract/ValueListComponent";
 import { returnSortAttributes } from "./Sort";
 import { compareExtractedValues } from "../utils/listValues";
+import { coordinatesOf, coordinatesValue } from "./abstract/GraphicalValueList";
 
 /**
  * The list form of `<sort>` (`reorderedValueListClass`): the values of its
  * children, sorted as `<sort>` sorts them (`compareExtractedValues`), by
- * value when every value is a number and as text otherwise. Equal values
- * keep the order of the children.
+ * value when every value is a number and as text otherwise; points and
+ * vectors by one coordinate (`sortByComponent`), of a vector's displacement
+ * or, with `sortVectorsBy="tail"`, its tail. Equal values keep the order of
+ * the children.
  */
 function sortListClass(Base) {
     return class SortList extends reorderedValueListClass(Base) {
@@ -27,20 +30,43 @@ function sortListClass(Base) {
         }
 
         static returnEntryOrderDefinitions() {
-            const kind = entryKind(this.listEntryComponentType);
-            return {
+            const entryType = this.listEntryComponentType;
+            const kind = entryKind(entryType);
+            const componentGroups = this.listChildGroups.map((x) => x.group);
+            const definitions = {
                 entryOrder: {
-                    returnDependencies: () => ({
+                    stateVariablesDeterminingDependencies: ["sortVectorsBy"],
+                    returnDependencies: ({ stateValues }) => ({
                         childOrderValues: {
                             dependencyType: "stateVariable",
                             variableName: "childOrderValues",
                         },
+                        sortByComponent: {
+                            dependencyType: "stateVariable",
+                            variableName: "sortByComponent",
+                        },
+                        ...(entryType === "vector" &&
+                        stateValues.sortVectorsBy === "tail"
+                            ? {
+                                  childOrderTails: {
+                                      dependencyType: "stateVariable",
+                                      variableName: "childOrderTails",
+                                  },
+                              }
+                            : {}),
                     }),
                     definition({ dependencyValues }) {
-                        const comparables =
-                            dependencyValues.childOrderValues.map((value) =>
-                                comparableEntryValue(value, kind),
-                            );
+                        const sortedValues =
+                            dependencyValues.childOrderTails ??
+                            dependencyValues.childOrderValues;
+                        const comparables = sortedValues.map((value) =>
+                            entryType === "point" || entryType === "vector"
+                                ? comparableCoordinate(
+                                      value,
+                                      dependencyValues.sortByComponent,
+                                  )
+                                : comparableEntryValue(value, kind),
+                        );
                         const numeric = comparables.every((x) => x.numeric);
                         const entryOrder = [...comparables.keys()].sort(
                             (a, b) =>
@@ -57,6 +83,39 @@ function sortListClass(Base) {
                     },
                 },
             };
+            if (entryType === "vector") {
+                // The tail of each vector, in the order of the children, by
+                // which `sortVectorsBy="tail"` sorts: a child's, the entry of
+                // a list among them, and the origin for a vector written as
+                // text.
+                definitions.childOrderTails = {
+                    returnDependencies: () => ({
+                        entryStructure: {
+                            dependencyType: "stateVariable",
+                            variableName: "childOrderEntryStructure",
+                        },
+                        children: {
+                            dependencyType: "child",
+                            childGroups: componentGroups,
+                            variableNames: ["tail"],
+                            variablesOptional: true,
+                        },
+                    }),
+                    definition: ({ dependencyValues }) => ({
+                        setValue: {
+                            childOrderTails:
+                                dependencyValues.entryStructure.map((source) =>
+                                    coordinatesValue(
+                                        dependencyValues.children[
+                                            source.componentInd
+                                        ]?.stateValues.tail ?? [0, 0, 0],
+                                    ),
+                                ),
+                        },
+                    }),
+                };
+            }
+            return definitions;
         }
     };
 }
@@ -87,6 +146,25 @@ function comparableEntryValue(value, kind) {
         numericalValue: NaN,
         textValue: String(value),
         numeric: false,
+    };
+}
+
+/**
+ * What a point or vector is compared by, as `extractComparableValue`
+ * compares one: coordinate `sortByComponent` of `value` (its coordinates, or
+ * a vector's displacement or tail). A coordinate it does not have compares
+ * as no value without making the list compare as text.
+ */
+function comparableCoordinate(value, sortByComponent) {
+    const coordinate = coordinatesOf(value)[sortByComponent - 1];
+    if (!coordinate) {
+        return { numericalValue: NaN, textValue: "", numeric: true };
+    }
+    const numericalValue = coordinate.evaluate_to_constant();
+    return {
+        numericalValue,
+        textValue: coordinate.toString(),
+        numeric: !Number.isNaN(numericalValue),
     };
 }
 

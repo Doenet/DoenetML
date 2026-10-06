@@ -4,6 +4,7 @@ import {
     updateBooleanInputValue,
     updateMathInputValue,
     updateTextInputValue,
+    updateValue,
 } from "../utils/actions";
 import { PublicDoenetMLCore } from "../../CoreWorker";
 import { renderedText } from "../utils/rendered-commas";
@@ -1345,5 +1346,282 @@ describe("Collect, sort and shuffle of values @group4", async () => {
             (core as any).core._components[await resolvePathToNodeIdx("c3")]
                 .constructor.listEntryComponentType,
         ).eq("number");
+    });
+
+    /**
+     * What the viewer draws in graph `name` for points and vectors: the
+     * coordinates (a vector's tail and head), label, marker or line color,
+     * whether it can be dragged and whether it is fixed.
+     */
+    async function graphicalDrawnIn(
+        core: PublicDoenetMLCore,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
+        name: string,
+    ) {
+        const rendererState = (core as any).core.rendererInstructionBuilder
+            .rendererState;
+        return rendererState[
+            await resolvePathToNodeIdx(name)
+        ].childrenInstructions
+            .filter((child: any) => typeof child === "object" && child)
+            .map((child: any) => {
+                const stateValues =
+                    rendererState[child.componentIdx].stateValues;
+                return {
+                    componentIdx: child.componentIdx,
+                    coords:
+                        stateValues.numericalXs ??
+                        stateValues.numericalEndpoints,
+                    label: stateValues.label,
+                    color:
+                        stateValues.selectedStyle?.markerColor ??
+                        stateValues.selectedStyle?.lineColor,
+                    draggable: stateValues.draggable,
+                    fixed: stateValues.fixed,
+                };
+            });
+    }
+
+    async function dragDrawn(
+        core: PublicDoenetMLCore,
+        resolvePathToNodeIdx: ResolvePathToNodeIdx,
+        graph: string,
+        index: number,
+        actionName: string,
+        args: Record<string, any>,
+    ) {
+        const drawn = await graphicalDrawnIn(core, resolvePathToNodeIdx, graph);
+        await core.requestAction({
+            componentIdx: drawn[index].componentIdx,
+            actionName,
+            args,
+        });
+    }
+
+    it("collected points are drawn and dragged as their sources", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g1">
+      <point name="A" labelIsName styleNumber="2">(1,2)</point>
+      <point name="B">(3,4)</point>
+      <point name="C" hide>(5,6)</point>
+      <point name="D" fixed>(7,8)</point>
+      <point name="E" draggable="false">(9,10)</point>
+    </graph>
+    <graph name="g2"><collect componentType="point" from="$g1" name="c" /></graph>
+    <p name="p">$c</p>
+    <p name="p2">$c[2] $c[3].x $c.x</p>
+    <polygon vertices="$c" name="poly" />
+    <p name="pv">$poly.vertices</p>
+    <p name="pA">$A $B $D $E</p>
+    `,
+        });
+
+        const drawn = async () =>
+            (await graphicalDrawnIn(core, resolvePathToNodeIdx, "g2")).map(
+                ({ componentIdx, ...rest }: any) => rest,
+            );
+        const point = (coords: number[], rest = {}) => ({
+            coords,
+            label: "",
+            color: "#1f5dff",
+            draggable: true,
+            fixed: false,
+            ...rest,
+        });
+        expect(await drawn()).eqls([
+            point([1, 2], { label: "A", color: "#D4042D" }),
+            point([3, 4]),
+            point([7, 8], { fixed: true }),
+            point([9, 10], { draggable: false }),
+        ]);
+        await expectTexts(core, resolvePathToNodeIdx, {
+            p: "(1, 2), (3, 4), (7, 8), (9, 10)",
+            p2: "(3, 4) 5 1, 3, 5, 7, 9",
+            pv: "(1, 2), (3, 4), (5, 6), (7, 8), (9, 10)",
+        });
+
+        await dragDrawn(core, resolvePathToNodeIdx, "g2", 0, "movePoint", {
+            x: -1,
+            y: -2,
+        });
+        // a fixed point and one that is not draggable stay where they are
+        await dragDrawn(core, resolvePathToNodeIdx, "g2", 2, "movePoint", {
+            x: -3,
+            y: -4,
+        });
+        await dragDrawn(core, resolvePathToNodeIdx, "g2", 3, "movePoint", {
+            x: -5,
+            y: -6,
+        });
+        await expectTexts(core, resolvePathToNodeIdx, {
+            p: "(-1, -2), (3, 4), (7, 8), (9, 10)",
+            pA: "(-1, -2) (3, 4) (7, 8) (9, 10)",
+        });
+        expect((await drawn())[0].coords).eqls([-1, -2]);
+    });
+
+    it("collected vectors are drawn and dragged as their sources", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g1">
+      <vector name="u" tail="(1,1)" head="(3,4)" />
+      <vector name="v" styleNumber="3">(2,0)</vector>
+    </graph>
+    <graph name="g2"><collect componentType="vector" from="$g1" name="c" /></graph>
+    <p name="p">$c</p>
+    <p name="pu">$u.tail $u.head | $v.tail $v.head</p>
+    <p name="p2">$c[1].tail $c[1].head</p>
+    `,
+        });
+
+        const endpoints = async () =>
+            (await graphicalDrawnIn(core, resolvePathToNodeIdx, "g2")).map(
+                (x: any) => [x.coords, x.color],
+            );
+        expect(await endpoints()).eqls([
+            [
+                [
+                    [1, 1],
+                    [3, 4],
+                ],
+                "#1f5dff",
+            ],
+            [
+                [
+                    [0, 0],
+                    [2, 0],
+                ],
+                "#a6510c",
+            ],
+        ]);
+        await expectTexts(core, resolvePathToNodeIdx, {
+            p: "(2, 3), (2, 0)",
+            p2: "(1, 1) (3, 4)",
+        });
+
+        await dragDrawn(core, resolvePathToNodeIdx, "g2", 0, "moveVector", {
+            headcoords: [5, 5],
+        });
+        await expectTexts(core, resolvePathToNodeIdx, {
+            pu: "(1, 1) (5, 5) | (0, 0) (2, 0)",
+        });
+        await dragDrawn(core, resolvePathToNodeIdx, "g2", 0, "moveVector", {
+            tailcoords: [0, 0],
+        });
+        await dragDrawn(core, resolvePathToNodeIdx, "g2", 1, "moveVector", {
+            tailcoords: [1, 1],
+            headcoords: [4, 2],
+        });
+        await expectTexts(core, resolvePathToNodeIdx, {
+            p: "(5, 5), (3, 1)",
+            pu: "(0, 0) (5, 5) | (1, 1) (4, 2)",
+            p2: "(0, 0) (5, 5)",
+        });
+    });
+
+    it("sorted points and vectors are ordered by a coordinate and follow a drag", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g1">
+      <point name="A">(3,1)</point>
+      <point name="B">(1,5)</point>
+      <point name="C" labelIsName>(2,3)</point>
+      <vector name="u" tail="(5,0)">(1,2)</vector>
+      <vector name="v">(3,0)</vector>
+      <vector name="w" tail="(1,1)">(-1,4)</vector>
+    </graph>
+    <p name="p"><sort name="s">$A $B $C</sort></p>
+    <p name="p2"><sort sortByComponent="2">$A $B $C</sort></p>
+    <graph name="g2"><sort name="sg">$A $B $C</sort></graph>
+    <p name="p3">$s[1] $s[3].y</p>
+    <p name="pv"><sort>$u $v $w</sort></p>
+    <p name="pv2"><sort sortVectorsBy="tail">$u $v $w</sort></p>
+    <p name="pv3"><sort sortByComponent="2">$u $v $w</sort></p>
+    `,
+        });
+
+        await expectTexts(core, resolvePathToNodeIdx, {
+            p: "(1, 5), (2, 3), (3, 1)",
+            p2: "(3, 1), (2, 3), (1, 5)",
+            p3: "(1, 5) 1",
+            pv: "(-1, 4), (1, 2), (3, 0)",
+            pv2: "(3, 0), (-1, 4), (1, 2)",
+            pv3: "(3, 0), (1, 2), (-1, 4)",
+        });
+        expect(
+            (await graphicalDrawnIn(core, resolvePathToNodeIdx, "g2")).map(
+                (x: any) => [x.coords, x.label],
+            ),
+        ).eqls([
+            [[1, 5], ""],
+            [[2, 3], "C"],
+            [[3, 1], ""],
+        ]);
+
+        // dragging the first moves B, which is sorted again
+        await dragDrawn(core, resolvePathToNodeIdx, "g2", 0, "movePoint", {
+            x: 4,
+            y: 0,
+        });
+        await expectTexts(core, resolvePathToNodeIdx, {
+            p: "(2, 3), (3, 1), (4, 0)",
+            p2: "(4, 0), (3, 1), (2, 3)",
+            p3: "(2, 3) 0",
+        });
+        expect(
+            (await graphicalDrawnIn(core, resolvePathToNodeIdx, "g2")).map(
+                (x: any) => x.coords,
+            ),
+        ).eqls([
+            [2, 3],
+            [3, 1],
+            [4, 0],
+        ]);
+    });
+
+    it("shuffled points and vectors have the order of the variant", async () => {
+        const doenetML = `
+    <graph name="g"><shuffle name="sh"><point>(1,1)</point><point>(2,2)</point><point>(3,3)</point><point>(4,4)</point></shuffle></graph>
+    <p name="p">$sh</p>
+    <p name="pv"><shuffle><vector>(1,0)</vector><vector>(0,1)</vector><vector>(1,1)</vector></shuffle></p>
+    `;
+        for (const [variantIndex, p, pv] of [
+            [1, "(3, 3), (1, 1), (4, 4), (2, 2)", "(1, 1), (1, 0), (0, 1)"],
+            [2, "(4, 4), (2, 2), (1, 1), (3, 3)", "(1, 0), (0, 1), (1, 1)"],
+        ] as const) {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+                requestedVariantIndex: variantIndex,
+            });
+            await expectTexts(core, resolvePathToNodeIdx, { p, pv });
+        }
+    });
+
+    it("updateValue writes a property of every entry, or of one", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <group name="grp"><point name="p">(3,2)</point><point name="p2">(1,5)</point></group>
+    <collect componentType="point" from="$grp" name="col" />
+    <updateValue name="uv1" target="$col.x" newValue="2$(p.x)" />
+    <updateValue name="uv2" target="$col[2].x" newValue="9" />
+    <p name="out">$p $p2</p>
+    `,
+        });
+
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uv1"),
+            core,
+        });
+        await expectTexts(core, resolvePathToNodeIdx, {
+            out: "(6, 2) (6, 5)",
+        });
+        await updateValue({
+            componentIdx: await resolvePathToNodeIdx("uv2"),
+            core,
+        });
+        await expectTexts(core, resolvePathToNodeIdx, {
+            out: "(6, 2) (9, 5)",
+        });
     });
 });

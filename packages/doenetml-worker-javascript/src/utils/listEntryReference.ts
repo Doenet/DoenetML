@@ -445,7 +445,14 @@ export function listEntryPropertyType(
             listClass.listEntryComponentType
         ]?.stateVariableDescriptions[entryProperty] as any
     )?.createComponentOfType;
-    return typeof type === "string" ? type : undefined;
+    if (typeof type === "string") {
+        return type;
+    }
+    // An entry's value is a component of the entries' type, also when that
+    // type does not list `value` among its properties (a point).
+    return entryProperty === "value"
+        ? listClass.listEntryComponentType
+        : undefined;
 }
 
 /**

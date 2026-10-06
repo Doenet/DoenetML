@@ -4,6 +4,8 @@ import NumberList from "../NumberList";
 import MathList from "../MathList";
 import TextList from "../TextList";
 import BooleanList from "../BooleanList";
+import PointList from "../PointList";
+import VectorList from "../VectorList";
 
 /**
  * The lists, by the type of their entries, that the list forms of `<sort>`
@@ -15,6 +17,8 @@ export const REORDERED_LIST_BASES = {
     math: MathList,
     text: TextList,
     boolean: BooleanList,
+    point: PointList,
+    vector: VectorList,
 };
 
 /**

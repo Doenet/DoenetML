@@ -19,9 +19,11 @@
  *   not (`sortByProp`, or, for a `<collect>`, one it would pass on to the
  *   copies it makes, other than the display settings and `hide`).
  *
- * One drawn in a `<graph>`, or whose name or an ancestor's is referenced from
- * inside one, keeps the composite: the copies it makes are drawn where their
- * sources are anchored, and can be dragged there.
+ * One of numbers, maths, texts, booleans or intervals drawn in a `<graph>`,
+ * or shown in one (`drawnInGraph`), keeps the composite: the copies it makes
+ * are drawn where their sources are anchored, and can be dragged there. One
+ * of points or vectors is drawn and dragged entry by entry wherever it is,
+ * as a `<pointList>` or `<vectorList>` is.
  *
  * It runs after sugar and before the value-reference pass, so that a
  * reference among the children of a list made here becomes a value
@@ -39,6 +41,12 @@ import { staticValueReferenceTarget } from "../valueReference";
 import { splitBySpacesOutsideParens } from "../../components/commonsugar/lists";
 import { REORDERED_LIST_BASES } from "../../components/abstract/ReorderedValueList";
 import { COLLECT_LIST_BASES } from "../../components/CollectList";
+
+/**
+ * The types of entries drawn at their own coordinates and dragged entry by
+ * entry, which a list form of them draws in a graph as the copies were.
+ */
+const GRAPHICAL_ENTRY_TYPES = new Set(["point", "vector"]);
 
 /** The list form of each composite this pass can make a list. */
 const LIST_FORMS: Record<string, string> = {
@@ -364,6 +372,10 @@ export function convertToListForms({
         if (wholeComponent && targetClass.listEntryComponentType) {
             return valueTypeOf(targetClass.listEntryComponentType);
         }
+        // a whole point or vector (`$P`), which the list takes as it is
+        if (wholeComponent && GRAPHICAL_ENTRY_TYPES.has(targetComponentType)) {
+            return targetComponentType;
+        }
         const target = staticValueReferenceTarget({
             targetComponentType,
             targetClass,
@@ -402,13 +414,15 @@ export function convertToListForms({
         if (
             component.extending === undefined &&
             hasOnlyListFormAttributes(component) &&
-            copiesKeepTheList(component) &&
-            !drawnInGraph(idx)
+            copiesKeepTheList(component)
         ) {
             type =
                 component.componentType === "collect"
                     ? collectedType(component)
                     : reorderedType(component);
+            if (type && !GRAPHICAL_ENTRY_TYPES.has(type) && drawnInGraph(idx)) {
+                type = null;
+            }
         }
         deciding.delete(idx);
         decided.set(idx, type);

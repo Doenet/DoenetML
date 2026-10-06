@@ -4676,10 +4676,12 @@ describe("Point tag tests @group4", async () => {
                         .stateValues.text,
                 ).eq(`y-coordinates: ${Array(3).fill(xString[1]).join(", ")}`);
             } else {
+                // Collected as a list of points, which share one number of
+                // dimensions, a coordinate past them is blank (#2162).
                 expect(
                     stateVariables[await resolvePathToNodeIdx(`pAllY`)]
                         .stateValues.text,
-                ).eq(`y-coordinates: `);
+                ).eq(`y-coordinates: ${Array(3).fill("＿").join(", ")}`);
             }
             if (nDim > 2) {
                 expect(
@@ -4687,10 +4689,12 @@ describe("Point tag tests @group4", async () => {
                         .stateValues.text,
                 ).eq(`z-coordinates: ${Array(3).fill(xString[2]).join(", ")}`);
             } else {
+                // Collected as a list of points, which share one number of
+                // dimensions, a coordinate past them is blank (#2162).
                 expect(
                     stateVariables[await resolvePathToNodeIdx(`pAllZ`)]
                         .stateValues.text,
-                ).eq(`z-coordinates: `);
+                ).eq(`z-coordinates: ${Array(3).fill("＿").join(", ")}`);
             }
 
             expect(

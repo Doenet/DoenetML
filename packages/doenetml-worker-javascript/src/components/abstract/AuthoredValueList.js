@@ -177,8 +177,9 @@ export default class AuthoredValueList extends ValueListComponent {
     static get listEntryPresentationVariables() {
         if (!Object.hasOwn(this, "builtListEntryPresentationVariables")) {
             const { renderMode, ...arrays } = ENTRY_PRESENTATION_ARRAYS;
+            // a `renderMode` for the entries that are drawn as maths
             this.builtListEntryPresentationVariables =
-                entryKind(this.listEntryComponentType) === "math"
+                "renderMode" in this.listEntryRendererDefaults
                     ? ENTRY_PRESENTATION_ARRAYS
                     : Object.freeze(arrays);
         }
