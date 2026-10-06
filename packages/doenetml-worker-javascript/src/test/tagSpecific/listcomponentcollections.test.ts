@@ -1751,6 +1751,32 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         );
     });
 
+    it("a shuffled entry read by itself takes its source's LaTeX label and fixed", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <shuffle name="sh"><point fixed>(1,2)<label><m>x^2</m></label></point></shuffle>
+    <graph name="g">$sh[1] <point extend="$sh[1]" /></graph>
+    `,
+        });
+
+        const rendererState = (core as any).core.rendererInstructionBuilder
+            .rendererState;
+        const drawn = (
+            await graphicalDrawnIn(core, resolvePathToNodeIdx, "g")
+        ).map(({ componentIdx, label, fixed }: any) => ({
+            label,
+            labelHasLatex:
+                rendererState[componentIdx].stateValues.labelHasLatex,
+            fixed,
+        }));
+        const expected = {
+            label: "\\(x^2\\)",
+            labelHasLatex: true,
+            fixed: true,
+        };
+        expect(drawn).eqls([expected, expected]);
+    });
+
     it("shuffled points and vectors have the order of the variant", async () => {
         const doenetML = `
     <graph name="g"><shuffle name="sh"><point>(1,1)</point><point>(2,2)</point><point>(3,3)</point><point>(4,4)</point></shuffle></graph>

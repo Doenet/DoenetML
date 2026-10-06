@@ -828,8 +828,8 @@ export default class GraphicalValueList extends AuthoredValueList {
         // extend="$c[1]"/>`) takes the `fixed` and draggable attributes of
         // the entry's source, where they stop it being dragged
         // (`entrySourceAttributeArrays`), as the copy of the source it stood
-        // for took them, and its label (`labelOfEachEntry`, read by
-        // `utils/label.ts`).
+        // for took them, and its label (`labelOfEachEntry`, which `Copy.js`
+        // records on the component for `utils/label.ts`).
         const attributeArrays = this.entrySourceAttributeArrays;
         for (const [
             attribute,
