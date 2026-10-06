@@ -332,6 +332,27 @@ describe("Repeats whose template is one point @group4", () => {
         });
     });
 
+    it("a coordinate the points do not have is nothing", async () => {
+        const result = await compare({
+            doenetML: `
+<graph name="g"><repeatForSequence from="1" to="3" indexName="i" name="r"><point name="P">($i)</point></repeatForSequence></graph>
+<graph name="g2"><repeatForSequence from="1" to="3" indexName="i" name="r2"><point name="Q">($i, 2)</point></repeatForSequence></graph>
+<p name="px">$r.x</p>
+<p name="py">$r.y</p><p name="py2">$r[2].P.y</p><p name="sy"><sum>$r.y</sum></p>
+<p name="pz">$r2.z</p><p name="pz2">$r2[2].Q.z</p>
+`,
+            names: ["px", "py", "py2", "sy", "pz", "pz2"],
+            graphs: ["g", "g2"],
+        });
+        expect(result).toMatchObject({
+            px: "1, 2, 3",
+            py: "",
+            py2: "",
+            pz: "",
+            pz2: "",
+        });
+    });
+
     it("stays a composite where an entry cannot stand in for an iteration", async () => {
         for (const doenetML of [
             // a label

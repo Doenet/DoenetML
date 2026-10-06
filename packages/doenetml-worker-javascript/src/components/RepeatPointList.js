@@ -292,9 +292,19 @@ function coordinateArrayDefinition({ n, arrayName }) {
                 dependencyType: "stateVariable",
                 variableName: "numEntries",
             },
+            numDimensions: {
+                dependencyType: "stateVariable",
+                variableName: "numDimensions",
+            },
         }),
+        // Points with fewer coordinates have none here, as an iteration's
+        // point had no `y` to read (`$Ps.y` of points `(x)` shows nothing).
         returnArraySize({ dependencyValues }) {
-            return [dependencyValues.numEntries];
+            return [
+                n <= dependencyValues.numDimensions
+                    ? dependencyValues.numEntries
+                    : 0,
+            ];
         },
         returnArrayDependenciesByKey({ arrayKeys, stateValues }) {
             const { templateAnalysis, entryListPrefixes } = stateValues;

@@ -302,6 +302,7 @@ Step 4 alone reaches the number and math fixtures (the unit-circle boolean's nes
   - Each is computed from that coordinate of the template alone (its `entryCodes`), and constrained coordinate by coordinate when every constraint allows it (`independentConstraints`); otherwise it is read from the whole entry.
   - A write to one goes through that coordinate of the template.
   - Without these arrays the dot plots are a circular dependency.
+  - A coordinate the template's point does not have has no entries, so `$Ps.z` of points `(x, y)` shows nothing, as it showed for the composite (an authored `<pointList>` shows a blank for each point).
 - **References to the whole list** (`$Ps` as a polygon's `vertices`) shadow the list's `numIterates` and coordinate arrays, which a shadow, holding no template, cannot compute.
 - **What qualifies, beyond step 4:**
   - the template is a `<point>` whose content is its coordinates;
@@ -317,6 +318,7 @@ Step 4 alone reaches the number and math fixtures (the unit-circle boolean's nes
   - a shrink and regrow;
   - the template's attributes as drawn;
   - `<constrainTo>` the list;
+  - a coordinate the points do not have (`$Ps.z` of points `(x, y)`);
   - the guards.
   
   The step 1 pinning tests pass unchanged. Tests of a composite's own mechanics keep their repeats composites: renderer deferral in `utils/deferredRendererUpdates.test.ts`, and `allChildrenOrdered` in `collect.test.ts`. So how renderer updates are deferred during a drag of a list's entry is not yet tested.
