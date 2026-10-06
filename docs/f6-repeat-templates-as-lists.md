@@ -300,12 +300,13 @@ Step 4 alone reaches the number and math fixtures (the unit-circle boolean's nes
   - Each node records the entry codes it reads, itself or through nested nodes (`entryCodes`).
 - **Coordinates read on their own.** The dot plots' y reads `$Ps.x`, through `sortIndices` and `indexOf`. A point's x does not depend on its y, because `constrainToGrid` and `constrainToGraph` constrain each coordinate independently (`independentComponentConstraints`). So each coordinate of the entries is an array of the list's own (`entryCoordinates1` to `3`, the entries' `x1` to `x3`).
   - Each is computed from that coordinate of the template alone (its `entryCodes`), and constrained coordinate by coordinate when every constraint allows it (`independentConstraints`); otherwise it is read from the whole entry.
-  - A write to one goes through that coordinate of the template.
+  - A write to one (`$Ps[2].P.x` as a `bindValueTo`) goes through that coordinate of the template alone. The value written is constrained as a point constrains a write to one coordinate: on its own, or, when a constraint is not by coordinate (`<constrainTo>` a circle), with the entry's other coordinates, keeping only this one.
   - Without these arrays the dot plots are a circular dependency.
   - A coordinate the template's point does not have has no entries, so `$Ps.z` of points `(x, y)` shows nothing, as it showed for the composite (an authored `<pointList>` shows a blank for each point).
-- **References to the whole list** (`$Ps` as a polygon's `vertices`) shadow the list's `numIterates` and coordinate arrays, which a shadow, holding no template, cannot compute.
+- **References to the whole list** (`$Ps` as a polygon's `vertices`) shadow the list's coordinate arrays, which a shadow, holding no template, cannot compute; without that a polygon's vertices are blanks. (The number of entries is already shadowed by `ValueListComponent`; a shadow computes `numIterates` from the attributes it copies.)
 - **What qualifies, beyond step 4:**
   - the template is a `<point>` whose content is its coordinates;
+  - a coordinate, or a `<math>` template, may nest a `<number>` (the dot plot's `<number fixed>`), not only a `<math>`;
   - its attributes are those above, as literals;
   - its children are constraints that read the same values in every iteration, and become the list's;
   - it may be in a `<graph>`;
@@ -318,6 +319,9 @@ Step 4 alone reaches the number and math fixtures (the unit-circle boolean's nes
   - a shrink and regrow;
   - the template's attributes as drawn;
   - `<constrainTo>` the list;
+  - a polygon whose `vertices` are the list, moved, grown and shrunk;
+  - a coordinate that reads the entries' other coordinate (`$Ps.x`), which is circular without the coordinate arrays;
+  - constraints not by coordinate (`<constrainTo>` a circle), with `$Ps.x` read and one coordinate written;
   - a coordinate the points do not have (`$Ps.z` of points `(x, y)`);
   - the guards.
   
@@ -326,10 +330,12 @@ Step 4 alone reaches the number and math fixtures (the unit-circle boolean's nes
 
   | fixture | components | dependencies | state variables resolved | load |
   |---|--:|--:|--:|--:|
-  | dot-plot-2 | 2418 → 336 | 55913 → 11074 | 25442 → 3941 | 4.2–7.3 s → 0.7–1.4 s |
-  | drag-dot-plot-50 | 1112 → 117 | 27190 → 4892 | 12348 → 1710 | 1.7–2.5 s → 0.4–1.0 s |
+  | dot-plot-2 | 2418 → 336 | 55913 → 11078 | 25442 → 3942 | 4.2–7.3 s → 0.7–1.4 s |
+  | drag-dot-plot-50 | 1112 → 117 | 27190 → 4893 | 12348 → 1710 | 1.7–2.5 s → 0.4–1.0 s |
   | unit-circle-labeling | 3256 → 1231 | 59549 → 28364 | 28072 → 13423 | 6.9–7.7 s → 3.0–3.4 s |
-  | measures-of-spread | 8672 → 4195 | 210140 → 116539 | 98826 → 53791 | 19.8–22.3 s → 9.1–13.4 s |
+  | measures-of-spread | 8672 → 4195 | 210140 → 116554 | 98826 → 53792 | 19.8–22.3 s → 9.1–13.4 s |
+
+  A drag of one point of drag-dot-plot-50 (`perf-bench`'s `Ps[1].P`, which `test/perf/drag-timing.ts` and `drag-bench.test.ts` now resolve to the list's first entry) takes a median 25–34 ms per move, against 66–71 ms with the pass off.
 
 ## Decisions to settle
 

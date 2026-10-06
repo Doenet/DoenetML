@@ -1,8 +1,9 @@
 /**
  * The pass that makes a `<repeat>` or `<repeatForSequence>` whose template
- * is one value a list component (`_repeatValueList`,
- * `components/RepeatValueList.js`) in place of the composite it otherwise
- * is. Part of Doenet/DoenetML#2163 (F6), whose design is
+ * is one value a list component in place of the composite it otherwise is:
+ * a `_repeatValueList` (`components/RepeatValueList.js`) for a `<math>` or
+ * `<number>`, a `_repeatPointList` (`components/RepeatPointList.js`) for a
+ * `<point>` (`LIST_OF_TEMPLATE`). Part of Doenet/DoenetML#2163 (F6), whose design is
  * `docs/f6-repeat-templates-as-lists.md`.
  *
  * The composite makes a copy of its template for each iteration. The list
@@ -12,8 +13,12 @@
  * known at run time keeps the composite. A repeat qualifies when:
  *
  * - its template is one `<math>` or `<number>`, whose content is text,
- *   references and further unnamed `<math>`s (`templateNodeQualifies`), with
- *   no attributes but those of `NODE_ATTRIBUTES`, each written as a literal;
+ *   references and further unnamed `<math>`s and `<number>`s
+ *   (`templateNodeQualifies`), or one `<point>` whose content is its
+ *   coordinates, each such a `<math>`, and constraints that read the same
+ *   values in every iteration, which become the list's (`pointQualifies`);
+ *   with no attributes but those of `NODE_ATTRIBUTES`, each written as a
+ *   literal;
  * - every reference in the template reads one of (`classifyReference`):
  *   - its value or index, read as an entry of the list the repeat holds them
  *     in (`_repeatValues`, `_repeatIndices`; the value-reference pass made
@@ -24,16 +29,19 @@
  *   - a value that is the same in every iteration, which becomes a child of
  *     the list;
  * - every reference to the repeat from elsewhere is to the whole repeat
- *   (`$r`), to one iteration (`$r[2]`), or to the template's component in an
- *   iteration (`$r[2].m`, which then reads the entry, `$r[2]`), and is not
+ *   (`$r`), to one iteration (`$r[2]`), to the template's component in an
+ *   iteration (`$r[2].m`, which then reads the entry, `$r[2]`, and
+ *   `$r[2].m.x`, which reads `$r[2].x`), or, of a list of points, to a
+ *   coordinate of every entry (`$Ps.x`, `.y`, `.z`), and is not
  *   an `extend` or `copy`, or named by a reference attribute (a trigger, a
  *   label's `forObject`, a `<ref>`'s `to`), which an entry of a list cannot
  *   be yet (#2181, #2184, #2176);
  * - no reference reaches the template's name another way, as through an
  *   outer repeat (`$a[2][1][3].m`), which would name a component the list
  *   does not have;
- * - and it is not in a `<graph>`, where each iteration's component is placed
- *   at an anchor of its own and an entry of the list has none (#2186).
+ * - and, unless its template is a `<point>`, whose coordinates place it, it
+ *   is not in a `<graph>`, where each iteration's component is placed at an
+ *   anchor of its own and an entry of the list has none (#2186).
  *
  * It runs after the value-reference pass, which decides whether the value
  * and index are lists and makes the references in the template that read
