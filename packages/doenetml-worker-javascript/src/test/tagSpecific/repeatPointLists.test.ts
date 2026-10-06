@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
-import { movePolygon, updateMathInputValue } from "../utils/actions";
+import { movePoint, movePolygon, updateMathInputValue } from "../utils/actions";
 import { setRepeatListsEnabled } from "../../utils/dast/repeatLists";
 
 const Mock = vi.fn();
@@ -403,20 +403,24 @@ describe("Repeats whose template is one point @group4", () => {
     it("constraints that are not by coordinate, with the coordinates read", async () => {
         // A constraint that is not independent by coordinate constrains the
         // whole entry, and each coordinate array reads the constrained entry.
+        // A point copying two coordinates of an entry writes both in one
+        // update, which are constrained together.
         await compare({
             doenetML: `
 <numberList name="l">1 2 3</numberList>
 <graph name="g">
   <circle name="c" />
   <repeatForSequence from="1" to="3" indexName="i" name="r"><point name="P">($l[$i], 0.5)<constrainTo>$c</constrainTo></point></repeatForSequence>
+  <point name="Q">($r[3].P.x, $r[3].P.y)</point>
 </graph>
 <p name="pl">$l</p>
 <p name="px">$r.x</p>
 <p name="py">$r.y</p>
+<p name="pq">$Q</p>
 <mathInput name="mx" bindValueTo="$r[2].P.x" />
 <mathInput name="my" bindValueTo="$r[3].P.y" />
 `,
-            names: ["pl", "px", "py"],
+            names: ["pl", "px", "py", "pq"],
             graphs: ["g"],
             act: async (core, resolvePathToNodeIdx) => {
                 await dragPoint({
@@ -435,6 +439,12 @@ describe("Repeats whose template is one point @group4", () => {
                 await updateMathInputValue({
                     latex: "-5",
                     componentIdx: await resolvePathToNodeIdx("my"),
+                    core,
+                });
+                await movePoint({
+                    componentIdx: await resolvePathToNodeIdx("Q"),
+                    x: -2,
+                    y: -2,
                     core,
                 });
             },

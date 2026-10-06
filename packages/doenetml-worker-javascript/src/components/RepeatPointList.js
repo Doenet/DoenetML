@@ -3,9 +3,14 @@ import PointComponent from "./Point";
 import GraphicalComponent from "./abstract/GraphicalComponent";
 import {
     coordinatesOf,
+    coordinatesValue,
     graphicalEntryValuesDefinition,
     vectorOf,
 } from "./abstract/GraphicalValueList";
+import {
+    UNSPECIFIED_COMPONENT,
+    isUnspecifiedComponentValue,
+} from "../utils/math";
 import {
     REPEAT_LIST_STATICS,
     addRepeatListAttributes,
@@ -189,13 +194,9 @@ export default class RepeatPointList extends PointList {
 
         // Entry k is the template's point at index k, with the list's
         // dimensions and constraints.
-        stateVariableDefinitions[arrayName] = graphicalEntryValuesDefinition({
+        stateVariableDefinitions[arrayName] = entryValuesDefinition({
             listClass: this,
-            baseValues: repeatTemplateEntriesDefinition({
-                baseValues: stateVariableDefinitions[arrayName],
-                arrayName,
-                entryType: "point",
-            }),
+            baseValues: stateVariableDefinitions[arrayName],
         });
 
         // Whether every constraint constrains each coordinate on its own.
@@ -221,7 +222,7 @@ export default class RepeatPointList extends PointList {
 
         for (let n = 1; n <= NUM_COORDINATE_ARRAYS; n++) {
             stateVariableDefinitions[`entryCoordinates${n}`] =
-                coordinateArrayDefinition({ n, arrayName, listClass: this });
+                coordinateArrayDefinition({ n, arrayName });
         }
 
         // The style of the entries, with the marker style and size the
@@ -249,11 +250,13 @@ Object.assign(RepeatPointList, REPEAT_LIST_STATICS);
  * constraint is independent by coordinate (`independentConstraints`), as a
  * point constrains it (`returnConstraintDefinitions`). Otherwise it is the
  * coordinate of the whole entry (`arrayName`). A value written to it is
- * constrained as a point constrains a value written to one coordinate (with
- * the entry's other coordinates, when the constraints are not by
- * coordinate), and written through that coordinate of the template alone.
+ * constrained as a point constrains a value written to one coordinate, and
+ * written through that coordinate of the template alone: by coordinate, or,
+ * when the constraints are not by coordinate, with the entry's other
+ * coordinates, by writing the entry with only this coordinate specified
+ * (`entryValuesDefinition`).
  */
-function coordinateArrayDefinition({ n, arrayName, listClass }) {
+function coordinateArrayDefinition({ n, arrayName }) {
     const name = `entryCoordinates${n}`;
     const variable = `x${n}`;
     const blank = () => me.fromAst("\uff3f");
@@ -345,14 +348,14 @@ function coordinateArrayDefinition({ n, arrayName, listClass }) {
                 const index = Number(arrayKey) + 1;
                 const dependencies = {};
                 if (!stateValues.independentConstraints) {
-                    // the coordinate is read from the constrained entry
+                    // the coordinate is read from, and written to, the
+                    // constrained entry
                     dependencies.entry = {
                         dependencyType: "stateVariable",
                         variableName: `pointValue${index}`,
                     };
-                }
-                // what the coordinate is written through
-                if (coordinateNode !== undefined) {
+                } else if (coordinateNode !== undefined) {
+                    // what the coordinate is written through
                     dependencies.write = {
                         dependencyType: "stateVariable",
                         variableName: `entryWrite${index}`,
@@ -428,66 +431,217 @@ function coordinateArrayDefinition({ n, arrayName, listClass }) {
                     continue;
                 }
                 const value = convertValueToMathExpression(desired);
-                let desiredValue;
-                if (globalDependencyValues.independentConstraints) {
-                    desiredValue = applyComponentConstraints(
+                if (!globalDependencyValues.independentConstraints) {
+                    // As a point does: the entry is written with this
+                    // coordinate alone specified, so that the coordinates
+                    // written in one update are constrained together
+                    // (`writingSpecifiedCoordinates`).
+                    const coordinates = coordinatesOf(
+                        dependencyValues.entry,
+                    ).map(() => me.fromAst(UNSPECIFIED_COMPONENT));
+                    coordinates[n - 1] = value;
+                    instructions.push({
+                        setDependency: dependencyNamesByKey[arrayKey].entry,
+                        desiredValue: vectorOf(coordinates),
+                    });
+                    continue;
+                }
+                const written = writeThroughTemplate({
+                    globalDependencyValues,
+                    dependencyValues,
+                    writability: await readWritability(stateValues),
+                    dependencyNames: dependencyNamesByKey[arrayKey],
+                    desiredValue: applyComponentConstraints(
                         value,
                         globalDependencyValues.constraintChildren,
-                    );
-                } else {
-                    // As a point does: the entry with this coordinate
-                    // changed is constrained, and only this coordinate of
-                    // the result is written; the others keep their values.
-                    const coordinates = coordinatesOf(dependencyValues.entry);
-                    coordinates[n - 1] = value;
-                    const constrained = { 0: vectorOf(coordinates) };
-                    listClass.adjustEntryValues(constrained, {
-                        constraintChildren:
-                            globalDependencyValues.constraintChildren,
-                    });
-                    desiredValue = coordinatesOf(constrained[0])[n - 1];
-                }
-                const inverse = invertRepeatTemplate({
-                    ...templateContext({
-                        globalDependencyValues,
-                        dependencyValues,
-                        writability: await readWritability(stateValues),
-                    }),
-                    desiredValue,
+                    ),
                     ind: coordinateNode,
                 });
-                if (!inverse.success) {
+                if (!written.success) {
                     return { success: false };
                 }
-                if (Object.keys(inverse.texts).length > 0) {
-                    instructions.push({
-                        setDependency: dependencyNamesByKey[arrayKey].write,
-                        desiredValue: {
-                            ...dependencyValues.write,
-                            ...inverse.texts,
-                        },
-                    });
-                }
-                for (const { code, desiredValue } of inverse.writes) {
-                    instructions.push(
-                        code.entry !== undefined
-                            ? {
-                                  setDependency:
-                                      dependencyNamesByKey[arrayKey][
-                                          `entry${code.entry}`
-                                      ],
-                                  desiredValue,
-                              }
-                            : {
-                                  setDependency: "constants",
-                                  desiredValue,
-                                  childIndex: code.constant,
-                                  variableIndex: 0,
-                              },
-                    );
-                }
+                instructions.push(...written.instructions);
             }
             return { success: true, instructions };
+        },
+    };
+}
+
+/**
+ * The instructions writing `desiredValue` through node `ind` of the template,
+ * for one entry, whose dependencies are `dependencyValues`
+ * (`dependencyNames`): the entry's copy of the template's text, and the
+ * entries and values the node reads. `texts` holds the entry's texts written
+ * earlier in the same write, and `writability` what decides whether a write
+ * is taken (`readWritability`).
+ */
+function writeThroughTemplate({
+    globalDependencyValues,
+    dependencyValues,
+    dependencyNames,
+    desiredValue,
+    ind,
+    writability,
+    texts = dependencyValues.write,
+}) {
+    const inverse = invertRepeatTemplate({
+        ...templateContext({
+            globalDependencyValues,
+            dependencyValues,
+            writability,
+        }),
+        desiredValue,
+        ind,
+    });
+    if (!inverse.success) {
+        return { success: false };
+    }
+    const instructions = [];
+    if (Object.keys(inverse.texts).length > 0) {
+        instructions.push({
+            setDependency: dependencyNames.write,
+            desiredValue: { ...texts, ...inverse.texts },
+        });
+    }
+    for (const { code, desiredValue } of inverse.writes) {
+        instructions.push(
+            code.entry !== undefined
+                ? {
+                      setDependency: dependencyNames[`entry${code.entry}`],
+                      desiredValue,
+                  }
+                : {
+                      setDependency: "constants",
+                      desiredValue,
+                      childIndex: code.constant,
+                      variableIndex: 0,
+                  },
+        );
+    }
+    return { success: true, texts: inverse.texts, instructions };
+}
+
+/**
+ * The entries' values: the template's point at each index
+ * (`repeatTemplateEntriesDefinition`), with the list's dimensions and
+ * constraints (`graphicalEntryValuesDefinition`).
+ *
+ * An entry written with some coordinates unspecified has only the
+ * coordinates specified in the update written, as a point writes only the
+ * coordinates written to it. A coordinate array writes its coordinate this
+ * way when the constraints are not by coordinate: the unspecified coordinates
+ * are filled in from the entry's value, or those written earlier in the same
+ * update, and the whole entry is constrained, so that two coordinates written
+ * in one update (a point copying `$Ps[2].P.x` and `$Ps[2].P.y`, dragged) are
+ * constrained together. Each coordinate specified so far in the update is
+ * then written through its own node of the template; the others keep their
+ * values.
+ */
+function entryValuesDefinition({ listClass, baseValues }) {
+    const arrayName = listClass.listValuesArrayName;
+    const templateValues = repeatTemplateEntriesDefinition({
+        baseValues,
+        arrayName,
+        entryType: "point",
+    });
+    const values = graphicalEntryValuesDefinition({
+        listClass,
+        baseValues: {
+            ...templateValues,
+            async inverseArrayDefinitionByKey(args) {
+                const specified = args.workspace.specifiedCoordinates ?? {};
+                const desired = args.desiredStateVariableValues[arrayName];
+                const whole = {};
+                const partial = [];
+                for (const arrayKey in desired) {
+                    if (specified[arrayKey]?.includes(false)) {
+                        partial.push(arrayKey);
+                    } else {
+                        whole[arrayKey] = desired[arrayKey];
+                    }
+                }
+                if (partial.length === 0) {
+                    return templateValues.inverseArrayDefinitionByKey(args);
+                }
+                if (await args.stateValues.entriesFixed) {
+                    return { success: false };
+                }
+                const instructions = [];
+                if (Object.keys(whole).length > 0) {
+                    const result =
+                        await templateValues.inverseArrayDefinitionByKey({
+                            ...args,
+                            desiredStateVariableValues: {
+                                ...args.desiredStateVariableValues,
+                                [arrayName]: whole,
+                            },
+                        });
+                    if (!result.success) {
+                        return result;
+                    }
+                    instructions.push(...result.instructions);
+                }
+                const { globalDependencyValues } = args;
+                const writability = await readWritability(args.stateValues);
+                const codes =
+                    globalDependencyValues.templateAnalysis.nodes[0]?.codes ??
+                    [];
+                for (const arrayKey of partial) {
+                    const dependencyValues =
+                        args.dependencyValuesByKey[arrayKey];
+                    if (!dependencyValues) {
+                        continue;
+                    }
+                    const coordinates = coordinatesOf(desired[arrayKey]);
+                    let texts = dependencyValues.write;
+                    for (const [i, isSpecified] of specified[
+                        arrayKey
+                    ].entries()) {
+                        if (!isSpecified || codes[i] === undefined) {
+                            continue;
+                        }
+                        const written = writeThroughTemplate({
+                            globalDependencyValues,
+                            dependencyValues,
+                            writability,
+                            dependencyNames:
+                                args.dependencyNamesByKey[arrayKey],
+                            desiredValue: coordinates[i],
+                            ind: codes[i].node,
+                            texts,
+                        });
+                        if (!written.success) {
+                            return { success: false };
+                        }
+                        texts = { ...texts, ...written.texts };
+                        instructions.push(...written.instructions);
+                    }
+                }
+                return { success: true, instructions };
+            },
+        },
+    });
+    return {
+        ...values,
+        async inverseArrayDefinitionByKey(args) {
+            const { numDimensions } = args.globalDependencyValues;
+            if (!args.workspace.specifiedCoordinates) {
+                args.workspace.specifiedCoordinates = {};
+            }
+            const specified = args.workspace.specifiedCoordinates;
+            for (const [arrayKey, value] of Object.entries(
+                args.desiredStateVariableValues[arrayName],
+            )) {
+                const coordinates = coordinatesOf(coordinatesValue(value));
+                specified[arrayKey] = Array.from(
+                    { length: numDimensions },
+                    (_, i) =>
+                        specified[arrayKey]?.[i] === true ||
+                        i >= coordinates.length ||
+                        !isUnspecifiedComponentValue(coordinates[i]),
+                );
+            }
+            return values.inverseArrayDefinitionByKey(args);
         },
     };
 }
