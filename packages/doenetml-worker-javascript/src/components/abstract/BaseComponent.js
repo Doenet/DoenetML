@@ -1946,7 +1946,14 @@ export default class BaseComponent {
 
         // delete serializedComponent.attributes.name;
         delete serializedComponent.doenetAttributes.prescribedName;
-        dropListEntryLabel(serializedComponent.doenetAttributes);
+        if (parameters.copyAll) {
+            await snapshotListEntrySource(
+                serializedComponent,
+                parameters.components,
+            );
+        } else {
+            dropListEntryLabel(serializedComponent.doenetAttributes);
+        }
 
         return serializedComponent;
     }
@@ -2375,13 +2382,14 @@ export default class BaseComponent {
 }
 
 /**
- * Remove, from the `doenetAttributes` of a copy of a component made from a
- * list entry (`listEntrySourceDoenetAttributes` in `Copy.js`), the label it
- * reads from the list: the copy is labeled as that component is (through its
- * shadow source or, unlinked, the label state copied with it). The other
- * variables it reads from the list (`fixed`, `fixLocation`, a vector's
- * draggable head and tail), which it has no attributes for and so are not
- * copied with it, it keeps reading there.
+ * Remove, from the `doenetAttributes` of a linked copy of a component made
+ * from a list entry (`listEntrySourceDoenetAttributes` in `Copy.js`), the
+ * label it reads from the list: the copy is labeled as that component is
+ * (through its shadow source). The other variables it reads from the list
+ * (`fixed`, `fixLocation`, a vector's draggable head and tail), which it has
+ * no attributes for and so are not copied with it, it keeps reading there.
+ * An unlinked copy takes them as they are instead
+ * (`snapshotListEntrySource`).
  */
 function dropListEntryLabel(doenetAttributes) {
     const listEntrySource = doenetAttributes.listEntrySource;
@@ -2393,5 +2401,47 @@ function dropListEntryLabel(doenetAttributes) {
         delete doenetAttributes.listEntrySource;
     } else {
         doenetAttributes.listEntrySource = { ...listEntrySource, variables };
+    }
+}
+
+/**
+ * The variables read from a list (`listEntrySource`) that, when `false`, the
+ * source does not set, so that the component's parent decides them.
+ */
+const LIST_ENTRY_VARIABLES_UNSET_WHEN_FALSE = new Set(["fixed", "fixLocation"]);
+
+/**
+ * For an unlinked copy (`copyAll`) of a component made from a list entry,
+ * remove the `listEntrySource` it would read from the list, and give it, as
+ * its own state, the values it reads there as they are now, where the source
+ * sets them, so that it does not follow the list after it is made (as
+ * `listEntrySourceSnapshot` in `Copy.js` does for a copy of the entry). The
+ * label is copied with the component's own state.
+ */
+async function snapshotListEntrySource(serializedComponent, components) {
+    const listEntrySource =
+        serializedComponent.doenetAttributes.listEntrySource;
+    if (!listEntrySource) {
+        return;
+    }
+    delete serializedComponent.doenetAttributes.listEntrySource;
+    const list = components?.[listEntrySource.componentIdx];
+    if (!list) {
+        return;
+    }
+    const { label, labelHasLatex, ...variables } = listEntrySource.variables;
+    for (const [variable, arrayName] of Object.entries(variables)) {
+        const value = (await list.stateValues[arrayName])?.[
+            listEntrySource.index
+        ];
+        if (
+            value === null ||
+            value === undefined ||
+            (value === false &&
+                LIST_ENTRY_VARIABLES_UNSET_WHEN_FALSE.has(variable))
+        ) {
+            continue;
+        }
+        serializedComponent.state[variable] = value;
     }
 }

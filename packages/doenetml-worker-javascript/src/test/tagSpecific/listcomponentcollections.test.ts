@@ -2031,6 +2031,90 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         expect(await coordsOf("B")).eqls([-3, 0]);
     });
 
+    it("an unlinked copy of a component made from an entry keeps what the source had when it was made", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="b" />
+    <graph name="g">
+      <point name="A" fixed="$b">(1,2)</point>
+      <point name="F" fixLocation>(5,6)</point>
+      <vector name="v" headDraggable="false">(1,2)</vector>
+    </graph>
+    <collect name="c" componentType="point" from="$g" />
+    <collect name="cv" componentType="vector" from="$g" />
+    <graph>
+      <point name="E" extend="$c[1]" />
+      <point name="U" copy="$E" />
+      <point name="EF" extend="$c[2]" />
+      <point name="UF" copy="$EF" />
+      <vector name="EV" extend="$cv[1]" />
+      <vector name="UV" copy="$EV" />
+    </graph>
+    <graph fixed><point name="UG" copy="$E" /></graph>
+    `,
+        });
+
+        const stateOf = async () => {
+            const result: Record<string, any> = {};
+            for (const name of ["E", "U", "UF", "UV", "UG"]) {
+                const stateValues = await stateValuesOf(
+                    core,
+                    resolvePathToNodeIdx,
+                    name,
+                );
+                result[name] = {
+                    fixed: stateValues.fixed,
+                    fixLocation: stateValues.fixLocation,
+                };
+            }
+            result.UVheadDraggable = (
+                await stateValuesOf(core, resolvePathToNodeIdx, "UV")
+            ).headDraggable;
+            return result;
+        };
+        const unfixed = { fixed: false, fixLocation: false };
+        const expected = {
+            E: unfixed,
+            U: unfixed,
+            UF: { fixed: false, fixLocation: true },
+            UV: unfixed,
+            UG: { fixed: true, fixLocation: false },
+            UVheadDraggable: false,
+        };
+        expect(await stateOf()).eqls(expected);
+
+        // fixing the source fixes the linked component, not the unlinked copy
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        expect(await stateOf()).eqls({
+            ...expected,
+            E: { fixed: true, fixLocation: false },
+        });
+
+        // the unlinked copy is dragged on its own; the one with fixLocation
+        // is not
+        for (const [name, x] of [
+            ["U", 7],
+            ["UF", 0],
+        ] as const) {
+            await core.requestAction({
+                componentIdx: await resolvePathToNodeIdx(name),
+                actionName: "movePoint",
+                args: { x, y: x },
+            });
+        }
+        const coordsOf = async (name: string) =>
+            (await stateValuesOf(core, resolvePathToNodeIdx, name)).xs.map(
+                (x: any) => x.tree,
+            );
+        expect(await coordsOf("U")).eqls([7, 7]);
+        expect(await coordsOf("A")).eqls([1, 2]);
+        expect(await coordsOf("UF")).eqls([5, 6]);
+    });
+
     it("an entry of a fixed sort read by itself is fixed, and a drag of it does not reach its source", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
