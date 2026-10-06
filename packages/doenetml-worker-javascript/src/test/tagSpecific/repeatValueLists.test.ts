@@ -486,4 +486,61 @@ describe("Repeats whose template is one value @group4", () => {
             ]),
         ).toEqual(written);
     });
+
+    it("text written to an entry past the end is kept through a reload", async () => {
+        const doenetML = `
+<mathInput name="n" prefill="3" />
+<p name="p"><repeatForSequence name="r" from="1" to="$n" valueName="v"><math>($v, 0)</math></repeatForSequence></p>
+<mathInput name="mi" bindValueTo="$r[3]" />
+<p name="p2"><repeatForSequence name="r2" from="1" to="$n"><number>7</number></repeatForSequence></p>
+<mathInput name="mi2" bindValueTo="$r2[3]" />
+`;
+        const results: Record<string, string>[] = [];
+        for (const asList of [true, false]) {
+            const { core, resolvePathToNodeIdx, scoreState } = await load(
+                doenetML,
+                asList,
+            );
+            await updateMathInputValue({
+                latex: "(3,8)",
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+            await updateMathInputValue({
+                latex: "4",
+                componentIdx: await resolvePathToNodeIdx("mi2"),
+                core,
+            });
+            await updateMathInputValue({
+                latex: "2",
+                componentIdx: await resolvePathToNodeIdx("n"),
+                core,
+            });
+            await core.core!.saveImmediately();
+
+            // reloaded with two entries, then grown to four
+            setRepeatListsEnabled(asList);
+            const reloaded = await createTestCore({
+                doenetML,
+                initialState: scoreState.state,
+            });
+            setRepeatListsEnabled(true);
+            await updateMathInputValue({
+                latex: "4",
+                componentIdx: await reloaded.resolvePathToNodeIdx("n"),
+                core: reloaded.core,
+            });
+            results.push(
+                await textsOf(reloaded.core, reloaded.resolvePathToNodeIdx, [
+                    "p",
+                    "p2",
+                ]),
+            );
+        }
+        expect(results[0]).toEqual(results[1]);
+        expect(results[0]).toEqual({
+            p: "(1, 0), (2, 0), (3, 8), (4, 0)",
+            p2: "7, 7, 4, 7",
+        });
+    });
 });
