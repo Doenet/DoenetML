@@ -49,9 +49,23 @@ import type {
 import { unwrapSource } from "./convertNormalizedDast";
 import { documentReferents } from "./valueReferences";
 import { sequenceEntryComponentType } from "../sequence";
+import { STYLE_OVERRIDE_CATEGORIES } from "@doenet/utils";
 
-/** The types a template, and each component nested in it, can be. */
-const TEMPLATE_TYPES = new Set(["math", "number"]);
+/** The types a template can be, and the list each becomes. */
+const LIST_OF_TEMPLATE: Record<string, string> = {
+    math: "_repeatValueList",
+    number: "_repeatValueList",
+    point: "_repeatPointList",
+};
+
+/** The types a component nested in a template can be. */
+const NESTED_TYPES = new Set(["math", "number"]);
+
+/**
+ * The properties of a whole list of points a reference can read
+ * (`$Ps.x`), as of a `<pointList>`.
+ */
+const POINT_LIST_PROPERTIES = new Set(["x", "y", "z"]);
 
 /** The list types that hold a repeat's value and index. */
 const ITERATION_LIST_TYPES = new Set(["_repeatValues", "_repeatIndices"]);
@@ -109,6 +123,23 @@ const NODE_ATTRIBUTES: Record<
     number: {
         top: new Set(["fixed", ...NUMBER_DISPLAY_ATTRIBUTES]),
         nested: new Set(["fixed"]),
+    },
+    // the attributes `RepeatPointList` holds as its own, and its
+    // coordinates, `xs`, which sugar made of its content
+    point: {
+        top: new Set([
+            "xs",
+            "fixed",
+            "stylenumber",
+            "labelposition",
+            "draggable",
+            "showcoordswhendragging",
+            "layer",
+            ...Object.keys(STYLE_OVERRIDE_CATEGORIES.marker).map((name) =>
+                name.toLowerCase(),
+            ),
+        ]),
+        nested: new Set(),
     },
 };
 
@@ -191,10 +222,6 @@ export function convertRepeatsToLists({
         ) {
             return;
         }
-        if (inGraph(repeat) || copiedIntoGraph(repeat)) {
-            return;
-        }
-
         const iterationLists = new Map<number, SerializedComponent>();
         let setup: SerializedComponent | undefined;
         const templateComponents: SerializedComponent[] = [];
@@ -215,6 +242,19 @@ export function convertRepeatsToLists({
             return;
         }
         const template = templateComponents[0];
+        const listType = LIST_OF_TEMPLATE[template.componentType];
+        if (listType === undefined) {
+            return;
+        }
+        // An iteration's math or number in a graph was placed at an anchor
+        // of its own, which an entry of the list has none of; a point's own
+        // coordinates place it.
+        if (
+            listType === "_repeatValueList" &&
+            (inGraph(repeat) || copiedIntoGraph(repeat))
+        ) {
+            return;
+        }
 
         // The value of a `<repeat>`, which reads `$l[$i]` of the list its
         // `for` is. A `<repeatForSequence>`'s value and index, and a
@@ -265,6 +305,8 @@ export function convertRepeatsToLists({
         const nodes = new Map<number, SerializedComponent>();
         const topName = authorName(template);
         const constants: SerializedComponent[] = [];
+        // a point's constraints, which become the list's
+        const constraints: SerializedComponent[] = [];
         const entryReferences: {
             reference: SerializedComponent;
             listIdx?: number;
@@ -311,13 +353,23 @@ export function convertRepeatsToLists({
                 continue;
             }
             if (path[0].name !== "") {
+                // a property of the whole list of points
+                if (
+                    listType === "_repeatPointList" &&
+                    path.length === 1 &&
+                    path[0].index.length === 0 &&
+                    POINT_LIST_PROPERTIES.has(path[0].name.toLowerCase())
+                ) {
+                    continue;
+                }
                 return;
             }
             if (path.length === 1) {
                 continue;
             }
+            // the template in one iteration, which is the entry
+            // (`$r[2].P`, `$r[2].P.x`)
             if (
-                path.length === 2 &&
                 path[0].index.length === 1 &&
                 topName !== undefined &&
                 path[1].name === topName &&
@@ -352,16 +404,17 @@ export function convertRepeatsToLists({
 
         return (nComponents: number) => {
             for (const refResolution of rewrites) {
-                refResolution.unresolvedPath =
-                    refResolution.unresolvedPath!.slice(0, 1);
-                // `.m` ends the path as written too, which may name the
-                // repeat through others first (`$g.r[2].m`)
+                const [first, , ...rest] = refResolution.unresolvedPath!;
+                refResolution.unresolvedPath = [first, ...rest];
+                // The path as written ends as the path to resolve does, and
+                // may name the repeat through others first (`$g.r[2].m`).
                 const written = refResolution.originalPath;
-                if (
-                    written.length > 1 &&
-                    written[written.length - 1].name === topName
-                ) {
-                    refResolution.originalPath = written.slice(0, -1);
+                const nameInd = written.length - rest.length - 1;
+                if (nameInd > 0 && written[nameInd].name === topName) {
+                    refResolution.originalPath = [
+                        ...written.slice(0, nameInd),
+                        ...written.slice(nameInd + 1),
+                    ];
                 }
             }
 
@@ -418,23 +471,32 @@ export function convertRepeatsToLists({
             // its components keeps a name.
             const listAttributes: Record<string, SerializedAttribute> = {
                 ...repeat.attributes,
-                entryType: {
-                    type: "primitive",
-                    name: "entryType",
-                    primitive: {
-                        type: "string",
-                        value: template.componentType,
-                    },
-                },
+                ...(listType === "_repeatValueList"
+                    ? {
+                          entryType: {
+                              type: "primitive",
+                              name: "entryType",
+                              primitive: {
+                                  type: "string",
+                                  value: template.componentType,
+                              },
+                          },
+                      }
+                    : {}),
             };
             for (const [name, attribute] of Object.entries(
                 template.attributes,
             )) {
-                if (name !== "name") {
+                if (name !== "name" && name !== "xs") {
                     listAttributes[name] = attribute;
                 }
             }
-            template.attributes = {};
+            template.attributes = template.attributes.xs
+                ? { xs: template.attributes.xs }
+                : {};
+            template.children = template.children.filter(
+                (child) => !constraints.includes(child as SerializedComponent),
+            );
             for (const node of nodes.values()) {
                 delete node.attributes.name;
             }
@@ -443,12 +505,13 @@ export function convertRepeatsToLists({
                 repeatTemplate: true,
             };
 
-            repeat.componentType = "_repeatValueList";
+            repeat.componentType = listType;
             repeat.attributes = listAttributes;
             repeat.children = [
                 ...iterationLists.values(),
                 template,
                 ...constantChildren,
+                ...constraints,
             ];
             return nComponents;
         };
@@ -482,7 +545,9 @@ export function convertRepeatsToLists({
             top: boolean,
         ): boolean {
             if (
-                !TEMPLATE_TYPES.has(node.componentType) ||
+                !(top
+                    ? node.componentType in LIST_OF_TEMPLATE
+                    : NESTED_TYPES.has(node.componentType)) ||
                 node.extending !== undefined
             ) {
                 return false;
@@ -493,6 +558,10 @@ export function convertRepeatsToLists({
                     if (!top && authorName(node) !== undefined) {
                         return false;
                     }
+                    continue;
+                }
+                if (name === "xs" && node.componentType === "point") {
+                    // its coordinates, checked by `pointQualifies`
                     continue;
                 }
                 if (
@@ -510,6 +579,9 @@ export function convertRepeatsToLists({
             const children = node.children.filter(
                 (child) => typeof child !== "string" || child.trim() !== "",
             );
+            if (node.componentType === "point") {
+                return pointQualifies(node, children);
+            }
             if (node.componentType === "number" && children.length > 1) {
                 return false;
             }
@@ -517,7 +589,7 @@ export function convertRepeatsToLists({
                 if (typeof child === "string") {
                     continue;
                 }
-                if (child.componentType === "math") {
+                if (NESTED_TYPES.has(child.componentType)) {
                     if (!templateNodeQualifies(child, false)) {
                         return false;
                     }
@@ -530,6 +602,72 @@ export function convertRepeatsToLists({
                 }
             }
             return true;
+        }
+
+        /**
+         * Whether the template `<point>` `node`, with non-blank `children`,
+         * qualifies: its coordinates (`xs`, which sugar made of its content)
+         * each a nested `<math>` that qualifies, and its children
+         * constraints that read the same values in every iteration, which
+         * become the list's (`constraints`).
+         */
+        function pointQualifies(
+            node: SerializedComponent,
+            children: (SerializedComponent | string)[],
+        ): boolean {
+            const xs = node.attributes.xs;
+            if (xs?.type !== "component" || xs.component.extending) {
+                return false;
+            }
+            const coordinates = xs.component.children.filter(
+                (child) => typeof child !== "string" || child.trim() !== "",
+            );
+            if (
+                coordinates.length === 0 ||
+                !coordinates.every(
+                    (coordinate) =>
+                        typeof coordinate !== "string" &&
+                        coordinate.componentType === "math" &&
+                        templateNodeQualifies(coordinate, false),
+                )
+            ) {
+                return false;
+            }
+            for (const child of children) {
+                if (
+                    typeof child === "string" ||
+                    !componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: child.componentType,
+                        baseComponentType: "_constraint",
+                    }) ||
+                    authorName(child) !== undefined ||
+                    readsOtherThanConstants(child)
+                ) {
+                    return false;
+                }
+                constraints.push(child);
+            }
+            return true;
+        }
+
+        /**
+         * Whether anything in `component` reads a value that is not the same
+         * in every iteration: the repeat's value or index, or the template.
+         */
+        function readsOtherThanConstants(component: SerializedComponent) {
+            let reads = false;
+            forEachReference([component], (reference) => {
+                const refResolution = unwrapSource(
+                    reference.extending!,
+                ) as SerializedRefResolution;
+                if (
+                    forbidden.has(refResolution.nodeIdx) ||
+                    pathReads(refResolution, forbidden)
+                ) {
+                    reads = true;
+                }
+            });
+            return reads;
         }
 
         /**
@@ -854,6 +992,11 @@ function collectNodes(
         if (typeof child !== "string" && child.extending === undefined) {
             collectNodes(child, nodes);
         }
+    }
+    // a point's coordinates
+    const xs = node.attributes.xs;
+    if (xs?.type === "component" && xs.component.extending === undefined) {
+        collectNodes(xs.component, nodes);
     }
 }
 

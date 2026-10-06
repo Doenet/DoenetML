@@ -89,6 +89,7 @@ import Repeat from "./components/Repeat";
 import RepeatForSequence from "./components/RepeatForSequence";
 import { RepeatValues, RepeatIndices } from "./components/RepeatIterationLists";
 import RepeatValueList from "./components/RepeatValueList";
+import RepeatPointList from "./components/RepeatPointList";
 import Slider from "./components/Slider";
 import Markers from "./components/Markers";
 import Pegboard from "./components/Pegboard";
@@ -324,6 +325,7 @@ const componentTypeArray = [
     RepeatForSequence,
     RepeatValues,
     RepeatValueList,
+    RepeatPointList,
     RepeatIndices,
     Pegboard,
     Constraints,
