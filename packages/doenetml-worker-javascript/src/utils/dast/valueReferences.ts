@@ -80,91 +80,11 @@ export function convertCopiesToValueReferences({
     serializedComponents: (SerializedComponent | string)[];
     componentInfoObjects: ComponentInfoObjects;
 }) {
-    const componentsByIdx = new Map<number, SerializedComponent>();
-    const parentByIdx = new Map<number, SerializedComponent | undefined>();
-    const copiesByCreatedIdx = new Map<number, SerializedComponent>();
-
-    walk(serializedComponents, undefined, [], (component, parent) => {
-        componentsByIdx.set(component.componentIdx, component);
-        parentByIdx.set(component.componentIdx, parent);
-        const createdIdx = component.attributes.createComponentIdx;
-        if (
-            component.componentType === "_copy" &&
-            createdIdx?.type === "primitive"
-        ) {
-            copiesByCreatedIdx.set(
-                Number(createdIdx.primitive.value),
-                component,
-            );
-        }
-    });
-
-    /** The type the component a reference resolved to will have. */
-    function referentType(nodeIdx: number): string | undefined {
-        const node = componentsByIdx.get(nodeIdx);
-        if (node === undefined) {
-            return typeMadeByCopy(copiesByCreatedIdx.get(nodeIdx));
-        }
-        if (node.componentType === "_copy") {
-            return typeMadeByCopy(node);
-        }
-        if (node.componentType === "_placeholder") {
-            // the `valueName` of a repeat; a `<repeatForSequence>` makes it
-            // as its `type` says, a `<repeat>` as whatever it iterates over
-            const setup = parentByIdx.get(nodeIdx);
-            const repeat =
-                setup?.componentType === "_repeatSetup"
-                    ? parentByIdx.get(setup.componentIdx)
-                    : undefined;
-            if (repeat?.componentType !== "repeatForSequence") {
-                return undefined;
-            }
-            return sequenceValueType(repeat);
-        }
-        return node.componentType;
-    }
-
-    /**
-     * The type a `<repeatForSequence>` makes its value as, from its `type`
-     * attribute (`sequenceEntryComponentType`). `undefined` when the
-     * attribute is not a literal.
-     */
-    function sequenceValueType(
-        repeat: SerializedComponent,
-    ): string | undefined {
-        return sequenceEntryComponentType(repeat.attributes.type);
-    }
-
-    /**
-     * The class the component a reference resolved to will be created as,
-     * of type `componentType`: for a list whose entries' type a primitive
-     * attribute decides (`<sequence type="letters">`), the class for the
-     * type its attribute gives (`classForSerializedComponent`). `undefined`
-     * when that attribute cannot be read from the document, as for a
-     * component an `extend` will make.
-     */
-    function referentClass(nodeIdx: number, componentType: string) {
-        const componentClass =
-            componentInfoObjects.allComponentClasses[componentType];
-        if (componentClass?.listEntryTypeAttribute === undefined) {
-            return componentClass;
-        }
-        const node = componentsByIdx.get(nodeIdx);
-        if (node === undefined || node.componentType !== componentType) {
-            return undefined;
-        }
-        return componentClass.classForSerializedComponent(node);
-    }
-
-    function typeMadeByCopy(copy: SerializedComponent | undefined) {
-        const typeAttribute = copy?.attributes.createComponentOfType;
-        if (typeAttribute?.type !== "primitive") {
-            return undefined;
-        }
-        return componentInfoObjects.componentTypeLowerCaseMapping[
-            String(typeAttribute.primitive.value).toLowerCase()
-        ];
-    }
+    const { componentsByIdx, parentByIdx, referentType, referentClass } =
+        documentReferents({
+            serializedComponents,
+            componentInfoObjects,
+        });
 
     /**
      * Plan making the `_copy` `component` a value reference: the change to
@@ -261,8 +181,12 @@ export function convertCopiesToValueReferences({
         const isResponse =
             naming.length > 0 || Object.keys(component.attributes).length > 0;
 
+        // the class the parent will be created as, which a list whose
+        // entries' type an attribute gives decides from it
         const parentClass =
-            componentInfoObjects.allComponentClasses[parent.componentType];
+            componentInfoObjects.allComponentClasses[
+                parent.componentType
+            ]?.classForSerializedComponent(parent);
         if (!parentClass) {
             return;
         }
@@ -611,6 +535,119 @@ function forEachReference(
             }
         }
     }
+}
+
+/**
+ * The components of the document by index, each one's parent, and, for a
+ * reference that resolved to `nodeIdx`, the type of the component it resolved
+ * to (`referentType`) and the class it will be created as (`referentClass`),
+ * as far as the document says.
+ *
+ * The referent's type is read from the document: the component under
+ * `nodeIdx`, the type an `extend` or `copy` will make for the component it
+ * names (`createComponentIdx`), or, for the placeholder a
+ * `<repeatForSequence>` makes for its `valueName`, the repeat's `type`.
+ */
+export function documentReferents({
+    serializedComponents,
+    componentInfoObjects,
+}: {
+    serializedComponents: (SerializedComponent | string)[];
+    componentInfoObjects: ComponentInfoObjects;
+}) {
+    const componentsByIdx = new Map<number, SerializedComponent>();
+    const parentByIdx = new Map<number, SerializedComponent | undefined>();
+    const copiesByCreatedIdx = new Map<number, SerializedComponent>();
+
+    walk(serializedComponents, undefined, [], (component, parent) => {
+        componentsByIdx.set(component.componentIdx, component);
+        parentByIdx.set(component.componentIdx, parent);
+        const createdIdx = component.attributes.createComponentIdx;
+        if (
+            component.componentType === "_copy" &&
+            createdIdx?.type === "primitive"
+        ) {
+            copiesByCreatedIdx.set(
+                Number(createdIdx.primitive.value),
+                component,
+            );
+        }
+    });
+
+    /** The type the component a reference resolved to will have. */
+    function referentType(nodeIdx: number): string | undefined {
+        const node = componentsByIdx.get(nodeIdx);
+        if (node === undefined) {
+            return typeMadeByCopy(copiesByCreatedIdx.get(nodeIdx));
+        }
+        if (node.componentType === "_copy") {
+            return typeMadeByCopy(node);
+        }
+        if (node.componentType === "_placeholder") {
+            // the `valueName` of a repeat; a `<repeatForSequence>` makes it
+            // as its `type` says, a `<repeat>` as whatever it iterates over
+            const setup = parentByIdx.get(nodeIdx);
+            const repeat =
+                setup?.componentType === "_repeatSetup"
+                    ? parentByIdx.get(setup.componentIdx)
+                    : undefined;
+            if (repeat?.componentType !== "repeatForSequence") {
+                return undefined;
+            }
+            return sequenceValueType(repeat);
+        }
+        return node.componentType;
+    }
+
+    /**
+     * The type a `<repeatForSequence>` makes its value as, from its `type`
+     * attribute (`sequenceEntryComponentType`). `undefined` when the
+     * attribute is not a literal.
+     */
+    function sequenceValueType(
+        repeat: SerializedComponent,
+    ): string | undefined {
+        return sequenceEntryComponentType(repeat.attributes.type);
+    }
+
+    /**
+     * The class the component a reference resolved to will be created as,
+     * of type `componentType`: for a list whose entries' type a primitive
+     * attribute decides (`<sequence type="letters">`), the class for the
+     * type its attribute gives (`classForSerializedComponent`). `undefined`
+     * when that attribute cannot be read from the document, as for a
+     * component an `extend` will make.
+     */
+    function referentClass(nodeIdx: number, componentType: string) {
+        const componentClass =
+            componentInfoObjects.allComponentClasses[componentType];
+        if (componentClass?.listEntryTypeAttribute === undefined) {
+            return componentClass;
+        }
+        const node = componentsByIdx.get(nodeIdx);
+        if (node === undefined || node.componentType !== componentType) {
+            return undefined;
+        }
+        return componentClass.classForSerializedComponent(node);
+    }
+
+    function typeMadeByCopy(copy: SerializedComponent | undefined) {
+        const typeAttribute = copy?.attributes.createComponentOfType;
+        if (typeAttribute?.type !== "primitive") {
+            return undefined;
+        }
+        return componentInfoObjects.componentTypeLowerCaseMapping[
+            String(typeAttribute.primitive.value).toLowerCase()
+        ];
+    }
+
+    return {
+        componentsByIdx,
+        parentByIdx,
+        copiesByCreatedIdx,
+        referentType,
+        referentClass,
+    };
 }
 
 /**

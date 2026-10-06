@@ -1,5 +1,6 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "./test-core";
+import { childrenAsPresented } from "./list-entries";
 import {
     movePoint,
     updateMathInputValue,
@@ -351,7 +352,16 @@ describe("an update that deletes a component it wrote to is still saved whole @g
     // sits in the position it is bound to, and that correction is on the far
     // side of the throw -- so the input's saved state stayed at what the reader
     // typed and a reload showed them a value they were no longer looking at.
+    //
+    // A mix of numbers and maths is copied by the composite; values of one
+    // type are held by a list (`<sort>` as a list component), which this
+    // checks as well.
     const DOC = `
+    <sort name="s"><number>5</number><math>3</math><number>1</number></sort>
+    <p name="pList">$s</p>
+    <mathInput name="mi" bindValueTo="$s[1]" />
+  `;
+    const LIST_DOC = `
     <sort name="s">5 3 1</sort>
     <p name="pList">$s</p>
     <mathInput name="mi" bindValueTo="$s[1]" />
@@ -363,33 +373,43 @@ describe("an update that deletes a component it wrote to is still saved whole @g
         return {
             shown: input.stateValues.rawRendererValue,
             value: input.stateValues.value.toString(),
-            list: stateVariables[
-                await resolvePathToNodeIdx("pList")
-            ].activeChildren.map((child: any) =>
-                stateVariables[child.componentIdx].stateValues.value.toString(),
-            ),
+            list: childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("pList"),
+            ).map((child: any) => child.stateValues.value.toString()),
         };
     }
 
-    it("reloads a `<sort>` showing what the reader was looking at", async () => {
-        const first = await createTestCore({ doenetML: DOC });
-        await updateMathInputValue({
-            latex: "7",
-            componentIdx: await first.resolvePathToNodeIdx("mi"),
-            core: first.core,
-        });
+    it.each([
+        ["copying", DOC],
+        ["as a list", LIST_DOC],
+    ])(
+        "reloads a `<sort>` %s showing what the reader was looking at",
+        async (_, doc) => {
+            const first = await createTestCore({ doenetML: doc });
+            await updateMathInputValue({
+                latex: "7",
+                componentIdx: await first.resolvePathToNodeIdx("mi"),
+                core: first.core,
+            });
 
-        const live = await inputAndList(first);
-        // Typing 7 into the smallest of 5, 3, 1 leaves 3 the smallest, so the
-        // box the reader is looking at ends up showing 3, not the 7 they typed.
-        expect(live).eqls({ shown: "3", value: "3", list: ["3", "5", "7"] });
+            const live = await inputAndList(first);
+            // Typing 7 into the smallest of 5, 3, 1 leaves 3 the smallest, so the
+            // box the reader is looking at ends up showing 3, not the 7 they typed.
+            expect(live).eqls({
+                shown: "3",
+                value: "3",
+                list: ["3", "5", "7"],
+            });
 
-        await first.core.saveImmediately();
-        const second = await createTestCore({
-            doenetML: DOC,
-            initialState: first.scoreState.state as string,
-        });
+            await first.core.saveImmediately();
+            const second = await createTestCore({
+                doenetML: doc,
+                initialState: first.scoreState.state as string,
+            });
 
-        expect(await inputAndList(second)).eqls(live);
-    });
+            expect(await inputAndList(second)).eqls(live);
+        },
+    );
 });

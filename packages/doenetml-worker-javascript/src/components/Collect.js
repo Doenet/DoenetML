@@ -3,6 +3,18 @@ import { postProcessCopy } from "../utils/copy";
 import { convertUnresolvedAttributesForComponentType } from "../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../utils/componentIndices";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { listEntryReplacement } from "./Sort";
+
+/**
+ * What names a collected item (`collectedComponents`): its component, or,
+ * for an entry of a list component, the list and the entry's index.
+ */
+function collectedKey(collected) {
+    return collected.listInd === undefined
+        ? collected.componentIdx
+        : `${collected.componentIdx}|${collected.listInd}`;
+}
+
 export default class Collect extends CompositeComponent {
     static componentType = "collect";
 
@@ -247,8 +259,13 @@ export default class Collect extends CompositeComponent {
                     matchListsByEntryType: true,
                     // A value reference drawn with nothing to read
                     // (`$l[$i]` with `i` past the end) is not collected:
-                    // the copy made for it made no component.
-                    variableNames: ["valueMissing"],
+                    // the copy made for it made no component. A list is
+                    // collected as its entries, one item each.
+                    variableNames: [
+                        "valueMissing",
+                        "numEntries",
+                        "listEntryVariablePrefix",
+                    ],
                     variablesOptional: true,
                 };
 
@@ -258,18 +275,53 @@ export default class Collect extends CompositeComponent {
                         dependencyType: "stateVariable",
                         variableName: "maxNumber",
                     },
+                    componentTypeToCollect: {
+                        dependencyType: "stateVariable",
+                        variableName: "componentTypeToCollect",
+                    },
                 };
             },
-            definition: function ({ dependencyValues }) {
+            definition: function ({ dependencyValues, componentInfoObjects }) {
                 // console.log(`definition of collectedComponents for ${componentIdx}`)
                 // console.log(dependencyValues)
 
-                let collectedComponents = (dependencyValues.descendants ?? [])
-                    .filter((x) => !x.stateValues?.valueMissing)
-                    .map(({ componentIdx, componentType }) => ({
-                        componentIdx,
-                        componentType,
-                    }));
+                let collectedComponents = [];
+                for (const {
+                    componentIdx,
+                    componentType,
+                    stateValues = {},
+                } of dependencyValues.descendants ?? []) {
+                    if (stateValues.valueMissing) {
+                        continue;
+                    }
+                    // A list collected by the type of its entries, not by
+                    // its own type.
+                    const byEntries =
+                        stateValues.listEntryVariablePrefix !== undefined &&
+                        !componentInfoObjects.isInheritedComponentType({
+                            inheritedComponentType: componentType,
+                            baseComponentType:
+                                dependencyValues.componentTypeToCollect,
+                        });
+                    if (!byEntries) {
+                        collectedComponents.push({
+                            componentIdx,
+                            componentType,
+                        });
+                        continue;
+                    }
+                    for (
+                        let listInd = 0;
+                        listInd < (stateValues.numEntries ?? 0);
+                        listInd++
+                    ) {
+                        collectedComponents.push({
+                            componentIdx,
+                            componentType,
+                            listInd,
+                        });
+                    }
+                }
 
                 if (
                     dependencyValues.maxNumber !== null &&
@@ -406,9 +458,7 @@ export default class Collect extends CompositeComponent {
         }
 
         workspace.numReplacementsByCollected = numReplacementsByCollected;
-        workspace.collectedNames = collectedComponents.map(
-            (x) => x.componentIdx,
-        );
+        workspace.collectedNames = collectedComponents.map(collectedKey);
         workspace.replacementNamesByCollected = replacementNamesByCollected;
         workspace.replacementsCreated = stateIdInfo.num;
         return { replacements, diagnostics, nComponents };
@@ -449,21 +499,33 @@ export default class Collect extends CompositeComponent {
             };
         }
 
-        // a value reference drawn in what is searched is collected as a
-        // component of its type (`ValueRef.serialize`)
-        serializedReplacements = [
-            await collectedComponent.serialize({
-                valueReferenceAsComponent: true,
-            }),
-        ];
+        if (collectedObj.listInd !== undefined) {
+            // An entry of a list component is referenced, as `$l[2]`.
+            const res = listEntryReplacement({
+                list: collectedComponent,
+                listInd: collectedObj.listInd,
+                nComponents,
+                stateIdInfo,
+            });
+            serializedReplacements = [res.serializedComponent];
+            nComponents = res.nComponents;
+        } else {
+            // a value reference drawn in what is searched is collected as a
+            // component of its type (`ValueRef.serialize`)
+            serializedReplacements = [
+                await collectedComponent.serialize({
+                    valueReferenceAsComponent: true,
+                }),
+            ];
 
-        let res = createNewComponentIndices(
-            serializedReplacements,
-            nComponents,
-            stateIdInfo,
-        );
-        serializedReplacements = res.components;
-        nComponents = res.nComponents;
+            let res = createNewComponentIndices(
+                serializedReplacements,
+                nComponents,
+                stateIdInfo,
+            );
+            serializedReplacements = res.components;
+            nComponents = res.nComponents;
+        }
 
         serializedReplacements = postProcessCopy({
             serializedComponents: serializedReplacements,
@@ -475,8 +537,20 @@ export default class Collect extends CompositeComponent {
             if (!repl.attributes) {
                 repl.attributes = {};
             }
+            // A reference to an entry (`_copy`) takes any attribute, so it is
+            // given only those the `<collect>` passes on, which its copy of
+            // the entry then takes.
+            const attributes =
+                repl.componentType === "_copy"
+                    ? Object.fromEntries(
+                          Object.entries(component.attributes).filter(
+                              ([, attribute]) =>
+                                  attribute.type === "unresolved",
+                          ),
+                      )
+                    : component.attributes;
             const res = convertUnresolvedAttributesForComponentType({
-                attributes: component.attributes,
+                attributes,
                 componentType: repl.componentType,
                 componentInfoObjects,
                 compositeAttributesObj,
@@ -634,7 +708,7 @@ export default class Collect extends CompositeComponent {
             // check if collected has changed
             if (
                 prevCollectedName === undefined ||
-                collected.componentIdx !== prevCollectedName ||
+                collectedKey(collected) !== prevCollectedName ||
                 recreateRemaining
             ) {
                 let prevNumReplacements = 0;
@@ -719,9 +793,7 @@ export default class Collect extends CompositeComponent {
         }
 
         workspace.numReplacementsByCollected = numReplacementsByCollected;
-        workspace.collectedNames = collectedComponents.map(
-            (x) => x.componentIdx,
-        );
+        workspace.collectedNames = collectedComponents.map(collectedKey);
         workspace.replacementNamesByCollected = replacementNamesByCollected;
         workspace.replacementsCreated = stateIdInfo.num;
 

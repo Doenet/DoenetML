@@ -552,6 +552,16 @@ export default class ValueListComponent extends BaseComponent {
             },
         };
 
+        // The prefix of the name of each entry of the array of values
+        // (`math2`), by which a `<collect>` reads one entry of a list it
+        // collects (`CollectList.js`).
+        stateVariableDefinitions.listEntryVariablePrefix = {
+            returnDependencies: () => ({}),
+            definition: () => ({
+                setValue: { listEntryVariablePrefix: entryPrefix },
+            }),
+        };
+
         // Not a property an author names: `$l[2]` and `$l[2].value` read it
         // (`listEntryPropertyPath`), as does a reference to the whole list.
         stateVariableDefinitions[arrayName] = {

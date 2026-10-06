@@ -309,9 +309,7 @@ export default class VectorList extends GraphicalValueList {
                             childIndex: componentInd,
                             variableIndex,
                         });
-                    const { basedOnHead, basedOnTail, basedOnDisplacement } =
-                        child.stateValues;
-                    if (basedOnHead === undefined) {
+                    if (child.stateValues.basedOnHead === undefined) {
                         if (written.tail !== undefined) {
                             write(0, written.tail);
                         }
@@ -320,30 +318,11 @@ export default class VectorList extends GraphicalValueList {
                         }
                         continue;
                     }
-                    const tail = coordinatesValue(child.stateValues.tail);
-                    const head = coordinatesValue(child.stateValues.head);
-                    // A vector with fewer dimensions than the list's entries
-                    // is written its own (the rest are the 0s of the entry).
-                    const ownDimensions = (value) =>
-                        withNumDimensions(value, coordinatesOf(tail).length);
-                    const newTail =
-                        written.tail === undefined
-                            ? tail
-                            : ownDimensions(written.tail);
-                    const newDisplacement =
-                        written.displacement === undefined
-                            ? differenceOf(head, tail)
-                            : ownDimensions(written.displacement);
-                    const tailIsDerived =
-                        basedOnHead && basedOnDisplacement && !basedOnTail;
-                    if (basedOnHead) {
-                        write(1, sumOf(newTail, newDisplacement));
-                    }
-                    if (!basedOnHead || tailIsDerived) {
-                        write(2, newDisplacement);
-                    }
-                    if (written.tail !== undefined && !tailIsDerived) {
-                        write(0, newTail);
+                    for (const [variableIndex, value] of writesToVector(
+                        written,
+                        child.stateValues,
+                    )) {
+                        write(variableIndex, value);
                     }
                 }
                 return { success: true, instructions };
@@ -351,90 +330,11 @@ export default class VectorList extends GraphicalValueList {
         };
 
         // A displacement written to an entry from a `<vector>` among the
-        // children is written with its tail (`entryChildEndpoints`); the
-        // others as `AuthoredValueList` writes them.
-        const values = stateVariableDefinitions[arrayName];
-        stateVariableDefinitions[arrayName] = {
-            ...values,
-            returnArrayDependenciesByKey(args) {
-                const dependencies = values.returnArrayDependenciesByKey(args);
-                dependencies.globalDependencies = {
-                    ...dependencies.globalDependencies,
-                    entryChildEndpoints: {
-                        dependencyType: "stateVariable",
-                        variableName: "entryChildEndpoints",
-                    },
-                };
-                return dependencies;
-            },
-            async inverseArrayDefinitionByKey(args) {
-                const { entryChildEndpoints } = args.globalDependencyValues;
-                const desired = args.desiredStateVariableValues[arrayName];
-                const others = {};
-                const toChildren = {};
-                for (const [arrayKey, value] of Object.entries(desired)) {
-                    if (entryChildEndpoints[arrayKey]) {
-                        toChildren[arrayKey] = value;
-                    } else {
-                        others[arrayKey] = value;
-                    }
-                }
-                let instructions = [];
-                if (Object.keys(others).length > 0) {
-                    const result = await values.inverseArrayDefinitionByKey({
-                        ...args,
-                        desiredStateVariableValues: {
-                            ...args.desiredStateVariableValues,
-                            [arrayName]: others,
-                        },
-                    });
-                    if (!result.success) {
-                        return result;
-                    }
-                    instructions = result.instructions;
-                }
-                if (Object.keys(toChildren).length > 0) {
-                    if (await args.stateValues.entriesFixed) {
-                        return { success: false };
-                    }
-                    // A coordinate the write leaves unspecified (a copy of
-                    // the entry writing one coordinate of its head) keeps
-                    // the value it has, or was given earlier in the same
-                    // write.
-                    if (!args.workspace.writtenEntries) {
-                        args.workspace.writtenEntries = {};
-                    }
-                    const writtenEntries = args.workspace.writtenEntries;
-                    const written = {};
-                    for (const [arrayKey, value] of Object.entries(
-                        toChildren,
-                    )) {
-                        let displacement = withNumDimensions(
-                            coordinatesValue(
-                                convertValueToMathExpression(value),
-                            ),
-                            args.globalDependencyValues.numDimensions,
-                        );
-                        if (hasUnspecifiedCoordinate(displacement)) {
-                            displacement = withSpecifiedCoordinates(
-                                displacement,
-                                writtenEntries[arrayKey] ??
-                                    (await args.stateValues[arrayName])[
-                                        arrayKey
-                                    ],
-                            );
-                        }
-                        writtenEntries[arrayKey] = displacement;
-                        written[arrayKey] = { displacement };
-                    }
-                    instructions.push({
-                        setDependency: "entryChildEndpoints",
-                        desiredValue: written,
-                    });
-                }
-                return { success: true, instructions };
-            },
-        };
+        // children is written with its tail (`entryChildEndpoints`).
+        stateVariableDefinitions[arrayName] = withDisplacementsWrittenWithTails(
+            stateVariableDefinitions[arrayName],
+            arrayName,
+        );
 
         // The tail of each entry: the child's, the one written to it, the
         // one a `copy=` holds, or the origin. It travels with the entry, so
@@ -970,14 +870,136 @@ function withCoordinates(value, numbers) {
     );
 }
 
+/**
+ * `values`, the definition of the values (displacements) of a vector list,
+ * with a displacement written to an entry that has a tail and head of its
+ * own (`entryChildEndpoints`: a `<vector>` among the children, or one a
+ * `<collect>` gathers) written with its tail, through
+ * `entryChildEndpoints`; the others as `values` writes them.
+ */
+export function withDisplacementsWrittenWithTails(values, arrayName) {
+    return {
+        ...values,
+        returnArrayDependenciesByKey(args) {
+            const dependencies = values.returnArrayDependenciesByKey(args);
+            dependencies.globalDependencies = {
+                ...dependencies.globalDependencies,
+                entryChildEndpoints: {
+                    dependencyType: "stateVariable",
+                    variableName: "entryChildEndpoints",
+                },
+            };
+            return dependencies;
+        },
+        async inverseArrayDefinitionByKey(args) {
+            const { entryChildEndpoints } = args.globalDependencyValues;
+            const desired = args.desiredStateVariableValues[arrayName];
+            const others = {};
+            const toChildren = {};
+            for (const [arrayKey, value] of Object.entries(desired)) {
+                if (entryChildEndpoints[arrayKey]) {
+                    toChildren[arrayKey] = value;
+                } else {
+                    others[arrayKey] = value;
+                }
+            }
+            let instructions = [];
+            if (Object.keys(others).length > 0) {
+                const result = await values.inverseArrayDefinitionByKey({
+                    ...args,
+                    desiredStateVariableValues: {
+                        ...args.desiredStateVariableValues,
+                        [arrayName]: others,
+                    },
+                });
+                if (!result.success) {
+                    return result;
+                }
+                instructions = result.instructions;
+            }
+            if (Object.keys(toChildren).length > 0) {
+                if (await args.stateValues.entriesFixed) {
+                    return { success: false };
+                }
+                // A coordinate the write leaves unspecified (a copy of
+                // the entry writing one coordinate of its head) keeps
+                // the value it has, or was given earlier in the same
+                // write.
+                if (!args.workspace.writtenEntries) {
+                    args.workspace.writtenEntries = {};
+                }
+                const writtenEntries = args.workspace.writtenEntries;
+                const written = {};
+                for (const [arrayKey, value] of Object.entries(toChildren)) {
+                    let displacement = withNumDimensions(
+                        coordinatesValue(convertValueToMathExpression(value)),
+                        args.globalDependencyValues.numDimensions,
+                    );
+                    if (hasUnspecifiedCoordinate(displacement)) {
+                        displacement = withSpecifiedCoordinates(
+                            displacement,
+                            writtenEntries[arrayKey] ??
+                                (await args.stateValues[arrayName])[arrayKey],
+                        );
+                    }
+                    writtenEntries[arrayKey] = displacement;
+                    written[arrayKey] = { displacement };
+                }
+                instructions.push({
+                    setDependency: "entryChildEndpoints",
+                    desiredValue: written,
+                });
+            }
+            return { success: true, instructions };
+        },
+    };
+}
+
+/**
+ * The writes, `[variableIndex, value]`, that give a `<vector>` the tail and
+ * displacement `written` (`{ tail, displacement }`, either one left out when
+ * it is not written), by the index of `tail` (0), `head` (1) and
+ * `displacement` (2) among the variables read of it. It is written the
+ * variables it is defined by (`basedOnHead`, … of `stateValues`), each
+ * computed from the tail and displacement written, as a drag of the vector
+ * writes them (`Vector.moveVector`), so that none is computed from another's
+ * value from before the write. A vector with fewer dimensions than the
+ * written values is written its own.
+ */
+export function writesToVector(written, stateValues) {
+    const { basedOnHead, basedOnTail, basedOnDisplacement } = stateValues;
+    const tail = coordinatesValue(stateValues.tail);
+    const head = coordinatesValue(stateValues.head);
+    const ownDimensions = (value) =>
+        withNumDimensions(value, coordinatesOf(tail).length);
+    const newTail =
+        written.tail === undefined ? tail : ownDimensions(written.tail);
+    const newDisplacement =
+        written.displacement === undefined
+            ? differenceOf(head, tail)
+            : ownDimensions(written.displacement);
+    const tailIsDerived = basedOnHead && basedOnDisplacement && !basedOnTail;
+    const writes = [];
+    if (basedOnHead) {
+        writes.push([1, sumOf(newTail, newDisplacement)]);
+    }
+    if (!basedOnHead || tailIsDerived) {
+        writes.push([2, newDisplacement]);
+    }
+    if (written.tail !== undefined && !tailIsDerived) {
+        writes.push([0, newTail]);
+    }
+    return writes;
+}
+
 /** The sum of two maths of coordinates, coordinate by coordinate. */
-function sumOf(a, b) {
+export function sumOf(a, b) {
     const bs = coordinatesOf(b);
     return vectorOf(coordinatesOf(a).map((x, i) => x.add(bs[i]).simplify()));
 }
 
 /** The difference of two maths of coordinates, coordinate by coordinate. */
-function differenceOf(a, b) {
+export function differenceOf(a, b) {
     const bs = coordinatesOf(b);
     return vectorOf(
         coordinatesOf(a).map((x, i) => x.subtract(bs[i]).simplify()),

@@ -109,7 +109,12 @@ export default class GraphicalValueList extends AuthoredValueList {
         ]) {
             variables[name] = entryVariableName(name);
         }
-        variables.hidden = "entryHidden";
+        // A list shown as its sources (a `<collect>` or `<sort>` made a
+        // list) hides an entry as the copy of its source was hidden
+        // (`AuthoredValueList`'s `entryHiddens`).
+        variables.hidden = this.listEntriesShownAsSources
+            ? "entryHiddens"
+            : "entryHidden";
         variables.fixed = "entryFixed";
         return variables;
     }

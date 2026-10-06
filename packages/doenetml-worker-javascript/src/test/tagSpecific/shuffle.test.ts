@@ -3,7 +3,11 @@ import { createTestCore, ResolvePathToNodeIdx } from "../utils/test-core";
 import { movePoint, updateMathInputValue } from "../utils/actions";
 import { getDiagnosticsByType } from "../utils/diagnostics";
 import { PublicDoenetMLCore } from "../../CoreWorker";
-import { componentOrListEntry, typeAsPresented } from "../utils/list-entries";
+import {
+    childrenAsPresented,
+    componentOrListEntry,
+    typeAsPresented,
+} from "../utils/list-entries";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -26,15 +30,18 @@ describe("Shuffle tag tests @group1", async () => {
         const stateVariables = await core.returnAllStateVariables(false, true);
         const shuffled = stateVariables[await resolvePathToNodeIdx("pList")];
 
-        expect(shuffled.activeChildren.length).eq(4);
-        expect(
-            shuffled.activeChildren
-                .map(
-                    (child) =>
-                        stateVariables[child.componentIdx].stateValues.value,
-                )
-                .sort(),
-        ).eqls(["Ann", "Bob", "Cal", "Zoe"]);
+        const children = childrenAsPresented(
+            core,
+            stateVariables,
+            shuffled.componentIdx,
+        );
+        expect(children.length).eq(4);
+        expect(children.map((child) => child.stateValues.value).sort()).eqls([
+            "Ann",
+            "Bob",
+            "Cal",
+            "Zoe",
+        ]);
     });
 
     it("consistent order for n elements for given variant", async () => {
@@ -430,11 +437,15 @@ describe("Shuffle tag tests @group1", async () => {
 
         if (replacements_all_of_type) {
             // an entry copied from a list is drawn as a value reference of
-            // its type
-            let replacementTypes = stateVariables[
-                await resolvePathToNodeIdx("pList")
-            ].activeChildren.map((child: { componentIdx: number }) =>
-                typeAsPresented(core, stateVariables, child.componentIdx),
+            // its type, and an entry of a list as the type of its entries
+            let replacementTypes = childrenAsPresented(
+                core,
+                stateVariables,
+                await resolvePathToNodeIdx("pList"),
+            ).map((child) =>
+                child.listEntryIndex === undefined
+                    ? typeAsPresented(core, stateVariables, child.componentIdx)
+                    : child.componentType,
             );
 
             expect(replacementTypes).eqls(
@@ -783,7 +794,8 @@ describe("Shuffle tag tests @group1", async () => {
         // fresh load assigns in shuffled order while a save was made in
         // creation order, so a reader's value can come back on the wrong
         // replacement (Doenet/DoenetML#1944).
-        const doenetML = `<shuffle name="s"><math>a</math><math>b</math><math>c</math></shuffle>`;
+        // Paragraphs, which it copies; values it would hold as a list.
+        const doenetML = `<shuffle name="s"><p>a</p><p>b</p><p>c</p></shuffle>`;
 
         async function replacementStateIds() {
             const { core, resolvePathToNodeIdx } = await createTestCore({

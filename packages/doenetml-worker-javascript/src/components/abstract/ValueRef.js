@@ -2,8 +2,10 @@ import me from "math-expressions";
 import BaseComponent from "./BaseComponent";
 import { reportInternalError } from "../../utils/internalErrors";
 import { currentReferentValue } from "../../utils/referentDescription";
+import { LIST_ENTRY_PREFIX } from "../../utils/listEntryReference";
 import {
     parentDrawsValueReferences,
+    variableOfCopiedReferentVariable,
     variableOfReferentVariable,
 } from "../../utils/valueReference";
 
@@ -595,18 +597,30 @@ export default class ValueRef extends BaseComponent {
                         variablesOptional: true,
                     };
                 }
+                // An entry of a list that shows each entry as its source
+                // (`<collect>`, `<sort>`) is hidden as the copy of the entry
+                // was: by the source's own `hide`, unless the list sets one.
+                // Not a property of the entry (`$c[1].hidden`).
+                Object.assign(
+                    dependencies,
+                    listEntryHideDependencies(referentInfo),
+                );
                 return dependencies;
             },
-            definition: ({ dependencyValues }) => ({
-                setValue: {
-                    hidden: Boolean(
-                        dependencyValues.parentHidden ||
-                        dependencyValues.sourceCompositeHidden ||
-                        dependencyValues.valueMissing ||
-                        dependencyValues.referentHide,
-                    ),
-                },
-            }),
+            definition: ({ dependencyValues }) => {
+                const entryHide = listEntryHide(dependencyValues);
+                return {
+                    setValue: {
+                        hidden: Boolean(
+                            dependencyValues.parentHidden ||
+                            dependencyValues.sourceCompositeHidden ||
+                            dependencyValues.valueMissing ||
+                            dependencyValues.referentHide ||
+                            entryHide,
+                        ),
+                    },
+                };
+            },
             markStale: () => ({ updateParentRenderedChildren: true }),
         };
 
@@ -863,6 +877,9 @@ export default class ValueRef extends BaseComponent {
      * (`readsReferentVariable`): what a dependency on this reference's
      * adapter source reads (`adapterDependencies.ts`), since the referent is
      * that source.
+     * A name made by `copiedReferentVariableName` asks for it only when the
+     * reference stands for a copy of its referent (`copiesReferent`), and is
+     * `null` otherwise.
      *
      * `valueMissing`, whether the reference has nothing to read, is its own
      * (`valueMissingDefinition`). The parents that treat such a reference
@@ -926,6 +943,28 @@ export default class ValueRef extends BaseComponent {
                         stateVariable,
                         this.fixedReferent,
                     ),
+                ],
+            ];
+        }
+        // A name made by `copiedReferentVariableName` reads the referent's
+        // variable only when this reference stands for a copy of it.
+        const copiedVariable = variableOfCopiedReferentVariable(stateVariable);
+        if (copiedVariable !== undefined) {
+            return [
+                [
+                    stateVariable,
+                    this.doenetAttributes.copiesReferent
+                        ? readsReferentVariable(
+                              stateVariable,
+                              copiedVariable,
+                              this.fixedReferent,
+                          )
+                        : {
+                              returnDependencies: () => ({}),
+                              definition: () => ({
+                                  setValue: { [stateVariable]: null },
+                              }),
+                          },
                 ],
             ];
         }
@@ -1473,6 +1512,58 @@ function companionOrBorrowed(name, classDef, fixedReferent) {
     };
 
     return definition;
+}
+
+/**
+ * The dependencies of `listEntryHide` for a reference whose referent is
+ * `referentInfo`: none unless it reads an entry of a list.
+ */
+function listEntryHideDependencies(referentInfo) {
+    if (referentInfo?.listEntryPosition === undefined) {
+        return {};
+    }
+    return {
+        entryPosition: {
+            dependencyType: "value",
+            value: referentInfo.listEntryPosition,
+        },
+        referentVariable: {
+            dependencyType: "value",
+            value: referentInfo.variableName,
+        },
+        referentEntryPrefix: {
+            dependencyType: "stateVariable",
+            componentIdx: referentInfo.componentIdx,
+            variableName: "listEntryVariablePrefix",
+            variablesOptional: true,
+        },
+        referentEntryHides: {
+            dependencyType: "stateVariable",
+            componentIdx: referentInfo.componentIdx,
+            variableName: "entryHides",
+            variablesOptional: true,
+        },
+    };
+}
+
+/**
+ * Whether the entry a reference reads (`$c[1]`, not `$c[1].hidden`) is
+ * hidden as the copy of the entry was, from `listEntryHideDependencies`: by
+ * the entry's `hide` (`entryHides`) in a list that shows each entry as its
+ * source (`<collect>`, `<sort>`); `undefined` for any other reference.
+ */
+function listEntryHide(dependencyValues) {
+    const position = dependencyValues.entryPosition;
+    if (
+        !dependencyValues.referentEntryHides ||
+        (dependencyValues.referentVariable !==
+            `${dependencyValues.referentEntryPrefix}${position}` &&
+            dependencyValues.referentVariable !==
+                `${LIST_ENTRY_PREFIX}value_${position}`)
+    ) {
+        return undefined;
+    }
+    return Boolean(dependencyValues.referentEntryHides[position - 1]);
 }
 
 /**

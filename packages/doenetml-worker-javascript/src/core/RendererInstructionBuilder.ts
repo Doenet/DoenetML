@@ -701,12 +701,17 @@ export class RendererInstructionBuilder {
                 items.push({ child: null });
             } else if (this.isListComponent(child)) {
                 const numEntries = await child.stateValues.numEntries;
+                const entriesHidden = await this.listEntriesHidden(child);
                 for (
                     let entryIndex = 0;
                     entryIndex < numEntries;
                     entryIndex++
                 ) {
-                    items.push({ listEntry: { list: child, entryIndex } });
+                    items.push(
+                        entriesHidden?.[entryIndex]
+                            ? { child: null }
+                            : { listEntry: { list: child, entryIndex } },
+                    );
                 }
             } else {
                 items.push({ child });
@@ -774,6 +779,27 @@ export class RendererInstructionBuilder {
             shift += numEntries - 1;
         }
         return newRanges;
+    }
+
+    /**
+     * Whether each entry of `list` is hidden, for a list that shows each
+     * entry as the component it comes from (`listEntriesShownAsSources`: a
+     * `<collect>`, `<sort>` or `<shuffle>` made a list) and whose `hidden`
+     * entry variable holds a value per entry (`listPerEntryVariables`);
+     * `undefined` for another list, which draws a hidden entry hidden. Such
+     * a hidden entry is not drawn, as the hidden copy of its source was not
+     * (`returnActiveChildrenIndicesToRender`).
+     */
+    async listEntriesHidden(list: any): Promise<boolean[] | undefined> {
+        const listClass = list.constructor;
+        const hiddenVariable = listClass.listEntryStateVariables.hidden;
+        if (
+            !listClass.listEntriesShownAsSources ||
+            !listClass.listPerEntryVariables.includes(hiddenVariable)
+        ) {
+            return undefined;
+        }
+        return await list.stateValues[hiddenVariable];
     }
 
     isListComponent(child: any): boolean {

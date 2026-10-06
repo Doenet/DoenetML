@@ -33,11 +33,17 @@ type PathPart = { name: string; index: any[]; [key: string]: any };
 /** The prefix of the arrays made for entry properties. */
 export const LIST_ENTRY_ARRAY_PREFIX = "__listEntries_";
 
+/**
+ * The prefix of the entries of those arrays, followed by the property
+ * (`__listEntry_value_2`).
+ */
+export const LIST_ENTRY_PREFIX = "__listEntry_";
+
 /** Whether `name` is an array made for an entry property, or one of its entries. */
 export function isListEntryPropertyVariable(name: string): boolean {
     return (
         name.startsWith(LIST_ENTRY_ARRAY_PREFIX) ||
-        name.startsWith("__listEntry_")
+        name.startsWith(LIST_ENTRY_PREFIX)
     );
 }
 
@@ -439,7 +445,14 @@ export function listEntryPropertyType(
             listClass.listEntryComponentType
         ]?.stateVariableDescriptions[entryProperty] as any
     )?.createComponentOfType;
-    return typeof type === "string" ? type : undefined;
+    if (typeof type === "string") {
+        return type;
+    }
+    // An entry's value is a component of the entries' type, also when that
+    // type does not list `value` among its properties (a point).
+    return entryProperty === "value"
+        ? listClass.listEntryComponentType
+        : undefined;
 }
 
 /**
@@ -455,13 +468,15 @@ function arrayForEntryProperty(
         return ownArray;
     }
     const listVariable = listClass.listEntryStateVariables[entryProperty];
+    // The values are an array whatever the class is registered as (a list
+    // form of `<collect>` of vectors is registered as one of numbers).
     const description = (
         componentInfoObjects.stateVariableInfo[listClass.componentType]
             ?.stateVariableDescriptions as any
     )?.[listVariable];
     if (
         listClass.listPerEntryVariables.includes(listVariable) &&
-        description?.isArray
+        (description?.isArray || listVariable === listClass.listValuesArrayName)
     ) {
         return listVariable;
     }

@@ -6,7 +6,7 @@ Everything runs through the workspace test script, which rebuilds the Rust WASM 
 
 ## The gate: `census.test.ts`
 
-Thirteen one-construct documents (`MICRO_DOCUMENTS` in `fixtures.ts`), each snapshotted in `__snapshots__/census.test.ts.snap`: components by type, shadowing components, attribute components, `_copy` count, state variables allocated and resolved, dependencies. Component counts are deterministic for a given build, so a snapshot change is a change to what the core creates for a reference, an attribute or a repeat iteration. A change to a base class or to dependency setup looks different: `stateVariables` or `dependencies` moves in every entry at once while `components` and `byType` stay put. That is the expected shape of such a change, and the same update applies. It runs in the ordinary CI test groups.
+Sixteen one-construct documents (`MICRO_DOCUMENTS` in `fixtures.ts`), each snapshotted in `__snapshots__/census.test.ts.snap`: components by type, shadowing components, attribute components, `_copy` count, state variables allocated and resolved, dependencies. Component counts are deterministic for a given build, so a snapshot change is a change to what the core creates for a reference, an attribute or a repeat iteration. A change to a base class or to dependency setup looks different: `stateVariables` or `dependencies` moves in every entry at once while `components` and `byType` stay put. That is the expected shape of such a change, and the same update applies. It runs in the ordinary CI test groups.
 
 When the change is intended, update the snapshot deliberately and paste the before/after rows in the PR:
 
