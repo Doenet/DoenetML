@@ -2039,6 +2039,7 @@ describe("Collect, sort and shuffle of values @group4", async () => {
       <point name="A" fixed="$b">(1,2)</point>
       <point name="F" fixLocation>(5,6)</point>
       <vector name="v" headDraggable="false">(1,2)</vector>
+      <point name="K" fixed>(9,9)</point>
     </graph>
     <collect name="c" componentType="point" from="$g" />
     <collect name="cv" componentType="vector" from="$g" />
@@ -2050,13 +2051,33 @@ describe("Collect, sort and shuffle of values @group4", async () => {
       <vector name="EV" extend="$cv[1]" />
       <vector name="UV" copy="$EV" />
     </graph>
+    <graph>
+      <point name="EK" extend="$c[3]" />
+      <point name="UK" copy="$EK" />
+    </graph>
     <graph fixed><point name="UG" copy="$E" /></graph>
+    <graph fixed="false" fixLocation="false">
+      <point name="UH" copy="$E" />
+      <point name="UHF" copy="$EF" />
+      <point name="UHA" copy="$A" />
+    </graph>
     `,
         });
 
         const stateOf = async () => {
             const result: Record<string, any> = {};
-            for (const name of ["E", "U", "UF", "UV", "UG"]) {
+            for (const name of [
+                "E",
+                "U",
+                "UF",
+                "UV",
+                "UG",
+                "UH",
+                "UHF",
+                "UHA",
+                "EK",
+                "UK",
+            ]) {
                 const stateValues = await stateValuesOf(
                     core,
                     resolvePathToNodeIdx,
@@ -2079,6 +2100,15 @@ describe("Collect, sort and shuffle of values @group4", async () => {
             UF: { fixed: false, fixLocation: true },
             UV: unfixed,
             UG: { fixed: true, fixLocation: false },
+            // under a parent that sets them false, the source's fixLocation
+            // is kept, as an unlinked copy of a point keeps it; fixed is not
+            // taken, as an unlinked copy of a point (UHA) does not take it
+            UH: unfixed,
+            UHF: { fixed: false, fixLocation: true },
+            UHA: unfixed,
+            // a source fixed when the copy is made does not fix the copy
+            EK: { fixed: true, fixLocation: false },
+            UK: unfixed,
             UVheadDraggable: false,
         };
         expect(await stateOf()).eqls(expected);
@@ -2099,6 +2129,7 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         for (const [name, x] of [
             ["U", 7],
             ["UF", 0],
+            ["UK", 3],
         ] as const) {
             await core.requestAction({
                 componentIdx: await resolvePathToNodeIdx(name),
@@ -2113,6 +2144,8 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         expect(await coordsOf("U")).eqls([7, 7]);
         expect(await coordsOf("A")).eqls([1, 2]);
         expect(await coordsOf("UF")).eqls([5, 6]);
+        expect(await coordsOf("UK")).eqls([3, 3]);
+        expect(await coordsOf("K")).eqls([9, 9]);
     });
 
     it("an entry of a fixed sort read by itself is fixed, and a drag of it does not reach its source", async () => {

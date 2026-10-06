@@ -2405,18 +2405,15 @@ function dropListEntryLabel(doenetAttributes) {
 }
 
 /**
- * The variables read from a list (`listEntrySource`) that, when `false`, the
- * source does not set, so that the component's parent decides them.
- */
-const LIST_ENTRY_VARIABLES_UNSET_WHEN_FALSE = new Set(["fixed", "fixLocation"]);
-
-/**
  * For an unlinked copy (`copyAll`) of a component made from a list entry,
- * remove the `listEntrySource` it would read from the list, and give it, as
- * its own state, the values it reads there as they are now, where the source
- * sets them, so that it does not follow the list after it is made (as
- * `listEntrySourceSnapshot` in `Copy.js` does for a copy of the entry). The
- * label is copied with the component's own state.
+ * remove the `listEntrySource` it would read from the list, so that it does
+ * not follow the list after it is made. The values it read there are carried
+ * by its essential state (`copyEssentialStateIfShadow`), except
+ * `fixLocation`: the source's, as it is now, goes to
+ * `fixLocationPreliminary`, which holds an attribute's value, so that it
+ * takes precedence over the copy's parent, as the `fixLocation` attribute an
+ * unlinked copy of a point keeps does. `fixed` is not carried, as a `copy`
+ * does not take its source's `fixed` (`Copy.js`).
  */
 async function snapshotListEntrySource(serializedComponent, components) {
     const listEntrySource =
@@ -2425,23 +2422,15 @@ async function snapshotListEntrySource(serializedComponent, components) {
         return;
     }
     delete serializedComponent.doenetAttributes.listEntrySource;
+    const arrayName = listEntrySource.variables.fixLocation;
     const list = components?.[listEntrySource.componentIdx];
-    if (!list) {
+    if (!arrayName || !list) {
         return;
     }
-    const { label, labelHasLatex, ...variables } = listEntrySource.variables;
-    for (const [variable, arrayName] of Object.entries(variables)) {
-        const value = (await list.stateValues[arrayName])?.[
-            listEntrySource.index
-        ];
-        if (
-            value === null ||
-            value === undefined ||
-            (value === false &&
-                LIST_ENTRY_VARIABLES_UNSET_WHEN_FALSE.has(variable))
-        ) {
-            continue;
-        }
-        serializedComponent.state[variable] = value;
+    const fixLocation = (await list.stateValues[arrayName])?.[
+        listEntrySource.index
+    ];
+    if (fixLocation === true) {
+        serializedComponent.state.fixLocationPreliminary = true;
     }
 }
