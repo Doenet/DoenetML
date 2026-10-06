@@ -190,7 +190,7 @@ export function convertRepeatsToLists({
         ) {
             return;
         }
-        if (inGraph(repeat)) {
+        if (inGraph(repeat) || copiedIntoGraph(repeat)) {
             return;
         }
 
@@ -640,6 +640,47 @@ export function convertRepeatsToLists({
         }
         const listClass = referentClass(nodeIdx, type) as any;
         return ENTRY_VALUE_TYPES.has(listClass?.listEntryComponentType);
+    }
+
+    /**
+     * Whether the repeat, or a component holding it, is referenced, copied or
+     * extended from inside a `<graph>` (`$r`, or `<group extend="$g"/>` of a
+     * `<group name="g">` around it), following copies of those copies:
+     * where each iteration's component would be drawn and dragged at an
+     * anchor of its own, which an entry of the list has none of.
+     */
+    function copiedIntoGraph(repeat: SerializedComponent) {
+        const containers: number[] = [];
+        const seen = new Set<number>();
+        function addWithAncestors(idx: number) {
+            for (
+                let component = componentsByIdx.get(idx);
+                component && !seen.has(component.componentIdx);
+                component = parentByIdx.get(component.componentIdx)
+            ) {
+                seen.add(component.componentIdx);
+                containers.push(component.componentIdx);
+            }
+            if (!seen.has(idx)) {
+                seen.add(idx);
+                containers.push(idx);
+            }
+        }
+        addWithAncestors(repeat.componentIdx);
+        for (let i = 0; i < containers.length; i++) {
+            for (const { component } of referencesByTarget.get(containers[i]) ??
+                []) {
+                if (inGraph(component)) {
+                    return true;
+                }
+                addWithAncestors(component.componentIdx);
+                const created = component.attributes.createComponentIdx;
+                if (created?.type === "primitive") {
+                    addWithAncestors(Number(created.primitive.value));
+                }
+            }
+        }
+        return false;
     }
 
     /** Whether `component` is inside a `<graph>`. */

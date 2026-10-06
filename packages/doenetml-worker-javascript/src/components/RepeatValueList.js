@@ -9,6 +9,7 @@ import {
 } from "../utils/sequence";
 import { setUpVariantSeedAndRng } from "../utils/variants";
 import {
+    templateCanBeModified,
     analyzeRepeatTemplate,
     evaluateRepeatTemplate,
     invertRepeatTemplate,
@@ -296,6 +297,51 @@ export default class RepeatValueList extends ValueListComponent {
                     setValue: { entryListPrefixes, entryListsCanBeModified },
                 };
             },
+        };
+
+        // An entry takes a write when the template does, as the iteration's
+        // component reported, so that what reads it (`$r[2] + $c`) writes
+        // elsewhere when it does not (`<math>$v</math>`).
+        stateVariableDefinitions.entriesCanBeModified = {
+            // A reference to the whole list, which holds no template, reads
+            // the list's.
+            shadowVariable: true,
+            returnDependencies: () => ({
+                entriesFixed: {
+                    dependencyType: "stateVariable",
+                    variableName: "entriesFixed",
+                },
+                templateAnalysis: {
+                    dependencyType: "stateVariable",
+                    variableName: "templateAnalysis",
+                },
+                constants: {
+                    dependencyType: "child",
+                    childGroups: ["constants"],
+                    variableNames: ["canBeModified"],
+                    variablesOptional: true,
+                },
+                entryListsCanBeModified: {
+                    dependencyType: "stateVariable",
+                    variableName: "entryListsCanBeModified",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    entriesCanBeModified:
+                        !dependencyValues.entriesFixed &&
+                        templateCanBeModified({
+                            analysis: dependencyValues.templateAnalysis,
+                            codeCanBeModified: (code) =>
+                                code.entry !== undefined
+                                    ? dependencyValues.entryListsCanBeModified[
+                                          code.entry
+                                      ]
+                                    : dependencyValues.constants[code.constant]
+                                          ?.stateValues.canBeModified === true,
+                        }),
+                },
+            }),
         };
 
         const settingsDependencies = {

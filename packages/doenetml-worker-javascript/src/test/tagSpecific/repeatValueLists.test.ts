@@ -230,6 +230,27 @@ describe("Repeats whose template is one value @group4", () => {
         expect(texts).toEqual({ p: "11, 17, 13", pl: "1, 7, 3" });
     });
 
+    it("an entry the template cannot write takes no write, so what reads it writes elsewhere", async () => {
+        const texts = await compare({
+            doenetML: `
+<math name="c">5</math>
+<p name="p"><repeatForSequence name="r" from="1" to="3" valueName="v"><math>$v</math></repeatForSequence></p>
+<p><math name="o">$r[2] + $c</math></p>
+<mathInput name="mi" bindValueTo="$o" />
+<p name="pc">$c</p>
+`,
+            names: ["p", "pc"],
+            afterLoad: async (core, resolvePathToNodeIdx) => {
+                await updateMathInputValue({
+                    latex: "20",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+            },
+        });
+        expect(texts).toEqual({ p: "1, 2, 3", pc: "18" });
+    });
+
     it("a list read with modifyIndirectly false takes no write, so the other value does", async () => {
         const texts = await compare({
             doenetML: `
@@ -448,6 +469,11 @@ describe("Repeats whose template is one value @group4", () => {
         for (const doenetML of [
             // in a graph
             `<graph><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></graph>`,
+            // copied into a graph, through a group around it, or referenced
+            // there
+            `<group name="g"><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></group><graph><group extend="$g" /></graph>`,
+            `<group name="g"><repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence></group><group extend="$g" name="g2" /><graph>$g2</graph>`,
+            `<repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence><graph>$r</graph>`,
             // copied
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence><math copy="$r[1]" />`,
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math></repeatForSequence><repeatForSequence copy="$r" />`,

@@ -385,6 +385,18 @@ function valueOfCode(code, context) {
         : evaluateRepeatTemplate({ ...context, ind: code.node });
 }
 
+/**
+ * Whether the template takes a write at all, as the iteration's component
+ * reports it (`canBeModified`): given whether each entry and constant code it
+ * reads takes one (`codeCanBeModified`), and not as written to one entry.
+ */
+export function templateCanBeModified({ analysis, codeCanBeModified }) {
+    if (analysis.nodes.length === 0) {
+        return false;
+    }
+    return canBeModified({ node: 0 }, { analysis, codeCanBeModified });
+}
+
 /** Whether `code` takes a write, through the node it is if one. */
 function canBeModified(code, context) {
     if (code.node === undefined) {
