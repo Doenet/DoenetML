@@ -122,6 +122,12 @@ export default class ValueListComponent extends BaseComponent {
         return ENTRY_RENDERER_DEFAULTS;
     }
 
+    // Variables the renderer of an entry reads that a component of the
+    // entries' type has no renderer variable for (an `<endpoint>`'s `open`,
+    // drawn by the `point` renderer), sent with the others
+    // (`RendererInstructionBuilder.listEntryRendererState`).
+    static listEntryAdditionalRendererVariables = [];
+
     // The prefix of the name of one value (`math2`).
     static get listValuesEntryPrefix() {
         return this.listEntryComponentType;

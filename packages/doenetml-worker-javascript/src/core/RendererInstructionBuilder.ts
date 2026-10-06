@@ -853,8 +853,13 @@ export class RendererInstructionBuilder {
     ): Promise<Record<string, any>> {
         const listClass = list.constructor;
         const stateValues: Record<string, any> = {};
-        for (const name in this.core.rendererVariablesByComponentType[
-            listClass.listEntryComponentType
+        for (const name of [
+            ...Object.keys(
+                this.core.rendererVariablesByComponentType[
+                    listClass.listEntryComponentType
+                ],
+            ),
+            ...listClass.listEntryAdditionalRendererVariables,
         ]) {
             const listVariable = listClass.listEntryStateVariables[name];
             if (listVariable === undefined || !(listVariable in list.state)) {

@@ -67,6 +67,24 @@ export default class PointList extends GraphicalValueList {
 
     static listValuesEntryPrefix = "pointValue";
 
+    // An authored `<endpoint>` among the entries is drawn open or closed,
+    // and switched, as it is on its own.
+    static get listEntryChildRendererVariables() {
+        return [...super.listEntryChildRendererVariables, "open", "switchable"];
+    }
+
+    static listEntryAdditionalRendererVariables = ["open", "switchable"];
+
+    // A point that is not an endpoint has no `open`, which leaves its
+    // renderer to its marker style.
+    static get listEntryRendererDefaults() {
+        return {
+            ...super.listEntryRendererDefaults,
+            open: () => undefined,
+            switchable: () => false,
+        };
+    }
+
     static coordinatesArrayName = "points";
     static coordinatesArrayPrefix = "pointX";
 
@@ -284,7 +302,10 @@ export default class PointList extends GraphicalValueList {
         });
     }
 
-    switchPoint() {}
+    // A switch of an entry from an authored `<endpoint>` is the endpoint's.
+    async switchPoint(args) {
+        await this.performOnEntryChild({ actionName: "switchPoint", args });
+    }
 
     async pointClicked(args) {
         await this.performOnEntryChild({

@@ -1452,4 +1452,49 @@ describe("Point and vector lists as list components @group4", async () => {
             { coords: [3, 4], label: "B", layer: 3, markerStyle: "triangle" },
         ]);
     });
+
+    it("an authored endpoint is drawn open and switched as itself", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+      <pointList name="pl"><endpoint name="E" open switchable>(1,2)</endpoint> (3,4)</pointList>
+    </graph>
+    <p name="pE">$E.open</p>
+    `,
+        });
+
+        const rendererState = (core as any).core.rendererInstructionBuilder
+            .rendererState;
+        async function drawnOpen() {
+            const drawn = await drawnIn(core, resolvePathToNodeIdx, "g");
+            return drawn.map((child: any) => {
+                const { open, switchable } =
+                    rendererState[child.componentIdx].stateValues;
+                return [open, switchable];
+            });
+        }
+
+        // an entry that is not an endpoint has no `open`, so its renderer
+        // follows its marker style
+        expect(await drawnOpen()).eqls([
+            [true, true],
+            [undefined, false],
+        ]);
+
+        const drawn = await drawnIn(core, resolvePathToNodeIdx, "g");
+        for (const child of drawn) {
+            await core.requestAction({
+                componentIdx: child.componentIdx,
+                actionName: "switchPoint",
+                args: {},
+            });
+        }
+        expect(await textsOf(core, resolvePathToNodeIdx, ["pE"])).eqls({
+            pE: "false",
+        });
+        expect(await drawnOpen()).eqls([
+            [false, true],
+            [undefined, false],
+        ]);
+    });
 });

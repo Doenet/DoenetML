@@ -133,9 +133,14 @@ export default class GraphicalValueList extends AuthoredValueList {
                     onlyForRenderer: true,
                 }).stateVariableDescriptions;
             variables = { ...rendererVariablesOf(listClass) };
-            for (const name in rendererVariablesOf(
-                classes[listClass.listEntryComponentType],
-            )) {
+            for (const name of [
+                ...Object.keys(
+                    rendererVariablesOf(
+                        classes[listClass.listEntryComponentType],
+                    ),
+                ),
+                ...listClass.listEntryAdditionalRendererVariables,
+            ]) {
                 const listVariable = listClass.listEntryStateVariables[name];
                 if (listVariable !== undefined) {
                     variables[listVariable] = true;
@@ -864,7 +869,10 @@ export default class GraphicalValueList extends AuthoredValueList {
             });
             return;
         }
-        if (!(await this.stateValues.entryFixed)[listEntryIndex]) {
+        if (
+            triggeringAction !== undefined &&
+            !(await this.stateValues.entryFixed)[listEntryIndex]
+        ) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction,
                 componentIdx: this.componentIdx,
