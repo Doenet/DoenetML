@@ -144,14 +144,17 @@ export function convertToListForms({
     const decided = new Map<number, string | null>();
     const deciding = new Set<number>();
 
-    /** The type of the values of a component of type `componentType`. */
+    /**
+     * The type of the values of a component of type `componentType`, when
+     * it is one of the types of `REORDERED_LIST_BASES` itself. A type that
+     * inherits from one (`<interval>`, `<integer>`, `<latex>`, `<sum>`) keeps
+     * the composite, whose copies keep that type (`<collect
+     * componentType="interval">` of the sort, `<intervalList>$s</intervalList>`).
+     */
     function valueTypeOf(componentType: string) {
-        for (const type of ["number", "math", "text", "boolean"]) {
-            if (isOfType(componentType, type)) {
-                return type;
-            }
-        }
-        return undefined;
+        return componentType in REORDERED_LIST_BASES
+            ? componentType
+            : undefined;
     }
 
     /**
