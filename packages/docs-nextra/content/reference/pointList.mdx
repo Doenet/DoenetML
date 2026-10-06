@@ -7,8 +7,15 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 <ComponentDisplay name='pointList'/>
 
-`<pointList>{:dn}` is a graphical-list component that defines a collection
-of [`<point>{:dn}`](point) components.
+`<pointList>{:dn}` is a graphical-list component that holds a collection
+of points. Each point is drawn as a [`<point>{:dn}`](point) is, and can be
+dragged on its own.
+
+A point written as `(x, y)` in the list's text is held by the list. A
+`<point>{:dn}` among its children, or a reference such as `$P`, is one of
+its points too, drawn with that point's label and style. All the points
+have the same number of coordinates, the most any of them has: a point
+with fewer has 0 in the coordinates it lacks.
 
 When creating a `<pointList>{:dn}`, separate items by **spaces**, not commas.
 The component will default to displaying the list with commas. (The commas
@@ -81,6 +88,32 @@ its points on the graph. Drag any point to update its coordinates.
 
 Components that accept multiple points as an attribute (such as
 `<line>{:dn}`'s `through`) accept a `<pointList>{:dn}` directly.
+
+
+
+---
+
+### Example: Constraining every point
+
+
+```doenet-editor-horiz
+<graph size="small">
+  <shortDescription>Three points that snap to the grid.</shortDescription>
+  <pointList name="pts">
+    <constrainToGrid />
+    (1.2, 2.7) (-3.4, 4.1) (5.3, -1.2)
+  </pointList>
+</graph>
+
+<p>$pts</p>
+```
+
+
+
+A constraint among the children of a `<pointList>{:dn}`, such as
+`<constrainToGrid>{:dn}` or `<attractTo>{:dn}`, applies to every point in
+the list, as it would to a `<point>{:dn}` it is a child of. Drag any point
+to see it snap to the grid.
 
 
 

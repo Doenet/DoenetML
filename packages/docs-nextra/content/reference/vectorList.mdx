@@ -7,8 +7,14 @@ import { ComponentDisplay, AttrPropDisplay } from "../../components"
 
 <ComponentDisplay name='vectorList'/>
 
-`<vectorList>{:dn}` is a graphical-list component that defines a collection
-of [`<vector>{:dn}`](vector) components.
+`<vectorList>{:dn}` is a graphical-list component that holds a collection
+of vectors. Each vector is drawn as a [`<vector>{:dn}`](vector) is, and can
+be dragged on its own.
+
+A vector written as `(x, y)` in the list's text is its displacement, with
+its tail at the origin until it is dragged. A `<vector>{:dn}` among its
+children, or a reference such as `$v`, is one of its vectors too, with its
+own tail and head, label and style.
 
 When creating a `<vectorList>{:dn}`, separate items by **spaces**, not commas.
 The component will default to displaying the list with commas. (The commas
@@ -56,7 +62,9 @@ vector. Individual vectors are addressable with array notation.
 
 
 When placed inside a `<graph>{:dn}`, a `<vectorList>{:dn}` renders each of
-its vectors from the origin. Drag a vector head to update its components.
+its vectors from the origin. Drag a vector's head to change its
+components, its tail to move the tail and keep the head, or the vector
+itself to move it.
 
 
 
@@ -76,8 +84,9 @@ its vectors from the origin. Drag a vector head to update its components.
 
 
 
-Vectors may have any number of components; all vectors in the list are
-rendered with the same dimension (the maximum across the list).
+Vectors may have any number of components; all vectors in the list have
+the same number (the most any of them has), and a vector with fewer has 0
+in the components it lacks.
 
 
 
