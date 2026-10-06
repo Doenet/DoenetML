@@ -3063,6 +3063,12 @@ export async function replacementFromProp({
                             propStateValue = propStateValue[ind2];
                         }
 
+                        // The copy takes its index and stateId before its
+                        // `<label>` child, so its stateId is the same whether
+                        // or not the entry has a label.
+                        const componentIdx = nComponents++;
+                        const stateId = `${stateIdInfo.prefix}${stateIdInfo.num++}`;
+
                         const entrySource = await listEntrySourceSnapshot({
                             arrayStateVarObj,
                             arrayKey,
@@ -3075,8 +3081,8 @@ export async function replacementFromProp({
                         let serializedComponent = {
                             type: "serialized",
                             componentType: createComponentOfType,
-                            componentIdx: nComponents++,
-                            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                            componentIdx,
+                            stateId,
                             attributes: attributesForReplacement,
                             doenetAttributes: {},
                             state: {

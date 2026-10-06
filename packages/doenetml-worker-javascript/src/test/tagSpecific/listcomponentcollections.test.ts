@@ -1659,6 +1659,65 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         });
     });
 
+    it("a copy= of a collected, sorted or shuffled vector is at its source's tail and head, with its label and draggability", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g1">
+      <vector name="u" tail="(1,1)" headDraggable="false"><label>u</label>(2,3)</vector>
+      <vector name="v" tail="(-4,0)" tailDraggable="false">(1,1)</vector>
+    </graph>
+    <collect componentType="vector" from="$g1" name="cv" />
+    <sort name="sv" sortVectorsBy="tail">$u $v</sort>
+    <shuffle name="shv">$u</shuffle>
+    <graph>
+      <vector name="CV1" copy="$cv[1]" />
+      <vector name="CV2" copy="$cv[2]" />
+      <vector name="SV1" copy="$sv[1]" />
+      <vector name="SV2" copy="$sv[2]" />
+      <vector name="SH1" copy="$shv[1]" />
+    </graph>
+    <p name="pcopies">$CV1.tail $CV1.head | $CV2.tail $CV2.head | $SV1.tail $SV1.head | $SV2.tail $SV2.head | $SH1.tail $SH1.head</p>
+    <p name="psource">$u.tail $u.head</p>
+    `,
+        });
+
+        const snapshots: Record<string, [string, boolean, boolean]> = {};
+        for (const name of ["CV1", "CV2", "SV1", "SV2", "SH1"]) {
+            const { label, headDraggable, tailDraggable } = await stateValuesOf(
+                core,
+                resolvePathToNodeIdx,
+                name,
+            );
+            snapshots[name] = [label, headDraggable, tailDraggable];
+        }
+        expect(snapshots).eqls({
+            CV1: ["u", false, true],
+            CV2: ["", true, false],
+            SV1: ["", true, false],
+            SV2: ["u", false, true],
+            SH1: ["u", false, true],
+        });
+        const atSources = {
+            pcopies:
+                "(1, 1) (3, 4) | (-4, 0) (-3, 1) | (-4, 0) (-3, 1) | (1, 1) (3, 4) | (1, 1) (3, 4)",
+        };
+        await expectTexts(core, resolvePathToNodeIdx, {
+            ...atSources,
+            psource: "(1, 1) (3, 4)",
+        });
+
+        // the copies do not follow their sources
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("u"),
+            actionName: "moveVector",
+            args: { tailcoords: [0, 0], headcoords: [1, 0] },
+        });
+        await expectTexts(core, resolvePathToNodeIdx, {
+            ...atSources,
+            psource: "(0, 0) (1, 0)",
+        });
+    });
+
     it("sorted points and vectors are ordered by a coordinate and follow a drag", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
