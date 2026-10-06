@@ -1005,6 +1005,141 @@ describe("Point and vector lists as list components @group4", async () => {
         });
     });
 
+    it("a copy= of an entry is at the entry's value with its source's label, and is independent of the list", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="gl"><pointList name="pl"><point><label>\\(x^2\\)</label>(1,2)</point> <point><label>P</label>(5,6)</point> (3,4)</pointList></graph>
+    <vectorList name="vl"><vector tail="(1,1)" headDraggable="false"><label>u</label>(2,3)</vector> (3,4)</vectorList>
+    <graph>
+      <point name="A" copy="$pl[1]" />
+      <point name="B" copy="$pl[2]" />
+      <point name="C" copy="$pl[3]" />
+      <vector name="U" copy="$vl[1]" />
+      <vector name="W" copy="$vl[2]" />
+    </graph>
+    <p name="ppl">$pl</p>
+    <p name="pvl">$vl</p>
+    <p name="pcopies">$A $B $C | $U.tail $U.head | $W.tail $W.head</p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const labelsAndDrags = async (name: string) => {
+            const { label, labelHasLatex, headDraggable, tailDraggable } =
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            return { label, labelHasLatex, headDraggable, tailDraggable };
+        };
+        expect(await labelsAndDrags("A")).eqls({
+            label: "\\(x^2\\)",
+            labelHasLatex: true,
+            headDraggable: undefined,
+            tailDraggable: undefined,
+        });
+        expect((await labelsAndDrags("B")).label).eq("P");
+        expect((await labelsAndDrags("C")).label).eq("");
+        expect(await labelsAndDrags("U")).eqls({
+            label: "u",
+            labelHasLatex: false,
+            headDraggable: false,
+            tailDraggable: true,
+        });
+        expect(await labelsAndDrags("W")).eqls({
+            label: "",
+            labelHasLatex: false,
+            headDraggable: true,
+            tailDraggable: true,
+        });
+
+        const before = {
+            ppl: "(1, 2), (5, 6), (3, 4)",
+            pvl: "(2, 3), (3, 4)",
+        };
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "ppl",
+                "pvl",
+                "pcopies",
+            ]),
+        ).eqls({
+            ...before,
+            pcopies: "(1, 2) (5, 6) (3, 4) | (1, 1) (3, 4) | (0, 0) (3, 4)",
+        });
+
+        // a copy moves without the list, and the list without the copy
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("A"),
+            actionName: "movePoint",
+            args: { x: -1, y: -2 },
+        });
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("W"),
+            actionName: "moveVector",
+            args: { tailcoords: [1, 0], headcoords: [2, 0] },
+        });
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "ppl",
+                "pvl",
+                "pcopies",
+            ]),
+        ).eqls({
+            ...before,
+            pcopies: "(-1, -2) (5, 6) (3, 4) | (1, 1) (3, 4) | (1, 0) (2, 0)",
+        });
+
+        await dragEntry({
+            core,
+            resolvePathToNodeIdx,
+            graph: "gl",
+            index: 1,
+            args: { x: 7, y: 7 },
+        });
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, ["ppl", "pcopies"]),
+        ).eqls({
+            ppl: "(1, 2), (7, 7), (3, 4)",
+            pcopies: "(-1, -2) (5, 6) (3, 4) | (1, 1) (3, 4) | (1, 0) (2, 0)",
+        });
+    });
+
+    it("a moved copy= of an entry is restored where it was moved", async () => {
+        const doenetML = `
+    <pointList name="pl"><point><label>P</label>(1,2)</point> (3,4)</pointList>
+    <vectorList name="vl"><vector tail="(1,1)"><label>u</label>(2,3)</vector></vectorList>
+    <graph>
+      <point name="A" copy="$pl[1]" />
+      <vector name="U" copy="$vl[1]" />
+    </graph>
+    <p name="pcopies">$A $A.label | $U.tail $U.head $U.label</p>
+    `;
+        const first = await createTestCore({ doenetML });
+        await first.core.requestAction({
+            componentIdx: await first.resolvePathToNodeIdx("A"),
+            actionName: "movePoint",
+            args: { x: -3, y: -4 },
+        });
+        await first.core.requestAction({
+            componentIdx: await first.resolvePathToNodeIdx("U"),
+            actionName: "moveVector",
+            args: { tailcoords: [4, 5], headcoords: [6, 6] },
+        });
+        const moved = { pcopies: "(-3, -4) P | (4, 5) (6, 6) u" };
+        expect(
+            await textsOf(first.core, first.resolvePathToNodeIdx, ["pcopies"]),
+        ).eqls(moved);
+
+        await first.core.saveImmediately();
+        const second = await createTestCore({
+            doenetML,
+            initialState: first.scoreState.state as string,
+        });
+        expect(
+            await textsOf(second.core, second.resolvePathToNodeIdx, [
+                "pcopies",
+            ]),
+        ).eqls(moved);
+    });
+
     it("a click on an entry from an authored point is a click on the point", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

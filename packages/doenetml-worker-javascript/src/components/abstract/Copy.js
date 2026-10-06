@@ -10,6 +10,7 @@ import {
 import { flattenDeep, flattenLevels, deepClone } from "@doenet/utils";
 import {
     convertAttributeValuesForComponentType,
+    primaryEssentialStateVariableOf,
     convertUnresolvedAttributesForComponentType,
 } from "../../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../../utils/componentIndices";
@@ -3047,20 +3048,11 @@ export async function replacementFromProp({
                             attributesFromComposite,
                         );
 
-                        let primaryEssentialStateVariable = "value";
-                        let componentClass =
-                            componentInfoObjects.allComponentClasses[
-                                createComponentOfType
-                            ];
-                        if (componentClass.primaryEssentialStateVariable) {
-                            primaryEssentialStateVariable =
-                                componentClass.primaryEssentialStateVariable;
-                        } else if (
-                            componentClass.primaryStateVariableForDefinition
-                        ) {
-                            primaryEssentialStateVariable =
-                                componentClass.primaryStateVariableForDefinition;
-                        }
+                        const primaryEssentialStateVariable =
+                            primaryEssentialStateVariableOf({
+                                componentType: createComponentOfType,
+                                componentInfoObjects,
+                            });
 
                         let arrayIndex = arrayStateVarObj.keyToIndex(arrayKey);
                         if (!Array.isArray(arrayIndex)) {
@@ -3071,17 +3063,33 @@ export async function replacementFromProp({
                             propStateValue = propStateValue[ind2];
                         }
 
+                        // The copy takes its index and stateId before its
+                        // `<label>` child, so its stateId is the same whether
+                        // or not the entry has a label.
+                        const componentIdx = nComponents++;
+                        const stateId = `${stateIdInfo.prefix}${stateIdInfo.num++}`;
+
+                        const entrySource = await listEntrySourceSnapshot({
+                            arrayStateVarObj,
+                            arrayKey,
+                            target,
+                            nComponents,
+                            stateIdInfo,
+                        });
+                        nComponents = entrySource.nComponents;
+
                         let serializedComponent = {
                             type: "serialized",
                             componentType: createComponentOfType,
-                            componentIdx: nComponents++,
-                            stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                            componentIdx,
+                            stateId,
                             attributes: attributesForReplacement,
                             doenetAttributes: {},
                             state: {
+                                ...entrySource.state,
                                 [primaryEssentialStateVariable]: propStateValue,
                             },
-                            children: [],
+                            children: entrySource.children,
                         };
 
                         serializedReplacements.push(serializedComponent);
@@ -3396,20 +3404,11 @@ export async function replacementFromProp({
                                 );
                             }
 
-                            let primaryEssentialStateVariable = "value";
-                            let componentClass =
-                                componentInfoObjects.allComponentClasses[
-                                    createComponentOfType
-                                ];
-                            if (componentClass.primaryEssentialStateVariable) {
-                                primaryEssentialStateVariable =
-                                    componentClass.primaryEssentialStateVariable;
-                            } else if (
-                                componentClass.primaryStateVariableForDefinition
-                            ) {
-                                primaryEssentialStateVariable =
-                                    componentClass.primaryStateVariableForDefinition;
-                            }
+                            const primaryEssentialStateVariable =
+                                primaryEssentialStateVariableOf({
+                                    componentType: createComponentOfType,
+                                    componentInfoObjects,
+                                });
 
                             let arrayIndex =
                                 arrayStateVarObj.keyToIndex(arrayKey);
@@ -4021,18 +4020,13 @@ export async function replacementFromProp({
                     attributesFromComposite,
                 );
 
-                let primaryEssentialStateVariable = "value";
-                let componentClass =
-                    componentInfoObjects.allComponentClasses[
-                        stateVarObj.shadowingInstructions.createComponentOfType
-                    ];
-                if (componentClass.primaryEssentialStateVariable) {
-                    primaryEssentialStateVariable =
-                        componentClass.primaryEssentialStateVariable;
-                } else if (componentClass.primaryStateVariableForDefinition) {
-                    primaryEssentialStateVariable =
-                        componentClass.primaryStateVariableForDefinition;
-                }
+                const primaryEssentialStateVariable =
+                    primaryEssentialStateVariableOf({
+                        componentType:
+                            stateVarObj.shadowingInstructions
+                                .createComponentOfType,
+                        componentInfoObjects,
+                    });
 
                 let serializedComponent = {
                     type: "serialized",
@@ -4305,4 +4299,56 @@ function listEntrySourceDoenetAttributes({
             variables,
         },
     };
+}
+
+/**
+ * For an unlinked copy of entry `arrayKey` of a list (`copy="$pl[1]"`), the
+ * variables of the entry's source that are not attributes
+ * (`listEntrySourceVariables`), as they are when it is made: the label, as a
+ * `<label>` child as an unlinked copy of a labeled point has, and any other
+ * (a vector's `headDraggable` and `tailDraggable`) the source sets, as state.
+ * A linked component reads them from the list instead
+ * (`listEntrySourceDoenetAttributes`).
+ */
+async function listEntrySourceSnapshot({
+    arrayStateVarObj,
+    arrayKey,
+    target,
+    nComponents,
+    stateIdInfo,
+}) {
+    const children = [];
+    const state = {};
+    const variables =
+        arrayStateVarObj.shadowingInstructions.listEntrySourceVariables;
+    const index = arrayStateVarObj.keyToIndex(arrayKey);
+    if (!variables || !Number.isInteger(index)) {
+        return { children, state, nComponents };
+    }
+
+    for (const [variable, arrayName] of Object.entries(variables)) {
+        if (variable === "labelHasLatex") {
+            // carried by the label's text (`Label`'s `hasLatex`)
+            continue;
+        }
+        const value = (await target.state[arrayName].value)[index];
+        if (variable === "label") {
+            if (typeof value === "string" && value !== "") {
+                children.push({
+                    type: "serialized",
+                    componentType: "label",
+                    componentIdx: nComponents++,
+                    stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
+                    attributes: {},
+                    doenetAttributes: {},
+                    state: { valueShadow: value },
+                    children: [],
+                });
+            }
+        } else if (value !== null && value !== undefined) {
+            state[variable] = value;
+        }
+    }
+
+    return { children, state, nComponents };
 }

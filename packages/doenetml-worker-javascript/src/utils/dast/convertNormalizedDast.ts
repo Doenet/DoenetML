@@ -1525,6 +1525,37 @@ export function convertUnresolvedAttributesForComponentType({
 }
 
 /**
+ * The name of the essential value that a component of type `componentType`
+ * starts from when it is made from a value (an unlinked copy of a property,
+ * an attribute given a value): the essential name of its
+ * `primaryStateVariableForDefinition`, which a point (`coords` for
+ * `coordsShadow`) or vector (`displacement` for `displacementShadow`) keeps
+ * under a name of its own, as `BaseComponent.serialize` writes it.
+ */
+export function primaryEssentialStateVariableOf({
+    componentType,
+    componentInfoObjects,
+}: {
+    componentType: string;
+    componentInfoObjects: ComponentInfoObjects;
+}): string {
+    const componentClass =
+        componentInfoObjects.allComponentClasses[componentType];
+    if (componentClass.primaryEssentialStateVariable) {
+        return componentClass.primaryEssentialStateVariable;
+    }
+    const varName: string | undefined =
+        componentClass.primaryStateVariableForDefinition;
+    if (!varName) {
+        return "value";
+    }
+    return (
+        componentInfoObjects.stateVariableInfo[componentType]
+            ?.stateVariableDescriptions[varName]?.essentialVarName ?? varName
+    );
+}
+
+/**
  * Convert `attributeValues` into `SerializedAttribute`s for a component of type `componentType`.
  * Attributes that don't match what `componentType` accepts are ignored.
  *
@@ -1589,7 +1620,12 @@ export function convertAttributeValuesForComponentType({
                     componentType: attrDef.createComponentOfType,
                     attributes: {},
                     doenetAttributes: {},
-                    state: { value: attributeVal },
+                    state: {
+                        [primaryEssentialStateVariableOf({
+                            componentType: attrDef.createComponentOfType,
+                            componentInfoObjects,
+                        })]: attributeVal,
+                    },
                     children: [],
                 },
             };

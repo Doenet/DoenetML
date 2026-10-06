@@ -91,6 +91,11 @@ type StateVariableDescription = {
     )[][];
     entryPrefixes: string[];
     /**
+     * The name the state variable's essential value is kept under, where it
+     * is not the state variable's own (`essentialVarName` on its state def).
+     */
+    essentialVarName?: string;
+    /**
      * Resting value the runtime falls back to when nothing else (attribute,
      * child, parent) sets this state variable. Populated by
      * `BaseComponent.returnStateVariableInfo` from each state def's

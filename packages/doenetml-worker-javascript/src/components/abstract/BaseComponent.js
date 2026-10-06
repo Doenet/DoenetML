@@ -1471,6 +1471,12 @@ export default class BaseComponent {
                     stateVariableDescriptions[varName].description =
                         theStateDef.description;
                 }
+                // The name its essential value is kept under, where it is not
+                // its own (`primaryEssentialStateVariableOf`).
+                if (theStateDef.essentialVarName !== undefined) {
+                    stateVariableDescriptions[varName].essentialVarName =
+                        theStateDef.essentialVarName;
+                }
                 // Propagate the state def's `excludeFromSchema` flag so the
                 // schema generator can drop this state variable from the
                 // author-facing properties list while leaving it usable at

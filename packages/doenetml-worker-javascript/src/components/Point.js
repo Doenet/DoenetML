@@ -526,6 +526,7 @@ export default class Point extends GraphicalComponent {
             isLocation: true,
             hasEssential: true,
             essentialVarName: "coords",
+            set: convertValueToMathExpression,
             returnDependencies: () => ({}),
             definition: () => ({
                 useEssentialOrDefaultValue: {
