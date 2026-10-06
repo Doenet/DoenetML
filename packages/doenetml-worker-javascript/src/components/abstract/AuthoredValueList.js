@@ -60,6 +60,18 @@ const AUTHORED_LIST_OWN_PROPERTIES = [
  * that array (`listValuesShadow`).
  */
 export default class AuthoredValueList extends ValueListComponent {
+    constructor(args) {
+        super(args);
+
+        if (this.constructor.listEntriesAnchoredBySources) {
+            Object.assign(this.actions, {
+                moveMath: this.moveEntry.bind(this),
+                moveNumber: this.moveEntry.bind(this),
+                moveText: this.moveEntry.bind(this),
+            });
+        }
+    }
+
     static componentType = "_authoredValueList";
 
     static listEntriesFixedByDefault = false;
@@ -115,8 +127,24 @@ export default class AuthoredValueList extends ValueListComponent {
             : AUTHORED_LIST_OWN_PROPERTIES;
     }
 
+    // Whether each entry is placed in a graph, and dragged there, as the
+    // component it comes from is (`entryGraphSources`): the entries of maths,
+    // numbers, texts and intervals, which are drawn at an anchor.
+    static get listEntriesAnchoredBySources() {
+        return (
+            this.listEntryChildRendererVariables === undefined &&
+            entryKind(this.listEntryComponentType) !== "boolean"
+        );
+    }
+
     static buildListEntryStateVariables() {
         const variables = super.buildListEntryStateVariables();
+        if (this.listEntriesAnchoredBySources) {
+            Object.assign(variables, ENTRY_GRAPH_ARRAYS);
+            // the component an entry is placed as, which a list holding
+            // this one places that entry as in turn
+            variables.listEntryGraphSource = "entryGraphSources";
+        }
         if (this.listEntriesShownAsSources) {
             Object.assign(variables, this.listEntryPresentationVariables);
             // the component an entry stands for, which a list reading the
@@ -129,16 +157,20 @@ export default class AuthoredValueList extends ValueListComponent {
     // Built once for each class, as the viewer reads it for each entry.
     static get listPerEntryVariables() {
         if (!Object.hasOwn(this, "builtListPerEntryVariables")) {
-            const variables = super.listPerEntryVariables;
-            this.builtListPerEntryVariables = Object.freeze(
-                this.listEntriesShownAsSources
-                    ? [
-                          ...variables,
-                          ...Object.values(this.listEntryPresentationVariables),
-                          "entrySourceComponents",
-                      ]
-                    : [...variables],
-            );
+            const variables = [...super.listPerEntryVariables];
+            if (this.listEntriesAnchoredBySources) {
+                variables.push(
+                    ...Object.values(ENTRY_GRAPH_ARRAYS),
+                    "entryGraphSources",
+                );
+            }
+            if (this.listEntriesShownAsSources) {
+                variables.push(
+                    ...Object.values(this.listEntryPresentationVariables),
+                    "entrySourceComponents",
+                );
+            }
+            this.builtListPerEntryVariables = Object.freeze(variables);
         }
         return this.builtListPerEntryVariables;
     }
@@ -1255,6 +1287,13 @@ export default class AuthoredValueList extends ValueListComponent {
             };
         }
 
+        if (listClass.listEntriesAnchoredBySources) {
+            Object.assign(
+                stateVariableDefinitions,
+                returnEntryGraphDefinitions(listClass),
+            );
+        }
+
         // The number of values, by the names authors have used for it.
         stateVariableDefinitions.numComponents = {
             description: "The number of items in the list.",
@@ -1286,6 +1325,370 @@ export default class AuthoredValueList extends ValueListComponent {
 
         return stateVariableDefinitions;
     }
+
+    /**
+     * A drag of entry `listEntryIndex` to `(x, y, z)`, which moves the anchor
+     * of the component the entry is placed as (`entryGraphSources`), unless
+     * the entry is fixed, its location is fixed or it cannot be dragged.
+     */
+    async moveEntry({ x, y, z, listEntryIndex, ...args }) {
+        if (!(await this.entryCanBeMoved(listEntryIndex))) {
+            return;
+        }
+        const components = ["vector"];
+        if (x !== undefined) {
+            components[1] = x;
+        }
+        if (y !== undefined) {
+            components[2] = y;
+        }
+        if (z !== undefined) {
+            components[3] = z;
+        }
+        return await this.writeEntryFromAction({
+            ...args,
+            listEntryIndex,
+            values: { entryAnchor: me.fromAst(components) },
+            result: { x, y, z },
+        });
+    }
+
+    /** Whether entry `listEntryIndex` takes a drag (`moveEntry`). */
+    async entryCanBeMoved(listEntryIndex) {
+        if (!Number.isInteger(listEntryIndex)) {
+            return false;
+        }
+        const source = (await this.stateValues.entryGraphSources)[
+            listEntryIndex
+        ];
+        return (
+            typeof source === "number" &&
+            (await this.stateValues.entryFixed)[listEntryIndex] === false &&
+            (await this.stateValues.entryFixLocation)[listEntryIndex] ===
+                false &&
+            (await this.stateValues.entryDraggable)[listEntryIndex] === true
+        );
+    }
+
+    /**
+     * Write `values` (by state variable) to entry `listEntryIndex`, as a drag
+     * of its renderer, recording the interaction as `result`.
+     */
+    async writeEntryFromAction({
+        listEntryIndex,
+        values,
+        result,
+        transient,
+        skippable,
+        actionId,
+        sourceDetails,
+        sourceInformation = {},
+        skipRendererUpdate = false,
+    }) {
+        const updateInstructions = Object.entries(values).map(
+            ([stateVariable, value]) => ({
+                updateType: "updateValue",
+                componentIdx: this.componentIdx,
+                stateVariable,
+                value: { [listEntryIndex]: value },
+                sourceDetails,
+            }),
+        );
+        if (transient) {
+            return await this.coreFunctions.performUpdate({
+                updateInstructions,
+                transient,
+                skippable,
+                actionId,
+                sourceInformation,
+                skipRendererUpdate,
+            });
+        }
+        return await this.coreFunctions.performUpdate({
+            updateInstructions,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
+            event: {
+                verb: "interacted",
+                object: {
+                    componentIdx: this.componentIdx,
+                    componentType: this.componentType,
+                },
+                context: { listEntryIndex },
+                result,
+            },
+        });
+    }
+}
+
+/**
+ * The arrays of a list whose entries are placed as their sources
+ * (`listEntriesAnchoredBySources`) holding, for each entry, the entry
+ * variable they are named by.
+ */
+const ENTRY_GRAPH_ARRAYS = Object.freeze({
+    anchor: "entryAnchor",
+    positionFromAnchor: "entryPositionFromAnchor",
+    draggable: "entryDraggable",
+    layer: "entryLayer",
+    fixed: "entryFixed",
+    fixLocation: "entryFixLocation",
+});
+
+/**
+ * The variables of the component an entry is placed as that place it, each
+ * with the value an entry placed as no component has, and whether the list's
+ * own value of the variable also applies to every entry (`fixed`,
+ * `fixLocation`).
+ */
+const ENTRY_GRAPH_SOURCE_VARIABLES = Object.freeze({
+    positionFromAnchor: { none: "center" },
+    draggable: { none: false },
+    layer: { none: 0 },
+    fixed: { none: false, orList: "entriesFixed" },
+    fixLocation: { none: false, orList: "fixLocation" },
+});
+
+/**
+ * The component whose anchor places the entry of `source`, a child of a
+ * list or a component a list reads an entry from: for an entry of a list,
+ * the component that list places the entry as (or `null`); for a value
+ * reference, its referent when it references the referent's own value (`$m`,
+ * `$m.value`), and none when it references another value (`$m.x`, `$l[2]`);
+ * otherwise the component itself. `stateValues` holds `listEntryGraphSource` and
+ * `referentInfo`, when the source has them.
+ */
+export function graphSourceOf(source) {
+    if (!source) {
+        return null;
+    }
+    if (source.listEntryIndex !== undefined) {
+        return source.stateValues?.listEntryGraphSource ?? null;
+    }
+    const referentInfo = source.stateValues?.referentInfo;
+    if (referentInfo !== undefined) {
+        return referentInfo?.referencedPrimaryValue &&
+            referentInfo.listEntryPosition === undefined
+            ? referentInfo.componentIdx
+            : null;
+    }
+    return source.componentIdx;
+}
+
+/**
+ * The definitions of a list whose entries are placed as their sources
+ * (`listEntriesAnchoredBySources`): the component each entry is placed as
+ * (`entryGraphSources`), and from it an array of a value per entry for each
+ * variable that places an entry in a graph (`ENTRY_GRAPH_ARRAYS`). An entry
+ * placed as no component (one from text) is at the origin and cannot be
+ * dragged. A value written to an entry's anchor (a drag, `moveEntry`) goes
+ * to that component's anchor.
+ */
+function returnEntryGraphDefinitions(listClass) {
+    const componentGroups = listClass.listChildGroups.map((x) => x.group);
+    const definitions = {};
+
+    // The component each entry comes from among the children, which, for a
+    // child an adapter made (a `<number>` in a `<mathList>`), is that adapter.
+    definitions.entryChildGraphSources = {
+        returnDependencies: () => ({
+            entryStructure: {
+                dependencyType: "stateVariable",
+                variableName: "entryStructure",
+            },
+            children: {
+                dependencyType: "child",
+                childGroups: componentGroups,
+                variableNames: ["listEntryGraphSource", "referentInfo"],
+                variablesOptional: true,
+            },
+        }),
+        definition: ({ dependencyValues }) => ({
+            setValue: {
+                entryChildGraphSources: dependencyValues.entryStructure.map(
+                    (source) =>
+                        source.componentInd === undefined
+                            ? null
+                            : graphSourceOf(
+                                  dependencyValues.children[
+                                      source.componentInd
+                                  ],
+                              ),
+                ),
+            },
+            checkForActualChange: { entryChildGraphSources: true },
+        }),
+    };
+
+    // Each entry is placed as the component it comes from, the one the
+    // author wrote, which an adapter was made from.
+    definitions.entryGraphSources = {
+        // A reference to the whole list reads the list's.
+        shadowVariable: true,
+        stateVariablesDeterminingDependencies: ["entryChildGraphSources"],
+        returnDependencies({ stateValues }) {
+            const dependencies = {
+                entryChildGraphSources: {
+                    dependencyType: "stateVariable",
+                    variableName: "entryChildGraphSources",
+                },
+            };
+            for (const sourceIdx of new Set(
+                stateValues.entryChildGraphSources,
+            )) {
+                if (typeof sourceIdx === "number") {
+                    dependencies[`adaptedFrom${sourceIdx}`] = {
+                        dependencyType: "adapterSource",
+                        componentIdx: sourceIdx,
+                    };
+                }
+            }
+            return dependencies;
+        },
+        definition: ({ dependencyValues }) => ({
+            setValue: {
+                entryGraphSources: dependencyValues.entryChildGraphSources.map(
+                    (sourceIdx) =>
+                        typeof sourceIdx === "number"
+                            ? (dependencyValues[`adaptedFrom${sourceIdx}`]
+                                  ?.componentIdx ?? sourceIdx)
+                            : null,
+                ),
+            },
+            checkForActualChange: { entryGraphSources: true },
+        }),
+    };
+
+    // The variables of each entry's component that place it, by entry.
+    definitions.entryGraphValues = {
+        stateVariablesDeterminingDependencies: ["entryGraphSources"],
+        returnDependencies({ stateValues }) {
+            const dependencies = {
+                entryGraphSources: {
+                    dependencyType: "stateVariable",
+                    variableName: "entryGraphSources",
+                },
+            };
+            for (const sourceIdx of new Set(stateValues.entryGraphSources)) {
+                if (typeof sourceIdx === "number") {
+                    dependencies[`source${sourceIdx}`] = {
+                        dependencyType: "multipleStateVariables",
+                        componentIdx: sourceIdx,
+                        variableNames: Object.keys(
+                            ENTRY_GRAPH_SOURCE_VARIABLES,
+                        ),
+                        variablesOptional: true,
+                    };
+                }
+            }
+            return dependencies;
+        },
+        definition: ({ dependencyValues }) => ({
+            setValue: {
+                entryGraphValues: dependencyValues.entryGraphSources.map(
+                    (sourceIdx) =>
+                        typeof sourceIdx === "number"
+                            ? (dependencyValues[`source${sourceIdx}`]
+                                  ?.stateValues ?? {})
+                            : null,
+                ),
+            },
+        }),
+    };
+
+    for (const [name, { none, orList }] of Object.entries(
+        ENTRY_GRAPH_SOURCE_VARIABLES,
+    )) {
+        const arrayName = ENTRY_GRAPH_ARRAYS[name];
+        definitions[arrayName] = {
+            forRenderer: true,
+            returnDependencies: () => ({
+                entryGraphValues: {
+                    dependencyType: "stateVariable",
+                    variableName: "entryGraphValues",
+                },
+                ...(orList
+                    ? {
+                          listValue: {
+                              dependencyType: "stateVariable",
+                              variableName: orList,
+                          },
+                      }
+                    : {}),
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    [arrayName]: dependencyValues.entryGraphValues.map(
+                        (values) => {
+                            const value = values?.[name] ?? none;
+                            return orList
+                                ? Boolean(dependencyValues.listValue || value)
+                                : value;
+                        },
+                    ),
+                },
+            }),
+        };
+    }
+
+    // The anchor of each entry's component, read and written there.
+    definitions.entryAnchor = {
+        forRenderer: true,
+        isLocation: true,
+        stateVariablesDeterminingDependencies: ["entryGraphSources"],
+        returnDependencies({ stateValues }) {
+            const dependencies = {
+                entryGraphSources: {
+                    dependencyType: "stateVariable",
+                    variableName: "entryGraphSources",
+                },
+            };
+            for (const sourceIdx of new Set(stateValues.entryGraphSources)) {
+                if (typeof sourceIdx === "number") {
+                    dependencies[`anchor${sourceIdx}`] = {
+                        dependencyType: "stateVariable",
+                        componentIdx: sourceIdx,
+                        variableName: "anchor",
+                        variablesOptional: true,
+                    };
+                }
+            }
+            return dependencies;
+        },
+        definition: ({ dependencyValues }) => ({
+            setValue: {
+                entryAnchor: dependencyValues.entryGraphSources.map(
+                    (sourceIdx) =>
+                        (typeof sourceIdx === "number"
+                            ? dependencyValues[`anchor${sourceIdx}`]
+                            : undefined) ?? me.fromAst(["vector", 0, 0]),
+                ),
+            },
+        }),
+        inverseDefinition({ desiredStateVariableValues, dependencyValues }) {
+            const instructions = [];
+            for (const [key, anchor] of Object.entries(
+                desiredStateVariableValues.entryAnchor,
+            )) {
+                const sourceIdx = dependencyValues.entryGraphSources[key];
+                if (
+                    typeof sourceIdx === "number" &&
+                    dependencyValues[`anchor${sourceIdx}`] !== undefined
+                ) {
+                    instructions.push({
+                        setDependency: `anchor${sourceIdx}`,
+                        desiredValue: anchor,
+                    });
+                }
+            }
+            return instructions.length > 0
+                ? { success: true, instructions }
+                : { success: false };
+        },
+    };
+
+    return definitions;
 }
 
 /** The array holding display setting `name` of each entry. */

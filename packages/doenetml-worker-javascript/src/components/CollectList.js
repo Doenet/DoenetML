@@ -3,6 +3,7 @@ import {
     childDisplaySettings,
     ENTRY_PRESENTATION_ARRAYS,
     ENTRY_PRESENTATION_SOURCE_VARIABLES,
+    graphSourceOf,
     restoredValue,
     sourceComponentOf,
     sourcePresentation,
@@ -590,6 +591,75 @@ function collectListClass(Base) {
                     return { setValue: { entryPresentation } };
                 },
             };
+
+            // The component each entry is placed as in a graph
+            // (`graphSourceOf`): a component collected, or the referent of a
+            // reference to a whole component; for an entry of a list, the
+            // component that list places its entry as.
+            if (this.listEntriesAnchoredBySources) {
+                stateVariableDefinitions.entryGraphSources = {
+                    shadowVariable: true,
+                    stateVariablesDeterminingDependencies: ["collectedSources"],
+                    returnDependencies({ stateValues }) {
+                        const dependencies = {
+                            entryStructure: {
+                                dependencyType: "stateVariable",
+                                variableName: "entryStructure",
+                            },
+                            collectedSources: {
+                                dependencyType: "stateVariable",
+                                variableName: "collectedSources",
+                            },
+                        };
+                        for (const [
+                            ind,
+                            collected,
+                        ] of stateValues.collectedSources.entries()) {
+                            dependencies[`source${ind}`] = {
+                                dependencyType: "multipleStateVariables",
+                                componentIdx: collected.componentIdx,
+                                variableNames:
+                                    collected.listInd === undefined
+                                        ? ["referentInfo"]
+                                        : ["entryGraphSources"],
+                                variablesOptional: true,
+                            };
+                        }
+                        return dependencies;
+                    },
+                    definition({ dependencyValues }) {
+                        const { entryStructure, collectedSources } =
+                            dependencyValues;
+                        const entryGraphSources = entryStructure.map(
+                            ({ collectedInd }) => {
+                                const collected =
+                                    collectedSources[collectedInd];
+                                if (!collected) {
+                                    return null;
+                                }
+                                const stateValues =
+                                    dependencyValues[`source${collectedInd}`]
+                                        ?.stateValues ?? {};
+                                if (collected.listInd === undefined) {
+                                    return graphSourceOf({
+                                        componentIdx: collected.componentIdx,
+                                        stateValues,
+                                    });
+                                }
+                                return (
+                                    stateValues.entryGraphSources?.[
+                                        collected.listInd
+                                    ] ?? null
+                                );
+                            },
+                        );
+                        return {
+                            setValue: { entryGraphSources },
+                            checkForActualChange: { entryGraphSources: true },
+                        };
+                    },
+                };
+            }
 
             if (this.listEntryChildRendererVariables !== undefined) {
                 Object.assign(

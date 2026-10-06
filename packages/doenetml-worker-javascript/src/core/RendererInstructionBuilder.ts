@@ -41,6 +41,7 @@ const RENDERER_ACK_TIMEOUT_MS = 2000;
  */
 const LIST_ENTRY_ACTIONS: Record<string, string[]> = {
     math: ["moveMath", "mathClicked", "mathFocused"],
+    interval: ["moveMath", "mathClicked", "mathFocused"],
     number: ["moveNumber", "numberClicked", "numberFocused"],
     integer: ["moveNumber", "numberClicked", "numberFocused"],
     text: ["moveText", "textClicked", "textFocused"],

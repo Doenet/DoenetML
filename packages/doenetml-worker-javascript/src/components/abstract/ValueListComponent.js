@@ -117,7 +117,9 @@ export default class ValueListComponent extends BaseComponent {
 
     // What the renderer of an entry reads beyond its value, with the value
     // each has for an entry (`ENTRY_RENDERER_DEFAULTS`), as a list state
-    // variable of that name.
+    // variable of that name. A subclass can read some of them per entry
+    // instead (`buildListEntryStateVariables`), as a `<mathList>` reads an
+    // entry's `anchor` from the component the entry comes from.
     static get listEntryRendererDefaults() {
         return ENTRY_RENDERER_DEFAULTS;
     }

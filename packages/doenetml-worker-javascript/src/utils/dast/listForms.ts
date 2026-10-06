@@ -19,11 +19,10 @@
  *   not (`sortByProp`, or, for a `<collect>`, one it would pass on to the
  *   copies it makes, other than the display settings and `hide`).
  *
- * One of numbers, maths, texts, booleans or intervals drawn in a `<graph>`,
- * or shown in one (`drawnInGraph`), keeps the composite: the copies it makes
- * are drawn where their sources are anchored, and can be dragged there. One
- * of points or vectors is drawn and dragged entry by entry wherever it is,
- * as a `<pointList>` or `<vectorList>` is.
+ * In a `<graph>`, each entry is drawn as its source is: a number, math, text
+ * or interval at its source's anchor, and dragged there, as the entries of a
+ * `<numberList>` are; a point or vector entry by entry, as a `<pointList>` or
+ * `<vectorList>` draws one.
  *
  * It runs after sugar and before the value-reference pass, so that a
  * reference among the children of a list made here becomes a value
@@ -43,8 +42,8 @@ import { REORDERED_LIST_BASES } from "../../components/abstract/ReorderedValueLi
 import { COLLECT_LIST_BASES } from "../../components/CollectList";
 
 /**
- * The types of entries drawn at their own coordinates and dragged entry by
- * entry, which a list form of them draws in a graph as the copies were.
+ * The types of entries drawn at their own coordinates, which a reference to
+ * a whole component of that type (`$P`) gives as it is.
  */
 const GRAPHICAL_ENTRY_TYPES = new Set(["point", "vector"]);
 
@@ -126,13 +125,8 @@ export function convertToListForms({
     componentInfoObjects: ComponentInfoObjects;
     nComponents: number;
 }): { nComponents: number } {
-    const {
-        componentsByIdx,
-        parentByIdx,
-        copiesByCreatedIdx,
-        referentType,
-        referentClass,
-    } = documentReferents({ serializedComponents, componentInfoObjects });
+    const { componentsByIdx, copiesByCreatedIdx, referentType, referentClass } =
+        documentReferents({ serializedComponents, componentInfoObjects });
 
     const candidates: SerializedComponent[] = [];
     const references: SerializedComponent[] = [];
@@ -205,79 +199,6 @@ export function convertToListForms({
                 Object.keys(copy.attributes).every((name) =>
                     allowed.has(name.toLowerCase()),
                 ),
-        );
-    }
-
-    function isOfType(componentType: string, baseComponentType: string) {
-        return componentInfoObjects.isInheritedComponentType({
-            inheritedComponentType: componentType,
-            baseComponentType,
-        });
-    }
-
-    function ancestorsOf(idx: number): number[] {
-        const ancestors: number[] = [];
-        let parent = parentByIdx.get(idx);
-        while (parent) {
-            ancestors.push(parent.componentIdx);
-            parent = parentByIdx.get(parent.componentIdx);
-        }
-        return ancestors;
-    }
-
-    function insideGraph(idx: number) {
-        return ancestorsOf(idx).some((ancestorIdx) =>
-            isOfType(componentsByIdx.get(ancestorIdx)!.componentType, "graph"),
-        );
-    }
-
-    /**
-     * Whether the component at `idx` is drawn in a graph: it is inside one,
-     * or something that shows it is. What shows it is the component, its
-     * ancestors, and, through any chain of them, each `extend` or `copy` of
-     * one of those, the component that copy makes and the copy's ancestors.
-     * A reference to any of them from inside a graph draws it there.
-     */
-    function drawnInGraph(idx: number) {
-        const showing = new Set([idx, ...ancestorsOf(idx)]);
-        let added = true;
-        while (added) {
-            added = false;
-            for (const reference of references) {
-                if (
-                    showing.has(reference.componentIdx) ||
-                    !showing.has(unwrapSource(reference.extending!).nodeIdx)
-                ) {
-                    continue;
-                }
-                const createdIdx =
-                    reference.attributes.createComponentIdx?.type ===
-                    "primitive"
-                        ? Number(
-                              reference.attributes.createComponentIdx.primitive
-                                  .value,
-                          )
-                        : undefined;
-                for (const shown of [
-                    reference.componentIdx,
-                    ...(createdIdx === undefined ? [] : [createdIdx]),
-                    ...ancestorsOf(reference.componentIdx),
-                ]) {
-                    showing.add(shown);
-                }
-                added = true;
-            }
-        }
-        return (
-            [...showing].some(
-                (shownIdx) =>
-                    componentsByIdx.has(shownIdx) && insideGraph(shownIdx),
-            ) ||
-            references.some(
-                (reference) =>
-                    showing.has(unwrapSource(reference.extending!).nodeIdx) &&
-                    insideGraph(reference.componentIdx),
-            )
         );
     }
 
@@ -420,9 +341,6 @@ export function convertToListForms({
                 component.componentType === "collect"
                     ? collectedType(component)
                     : reorderedType(component);
-            if (type && !GRAPHICAL_ENTRY_TYPES.has(type) && drawnInGraph(idx)) {
-                type = null;
-            }
         }
         deciding.delete(idx);
         decided.set(idx, type);
