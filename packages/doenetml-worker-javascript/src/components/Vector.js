@@ -24,6 +24,10 @@ import {
 import { returnGraphControlOrderAttribute } from "../utils/graphical";
 import { returnLineFamilyLabelPositionAttribute } from "../utils/graphicalLabels";
 import { codedDiagnostic } from "../utils/diagnostics";
+import {
+    listEntrySourceDependencies,
+    listEntrySourceValue,
+} from "../utils/listEntrySource";
 
 export default class Vector extends GraphicalComponent {
     constructor(args) {
@@ -2936,41 +2940,4 @@ export default class Vector extends GraphicalComponent {
             });
         }
     }
-}
-
-/**
- * The dependencies by which a vector made from an entry of a vector list
- * (`listEntrySource`, recorded by `Copy.js`) reads `variable` of the entry's
- * source from the list (`VectorList.listEntrySourceVariables`); none for
- * another vector.
- */
-function listEntrySourceDependencies(component, variable) {
-    const listEntrySource = component?.doenetAttributes?.listEntrySource;
-    const arrayName = listEntrySource?.variables[variable];
-    if (!arrayName) {
-        return {};
-    }
-    return {
-        listEntryValues: {
-            dependencyType: "stateVariable",
-            componentIdx: listEntrySource.componentIdx,
-            variableName: arrayName,
-            variablesOptional: true,
-        },
-        listEntryIndex: {
-            dependencyType: "value",
-            value: listEntrySource.index,
-        },
-    };
-}
-
-/**
- * The value read by `listEntrySourceDependencies`: the source's, or `null`
- * where the source sets none.
- */
-function listEntrySourceValue(dependencyValues) {
-    return (
-        dependencyValues.listEntryValues?.[dependencyValues.listEntryIndex] ??
-        null
-    );
 }

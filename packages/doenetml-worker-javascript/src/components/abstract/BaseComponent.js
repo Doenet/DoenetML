@@ -4,6 +4,10 @@ import { flattenDeep, mapDeep } from "@doenet/utils";
 import { deepClone, enumerateCombinations } from "@doenet/utils";
 import { gatherVariantComponents } from "../../utils/variants";
 import {
+    listEntrySourceDependencies,
+    listEntrySourceValue,
+} from "../../utils/listEntrySource";
+import {
     returnDefaultArrayVarNameFromPropIndex,
     returnDefaultGetArrayKeysFromVarName,
 } from "../../utils/stateVariables";
@@ -940,37 +944,40 @@ export default class BaseComponent {
             hasEssential: true,
             doNotShadowEssential: true,
             ignoreFixed: true,
-            returnDependencies: () => ({
-                fixedPreliminary: {
-                    dependencyType: "stateVariable",
-                    variableName: "fixedPreliminary",
-                    variablesOptional: true,
-                },
-                parentFixed: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "fixed",
-                },
-                sourceCompositeFixed: {
-                    dependencyType: "sourceCompositeStateVariable",
-                    variableName: "fixed",
-                },
-                adapterSourceFixed: {
-                    dependencyType: "adapterSourceStateVariable",
-                    variableName: "fixed",
-                },
-                shadowSourceFixed: {
-                    dependencyType: "shadowSourceStateVariable",
-                    variableName: "fixed",
-                },
-                shadowSource: {
-                    dependencyType: "shadowSource",
-                    givePropVariableValue: true,
-                },
-                ignoreParentFixed: {
-                    dependencyType: "doenetAttribute",
-                    attributeName: "ignoreParentFixed",
-                },
-            }),
+            returnDependencies() {
+                return {
+                    fixedPreliminary: {
+                        dependencyType: "stateVariable",
+                        variableName: "fixedPreliminary",
+                        variablesOptional: true,
+                    },
+                    parentFixed: {
+                        dependencyType: "parentStateVariable",
+                        variableName: "fixed",
+                    },
+                    sourceCompositeFixed: {
+                        dependencyType: "sourceCompositeStateVariable",
+                        variableName: "fixed",
+                    },
+                    adapterSourceFixed: {
+                        dependencyType: "adapterSourceStateVariable",
+                        variableName: "fixed",
+                    },
+                    shadowSourceFixed: {
+                        dependencyType: "shadowSourceStateVariable",
+                        variableName: "fixed",
+                    },
+                    shadowSource: {
+                        dependencyType: "shadowSource",
+                        givePropVariableValue: true,
+                    },
+                    ignoreParentFixed: {
+                        dependencyType: "doenetAttribute",
+                        attributeName: "ignoreParentFixed",
+                    },
+                    ...listEntrySourceDependencies(this.svComponent, "fixed"),
+                };
+            },
             definition({ dependencyValues, usedDefault }) {
                 if (!usedDefault.fixedPreliminary) {
                     return {
@@ -1014,13 +1021,31 @@ export default class BaseComponent {
                     // then we do not fix this component, or we will be unable to change the `fixed` state variable.
                     // In this case, the `ignoreFixed` of this state variable is insufficient,
                     // because it will be the `value` state variable that we need to change on the shadow.
-                    if (
-                        dependencyValues.shadowSource.stateValues &&
+                    if (!dependencyValues.shadowSource.stateValues) {
+                        // A shadow of the whole component (no prop
+                        // variable, so no `stateValues`) is fixed with its
+                        // source only where its parent, composite and adapter
+                        // source leave `fixed` unset, as for `<point
+                        // extend="$s[1]"/>` of a fixed `<sort>`: a write to
+                        // it goes past its source to what that shadows, so
+                        // its source's `fixed` would not refuse it.
+                        if (useEssential) {
+                            fixed = dependencyValues.shadowSourceFixed;
+                            useEssential = false;
+                        }
+                    } else if (
                         !("fixed" in dependencyValues.shadowSource.stateValues)
                     ) {
                         fixed = fixed || dependencyValues.shadowSourceFixed;
                         useEssential = false;
                     }
+                }
+                // A component made from an entry of a list is fixed with
+                // the entry's source (`listEntrySource`), below its own
+                // attribute and alongside its parent.
+                if (listEntrySourceValue(dependencyValues) === true) {
+                    fixed = true;
+                    useEssential = false;
                 }
 
                 if (useEssential) {
@@ -1083,29 +1108,35 @@ export default class BaseComponent {
             defaultValue: false,
             hasEssential: true,
             doNotShadowEssential: true,
-            returnDependencies: () => ({
-                fixLocationPreliminary: {
-                    dependencyType: "stateVariable",
-                    variableName: "fixLocationPreliminary",
-                    variablesOptional: true,
-                },
-                parentFixLocation: {
-                    dependencyType: "parentStateVariable",
-                    variableName: "fixLocation",
-                },
-                sourceCompositeFixLocation: {
-                    dependencyType: "sourceCompositeStateVariable",
-                    variableName: "fixLocation",
-                },
-                adapterSourceFixLocation: {
-                    dependencyType: "adapterSourceStateVariable",
-                    variableName: "fixLocation",
-                },
-                shadowSourceFixLocation: {
-                    dependencyType: "shadowSourceStateVariable",
-                    variableName: "fixLocation",
-                },
-            }),
+            returnDependencies() {
+                return {
+                    fixLocationPreliminary: {
+                        dependencyType: "stateVariable",
+                        variableName: "fixLocationPreliminary",
+                        variablesOptional: true,
+                    },
+                    parentFixLocation: {
+                        dependencyType: "parentStateVariable",
+                        variableName: "fixLocation",
+                    },
+                    sourceCompositeFixLocation: {
+                        dependencyType: "sourceCompositeStateVariable",
+                        variableName: "fixLocation",
+                    },
+                    adapterSourceFixLocation: {
+                        dependencyType: "adapterSourceStateVariable",
+                        variableName: "fixLocation",
+                    },
+                    shadowSourceFixLocation: {
+                        dependencyType: "shadowSourceStateVariable",
+                        variableName: "fixLocation",
+                    },
+                    ...listEntrySourceDependencies(
+                        this.svComponent,
+                        "fixLocation",
+                    ),
+                };
+            },
             definition({ dependencyValues, usedDefault }) {
                 if (!usedDefault.fixLocationPreliminary) {
                     return {
@@ -1151,6 +1182,12 @@ export default class BaseComponent {
                 ) {
                     fixLocation =
                         fixLocation || dependencyValues.shadowSourceFixLocation;
+                    useEssential = false;
+                }
+                // A component made from an entry of a list has the
+                // `fixLocation` of the entry's source (`listEntrySource`).
+                if (listEntrySourceValue(dependencyValues) === true) {
+                    fixLocation = true;
                     useEssential = false;
                 }
 
@@ -2342,9 +2379,9 @@ export default class BaseComponent {
  * list entry (`listEntrySourceDoenetAttributes` in `Copy.js`), the label it
  * reads from the list: the copy is labeled as that component is (through its
  * shadow source or, unlinked, the label state copied with it). The other
- * variables it reads from the list (a vector's draggable head and tail),
- * which are not attributes and so are not copied with it, it keeps reading
- * there.
+ * variables it reads from the list (`fixed`, `fixLocation`, a vector's
+ * draggable head and tail), which it has no attributes for and so are not
+ * copied with it, it keeps reading there.
  */
 function dropListEntryLabel(doenetAttributes) {
     const listEntrySource = doenetAttributes.listEntrySource;
