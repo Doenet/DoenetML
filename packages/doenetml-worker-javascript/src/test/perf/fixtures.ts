@@ -76,6 +76,15 @@ export const MICRO_DOCUMENTS: Fixture[] = [
         "answer when $mi=x",
         `<mathInput name="mi" /><answer><award><when>$mi = x</when></award></answer>`,
     ),
+    micro(
+        "collect numbers x4",
+        `<section name="s"><number>1</number><number>2</number><number>3</number><number>4</number></section><p><collect componentType="number" from="$s"/></p>`,
+    ),
+    micro(
+        "sort $l of 4",
+        `<numberList name="l">3 1 4 2</numberList><p><sort>$l</sort></p>`,
+    ),
+    micro("shuffle literal x4", `<p><shuffle>3 1 4 2</shuffle></p>`),
 ];
 
 /** The four sample distributions of the Doenet/DoenetML#2023 document, cycled. */
