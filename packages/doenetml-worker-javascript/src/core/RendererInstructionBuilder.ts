@@ -36,7 +36,7 @@ const RENDERER_ACK_TIMEOUT_MS = 2000;
 
 /**
  * The actions the renderer of an entry of a list component, of each type,
- * may send (those of `<math>` and `<number>`, without the one for
+ * may send (those of a component of that type, without the one for
  * copying DoenetML), which go to the list.
  */
 const LIST_ENTRY_ACTIONS: Record<string, string[]> = {
@@ -44,6 +44,13 @@ const LIST_ENTRY_ACTIONS: Record<string, string[]> = {
     number: ["moveNumber", "numberClicked", "numberFocused"],
     integer: ["moveNumber", "numberClicked", "numberFocused"],
     text: ["moveText", "textClicked", "textFocused"],
+    point: ["movePoint", "switchPoint", "pointClicked", "pointFocused"],
+    vector: [
+        "moveVector",
+        "moveVectorSinglePoint",
+        "vectorClicked",
+        "vectorFocused",
+    ],
 };
 
 /**

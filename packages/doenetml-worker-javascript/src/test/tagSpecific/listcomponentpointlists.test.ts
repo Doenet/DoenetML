@@ -549,4 +549,359 @@ describe("Point and vector lists as list components @group4", async () => {
             );
         }
     });
+
+    it("an entry from text is drawn with no component; an authored point with its label and style", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+      <pointList name="pl">(1,2) <point name="A" styleNumber="2"><label>A</label>(3,4)</point> (5,6)</pointList>
+    </graph>
+    `,
+        });
+
+        const rendererState = (core as any).core.rendererInstructionBuilder
+            .rendererState;
+        const drawn = await drawnIn(core, resolvePathToNodeIdx, "g");
+        expect(drawn.map((child: any) => child.id)).eqls([
+            "pl:1",
+            "pl:2",
+            "pl:3",
+        ]);
+        const states = drawn.map(
+            (child: any) => rendererState[child.componentIdx].stateValues,
+        );
+        expect(states.map((state: any) => state.labelForGraph)).eqls([
+            "",
+            "A",
+            "",
+        ]);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const A = stateVariables[await resolvePathToNodeIdx("A")];
+        expect(states[1].selectedStyle).eqls(A.stateValues.selectedStyle);
+        expect(states[0].selectedStyle.markerColorWord).not.eq(
+            A.stateValues.selectedStyle.markerColorWord,
+        );
+
+        // the authored point is the only point component
+        const types = Object.values(stateVariables).map(
+            (c: any) => c.componentType,
+        );
+        expect(types.filter((t) => t === "point")).toHaveLength(1);
+    });
+
+    it("points share the largest number of dimensions, with 0 for a missing coordinate", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <point name="P">(7,8)</point>
+    <pointList name="pl">(1,2) (3,4,5) $P</pointList>
+    <p name="ppl">$pl</p>
+    <p name="pz">$pl.z</p>
+    <p name="pdims">$pl.numDimensions</p>
+    <p name="p1">$pl[1]</p>
+    `,
+        });
+
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, [
+                "ppl",
+                "pz",
+                "pdims",
+                "p1",
+            ]),
+        ).eqls({
+            ppl: "(1, 2, 0), (3, 4, 5), (7, 8, 0)",
+            pz: "0, 5, 0",
+            pdims: "3, 3, 3",
+            p1: "(1, 2, 0)",
+        });
+    });
+
+    it("a constraint among the children constrains every entry", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+      <pointList name="pl">
+        <constrainToGrid dx="2" />
+        (1.2,3.7) <point name="A">(4.6,2.1)</point>
+      </pointList>
+    </graph>
+    <p name="ppl">$pl</p>
+    <p name="pA">$A</p>
+    <p name="pcount">$pl.numPoints</p>
+    `,
+        });
+
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, ["ppl", "pA", "pcount"]),
+        ).eqls({
+            // the list's entries are constrained; the authored point keeps
+            // its own coordinates until the list writes its entry
+            ppl: "(2, 4), (4, 2)",
+            pA: "(4.6, 2.1)",
+            pcount: "2",
+        });
+        expect(await coordsDrawnIn(core, resolvePathToNodeIdx, "g")).eqls([
+            [2, 4],
+            [4, 2],
+        ]);
+
+        await dragEntry({
+            core,
+            resolvePathToNodeIdx,
+            graph: "g",
+            index: 0,
+            args: { x: -3.2, y: 1.4 },
+        });
+        await dragEntry({
+            core,
+            resolvePathToNodeIdx,
+            graph: "g",
+            index: 1,
+            args: { x: 6.9, y: -0.6 },
+        });
+        expect(await textsOf(core, resolvePathToNodeIdx, ["ppl", "pA"])).eqls({
+            ppl: "(-4, 1), (6, -1)",
+            pA: "(6, -1)",
+        });
+    });
+
+    it("an authored point that is not draggable, or hidden, is drawn so", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+      <pointList name="pl"><point draggable="false">(1,2)</point> <point hide>(3,4)</point> (5,6)</pointList>
+    </graph>
+    <graph name="g2">$pl</graph>
+    <p name="ppl">$pl</p>
+    `,
+        });
+
+        const rendererState = (core as any).core.rendererInstructionBuilder
+            .rendererState;
+        // a reference to the list is not hidden by an entry's own `hide`,
+        // as it is not by the list's
+        const drawnByReference = await drawnIn(
+            core,
+            resolvePathToNodeIdx,
+            "g2",
+        );
+        expect(
+            drawnByReference.map(
+                (child: any) =>
+                    rendererState[child.componentIdx].stateValues.hidden,
+            ),
+        ).eqls([false, false, false]);
+        const drawn = await drawnIn(core, resolvePathToNodeIdx, "g");
+        expect(
+            drawn.map(
+                (child: any) =>
+                    rendererState[child.componentIdx].stateValues.draggable,
+            ),
+        ).eqls([false, true, true]);
+        expect(
+            drawn.map(
+                (child: any) =>
+                    rendererState[child.componentIdx].stateValues.hidden,
+            ),
+        ).eqls([false, true, false]);
+
+        await dragEntry({
+            core,
+            resolvePathToNodeIdx,
+            graph: "g",
+            index: 0,
+            args: { x: -1, y: -2 },
+        });
+        expect(await textsOf(core, resolvePathToNodeIdx, ["ppl"])).eqls({
+            ppl: "(1, 2), (3, 4), (5, 6)",
+        });
+    });
+
+    it("a click on an entry from an authored point is a click on the point", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+      <pointList name="pl"><point name="A">(1,2)</point> (3,4)</pointList>
+    </graph>
+    <number name="n">0</number>
+    <updateValue target="$n" newValue="$n+1" triggerWhenObjectsClicked="$A" />
+    `,
+        });
+
+        const drawn = await drawnIn(core, resolvePathToNodeIdx, "g");
+        for (const child of drawn) {
+            await core.requestAction({
+                componentIdx: child.componentIdx,
+                actionName: "pointClicked",
+                args: { componentIdx: child.componentIdx },
+            });
+        }
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
+        ).eq(1);
+    });
+
+    it("an authored vector keeps its tail, and is dragged as itself", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+      <vectorList name="vl">(1,2) <vector name="v" tail="(1,1)" head="(4,5)" /></vectorList>
+    </graph>
+    <p name="pvl">$vl</p>
+    <p name="ptails">$vl.tail</p>
+    <p name="pv">$v.tail $v.head</p>
+    `,
+        });
+
+        const names = ["pvl", "ptails", "pv"];
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls({
+            pvl: "(1, 2), (3, 4)",
+            ptails: "(0, 0), (1, 1)",
+            pv: "(1, 1) (4, 5)",
+        });
+        expect(await coordsDrawnIn(core, resolvePathToNodeIdx, "g")).eqls([
+            [
+                [0, 0],
+                [1, 2],
+            ],
+            [
+                [1, 1],
+                [4, 5],
+            ],
+        ]);
+
+        // the tail of each
+        await dragEntry({
+            core,
+            resolvePathToNodeIdx,
+            graph: "g",
+            index: 0,
+            actionName: "moveVector",
+            args: { tailcoords: [-1, -1] },
+        });
+        await dragEntry({
+            core,
+            resolvePathToNodeIdx,
+            graph: "g",
+            index: 1,
+            actionName: "moveVector",
+            args: { tailcoords: [2, 3] },
+        });
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls({
+            pvl: "(2, 3), (2, 2)",
+            ptails: "(-1, -1), (2, 3)",
+            pv: "(2, 3) (4, 5)",
+        });
+    });
+
+    it("a dragged vector keeps its tail through a reload", async () => {
+        const doenetML = `
+    <graph name="g">
+      <vectorList name="vl">(1,2) (3,4)</vectorList>
+    </graph>
+    <p name="pvl">$vl</p>
+    <p name="ptails">$vl.tail</p>
+    `;
+        const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
+            { doenetML },
+        );
+
+        await dragEntry({
+            core,
+            resolvePathToNodeIdx,
+            graph: "g",
+            index: 1,
+            actionName: "moveVector",
+            args: { tailcoords: [1, 1], headcoords: [5, 3] },
+        });
+        const written = { pvl: "(1, 2), (4, 2)", ptails: "(0, 0), (1, 1)" };
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, ["pvl", "ptails"]),
+        ).eqls(written);
+
+        await core.core!.saveImmediately();
+        const reloaded = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        });
+        expect(
+            await textsOf(reloaded.core, reloaded.resolvePathToNodeIdx, [
+                "pvl",
+                "ptails",
+            ]),
+        ).eqls(written);
+    });
+
+    it("a copy of a vector entry has its tail, and a drag of the copy moves the entry", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <vector name="v" tail="(2,1)" head="(3,3)" />
+    <graph name="g">
+      <vectorList name="vl">(1,2) <vector tail="(1,1)" head="(3,3)" /> $v</vectorList>
+    </graph>
+    <graph name="g2">
+      <vector name="w1" extend="$vl[1]" />
+      <vector name="w2" extend="$vl[2]" />
+      $vl[3]
+    </graph>
+    <p name="ptails">$vl.tail</p>
+    <p name="pheads">$vl.head</p>
+    <p name="pv">$v.tail $v.head</p>
+    `,
+        });
+
+        const names = ["ptails", "pheads", "pv"];
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls({
+            ptails: "(0, 0), (1, 1), (2, 1)",
+            pheads: "(1, 2), (3, 3), (3, 3)",
+            pv: "(2, 1) (3, 3)",
+        });
+        expect(await coordsDrawnIn(core, resolvePathToNodeIdx, "g2")).eqls([
+            [
+                [0, 0],
+                [1, 2],
+            ],
+            [
+                [1, 1],
+                [3, 3],
+            ],
+            [
+                [2, 1],
+                [3, 3],
+            ],
+        ]);
+
+        // move each copy as a whole
+        const drawn = await drawnIn(core, resolvePathToNodeIdx, "g2");
+        for (const [ind, child] of drawn.entries()) {
+            await core.requestAction({
+                componentIdx: child.componentIdx,
+                actionName: "moveVector",
+                args: {
+                    tailcoords: [ind, -1],
+                    headcoords: [ind + 1, -2],
+                },
+            });
+        }
+        expect(await textsOf(core, resolvePathToNodeIdx, names)).eqls({
+            ptails: "(0, -1), (1, -1), (2, -1)",
+            pheads: "(1, -2), (2, -2), (3, -2)",
+            pv: "(2, -1) (3, -2)",
+        });
+        expect(await coordsDrawnIn(core, resolvePathToNodeIdx, "g")).eqls([
+            [
+                [0, -1],
+                [1, -2],
+            ],
+            [
+                [1, -1],
+                [2, -2],
+            ],
+            [
+                [2, -1],
+                [3, -2],
+            ],
+        ]);
+    });
 });

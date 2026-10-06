@@ -492,7 +492,18 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 expect(await ref.stateValues.value, listType).eqls(values[1]);
                 expect(censusOfCore(core).copies, listType).eq(0);
             }
-            expect(declared).eqls(Object.keys(lists).sort());
+            // The entries of these lists are points and vectors, which a
+            // value reference does not stand in for (`VALUE_COMPONENT_TYPES`
+            // in `valueReference.ts`): `$c[2]` makes a point or vector that
+            // reads the entry (`listcomponentpointlists.test.ts`).
+            const listsOfGraphicalEntries = [
+                "controlVectors",
+                "pointList",
+                "vectorList",
+            ];
+            expect(declared).eqls(
+                [...Object.keys(lists), ...listsOfGraphicalEntries].sort(),
+            );
         });
 
         it("a write through an index into a list lands on the entry, and one past its end is refused", async () => {
