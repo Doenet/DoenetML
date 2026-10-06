@@ -3329,7 +3329,12 @@ describe("UpdateValue tag tests @group1", async () => {
     <updateValue name="uvTexts" target="$tl" newValue="z" type="text" />
     <updateValue name="uvX" target="$pl.x" newValue="7" />
     <updateValue name="uvOne" target="$nl[2]" newValue="9" type="number" />
+    <updateValue name="uvYs" target="$pl.xs[2]" newValue="8" />
+    <graph><point name="A">(1,2)</point><point name="B">(3,4)</point></graph>
+    <collect name="c" componentType="point" from="$_graph1" />
+    <updateValue name="uvCollectedYs" target="$c.xs[2]" newValue="6" />
     <p name="p">$nl | $tl | $pl</p>
+    <p name="pAB">$A $B</p>
     `,
         });
 
@@ -3356,6 +3361,19 @@ describe("UpdateValue tag tests @group1", async () => {
             core,
         });
         expect(await text()).eq("5, 9 | z, z | (7, 2), (7, 4)");
+
+        // an index on a property applies to every entry
+        for (const name of ["uvYs", "uvCollectedYs"]) {
+            await updateValue({
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+        }
+        expect(await text()).eq("5, 9 | z, z | (7, 8), (7, 8)");
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("pAB")].stateValues.text,
+        ).eq("(1, 6) (3, 6)");
     });
 
     it("updateValue warnings with invalid targets", async () => {

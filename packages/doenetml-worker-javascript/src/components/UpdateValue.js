@@ -258,11 +258,12 @@ export default class UpdateValue extends InlineComponent {
                         ];
                     if (
                         targetClass?.listEntryComponentType !== undefined &&
-                        !stateValues.unresolvedPath?.[0]?.index?.length
+                        !picksListEntry(stateValues.unresolvedPath)
                     ) {
                         // A list component is as many targets as it has
                         // entries, as a composite is its replacements,
-                        // unless the path picks one (`$l[2].x`).
+                        // unless the path picks one (`$l[2].x`). An index
+                        // on a property (`$l.xs[2]`) applies to every entry.
                         dependencies.numEntries = {
                             dependencyType: "stateVariable",
                             componentIdx:
@@ -635,4 +636,13 @@ export default class UpdateValue extends InlineComponent {
             coreFunctions: this.coreFunctions,
         });
     }
+}
+
+/**
+ * Whether `unresolvedPath` starts with an index of its own (`$l[2]...`),
+ * which picks one entry of a list.
+ */
+function picksListEntry(unresolvedPath) {
+    const first = unresolvedPath?.[0];
+    return first?.name === "" && first.index?.length > 0;
 }
