@@ -141,7 +141,12 @@ export class EssentialValueWriter {
         if (computedNumEntries === previousNumEntries) {
             return;
         }
-        if (computedNumEntries < previousNumEntries) {
+        // A repeat made a list keeps them, as it kept the iterations it
+        // withheld (`RepeatValueList`).
+        if (
+            computedNumEntries < previousNumEntries &&
+            !list.constructor.listKeepsEntryWritesPastEnd
+        ) {
             this.dropListEntryWritesFrom(list, computedNumEntries);
         }
         list.entryCountChanged = true;

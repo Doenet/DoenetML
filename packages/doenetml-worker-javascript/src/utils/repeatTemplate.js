@@ -132,18 +132,43 @@ export function analyzeRepeatTemplate(template) {
 }
 
 /**
+ * Node `ind` of `analysis`, with its text as written to one entry
+ * (`texts[ind]`, from `invertRepeatTemplate`) in place of the template's, as
+ * a write to an iteration's component edited that component's text.
+ */
+function nodeAt(analysis, ind, texts) {
+    const node = analysis.nodes[ind];
+    const text = texts?.[ind];
+    if (!text || node === undefined) {
+        return node;
+    }
+    if (text.expressionWithCodes !== undefined && node.type === "math") {
+        return {
+            ...node,
+            expressionWithCodes: me.fromAst(text.expressionWithCodes),
+        };
+    }
+    if (text.string !== undefined && node.type === "number") {
+        return { ...node, string: text.string };
+    }
+    return node;
+}
+
+/**
  * The value of node `ind` (the template's own by default) at one index.
  * `codeValue(code)` gives the value of an entry or constant code there.
  * `settings` are the template's own `simplify` and `expand`, which the list
- * holds.
+ * holds, and `texts` the text of each node as written to this entry, by the
+ * node's index, for those that were.
  */
 export function evaluateRepeatTemplate({
     analysis,
     codeValue,
     settings,
+    texts,
     ind = 0,
 }) {
-    const node = analysis.nodes[ind];
+    const node = nodeAt(analysis, ind, texts);
     if (node === undefined) {
         return BLANK;
     }
@@ -154,6 +179,7 @@ export function evaluateRepeatTemplate({
                   analysis,
                   codeValue,
                   settings,
+                  texts,
                   ind: code.node,
               });
 
@@ -199,14 +225,15 @@ export function evaluateRepeatTemplate({
 
 /**
  * What to write so that node `ind` at one index becomes `desiredValue`:
- * `{ success: true, writes }`, where `writes` is a list of `{ code,
- * desiredValue }` for entry and constant codes, or `{ success: false }`.
- * `{ success: false, needsStrings: true }` when the template would take the
- * value only by changing its text, which the list does not write
- * (`RepeatValueList` keeps such a value as written to the entry).
+ * `{ success: true, writes, texts }`, or `{ success: false }`. `writes` is a
+ * list of `{ code, desiredValue }` for entry and constant codes. `texts` is
+ * the new text of each node, by its index, that takes the value by changing
+ * its text, as a `<math>` or `<number>` changes its text: the expression with
+ * codes as a tree, or a number's string.
  *
  * `codeValue(code)` and `codeCanBeModified(code)` give the value of an entry
- * or constant code at that index, and whether it takes a write.
+ * or constant code at that index, and whether it takes a write, and `texts`
+ * the text of each node as written to the entry before, for those that were.
  */
 export function invertRepeatTemplate({
     analysis,
@@ -214,22 +241,27 @@ export function invertRepeatTemplate({
     codeValue,
     codeCanBeModified,
     settings,
+    texts,
     ind = 0,
 }) {
-    const node = analysis.nodes[ind];
+    const node = nodeAt(analysis, ind, texts);
     if (node === undefined || node.fixed) {
         return { success: false };
     }
-    const context = { analysis, codeValue, codeCanBeModified, settings };
+    const context = { analysis, codeValue, codeCanBeModified, settings, texts };
 
     if (node.type === "number") {
+        const number = numberFromDesiredValue(desiredValue, NaN);
         if (node.string !== undefined) {
-            return { success: false, needsStrings: true };
+            return {
+                success: true,
+                writes: [],
+                texts: { [ind]: { string: String(number) } },
+            };
         }
         if (node.codes.length === 0) {
             return { success: false };
         }
-        const number = numberFromDesiredValue(desiredValue, NaN);
         const code = node.codes[0];
         const current = valueOfCode(code, context);
         return writeCode(
@@ -247,7 +279,14 @@ export function invertRepeatTemplate({
         return writeCode(node.codes[0], desired, context);
     }
     if (node.codes.length === 0) {
-        return { success: false, needsStrings: node.numStrings > 0 };
+        if (node.numStrings === 0) {
+            return { success: false };
+        }
+        return {
+            success: true,
+            writes: [],
+            texts: { [ind]: { expressionWithCodes: desired.tree } },
+        };
     }
     const childCanBeModified = node.codes.map((code) =>
         canBeModified(code, context),
@@ -279,13 +318,16 @@ export function invertRepeatTemplate({
         createVectors: false,
         createIntervals: false,
     });
-    if (!inverse.success) {
+    if (!inverse.success || inverse.valueShadow) {
         return { success: false };
     }
-    if (inverse.expressionWithCodes || inverse.valueShadow) {
-        return { success: false, needsStrings: true };
-    }
     const writes = [];
+    const newTexts = {};
+    if (inverse.expressionWithCodes) {
+        newTexts[ind] = {
+            expressionWithCodes: inverse.expressionWithCodes.tree,
+        };
+    }
     for (const childInd in inverse.childValues) {
         const code = node.codes[childInd];
         const current = valueOfCode(code, context);
@@ -300,8 +342,9 @@ export function invertRepeatTemplate({
             return result;
         }
         writes.push(...result.writes);
+        Object.assign(newTexts, result.texts);
     }
-    return { success: true, writes };
+    return { success: true, writes, texts: newTexts };
 }
 
 /** Write `desiredValue` to `code`, through the node it is if one. */
@@ -316,7 +359,7 @@ function writeCode(code, desiredValue, context) {
     if (!context.codeCanBeModified(code)) {
         return { success: false };
     }
-    return { success: true, writes: [{ code, desiredValue }] };
+    return { success: true, writes: [{ code, desiredValue }], texts: {} };
 }
 
 function valueOfCode(code, context) {
@@ -330,9 +373,12 @@ function canBeModified(code, context) {
     if (code.node === undefined) {
         return context.codeCanBeModified(code);
     }
-    const node = context.analysis.nodes[code.node];
-    if (node.fixed || node.string !== undefined) {
+    const node = nodeAt(context.analysis, code.node, context.texts);
+    if (node.fixed) {
         return false;
+    }
+    if (node.string !== undefined) {
+        return true;
     }
     if (node.type === "number" || node.numStrings === 0) {
         return node.codes.some((inner) => canBeModified(inner, context));

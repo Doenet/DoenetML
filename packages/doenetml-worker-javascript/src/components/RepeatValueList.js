@@ -1,7 +1,5 @@
 import ValueListComponent, {
     entryValueOfType,
-    restoredEntryWrite,
-    sameEntryValue,
 } from "./abstract/ValueListComponent";
 import MathComponent from "./Math";
 import {
@@ -40,8 +38,11 @@ import { mathValueForDisplay } from "../utils/valueFunctions/math";
  * A value written to an entry is written to what the template reads at that
  * index, as a write to the iteration's component was: to entry k of a list it
  * reads, or to a value it reads at every index, which changes every entry.
- * One that the template would take only by changing its text is kept as
- * written to the entry (`entryWrites`) until the entry's value changes.
+ * Where a component of the template takes it by changing its text, as
+ * `<math>($v, 0)</math>` takes `(2, 5)` by changing its `0`, that entry's own
+ * copy of the text is changed (`entryWrites`, by the component's node), as
+ * the iteration's component's was, and is kept while the repeat has fewer
+ * iterations, as the iteration it withheld kept it.
  *
  * It draws its variant seed from its parent as the repeat did, so the random
  * values after it in the document are those the repeat left them.
@@ -64,9 +65,11 @@ export default class RepeatValueList extends ValueListComponent {
     // ancestor's.
     static listEntriesFixedByDefault = false;
 
-    // A value the template would take only by changing its text is kept as
-    // written to the entry.
+    // The text of the template's components as written to an entry
+    // (`entryWrites`), when they took a value by changing it, kept past the
+    // end of the entries as a withheld iteration kept its own.
     static listEntriesTakeWrites = true;
+    static listKeepsEntryWritesPastEnd = true;
 
     static createsVariants = true;
 
@@ -352,20 +355,12 @@ export default class RepeatValueList extends ValueListComponent {
                 const entries = {};
                 const unchangedChecks = {};
                 for (const arrayKey of arrayKeys) {
-                    const dependencyValues = dependencyValuesByKey[arrayKey];
-                    const computed = templateValueAt({
-                        globalDependencyValues,
-                        dependencyValues,
-                    });
-                    const write = restoredEntryWrite(
-                        dependencyValues.write,
-                        entryType,
-                        true,
+                    entries[arrayKey] = evaluateRepeatTemplate(
+                        templateContext({
+                            globalDependencyValues,
+                            dependencyValues: dependencyValuesByKey[arrayKey],
+                        }),
                     );
-                    entries[arrayKey] =
-                        write && sameEntryValue(computed, write.over)
-                            ? write.value
-                            : computed;
                     unchangedChecks[arrayKey] = true;
                 }
                 return {
@@ -389,50 +384,45 @@ export default class RepeatValueList extends ValueListComponent {
                     if (!dependencyValues) {
                         continue;
                     }
-                    const desiredValue = entryValueOfType(
-                        desiredStateVariableValues[arrayName][arrayKey],
-                        entryType,
-                    );
-                    const context = templateContext({
-                        globalDependencyValues,
-                        dependencyValues,
-                    });
                     const inverse = invertRepeatTemplate({
-                        ...context,
-                        desiredValue,
+                        ...templateContext({
+                            globalDependencyValues,
+                            dependencyValues,
+                        }),
+                        desiredValue: entryValueOfType(
+                            desiredStateVariableValues[arrayName][arrayKey],
+                            entryType,
+                        ),
                     });
-                    if (inverse.success) {
-                        for (const { code, desiredValue } of inverse.writes) {
-                            if (code.entry !== undefined) {
-                                instructions.push({
-                                    setDependency:
-                                        dependencyNamesByKey[arrayKey][
-                                            `entry${code.entry}`
-                                        ],
-                                    desiredValue,
-                                });
-                            } else {
-                                instructions.push({
-                                    setDependency: "constants",
-                                    desiredValue,
-                                    childIndex: code.constant,
-                                    variableIndex: 0,
-                                });
-                            }
-                        }
-                    } else if (inverse.needsStrings) {
+                    if (!inverse.success) {
+                        return { success: false };
+                    }
+                    if (Object.keys(inverse.texts).length > 0) {
                         instructions.push({
                             setDependency: dependencyNamesByKey[arrayKey].write,
                             desiredValue: {
-                                value: desiredValue,
-                                over: templateValueAt({
-                                    globalDependencyValues,
-                                    dependencyValues,
-                                }),
+                                ...dependencyValues.write,
+                                ...inverse.texts,
                             },
                         });
-                    } else {
-                        return { success: false };
+                    }
+                    for (const { code, desiredValue } of inverse.writes) {
+                        if (code.entry !== undefined) {
+                            instructions.push({
+                                setDependency:
+                                    dependencyNamesByKey[arrayKey][
+                                        `entry${code.entry}`
+                                    ],
+                                desiredValue,
+                            });
+                        } else {
+                            instructions.push({
+                                setDependency: "constants",
+                                desiredValue,
+                                childIndex: code.constant,
+                                variableIndex: 0,
+                            });
+                        }
                     }
                 }
                 return { success: true, instructions };
@@ -520,7 +510,10 @@ export default class RepeatValueList extends ValueListComponent {
     }
 }
 
-/** The template's settings and the values of its codes at one index. */
+/**
+ * The template's settings, the text of its components as written to one
+ * entry, and the values of its codes at that entry's index.
+ */
 function templateContext({ globalDependencyValues, dependencyValues }) {
     const constants = globalDependencyValues.constants;
     return {
@@ -529,6 +522,7 @@ function templateContext({ globalDependencyValues, dependencyValues }) {
             simplify: globalDependencyValues.simplify,
             expand: globalDependencyValues.expand,
         },
+        texts: dependencyValues.write ?? undefined,
         codeValue: (code) =>
             code.entry !== undefined
                 ? dependencyValues[`entry${code.entry}`]
@@ -538,13 +532,4 @@ function templateContext({ globalDependencyValues, dependencyValues }) {
                 ? globalDependencyValues.entryListsCanBeModified[code.entry]
                 : constants[code.constant]?.stateValues.canBeModified === true,
     };
-}
-
-/** The template's value at one index. */
-function templateValueAt({ globalDependencyValues, dependencyValues }) {
-    const context = templateContext({
-        globalDependencyValues,
-        dependencyValues,
-    });
-    return evaluateRepeatTemplate(context);
 }
