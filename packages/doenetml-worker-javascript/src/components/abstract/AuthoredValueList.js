@@ -1439,7 +1439,8 @@ const ENTRY_GRAPH_ARRAYS = Object.freeze({
 /**
  * The variables of the component an entry is placed as that place it, each
  * with the value an entry placed as no component has, and whether the list's
- * own value of the variable also applies to every entry (`fixed`).
+ * own value of the variable also applies to every entry (`fixed`,
+ * `fixLocation`).
  */
 const ENTRY_GRAPH_SOURCE_VARIABLES = Object.freeze({
     positionFromAnchor: { none: "center" },

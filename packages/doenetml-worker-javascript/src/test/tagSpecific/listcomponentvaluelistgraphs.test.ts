@@ -257,6 +257,9 @@ describe("Value lists drawn in a graph @group4", async () => {
     <p name="pAnchor">$nl[1].anchor $nl[2].anchor</p>
     <p name="pDraggable">$nl[1].draggable $nl[2].draggable</p>
     <p name="pFixed">$nl[1].fixed $nl[2].fixed</p>
+    <number name="n" anchor="(3,4)">5</number>
+    <numberList name="nlFixed" fixed>$n 3</numberList>
+    <p name="pListFixed">$nlFixed[1].fixed $nlFixed[2].fixed</p>
     `,
         });
 
@@ -264,6 +267,8 @@ describe("Value lists drawn in a graph @group4", async () => {
             ["pAnchor", "(1, 2) (0, 0)"],
             ["pDraggable", "false false"],
             ["pFixed", "true false"],
+            // an entry of a fixed list is fixed
+            ["pListFixed", "true true"],
         ]) {
             expect(
                 (await stateValuesOf(core, resolvePathToNodeIdx, name)).text,
@@ -275,23 +280,39 @@ describe("Value lists drawn in a graph @group4", async () => {
     it("an entry is not dragged when its component or the list is fixed", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
+    <math name="m5" anchor="(5,5)">v</math>
+    <math name="m6" anchor="(6,6)">u</math>
     <graph name="g">
       <mathList><math name="m1" anchor="(1,1)" fixed>x</math></mathList>
       <mathList fixed><math name="m2" anchor="(2,2)">y</math></mathList>
       <mathList><math name="m3" anchor="(3,3)" fixLocation>z</math></mathList>
       <mathList><math name="m4" anchor="(4,4)" draggable="false">w</math></mathList>
+      <mathList fixed>$m5</mathList>
+      <mathList fixLocation>$m6</mathList>
     </graph>
     `,
         });
 
+        // an entry from a reference takes the list's fixed and fixLocation,
+        // which its component does not inherit
         const drawn = await drawnIn(core, resolvePathToNodeIdx, "g");
         expect(drawn.map((entry) => entry.fixed)).eqls([
             true,
             true,
             false,
             false,
+            true,
+            false,
         ]);
-        for (let index = 0; index < 4; index++) {
+        expect(drawn.map((entry) => entry.fixLocation)).eqls([
+            false,
+            false,
+            true,
+            false,
+            false,
+            true,
+        ]);
+        for (let index = 0; index < 6; index++) {
             await drag({
                 core,
                 resolvePathToNodeIdx,
@@ -306,7 +327,19 @@ describe("Value lists drawn in a graph @group4", async () => {
             ["vector", 2, 2],
             ["vector", 3, 3],
             ["vector", 4, 4],
+            ["vector", 5, 5],
+            ["vector", 6, 6],
         ]);
+        for (const [name, anchor] of [
+            ["m5", ["vector", 5, 5]],
+            ["m6", ["vector", 6, 6]],
+        ] as const) {
+            expect(
+                (await stateValuesOf(core, resolvePathToNodeIdx, name)).anchor
+                    .tree,
+                name,
+            ).eqls(anchor);
+        }
     });
 
     it("an entry from a reference or a nested list is drawn and dragged as its component", async () => {
