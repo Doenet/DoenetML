@@ -123,14 +123,20 @@ export default class AuthoredValueList extends ValueListComponent {
         return variables;
     }
 
+    // Built once for each class, as the viewer reads it for each entry.
     static get listPerEntryVariables() {
-        const variables = super.listPerEntryVariables;
-        return this.listEntriesShownAsSources
-            ? [
-                  ...variables,
-                  ...Object.values(this.listEntryPresentationVariables),
-              ]
-            : variables;
+        if (!Object.hasOwn(this, "builtListPerEntryVariables")) {
+            const variables = super.listPerEntryVariables;
+            this.builtListPerEntryVariables = Object.freeze(
+                this.listEntriesShownAsSources
+                    ? [
+                          ...variables,
+                          ...Object.values(this.listEntryPresentationVariables),
+                      ]
+                    : [...variables],
+            );
+        }
+        return this.builtListPerEntryVariables;
     }
 
     // The variable holding, for each entry, the component it stands for, or
@@ -165,11 +171,14 @@ export default class AuthoredValueList extends ValueListComponent {
     // The entry variables shown as the source shows them, with the array of
     // the list that holds them.
     static get listEntryPresentationVariables() {
-        if (entryKind(this.listEntryComponentType) === "math") {
-            return ENTRY_PRESENTATION_ARRAYS;
+        if (!Object.hasOwn(this, "builtListEntryPresentationVariables")) {
+            const { renderMode, ...arrays } = ENTRY_PRESENTATION_ARRAYS;
+            this.builtListEntryPresentationVariables =
+                entryKind(this.listEntryComponentType) === "math"
+                    ? ENTRY_PRESENTATION_ARRAYS
+                    : Object.freeze(arrays);
         }
-        const { renderMode, ...arrays } = ENTRY_PRESENTATION_ARRAYS;
-        return arrays;
+        return this.builtListEntryPresentationVariables;
     }
 
     // When another component has an attribute that is this list, or a
