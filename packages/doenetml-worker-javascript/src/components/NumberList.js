@@ -1,6 +1,6 @@
 import AuthoredValueList from "./abstract/AuthoredValueList";
 import { plainComplex } from "../utils/math";
-import { numberFromString } from "./Number";
+import { numberFromString } from "../utils/valueFunctions/number";
 
 export default class NumberList extends AuthoredValueList {
     static componentType = "numberList";
