@@ -783,6 +783,160 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         await expectRenderedText(core, resolvePathToNodeIdx, ["p1", "p3"]);
     });
 
+    it("a reference to a hidden collect, or to a hidden entry, is hidden", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="h" prefill="true" />
+    <section name="s">
+      <number hide="$h">3</number>
+      <number>1</number>
+      <number>5</number>
+    </section>
+    <collect componentType="number" from="$s" name="c" />
+    <collect componentType="number" from="$s" name="ch" hide />
+    <collect componentType="number" from="$s" name="cs" hide="false" />
+    <sort name="sa"><number hide="$h">7</number><number>6</number></sort>
+    <section name="refs"><p>$c[1] $c[2]</p></section>
+    <p name="p1">[$ch]</p>
+    <p name="p2">[$cs]</p>
+    <p name="p3">[$c]</p>
+    <p name="p4">[<number extend="$c[1]" />]</p>
+    <p name="p5">[<number copy="$c[1]" />]</p>
+    <p name="p6">[<group>$c[1] $c[2]</group>]</p>
+    <p name="p7">[<sort>$c[1] $c[2]</sort>]</p>
+    <p name="p8">[<sort>$c[1] 0</sort>]</p>
+    <p name="p9">[<collect componentType="number" from="$refs" />]</p>
+    <p name="p10">[<number extend="$cs[1]" />]</p>
+    <p name="p11">[<number extend="$sa[2]" />]</p>
+    `,
+        });
+
+        await expectTexts(core, resolvePathToNodeIdx, {
+            p1: "[]",
+            p2: "[3, 1, 5]",
+            p3: "[1, 5]",
+            p4: "[]",
+            p5: "[]",
+            p6: "[ 1]",
+            p7: "[1]",
+            p8: "[0]",
+            p9: "[1]",
+            p10: "[3]",
+            p11: "[]",
+        });
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("h"),
+            core,
+        });
+        await expectTexts(core, resolvePathToNodeIdx, {
+            p1: "[]",
+            p3: "[3, 1, 5]",
+            p4: "[3]",
+            p6: "[3 1]",
+            p7: "[1, 3]",
+            p8: "[0, 3]",
+            p9: "[3, 1]",
+            p11: "[7]",
+        });
+    });
+
+    it("an entry read by itself is shown as its source, or as the list sets", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <setup>
+      <styleDefinition styleNumber="3" textColor="green" />
+    </setup>
+    <section name="s">
+      <number>1</number>
+      <number styleNumber="3">4</number>
+      <math styleNumber="3" renderMode="display">x</math>
+      <number hide>9</number>
+    </section>
+    <collect componentType="number" from="$s" name="c" />
+    <collect componentType="math" from="$s" name="cm" />
+    <section name="s2">
+      <p><collect componentType="number" from="$s" hide="false" /></p>
+    </section>
+    <p name="p1">$c[2]</p>
+    <p name="p2"><number extend="$c[2]" /></p>
+    <p name="p3"><sort>$c[2] $c[1]</sort></p>
+    <p name="p4">$cm[1]</p>
+    <p name="p5"><math extend="$cm[1]" /></p>
+    <p name="p6"><collect componentType="number" from="$s2" /></p>
+    `,
+        });
+
+        const green4 = {
+            rendererType: "number",
+            shown: "4",
+            textColor: "green",
+        };
+        const black1 = {
+            rendererType: "number",
+            shown: "1",
+            textColor: "black",
+        };
+        const displayX = {
+            rendererType: "math",
+            shown: "x",
+            textColor: "green",
+            renderMode: "display",
+        };
+        expect(await drawn(core, resolvePathToNodeIdx, "p1")).eqls([green4]);
+        expect(await drawn(core, resolvePathToNodeIdx, "p2")).eqls([green4]);
+        expect(await drawn(core, resolvePathToNodeIdx, "p3")).eqls([
+            black1,
+            green4,
+        ]);
+        // A drawn reference to an entry is drawn in its source's style.
+        expect(
+            (await drawn(core, resolvePathToNodeIdx, "p4")).map(
+                ({ shown, textColor }: any) => ({ shown, textColor }),
+            ),
+        ).eqls([{ shown: "x", textColor: "green" }]);
+        expect(await drawn(core, resolvePathToNodeIdx, "p5")).eqls([displayX]);
+        expect(await drawn(core, resolvePathToNodeIdx, "p6")).eqls([
+            black1,
+            green4,
+            { rendererType: "number", shown: "9", textColor: "black" },
+        ]);
+    });
+
+    it("a sort or shuffle of a type built on a value type keeps the type", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <interval name="i">(4,5)</interval>
+    <p name="ps"><sort name="s"><interval>(1,3)</interval><interval>[0,2]</interval></sort></p>
+    <p name="psh"><shuffle name="sh"><integer>3.2</integer><integer>1</integer></shuffle></p>
+    <p name="pr"><sort name="sr">$i <interval>[0,1)</interval></sort></p>
+    <p name="pl">[<intervalList>$s</intervalList>]</p>
+    <p name="pc">[<collect componentType="interval" from="$ps" />]</p>
+    <p name="pcr">[<collect componentType="interval" from="$pr" />]</p>
+    <p name="pci">[<collect componentType="integer" from="$psh" />]</p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["s", "sh", "sr"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].componentType,
+                name,
+            ).not.match(/List$/);
+        }
+        await expectTexts(core, resolvePathToNodeIdx, {
+            ps: "(1, 3), [0, 2]",
+            pr: "(4, 5), [0, 1)",
+            pl: "[(1, 3), [0, 2]]",
+            pc: "[(1, 3), [0, 2]]",
+            pcr: "[(4, 5), [0, 1)]",
+        });
+        expect(
+            (await stateValuesOf(core, resolvePathToNodeIdx, "pci")).text,
+        ).match(/^\[(1, 3|3, 1)\]$/);
+    });
+
     it("sort reads text as values of the type it looks like", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

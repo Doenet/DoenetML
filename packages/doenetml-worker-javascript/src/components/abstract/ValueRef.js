@@ -601,52 +601,14 @@ export default class ValueRef extends BaseComponent {
                 // (`<collect>`, `<sort>`) is hidden as the copy of the entry
                 // was: by the source's own `hide`, unless the list sets one.
                 // Not a property of the entry (`$c[1].hidden`).
-                if (referentInfo?.listEntryPosition !== undefined) {
-                    dependencies.entryPosition = {
-                        dependencyType: "value",
-                        value: referentInfo.listEntryPosition,
-                    };
-                    dependencies.referentVariable = {
-                        dependencyType: "value",
-                        value: referentInfo.variableName,
-                    };
-                    dependencies.referentEntryPrefix = {
-                        dependencyType: "stateVariable",
-                        componentIdx: referentInfo.componentIdx,
-                        variableName: "listEntryVariablePrefix",
-                        variablesOptional: true,
-                    };
-                    dependencies.referentEntryPresentation = {
-                        dependencyType: "stateVariable",
-                        componentIdx: referentInfo.componentIdx,
-                        variableName: "entryPresentation",
-                        variablesOptional: true,
-                    };
-                    dependencies.referentListHide = {
-                        dependencyType: "stateVariable",
-                        componentIdx: referentInfo.componentIdx,
-                        variableName: "hide",
-                        variablesOptional: true,
-                    };
-                }
+                Object.assign(
+                    dependencies,
+                    listEntryHideDependencies(referentInfo),
+                );
                 return dependencies;
             },
-            definition: ({ dependencyValues, usedDefault }) => {
-                let entryHide = false;
-                const position = dependencyValues.entryPosition;
-                if (
-                    dependencyValues.referentEntryPresentation &&
-                    (dependencyValues.referentVariable ===
-                        `${dependencyValues.referentEntryPrefix}${position}` ||
-                        dependencyValues.referentVariable ===
-                            `${LIST_ENTRY_PREFIX}value_${position}`)
-                ) {
-                    entryHide = usedDefault.referentListHide
-                        ? dependencyValues.referentEntryPresentation[
-                              dependencyValues.entryPosition - 1
-                          ]?.hide
-                        : dependencyValues.referentListHide;
-                }
+            definition: ({ dependencyValues }) => {
+                const entryHide = listEntryHide(dependencyValues);
                 return {
                     setValue: {
                         hidden: Boolean(
@@ -1550,6 +1512,58 @@ function companionOrBorrowed(name, classDef, fixedReferent) {
     };
 
     return definition;
+}
+
+/**
+ * The dependencies of `listEntryHide` for a reference whose referent is
+ * `referentInfo`: none unless it reads an entry of a list.
+ */
+function listEntryHideDependencies(referentInfo) {
+    if (referentInfo?.listEntryPosition === undefined) {
+        return {};
+    }
+    return {
+        entryPosition: {
+            dependencyType: "value",
+            value: referentInfo.listEntryPosition,
+        },
+        referentVariable: {
+            dependencyType: "value",
+            value: referentInfo.variableName,
+        },
+        referentEntryPrefix: {
+            dependencyType: "stateVariable",
+            componentIdx: referentInfo.componentIdx,
+            variableName: "listEntryVariablePrefix",
+            variablesOptional: true,
+        },
+        referentEntryHides: {
+            dependencyType: "stateVariable",
+            componentIdx: referentInfo.componentIdx,
+            variableName: "entryHides",
+            variablesOptional: true,
+        },
+    };
+}
+
+/**
+ * Whether the entry a reference reads (`$c[1]`, not `$c[1].hidden`) is
+ * hidden as the copy of the entry was, from `listEntryHideDependencies`: by
+ * the entry's `hide` (`entryHides`) in a list that shows each entry as its
+ * source (`<collect>`, `<sort>`); `undefined` for any other reference.
+ */
+function listEntryHide(dependencyValues) {
+    const position = dependencyValues.entryPosition;
+    if (
+        !dependencyValues.referentEntryHides ||
+        (dependencyValues.referentVariable !==
+            `${dependencyValues.referentEntryPrefix}${position}` &&
+            dependencyValues.referentVariable !==
+                `${LIST_ENTRY_PREFIX}value_${position}`)
+    ) {
+        return undefined;
+    }
+    return Boolean(dependencyValues.referentEntryHides[position - 1]);
 }
 
 /**

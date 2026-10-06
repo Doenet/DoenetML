@@ -72,10 +72,15 @@ export function ensureListEntryPropertyArray({
                 entryProperty,
                 core.componentInfoObjects,
             ),
-            ...entryCompanions(
-                core,
-                listClass,
-                derived ? derived.companionsOf : entryProperty,
+            ...withCopiedAttributes(
+                entryCompanions(
+                    core,
+                    listClass,
+                    derived ? derived.companionsOf : entryProperty,
+                ),
+                entryProperty === "value"
+                    ? listClass.listEntryCopiedAttributes
+                    : undefined,
             ),
         },
         returnArraySizeDependencies: () => ({
@@ -280,6 +285,26 @@ function entryCompanions(
         }
     }
     return companions;
+}
+
+/**
+ * `companions` with the attributes that a component made from an entry
+ * takes from the list (`listEntryCopiedAttributes`), for the entry itself.
+ */
+function withCopiedAttributes(
+    companions: Record<string, any>,
+    copiedAttributes: Record<string, any> | undefined,
+) {
+    if (!copiedAttributes || Object.keys(copiedAttributes).length === 0) {
+        return companions;
+    }
+    return {
+        ...companions,
+        addAttributeComponentsShadowingStateVariables: {
+            ...companions.addAttributeComponentsShadowingStateVariables,
+            ...copiedAttributes,
+        },
+    };
 }
 
 /**

@@ -142,6 +142,24 @@ export default class AuthoredValueList extends ValueListComponent {
             : undefined;
     }
 
+    // The attributes a component made from one entry (`<number
+    // extend="$c[2]"/>`, `$c[2]` drawn) takes from the arrays of a list
+    // shown as its sources, as the copy of the entry's source took them
+    // (`addAttributeComponentsShadowingStateVariables`).
+    static get listEntryCopiedAttributes() {
+        if (!this.listEntriesShownAsSources) {
+            return {};
+        }
+        return Object.fromEntries(
+            Object.entries(this.listEntryPresentationVariables)
+                .filter(([name]) => name in ENTRY_ATTRIBUTE_TYPES)
+                .map(([name, arrayName]) => [
+                    name,
+                    { stateVariableToShadow: arrayName },
+                ]),
+        );
+    }
+
     // The entry variables shown as the source shows them, with the array of
     // the list that holds them.
     static get listEntryPresentationVariables() {
@@ -1185,6 +1203,19 @@ export default class AuthoredValueList extends ValueListComponent {
                 stateVariableDefinitions,
                 returnEntryPresentationDefinitions(listClass),
             );
+            // An entry read by itself (`<number extend="$c[1]"/>`, `$c[1]`
+            // drawn, in a `<group>` or in a `<sort>` that stays a composite)
+            // takes the entry's `hide`, style and `renderMode`, as the copy
+            // of the entry's source did.
+            const shadowingInstructions =
+                stateVariableDefinitions[arrayName].shadowingInstructions;
+            stateVariableDefinitions[arrayName].shadowingInstructions = {
+                ...shadowingInstructions,
+                addAttributeComponentsShadowingStateVariables: {
+                    ...shadowingInstructions.addAttributeComponentsShadowingStateVariables,
+                    ...listClass.listEntryCopiedAttributes,
+                },
+            };
         }
 
         // The number of values, by the names authors have used for it.
@@ -1400,7 +1431,7 @@ export function restoredValue(value, kind) {
  * reads the entry (`<sort>$c</sort>`) hides it by that. Its `hidden` is also
  * true when the list is hidden.
  */
-const ENTRY_PRESENTATION_ARRAYS = Object.freeze({
+export const ENTRY_PRESENTATION_ARRAYS = Object.freeze({
     hide: "entryHides",
     hidden: "entryHiddens",
     selectedStyle: "entrySelectedStyles",
@@ -1548,10 +1579,16 @@ export function returnEntryPresentationArrays(listClass) {
     const definitions = {};
     const arrays = listClass.listEntryPresentationVariables;
     for (const [entryVariable, arrayName] of Object.entries(arrays)) {
+        if (entryVariable in ENTRY_ATTRIBUTE_TYPES) {
+            definitions[arrayName] = entryAttributeArrayDefinition(
+                entryVariable,
+                arrayName,
+            );
+            continue;
+        }
         const listSetting = LIST_SETTING_OF_PRESENTATION[entryVariable];
         definitions[arrayName] = {
-            // No renderer reads an entry's `hide`.
-            forRenderer: entryVariable !== "hide",
+            forRenderer: true,
             returnDependencies: () => ({
                 entryPresentation: {
                     dependencyType: "stateVariable",
@@ -1578,16 +1615,19 @@ export function returnEntryPresentationArrays(listClass) {
                     Boolean(listSetting) && !usedDefault.listSetting;
                 const values = dependencyValues.entryPresentation.map(
                     (presentation) => {
-                        if (listSets) {
-                            return dependencyValues.listValue;
-                        }
                         if (entryVariable === "hidden") {
+                            // The list's `hide` hides the entry even where
+                            // the list is not hidden: a reference to the
+                            // whole list (`$c`) shows what the list shows.
                             return Boolean(
-                                dependencyValues.listValue || presentation.hide,
+                                dependencyValues.listValue ||
+                                (listSets
+                                    ? dependencyValues.listSetting
+                                    : presentation.hide),
                             );
                         }
-                        if (entryVariable === "hide") {
-                            return Boolean(presentation.hide);
+                        if (listSets) {
+                            return dependencyValues.listValue;
                         }
                         return (
                             presentation[entryVariable] ??
@@ -1600,4 +1640,95 @@ export function returnEntryPresentationArrays(listClass) {
         };
     }
     return definitions;
+}
+
+/**
+ * The entry presentation variables that a component made from one entry
+ * (`<number extend="$c[2]"/>`, `$c[2]` drawn) takes as attributes of its
+ * own, as the copy of the entry's source took them, with the type of each
+ * attribute.
+ */
+export const ENTRY_ATTRIBUTE_TYPES = Object.freeze({
+    hide: "boolean",
+    styleNumber: "integer",
+    renderMode: "text",
+});
+
+/**
+ * The array `arrayName` of `entryVariable` (one of `ENTRY_ATTRIBUTE_TYPES`)
+ * of each entry of a list shown as its sources: the list's, if it sets one,
+ * else the source's, else the list's default. It has an entry per entry
+ * (`entryStyleNumber2`), which the component made from one entry takes as
+ * its own attribute (`companionOfEachEntry`); a value neither the list nor
+ * the source sets is a default, which leaves that attribute to where the
+ * component is.
+ */
+function entryAttributeArrayDefinition(entryVariable, arrayName) {
+    const listSetting = LIST_SETTING_OF_PRESENTATION[entryVariable];
+    return {
+        isArray: true,
+        entryPrefixes: [arrayName.slice(0, -1)],
+        companionOfEachEntry: true,
+        forRenderer: entryVariable !== "hide",
+        hasEssential: true,
+        shadowingInstructions: {
+            createComponentOfType: ENTRY_ATTRIBUTE_TYPES[entryVariable],
+        },
+        returnArraySizeDependencies: () => ({
+            numEntries: {
+                dependencyType: "stateVariable",
+                variableName: "numEntries",
+            },
+        }),
+        returnArraySize({ dependencyValues }) {
+            return [dependencyValues.numEntries];
+        },
+        returnArrayDependenciesByKey: () => ({
+            globalDependencies: {
+                entryPresentation: {
+                    dependencyType: "stateVariable",
+                    variableName: "entryPresentation",
+                },
+                listValue: {
+                    dependencyType: "stateVariable",
+                    variableName: entryVariable,
+                },
+            },
+        }),
+        arrayDefinitionByKey({
+            globalDependencyValues,
+            globalUsedDefault,
+            arrayKeys,
+        }) {
+            const listSets =
+                Boolean(listSetting) && !globalUsedDefault.listValue;
+            const values = {};
+            const defaults = {};
+            for (const arrayKey of arrayKeys) {
+                const fromSource =
+                    globalDependencyValues.entryPresentation[arrayKey]?.[
+                        entryVariable
+                    ];
+                if (listSets) {
+                    values[arrayKey] = globalDependencyValues.listValue;
+                } else if (
+                    fromSource === undefined ||
+                    (entryVariable === "hide" && !fromSource)
+                ) {
+                    defaults[arrayKey] = {
+                        defaultValue:
+                            entryVariable === "hide"
+                                ? false
+                                : globalDependencyValues.listValue,
+                    };
+                } else {
+                    values[arrayKey] = fromSource;
+                }
+            }
+            return {
+                setValue: { [arrayName]: values },
+                useEssentialOrDefaultValue: { [arrayName]: defaults },
+            };
+        },
+    };
 }

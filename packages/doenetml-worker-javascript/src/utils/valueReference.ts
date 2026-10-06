@@ -517,6 +517,9 @@ export function serializeValueReference({
             referencedVariable,
             referencedPrimaryValue: description?.isPrimaryValue ?? false,
             companions: description?.companions ?? {},
+            ...(description?.listEntryPosition === undefined
+                ? {}
+                : { listEntryPosition: description.listEntryPosition }),
         },
     };
     if (adapterVariable !== undefined) {

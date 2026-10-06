@@ -1,6 +1,7 @@
 import {
     blankValue,
     childDisplaySettings,
+    ENTRY_PRESENTATION_ARRAYS,
     ENTRY_PRESENTATION_SOURCE_VARIABLES,
     restoredValue,
     sourcePresentation,
@@ -546,6 +547,9 @@ function collectListClass(Base) {
                                           "entryPresentation",
                                           "selectedStyle",
                                           "styleNumber",
+                                          ...Object.values(
+                                              ENTRY_PRESENTATION_ARRAYS,
+                                          ),
                                       ],
                             variablesOptional: true,
                         };
@@ -568,17 +572,28 @@ function collectListClass(Base) {
                             if (listInd === undefined) {
                                 return sourcePresentation(stateValues);
                             }
+                            // A list shown as its sources shows the entry
+                            // as its arrays say (`ENTRY_PRESENTATION_ARRAYS`),
+                            // with its own `hide` and style where it sets
+                            // them (`<collect hide="false">`).
                             const ofEntry =
                                 stateValues.entryPresentation?.[listInd] ?? {};
+                            const ofList = (name) =>
+                                stateValues[ENTRY_PRESENTATION_ARRAYS[name]]?.[
+                                    listInd
+                                ];
                             return {
-                                hide: ofEntry.hide,
+                                hide: ofList("hide") ?? ofEntry.hide,
                                 selectedStyle:
+                                    ofList("selectedStyle") ??
                                     ofEntry.selectedStyle ??
                                     stateValues.selectedStyle,
                                 styleNumber:
+                                    ofList("styleNumber") ??
                                     ofEntry.styleNumber ??
                                     stateValues.styleNumber,
-                                renderMode: ofEntry.renderMode,
+                                renderMode:
+                                    ofList("renderMode") ?? ofEntry.renderMode,
                             };
                         },
                     );
