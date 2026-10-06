@@ -260,7 +260,13 @@ export function invertRepeatTemplate({
             };
         }
         if (node.codes.length === 0) {
-            return { success: false };
+            // an empty `<number>` takes the value as its own, as the
+            // component does with no children
+            return {
+                success: true,
+                writes: [],
+                texts: { [ind]: { string: String(number) } },
+            };
         }
         const code = node.codes[0];
         const current = valueOfCode(code, context);
@@ -279,9 +285,8 @@ export function invertRepeatTemplate({
         return writeCode(node.codes[0], desired, context);
     }
     if (node.codes.length === 0) {
-        if (node.numStrings === 0) {
-            return { success: false };
-        }
+        // text alone, or nothing (a `<math>` with no children takes the
+        // value as its own)
         return {
             success: true,
             writes: [],
@@ -377,7 +382,7 @@ function canBeModified(code, context) {
     if (node.fixed) {
         return false;
     }
-    if (node.string !== undefined) {
+    if (node.string !== undefined || node.codes.length === 0) {
         return true;
     }
     if (node.type === "number" || node.numStrings === 0) {

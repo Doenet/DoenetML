@@ -317,6 +317,38 @@ describe("Repeats whose template is one value @group4", () => {
         expect(texts.p).toBe("2 y, 3 z");
     });
 
+    it("an empty template takes a value written to an entry", async () => {
+        const texts = await compare({
+            doenetML: `
+<p name="p"><repeatForSequence name="r" from="1" to="3"><math></math></repeatForSequence></p>
+<mathInput name="mi" bindValueTo="$r[2]" />
+<p name="pn"><repeatForSequence name="rn" from="1" to="3"><number></number></repeatForSequence></p>
+<mathInput name="mi2" bindValueTo="$rn[2]" />
+<p name="p2"><repeatForSequence name="r2" from="1" to="3" valueName="v"><math>$v + <math></math></math></repeatForSequence></p>
+<mathInput name="mi3" bindValueTo="$r2[3]" />
+`,
+            names: ["p", "pn", "p2"],
+            afterLoad: async (core, resolvePathToNodeIdx) => {
+                for (const [name, latex] of [
+                    ["mi", "q"],
+                    ["mi2", "4"],
+                    ["mi3", "3+z"],
+                ]) {
+                    await updateMathInputValue({
+                        latex,
+                        componentIdx: await resolvePathToNodeIdx(name),
+                        core,
+                    });
+                }
+            },
+        });
+        expect(texts).toEqual({
+            p: "＿, q, ＿",
+            pn: "NaN, 4, NaN",
+            p2: "1 + ＿, 2 + ＿, 3 + z",
+        });
+    });
+
     it("text written to an entry is kept while the repeat is shorter", async () => {
         const texts = await compare({
             doenetML: `
