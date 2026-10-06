@@ -887,57 +887,6 @@ export default class GraphicalValueList extends AuthoredValueList {
             });
         }
     }
-
-    /**
-     * Write `value` (a math) to entry `listEntryIndex`, as a drag of its
-     * renderer, recording the interaction as `result`.
-     */
-    async writeEntryFromAction({
-        listEntryIndex,
-        values,
-        result,
-        transient,
-        skippable,
-        actionId,
-        sourceDetails,
-        sourceInformation = {},
-        skipRendererUpdate = false,
-    }) {
-        const updateInstructions = Object.entries(values).map(
-            ([stateVariable, value]) => ({
-                updateType: "updateValue",
-                componentIdx: this.componentIdx,
-                stateVariable,
-                value: { [listEntryIndex]: value },
-                sourceDetails,
-            }),
-        );
-        if (transient) {
-            return await this.coreFunctions.performUpdate({
-                updateInstructions,
-                transient,
-                skippable,
-                actionId,
-                sourceInformation,
-                skipRendererUpdate,
-            });
-        }
-        return await this.coreFunctions.performUpdate({
-            updateInstructions,
-            actionId,
-            sourceInformation,
-            skipRendererUpdate,
-            event: {
-                verb: "interacted",
-                object: {
-                    componentIdx: this.componentIdx,
-                    componentType: this.componentType,
-                },
-                context: { listEntryIndex },
-                result,
-            },
-        });
-    }
 }
 
 /** `rendererVariables` of each list class, made once per class. */
