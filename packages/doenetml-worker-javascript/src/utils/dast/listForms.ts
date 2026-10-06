@@ -74,6 +74,39 @@ const LIST_FORM_ATTRIBUTES: Record<string, Set<string>> = {
     shuffle: new Set(["name", "type", "aslist"]),
 };
 
+/**
+ * The attributes, in lowercase, that an `extend` or `copy` of each list form
+ * can set: those that are the copy's own setting. One that changes what the
+ * list holds (`type`, `componentType`, `from`, `maxNumber`, `sortByProp`)
+ * keeps the list it copies a composite, as do any others.
+ */
+const COPY_MECHANICS = [
+    "createcomponentoftype",
+    "createcomponentidx",
+    "createcomponentname",
+    "copyinchildren",
+    "link",
+    "name",
+];
+const LIST_FORM_COPY_ATTRIBUTES: Record<string, Set<string>> = {
+    collect: new Set([
+        ...COPY_MECHANICS,
+        "aslist",
+        "hide",
+        "displaydigits",
+        "displaydecimals",
+        "displaysmallaszero",
+        "padzeros",
+    ]),
+    sort: new Set([
+        ...COPY_MECHANICS,
+        "aslist",
+        "sortvectorsby",
+        "sortbycomponent",
+    ]),
+    shuffle: new Set([...COPY_MECHANICS, "aslist"]),
+};
+
 export function convertToListForms({
     serializedComponents,
     componentInfoObjects,
@@ -83,8 +116,13 @@ export function convertToListForms({
     componentInfoObjects: ComponentInfoObjects;
     nComponents: number;
 }): { nComponents: number } {
-    const { componentsByIdx, parentByIdx, referentType, referentClass } =
-        documentReferents({ serializedComponents, componentInfoObjects });
+    const {
+        componentsByIdx,
+        parentByIdx,
+        copiesByCreatedIdx,
+        referentType,
+        referentClass,
+    } = documentReferents({ serializedComponents, componentInfoObjects });
 
     const candidates: SerializedComponent[] = [];
     const references: SerializedComponent[] = [];
@@ -98,6 +136,66 @@ export function convertToListForms({
     }
     if (candidates.length === 0) {
         return { nComponents };
+    }
+
+    /**
+     * The candidate an `extend` or `copy` of one of the three composites
+     * copies, following a chain of such copies (`copy="$e"` of an
+     * `<sort extend="$s" name="e"/>`), or `undefined`.
+     */
+    function copiedCandidate(
+        copy: SerializedComponent,
+        seen = new Set<number>(),
+    ): SerializedComponent | undefined {
+        const createdType = createdCompositeType(copy);
+        if (createdType === undefined || seen.has(copy.componentIdx)) {
+            return undefined;
+        }
+        seen.add(copy.componentIdx);
+        const refResolution = unwrapSource(copy.extending!);
+        if (refResolution.unresolvedPath?.length) {
+            return undefined;
+        }
+        const target = componentsByIdx.get(refResolution.nodeIdx);
+        if (target !== undefined) {
+            return target.componentType === createdType ? target : undefined;
+        }
+        const targetCopy = copiesByCreatedIdx.get(refResolution.nodeIdx);
+        return targetCopy && createdCompositeType(targetCopy) === createdType
+            ? copiedCandidate(targetCopy, seen)
+            : undefined;
+    }
+
+    /** The composite of `LIST_FORMS` a copy makes, if one. */
+    function createdCompositeType(copy: SerializedComponent) {
+        const createdType = copy.attributes.createComponentOfType;
+        if (createdType?.type !== "primitive") {
+            return undefined;
+        }
+        const type = String(createdType.primitive.value).toLowerCase();
+        return type in LIST_FORMS ? type : undefined;
+    }
+
+    // The `extend`s and `copy`s of each candidate, through chains of them.
+    const copiesOfCandidate = new Map<number, SerializedComponent[]>();
+    for (const reference of references) {
+        const candidate = copiedCandidate(reference);
+        if (candidate) {
+            const copies = copiesOfCandidate.get(candidate.componentIdx) ?? [];
+            copies.push(reference);
+            copiesOfCandidate.set(candidate.componentIdx, copies);
+        }
+    }
+
+    /** Whether every copy of `component` sets only what a copy can. */
+    function copiesKeepTheList(component: SerializedComponent) {
+        const allowed = LIST_FORM_COPY_ATTRIBUTES[component.componentType];
+        return (copiesOfCandidate.get(component.componentIdx) ?? []).every(
+            (copy) =>
+                Object.keys(copy.attributes).every((name) =>
+                    allowed.has(name.toLowerCase()),
+                ),
+        );
     }
 
     function isOfType(componentType: string, baseComponentType: string) {
@@ -268,6 +366,7 @@ export function convertToListForms({
         if (
             component.extending === undefined &&
             hasOnlyListFormAttributes(component) &&
+            copiesKeepTheList(component) &&
             !drawnInGraph(idx)
         ) {
             type =
@@ -355,28 +454,19 @@ export function convertToListForms({
         }
     }
 
-    // An `extend` or `copy` of one made a list is a list of the same form.
-    for (const reference of references) {
-        const createdType = reference.attributes.createComponentOfType;
-        if (
-            createdType?.type !== "primitive" ||
-            !(String(createdType.primitive.value) in LIST_FORMS)
-        ) {
+    // An `extend` or `copy` of one made a list, directly or through a chain
+    // of them, is a list of the same form.
+    for (const [candidateIdx, copies] of copiesOfCandidate) {
+        const candidate = componentsByIdx.get(candidateIdx)!;
+        if (!decided.get(candidateIdx)) {
             continue;
         }
-        const target = componentsByIdx.get(
-            unwrapSource(reference.extending!).nodeIdx,
-        );
-        if (
-            target &&
-            Object.values(LIST_FORMS).includes(target.componentType) &&
-            LIST_FORMS[String(createdType.primitive.value)] ===
-                target.componentType
-        ) {
-            createdType.primitive = {
-                type: "string",
-                value: target.componentType,
-            };
+        for (const copy of copies) {
+            copy.attributes.createComponentOfType = {
+                ...copy.attributes.createComponentOfType,
+                type: "primitive",
+                primitive: { type: "string", value: candidate.componentType },
+            } as SerializedAttribute;
         }
     }
 

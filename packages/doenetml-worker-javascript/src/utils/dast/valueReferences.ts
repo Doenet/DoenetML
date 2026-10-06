@@ -644,6 +644,7 @@ export function documentReferents({
     return {
         componentsByIdx,
         parentByIdx,
+        copiesByCreatedIdx,
         referentType,
         referentClass,
     };

@@ -119,6 +119,9 @@ export default class AuthoredValueList extends ValueListComponent {
         const variables = super.buildListEntryStateVariables();
         if (this.listEntriesShownAsSources) {
             Object.assign(variables, this.listEntryPresentationVariables);
+            // the component an entry stands for, which a list reading the
+            // entry stands it for in turn
+            variables.listEntrySourceComponent = "entrySourceComponents";
         }
         return variables;
     }
@@ -132,6 +135,7 @@ export default class AuthoredValueList extends ValueListComponent {
                     ? [
                           ...variables,
                           ...Object.values(this.listEntryPresentationVariables),
+                          "entrySourceComponents",
                       ]
                     : [...variables],
             );
@@ -1551,6 +1555,10 @@ function returnEntryPresentationDefinitions(listClass) {
     // An authored child, or a reference among the children, stands for
     // itself; the entries of a list among them and the pieces of text
     // stand for no component.
+    // The component each entry stands for: an authored child itself, the
+    // referent of a reference to a whole component (`$m`), and for an entry
+    // of a list among the children, the component that list's entry stands
+    // for, if any. A piece of text stands for none.
     definitions.entrySourceComponents = {
         shadowVariable: true,
         returnDependencies: () => ({
@@ -1561,22 +1569,21 @@ function returnEntryPresentationDefinitions(listClass) {
             children: {
                 dependencyType: "child",
                 childGroups: componentGroups,
+                variableNames: ["listEntrySourceComponent", "referentInfo"],
+                variablesOptional: true,
             },
         }),
         definition: ({ dependencyValues }) => ({
             setValue: {
                 entrySourceComponents: dependencyValues.entryStructure.map(
-                    (source) => {
-                        const child =
-                            source.componentInd === undefined
-                                ? undefined
-                                : dependencyValues.children[
+                    (source) =>
+                        source.componentInd === undefined
+                            ? null
+                            : sourceComponentOf(
+                                  dependencyValues.children[
                                       source.componentInd
-                                  ];
-                        return child && child.listEntryIndex === undefined
-                            ? child.componentIdx
-                            : null;
-                    },
+                                  ],
+                              ),
                 ),
             },
             checkForActualChange: { entrySourceComponents: true },
@@ -1766,4 +1773,28 @@ function entryAttributeArrayDefinition(entryVariable, arrayName) {
             };
         },
     };
+}
+
+/**
+ * The component that `source` stands for as the source of an entry: an entry
+ * of a list, the component that list's entry stands for (or `null`); the
+ * referent of a value reference to a whole component (`$m`, not `$m.x` or
+ * `$l[2]`); otherwise the component itself. `stateValues` holds
+ * `listEntrySourceComponent` and `referentInfo`, when the source has them.
+ */
+export function sourceComponentOf(source) {
+    if (!source) {
+        return null;
+    }
+    if (source.listEntryIndex !== undefined) {
+        return source.stateValues?.listEntrySourceComponent ?? null;
+    }
+    const referentInfo = source.stateValues?.referentInfo;
+    if (
+        referentInfo?.referencedPrimaryValue &&
+        referentInfo.listEntryPosition === undefined
+    ) {
+        return referentInfo.componentIdx;
+    }
+    return source.componentIdx;
 }

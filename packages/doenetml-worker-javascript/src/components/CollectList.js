@@ -4,6 +4,7 @@ import {
     ENTRY_PRESENTATION_ARRAYS,
     ENTRY_PRESENTATION_SOURCE_VARIABLES,
     restoredValue,
+    sourceComponentOf,
     sourcePresentation,
     valueForChild,
 } from "./abstract/AuthoredValueList";
@@ -420,38 +421,70 @@ function collectListClass(Base) {
                 },
             };
 
-            // The component each entry stands for, or `null` for an entry of
-            // a list.
+            // The component each entry stands for (`sourceComponentOf`): a
+            // component collected, or the referent of a reference to a whole
+            // component; for an entry of a list, the component that list's
+            // entry stands for, if any.
             stateVariableDefinitions.entrySourceComponents = {
                 shadowVariable: true,
-                returnDependencies: () => ({
-                    entryStructure: {
-                        dependencyType: "stateVariable",
-                        variableName: "entryStructure",
-                    },
-                    collectedSources: {
-                        dependencyType: "stateVariable",
-                        variableName: "collectedSources",
-                    },
-                }),
-                definition: ({ dependencyValues }) => ({
-                    setValue: {
-                        entrySourceComponents:
-                            dependencyValues.entryStructure.map(
-                                ({ collectedInd }) => {
-                                    const collected =
-                                        dependencyValues.collectedSources[
-                                            collectedInd
-                                        ];
-                                    return collected &&
-                                        collected.listInd === undefined
-                                        ? collected.componentIdx
-                                        : null;
-                                },
-                            ),
-                    },
-                    checkForActualChange: { entrySourceComponents: true },
-                }),
+                stateVariablesDeterminingDependencies: ["collectedSources"],
+                returnDependencies({ stateValues }) {
+                    const dependencies = {
+                        entryStructure: {
+                            dependencyType: "stateVariable",
+                            variableName: "entryStructure",
+                        },
+                        collectedSources: {
+                            dependencyType: "stateVariable",
+                            variableName: "collectedSources",
+                        },
+                    };
+                    for (const [
+                        ind,
+                        collected,
+                    ] of stateValues.collectedSources.entries()) {
+                        dependencies[`source${ind}`] = {
+                            dependencyType: "multipleStateVariables",
+                            componentIdx: collected.componentIdx,
+                            variableNames:
+                                collected.listInd === undefined
+                                    ? ["referentInfo"]
+                                    : ["entrySourceComponents"],
+                            variablesOptional: true,
+                        };
+                    }
+                    return dependencies;
+                },
+                definition({ dependencyValues }) {
+                    const { entryStructure, collectedSources } =
+                        dependencyValues;
+                    const entrySourceComponents = entryStructure.map(
+                        ({ collectedInd }) => {
+                            const collected = collectedSources[collectedInd];
+                            if (!collected) {
+                                return null;
+                            }
+                            const stateValues =
+                                dependencyValues[`source${collectedInd}`]
+                                    ?.stateValues ?? {};
+                            if (collected.listInd === undefined) {
+                                return sourceComponentOf({
+                                    componentIdx: collected.componentIdx,
+                                    stateValues,
+                                });
+                            }
+                            return (
+                                stateValues.entrySourceComponents?.[
+                                    collected.listInd
+                                ] ?? null
+                            );
+                        },
+                    );
+                    return {
+                        setValue: { entrySourceComponents },
+                        checkForActualChange: { entrySourceComponents: true },
+                    };
+                },
             };
 
             // How each entry's source shows itself: a component as it does

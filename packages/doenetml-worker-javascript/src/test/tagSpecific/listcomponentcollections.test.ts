@@ -1223,4 +1223,76 @@ describe("Collect, sort and shuffle of values @group4", async () => {
             me: "＿",
         });
     });
+
+    it("a property of an entry read through another list or a reference is its source's", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <section name="src">
+      <math name="m" anchor="(1,2)" styleNumber="2">x</math>
+      <math>y</math>
+    </section>
+    <section name="sec"><collect name="c" componentType="math" from="$src" /></section>
+    <collect name="d" componentType="math" from="$sec" />
+    <p name="p1">$c[1].anchor | $d[1].anchor | $d[1].styleNumber</p>
+    <sort name="s">$c</sort>
+    <p name="p2">$s[1].anchor $s[2].anchor | $s[1].styleNumber</p>
+    <sort name="s2">$m z</sort>
+    <p name="p3">$s2[1].anchor</p>
+    <shuffle name="sh">$m</shuffle>
+    <p name="p4">$sh[1].anchor</p>
+    <sort name="s3">$m</sort>
+    <p name="p5">$s3[1].anchor</p>
+    <sort name="s4"><sort>$m z</sort></sort>
+    <p name="p6">$s4[1].anchor</p>
+    `,
+        });
+
+        await expectTexts(core, resolvePathToNodeIdx, {
+            p1: "(1, 2) | (1, 2) | 2",
+            p2: "(1, 2) (0, 0) | 2",
+            p3: "(1, 2)",
+            p4: "(1, 2)",
+            p5: "(1, 2)",
+            p6: "(1, 2)",
+        });
+    });
+
+    it("a copy that changes what a sort or shuffle holds keeps it a composite", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <sort name="s"><number>10</number><number>9</number><number>100</number></sort>
+    <p name="p0">$s</p>
+    <p name="p1"><sort copy="$s" sortByProp="text" /></p>
+    <shuffle name="sh"><number>1</number><number>2</number></shuffle>
+    <p name="p2"><shuffle extend="$sh" type="text" /></p>
+    `,
+        });
+
+        await expectTexts(core, resolvePathToNodeIdx, {
+            p0: "9, 10, 100",
+            p1: "10, 100, 9",
+        });
+        const shuffled = (await stateValuesOf(core, resolvePathToNodeIdx, "p2"))
+            .text;
+        expect(shuffled.split(", ").sort()).eqls(["1", "2"]);
+    });
+
+    it("a chain of copies of a sort is a list at every step", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <sort name="s">3 1 2</sort>
+    <sort extend="$s" name="e" />
+    <sort extend="$e" name="e2" />
+    <p name="p1"><sort copy="$e" asList="false" /></p>
+    <p name="p2"><sort extend="$e" asList="false" /></p>
+    <p name="p3"><sort extend="$e2" asList="false" /></p>
+    `,
+        });
+
+        await expectTexts(core, resolvePathToNodeIdx, {
+            p1: "123",
+            p2: "123",
+            p3: "123",
+        });
+    });
 });
