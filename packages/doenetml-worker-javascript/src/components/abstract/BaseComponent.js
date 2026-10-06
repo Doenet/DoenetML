@@ -2388,8 +2388,7 @@ export default class BaseComponent {
  * (through its shadow source). The other variables it reads from the list
  * (`fixed`, `fixLocation`, a vector's draggable head and tail), which it has
  * no attributes for and so are not copied with it, it keeps reading there.
- * An unlinked copy takes them as they are instead
- * (`snapshotListEntrySource`).
+ * An unlinked copy drops the link instead (`snapshotListEntrySource`).
  */
 function dropListEntryLabel(doenetAttributes) {
     const listEntrySource = doenetAttributes.listEntrySource;
