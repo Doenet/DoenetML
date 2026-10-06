@@ -32,9 +32,11 @@ Each template was classified against the rule in [Qualification](#qualification)
 | tests | 323 | 121 | 0 | 4 | 198 |
 
 Notes on the table:
-- **Corrected after step 2.** The survey script counted `$$f(…)` as a reference, but it is a nested `<evaluate>`, which is left out with the other math operators. It also missed a nested `<conditionalContent>` in one text template, and it counted the value of a `<repeat>` as `$v`, which rule 4 did not allow until the decision of 2026-10-06 (below). Rechecked by hand, the real templates it counted as qualifying are:
-  - out: the Riemann-sum templates that use `$$p(…)` (3 distinct, 44 maps); the math templates that read `$v.vertex1` of collected rectangles (3, 3 maps), since the `for` is not a list of values; the text template with a `<conditionalContent>` (1, 1 map);
+- **Corrected after step 2.** The survey script counted `$$f(…)` as a reference, but it is a nested `<evaluate>`, which is left out with the other math operators. It also treated a point's `x` and `y` attributes as its value, so it did not apply rule 5 to them, and it counted the value of a `<repeat>` as `$v`, which rule 4 did not allow until the decision of 2026-10-06 (below). Rechecked by hand, the real templates it counted as qualifying are:
+  - out: the Riemann-sum templates that use `$$p(…)` (3 distinct, 44 maps); the math templates that read `$v.vertex1` of collected rectangles (3, 3 maps), since the `for` is not a list of values; the draggable points with `x='$i - 3'`, `x='$i - 2'` or `x='$j - 2'`, where `$i` and `$j` are the value of a `<sequence>` (3, 3 maps), by rule 5;
   - in, when the repeat's `for` is one list: the Riemann-sum `<math simplify="numbers">$v/$deltat</math>` over a list of terms (2 distinct, 32 maps) and the points `($equi, $equi)`, `($i, $v)` and `($v,0)` (3, 8 maps).
+
+  That is all 14 distinct (math 8, point 6) and all 90 maps: 50 out, 40 in.
 
   The columns of the table are as the script gave them; the qualify counts of the other rows were not rechecked against these corrections.
 - The qualify column counts a template with a random sampler inside as qualifying; the survey flagged those. The first version leaves samplers out ([Randomness](#randomness)). 4 of the docs' 8 have a sampler, so 4 docs templates qualify for the first version. The real and fixture templates counted as qualifying have none. The tests row was not split by samplers.
