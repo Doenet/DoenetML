@@ -33,14 +33,14 @@ Each template was classified against the rule in [Qualification](#qualification)
 
 Notes on the table:
 - **Corrected after step 2.** The survey script counted `$$f(…)` as a reference, but it is a nested `<evaluate>`, which is left out with the other math operators. It also treated a point's `x` and `y` attributes as its value, so it did not apply rule 5 to them, and it counted the value of a `<repeat>` as `$v`, which rule 4 did not allow until the decision of 2026-10-06 (below). Rechecked by hand, the real templates it counted as qualifying are:
-  - out: the Riemann-sum templates that use `$$p(…)` (3 distinct, 44 maps); the math templates that read `$v.vertex1` of collected rectangles (3, 3 maps), since the `for` is not a list of values; the draggable points with `x='$i - 3'`, `x='$i - 2'` or `x='$j - 2'`, where `$i` and `$j` are the value of a `<sequence>` (3, 3 maps), by rule 5;
+  - out: the Riemann-sum templates that evaluate `$$p(…)` or `$$ldeltat(…)` (3 distinct, 44 maps); the math templates that read `$v.vertex1` of collected rectangles (3, 3 maps), since the `for` is not a list of values; the draggable points with `x='$i - 3'`, `x='$i - 2'` or `x='$j - 2'`, where `$i` and `$j` are the value of a `<sequence>` (3, 3 maps), by rule 5;
   - in, when the repeat's `for` is one list: the Riemann-sum `<math simplify="numbers">$v/$deltat</math>` over a list of terms (2 distinct, 32 maps) and the points `($equi, $equi)`, `($i, $v)` and `($v,0)` (3, 8 maps).
 
   That is all 14 distinct (math 8, point 6) and all 90 maps: 50 out, 40 in.
 
   The columns of the table are as the script gave them; the qualify counts of the other rows were not rechecked against these corrections.
 - The qualify column counts a template with a random sampler inside as qualifying; the survey flagged those. The first version leaves samplers out ([Randomness](#randomness)). 4 of the docs' 8 have a sampler, so 4 docs templates qualify for the first version. The real and fixture templates counted as qualifying have none. The tests row was not split by samplers.
-- 76 of the 90 maps the script counted are one cloned family of Riemann-sum documents. 44 of them use `$$p(…)` and are out (above).
+- 76 of the 90 maps the script counted are one cloned family of Riemann-sum documents. 44 of them evaluate `$$p(…)` or `$$ldeltat(…)` and are out (above).
 - In real content, the script's qualifying types are math (8 distinct) and point (6); after the corrections, math (2) and point (3). In the fixtures they are point (4), number (4), math (1) and boolean (1). No template anywhere is an interval.
 - 103 of the 122 layout or multi-component composites in real content hold an input or an answer.
 - The single math operators would qualify only if the operators that subclass `<math>` are treated as math. That is a later extension.
@@ -260,7 +260,7 @@ Not relevant to F6: #2179 (a standalone `<vector>`), #2182 (an authored child's 
 - a saved state round trip within one version;
 - a shrink and a regrow.
 
-Step 4 alone reaches the number, math and boolean fixtures (a boolean's nested `<point>` waits for step 5), the measures-of-spread sums, and the Riemann-sum templates that read `$v` of a `<repeat>` over a list. The Riemann-sum templates that use `$$p(…)` wait for the math operators. Step 5 reaches the dot plots and measures-of-spread, where the template content is 52% and 34% of resolved state variables (#2163). Each step pastes its census rows, per #2125.
+Step 4 alone reaches the number, math and boolean fixtures (a boolean's nested `<point>` waits for step 5), the measures-of-spread sums, and the Riemann-sum templates that read `$v` of a `<repeat>` over a list. The Riemann-sum templates that evaluate `$$p(…)` or `$$ldeltat(…)` wait for the math operators. Step 5 reaches the dot plots and measures-of-spread, where the template content is 52% and 34% of resolved state variables (#2163). Each step pastes its census rows, per #2125.
 
 ## Decisions to settle
 
