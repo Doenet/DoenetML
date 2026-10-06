@@ -325,6 +325,10 @@ export default class RepeatValueList extends ValueListComponent {
                     dependencyType: "stateVariable",
                     variableName: "entryListsCanBeModified",
                 },
+                fixLocation: {
+                    dependencyType: "stateVariable",
+                    variableName: "fixLocation",
+                },
             }),
             definition: ({ dependencyValues }) => ({
                 setValue: {
@@ -332,6 +336,7 @@ export default class RepeatValueList extends ValueListComponent {
                         !dependencyValues.entriesFixed &&
                         templateCanBeModified({
                             analysis: dependencyValues.templateAnalysis,
+                            fixLocation: dependencyValues.fixLocation,
                             codeCanBeModified: (code) =>
                                 code.entry !== undefined
                                     ? dependencyValues.entryListsCanBeModified[
@@ -378,6 +383,10 @@ export default class RepeatValueList extends ValueListComponent {
                     entryListsCanBeModified: {
                         dependencyType: "stateVariable",
                         variableName: "entryListsCanBeModified",
+                    },
+                    fixLocation: {
+                        dependencyType: "stateVariable",
+                        variableName: "fixLocation",
                     },
                     ...settingsDependencies,
                 };
@@ -579,6 +588,7 @@ function templateContext({ globalDependencyValues, dependencyValues }) {
             expand: globalDependencyValues.expand,
         },
         texts: dependencyValues.write ?? undefined,
+        fixLocation: globalDependencyValues.fixLocation,
         codeValue: (code) =>
             code.entry !== undefined
                 ? dependencyValues[`entry${code.entry}`]

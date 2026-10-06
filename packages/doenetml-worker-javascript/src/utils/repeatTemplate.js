@@ -247,13 +247,27 @@ export function invertRepeatTemplate({
     codeCanBeModified,
     settings,
     texts,
+    fixLocation = false,
     ind = 0,
 }) {
     const node = nodeAt(analysis, ind, texts);
-    if (node === undefined || node.fixed) {
+    // a `<math>` under `fixLocation` takes no write, as `mathInverseAnalysis`
+    // reports for it
+    if (
+        node === undefined ||
+        node.fixed ||
+        (fixLocation && node.type === "math")
+    ) {
         return { success: false };
     }
-    const context = { analysis, codeValue, codeCanBeModified, settings, texts };
+    const context = {
+        analysis,
+        codeValue,
+        codeCanBeModified,
+        settings,
+        texts,
+        fixLocation,
+    };
 
     if (node.type === "number") {
         const number = numberFromDesiredValue(desiredValue, NaN);
@@ -393,13 +407,21 @@ function valueOfCode(code, context) {
 /**
  * Whether the template takes a write at all, as the iteration's component
  * reports it (`canBeModified`): given whether each entry and constant code it
- * reads takes one (`codeCanBeModified`), and not as written to one entry.
+ * reads takes one (`codeCanBeModified`), and not as written to one entry. A
+ * `<math>` under `fixLocation` takes none, as `mathInverseAnalysis` reports.
  */
-export function templateCanBeModified({ analysis, codeCanBeModified }) {
+export function templateCanBeModified({
+    analysis,
+    codeCanBeModified,
+    fixLocation = false,
+}) {
     if (analysis.nodes.length === 0) {
         return false;
     }
-    return canBeModified({ node: 0 }, { analysis, codeCanBeModified });
+    return canBeModified(
+        { node: 0 },
+        { analysis, codeCanBeModified, fixLocation },
+    );
 }
 
 /** Whether `code` takes a write, through the node it is if one. */
@@ -408,7 +430,7 @@ function canBeModified(code, context) {
         return context.codeCanBeModified(code);
     }
     const node = nodeAt(context.analysis, code.node, context.texts);
-    if (node.fixed) {
+    if (node.fixed || (context.fixLocation && node.type === "math")) {
         return false;
     }
     if (node.string !== undefined || node.codes.length === 0) {

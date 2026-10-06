@@ -333,6 +333,38 @@ describe("Repeats whose template is one value @group4", () => {
         });
     });
 
+    it("a math under fixLocation takes no write, as each iteration's math did", async () => {
+        const texts = await compare({
+            doenetML: `
+<numberList name="l">1 2 3</numberList>
+<group fixLocation>
+  <p name="p"><repeatForSequence name="r" from="1" to="3" indexName="i"><math>$l[$i]</math></repeatForSequence></p>
+  <p name="p2"><repeatForSequence name="r2" from="1" to="3"><math>x</math></repeatForSequence></p>
+  <p name="p3"><repeatForSequence name="r3" from="1" to="3"><number>7</number></repeatForSequence></p>
+</group>
+<mathInput name="mi" bindValueTo="$r[1]" />
+<mathInput name="mi2" bindValueTo="$r2[1]" />
+<mathInput name="mi3" bindValueTo="$r3[1]" />
+<p name="pl">$l</p>
+`,
+            names: ["p", "p2", "p3", "pl"],
+            afterLoad: async (core, resolvePathToNodeIdx) => {
+                for (const name of ["mi", "mi2", "mi3"]) {
+                    await updateMathInputValue({
+                        latex: "9",
+                        componentIdx: await resolvePathToNodeIdx(name),
+                        core,
+                    });
+                }
+            },
+        });
+        expect(texts).toMatchObject({
+            p: "1, 2, 3",
+            p2: "x, x, x",
+            pl: "1, 2, 3",
+        });
+    });
+
     it("a list read with modifyIndirectly false takes no write, so the other value does", async () => {
         const texts = await compare({
             doenetML: `
