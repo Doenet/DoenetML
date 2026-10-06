@@ -366,7 +366,7 @@ export function returnLabelStateVariableDefinitions({
                 forRenderer: true,
             },
         ],
-        returnDependencies: () => {
+        returnDependencies: function (this: any) {
             const dependencies: Record<string, any> = {
                 labelChild: {
                     dependencyType: "child",
@@ -402,6 +402,30 @@ export function returnLabelStateVariableDefinitions({
                     value: getLabelFromParentIfSugared,
                 },
             };
+
+            // A component made from an entry of a list of points or vectors
+            // (`$c[1]` in a graph) is labeled as the entry's source is
+            // (`labelOfEntryDoenetAttributes` in `Copy.js`).
+            const labelOfListEntry =
+                this.svComponent?.doenetAttributes?.labelOfListEntry;
+            if (labelOfListEntry) {
+                dependencies.listEntryLabel = {
+                    dependencyType: "stateVariable",
+                    componentIdx: labelOfListEntry.componentIdx,
+                    variableName: labelOfListEntry.label,
+                    variablesOptional: true,
+                };
+                dependencies.listEntryLabelHasLatex = {
+                    dependencyType: "stateVariable",
+                    componentIdx: labelOfListEntry.componentIdx,
+                    variableName: labelOfListEntry.labelHasLatex,
+                    variablesOptional: true,
+                };
+                dependencies.listEntryIndex = {
+                    dependencyType: "value",
+                    value: labelOfListEntry.index,
+                };
+            }
 
             if (getLabelFromParentIfSugared) {
                 dependencies.createdFromSugar = {
@@ -533,6 +557,24 @@ export function returnLabelStateVariableDefinitions({
                     },
                 };
             } else if (
+                typeof dependencyValues.listEntryLabel?.[
+                    dependencyValues.listEntryIndex
+                ] === "string"
+            ) {
+                return {
+                    setValue: {
+                        label: dependencyValues.listEntryLabel[
+                            dependencyValues.listEntryIndex
+                        ],
+                        labelHasLatex: Boolean(
+                            dependencyValues.listEntryLabelHasLatex?.[
+                                dependencyValues.listEntryIndex
+                            ],
+                        ),
+                        labelFromParent: false,
+                    },
+                };
+            } else if (
                 typeof dependencyValues.shadowSource?.stateValues.label ===
                 "string"
             ) {
@@ -610,6 +652,22 @@ export function returnLabelStateVariableDefinitions({
                 dependencyValues.labelIsName &&
                 dependencyValues.labelIsNameAttr
             ) {
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setEssentialValue: "label",
+                            value: desiredStateVariableValues.label,
+                        },
+                    ],
+                };
+            } else if (
+                typeof dependencyValues.listEntryLabel?.[
+                    dependencyValues.listEntryIndex
+                ] === "string"
+            ) {
+                // the entry's label is not written; the component takes
+                // the label as its own
                 return {
                     success: true,
                     instructions: [

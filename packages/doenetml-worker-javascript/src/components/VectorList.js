@@ -70,6 +70,14 @@ export default class VectorList extends GraphicalValueList {
         ];
     }
 
+    static get listEntryDragAttributes() {
+        return [
+            ...super.listEntryDragAttributes,
+            "headDraggable",
+            "tailDraggable",
+        ];
+    }
+
     static get listEntryRendererDefaults() {
         return {
             ...super.listEntryRendererDefaults,

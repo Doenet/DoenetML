@@ -73,6 +73,40 @@ export default class GraphicalValueList extends AuthoredValueList {
         ];
     }
 
+    /**
+     * The attributes, besides `fixed`, by which an entry's source stops it
+     * from being dragged, which a component made from one entry (`$c[1]`
+     * in a graph, `<point extend="$c[1]"/>`) takes from it
+     * (`entrySourceAttributeArrays`).
+     */
+    static get listEntryDragAttributes() {
+        return ["draggable"];
+    }
+
+    /**
+     * The attributes a component made from one entry takes from the entry's
+     * source, as the copy of the source it stood for did, with the array of
+     * the list holding each, an entry per entry, and the value the
+     * attribute has when the source leaves it to where the component is:
+     * `fixed`, unless the source is fixed, and each of
+     * `listEntryDragAttributes`, unless the source sets it false.
+     */
+    static get entrySourceAttributeArrays() {
+        if (!Object.hasOwn(this, "builtEntrySourceAttributeArrays")) {
+            const arrays = {
+                fixed: { arrayName: "entrySourceFixeds", defaultValue: false },
+            };
+            for (const name of this.listEntryDragAttributes) {
+                arrays[name] = {
+                    arrayName: `entrySource${name[0].toUpperCase()}${name.slice(1)}s`,
+                    defaultValue: true,
+                };
+            }
+            this.builtEntrySourceAttributeArrays = Object.freeze(arrays);
+        }
+        return this.builtEntrySourceAttributeArrays;
+    }
+
     // How an entry of a list of graphical objects is drawn when it is not
     // an authored child, as a point or vector with no attributes is.
     static get listEntryRendererDefaults() {
@@ -790,6 +824,45 @@ export default class GraphicalValueList extends AuthoredValueList {
             }),
         };
 
+        // A component made from one entry (`$c[1]` in a graph, `<point
+        // extend="$c[1]"/>`) takes the `fixed` and draggable attributes of
+        // the entry's source, where they stop it being dragged
+        // (`entrySourceAttributeArrays`), as the copy of the source it stood
+        // for took them, and its label (`labelOfEachEntry`, read by
+        // `utils/label.ts`).
+        const attributeArrays = this.entrySourceAttributeArrays;
+        for (const [
+            attribute,
+            { arrayName: sourceArrayName, defaultValue },
+        ] of Object.entries(attributeArrays)) {
+            stateVariableDefinitions[sourceArrayName] =
+                entrySourceAttributeDefinition({
+                    attribute,
+                    arrayName: sourceArrayName,
+                    defaultValue,
+                });
+        }
+        const valuesShadowing =
+            stateVariableDefinitions[arrayName].shadowingInstructions;
+        stateVariableDefinitions[arrayName].shadowingInstructions = {
+            ...valuesShadowing,
+            addAttributeComponentsShadowingStateVariables: {
+                ...valuesShadowing.addAttributeComponentsShadowingStateVariables,
+                ...Object.fromEntries(
+                    Object.entries(attributeArrays).map(
+                        ([attribute, { arrayName: sourceArrayName }]) => [
+                            attribute,
+                            { stateVariableToShadow: sourceArrayName },
+                        ],
+                    ),
+                ),
+            },
+            labelOfEachEntry: {
+                label: entryVariableName("label"),
+                labelHasLatex: entryVariableName("labelHasLatex"),
+            },
+        };
+
         // Whether an entry that leaves the graph is shown by an indicator at
         // its edge, as for a point in the graph.
         stateVariableDefinitions.hideOffGraphIndicator = {
@@ -895,6 +968,68 @@ const rendererVariablesOfListClass = new WeakMap();
 /** The array of a list holding variable `name` of each entry's renderer. */
 export function entryVariableName(name) {
     return `entry${name[0].toUpperCase()}${name.slice(1)}`;
+}
+
+/**
+ * The array `arrayName` of attribute `attribute` of the source of each entry
+ * (`entrySourceAttributeArrays`), which a component made from one entry takes
+ * as its own attribute (`companionOfEachEntry`): the source's value
+ * (`entryChildren`) where it is not `defaultValue`, and otherwise a default,
+ * so that the component's attribute is marked as not set.
+ */
+function entrySourceAttributeDefinition({
+    attribute,
+    arrayName,
+    defaultValue,
+}) {
+    return {
+        isArray: true,
+        entryPrefixes: [arrayName.slice(0, -1)],
+        companionOfEachEntry: true,
+        hasEssential: true,
+        shadowingInstructions: {
+            createComponentOfType: "boolean",
+        },
+        returnArraySizeDependencies: () => ({
+            numEntries: {
+                dependencyType: "stateVariable",
+                variableName: "numEntries",
+            },
+        }),
+        returnArraySize({ dependencyValues }) {
+            return [dependencyValues.numEntries];
+        },
+        returnArrayDependenciesByKey: () => ({
+            globalDependencies: {
+                entryChildren: {
+                    dependencyType: "stateVariable",
+                    variableName: "entryChildren",
+                },
+            },
+        }),
+        arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
+            const values = {};
+            const defaults = {};
+            for (const arrayKey of arrayKeys) {
+                const fromSource =
+                    globalDependencyValues.entryChildren[arrayKey]?.stateValues[
+                        attribute
+                    ];
+                if (
+                    typeof fromSource === "boolean" &&
+                    fromSource !== defaultValue
+                ) {
+                    values[arrayKey] = fromSource;
+                } else {
+                    defaults[arrayKey] = { defaultValue };
+                }
+            }
+            return {
+                setValue: { [arrayName]: values },
+                useEssentialOrDefaultValue: { [arrayName]: defaults },
+            };
+        },
+    };
 }
 
 /**

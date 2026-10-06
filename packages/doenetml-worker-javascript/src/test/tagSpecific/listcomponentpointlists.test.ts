@@ -765,6 +765,84 @@ describe("Point and vector lists as list components @group4", async () => {
         });
     });
 
+    it("an entry read by itself takes its authored point's or vector's label, fixed and draggable", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <pointList name="pl"><point><label>P</label>(5,6)</point> <point fixed>(1,2)</point> <point draggable="false">(3,4)</point> (7,8)</pointList>
+    <vectorList name="vl"><vector headDraggable="false"><label>u</label>(1,2)</vector> <vector tailDraggable="false">(3,4)</vector> (5,6)</vectorList>
+    <graph name="g">$pl[1] $pl[2] $pl[3] $pl[4] <point extend="$pl[1]" /></graph>
+    <graph name="gv">$vl[1] $vl[2] $vl[3]</graph>
+    <p name="ppl">$pl</p>
+    `,
+        });
+
+        const rendererState = (core as any).core.rendererInstructionBuilder
+            .rendererState;
+        const drawnState = async (graph: string, names: string[]) =>
+            (await drawnIn(core, resolvePathToNodeIdx, graph)).map(
+                (child: any) =>
+                    Object.fromEntries(
+                        names.map((name) => [
+                            name,
+                            rendererState[child.componentIdx].stateValues[name],
+                        ]),
+                    ),
+            );
+        expect(await drawnState("g", ["label", "fixed", "draggable"])).eqls([
+            { label: "P", fixed: false, draggable: true },
+            { label: "", fixed: true, draggable: true },
+            { label: "", fixed: false, draggable: false },
+            { label: "", fixed: false, draggable: true },
+            { label: "P", fixed: false, draggable: true },
+        ]);
+        expect(
+            await drawnState("gv", [
+                "label",
+                "draggable",
+                "headDraggable",
+                "tailDraggable",
+            ]),
+        ).eqls([
+            {
+                label: "u",
+                draggable: true,
+                headDraggable: false,
+                tailDraggable: true,
+            },
+            {
+                label: "",
+                draggable: true,
+                headDraggable: true,
+                tailDraggable: false,
+            },
+            {
+                label: "",
+                draggable: true,
+                headDraggable: true,
+                tailDraggable: true,
+            },
+        ]);
+
+        // the fixed and undraggable entries stay; the others move
+        for (const [index, x] of [
+            [0, -1],
+            [1, -2],
+            [2, -3],
+            [3, -4],
+        ]) {
+            await dragEntry({
+                core,
+                resolvePathToNodeIdx,
+                graph: "g",
+                index,
+                args: { x, y: 0 },
+            });
+        }
+        expect(await textsOf(core, resolvePathToNodeIdx, ["ppl"])).eqls({
+            ppl: "(-1, 0), (1, 2), (3, 4), (-4, 0)",
+        });
+    });
+
     it("a click on an entry from an authored point is a click on the point", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

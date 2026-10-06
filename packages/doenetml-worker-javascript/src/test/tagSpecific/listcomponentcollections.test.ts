@@ -1660,6 +1660,97 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         ]);
     });
 
+    it("an entry read by itself takes its source's label, fixed and draggable", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+      <point name="A" labelIsName fixed>(1,2)</point>
+      <point name="B" draggable="false">(3,4)</point>
+      <point name="C">(5,6)<label>$t</label></point>
+    </graph>
+    <text name="t">C</text>
+    <textInput name="ti" bindValueTo="$t" />
+    <collect name="c" componentType="point" from="$g" />
+    <sort name="s">$C $B</sort>
+    <graph name="g2">
+      $c[1] $c[2] $c[3] $s[1]
+      <point extend="$c[1]" />
+      <point extend="$c[1]" fixed="false" draggable="true"><label>Q</label></point>
+      <point extend="$c[3]" name="R" labelIsName />
+    </graph>
+    `,
+        });
+
+        const point = (coords: number[], rest = {}) => ({
+            coords,
+            label: "",
+            color: "#1f5dff",
+            draggable: true,
+            fixed: false,
+            ...rest,
+        });
+        const drawn = async (graph: string) =>
+            (await graphicalDrawnIn(core, resolvePathToNodeIdx, graph)).map(
+                ({ componentIdx, color, ...rest }: any) => rest,
+            );
+        const strip = ({ color, ...rest }: any) => rest;
+        expect(await drawn("g2")).eqls(
+            [
+                point([1, 2], { label: "A", fixed: true }),
+                point([3, 4], { draggable: false }),
+                point([5, 6], { label: "C" }),
+                point([3, 4], { draggable: false }),
+                point([1, 2], { label: "A", fixed: true }),
+                // an extend's own attributes and label win
+                point([1, 2], { label: "Q" }),
+                point([5, 6], { label: "R" }),
+            ].map(strip),
+        );
+
+        // the label follows its source's
+        await updateTextInputValue({
+            text: "D",
+            componentIdx: await resolvePathToNodeIdx("ti"),
+            core,
+        });
+        expect((await drawn("g2")).map((x: any) => x.label)).eqls([
+            "A",
+            "",
+            "D",
+            "",
+            "A",
+            "Q",
+            "R",
+        ]);
+
+        // a fixed or undraggable entry is not moved; another is, to its source
+        await dragDrawn(core, resolvePathToNodeIdx, "g2", 0, "movePoint", {
+            x: -1,
+            y: -2,
+        });
+        await dragDrawn(core, resolvePathToNodeIdx, "g2", 1, "movePoint", {
+            x: -3,
+            y: -4,
+        });
+        await dragDrawn(core, resolvePathToNodeIdx, "g2", 2, "movePoint", {
+            x: 0,
+            y: 7,
+        });
+        expect((await drawn("g2")).map((x: any) => x.coords)).eqls([
+            [1, 2],
+            [3, 4],
+            [0, 7],
+            [0, 7],
+            [1, 2],
+            [1, 2],
+            [0, 7],
+        ]);
+        // C is now sorted first, and `$s[1]` takes its label and draggable
+        expect((await drawn("g2"))[3]).eqls(
+            strip(point([0, 7], { label: "D" })),
+        );
+    });
+
     it("shuffled points and vectors have the order of the variant", async () => {
         const doenetML = `
     <graph name="g"><shuffle name="sh"><point>(1,1)</point><point>(2,2)</point><point>(3,3)</point><point>(4,4)</point></shuffle></graph>

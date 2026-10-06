@@ -2897,7 +2897,11 @@ export async function replacementFromProp({
                             componentIdx: nComponents++,
                             stateId: `${stateIdInfo.prefix}${stateIdInfo.num++}`,
                             attributes: attributesForReplacement,
-                            doenetAttributes: {},
+                            doenetAttributes: labelOfEntryDoenetAttributes({
+                                arrayStateVarObj,
+                                arrayKey,
+                                target,
+                            }),
                             children: [],
                             state: {},
                             downstreamDependencies: {
@@ -4270,5 +4274,30 @@ async function arrayListReplacement({
             },
         },
         nComponents,
+    };
+}
+
+/**
+ * The `doenetAttributes` of a component made from entry `arrayKey` of the
+ * array `arrayStateVarObj` of `target`: when the array is a list's values
+ * and the list holds the label of each entry (`labelOfEachEntry`, a list of
+ * points or vectors), `labelOfListEntry`, which names the list, the arrays
+ * holding each entry's label and whether it has LaTeX, and the entry's
+ * index into them, so that the component is labeled as the entry's source
+ * is (`utils/label.ts`), as the copy of the source it stood for was.
+ */
+function labelOfEntryDoenetAttributes({ arrayStateVarObj, arrayKey, target }) {
+    const labelOfEachEntry =
+        arrayStateVarObj.shadowingInstructions.labelOfEachEntry;
+    const index = arrayStateVarObj.keyToIndex(arrayKey);
+    if (!labelOfEachEntry || !Number.isInteger(index)) {
+        return {};
+    }
+    return {
+        labelOfListEntry: {
+            componentIdx: target.componentIdx,
+            index,
+            ...labelOfEachEntry,
+        },
     };
 }
