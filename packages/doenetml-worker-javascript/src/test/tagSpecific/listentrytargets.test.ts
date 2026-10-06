@@ -243,6 +243,63 @@ describe("An entry of a list component as a target @group4", async () => {
         expect((await valuesOf(core, resolvePathToNodeIdx, ["n"])).n).eq(2);
     });
 
+    it("an entry the list grows to, and indices that name no entry", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+      <pointList name="pl"><repeatForSequence length="$k" valueName="v"><point>($v,1)</point></repeatForSequence></pointList>
+      <legend name="legend"><label forObject="$pl[3]">third</label></legend>
+    </graph>
+    <integer name="k">2</integer>
+    <number name="n">0</number>
+    <number name="nBad">0</number>
+    <updateValue target="$n" newValue="$n+1" triggerWhenObjectsClicked="$pl[3]" />
+    <updateValue target="$nBad" newValue="$nBad+1" triggerWhenObjectsClicked="$pl[0] $pl[2.5] $pl[2][1] $pl[2].x" />
+    <updateValue name="grow" target="$k" newValue="3" />
+    <updateValue name="shrink" target="$k" newValue="2" />
+    `,
+        });
+
+        async function legendLabels() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[
+                await resolvePathToNodeIdx("legend")
+            ].stateValues.legendElements.map((x: any) => x.label.value);
+        }
+
+        expect(await legendLabels()).eqls([]);
+
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("grow"),
+            actionName: "updateValue",
+            args: {},
+        });
+        expect(await legendLabels()).eqls(["third"]);
+        for (const index of [1, 2, 3]) {
+            await actOnEntry({
+                core,
+                resolvePathToNodeIdx,
+                graph: "g",
+                index,
+                actionName: "pointClicked",
+            });
+        }
+        expect(await valuesOf(core, resolvePathToNodeIdx, ["n", "nBad"])).eqls({
+            n: 1,
+            nBad: 0,
+        });
+
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("shrink"),
+            actionName: "updateValue",
+            args: {},
+        });
+        expect(await legendLabels()).eqls([]);
+    });
+
     it("a click on an entry of a math list in a graph", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
