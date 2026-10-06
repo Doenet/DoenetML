@@ -30,11 +30,12 @@ describe("RepeatForSequence tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("36, 49, 64, 81");
 
+        // A repeat whose template is one math is a list of its values
+        // (`RepeatValueList.js`).
+        const maths =
+            stateVariables[await resolvePathToNodeIdx("r")].stateValues.maths;
         for (let i = 6; i <= 9; i++) {
-            expect(
-                stateVariables[await resolvePathToNodeIdx(`r[${i - 5}].m`)]
-                    .stateValues.value.tree,
-            ).eq(i ** 2);
+            expect(maths[i - 6].tree).eq(i ** 2);
         }
     });
 
@@ -62,8 +63,8 @@ describe("RepeatForSequence tag tests @group3", async () => {
             val = val ** 2;
 
             expect(
-                stateVariables[await resolvePathToNodeIdx(`r[${i}].m`)]
-                    .stateValues.value.tree,
+                stateVariables[await resolvePathToNodeIdx("r")].stateValues
+                    .maths[i - 1].tree,
             ).eq(val);
         }
     });
@@ -109,18 +110,13 @@ describe("RepeatForSequence tag tests @group3", async () => {
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("-h + x, x, h + x");
 
+        // A repeat whose template is one math is a list of its values
+        // (`RepeatValueList.js`).
         expect(
-            stateVariables[await resolvePathToNodeIdx(`r[1].m`)].stateValues
-                .value.tree,
-        ).eqls(["+", ["-", "h"], "x"]);
-        expect(
-            stateVariables[await resolvePathToNodeIdx(`r[2].m`)].stateValues
-                .value.tree,
-        ).eqls("x");
-        expect(
-            stateVariables[await resolvePathToNodeIdx(`r[3].m`)].stateValues
-                .value.tree,
-        ).eqls(["+", "h", "x"]);
+            stateVariables[
+                await resolvePathToNodeIdx("r")
+            ].stateValues.maths.map((math) => math.tree),
+        ).eqls([["+", ["-", "h"], "x"], "x", ["+", "h", "x"]]);
     });
 
     it("two nested repeatForSequences", async () => {

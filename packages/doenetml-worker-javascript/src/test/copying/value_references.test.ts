@@ -871,11 +871,13 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(await value("m3")).eq(8);
         });
 
+        // The template is in a `<group>`, so that the repeat makes its
+        // iterations rather than becoming a list (`utils/dast/repeatLists.ts`).
         it("repeat iterations", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <repeatForSequence from="1" to="4" valueName="i" name="r">
-      <number name="sq">$i^2</number>
+      <group><number name="sq">$i^2</number></group>
     </repeatForSequence>
     `,
             });
@@ -1542,12 +1544,14 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(await value("s2.m")).eq(6);
         });
 
+        // The template is in a `<group>`, so that the repeat makes its iterations
+        // rather than becoming a list (`utils/dast/repeatLists.ts`).
         it("a reference whose type the document does not fix keeps its copy", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <numberList name="l">1 2 3</numberList>
     <repeat for="$l" valueName="v" name="r">
-      <number name="p">$v+1</number>
+      <group><number name="p">$v+1</number></group>
     </repeat>
     `,
             });

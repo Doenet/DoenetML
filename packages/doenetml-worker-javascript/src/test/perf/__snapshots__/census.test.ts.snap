@@ -231,20 +231,17 @@ exports[`component census of the micro-documents > repeatForSequence $i^2 x4 1`]
   "attributeComponents": 2,
   "byType": {
     "_componentWithSelectableType": 2,
-    "_ref": 4,
+    "_repeatValueList": 1,
     "_repeatValues": 1,
     "document": 1,
-    "group": 4,
-    "math": 4,
-    "number": 6,
-    "repeatForSequence": 1,
+    "number": 2,
   },
-  "components": 23,
+  "components": 7,
   "copies": 0,
-  "dependencies": 1059,
+  "dependencies": 289,
   "shadows": 0,
-  "stateVariables": 936,
-  "stateVariablesResolved": 461,
+  "stateVariables": 323,
+  "stateVariablesResolved": 131,
 }
 `;
 
@@ -253,17 +250,16 @@ exports[`component census of the micro-documents > repeatForSequence literal x4 
   "attributeComponents": 2,
   "byType": {
     "_componentWithSelectableType": 2,
+    "_repeatValueList": 1,
     "document": 1,
-    "group": 4,
-    "number": 6,
-    "repeatForSequence": 1,
+    "number": 2,
   },
-  "components": 14,
+  "components": 6,
   "copies": 0,
-  "dependencies": 665,
+  "dependencies": 257,
   "shadows": 0,
-  "stateVariables": 524,
-  "stateVariablesResolved": 282,
+  "stateVariables": 269,
+  "stateVariablesResolved": 118,
 }
 `;
 
