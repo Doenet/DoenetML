@@ -507,7 +507,7 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<md><mrow>x \\amp = 1</mrow><mrow>y \\amp = 2</mrow></md>"`,
+            `"<md number="no"><mrow>x \\amp = 1</mrow><mrow>y \\amp = 2</mrow></md>"`,
         );
     });
 
@@ -534,7 +534,7 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(
-            `"<md><mrow>x \\amp = 1</mrow><mrow number="yes">y \\amp = 2</mrow></md>"`,
+            `"<md number="no"><mrow>x \\amp = 1</mrow><mrow number="yes">y \\amp = 2</mrow></md>"`,
         );
     });
 
@@ -578,19 +578,88 @@ describe("Pretext export", async () => {
         expect(exported).toContain(`\\\\`);
     });
 
+    it("an unnumbered display says it is unnumbered", async () => {
+        // A PreTeXt document may number equations by default, so a display that is not
+        // numbered on screen says so rather than leaving it to that default.
+        source = `<me>x = 1</me>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(`"<md number="no">x = 1</md>"`);
+
+        source = `<md><mrow>x = 1</mrow></md>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(`"<md number="no">x = 1</md>"`);
+    });
+
+    it("a tag the author wrote is kept, and the row given no number", async () => {
+        // The author's tag stays in the math, and PreTeXt is told not to add a number of
+        // its own beside it.
+        source = `<mdn><mrow>x \\tag{A}</mrow><mrow>y</mrow></mdn>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<md number="yes"><mrow number="no">x \\tag{A}</mrow><mrow>y</mrow></md>"`,
+        );
+
+        source = `<md><mrow>x \\tag{A}</mrow><mrow>y</mrow></md>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<md number="no"><mrow>x \\tag{A}</mrow><mrow>y</mrow></md>"`,
+        );
+
+        // A tag of digits alone is the author's too, when the author wrote it.
+        source = `<md><mrow>x \\tag{7}</mrow><mrow>y</mrow></md>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<md number="no"><mrow>x \\tag{7}</mrow><mrow>y</mrow></md>"`,
+        );
+
+        // Braces inside the tag, and a starred tag.
+        source = `<mdn><mrow>x \\tag{a_{1}}</mrow><mrow>y \\tag*{B}</mrow></mdn>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<md number="yes"><mrow number="no">x \\tag{a_{1}}</mrow><mrow number="no">y \\tag*{B}</mrow></md>"`,
+        );
+
+        source = `<men>\\tag{Q} x</men>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(`"<md number="no">\\tag{Q} x</md>"`);
+    });
+
     it("text written straight into a problem is given a paragraph", async () => {
         // PreTeXt drops text that is not in a paragraph. A display goes in with the text
         // around it, since PreTeXt writes an `<md>` inside a paragraph.
         source = `<problem>For the system <me>x=1</me> find the equilibria.<ol><li>Now</li></ol></problem>`;
         const exported = await coreRunner.processToFlatDastAsFragment(source);
         expect(exported).toMatch(
-            /<problem[^>]*><p>For the system <md>x=1<\/md> find the equilibria\.<\/p><ol>/,
+            /<problem[^>]*><p>For the system <md number="no">x=1<\/md> find the equilibria\.<\/p><ol>/,
         );
 
         // Without a block beside it, too.
         source = `<problem>Only text</problem>`;
         expect(await coreRunner.processToFlatDastAsFragment(source)).toMatch(
             /<problem[^>]*><p>Only text<\/p><\/problem>/,
+        );
+    });
+
+    it("text written straight into the parts of a problem is given a paragraph", async () => {
+        source = `<problem><statement>Find the equilibria.</statement><hint>Factor.</hint><givenAnswer>0, 1</givenAnswer><solution>They are <m>0</m> and <m>1</m>.</solution></problem>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<problem xml:id="doenet-id-1"><statement><p>Find the equilibria.</p></statement><hint><p>Factor.</p></hint><answer><p>0, 1</p></answer><solution><p>They are <m>0</m> and <m>1</m>.</p></solution></problem>"`,
+        );
+    });
+
+    it("a solution keeps its content, for the publisher to show or hide", async () => {
+        source = `<problem><statement><p>What is 1+1?</p></statement><solution><p>It is 2.</p></solution></problem>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<solution><p>It is 2.</p></solution>`,
         );
     });
 
@@ -772,12 +841,35 @@ describe("Pretext export", async () => {
         source = `<choiceInput preselectChoice="2"><label>Pick one</label><choice>yes</choice><choice>no</choice></choiceInput>`;
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
-        ).toMatchInlineSnapshot(`"<ol><li>◯ yes</li><li>⦿ no</li></ol>"`);
+        ).toMatchInlineSnapshot(
+            `"<p>Pick one </p><ol><li>◯ yes</li><li>⦿ no</li></ol>"`,
+        );
 
         source = `<p><choiceInput inline preselectChoice="2"><label>Pick one</label><choice>yes</choice><choice>no</choice></choiceInput></p>`;
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(`"<p>Pick one <em>no</em></p>"`);
+    });
+
+    it("the label of a choice input that is not inline heads its list", async () => {
+        // Where the list stands on its own, the label is a paragraph of its own above it.
+        source = `<problem><choiceInput><label>Which <em>one</em>?</label><choice>A</choice><choice>B</choice></choiceInput></problem>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toContain(
+            `<p>Which <em>one</em>? </p><ol><li>◯ A</li><li>◯ B</li></ol>`,
+        );
+
+        // Inside a paragraph, it is written into that paragraph.
+        source = `<p>First: <choiceInput><label>Which?</label><choice>A</choice><choice>B</choice></choiceInput></p>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<p>First: Which? <ol><li>◯ A</li><li>◯ B</li></ol></p>"`,
+        );
+
+        // A label it inherits from its answer is printed once, by the answer.
+        source = `<p><answer><label>Pick</label><choiceInput><choice>A</choice><choice>B</choice></choiceInput></answer></p>`;
+        const exported = await coreRunner.processToFlatDastAsFragment(source);
+        expect(exported.match(/Pick/g)).toHaveLength(1);
     });
 
     it("a label keeps its markup", async () => {
