@@ -903,6 +903,51 @@ describe("Point and vector lists as list components @group4", async () => {
         });
     });
 
+    it("a copy of a vector made from an entry keeps its source's draggable head and tail", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <vectorList name="vl"><vector headDraggable="false">(1,2)</vector> <vector draggable="false" headDraggable>(3,4)</vector></vectorList>
+    <graph>
+      <vector name="E1" extend="$vl[1]" />
+      <vector name="C1" extend="$E1" />
+      <vector name="E2" extend="$vl[2]" />
+      <vector name="C2" extend="$E2" />
+    </graph>
+    <p name="p">$vl</p>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const drag = async (name: string) => {
+            const { draggable, headDraggable, tailDraggable } =
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            return { draggable, headDraggable, tailDraggable };
+        };
+        for (const name of ["E1", "C1"]) {
+            expect(await drag(name), name).eqls({
+                draggable: true,
+                headDraggable: false,
+                tailDraggable: true,
+            });
+        }
+        for (const name of ["E2", "C2"]) {
+            expect(await drag(name), name).eqls({
+                draggable: false,
+                headDraggable: true,
+                tailDraggable: false,
+            });
+        }
+
+        // a head drag through the copy is refused, as at the source
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("C1"),
+            actionName: "moveVector",
+            args: { headcoords: [7, 7] },
+        });
+        expect(await textsOf(core, resolvePathToNodeIdx, ["p"])).eqls({
+            p: "(1, 2), (3, 4)",
+        });
+    });
+
     it("a copy of a point made from an entry is labeled as that point is", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
