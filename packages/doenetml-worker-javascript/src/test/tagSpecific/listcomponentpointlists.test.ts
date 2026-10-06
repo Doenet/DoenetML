@@ -336,6 +336,54 @@ describe("Point and vector lists as list components @group4", async () => {
         ]);
     });
 
+    it("a list with fixLocation refuses a move of its entries", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+      <pointList name="pl" fixLocation>(1,2) (3,4) (5,0)</pointList>
+      <vectorList name="vl" fixLocation>(1,2)</vectorList>
+      <polygon name="poly" vertices="$pl" />
+    </graph>
+    <p name="ppl">$pl</p>
+    <p name="pvl">$vl; $vl.tail</p>
+    `,
+        });
+
+        await dragEntry({
+            core,
+            resolvePathToNodeIdx,
+            graph: "g",
+            index: 1,
+            args: { x: 7, y: 8 },
+        });
+        await dragEntry({
+            core,
+            resolvePathToNodeIdx,
+            graph: "g",
+            index: 3,
+            actionName: "moveVector",
+            args: { headcoords: [7, 8] },
+        });
+        await dragEntry({
+            core,
+            resolvePathToNodeIdx,
+            graph: "g",
+            index: 3,
+            actionName: "moveVector",
+            args: { tailcoords: [1, 1] },
+        });
+        // as a polygon whose vertices are points with fixLocation
+        await core.requestAction({
+            componentIdx: await resolvePathToNodeIdx("poly"),
+            actionName: "movePolygon",
+            args: { pointCoords: { 0: [11, 12], 1: [13, 14], 2: [15, 10] } },
+        });
+        expect(await textsOf(core, resolvePathToNodeIdx, ["ppl", "pvl"])).eqls({
+            ppl: "(1, 2), (3, 4), (5, 0)",
+            pvl: "(1, 2); (0, 0)",
+        });
+    });
+
     it("a dragged point is kept through a reload", async () => {
         const doenetML = `
     <graph name="g">
@@ -740,6 +788,52 @@ describe("Point and vector lists as list components @group4", async () => {
         expect(
             stateVariables[await resolvePathToNodeIdx("n")].stateValues.value,
         ).eq(1);
+    });
+
+    it("a vector in three dimensions dragged in a graph keeps its third coordinates", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+      <vectorList name="vl">(1,2,3) (4,5,6)</vectorList>
+    </graph>
+    <p name="pvl">$vl; $vl.tail; $vl.head</p>
+    `,
+        });
+
+        // the tail of the first: its head stays
+        await dragEntry({
+            core,
+            resolvePathToNodeIdx,
+            graph: "g",
+            index: 0,
+            actionName: "moveVector",
+            args: { tailcoords: [1, 1] },
+        });
+        // the head of the second: its tail stays
+        await dragEntry({
+            core,
+            resolvePathToNodeIdx,
+            graph: "g",
+            index: 1,
+            actionName: "moveVector",
+            args: { headcoords: [7, 8] },
+        });
+        expect(await textsOf(core, resolvePathToNodeIdx, ["pvl"])).eqls({
+            pvl: "(0, 1, 3), (7, 8, 6); (1, 1, 0), (0, 0, 0); (1, 2, 3), (7, 8, 6)",
+        });
+
+        // the whole of the first
+        await dragEntry({
+            core,
+            resolvePathToNodeIdx,
+            graph: "g",
+            index: 0,
+            actionName: "moveVector",
+            args: { tailcoords: [2, 2], headcoords: [2, 3] },
+        });
+        expect(await textsOf(core, resolvePathToNodeIdx, ["pvl"])).eqls({
+            pvl: "(0, 1, 3), (7, 8, 6); (2, 2, 0), (0, 0, 0); (2, 3, 3), (7, 8, 6)",
+        });
     });
 
     it("an authored vector keeps its tail, and is dragged as itself", async () => {

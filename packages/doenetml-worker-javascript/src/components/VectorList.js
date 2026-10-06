@@ -372,6 +372,7 @@ export default class VectorList extends GraphicalValueList {
         // a copy of one (`<vector extend="$vl[2]"/>`) has its tail.
         stateVariableDefinitions.entryTails = {
             isArray: true,
+            isLocation: true,
             entryPrefixes: ["entryTail"],
             companionOfEachEntry: true,
             // A reference to the whole list reads the list's.
@@ -504,6 +505,7 @@ export default class VectorList extends GraphicalValueList {
         // displacement. A head written to an entry not from a child moves
         // its displacement and keeps its tail.
         stateVariableDefinitions.entryHeads = {
+            isLocation: true,
             returnDependencies: () => ({
                 entryChildEndpoints: {
                     dependencyType: "stateVariable",
@@ -693,22 +695,25 @@ export default class VectorList extends GraphicalValueList {
         const tail = (await this.stateValues.entryTails)[listEntryIndex];
         const head = (await this.stateValues.entryHeads)[listEntryIndex];
 
+        // A drag gives the coordinates it moves (two, in a graph); the
+        // others keep their values, as for a `<vector>`.
         const values = {};
         let newTail = tail;
         if (tailcoords !== undefined) {
-            newTail = vectorOf(tailcoords.map((x) => me.fromAst(x)));
+            newTail = withCoordinates(tail, tailcoords);
             values.entryTails = newTail;
         }
         if (headcoords !== undefined) {
             values[arrayName] = differenceOf(
-                vectorOf(headcoords.map((x) => me.fromAst(x))),
+                withCoordinates(head, headcoords),
                 newTail,
             );
         } else if (tailcoords !== undefined) {
             values[arrayName] = differenceOf(head, newTail);
         } else if (displacement !== undefined) {
-            values[arrayName] = vectorOf(
-                displacement.map((x) => me.fromAst(x)),
+            values[arrayName] = withCoordinates(
+                (await this.stateValues[arrayName])[listEntryIndex],
+                displacement,
             );
         } else {
             return;
@@ -773,6 +778,21 @@ function entryTail(
                 : coordinatesValue(written);
     }
     return withNumDimensions(tail, numDimensions);
+}
+
+/**
+ * `value`, a math of coordinates, with its first coordinates the numbers
+ * `numbers` and the rest as they are.
+ */
+function withCoordinates(value, numbers) {
+    const coordinates = coordinatesOf(value);
+    return vectorOf(
+        numbers.length >= coordinates.length
+            ? numbers.map((x) => me.fromAst(x))
+            : coordinates.map((x, i) =>
+                  i < numbers.length ? me.fromAst(numbers[i]) : x,
+              ),
+    );
 }
 
 /** The sum of two maths of coordinates, coordinate by coordinate. */

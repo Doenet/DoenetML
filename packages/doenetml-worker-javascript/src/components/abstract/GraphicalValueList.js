@@ -278,11 +278,15 @@ export default class GraphicalValueList extends AuthoredValueList {
         };
 
         // Each entry has every dimension of the list: a coordinate it does
-        // not have is 0. A subclass adjusts the values further
-        // (`adjustEntryValues`, `adjustDesiredEntryValues`).
+        // not have is 0. A subclass adjusts the values further, as computed
+        // and as written (`adjustEntryValues`). The values are the entries'
+        // locations (`isLocation`), as are `points` below and a vector
+        // list's tails and heads, so `fixLocation` keeps them from being
+        // written, as it keeps a point's coordinates.
         const baseValues = stateVariableDefinitions[arrayName];
         stateVariableDefinitions[arrayName] = {
             ...baseValues,
+            isLocation: true,
             returnArrayDependenciesByKey(args) {
                 const dependencies =
                     baseValues.returnArrayDependenciesByKey(args);
@@ -374,6 +378,7 @@ export default class GraphicalValueList extends AuthoredValueList {
         // coordinates read the line through it needs.
         stateVariableDefinitions[coordinatesArrayName] = {
             isArray: true,
+            isLocation: true,
             numDimensions: 2,
             entryPrefixes: [coordinatesArrayPrefix, rowPrefix],
             stateVariablesDeterminingDependencies: [
