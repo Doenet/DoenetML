@@ -4317,8 +4317,9 @@ function listEntrySourceDoenetAttributes({
 
 /**
  * For an unlinked copy of entry `arrayKey` of a list (`copy="$pl[1]"`), the
- * variables of the entry's source that are not attributes
- * (`listEntrySourceVariables`), as they are when it is made: the label, as a
+ * variables of the entry's source that a linked component reads from the list
+ * (`listEntrySourceVariables`) and that the copy does not take as attributes,
+ * as they are when it is made: the label, as a
  * `<label>` child as an unlinked copy of a labeled point has, and any other
  * (a vector's `headDraggable` and `tailDraggable`) the source sets, as state.
  * A linked component reads them from the list instead
@@ -4340,9 +4341,19 @@ async function listEntrySourceSnapshot({
         return { children, state, nComponents };
     }
 
+    // `fixed` and `fixLocation`, which an unlinked copy takes as attributes
+    // (`addAttributeComponentsShadowingStateVariables`), where the source
+    // sets them
+    const attributes =
+        arrayStateVarObj.shadowingInstructions
+            .addAttributeComponentsShadowingStateVariables ?? {};
+
     for (const [variable, arrayName] of Object.entries(variables)) {
         if (variable === "labelHasLatex") {
             // carried by the label's text (`Label`'s `hasLatex`)
+            continue;
+        }
+        if (variable in attributes) {
             continue;
         }
         const value = (await target.state[arrayName].value)[index];
