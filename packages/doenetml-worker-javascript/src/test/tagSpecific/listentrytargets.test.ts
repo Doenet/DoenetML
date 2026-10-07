@@ -65,6 +65,35 @@ describe("An entry of a list component as a target @group4", async () => {
         return values;
     }
 
+    it("a click on an entry from an authored point updates the renderers once", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph name="g">
+      <pointList name="pl"><point name="A">(1,2)</point> (3,4)</pointList>
+    </graph>
+    <number name="n">0</number>
+    <updateValue target="$n" newValue="$n+1" triggerWhenObjectsClicked="$A $pl[1]" />
+    `,
+        });
+        const innerCore = (core as any).core;
+        const updateAllChangedRenderers =
+            innerCore.updateAllChangedRenderers.bind(innerCore);
+        let numUpdates = 0;
+        innerCore.updateAllChangedRenderers = async (...args: any[]) => {
+            numUpdates++;
+            return await updateAllChangedRenderers(...args);
+        };
+
+        await actOnEntry({
+            core,
+            resolvePathToNodeIdx,
+            graph: "g",
+            index: 1,
+            actionName: "pointClicked",
+        });
+        expect(numUpdates).eq(1);
+    });
+
     it("a click on an entry fires what names the entry, and what names the list", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

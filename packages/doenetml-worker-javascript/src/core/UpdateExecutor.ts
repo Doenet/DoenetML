@@ -232,8 +232,8 @@ export class UpdateExecutor {
             );
         if (listEntry) {
             // Only an action of a component of the entries' type: the list
-            // has actions of its own (copying its DoenetML, a move of
-            // another type of entry) that are not the entry's.
+            // has actions of its own (copying its DoenetML) that are not
+            // the entry's.
             const listActions = listEntry.list?.actions ?? {};
             const entryActionNames = listEntryActionNames(
                 listEntry.list?.constructor.listEntryComponentType,
