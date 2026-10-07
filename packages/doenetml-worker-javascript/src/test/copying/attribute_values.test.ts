@@ -976,6 +976,12 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 components[await resolvePathToNodeIdx("g")].attributes.xMin
                     .component.componentType,
             ).eq("_ref");
+            // and is not drawn, though a `<p>` draws a reference it holds
+            // as a child
+            expect(
+                components[await resolvePathToNodeIdx("p")].attributes.hide
+                    .component.isDrawn,
+            ).eq(false);
 
             // a reader of the attribute is told the type it presents as, as
             // it was told the type of the component that held it

@@ -523,11 +523,12 @@ export function literalWrittenValue(attribute: LiteralAttribute, written: any) {
 
 /**
  * For an attribute component of a type holding one value whose only content
- * is one value reference (`displayDigits="$n"`: an `integer` holding a
- * `_ref` presenting as an `integer`), that value reference, to be the
- * attribute component in its place (Doenet/DoenetML#2129, step B2): it
+ * is one value reference presenting as that type (`hide="$b"`: a `boolean`
+ * holding a `_ref` presenting as a `boolean`), that value reference, to be
+ * the attribute component in its place (Doenet/DoenetML#2129, step B2): it
  * already presents as the attribute's type, and reads and writes the
- * referent as the component holding it did. `undefined` otherwise.
+ * referent as the component holding it did. `undefined` otherwise, as for
+ * `displayDigits="$n"` with a number `n`, whose `integer` rounds it.
  */
 function referenceAttributeComponent(
     component: SerializedComponent,
