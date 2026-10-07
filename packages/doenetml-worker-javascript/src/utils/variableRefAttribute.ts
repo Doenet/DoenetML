@@ -4,7 +4,8 @@
  *
  * A copy of a prop takes some attributes from its source
  * (`addAttributeComponentsShadowingStateVariables`): `<math extend="$P.x"/>`
- * shows `P`'s `displayDigits` and has `P`'s `fixed`. Those used to be
+ * shows `P`'s `displayDigits`, and `<math extend="$m.value"/>` also has
+ * `m`'s `fixed`. Those used to be
  * attribute components, each a whole component whose one job was to shadow
  * one state variable of the source. When the attribute's type holds one
  * value, the attribute slot now holds the reference itself, and the

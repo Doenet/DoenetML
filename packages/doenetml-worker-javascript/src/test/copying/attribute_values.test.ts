@@ -223,6 +223,42 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect((await sv("v")).text).eq("1.2346");
         });
 
+        it("an unlinked copy of a prop reference keeps display settings its source has by default", async () => {
+            // `mi`'s ten digits are its default, so `miv`'s `displayDigits`
+            // used a default and its value is not copied as essential state:
+            // `u` keeps the ten digits only through the attribute it takes
+            // from `miv`, not a math's default three
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="mi" prefill="1.23456789" />
+    <math extend="$mi.value" name="miv" />
+    <math copy="$miv" name="u" />
+    `,
+            });
+            async function texts() {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                return Promise.all(
+                    ["miv", "u"].map(
+                        async (name) =>
+                            stateVariables[await resolvePathToNodeIdx(name)]
+                                .stateValues.text,
+                    ),
+                );
+            }
+
+            expect(await texts()).eqls(["1.23456789", "1.23456789"]);
+
+            await updateMathInputValue({
+                latex: "9.87654321",
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+            expect(await texts()).eqls(["9.87654321", "1.23456789"]);
+        });
+
         it("other references with shadow attributes follow their source's display settings", async () => {
             // Three more of the places that make shadow attribute components
             // (B3 replaces them). `$P.xs` in a paragraph is a list whose
@@ -439,11 +475,12 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
         it("a copy of a group holding a prop reference shows the settings its own source has", async () => {
             // The prop reference's display settings come from its source. A
             // linked copy of the group shows the original's; an unlinked copy
-            // has a source of its own (its own `Q`), whose settings it follows.
+            // has a source of its own (its own `Q`, with its own `k`), whose
+            // settings it follows.
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <mathInput name="k" prefill="3" />
     <group name="g">
+        <mathInput name="k" prefill="3" />
         <point name="Q" displayDigits="$k">(1.23456,2)</point>
         <math extend="$Q.x" name="c" />
     </group>
@@ -468,10 +505,17 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
 
             await updateMathInputValue({
                 latex: "5",
-                componentIdx: await resolvePathToNodeIdx("k"),
+                componentIdx: await resolvePathToNodeIdx("g.k"),
                 core,
             });
-            expect(await texts()).eqls(["1.2346", "1.2346", "1.2346"]);
+            expect(await texts()).eqls(["1.2346", "1.2346", "1.23"]);
+
+            await updateMathInputValue({
+                latex: "2",
+                componentIdx: await resolvePathToNodeIdx("g3.k"),
+                core,
+            });
+            expect(await texts()).eqls(["1.2346", "1.2346", "1.2"]);
         });
 
         it("what each attribute construct creates", async () => {
