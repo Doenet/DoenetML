@@ -4,10 +4,11 @@
  * inverted, at each entry's index. Part of Doenet/DoenetML#2163 (F6); see
  * `docs/f6-repeat-templates-as-lists.md`.
  *
- * The template is a `<math>`, `<number>` or `<point>`
- * (`utils/dast/repeatLists.ts` decides which qualify), with nested `<math>`s
- * and `<number>`s, and a point's coordinates. Each is a node. The values
- * a node reads are codes, as a `<math>`'s math children are:
+ * The template is a `<math>`, `<number>`, `<point>`, `<abs>`, `<round>` or
+ * `<evaluate>` (`utils/dast/repeatLists.ts` decides which qualify), with
+ * nested `<math>`s, `<number>`s, `<abs>`s, `<round>`s and `<evaluate>`s
+ * (`$$f(…)`), and a point's coordinates. Each is a node. The values a node
+ * reads are codes, as a `<math>`'s math children are:
  * - an entry code reads, at index k, entry k of a list (`$i`, `$v`,
  *   `$l[$i]`), the same list at every index;
  * - a constant code reads one value, the same at every index, which a child
@@ -22,6 +23,8 @@ import me from "math-expressions";
 import {
     convertValueToMathExpression,
     normalizeMathExpression,
+    returnNumericFunctionForEvaluate,
+    returnSymbolicFunctionForEvaluate,
 } from "@doenet/utils";
 import {
     mathCodePre,
@@ -35,6 +38,12 @@ import {
     numberFromString,
     numberValueFromCodes,
 } from "./valueFunctions/number";
+import {
+    absInverse,
+    absValue,
+    roundInverse,
+    roundValue,
+} from "./valueFunctions/mathOperators";
 import { numberToMathExpression, plainComplex } from "./math";
 import {
     coordinatesOf,
@@ -42,6 +51,29 @@ import {
 } from "../components/abstract/GraphicalValueList";
 
 const BLANK = me.fromAst("＿");
+
+/**
+ * The one-input math operators a template can hold. Each is a `<math>` that
+ * applies `apply` to the value of its content before normalizing it, and
+ * writes `invert` of a value to its content, as `MathBaseOperatorOneInput`
+ * does.
+ */
+const MATH_OPERATORS = {
+    abs: { apply: (value) => absValue(value), invert: absInverse },
+    round: {
+        apply: (value, node) =>
+            roundValue(value, {
+                numDecimals: node.numDecimals,
+                numDigits: node.numDigits,
+            }),
+        invert: roundInverse,
+    },
+};
+
+/** Whether `node` is a `<math>` or an operator that is one. */
+function isMathNode(node) {
+    return node.type === "math" || node.type in MATH_OPERATORS;
+}
 
 /** The parse settings of a `<math>` with none set, as its defaults give. */
 const PARSE_SETTINGS = {
@@ -60,9 +92,13 @@ const PARSE_SETTINGS = {
  * A node is `{ type, simplify, expand, fixed, codes, entryCodes, ... }`,
  * where each code is `{ entry: e }`, `{ constant: c }` or `{ node: n }`, and
  * `entryCodes` and `constantCodes` are the entry and constant codes the node
- * reads, itself or through a nested node. A math node also has its
- * `codePre`, `expressionWithCodes` and `numStrings`; a number node the
- * `string` it reads when its one child is text.
+ * reads, itself or through a nested node, and `evaluateNodes` the
+ * `<evaluate>` nodes among it and those nested in it. A math node, and an
+ * operator, also has its `codePre`, `expressionWithCodes` and `numStrings`; a
+ * `<round>` its `numDecimals` and `numDigits`; a number node the `string` it
+ * reads when its one child is text. An `<evaluate>` node's codes are its
+ * inputs, and it has the constant its function is (`function`) and its
+ * `forceSymbolic` and `forceNumeric`.
  */
 export function analyzeRepeatTemplate(template) {
     const nodes = [];
@@ -109,7 +145,26 @@ export function analyzeRepeatTemplate(template) {
                     node.codes.push({ node: addNode(child) });
                 }
             }
-        } else if (node.type === "math") {
+        } else if (node.type === "evaluate") {
+            node.function =
+                component.attributes.function?.component.doenetAttributes?.repeatTemplateConstant;
+            node.forceSymbolic =
+                literalBoolean(component.attributes.forceSymbolic) ?? false;
+            node.forceNumeric =
+                literalBoolean(component.attributes.forceNumeric) ?? false;
+            for (const child of component.attributes.input?.component
+                .children ?? []) {
+                if (typeof child !== "string") {
+                    node.codes.push(codeOf(child));
+                }
+            }
+        } else if (isMathNode(node)) {
+            if (node.type === "round") {
+                node.numDecimals =
+                    literalNumber(component.attributes.numDecimals) ?? 0;
+                node.numDigits =
+                    literalNumber(component.attributes.numDigits) ?? null;
+            }
             const content = [];
             const strings = [];
             for (const child of component.children) {
@@ -152,6 +207,9 @@ export function analyzeRepeatTemplate(template) {
         if (node.entryCodes === undefined) {
             const entryCodes = new Set();
             const constantCodes = new Set();
+            const evaluateNodes = new Set(
+                node.type === "evaluate" ? [ind] : [],
+            );
             for (const code of node.codes) {
                 if (code.entry !== undefined) {
                     entryCodes.add(code.entry);
@@ -161,16 +219,48 @@ export function analyzeRepeatTemplate(template) {
                     const nested = codesOf(code.node);
                     nested.entryCodes.forEach((e) => entryCodes.add(e));
                     nested.constantCodes.forEach((c) => constantCodes.add(c));
+                    nested.evaluateNodes.forEach((n) => evaluateNodes.add(n));
                 }
             }
             node.entryCodes = [...entryCodes];
             node.constantCodes = [...constantCodes].sort((a, b) => a - b);
+            node.evaluateNodes = [...evaluateNodes];
         }
         return node;
     }
     nodes.forEach((_, ind) => codesOf(ind));
 
     return { nodes, entryLists };
+}
+
+/**
+ * Whether the `<evaluate>` node `node` evaluates its function symbolically,
+ * given whether the function is `symbolic`, as `<evaluate>`'s
+ * `evaluateSymbolically` decides.
+ */
+export function evaluatesSymbolically(node, symbolic) {
+    return !node.forceNumeric && Boolean(symbolic || node.forceSymbolic);
+}
+
+/**
+ * The function an `<evaluate>` node evaluates its inputs with: from its
+ * function's `symbolicfs` when it evaluates symbolically, and its
+ * `numericalfs` otherwise, as `<evaluate>` does. `functionValues` are the
+ * function's state values, and `undefined` gives none.
+ */
+export function functionEvaluator({ symbolically, functionValues }) {
+    if (functionValues === undefined) {
+        return undefined;
+    }
+    return symbolically
+        ? returnSymbolicFunctionForEvaluate({
+              numInputs: functionValues.numInputs,
+              symbolicfs: functionValues.symbolicfs,
+          })
+        : returnNumericFunctionForEvaluate({
+              numInputs: functionValues.numInputs,
+              numericalfs: functionValues.numericalfs,
+          });
 }
 
 /**
@@ -184,7 +274,7 @@ function nodeAt(analysis, ind, texts) {
     if (!text || node === undefined) {
         return node;
     }
-    if (text.expressionWithCodes !== undefined && node.type === "math") {
+    if (text.expressionWithCodes !== undefined && isMathNode(node)) {
         return {
             ...node,
             expressionWithCodes: me.fromAst(text.expressionWithCodes),
@@ -201,13 +291,16 @@ function nodeAt(analysis, ind, texts) {
  * `codeValue(code)` gives the value of an entry or constant code there.
  * `settings` are the template's own `simplify` and `expand`, which the list
  * holds, and `texts` the text of each node as written to this entry, by the
- * node's index, for those that were.
+ * node's index, for those that were. `evaluators` holds, by the index of each
+ * `<evaluate>` node, the function it evaluates its inputs with, from
+ * `functionEvaluator`.
  */
 export function evaluateRepeatTemplate({
     analysis,
     codeValue,
     settings,
     texts,
+    evaluators,
     ind = 0,
 }) {
     const node = nodeAt(analysis, ind, texts);
@@ -222,6 +315,7 @@ export function evaluateRepeatTemplate({
                   codeValue,
                   settings,
                   texts,
+                  evaluators,
                   ind: code.node,
               });
 
@@ -233,15 +327,39 @@ export function evaluateRepeatTemplate({
         );
     }
 
-    if (node.type === "math") {
-        if (node.expressionWithCodes === null) {
-            return BLANK;
+    if (node.type === "evaluate" || isMathNode(node)) {
+        let value;
+        if (node.type === "evaluate") {
+            let inputs = node.codes.map((code) => asMath(valueOf(code)));
+            // One input whose value is a list (`1, 2`) is one input per
+            // item, as a `<mathList>` reads its only child.
+            if (
+                inputs.length === 1 &&
+                Array.isArray(inputs[0].tree) &&
+                inputs[0].tree[0] === "list"
+            ) {
+                inputs = inputs[0].tree
+                    .slice(1)
+                    .map((tree) => me.fromAst(tree));
+            }
+            const evaluator = evaluators?.[ind];
+            value = evaluator ? evaluator(inputs) : BLANK;
+        } else if (node.expressionWithCodes === null) {
+            const operator = MATH_OPERATORS[node.type];
+            if (!operator) {
+                return BLANK;
+            }
+            // no content: the operator applies to a blank, as to the value
+            // of a `<math>` with no children
+            value = operator.apply(BLANK, node);
+        } else {
+            value = mathValueFromCodes({
+                expressionWithCodes: node.expressionWithCodes,
+                codePre: node.codePre,
+                codeValues: node.codes.map((code) => asMath(valueOf(code))),
+            });
+            value = MATH_OPERATORS[node.type]?.apply(value, node) ?? value;
         }
-        const value = mathValueFromCodes({
-            expressionWithCodes: node.expressionWithCodes,
-            codePre: node.codePre,
-            codeValues: node.codes.map((code) => asMath(valueOf(code))),
-        });
         return normalizeMathExpression({
             value,
             simplify: ind === 0 ? settings.simplify : (node.simplify ?? "none"),
@@ -289,6 +407,7 @@ export function evaluateRepeatTemplate({
  * `codeValue(code)` and `codeCanBeModified(code)` give the value of an entry
  * or constant code at that index, and whether it takes a write, and `texts`
  * the text of each node as written to the entry before, for those that were.
+ * An `<evaluate>` takes no write, as the component takes none.
  */
 export function invertRepeatTemplate({
     analysis,
@@ -297,10 +416,11 @@ export function invertRepeatTemplate({
     codeCanBeModified,
     settings,
     texts,
+    evaluators,
     ind = 0,
 }) {
     const node = nodeAt(analysis, ind, texts);
-    if (node === undefined || node.fixed) {
+    if (node === undefined || node.fixed || node.type === "evaluate") {
         return { success: false };
     }
     const context = {
@@ -309,6 +429,7 @@ export function invertRepeatTemplate({
         codeCanBeModified,
         settings,
         texts,
+        evaluators,
     };
 
     if (node.type === "point") {
@@ -384,8 +505,12 @@ export function invertRepeatTemplate({
         );
     }
 
-    // a math
-    const desired = convertValueToMathExpression(desiredValue);
+    // a math, or an operator, which writes to its content what its inverse
+    // gives
+    const operator = MATH_OPERATORS[node.type];
+    const desired = operator
+        ? operator.invert(convertValueToMathExpression(desiredValue))
+        : convertValueToMathExpression(desiredValue);
     if (node.codes.length === 1 && node.numStrings === 0) {
         return writeCode(node.codes[0], desired, context);
     }
@@ -499,7 +624,7 @@ function canBeModified(code, context) {
         return context.codeCanBeModified(code);
     }
     const node = nodeAt(context.analysis, code.node, context.texts);
-    if (node.fixed) {
+    if (node.fixed || node.type === "evaluate") {
         return false;
     }
     if (node.string !== undefined || node.codes.length === 0) {
@@ -562,6 +687,16 @@ const SIMPLIFY_VALUES = {
     numberspreserveorder: "numbersPreserveOrder",
     normalizeorder: "normalizeOrder",
 };
+
+/** The number written as the attribute, or `undefined`. */
+function literalNumber(attribute) {
+    const text = literalText(attribute);
+    if (text === undefined) {
+        return undefined;
+    }
+    const value = Number(text);
+    return Number.isFinite(value) ? value : undefined;
+}
 
 function literalBoolean(attribute) {
     const text = literalText(attribute);

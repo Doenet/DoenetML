@@ -647,8 +647,25 @@ describe("Repeats whose template is one value @group4", () => {
             // own way
             `<text name="t">5</text><repeatForSequence name="r" from="1" to="2" valueName="v"><number>$t</number></repeatForSequence>`,
             `<boolean name="b">true</boolean><repeatForSequence name="r" from="1" to="2" valueName="v"><number>$b</number></repeatForSequence>`,
-            // a math operator
-            `<repeatForSequence name="r" from="1" to="2" valueName="v"><math><abs>$v</abs></math></repeatForSequence>`,
+            // a math operator other than <abs>, <round> or <evaluate>
+            `<repeatForSequence name="r" from="1" to="2" valueName="v"><math><floor>$v</floor></math></repeatForSequence>`,
+            // what a <round> rounds to written as other than an integer,
+            // which a <number> evaluates
+            `<repeatForSequence name="r" from="1" to="2" valueName="v"><round numDecimals="1+1">$v/3</round></repeatForSequence>`,
+            `<number name="n">2</number><repeatForSequence name="r" from="1" to="2" valueName="v"><round numDecimals="$n">$v/3</round></repeatForSequence>`,
+            // forceSymbolic other than true or false
+            `<function name="f" variables="t">t^2</function><repeatForSequence name="r" from="1" to="2" valueName="v"><evaluate function="$f" input="$v" forceSymbolic="1" /></repeatForSequence>`,
+            // a function that reads the index, is not one reference to a
+            // function, or is a value other than a function
+            `<function name="f" variables="t">t^2</function><function name="g" variables="t">t^3</function><group name="fs">$f $g</group><repeatForSequence name="r" from="1" to="2" indexName="i"><math>$$fs[$i](2)</math></repeatForSequence>`,
+            `<repeatForSequence name="r" from="1" to="2" valueName="v"><evaluate function="$v x" input="2" /></repeatForSequence>`,
+            `<math name="m">t^2</math><repeatForSequence name="r" from="1" to="2" valueName="v"><evaluate function="$m" input="$v" /></repeatForSequence>`,
+            // inputs written as text, which a <mathList> splits
+            `<function name="f" variables="t">t^2</function><repeatForSequence name="r" from="1" to="2" valueName="v"><evaluate function="$f" input="2" /></repeatForSequence>`,
+            // another attribute of <evaluate>
+            `<function name="f" variables="t">t^2</function><repeatForSequence name="r" from="1" to="2" valueName="v"><evaluate function="$f" input="$v" unordered /></repeatForSequence>`,
+            // a named <evaluate> nested in the template
+            `<function name="f" variables="t">t^2</function><repeatForSequence name="r" from="1" to="2" valueName="v"><math><evaluate name="e" function="$f" input="$v" />+1</math></repeatForSequence>`,
             // more than one component
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math><math>$v</math></repeatForSequence>`,
             // a repeat over something that is not one list
@@ -759,6 +776,192 @@ describe("Repeats whose template is one value @group4", () => {
         expect(results[0]).toEqual({
             p: "(1, 0), (2, 0), (3, 8), (4, 0)",
             p2: "7, 7, 4, 7",
+        });
+    });
+    describe("math operators", () => {
+        it("a Riemann sum's terms, of functions evaluated at the index", async () => {
+            const texts = await compare({
+                doenetML: `
+<function name="p" variables="t" symbolic="false"><math simplify="numbersPreserveOrder">4 - 2 t^2</math></function>
+<math name="deltat" simplify="numbers">(2 - -1)/4</math>
+<function name="ldeltat" variables="l">-1 + $deltat l</function>
+<number name="side">1</number>
+<mathList name="terms">
+  <repeatForSequence name="r" length="4" indexName="i"><math simplify="numbers">$$p($$ldeltat($i-1+$side))*$deltat</math></repeatForSequence>
+</mathList>
+<p name="pterms">$terms</p>
+<p name="p2">$r[2]</p>
+<p name="psum"><sum>$terms</sum></p>
+<p name="pt"><repeatForSequence name="rt" length="4" indexName="i"><math simplify='full'>$$ldeltat($i-1+$side)</math></repeatForSequence></p>
+<p name="pe"><repeatForSequence name="re" length="4" indexName="i"><evaluate forceSymbolic function="$ldeltat" input="$i-1+$side" simplify="numbers" /></repeatForSequence></p>
+`,
+                names: ["pterms", "p2", "psum", "pt", "pe"],
+                afterLoad: async (core, resolvePathToNodeIdx) => {
+                    for (const name of ["rt", "re"]) {
+                        expect(
+                            await typeOf(core, resolvePathToNodeIdx, name),
+                        ).toBe(
+                            core.core!._components[
+                                await resolvePathToNodeIdx("r")
+                            ].componentType,
+                        );
+                    }
+                },
+            });
+            expect(texts).toEqual({
+                pterms: "2.91, 2.63, 0.656, -3",
+                p2: "2.63",
+                psum: "3.19",
+                pt: "-1/4, 1/2, 5/4, 2",
+                pe: "-1/4, 1/2, 5/4, 2",
+            });
+        });
+
+        it("the absolute value of each entry of a list, and its maximum", async () => {
+            const texts = await compare({
+                doenetML: `
+<mathList name="terms">2.91 -2.63 0.656 -3 x-1</mathList>
+<p name="p"><max name="mx"><repeat name="r" for="$terms" valueName="v"><abs>$v</abs></repeat></max></p>
+<p name="p2">$r</p>
+`,
+                names: ["p", "p2"],
+            });
+            expect(texts).toEqual({
+                p: "max(2.91, 2.63, 0.656, 3, |x - 1|)",
+                p2: "2.91, 2.63, 0.656, 3, |x - 1|",
+            });
+        });
+
+        it("a round shows the digits it rounds to, unless it says otherwise", async () => {
+            const texts = await compare({
+                doenetML: `
+<numberList name="l">1 2 -3</numberList>
+<p name="p"><repeat name="r" for="$l" valueName="v"><round numDecimals="10">$v/7</round></repeat></p>
+<p name="p2"><repeat name="r2" for="$l" valueName="v"><round numDecimals="10" displayDigits="3">$v/7</round></repeat></p>
+<p name="p3"><repeat name="r3" for="$l" valueName="v"><round numDigits="4" displayDecimals="2">$v/7</round></repeat></p>
+<p name="p4"><repeat name="r4" for="$l" valueName="v"><round>$v/2</round></repeat></p>
+<p name="p5"><repeat name="r5" for="$l" valueName="v"><math><round numDecimals="1">$v/7</round> x</math></repeat></p>
+`,
+                names: ["p", "p2", "p3", "p4", "p5"],
+            });
+            expect(texts).toEqual({
+                p: "0.1428571429, 0.2857142857, -0.4285714286",
+                p2: "0.143, 0.286, -0.429",
+                p3: "0.14, 0.29, -0.43",
+                p4: "1, 1, -2",
+                p5: "0.1 x, 0.3 x, -0.4 x",
+            });
+        });
+
+        it("a function evaluated symbolically or numerically, as the function and the evaluate say", async () => {
+            const texts = await compare({
+                doenetML: `
+<function name="fs" variables="t">t^2 + a</function>
+<function name="fn" variables="t" symbolic="false">t^2 + 1</function>
+<function name="g" variables="s t">s t</function>
+<mathList name="l">1 -2 3</mathList>
+<p name="p1"><repeat name="r" for="$l" valueName="v"><math>$$fs($v)</math></repeat></p>
+<p name="p2"><repeat name="r2" for="$l" valueName="v"><evaluate function="$fs" input="$v" forceNumeric /></repeat></p>
+<p name="p3"><repeat name="r3" for="$l" valueName="v"><evaluate function="$fn" input="$v" /></repeat></p>
+<p name="p4"><repeat name="r4" for="$l" valueName="v"><evaluate function="$fn" input="$v*x^2" forceSymbolic /></repeat></p>
+<p name="p5"><repeat name="r5" for="$l" valueName="v"><math simplify>$$g($v, 2) + $$g(1, $v)</math></repeat></p>
+<p name="p6"><repeat name="r6" for="$l" valueName="v"><math>$$g($v)</math></repeat></p>
+`,
+                names: ["p1", "p2", "p3", "p4", "p5", "p6"],
+            });
+            expect(texts).toEqual({
+                p1: "a + 1, a + 4, a + 9",
+                p2: "NaN, NaN, NaN",
+                p3: "2, 5, 10",
+                p4: "x⁴ + 1, 4 x⁴ + 1, 9 x⁴ + 1",
+                p5: "3, -6, 9",
+                p6: "＿, ＿, ＿",
+            });
+        });
+
+        it("a function changed after load changes every entry", async () => {
+            const texts = await compare({
+                doenetML: `
+<mathInput name="mi" prefill="t^2" />
+<function name="f" variables="t">$mi</function>
+<mathList name="l">1 2 3</mathList>
+<p name="p"><repeat name="r" for="$l" valueName="v"><math>$$f($v) + <abs>$v - 2</abs></math></repeat></p>
+`,
+                names: ["p"],
+                afterLoad: async (core, resolvePathToNodeIdx) => {
+                    await updateMathInputValue({
+                        latex: "3t",
+                        componentIdx: await resolvePathToNodeIdx("mi"),
+                        core,
+                    });
+                },
+            });
+            expect(texts.p).toBe("3 + 1, 6 + 0, 9 + 1");
+        });
+
+        it("a write goes through the operator's inverse, and an evaluate takes none", async () => {
+            const texts = await compare({
+                doenetML: `
+<mathList name="l">1 -2 3</mathList>
+<function name="f" variables="t">t^2</function>
+<math name="c">5</math>
+<p name="p"><repeat name="r" for="$l" valueName="v"><abs>$v</abs></repeat></p>
+<mathInput name="mi" bindValueTo="$r[2]" />
+<mathInput name="mi2" bindValueTo="$r[3]" />
+<p name="pr"><repeat name="rr" for="$l" valueName="v"><round>$v</round></repeat></p>
+<mathInput name="mi3" bindValueTo="$rr[1]" />
+<p name="pe"><repeat name="re" for="$l" valueName="v"><math>$$f($v) + $c</math></repeat></p>
+<mathInput name="mi4" bindValueTo="$re[1]" />
+<p name="pl">$l</p>
+<p name="pc">$c</p>
+`,
+                names: ["p", "pr", "pe", "pl", "pc"],
+                afterLoad: async (core, resolvePathToNodeIdx) => {
+                    for (const [name, latex] of [
+                        ["mi", "7"],
+                        ["mi2", "-4"],
+                        ["mi3", "2.4"],
+                        ["mi4", "20"],
+                    ]) {
+                        await updateMathInputValue({
+                            latex,
+                            componentIdx: await resolvePathToNodeIdx(name),
+                            core,
+                        });
+                    }
+                },
+            });
+            expect(texts).toEqual({
+                p: "2.4, 7, 0",
+                pr: "2, 7, 0",
+                pe: "5.76 + 14.24, 49 + 14.24, 0 + 14.24",
+                pl: "2.4, 7, 0",
+                pc: "14.24",
+            });
+        });
+
+        it("a template of text alone takes a value by changing its text", async () => {
+            await compare({
+                doenetML: `
+<p name="p"><repeatForSequence name="r" from="1" to="3"><abs>-2</abs></repeatForSequence></p>
+<mathInput name="mi" bindValueTo="$r[2]" />
+<p name="p2"><repeatForSequence name="r2" from="1" to="3"><round numDecimals="1">1.23</round></repeatForSequence></p>
+<mathInput name="mi2" bindValueTo="$r2[3]" />
+`,
+                names: ["p", "p2"],
+                afterLoad: async (core, resolvePathToNodeIdx) => {
+                    await updateMathInputValue({
+                        latex: "-5",
+                        componentIdx: await resolvePathToNodeIdx("mi"),
+                        core,
+                    });
+                    await updateMathInputValue({
+                        latex: "4.56",
+                        componentIdx: await resolvePathToNodeIdx("mi2"),
+                        core,
+                    });
+                },
+            });
         });
     });
 });

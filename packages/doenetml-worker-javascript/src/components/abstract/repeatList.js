@@ -8,6 +8,8 @@ import { setUpVariantSeedAndRng } from "../../utils/variants";
 import {
     analyzeRepeatTemplate,
     evaluateRepeatTemplate,
+    evaluatesSymbolically,
+    functionEvaluator,
     invertRepeatTemplate,
 } from "../../utils/repeatTemplate";
 
@@ -220,6 +222,45 @@ export function addRepeatListDefinitions(stateVariableDefinitions) {
         },
     };
 
+    // Whether each `<evaluate>` of the template evaluates its function
+    // symbolically, by the node's index, as `<evaluate>` decides from the
+    // function's `symbolic`.
+    stateVariableDefinitions.evaluateSymbolically = {
+        stateVariablesDeterminingDependencies: ["templateAnalysis"],
+        returnDependencies({ stateValues }) {
+            return {
+                templateAnalysis: {
+                    dependencyType: "stateVariable",
+                    variableName: "templateAnalysis",
+                },
+                functions: {
+                    dependencyType: "child",
+                    childGroups: ["constants"],
+                    childIndices: functionConstants(
+                        stateValues.templateAnalysis,
+                    ),
+                    variableNames: ["symbolic"],
+                    variablesOptional: true,
+                },
+            };
+        },
+        definition({ dependencyValues }) {
+            const { templateAnalysis, functions } = dependencyValues;
+            const constants = functionConstants(templateAnalysis);
+            const evaluateSymbolically = {};
+            for (const [ind, node] of templateAnalysis.nodes.entries()) {
+                if (node.type === "evaluate") {
+                    const fn = functions[constants.indexOf(node.function)];
+                    evaluateSymbolically[ind] = evaluatesSymbolically(
+                        node,
+                        fn?.stateValues.symbolic,
+                    );
+                }
+            }
+            return { setValue: { evaluateSymbolically } };
+        },
+    };
+
     // For each list the template reads an entry of, the prefix of the names
     // of its entries (`number3`), by which the values depend on them.
     stateVariableDefinitions.entryListPrefixes = {
@@ -331,6 +372,77 @@ export function addRepeatListDefinitions(stateVariableDefinitions) {
 }
 
 /**
+ * The constants of `templateAnalysis` that its `<evaluate>`s evaluate, in
+ * order: the indices, among the list's `constants`, of their functions.
+ */
+function functionConstants(templateAnalysis) {
+    return [
+        ...new Set(
+            templateAnalysis.nodes
+                .filter(
+                    (node) =>
+                        node.type === "evaluate" && node.function !== undefined,
+                )
+                .map((node) => node.function),
+        ),
+    ].sort((a, b) => a - b);
+}
+
+/**
+ * The dependencies of a value computed through the `<evaluate>` nodes
+ * `evaluateNodes` of the template: of each, the one form of its function it
+ * evaluates (`evaluateSymbolically`), so that the function computes only
+ * that one, as for `<evaluate>`. `templateEvaluators` reads them.
+ */
+export function evaluatorDependencies({
+    templateAnalysis,
+    evaluateSymbolically,
+    evaluateNodes,
+}) {
+    const dependencies = {
+        evaluateSymbolically: {
+            dependencyType: "stateVariable",
+            variableName: "evaluateSymbolically",
+        },
+    };
+    for (const ind of evaluateNodes) {
+        const node = templateAnalysis.nodes[ind];
+        if (node.function === undefined) {
+            continue;
+        }
+        dependencies[`function${ind}`] = {
+            dependencyType: "child",
+            childGroups: ["constants"],
+            childIndices: [node.function],
+            variableNames: [
+                evaluateSymbolically[ind] ? "symbolicfs" : "numericalfs",
+                "numInputs",
+            ],
+            variablesOptional: true,
+        };
+    }
+    return dependencies;
+}
+
+/**
+ * The function each `<evaluate>` node evaluates its inputs with, by the
+ * node's index, from the dependencies of `evaluatorDependencies`.
+ */
+function templateEvaluators(globalDependencyValues) {
+    const evaluators = {};
+    for (const [ind, symbolically] of Object.entries(
+        globalDependencyValues.evaluateSymbolically ?? {},
+    )) {
+        const fn = globalDependencyValues[`function${ind}`]?.[0];
+        evaluators[ind] = functionEvaluator({
+            symbolically,
+            functionValues: fn?.stateValues,
+        });
+    }
+    return evaluators;
+}
+
+/**
  * The array of entries `arrayName` of entry type `entryType` in place of
  * `baseValues`: entry k is the template's value with what it reads at index
  * k (`evaluateRepeatTemplate`), and a value written to it is written through
@@ -349,9 +461,17 @@ export function repeatTemplateEntriesDefinition({
         stateVariablesDeterminingDependencies: [
             "templateAnalysis",
             "entryListPrefixes",
+            "evaluateSymbolically",
         ],
         returnArrayDependenciesByKey({ arrayKeys, stateValues }) {
             const globalDependencies = {
+                ...evaluatorDependencies({
+                    templateAnalysis: stateValues.templateAnalysis,
+                    evaluateSymbolically: stateValues.evaluateSymbolically,
+                    evaluateNodes:
+                        stateValues.templateAnalysis.nodes[0]?.evaluateNodes ??
+                        [],
+                }),
                 templateAnalysis: {
                     dependencyType: "stateVariable",
                     variableName: "templateAnalysis",
@@ -506,6 +626,7 @@ export function templateContext({
             expand: globalDependencyValues.expand,
         },
         texts: dependencyValues.write ?? undefined,
+        evaluators: templateEvaluators(globalDependencyValues),
         codeValue: (code) =>
             code.entry !== undefined
                 ? dependencyValues[`entry${code.entry}`]

@@ -1,6 +1,6 @@
 # F6 design: a repeat whose template is one value becomes a list
 
-Design for #2163, step F6 of stream F (#2157) of #2125. Status: decisions settled 2026-10-06; #2172 (F5) and #2177 (F4) merged the same day, and #2187 and #2189 since. Steps 1 to 5 are done, step 4 for number and math templates and step 5 for point templates (see [Phasing](#phasing)). Line numbers are on `main` at 682ff8f28 (#2171); the `Math.js` ones are from before step 2 moved that code out. Paths are under `packages/doenetml-worker-javascript/src/` unless they start with `packages/`.
+Design for #2163, step F6 of stream F (#2157) of #2125. Status: decisions settled 2026-10-06; #2172 (F5) and #2177 (F4) merged the same day, and #2187 and #2189 since. Steps 1 to 5 are done, step 4 for number and math templates and step 5 for point templates, and so is step 6, the math operators `<abs>`, `<round>` and `<evaluate>` (see [Phasing](#phasing)). Line numbers are on `main` at 682ff8f28 (#2171); the `Math.js` ones are from before step 2 moved that code out. Paths are under `packages/doenetml-worker-javascript/src/` unless they start with `packages/`.
 
 ## Summary
 
@@ -43,7 +43,7 @@ Notes on the table:
 - 76 of the 90 maps the script counted are one cloned family of Riemann-sum documents. 44 of them evaluate `$$p(…)` or `$$ldeltat(…)` and are out (above).
 - In real content, the script's qualifying types are math (8 distinct) and point (6); after the corrections, math (2) and point (3). In the fixtures they are point (4), number (4), math (1) and boolean (1). No template anywhere is an interval.
 - 103 of the 122 layout or multi-component composites in real content hold an input or an answer.
-- The single math operators would qualify only if the operators that subclass `<math>` are treated as math. That is a later extension.
+- The single math operators would qualify only if the operators that subclass `<math>` are treated as math. Step 6 does this for `<abs>`, `<round>` and `<evaluate>`.
 
 Examples:
 - `test/perf/fixtures.ts:134` and `test/perf/fixtures/measures-of-spread.doenet:51` (the repeat; the point is on the next line), the case that matters most:
@@ -78,7 +78,7 @@ The rule is applied to the document by a pass in the style of F4's `utils/dast/l
 - The template references itself, like `$P` or `$dragPoint.x` inside its own label.
 - An index is computed: `$l[$i+1]` or `$l[$perm[$i]]`. This could be added later with per-key dynamic dependencies. No qualifying fixture needs it.
 - The template reads the value of a `<repeat>` whose `for` is not one list. #2171 keeps that value as a component of each iteration, because it is a copy of an item, not a value.
-- The template contains a math operator, including the `<evaluate>` that `$$f(…)` makes.
+- The template contains a math operator other than `<abs>`, `<round>` and `<evaluate>` (step 6).
 - The template contains a random sampler. See [Randomness](#randomness).
 - The template contains a point in a sticky group, or a point with `link="false"`. The latter is a free point with state of its own, not an expression.
 - The repeat is referenced in a way the pass cannot see statically, such as `<group extend="$Ps[2]">` followed by `$g.P`. This is the same guard #2171 uses for `$g.i`.
@@ -251,7 +251,8 @@ Not relevant to F6: #2179 (a standalone `<vector>`), #2182 (an authored child's 
 | 4b. Text and boolean templates | step 4 | the same | when evidence asks |
 | 5. `_repeatPointList` for point templates | #2172 | `RepeatPointList.js`, `abstract/repeatList.js`, `GraphicalValueList.js` | done |
 | 5b. Vector templates | step 5 | the same, on `VectorList` | when evidence asks |
-| later | evidence | samplers, per-entry attributes, computed indices, the values of a `<repeat>` over anything but one list, the math operators (including `$$f(…)`) | — |
+| 6. The math operators `<abs>`, `<round>` and `<evaluate>` (including `$$f(…)`) | step 5 | `utils/repeatTemplate.js`, `utils/dast/repeatLists.ts`, `abstract/repeatList.js`, `RepeatPointList.js`, `utils/valueFunctions/mathOperators.js` | done |
+| later | evidence | samplers, per-entry attributes, computed indices, the values of a `<repeat>` over anything but one list, the other math operators | — |
 
 **Step 1, pinning tests.** These all pass on `main`. Each records today's behaviour for a qualifying template:
 - the values and the rendered text;
@@ -262,7 +263,7 @@ Not relevant to F6: #2179 (a standalone `<vector>`), #2182 (an authored child's 
 - a saved state round trip within one version;
 - a shrink and a regrow.
 
-Step 4 alone reaches the number and math fixtures (the unit-circle boolean's nested `<point>` waits for step 5), the measures-of-spread sums, and the Riemann-sum templates that read `$v` of a `<repeat>` over a list. The Riemann-sum templates that evaluate `$$p(…)` or `$$ldeltat(…)` wait for the math operators. Step 5 reaches the dot plots and measures-of-spread, where the template content is 52% and 34% of resolved state variables (#2163). Each step pastes its census rows, per #2125.
+Step 4 alone reaches the number and math fixtures (the unit-circle boolean's nested `<point>` waits for step 5), the measures-of-spread sums, and the Riemann-sum templates that read `$v` of a `<repeat>` over a list. The Riemann-sum templates that evaluate `$$p(…)` or `$$ldeltat(…)` wait for the math operators (step 6). Step 5 reaches the dot plots and measures-of-spread, where the template content is 52% and 34% of resolved state variables (#2163). Each step pastes its census rows, per #2125.
 
 **Step 4, as built.**
 - **The pass** (`utils/dast/repeatLists.ts`) runs after the value-reference pass, which has decided whether the value and index are lists (`_repeatValues`, `_repeatIndices`). It retypes a qualifying repeat to `_repeatValueList` and keeps the template as its one serialized child (`repeatTemplate`). Each reference in the template that reads the same value at every index moves out to be a child of the list (`repeatTemplateConstant`), and the template keeps a placeholder for it. Each reference that reads entry k of a list is marked (`repeatEntry`); `$v` of a `<repeat>` over one list is pointed at that list. The template's own attributes become the list's, and its name is dropped from `$r[k].m`.
@@ -337,6 +338,41 @@ Step 4 alone reaches the number and math fixtures (the unit-circle boolean's nes
 
   A drag of one point of drag-dot-plot-50 (`perf-bench`'s `Ps[1].P`, which `test/perf/drag-timing.ts` and `drag-bench.test.ts` now resolve to the list's first entry) takes a median 25–34 ms per move, against 66–71 ms with the pass off.
 
+**Step 6, as built: the math operators.**
+- **What qualifies, beyond step 5:**
+  - the template is an `<abs>`, a `<round>` or an `<evaluate>`, or a `<math>`, a `<number>` or a point's coordinate holds one, as the `<evaluate>` that `$$f(…)` makes;
+  - the content of an `<abs>` or a `<round>` qualifies as a `<math>`'s does;
+  - a `<round>`'s `numDecimals` and `numDigits` are written as whole numbers;
+  - an `<evaluate>`'s function is one reference to a function outside the template, with no index (`$f`, not `$fs[$i]`). Its inputs, if any, are pieces that each qualify as a nested component or a reference does, not text (`input="2"`, which a `<mathList>` splits). Its `forceSymbolic` and `forceNumeric` are `true`, `false` or nothing.
+  - The other operators (`<floor>`, `<sum>`, …) keep the composite. They are added one at a time, when evidence asks.
+- **The operators' functions are shared.** `utils/valueFunctions/mathOperators.js` holds the value and inverse of `<abs>` and `<round>`. `MathOperators.js` and the list both call them.
+- **An operator node** (`utils/repeatTemplate.js`) is a math node. Its operator applies to the value of its content before that value is normalized, as `MathBaseOperatorOneInput` applies it. A write goes through the operator's inverse to its content. Each node keeps its own attributes (`numDecimals`, `function`, …): the pass does not make them the list's.
+- **A `<round>` template** shows 14 digits unless it sets `displayDigits` or `displayDecimals`, as `<round>` does. The pass gives the list `displayDigits="14"` for this.
+- **An `<evaluate>` node.**
+  - Its inputs are its codes. One input whose value is a list (`1, 2`) is one input per item, as a `<mathList>` reads its only child.
+  - Its function is a constant of the list: the `<function>` its `function` attribute made, moved out of the template.
+  - It takes no write, as `<evaluate>` takes none.
+  - As for `<evaluate>`, the list depends only on the form of the function it evaluates: `symbolicfs` or `numericalfs`, chosen from the function's `symbolic` (`evaluateSymbolically`).
+  - A point's coordinate depends only on the functions of the `<evaluate>`s it holds (`evaluateNodes`).
+- **Tests.** `tagSpecific/repeatValueLists.test.ts` ("math operators") and `tagSpecific/repeatPointLists.test.ts` compare each document with and without the pass. They cover:
+  - the Riemann-sum terms;
+  - the maximum of absolute values;
+  - the display digits of `<round>`;
+  - symbolic and numeric evaluation, with inputs of every count;
+  - a function changed after load;
+  - writes through `<abs>` and `<round>`, and an `<evaluate>` that takes none;
+  - a template of text alone that takes a write;
+  - a dragged point with operators in its coordinates, with the function not drawn;
+  - the guards.
+- **Census.** Each figure is components / dependencies / state variables resolved, without the pass and then with it:
+
+  | document | composite | list |
+  |---|--:|--:|
+  | Riemann sum of 8 terms `$$p($$ldeltat($i-1+$side))*$deltat`, and `<abs>$v</abs>` of the terms | 297 / 10580 / 4382 | 37 / 1919 / 749 |
+  | 20 points `($v, $$f($v))` in a graph | 516 / 15768 / 6660 | 20 / 1298 / 516 |
+
+  Every repeat made a list resolves one more state variable, `evaluateSymbolically`, and 4 more dependencies, also when its template has no `<evaluate>`. So `repeatForSequence $i^2 x4` goes from 277 to 281 dependencies, and `repeatForSequence literal x4` from 256 to 260.
+
 ## Decisions to settle
 
 1. **A name on the template's component.** In `<repeatForSequence name="Ps"><point name="P">…</point></repeatForSequence>`, an author can write `$Ps[2].P` today: iteration 2 is a group that contains a point named `P`. A list has no iteration groups and no component named `P`, so the name needs a meaning. There are two options:
@@ -346,4 +382,4 @@ Step 4 alone reaches the number and math fixtures (the unit-circle boolean's nes
    **Decided 2026-10-06: (b).** In the fixtures, the name `P` is never referenced; the only references into `Ps` are `$Ps.x`.
 2. **Per-entry renderer attributes and samplers stay out** of the first version.
 3. **A write to a value outside the template changes that value, so every entry moves.** **Decided 2026-10-06.** In `<point>($i, $c)</point>`, dragging any entry vertically writes `c`, as a reference does everywhere else in DoenetML. The list keeps no per-entry override for such a write. A pinning test on `main` checks that today's composite does the same.
-4. **Single math operators (`<abs>`, `<round>`, `<evaluate>`) stay out until step 4 has landed.** They would add 6 distinct real templates, but each operator needs its own `analyze`.
+4. **Single math operators (`<abs>`, `<round>`, `<evaluate>`) stay out until step 4 has landed.** They would add 6 distinct real templates, but each operator needs its own `analyze`. Step 6 adds them.
