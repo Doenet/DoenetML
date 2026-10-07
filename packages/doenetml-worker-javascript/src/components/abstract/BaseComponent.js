@@ -4,6 +4,7 @@ import { flattenDeep, mapDeep } from "@doenet/utils";
 import { deepClone, enumerateCombinations } from "@doenet/utils";
 import { gatherVariantComponents } from "../../utils/variants";
 import { variableRefSnapshot } from "../../utils/variableRefAttribute";
+import { copyOfLiteralAttribute } from "../../utils/literalAttribute";
 import {
     addContextAttributeDefinitions,
     CONTEXT_ATTRIBUTES,
@@ -1583,13 +1584,8 @@ export default class BaseComponent {
                     parameters.copyAll &&
                     !componentSourceAttributesToIgnore.includes(attrName)
                 ) {
-                    const literal = JSON.parse(JSON.stringify(attribute));
-                    const writes = this.essentialState?.literalAttributeWrites;
-                    if (writes && attribute.name in writes) {
-                        delete literal.text;
-                        literal.value = writes[attribute.name];
-                    }
-                    serializedComponent.attributes[attrName] = literal;
+                    serializedComponent.attributes[attrName] =
+                        copyOfLiteralAttribute(attribute, this);
                 }
             } else if (attribute.type === "variableRef") {
                 // Like the attribute component it stands for: copied only

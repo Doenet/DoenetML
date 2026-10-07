@@ -256,6 +256,25 @@ export function serializedAttributeComponent(
 }
 
 /**
+ * A copy of the literal attribute `attribute` of the component `owner`, with
+ * the value a reader wrote over it (`literalAttributeWrites`) in place of
+ * what the author wrote, as a copy of the attribute component it stands for
+ * took that component's essential state.
+ */
+export function copyOfLiteralAttribute(
+    attribute: LiteralAttribute,
+    owner: any,
+): LiteralAttribute {
+    const literal: LiteralAttribute = JSON.parse(JSON.stringify(attribute));
+    const writes = owner.essentialState?.literalAttributeWrites;
+    if (writes && attribute.name in writes) {
+        delete literal.text;
+        literal.value = writes[attribute.name];
+    }
+    return literal;
+}
+
+/**
  * The value a write of `desiredValue` to the literal attribute `attribute`
  * keeps (`literalAttributeWrites`): what the attribute component of its type
  * would have kept, a number for a `number`, rounded for an `integer`; or

@@ -690,6 +690,41 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(await prefill()).eq("zz");
         });
 
+        it("an unlinked copy of a variable takes the literal attributes it shadows, with a write", async () => {
+            // `<math copy="$m.value"/>` takes `simplify` and `expand` from
+            // the math (`attributesToShadow`); with no link to it, it has
+            // its own copy of each, which a later write to the math's does
+            // not reach.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <math name="m" simplify="full" expand="false">(x+1)^2+x</math>
+    <updateValue name="u1" target="$m.expand" newValue="true" type="boolean" />
+    <updateValue name="u2" target="$m.simplify" newValue="none" type="text" />
+    <booleanInput name="show" />
+    <conditionalContent condition="$show" name="cc">
+        <math copy="$m.value" name="mc" />
+    </conditionalContent>
+    `,
+            });
+            const update = async (name: string) =>
+                core.requestAction({
+                    componentIdx: await resolvePathToNodeIdx(name),
+                    actionName: "updateValue",
+                    args: {},
+                });
+            await update("u1");
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("show"),
+                core,
+            });
+            await update("u2");
+            const mc = (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx("cc.mc")
+            ].stateValues;
+            expect([mc.simplify, mc.expand]).eqls(["full", true]);
+        });
+
         it("a copy of a repeat whose iterations reference a prop or a list entry shows what the source's iterations show", async () => {
             // Each iteration's `a` and `b` take their display settings, and
             // `b` its `hide`, from what they reference. The copies of the
