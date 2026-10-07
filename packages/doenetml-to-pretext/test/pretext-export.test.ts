@@ -707,6 +707,20 @@ describe("Pretext export", async () => {
         ).not.toContain(`gathered`);
     });
 
+    it("a row break followed by the word tag is no tag", async () => {
+        source = `<men>\\begin{array}{c}x\\\\tag{A}\\end{array}</men>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toMatch(
+            /^<md number="yes">/,
+        );
+    });
+
+    it("comments on the last lines of an equation are all left out", async () => {
+        source = `<men>x % first\n% second</men>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(`"<md number="yes">x</md>"`);
+    });
+
     it("text written straight into a problem is given a paragraph", async () => {
         // PreTeXt drops text that is not in a paragraph. A display goes in with the text
         // around it, since PreTeXt writes an `<md>` inside a paragraph.

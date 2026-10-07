@@ -122,7 +122,17 @@ export function parseDisplayRows(latex: string): DisplayRow[] {
  * comment is no tag, since TeX never reads it.
  */
 function hasAuthorTag(latex: string, inDisplay: boolean) {
-    return /\\tag(?![a-zA-Z])\*?\s*\{/.test(withoutComments(latex, inDisplay));
+    const text = withoutComments(latex, inDisplay);
+    for (let i = 0; i < text.length; i++) {
+        if (text[i] === "\\") {
+            if (/^\\tag(?![a-zA-Z])\*?\s*\{/.test(text.slice(i))) {
+                return true;
+            }
+            // Skip the escaped character, so that the `tag` after a `\\` is not read.
+            i++;
+        }
+    }
+    return false;
 }
 
 /** `latex` without its comments. */
@@ -143,8 +153,8 @@ function withoutComments(latex: string, inDisplay: boolean) {
     return result;
 }
 
-/** `latex` without a comment that nothing but space follows. */
-function withoutTrailingComment(latex: string, inDisplay: boolean) {
+/** `latex` without the comments that nothing but space follows. */
+function withoutTrailingComment(latex: string, inDisplay: boolean): string {
     const trimmed = latex.trimEnd();
     for (let i = 0; i < trimmed.length; i++) {
         const char = trimmed[i];
@@ -153,7 +163,11 @@ function withoutTrailingComment(latex: string, inDisplay: boolean) {
         } else if (char === "%") {
             const end = commentEnd(trimmed, i, inDisplay);
             if (end === trimmed.length) {
-                return trimmed.slice(0, i).trimEnd();
+                // The comment on the line before may now be the last.
+                return withoutTrailingComment(
+                    trimmed.slice(0, i),
+                    inDisplay,
+                ).trimEnd();
             }
             i = end - 1;
         }
