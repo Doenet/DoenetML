@@ -65,6 +65,10 @@ export const MICRO_DOCUMENTS: Fixture[] = [
         `<graph><point name="P">(1,2)</point></graph><p>$P.x</p>`,
     ),
     micro(
+        "boolean $P=(1,2)",
+        `<graph><point name="P">(1,2)</point></graph><boolean>$P = (1,2)</boolean>`,
+    ),
+    micro(
         "repeatForSequence $i^2 x4",
         `<repeatForSequence from="1" to="4" valueName="i"><number>$i^2</number></repeatForSequence>`,
     ),

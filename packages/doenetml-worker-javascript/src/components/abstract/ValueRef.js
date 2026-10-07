@@ -433,8 +433,14 @@ export default class ValueRef extends BaseComponent {
                 // read the entry's property that an adapter of the entries'
                 // type reads (`$l[$i]` in a `<math>` reads `$l[$i].math`,
                 // `planListEntryAdapterReference`).
-                const adapterProperty =
-                    this.svComponent.doenetAttributes.listEntryAdapterProperty;
+                // A reference to the whole of a component with no implicit
+                // prop, planned to read the variable of the referent's
+                // adapter that its parent takes (`$P` in a `<boolean>` reads
+                // `P.coords`, `planReferentAdapterReference`).
+                const { doenetAttributes } = this.svComponent;
+                const adapterProperty = doenetAttributes.readsReferentAdapter
+                    ? doenetAttributes.adapterVariable
+                    : doenetAttributes.listEntryAdapterProperty;
                 return {
                     referent: {
                         dependencyType: "referent",
@@ -647,7 +653,7 @@ export default class ValueRef extends BaseComponent {
         // to the list is refused when it is false.
         stateVariableDefinitions.canBeModified = referentOrFallback({
             stateVariable: "canBeModified",
-            fallbackDependencies: (referentIdx, referentInfo) =>
+            fallbackDependencies: (referentIdx, referentInfo, component) =>
                 referentIdx === undefined
                     ? {}
                     : {
@@ -674,11 +680,28 @@ export default class ValueRef extends BaseComponent {
                               variableName: "modifyIndirectly",
                               variablesOptional: true,
                           },
+                          // The adapter component a reference presenting as
+                          // an adapter's type stands in for took its
+                          // source's `fixLocation`, and could not be
+                          // modified when it was set: `$P` in
+                          // `<point>($P+$Q)/2</point>` with `P` at a fixed
+                          // location leaves the drag to `Q`.
+                          ...(component.presentsAsAdapter
+                              ? {
+                                    targetFixLocation: {
+                                        dependencyType: "stateVariable",
+                                        componentIdx: referentIdx,
+                                        variableName: "fixLocation",
+                                        variablesOptional: true,
+                                    },
+                                }
+                              : {}),
                       },
             fallback: (dependencyValues) =>
                 ("entriesCanBeModified" in dependencyValues
                     ? dependencyValues.entriesCanBeModified !== false
                     : !dependencyValues.targetFixed) &&
+                !dependencyValues.targetFixLocation &&
                 dependencyValues.modifyIndirectly !== false,
         });
 
@@ -1044,6 +1067,7 @@ const VALUE_REFERENCE_DOENET_ATTRIBUTES = [
     "fixedReferent",
     "copiesReferent",
     "listEntryAdapterProperty",
+    "readsReferentAdapter",
 ];
 
 /** The renderer variables of a reference that is not drawn. */
@@ -1417,6 +1441,7 @@ function referentOrFallback({
             const dependencies = fallbackDependencies(
                 referentInfo?.componentIdx,
                 referentInfo,
+                this.svComponent,
             );
             if (referentInfo?.referencedPrimaryValue) {
                 dependencies.fromReferent = {
