@@ -629,6 +629,22 @@ describe("Pretext export", async () => {
         expect(
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(`"<md number="no">\\tag{Q} x</md>"`);
+
+        // A tag in a comment is no tag, and an escaped percent sign begins no comment.
+        source = `<men>x = 1 % \\tag{A}\n+ 0</men>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toMatch(
+            /^<md number="yes">/,
+        );
+
+        source = `<mdn><mrow>x = 1 % \\tag{A}\n+ 0</mrow><mrow>y</mrow></mdn>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).not.toContain(`number="no"`);
+
+        source = `<men>50\\% \\tag{A}</men>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toMatch(
+            /^<md number="no">/,
+        );
     });
 
     it("text written straight into a problem is given a paragraph", async () => {

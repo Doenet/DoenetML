@@ -111,10 +111,33 @@ export function parseDisplayRows(latex: string): DisplayRow[] {
 
 /**
  * Whether `latex` holds a `\tag{…}` or `\tag*{…}` that is not the core's: one the author
- * wrote. Its argument may hold braces of its own, as in `\tag{a_{1}}`.
+ * wrote. Its argument may hold braces of its own, as in `\tag{a_{1}}`. A tag in a `%`
+ * comment is no tag, since TeX never reads it.
  */
 function hasAuthorTag(latex: string) {
-    return /\\tag(?![a-zA-Z])\*?\s*\{/.test(latex);
+    return /\\tag(?![a-zA-Z])\*?\s*\{/.test(withoutComments(latex));
+}
+
+/** `latex` without its comments: each `%` that is not escaped, to the end of its line. */
+function withoutComments(latex: string) {
+    let result = "";
+    for (let i = 0; i < latex.length; i++) {
+        const char = latex[i];
+        if (char === "\\") {
+            // Keep the escaped character, so that `\%` stays a percent sign.
+            result += latex.slice(i, i + 2);
+            i++;
+        } else if (char === "%") {
+            const end = latex.indexOf("\n", i);
+            if (end < 0) {
+                break;
+            }
+            i = end - 1;
+        } else {
+            result += char;
+        }
+    }
+    return result;
 }
 
 /** `latex` cut at each `\\` outside every group and environment. */
