@@ -342,7 +342,7 @@ Step 4 alone reaches the number and math fixtures (the unit-circle boolean's nes
 - **What qualifies, beyond step 5:**
   - the template is an `<abs>`, a `<round>` or an `<evaluate>`, or a `<math>`, a `<number>` or a point's coordinate holds one, as the `<evaluate>` that `$$f(…)` makes;
   - the content of an `<abs>` or a `<round>` qualifies as a `<math>`'s does;
-  - a `<round>`'s `numDecimals` and `numDigits` are written as whole numbers;
+  - a `<round>`'s `numDecimals` and `numDigits` are written as integers;
   - an `<evaluate>`'s function is one reference to a function outside the template, with no index (`$f`, not `$fs[$i]`). Its inputs, if any, are pieces that each qualify as a nested component or a reference does, not text (`input="2"`, which a `<mathList>` splits). Its `forceSymbolic` and `forceNumeric` are `true`, `false` or nothing.
   - The other operators (`<floor>`, `<sum>`, …) keep the composite. They are added one at a time, when evidence asks.
 - **The operators' functions are shared.** `utils/valueFunctions/mathOperators.js` holds the value and inverse of `<abs>` and `<round>`. `MathOperators.js` and the list both call them.
@@ -359,8 +359,9 @@ Step 4 alone reaches the number and math fixtures (the unit-circle boolean's nes
   - the maximum of absolute values;
   - the display digits of `<round>`;
   - symbolic and numeric evaluation, with inputs of every count;
-  - a function changed after load;
-  - writes through `<abs>` and `<round>`, and an `<evaluate>` that takes none;
+  - a function changed after load, and one whose `symbolic` changes;
+  - one input whose value is a list, and an `<abs>` and a `<round>` with no content;
+  - writes through `<abs>` and `<round>`, including a symbolic absolute value, and an `<evaluate>` that takes none;
   - a template of text alone that takes a write;
   - a dragged point with operators in its coordinates, with the function not drawn;
   - the guards.
@@ -368,10 +369,10 @@ Step 4 alone reaches the number and math fixtures (the unit-circle boolean's nes
 
   | document | composite | list |
   |---|--:|--:|
-  | Riemann sum of 8 terms `$$p($$ldeltat($i-1+$side))*$deltat`, and `<abs>$v</abs>` of the terms | 297 / 10580 / 4382 | 37 / 1919 / 749 |
-  | 20 points `($v, $$f($v))` in a graph | 516 / 15768 / 6660 | 20 / 1298 / 516 |
+  | Riemann sum of 8 terms `$$p($$ldeltat($i-1+$side))*$deltat`, and `<abs>$v</abs>` of the terms | 294 / 10039 / 4148 | 34 / 1720 / 671 |
+  | 20 points `($v, $$f($v))` in a graph | 292 / 12677 / 5138 | 16 / 1009 / 418 |
 
-  Every repeat made a list resolves one more state variable, `evaluateSymbolically`, and 4 more dependencies, also when its template has no `<evaluate>`. A list of values has one more, on `templateAnalysis`, for its `displayDigits`, which the table, measured before it, leaves out. So `repeatForSequence $i^2 x4` goes from 277 to 282 dependencies, and `repeatForSequence literal x4` from 256 to 261.
+  Every repeat made a list resolves one more state variable, `evaluateSymbolically`, and 4 more dependencies, also when its template has no `<evaluate>`. A list of values has one more, on `templateAnalysis`, for its `displayDigits`. So `repeatForSequence $i^2 x4` goes from 277 to 282 dependencies, and `repeatForSequence literal x4` from 256 to 261.
 - **`<collect componentType="abs">`** (or `"round"`, `"evaluate"`) of a section holding such a repeat collected each iteration's operator from the composite. The list has no such component, so that collect is empty, as for step 4's `<math>` in a `<number>`; `componentType="math"` collects the entries as before.
 
 ## Decisions to settle

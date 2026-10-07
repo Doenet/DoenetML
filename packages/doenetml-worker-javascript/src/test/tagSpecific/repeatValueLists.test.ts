@@ -1,7 +1,10 @@
 import { afterEach, describe, expect, it } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { setRepeatListsEnabled } from "../../utils/dast/repeatLists";
-import { updateMathInputValue } from "../utils/actions";
+import {
+    updateBooleanInputValue,
+    updateMathInputValue,
+} from "../utils/actions";
 
 /**
  * A repeat whose template is one `<math>` or `<number>` is a list
@@ -920,6 +923,62 @@ describe("Repeats whose template is one value @group4", () => {
                 },
             });
             expect(texts.p).toBe("3 + 1, 6 + 0, 9 + 1");
+        });
+
+        it("a function whose symbolic changes, an input that is a list, and operators of nothing", async () => {
+            const texts = await compare({
+                doenetML: `
+<booleanInput name="bi" prefill="true" />
+<function name="f" variables="t" symbolic="$bi">t^2 + a</function>
+<function name="g" variables="s t">s t</function>
+<math name="pair">2, 5</math>
+<mathList name="l">1 2</mathList>
+<p name="p"><repeat name="r" for="$l" valueName="v"><math>$$f($v)</math></repeat></p>
+<p name="p2"><repeat name="r2" for="$l" valueName="v"><math>$$g($pair) + $v</math></repeat></p>
+<p name="p3"><repeat name="r3" for="$l" valueName="v"><math><abs/> + <round/> + $v</math></repeat></p>
+`,
+                names: ["p", "p2", "p3"],
+                afterLoad: async (core, resolvePathToNodeIdx) => {
+                    const stateVariables = await core.returnAllStateVariables(
+                        false,
+                        true,
+                    );
+                    expect(
+                        stateVariables[await resolvePathToNodeIdx("p")]
+                            .stateValues.text,
+                    ).toBe("a + 1, a + 4");
+                    await updateBooleanInputValue({
+                        boolean: false,
+                        componentIdx: await resolvePathToNodeIdx("bi"),
+                        core,
+                    });
+                },
+            });
+            expect(texts).toEqual({
+                p: "NaN, NaN",
+                p2: "10 + 1, 10 + 2",
+                p3: "|＿| + ＿ + 1, |＿| + ＿ + 2",
+            });
+        });
+
+        it("a symbolic absolute value written to an abs goes to its content", async () => {
+            const texts = await compare({
+                doenetML: `
+<mathList name="l">z w</mathList>
+<p name="p"><repeat name="r" for="$l" valueName="v"><abs>$v</abs></repeat></p>
+<mathInput name="mi" bindValueTo="$r[1]" />
+<p name="pl">$l</p>
+`,
+                names: ["p", "pl"],
+                afterLoad: async (core, resolvePathToNodeIdx) => {
+                    await updateMathInputValue({
+                        latex: "|q|",
+                        componentIdx: await resolvePathToNodeIdx("mi"),
+                        core,
+                    });
+                },
+            });
+            expect(texts).toEqual({ p: "|q|, |w|", pl: "q, w" });
         });
 
         it("a write goes through the operator's inverse, and an evaluate takes none", async () => {
