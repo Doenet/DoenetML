@@ -1862,6 +1862,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     "y = 3 x + 5",
                 ],
                 [`<m name="X" $fl>x</m>`, "y", "x", "y"],
+                // a `<text>` has a value of its own but no `canBeModified`
+                // to answer with: `$X` reads `X.math`
+                [`<text name="X" $fl>a</text>`, "b", "a", "b"],
             ]) {
                 for (const fixLocation of [true, false]) {
                     const doenetML = `
