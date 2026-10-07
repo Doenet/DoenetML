@@ -118,10 +118,6 @@ export default class RepeatValueList extends ValueListComponent {
                     dependencyType: "stateVariable",
                     variableName: "entryListsCanBeModified",
                 },
-                fixLocation: {
-                    dependencyType: "stateVariable",
-                    variableName: "fixLocation",
-                },
             }),
             definition: ({ dependencyValues }) => ({
                 setValue: {
@@ -129,7 +125,6 @@ export default class RepeatValueList extends ValueListComponent {
                         !dependencyValues.entriesFixed &&
                         templateCanBeModified({
                             analysis: dependencyValues.templateAnalysis,
-                            fixLocation: dependencyValues.fixLocation,
                             codeCanBeModified: (code) =>
                                 code.entry !== undefined
                                     ? dependencyValues.entryListsCanBeModified[

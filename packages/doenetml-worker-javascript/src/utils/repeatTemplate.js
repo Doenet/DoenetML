@@ -297,17 +297,10 @@ export function invertRepeatTemplate({
     codeCanBeModified,
     settings,
     texts,
-    fixLocation = false,
     ind = 0,
 }) {
     const node = nodeAt(analysis, ind, texts);
-    // a `<point>` under `fixLocation` takes no write: its coordinates are
-    // its location. A `<math>` or `<number>` does, as its value is not one.
-    if (
-        node === undefined ||
-        node.fixed ||
-        (fixLocation && node.type === "point")
-    ) {
+    if (node === undefined || node.fixed) {
         return { success: false };
     }
     const context = {
@@ -316,7 +309,6 @@ export function invertRepeatTemplate({
         codeCanBeModified,
         settings,
         texts,
-        fixLocation,
     };
 
     if (node.type === "point") {
@@ -489,22 +481,16 @@ function valueOfCode(code, context) {
 /**
  * Whether the template takes a write at all, as the iteration's component
  * reports it (`canBeModified`): given whether each entry and constant code it
- * reads takes one (`codeCanBeModified`), and not as written to one entry. A
- * `<point>` under `fixLocation` takes none, as its coordinates are its
- * location.
+ * reads takes one (`codeCanBeModified`), and not as written to one entry.
+ * (`fixLocation` plays no part: a math's or number's value is not a
+ * location, and a point list keeps its points' coordinates, which are, in
+ * variables of its own.)
  */
-export function templateCanBeModified({
-    analysis,
-    codeCanBeModified,
-    fixLocation = false,
-}) {
+export function templateCanBeModified({ analysis, codeCanBeModified }) {
     if (analysis.nodes.length === 0) {
         return false;
     }
-    return canBeModified(
-        { node: 0 },
-        { analysis, codeCanBeModified, fixLocation },
-    );
+    return canBeModified({ node: 0 }, { analysis, codeCanBeModified });
 }
 
 /** Whether `code` takes a write, through the node it is if one. */
@@ -513,7 +499,7 @@ function canBeModified(code, context) {
         return context.codeCanBeModified(code);
     }
     const node = nodeAt(context.analysis, code.node, context.texts);
-    if (node.fixed || (context.fixLocation && node.type === "point")) {
+    if (node.fixed) {
         return false;
     }
     if (node.string !== undefined || node.codes.length === 0) {

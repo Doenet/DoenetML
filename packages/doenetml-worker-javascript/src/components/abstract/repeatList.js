@@ -358,8 +358,8 @@ export function repeatTemplateEntriesDefinition({
                 },
                 // What decides whether a write is taken is read only when
                 // one is (`readWritability`), so the values do not depend on
-                // it, which may itself read the values (`<p
-                // fixLocation="$r[1]=1">` around the repeat).
+                // it, which may itself read the values (`<numberList
+                // fixed="$r[1]=1">` that the template reads).
                 constants: {
                     dependencyType: "child",
                     childGroups: ["constants"],
@@ -478,13 +478,12 @@ export function repeatTemplateEntriesDefinition({
 /**
  * What decides whether a write is taken, read when one is: which lists the
  * template reads entries of take a write, which values it reads at every
- * index do, and whether the list is under `fixLocation`.
+ * index do.
  */
 export async function readWritability(stateValues) {
     return {
         entryListsCanBeModified: await stateValues.entryListsCanBeModified,
         constantsCanBeModified: await stateValues.constantsCanBeModified,
-        fixLocation: await stateValues.fixLocation,
     };
 }
 
@@ -492,7 +491,7 @@ export async function readWritability(stateValues) {
  * The template's settings, the text of its components as written to one
  * entry, and the values of its codes at that entry's index. `writability`,
  * read only when a value is written (`readWritability`), says which codes
- * take a write and whether the list is under `fixLocation`.
+ * take a write.
  */
 export function templateContext({
     globalDependencyValues,
@@ -507,7 +506,6 @@ export function templateContext({
             expand: globalDependencyValues.expand,
         },
         texts: dependencyValues.write ?? undefined,
-        fixLocation: writability?.fixLocation ?? false,
         codeValue: (code) =>
             code.entry !== undefined
                 ? dependencyValues[`entry${code.entry}`]

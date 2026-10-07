@@ -1918,17 +1918,34 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
         });
 
         it("a math holding a location at a fixed location solves for its other operands", async () => {
-            // `P` is at a fixed location, so dragging the midpoint moves `Q`
-            // alone, however the midpoint reads `P`.
-            for (const midpoint of [
-                "($P+$Q)/2",
-                "($P.coords+$Q.coords)/2",
-                "(($P.x+$Q.x)/2, ($P.y+$Q.y)/2)",
+            // The location is held at its referent's fixed location, so
+            // dragging the midpoint moves `Q` alone, however the midpoint
+            // reads it: a whole point, its coordinates or its coordinates
+            // one by one, a circle's center, or a line's point. (The last
+            // two read a `<coords>`, whose value is a location.)
+            for (const [fixedComponent, midpoint] of [
+                [`<point name="P" fixLocation>(3,4)</point>`, "($P+$Q)/2"],
+                [
+                    `<point name="P" fixLocation>(3,4)</point>`,
+                    "($P.coords+$Q.coords)/2",
+                ],
+                [
+                    `<point name="P" fixLocation>(3,4)</point>`,
+                    "(($P.x+$Q.x)/2, ($P.y+$Q.y)/2)",
+                ],
+                [
+                    `<circle name="c" center="(3,4)" fixLocation />`,
+                    "($c.center+$Q)/2",
+                ],
+                [
+                    `<line name="l" through="(3,4) (0,0)" fixLocation />`,
+                    "($l.points[1]+$Q)/2",
+                ],
             ]) {
                 const { core, resolvePathToNodeIdx } = await createTestCore({
                     doenetML: `
     <graph>
-      <point name="P" fixLocation>(3,4)</point>
+      ${fixedComponent}
       <point name="Q">(5,6)</point>
       <point name="M">${midpoint}</point>
     </graph>
@@ -1948,7 +1965,6 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     stateVariables[
                         await resolvePathToNodeIdx(name)
                     ].stateValues.xs.map((x: any) => x.tree);
-                expect(await xs("P"), midpoint).eqls([3, 4]);
                 expect(await xs("Q"), midpoint).eqls([7, 8]);
                 expect(await xs("M"), midpoint).eqls([5, 6]);
             }
