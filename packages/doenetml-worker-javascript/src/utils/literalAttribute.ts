@@ -20,13 +20,14 @@
  * literal finds it, also for a linked copy that reads the attribute from
  * that component. A copy keeps its own: it is not copied with essential
  * state, and an unlinked copy takes it as the value of its copy of the
- * literal (`BaseComponent.serialize`).
+ * literal (`copyOfLiteralAttribute`).
  *
  * Booleans are literals only when the conversion already found their value
  * (`"true"`, `"false"`, or no value); other boolean text is an expression for
  * a `<boolean>` to evaluate. An attribute whose definition has
  * `keepAttributeComponent` keeps its component, for a reader that reads more
- * of it than its value (a graph's `grid`).
+ * of it than its value (a graph's `grid`), as does one whose conversion marks
+ * its component (`fixed`, marked `ignoreParentFixed`).
  */
 import type { SerializedComponent } from "./dast/types";
 import {
@@ -64,8 +65,9 @@ const LITERAL_ATTRIBUTE_TYPES = new Set([
 /**
  * The literal that the serialized attribute component `component` of the
  * attribute `name` stands for, or `undefined` if it is more than a literal:
- * it has a reference, a component, attributes of its own, or (for a boolean)
- * an expression to evaluate; or its definition `attrDef` keeps the component
+ * it has a reference, a component, attributes of its own, a mark of its
+ * conversion (`ignoreParentFixed`, for `fixed`), or (for a boolean) an
+ * expression to evaluate; or its definition `attrDef` keeps the component
  * (`keepAttributeComponent`) for a reader that reads more of it than its
  * value.
  */

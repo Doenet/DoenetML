@@ -825,9 +825,10 @@ export class EssentialValueWriter {
 
         if (!(
             initialChange ||
-            // a write to a literal attribute (`literalAttribute.ts`), which
-            // its attribute component, with no `modifyIndirectly` of its
-            // own, took whatever the owner's
+            // a write to a literal attribute (`literalAttribute.ts`): its
+            // attribute component took it whatever the owner's
+            // `modifyIndirectly`, since it had its own, true by default,
+            // which it did not take from the owner
             stateVariable === "literalAttributeWrites" ||
             (await component.stateValues.modifyIndirectly) !== false
         )) {

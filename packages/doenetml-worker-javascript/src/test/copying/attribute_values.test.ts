@@ -725,6 +725,38 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect([mc.simplify, mc.expand]).eqls(["full", true]);
         });
 
+        it("a write to a literal attribute is refused by its owner's fixed, also through a copy that is not fixed", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <text name="t" fixed hide="false">a</text>
+    <text extend="$t" name="c" fixed="false" />
+    <updateValue name="u1" target="$c.hide" newValue="true" type="boolean" />
+    <graph name="g" fixed xMin="-4" />
+    <graph extend="$g" name="h" fixed="false" />
+    <updateValue name="u2" target="$h.xMin" newValue="-8" type="number" />
+    `,
+            });
+            for (const name of ["u1", "u2"]) {
+                await core.requestAction({
+                    componentIdx: await resolvePathToNodeIdx(name),
+                    actionName: "updateValue",
+                    args: {},
+                });
+            }
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect([
+                (await sv("t")).hidden,
+                (await sv("c")).hidden,
+                (await sv("g")).xMin,
+                (await sv("h")).xMin,
+            ]).eqls([false, false, -4, -4]);
+        });
+
         it("a copy of a repeat whose iterations reference a prop or a list entry shows what the source's iterations show", async () => {
             // Each iteration's `a` and `b` take their display settings, and
             // `b` its `hide`, from what they reference. The copies of the
@@ -818,6 +850,17 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 math: 1,
             });
             expect(literal.attributeComponents).eq(0);
+
+            // so are the literals a copy writes on itself, converted when
+            // the copy is (`convertUnresolvedAttributesForComponentType`);
+            // `fixed` keeps its component (`ignoreParentFixed`)
+            const copyOwn = await census(
+                `<text name="t">a</text><text extend="$t" hide /><number copy="$t.value" displayDigits="2" />`,
+            );
+            expect(copyOwn.attributeComponents).eq(0);
+            expect(
+                (await census(`<text fixed>a</text>`)).attributeComponents,
+            ).eq(1);
 
             const anchored = await census(
                 `<graph><math anchor="(1,2)">x</math></graph>`,

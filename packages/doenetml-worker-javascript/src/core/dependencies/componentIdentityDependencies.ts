@@ -456,8 +456,11 @@ export class AttributeComponentDependency extends Dependency {
         if (attribute.type === "literal") {
             this.literal = attribute;
             this.literalOwnerIdx = owner.componentIdx;
-            // a write to it is refused by `owner`'s `fixed` unless the
-            // attribute ignores it, as its attribute component did
+            // a write to it is refused by `owner`'s `fixed`, as its
+            // attribute component's was by the `fixed` it took from `owner`,
+            // unless the attribute ignores it. No literal does today: the
+            // one attribute with `ignoreFixed`, `fixed`, keeps its component,
+            // which its conversion marks `ignoreParentFixed`.
             this.literalIgnoresFixed = Boolean(
                 attributesObjectOf(owner.constructor)[attribute.name]
                     ?.ignoreFixed,
