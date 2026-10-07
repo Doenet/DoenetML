@@ -1228,6 +1228,42 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.warnings.length).eq(0);
     });
 
+    it("warns about only the attributes an author wrote on an extend of a module", async () => {
+        // A `<module>` accepts any attribute, so it is handed the `_copy`'s
+        // own (`createComponentIdx`, `copyInChildren`, …) too.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<module name="m"><moduleAttributes><text name="a">hi</text></moduleAttributes><text>$a</text></module>
+<p name="p1"><module extend="$m" /></p>
+<p name="p2"><module extend="$m" a="bye" /></p>
+<p name="p3"><module copy="$m" a="bye" /></p>
+            `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const texts: string[] = [];
+        for (const name of ["p1", "p2", "p3"]) {
+            texts.push(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            );
+        }
+        expect(texts).eqls(["hi", "hi", "bye"]);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(
+            diagnosticsByType.warnings.map((warning) => warning.message),
+        ).eqls([
+            "The `a` attribute is ignored: a `<module>` with `extend` shows the same content as the component it extends.",
+        ]);
+        expect(
+            diagnosticsByType.warnings.map(
+                (warning) => warning.position?.start.line,
+            ),
+        ).eqls([4]);
+    });
+
     it("warns once about an extend's ignored attribute, wherever it is and however it updates", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

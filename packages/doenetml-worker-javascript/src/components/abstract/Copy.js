@@ -1669,6 +1669,7 @@ export default class Copy extends CompositeComponent {
                     ...extendIgnoresAttributesAndChildren({
                         replacementType: repl.componentType,
                         attributeNames: Object.keys(attributesFromComposite),
+                        copyAttributeNames: Object.keys(compositeAttributesObj),
                         children: component.serializedChildren,
                         componentInfoObjects,
                     }),
@@ -4125,6 +4126,7 @@ export async function replacementFromProp({
 function extendIgnoresAttributesAndChildren({
     replacementType,
     attributeNames,
+    copyAttributeNames,
     children,
     componentInfoObjects,
 }) {
@@ -4150,7 +4152,10 @@ function extendIgnoresAttributesAndChildren({
             ).createAttributesObject(),
         ),
         ...Object.keys(returnNumberDisplayAttributes()),
-        "asList",
+        // The `_copy`'s own attributes (`createComponentIdx`,
+        // `copyInChildren`, …), which a class that accepts any attribute
+        // (`<module>`, `<collect>`) is handed along with the author's.
+        ...copyAttributeNames,
     ]);
 
     const diagnostics = [];
