@@ -1,3 +1,4 @@
+import { serializedAttributeComponent } from "./literalAttribute";
 /**
  * The template of a repeat made a list (`_repeatValueList`,
  * `components/RepeatValueList.js`), analysed once and evaluated, and
@@ -717,7 +718,7 @@ function literalText(attribute) {
     if (attribute.type === "primitive") {
         return attribute.primitive.value;
     }
-    const component = attribute.component;
+    const component = serializedAttributeComponent(attribute);
     if (component?.state?.value !== undefined) {
         return component.state.value;
     }

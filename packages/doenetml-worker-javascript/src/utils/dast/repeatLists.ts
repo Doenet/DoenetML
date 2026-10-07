@@ -1,3 +1,4 @@
+import { serializedAttributeComponent } from "../literalAttribute";
 /**
  * The pass that makes a `<repeat>` or `<repeatForSequence>` whose template
  * is one value a list component in place of the composite it otherwise is:
@@ -1368,17 +1369,15 @@ function isPlainBooleanLiteral(attribute: SerializedAttribute): boolean {
     if (attribute.type === "primitive") {
         return typeof attribute.primitive.value === "boolean";
     }
-    if (attribute.type !== "component") {
+    if (attribute.type !== "component" && attribute.type !== "literal") {
         return false;
     }
-    const value = attribute.component.state?.value;
+    const component = serializedAttributeComponent(attribute)!;
+    const value = component.state?.value;
     if (typeof value === "boolean") {
         return true;
     }
-    const text = (attribute.component.children as string[])
-        .join("")
-        .trim()
-        .toLowerCase();
+    const text = (component.children as string[]).join("").trim().toLowerCase();
     return text === "" || text === "true" || text === "false";
 }
 
@@ -1424,7 +1423,7 @@ function presentsAsMathOrNumber(reference: SerializedComponent): boolean {
 
 /** Whether `attribute` is written as a literal, with no reference. */
 function isLiteral(attribute: SerializedAttribute): boolean {
-    if (attribute.type === "primitive") {
+    if (attribute.type === "primitive" || attribute.type === "literal") {
         return true;
     }
     if (attribute.type !== "component") {

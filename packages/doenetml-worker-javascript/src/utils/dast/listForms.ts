@@ -1,3 +1,4 @@
+import { serializedAttributeComponent } from "../literalAttribute";
 /**
  * The pass that makes a `<collect>`, `<sort>` or `<shuffle>` whose entries
  * are values of one type a list component (`CollectList.js`, `SortList.js`,
@@ -349,16 +350,16 @@ export function convertToListForms({
 
     /** The type a `<collect>` collects, if it can be a list of it. */
     function collectedType(collect: SerializedComponent): string | null {
-        const attribute = collect.attributes.componentType;
+        const component = serializedAttributeComponent(
+            collect.attributes.componentType,
+        );
         if (
-            attribute?.type !== "component" ||
-            !attribute.component.children.every(
-                (child) => typeof child === "string",
-            )
+            !component ||
+            !component.children.every((child) => typeof child === "string")
         ) {
             return null;
         }
-        const written = (attribute.component.children as string[])
+        const written = (component.children as string[])
             .join("")
             .trim()
             .toLowerCase();

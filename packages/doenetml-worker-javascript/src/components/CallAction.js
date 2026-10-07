@@ -1,3 +1,4 @@
+import { literalAttributeValue } from "../utils/literalAttribute";
 import { deepClone } from "@doenet/utils";
 import {
     moveGraphicalObjectWithAnchorAction,
@@ -218,7 +219,13 @@ export default class CallAction extends InlineComponent {
             }
             if (this.attributes.number) {
                 args.number =
-                    await this.attributes.number.component.stateValues.value;
+                    this.attributes.number.type === "literal"
+                        ? literalAttributeValue(
+                              this.attributes.number,
+                              this.componentInfoObjects,
+                          )
+                        : await this.attributes.number.component.stateValues
+                              .value;
             }
             if (this.attributes.numbers) {
                 args.numbers =

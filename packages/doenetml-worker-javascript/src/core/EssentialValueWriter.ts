@@ -1,4 +1,5 @@
 import type Core from "../Core";
+import { literalWriteValue } from "../utils/literalAttribute";
 import { reportInternalError } from "../utils/internalErrors";
 import type { ComponentInstance } from "../types/componentInstance";
 import type { ComponentIdx } from "@doenet/utils";
@@ -1401,12 +1402,24 @@ export class EssentialValueWriter {
                             `Invalid inverse definition of ${stateVariable} of ${component.componentIdx}: ${dependencyName} variable of index ${newInstruction.variableIndex} does not exist.`,
                         );
                     }
+                    // A literal attribute (`literalAttribute.ts`) is written
+                    // as an entry of its owner's `literalAttributeWrites`.
+                    const literal = dep.literal;
                     await this._recurseInto({
                         inst: {
                             componentIdx: cIdx,
                             stateVariable: varName,
-                            value: newInstruction.desiredValue,
-                            overrideFixed: instruction.overrideFixed,
+                            value: literal
+                                ? {
+                                      [literal.name]: literalWriteValue(
+                                          literal,
+                                          newInstruction.desiredValue,
+                                      ),
+                                  }
+                                : newInstruction.desiredValue,
+                            overrideFixed:
+                                instruction.overrideFixed ||
+                                (literal && dep.literalIgnoresFixed),
                             arrayKey: newInstruction.arrayKey,
                         },
                         newInstruction,

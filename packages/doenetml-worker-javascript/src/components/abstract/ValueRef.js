@@ -887,7 +887,12 @@ export default class ValueRef extends BaseComponent {
             if (this.doenetAttributes.copiesReferent && referent) {
                 for (const varName in referent.state) {
                     const stateVar = referent.state[varName];
-                    if (!stateVar.hasEssential) {
+                    // the writes over the referent's literal attributes
+                    // belong to those literals, which the copy does not have
+                    if (
+                        !stateVar.hasEssential ||
+                        varName === "literalAttributeWrites"
+                    ) {
                         continue;
                     }
                     const value = await referent.stateValues[varName];

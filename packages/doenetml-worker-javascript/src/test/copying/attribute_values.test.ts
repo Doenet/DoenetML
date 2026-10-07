@@ -537,6 +537,69 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(await u.stateValues.text).eq("1.235");
         });
 
+        it("a write to a literal attribute reaches the copies that read it, not one with its own", async () => {
+            const doenetML = `
+    <text name="t" hide="false">a</text>
+    <text extend="$t" name="c" />
+    <text extend="$t" name="d" hide="false" />
+    <booleanInput name="b" bindValueTo="$t.hide" />
+    <graph name="g" xMin="-4" xMax="6" />
+    <updateValue name="uv" target="$g.xScale" newValue="20" type="number" />
+    `;
+            const first = await createTestCore({ doenetML });
+            const r = first.resolvePathToNodeIdx;
+            async function values(core: any, resolve: typeof r) {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const sv = async (name: string) =>
+                    stateVariables[await resolve(name)].stateValues;
+                return [
+                    (await sv("t")).hidden,
+                    (await sv("c")).hidden,
+                    (await sv("d")).hidden,
+                    (await sv("g")).xMin,
+                    (await sv("g")).xMax,
+                ];
+            }
+            expect(await values(first.core, r)).eqls([
+                false,
+                false,
+                false,
+                -4,
+                6,
+            ]);
+
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await r("b"),
+                core: first.core,
+            });
+            // two literal attributes written in one update both change
+            await first.core.requestAction({
+                componentIdx: await r("uv"),
+                actionName: "updateValue",
+                args: {},
+            });
+            expect(await values(first.core, r)).eqls([
+                true,
+                true,
+                false,
+                -9,
+                11,
+            ]);
+
+            await first.core.saveImmediately();
+            const second = await createTestCore({
+                doenetML,
+                initialState: first.scoreState.state as string,
+            });
+            expect(await values(second.core, second.resolvePathToNodeIdx)).eqls(
+                [true, true, false, -9, 11],
+            );
+        });
+
         it("a copy of a repeat whose iterations reference a prop or a list entry shows what the source's iterations show", async () => {
             // Each iteration's `a` and `b` take their display settings, and
             // `b` its `hide`, from what they reference. The copies of the
@@ -611,9 +674,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
         });
 
         it("what each attribute construct creates", async () => {
-            // Stream B's targets, by step: a literal `displayDigits` loses its
-            // `integer` (B1a) and a literal `anchor` its point, mathList and
-            // two maths (B1b). A prop reference has lost its five shadow
+            // Stream B's targets, by step: a literal `anchor` loses its point,
+            // mathList and two maths (B1b). A literal `displayDigits` has lost
+            // its `integer` (B1a), and a prop reference its five shadow
             // attribute components (B3).
             async function census(doenetML: string) {
                 const { core } = await createTestCore({ doenetML });
@@ -623,13 +686,13 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             const literal = await census(
                 `<number name="n">5</number><math displayDigits="5">3.123456x</math>`,
             );
+            // the literal `displayDigits` is a value, not an `integer` (B1a)
             expect(literal.byType).eqls({
                 document: 1,
                 number: 1,
                 math: 1,
-                integer: 1,
             });
-            expect(literal.attributeComponents).eq(1);
+            expect(literal.attributeComponents).eq(0);
 
             const anchored = await census(
                 `<graph><math anchor="(1,2)">x</math></graph>`,
@@ -657,9 +720,10 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 math: 2,
                 mathList: 1,
                 _ref: 1,
-                integer: 1,
             });
-            expect(bareReference.attributeComponents).eq(2);
+            // the mathList of the point's coordinates; the point's literal
+            // displayDigits is a value (B1a)
+            expect(bareReference.attributeComponents).eq(1);
 
             const propReference = await census(
                 `<point name="P" displayDigits="3">(1.23456,2)</point><math extend="$P.x" simplify/>`,
@@ -670,14 +734,12 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 math: 3,
                 mathList: 1,
                 _copy: 1,
-                integer: 1,
-                text: 1,
             });
-            // the point's literal displayDigits, its coordinates' mathList
-            // and the reference's literal simplify; the five attributes the
-            // reference takes from P are references to P's variables, not
-            // components (B3)
-            expect(propReference.attributeComponents).eq(3);
+            // the mathList of the point's coordinates; the point's literal
+            // displayDigits and the reference's literal simplify are values
+            // (B1a), and the five attributes the reference takes from P are
+            // references to P's variables (B3)
+            expect(propReference.attributeComponents).eq(1);
         });
     },
 );
