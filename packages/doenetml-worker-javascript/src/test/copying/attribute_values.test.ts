@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import me from "math-expressions";
 import { createTestCore } from "../utils/test-core";
 import {
     moveMath,
@@ -470,6 +471,74 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     await second.resolvePathToNodeIdx("m")
                 ].stateValues.anchor.toString(),
             ).eq("(3, -5)");
+        });
+
+        it("a drag keeps an anchor's other coordinates, and an unlinked copy keeps the anchor it showed through a reload, as a math", async () => {
+            const doenetML = `<graph>
+  <text name="two" anchor="(1,2)">a</text>
+  <text name="three" anchor="(1,2,3)">b</text>
+  <text name="zero" anchor="(-0,2)">c</text>
+</graph>
+<graph><text name="copy" copy="$two"/></graph>`;
+            const first = await createTestCore({ doenetML });
+            const anchors = async (
+                { core, resolvePathToNodeIdx }: typeof first,
+                names: string[],
+            ) => {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                return Promise.all(
+                    names.map(
+                        async (name) =>
+                            stateVariables[await resolvePathToNodeIdx(name)]
+                                .stateValues.anchor,
+                    ),
+                );
+            };
+            const trees = async (tc: typeof first, names: string[]) =>
+                (await anchors(tc, names)).map((anchor) => anchor.tree);
+
+            // `Point` simplifies its coordinates: `-0` is `0`
+            expect(await trees(first, ["zero"])).eqls([["vector", 0, 2]]);
+
+            // a drag of `x` alone keeps `y`; a drag in the plane keeps `z`
+            await first.core.requestAction({
+                componentIdx: await first.resolvePathToNodeIdx("two"),
+                actionName: "moveText",
+                args: { x: 8 },
+            });
+            await first.core.requestAction({
+                componentIdx: await first.resolvePathToNodeIdx("three"),
+                actionName: "moveText",
+                args: { x: 4, y: 5 },
+            });
+            expect(await trees(first, ["two", "three"])).eqls([
+                ["vector", 8, 2],
+                ["vector", 4, 5, 3],
+            ]);
+
+            // the unlinked copy, made anew on restore, keeps the anchor it
+            // showed, the literal held in its snapshot (`__copySnapshots`),
+            // read as a math it can be dragged from
+            await first.core.saveImmediately();
+            const second = await createTestCore({
+                doenetML,
+                initialState: first.scoreState.state as string,
+            });
+            const [copyAnchor] = await anchors(second, ["copy"]);
+            expect(copyAnchor).toBeInstanceOf(me.class);
+            expect(copyAnchor.tree).eqls(["vector", 1, 2]);
+            await second.core.requestAction({
+                componentIdx: await second.resolvePathToNodeIdx("copy"),
+                actionName: "moveText",
+                args: { x: 6, y: 7 },
+            });
+            expect(await trees(second, ["two", "copy"])).eqls([
+                ["vector", 8, 2],
+                ["vector", 6, 7],
+            ]);
         });
 
         it("a copy of a group holding a prop reference shows the settings its own source has", async () => {

@@ -35,6 +35,7 @@ import {
     numberFromString,
 } from "./valueFunctions/number";
 import me from "math-expressions";
+import { vectorOperators } from "@doenet/utils";
 import { isUnspecifiedComponentValue, plainComplex, textToAst } from "./math";
 import { textFromChildren } from "./text";
 
@@ -284,11 +285,16 @@ export function literalAttributeValue(
     componentInfoObjects: any,
 ) {
     if ("value" in attribute) {
-        return attribute.value;
+        // an unlinked copy takes a value written over its source's literal,
+        // which comes back from saved state as a tree
+        return literalWrittenValue(attribute, attribute.value);
     }
     if (attribute.componentType === "point") {
+        // simplified, as `Point`'s `xs` are: `-0` is `0`
         return coordsFromXs(
-            attribute.coordinateTexts!.map(mathFromPlainNumber),
+            attribute.coordinateTexts!.map((text) =>
+                mathFromPlainNumber(text).simplify(),
+            ),
         );
     }
     const text = attribute.text!;
@@ -460,27 +466,32 @@ export function literalWriteValue(
 
 /**
  * The coordinates a point keeps when `desired` is written to coordinates
- * `current`: a coordinate left unspecified in `desired` keeps its current
- * value, as `Point`'s inverse keeps it.
+ * `current`, as `Point`'s inverse keeps them: the point keeps its number of
+ * coordinates; a coordinate that `desired` leaves unspecified, or does not
+ * reach, keeps its current value; a `desired` that is not a vector is its
+ * first coordinate. Each coordinate is simplified, as `Point`'s `xs` are.
  */
 function pointFromDesiredCoords(desired: any, current: any) {
-    const desiredTree = desired?.tree;
-    if (
-        !current ||
-        !Array.isArray(desiredTree) ||
-        !["vector", "tuple"].includes(desiredTree[0])
-    ) {
+    if (!current) {
         return desired;
     }
     const currentXs = literalAttributeVariables(
         { type: "literal", name: "", componentType: "point" },
         current,
     ).xs;
-    const xs = desiredTree.slice(1).map((_: any, i: number) => {
-        const x = desired.get_component(i);
-        return isUnspecifiedComponentValue(x) && currentXs[i]
-            ? currentXs[i]
-            : x;
+    const desiredTree = desired?.tree;
+    const desiredIsVector =
+        Array.isArray(desiredTree) && vectorOperators.includes(desiredTree[0]);
+    const xs = currentXs.map((currentX: any, i: number) => {
+        let x;
+        if (desiredIsVector) {
+            if (i < desiredTree.length - 1) {
+                x = desired.get_component(i);
+            }
+        } else if (i === 0) {
+            x = desired;
+        }
+        return isUnspecifiedComponentValue(x) ? currentX : x.simplify();
     });
     return coordsFromXs(xs);
 }

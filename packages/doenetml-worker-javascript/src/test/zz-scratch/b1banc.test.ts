@@ -1,0 +1,20 @@
+import { it, vi } from "vitest";
+import { createTestCore } from "../utils/test-core";
+import { moveMath } from "../utils/actions";
+vi.stubGlobal("postMessage", vi.fn());
+vi.mock("hyperformula");
+it("anc", async () => {
+  const L: string[] = [];
+  const doc = `<graph><math name="m" anchor="(1,2)" draggable>x</math></graph>`;
+  const tc: any = await createTestCore({ doenetML: doc });
+  const m = await tc.resolvePathToNodeIdx("m");
+  await moveMath({ componentIdx: m, x: 3, y: -5, core: tc.core });
+  let sv = await tc.core.returnAllStateVariables(false, true);
+  L.push("after drag " + String(sv[m].stateValues.anchor) + " ess " + JSON.stringify(tc.core.core._components[m].essentialState));
+  await tc.core.saveImmediately();
+  L.push("saved " + tc.scoreState.state);
+  const tc2: any = await createTestCore({ doenetML: doc, initialState: tc.scoreState.state });
+  const c2 = tc2.core.core._components[await tc2.resolvePathToNodeIdx("m")];
+  L.push("restored ess " + JSON.stringify(c2.essentialState) + " isMe " + (c2.essentialState.literalAttributeWrites?.anchor?.constructor?.name));
+  require("fs").writeFileSync("/tmp/claude-1000/-home-nykamp-src-DoenetML/883766ce-eb9c-4ac9-828b-69fedd57094c/scratchpad/b1banc.txt", L.join("\n"));
+}, 900000);
