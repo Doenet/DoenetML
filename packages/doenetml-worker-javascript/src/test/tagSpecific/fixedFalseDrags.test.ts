@@ -1,6 +1,6 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
-import { updateMathInputValue } from "../utils/actions";
+import { updateMathInputValue, updateTextInputValue } from "../utils/actions";
 import { setRepeatListsEnabled } from "../../utils/dast/repeatLists";
 
 const Mock = vi.fn();
@@ -500,6 +500,92 @@ describe("Dragging points at values that are not fixed @group3", async () => {
                 },
             });
             expect(result, repeat).eq("1 + 1, 7 + 1, 3 + 1");
+        }
+    });
+
+    it("a written value is dropped when the repeat's step or exclude changes, and comes back with it", async () => {
+        for (const { repeat, becomesList } of notFixed(
+            `<repeatForSequence name="r" from="1" length="3" step="$s" exclude="$e" valueName="v" indexName="i"FIXED><point>($v, $i)</point></repeatForSequence>`,
+        )) {
+            const log = await compare({
+                doenetML: `
+    <mathInput name="e" prefill="10" /><mathInput name="s" prefill="1" />
+    <graph name="g">${repeat}</graph>`,
+                becomesList,
+                act: async (core, resolvePathToNodeIdx) => {
+                    const log: number[][][] = [];
+                    await drag(core, resolvePathToNodeIdx, 1, 7, 8);
+                    log.push(await coordsDrawn(core, resolvePathToNodeIdx));
+                    for (const [name, latex] of [
+                        ["e", "1"],
+                        ["e", "10"],
+                        ["s", "2"],
+                        ["s", "1"],
+                    ]) {
+                        await updateMathInputValue({
+                            latex,
+                            componentIdx: await resolvePathToNodeIdx(name),
+                            core,
+                        });
+                        log.push(await coordsDrawn(core, resolvePathToNodeIdx));
+                    }
+                    return log;
+                },
+            });
+            const written = [
+                [1, 1],
+                [7, 8],
+                [3, 3],
+            ];
+            expect(log, repeat).toEqual([
+                written,
+                [
+                    [2, 1],
+                    [3, 8],
+                ],
+                written,
+                [
+                    [1, 1],
+                    [3, 8],
+                    [5, 3],
+                ],
+                written,
+            ]);
+        }
+    });
+
+    it("a math or letters repeat's value takes a value written to it with fixed=false", async () => {
+        const cases = [
+            {
+                repeat: `<repeatForSequence name="r" type="math" from="x" step="y" length="3" valueName="v"FIXED><math>$v</math></repeatForSequence>`,
+                input: `<mathInput name="in" bindValueTo="$r[2]" />`,
+                write: (core: any, componentIdx: number) =>
+                    updateMathInputValue({ latex: "z", componentIdx, core }),
+                expected: "x, z, x + 2 y",
+            },
+            {
+                repeat: `<repeatForSequence name="r" type="letters" from="a" to="c" valueName="v"FIXED><text>$v</text></repeatForSequence>`,
+                input: `<textInput name="in" bindValueTo="$r[2]" />`,
+                write: (core: any, componentIdx: number) =>
+                    updateTextInputValue({ text: "zz", componentIdx, core }),
+                expected: "a, zz, c",
+            },
+        ];
+        for (const { repeat: template, input, write, expected } of cases) {
+            for (const { repeat } of notFixed(template)) {
+                const doenetML = `<p name="p">${repeat}</p>${input}`;
+                const text = await compare({
+                    doenetML,
+                    act: async (core, resolvePathToNodeIdx) => {
+                        await write(core, await resolvePathToNodeIdx("in"));
+                        const stateVariables =
+                            await core.returnAllStateVariables(false, true);
+                        return stateVariables[await resolvePathToNodeIdx("p")]
+                            .stateValues.text;
+                    },
+                });
+                expect(text, doenetML).eq(expected);
+            }
         }
     });
 
