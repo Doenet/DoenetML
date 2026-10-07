@@ -541,6 +541,24 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             ]);
         });
 
+        it("an anchor written with an exponent keeps its point", async () => {
+            // only plain numbers with no exponent become a literal; the point
+            // reads `1e3` as the product of `1` and `e3`, not as `1000`
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<graph><math name="m" anchor="(1e3,2)">x</math></graph>`,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                    .anchor.tree,
+            ).eqls(["vector", "e3", 2]);
+            // the point and the mathList of its coordinates
+            expect(censusOfCore(core).attributeComponents).eq(2);
+        });
+
         it("a copy of a group holding a prop reference shows the settings its own source has", async () => {
             // The prop reference's display settings come from its source. A
             // linked copy of the group shows the original's; an unlinked copy
