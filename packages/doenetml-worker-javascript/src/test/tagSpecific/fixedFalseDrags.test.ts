@@ -503,6 +503,68 @@ describe("Dragging points at values that are not fixed @group3", async () => {
         }
     });
 
+    it("a template's own fixed does not reach the repeat's value", async () => {
+        // A template with `fixed="false"` that reads the value keeps the
+        // composite, whose iterations' values were fixed by the repeat
+        expect(
+            await dragResult(
+                `<graph name="g"><repeatForSequence name="r" from="1" to="3" valueName="v"><point fixed="false">($v, 1)</point></repeatForSequence></graph>`,
+                1,
+                false,
+            ),
+        ).toEqual({
+            before: [
+                [1, 1],
+                [2, 1],
+                [3, 1],
+            ],
+            after: [
+                [1, 1],
+                [2, 8],
+                [3, 1],
+            ],
+        });
+        expect(
+            await compare({
+                doenetML: `
+    <p name="p"><repeatForSequence name="r" from="1" to="3" valueName="v"><math fixed="false">$v+1</math></repeatForSequence></p>
+    <mathInput name="mi" bindValueTo="$r[2]" />`,
+                becomesList: false,
+                act: async (core, resolvePathToNodeIdx) => {
+                    await updateMathInputValue({
+                        latex: "8",
+                        componentIdx: await resolvePathToNodeIdx("mi"),
+                        core,
+                    });
+                    const stateVariables = await core.returnAllStateVariables(
+                        false,
+                        true,
+                    );
+                    return stateVariables[await resolvePathToNodeIdx("p")]
+                        .stateValues.text;
+                },
+            }),
+        ).eq("1 + 1, 2 + 1, 3 + 1");
+
+        // one with `fixed="true"` is a list, and takes no drag
+        expect(
+            await dragResult(
+                `<graph name="g"><group fixed="false"><repeatForSequence name="r" from="1" to="3" valueName="v"><point fixed="true">($v, 1)</point></repeatForSequence></group></graph>`,
+            ),
+        ).toEqual({
+            before: [
+                [1, 1],
+                [2, 1],
+                [3, 1],
+            ],
+            after: [
+                [1, 1],
+                [2, 1],
+                [3, 1],
+            ],
+        });
+    });
+
     it("a sampler's or sequence's value takes a drag with fixed=false", async () => {
         const cases: { component: string; point: string }[] = [
             {
