@@ -1,6 +1,7 @@
 import { SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX } from "./BaseComponent";
 import CompositeComponent from "./CompositeComponent";
 import ValueListComponent from "./ValueListComponent";
+import Group from "../Group";
 import {
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
@@ -4131,7 +4132,9 @@ export async function replacementFromProp({
  * themselves, so those still apply. Children written inside the extend of a
  * composite are dropped as well, except by a class that adds them after the
  * replacements it copies (`<group>`). A list takes no children, which is
- * already reported as invalid children.
+ * already reported as invalid children. A `<group>`, or a class built on it,
+ * makes its replacements again on its extend, so the attributes a group
+ * declares (`rendered`) apply there too.
  */
 function extendIgnoresAttributesAndChildren({
     replacementType,
@@ -4170,6 +4173,13 @@ function extendIgnoresAttributesAndChildren({
             (attrName) =>
                 replacementType === "collect" || attrName in declaredAttributes,
         ),
+        // A `<group>`, and a `<module>`, shadows by making its replacements
+        // again (`addExtraSerializedChildrenWhenShadowing`), so it reads the
+        // attributes a group declares, such as `rendered`, on its extend.
+        ...(replacementClass === Group ||
+        replacementClass.prototype instanceof Group
+            ? Object.keys(Group.createAttributesObject())
+            : []),
         // The `_copy`'s own attributes (`createComponentIdx`,
         // `copyInChildren`, …), which a class that accepts any attribute
         // (`<module>`, `<collect>`) is handed along with the author's.

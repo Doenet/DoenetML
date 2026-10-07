@@ -1262,6 +1262,37 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.warnings.length).eq(0);
     });
 
+    it("applies rendered on an extend of a group or module, without a warning", async () => {
+        // A `<group>`, and a `<module>`, makes its replacements again on its
+        // extend, so it reads `rendered` there.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<group name="g"><text>a</text></group>
+<group name="h" rendered="false"><text>b</text></group>
+<p name="p1"><group extend="$h" rendered="true"/></p>
+<p name="p2"><group extend="$h"/></p>
+<p name="p3"><group extend="$g" rendered="false"><text>x</text></group></p>
+<module name="n" rendered="false"><moduleAttributes><text name="a">q</text></moduleAttributes><text>c</text></module>
+<p name="p4"><module extend="$n" rendered="true"/></p>
+<p name="p5"><module extend="$n"/></p>
+            `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const texts: string[] = [];
+        for (const name of ["p1", "p2", "p3", "p4", "p5"]) {
+            texts.push(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            );
+        }
+        expect(texts).eqls(["b", "", "a", "c", ""]);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
+    });
+
     it("warns about a module parameter named as a number-display attribute on an extend", async () => {
         // A `<module>` does not declare `displayDigits`, so here it is a
         // parameter of the module, which its extend ignores as any other.
