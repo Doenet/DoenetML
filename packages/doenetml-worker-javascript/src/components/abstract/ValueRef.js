@@ -762,12 +762,15 @@ export default class ValueRef extends BaseComponent {
      * for it was. What a linked copy of it shadows is set below: the
      * referent's variable when the referent cannot move, this reference when
      * it can. The component a `_copy` made took the settings that travel
-     * with the referenced value (`fixed`, the display settings) as attribute
-     * components shadowing the referent's
-     * (`addAttributeComponentsShadowingStateVariables` in `Copy.js`), and so
-     * does this copy: attribute components shadowing the variables of the
-     * referent this reference reads them from (`companions`;
-     * `shadowsVariableOf`, `utils/copy.js`).
+     * with the referenced value (`fixed`, the display settings) from the
+     * referent (`addAttributeComponentsShadowingStateVariables` in
+     * `Copy.js`), and so does this copy, from the variables of the referent
+     * this reference reads them from (`companions`). A linked copy takes a
+     * single-value attribute as a reference to that variable
+     * (`variableRefAttribute.ts`) and any other as an attribute component
+     * shadowing it (`shadowsVariableOf`, `utils/copy.js`); an unlinked copy
+     * takes each as a component holding its value now, when the referent is
+     * among the components it is given.
      */
     async serialize(parameters = {}) {
         const serialized = await super.serialize(parameters);
