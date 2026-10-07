@@ -809,12 +809,15 @@ export async function copyStateFromUnlinkedSource({
     }
 }
 
+// A copy can have more children than its source: children written inside
+// `<repeat copy="$r">` follow the copied template and have no source.
 function copyStateFromUnlinkedSourceSub(replacements, sources) {
     for (let [i, repl] of replacements.entries()) {
         let src = sources[i];
 
         if (
             typeof repl === "object" &&
+            typeof src === "object" &&
             repl.componentType === src.componentType
         ) {
             repl.state = src.state;
