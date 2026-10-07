@@ -92,9 +92,15 @@ export function variableRefVariableName(
  * The attribute an unlinked copy (`copyAll`) takes in place of `attribute`:
  * an attribute component of the attribute's type holding the referenced
  * variable's value as it is now, as the attribute component the reference
- * replaced was copied. `undefined` when the value cannot be read here, as when
- * the serializer was given no components to read it from; the copy then
- * shows the attribute's default, as for an attribute it does not have.
+ * replaced was copied. `undefined` when the value cannot be read here, and the
+ * copy then has no such attribute. That happens in two cases. The serializer
+ * was given no components (Repeat's `copyStateFromUnlinkedSource`, which
+ * copies state only between attribute components both sides have). Or the
+ * variable is an entry of an array that nothing has read yet, so it does not
+ * exist yet (`entryDisplayDigits2` of a `<collect>` or `<sort>`). A reference
+ * to an array entry is made for a copy of a list entry, which `Copy` makes a
+ * shadow of the list, so its essential state (`copyEssentialStateIfShadow`)
+ * carries the value it showed.
  */
 export async function variableRefSnapshot({
     attribute,
