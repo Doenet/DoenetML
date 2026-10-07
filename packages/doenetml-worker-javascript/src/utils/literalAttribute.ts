@@ -556,6 +556,13 @@ function referenceAttributeComponent(
             ...reference.doenetAttributes,
             isAttributeChildFor:
                 component.doenetAttributes?.isAttributeChildFor,
+            // where the attribute is written (`condition="$c"`), which a
+            // diagnostic about the attribute points to
+            // (`AttributeComponentDependency`); a diagnostic about the
+            // reference points to the reference (`$c`), its `position`
+            ...(component.position
+                ? { attributePosition: component.position }
+                : {}),
         },
         position: reference.position ?? component.position,
     };

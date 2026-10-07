@@ -527,6 +527,24 @@ export class AttributeComponentDependency extends Dependency {
             return this.literalResult(literal, result);
         }
 
+        // a reference that is the attribute component (`condition="$c"`,
+        // `referenceAttributeComponent`) is placed where the attribute is
+        // written, as the attribute component holding it was
+        const attributePosition =
+            result.value?.position &&
+            this.dependencyHandler._components[
+                this.downstreamComponentIndices[0]
+            ]?.doenetAttributes?.attributePosition;
+        if (attributePosition) {
+            result.value = {
+                ...result.value,
+                position:
+                    this.dependencyHandler.frozenPositionCopy(
+                        attributePosition,
+                    ),
+            };
+        }
+
         // if (!this.doNotProxy) {
         //   result.value = new Proxy(result.value, readOnlyProxyHandler)
         // }

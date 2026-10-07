@@ -978,6 +978,27 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             ).eq("_ref");
         });
 
+        it("a diagnostic about an attribute that is one reference points to the attribute, one about the reference to the reference", async () => {
+            const doenetML = `<boolean name="c">true</boolean><point name="P">(1,2)</point><mathInput name="i" prefill="x" />
+<conditionalContent condition="$c"><case condition="true">x</case></conditionalContent>
+<graph xMin="$P.xs[$i]" />`;
+            const { core } = await createTestCore({ doenetML });
+            const diagnostics = (core as any).core.diagnostics;
+            const spanOf = (message: string) => {
+                const { position } = diagnostics.find((d: any) =>
+                    d.message.includes(message),
+                );
+                return doenetML.slice(
+                    position.start.offset,
+                    position.end.offset,
+                );
+            };
+            expect(spanOf("Attribute `condition` is ignored")).eq(
+                `condition="$c"`,
+            );
+            expect(spanOf("Could not find prop xs[$i]")).eq("$P.xs[$i]");
+        });
+
         it("a copy of a repeat whose iterations reference a prop or a list entry shows what the source's iterations show", async () => {
             // Each iteration's `a` and `b` take their display settings, and
             // `b` its `hide`, from what they reference. The copies of the
