@@ -15,8 +15,9 @@ vi.mock("hyperformula");
  * Attributes as values (Doenet/DoenetML#2129). An attribute is a component
  * today: a literal `displayDigits="5"` is an `integer` component, and a copy
  * of a prop carries "shadow" attribute components for the display settings
- * and `fixed` of its source. Stream B replaces those components with values
- * held in the attribute slot.
+ * of its source and, for some props (a math's `value`, but not a point's
+ * `x`), its `fixed`. Stream B replaces those components with values held in
+ * the attribute slot.
  *
  * These tests pin what authors see before that change: which attribute wins
  * along a chain of references, what `fixed` a prop reference has, what an
@@ -217,7 +218,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             // the reference itself (`ValueRef.serialize`).
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <mathInput name="k" prefill="3" />
+    <mathInput name="k" prefill="4" />
     <point name="P" displayDigits="$k">(1.23456,2.34567)</point>
     <p name="xs">$P.xs</p>
     <number name="n" displayDigits="$k">1.23456</number>
@@ -237,7 +238,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 return [await text("xs"), await text("a"), await text("b")];
             }
 
-            expect(await texts()).eqls(["1.23, 2.35", "1.23", "1.23"]);
+            // four digits, not a number's default three, so that `b` keeping
+            // them is told apart from `b` having no display settings
+            expect(await texts()).eqls(["1.235, 2.346", "1.235", "1.235"]);
 
             // the list and the extend follow the digits; the unlinked copy
             // keeps the ones it showed
@@ -246,16 +249,16 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 componentIdx: await resolvePathToNodeIdx("k"),
                 core,
             });
-            expect(await texts()).eqls(["1.2, 2.3", "1.2", "1.23"]);
+            expect(await texts()).eqls(["1.2, 2.3", "1.2", "1.235"]);
         });
 
         it("a literal attribute is read as its type", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <number name="a" displayDigits="2+1">1.23456</number>
+    <number name="a" displayDigits="2+2">1.23456</number>
     <number name="b" displayDigits="bad">1.23456</number>
     <number name="c" displayDigits=" 4 ">1.23456</number>
-    <number name="d" displayDigits="2.6">1.23456</number>
+    <number name="d" displayDigits="4.6">1.23456</number>
     <math name="s" simplify>x+x</math>
     <math name="t" simplify="nonsense">x+x</math>
     <text name="h" hide="TRUE">hidden</text>
@@ -270,15 +273,17 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             const sv = async (name: string) =>
                 stateVariables[await resolvePathToNodeIdx(name)].stateValues;
 
+            // (values other than 3, a number's default displayDigits, so that
+            // an attribute that is ignored is told apart)
             // a number-valued attribute evaluates its text as math
-            expect((await sv("a")).displayDigits).eq(3);
-            expect((await sv("a")).text).eq("1.23");
+            expect((await sv("a")).displayDigits).eq(4);
+            expect((await sv("a")).text).eq("1.235");
             // text that is not a number gives NaN, and no rounding
             expect((await sv("b")).displayDigits).toBeNaN();
             expect((await sv("b")).text).eq("1.23456");
             expect((await sv("c")).displayDigits).eq(4);
             // an integer attribute rounds
-            expect((await sv("d")).displayDigits).eq(3);
+            expect((await sv("d")).displayDigits).eq(5);
             // an attribute with no value takes the attribute's value for true
             expect((await sv("s")).simplify).eq("full");
             expect((await sv("s")).text).eq("2 x");
