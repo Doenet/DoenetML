@@ -646,32 +646,6 @@ export function convertRepeatsToLists({
                 }
             }
             template.attributes = keptAttributes;
-            // A `<round>` shows 14 digits unless it says otherwise, so that
-            // what it rounds to is seen.
-            if (
-                template.componentType === "round" &&
-                !Object.keys(listAttributes).some((name) =>
-                    ["displaydigits", "displaydecimals"].includes(
-                        name.toLowerCase(),
-                    ),
-                )
-            ) {
-                listAttributes.displayDigits = {
-                    type: "component",
-                    name: "displayDigits",
-                    component: {
-                        type: "serialized",
-                        componentType: "integer",
-                        componentIdx: nComponents++,
-                        attributes: {},
-                        doenetAttributes: {
-                            isAttributeChildFor: "displayDigits",
-                        },
-                        children: [String(ROUND_DISPLAY_DIGITS)],
-                        state: {},
-                    },
-                } as SerializedAttribute;
-            }
             template.children = template.children.filter(
                 (child) => !constraints.includes(child as SerializedComponent),
             );
@@ -1349,9 +1323,6 @@ const BOOLEAN_NODE_ATTRIBUTES = new Set([
  * number (`utils/repeatTemplate.js`): what a `<round>` rounds to.
  */
 const INTEGER_NODE_ATTRIBUTES = new Set(["numdecimals", "numdigits"]);
-
-/** The digits a `<round>` shows unless it says otherwise. */
-const ROUND_DISPLAY_DIGITS = 14;
 
 /**
  * Whether `attribute` is written as an integer and nothing else (`2`), which

@@ -9,6 +9,9 @@ import {
 import { mathValueForDisplay } from "../utils/valueFunctions/math";
 import { templateCanBeModified } from "../utils/repeatTemplate";
 
+/** The digits a `<round>` shows unless it says otherwise. */
+const ROUND_DISPLAY_DIGITS = 14;
+
 /**
  * A `<repeat>` or `<repeatForSequence>` whose template is one value, made a
  * list component by the pass in `utils/dast/repeatLists.ts`, which decides
@@ -155,6 +158,56 @@ export default class RepeatValueList extends ValueListComponent {
             entryType,
             settingsDependencies,
         });
+
+        // A `<round>` template shows 14 digits by default, as `<round>`
+        // does. It stays a default, so what reads the list
+        // (`<mathList>$r</mathList>`) shows its own. A reference to the whole
+        // list (`$r`), which holds no template, takes the default of the list
+        // it shadows.
+        const displayDigits = stateVariableDefinitions.displayDigits;
+        stateVariableDefinitions.displayDigits = {
+            ...displayDigits,
+            stateVariablesDeterminingDependencies: ["templateAnalysis"],
+            returnDependencies(args) {
+                const dependencies = displayDigits.returnDependencies(args);
+                const top = args.stateValues.templateAnalysis.nodes[0];
+                if (top === undefined) {
+                    dependencies.shadowSourceDisplayDigits = {
+                        dependencyType: "shadowSourceStateVariable",
+                        variableName: "displayDigits",
+                    };
+                } else if (top.type === "round") {
+                    dependencies.roundTemplate = {
+                        dependencyType: "value",
+                        value: true,
+                    };
+                }
+                return dependencies;
+            },
+            definition(args) {
+                const result = displayDigits.definition(args);
+                if (result.useEssentialOrDefaultValue?.displayDigits !== true) {
+                    return result;
+                }
+                const { dependencyValues, usedDefault } = args;
+                let defaultValue;
+                if (dependencyValues.roundTemplate) {
+                    defaultValue = ROUND_DISPLAY_DIGITS;
+                } else if (
+                    dependencyValues.shadowSourceDisplayDigits != null &&
+                    usedDefault.shadowSourceDisplayDigits
+                ) {
+                    defaultValue = dependencyValues.shadowSourceDisplayDigits;
+                } else {
+                    return result;
+                }
+                return {
+                    useEssentialOrDefaultValue: {
+                        displayDigits: { defaultValue },
+                    },
+                };
+            },
+        };
 
         if (entryType === "math") {
             // As a `<math>` shows its value: rounded, then simplified and

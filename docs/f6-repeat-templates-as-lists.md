@@ -347,7 +347,7 @@ Step 4 alone reaches the number and math fixtures (the unit-circle boolean's nes
   - The other operators (`<floor>`, `<sum>`, …) keep the composite. They are added one at a time, when evidence asks.
 - **The operators' functions are shared.** `utils/valueFunctions/mathOperators.js` holds the value and inverse of `<abs>` and `<round>`. `MathOperators.js` and the list both call them.
 - **An operator node** (`utils/repeatTemplate.js`) is a math node. Its operator applies to the value of its content before that value is normalized, as `MathBaseOperatorOneInput` applies it. A write goes through the operator's inverse to its content. Each node keeps its own attributes (`numDecimals`, `function`, …): the pass does not make them the list's.
-- **A `<round>` template** shows 14 digits unless it sets `displayDigits` or `displayDecimals`, as `<round>` does. The pass gives the list `displayDigits="14"` for this.
+- **A `<round>` template** shows 14 digits unless it sets `displayDigits` or `displayDecimals`, as `<round>` does. This is the default of the list's `displayDigits` (`RepeatValueList.js`), not a setting, so what reads the list (`<mathList>$r</mathList>`, `$r[1]` in a `<mathList>`) shows its own digits, as it did reading the `<round>`s. A reference to the whole list (`$r`), which holds no template, takes the default of the list it shadows.
 - **An `<evaluate>` node.**
   - Its inputs are its codes. One input whose value is a list (`1, 2`) is one input per item, as a `<mathList>` reads its only child.
   - Its function is a constant of the list: the `<function>` its `function` attribute made, moved out of the template.
@@ -371,7 +371,8 @@ Step 4 alone reaches the number and math fixtures (the unit-circle boolean's nes
   | Riemann sum of 8 terms `$$p($$ldeltat($i-1+$side))*$deltat`, and `<abs>$v</abs>` of the terms | 297 / 10580 / 4382 | 37 / 1919 / 749 |
   | 20 points `($v, $$f($v))` in a graph | 516 / 15768 / 6660 | 20 / 1298 / 516 |
 
-  Every repeat made a list resolves one more state variable, `evaluateSymbolically`, and 4 more dependencies, also when its template has no `<evaluate>`. So `repeatForSequence $i^2 x4` goes from 277 to 281 dependencies, and `repeatForSequence literal x4` from 256 to 260.
+  Every repeat made a list resolves one more state variable, `evaluateSymbolically`, and 4 more dependencies, also when its template has no `<evaluate>`. A list of values has one more, on `templateAnalysis`, for its `displayDigits`, which the table, measured before it, leaves out. So `repeatForSequence $i^2 x4` goes from 277 to 282 dependencies, and `repeatForSequence literal x4` from 256 to 261.
+- **`<collect componentType="abs">`** (or `"round"`, `"evaluate"`) of a section holding such a repeat collected each iteration's operator from the composite. The list has no such component, so that collect is empty, as for step 4's `<math>` in a `<number>`; `componentType="math"` collects the entries as before.
 
 ## Decisions to settle
 

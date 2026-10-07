@@ -853,6 +853,29 @@ describe("Repeats whose template is one value @group4", () => {
             });
         });
 
+        it("what reads a list of rounds shows its own digits, and a reference to it the round's", async () => {
+            const texts = await compare({
+                doenetML: `
+<numberList name="l">1 2 -3</numberList>
+<p name="p"><repeat name="r" for="$l" valueName="v"><round numDecimals="10">$v/7</round></repeat></p>
+<p name="p2">$r</p>
+<p name="p3"><mathList>$r</mathList></p>
+<p name="p4"><mathList extend="$r" /></p>
+<p name="p5"><mathList>$r[1] $r[2]</mathList></p>
+<p name="p6"><sort>$r</sort></p>
+`,
+                names: ["p", "p2", "p3", "p4", "p5", "p6"],
+            });
+            expect(texts).toEqual({
+                p: "0.1428571429, 0.2857142857, -0.4285714286",
+                p2: "0.1428571429, 0.2857142857, -0.4285714286",
+                p3: "0.143, 0.286, -0.429",
+                p4: "0.143, 0.286, -0.429",
+                p5: "0.143, 0.286",
+                p6: "-0.4285714286, 0.1428571429, 0.2857142857",
+            });
+        });
+
         it("a function evaluated symbolically or numerically, as the function and the evaluate say", async () => {
             const texts = await compare({
                 doenetML: `
