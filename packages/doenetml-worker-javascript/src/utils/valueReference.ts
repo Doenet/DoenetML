@@ -315,8 +315,10 @@ export function planListEntryAdapterReference({
  *
  * The adapter is the one `ChildMatcher` would choose for a component of the
  * target's type: the first, in the class's order, whose type the parent
- * takes. The plan is made only when that adapter's type is one of
- * `VALUE_COMPONENT_TYPES` and is the type of the adapter's variable
+ * takes. The plan is made only when that adapter's type is a value type
+ * (`isValueComponentType`: one of `VALUE_COMPONENT_TYPES` or a type that
+ * inherits from one, as `coords` does from `math`) and is the type of the
+ * adapter's variable
  * (`createComponentOfType`), and the variable is one value, as for the
  * re-pointing `planValueReference` does for `$n` in a `<math>`. A parent that
  * renders its children (`<p>$P</p>`) draws the referent, and is turned away.

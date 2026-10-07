@@ -1845,6 +1845,61 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(censusOfCore(core).copies).eq(0);
         });
 
+        it("a reference read through an adapter cannot write to a referent at a fixed location", async () => {
+            // The adapter component a copy made took its source's
+            // `fixLocation`; the reference reads it into `canBeModified`.
+            for (const [referent, latex, before, after] of [
+                [
+                    `<point name="X" $fl>(1,2)</point>`,
+                    "(7,8)",
+                    "(1, 2)",
+                    "(7, 8)",
+                ],
+                [
+                    `<line name="X" $fl>y=2x+1</line>`,
+                    "y=3x+5",
+                    "y = 2 x + 1",
+                    "y = 3 x + 5",
+                ],
+                [`<m name="X" $fl>x</m>`, "y", "x", "y"],
+            ]) {
+                for (const fixLocation of [true, false]) {
+                    const doenetML = `
+    <graph>${referent.replace("$fl", fixLocation ? "fixLocation" : "")}</graph>
+    <math name="h">$X</math>
+    <mathInput name="mi" bindValueTo="$h" />
+    `;
+                    const { core, resolvePathToNodeIdx } = await createTestCore(
+                        { doenetML },
+                    );
+                    expect(censusOfCore(core).copies, doenetML).eq(0);
+                    const hIdx = await resolvePathToNodeIdx("h");
+                    let stateVariables = await core.returnAllStateVariables(
+                        false,
+                        true,
+                    );
+                    expect(
+                        stateVariables[hIdx].stateValues.canBeModified,
+                        doenetML,
+                    ).eq(!fixLocation);
+
+                    await updateMathInputValue({
+                        latex,
+                        componentIdx: await resolvePathToNodeIdx("mi"),
+                        core,
+                    });
+                    stateVariables = await core.returnAllStateVariables(
+                        false,
+                        true,
+                    );
+                    expect(
+                        stateVariables[hIdx].stateValues.value.toString(),
+                        doenetML,
+                    ).eq(fixLocation ? before : after);
+                }
+            }
+        });
+
         it("a list entry from a reference to a whole point is placed as the point", async () => {
             // A `<mathList>` in a graph places each entry as the component
             // it comes from. The copy of `P` was that component; the
