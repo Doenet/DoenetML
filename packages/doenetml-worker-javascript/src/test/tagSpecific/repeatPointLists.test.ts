@@ -401,6 +401,59 @@ describe("Repeats whose template is one point @group4", () => {
         ]);
     });
 
+    it("a value outside read by one coordinate reads the other", async () => {
+        // Each coordinate depends only on the values outside that it reads,
+        // so `c`, read by the y of each point, can read their x.
+        const result = await compare({
+            doenetML: `
+<number name="a">1</number>
+<graph name="g">
+  <repeatForSequence name="r" length="3" indexName="i"><point>($i + $a, $c)</point></repeatForSequence>
+</graph>
+<number name="c"><sum>$r.x</sum></number>
+<p name="pa">$a</p>
+<p name="pc">$c</p>
+`,
+            names: ["pa", "pc"],
+            graphs: ["g"],
+        });
+        expect(result.pc).toBe("9");
+        expect(result.g).toEqual([
+            [2, 9],
+            [3, 9],
+            [4, 9],
+        ]);
+    });
+
+    it("drags through a value outside in each coordinate", async () => {
+        // Each coordinate writes to the value it reads, though each depends
+        // on only that one.
+        const result = await compare({
+            doenetML: `
+<number name="a">1</number>
+<number name="b">5</number>
+<graph name="g">
+  <repeatForSequence name="r" length="3" indexName="i"><point>($i + $a, $b)</point></repeatForSequence>
+</graph>
+<p name="pa">$a</p>
+<p name="pb">$b</p>
+`,
+            names: ["pa", "pb"],
+            graphs: ["g"],
+            act: async (core, resolvePathToNodeIdx) => {
+                await dragPoint({
+                    core,
+                    resolvePathToNodeIdx,
+                    graph: "g",
+                    index: 1,
+                    x: 7,
+                    y: -3,
+                });
+            },
+        });
+        expect([result.pa, result.pb]).toEqual(["5", "-3"]);
+    });
+
     it("constraints that are not by coordinate, with the coordinates read", async () => {
         // A constraint that is not independent by coordinate constrains the
         // whole entry, and each coordinate array reads the constrained entry.

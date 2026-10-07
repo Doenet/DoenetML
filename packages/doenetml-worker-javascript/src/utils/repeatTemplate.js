@@ -59,9 +59,9 @@ const PARSE_SETTINGS = {
  *
  * A node is `{ type, simplify, expand, fixed, codes, entryCodes, ... }`,
  * where each code is `{ entry: e }`, `{ constant: c }` or `{ node: n }`, and
- * `entryCodes` are the entry codes the node reads, itself or through a nested
- * node. A math node also has
- * its `codePre`, `expressionWithCodes` and `numStrings`; a number node the
+ * `entryCodes` and `constantCodes` are the entry and constant codes the node
+ * reads, itself or through a nested node. A math node also has its
+ * `codePre`, `expressionWithCodes` and `numStrings`; a number node the
  * `string` it reads when its one child is text.
  */
 export function analyzeRepeatTemplate(template) {
@@ -144,27 +144,31 @@ export function analyzeRepeatTemplate(template) {
 
     addNode(template);
 
-    // The entry codes each node reads, itself or through a nested node, so
-    // that a value computed from one node alone (a point's coordinate)
-    // depends on those alone.
-    function entryCodesOf(ind) {
+    // The entry and constant codes each node reads, itself or through a
+    // nested node, so that a value computed from one node alone (a point's
+    // coordinate) depends on those alone.
+    function codesOf(ind) {
         const node = nodes[ind];
         if (node.entryCodes === undefined) {
             const entryCodes = new Set();
+            const constantCodes = new Set();
             for (const code of node.codes) {
                 if (code.entry !== undefined) {
                     entryCodes.add(code.entry);
+                } else if (code.constant !== undefined) {
+                    constantCodes.add(code.constant);
                 } else if (code.node !== undefined) {
-                    for (const e of entryCodesOf(code.node)) {
-                        entryCodes.add(e);
-                    }
+                    const nested = codesOf(code.node);
+                    nested.entryCodes.forEach((e) => entryCodes.add(e));
+                    nested.constantCodes.forEach((c) => constantCodes.add(c));
                 }
             }
             node.entryCodes = [...entryCodes];
+            node.constantCodes = [...constantCodes].sort((a, b) => a - b);
         }
-        return node.entryCodes;
+        return node;
     }
-    nodes.forEach((_, ind) => entryCodesOf(ind));
+    nodes.forEach((_, ind) => codesOf(ind));
 
     return { nodes, entryLists };
 }

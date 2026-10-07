@@ -256,6 +256,29 @@ Object.assign(RepeatPointList, REPEAT_LIST_STATICS);
  * coordinates, by writing the entry with only this coordinate specified
  * (`entryValuesDefinition`).
  */
+/**
+ * The constant codes coordinate `n` of the template reads, in order, the
+ * children of the list's `constants` it depends on.
+ */
+function constantCodesOf(templateAnalysis, n) {
+    const node = templateAnalysis.nodes[0]?.codes[n - 1]?.node;
+    return node === undefined ? [] : templateAnalysis.nodes[node].constantCodes;
+}
+
+/**
+ * `globalDependencyValues` of coordinate `n`, whose `constants` hold only
+ * the constants it reads, with each at its code, as the template reads them.
+ */
+function withConstantsByCode(globalDependencyValues, n) {
+    const constants = [];
+    constantCodesOf(globalDependencyValues.templateAnalysis, n).forEach(
+        (c, i) => {
+            constants[c] = globalDependencyValues.constants[i];
+        },
+    );
+    return { ...globalDependencyValues, constants };
+}
+
 function coordinateArrayDefinition({ n, arrayName }) {
     const name = `entryCoordinates${n}`;
     const variable = `x${n}`;
@@ -322,10 +345,13 @@ function coordinateArrayDefinition({ n, arrayName }) {
                     variableName: "templateAnalysis",
                 },
                 // What decides whether a write is taken is read only when
-                // one is (`readWritability`).
+                // one is (`readWritability`). Only the values the coordinate
+                // reads, so that one read only by another coordinate can read
+                // this one (`$Ps.x` in the template's `y`).
                 constants: {
                     dependencyType: "child",
                     childGroups: ["constants"],
+                    childIndices: constantCodesOf(templateAnalysis, n),
                     variableNames: ["value"],
                     variablesOptional: true,
                 },
@@ -395,7 +421,10 @@ function coordinateArrayDefinition({ n, arrayName }) {
                     const value = convertValueToMathExpression(
                         evaluateRepeatTemplate({
                             ...templateContext({
-                                globalDependencyValues,
+                                globalDependencyValues: withConstantsByCode(
+                                    globalDependencyValues,
+                                    n,
+                                ),
                                 dependencyValues,
                             }),
                             ind: coordinateNode,
@@ -446,8 +475,16 @@ function coordinateArrayDefinition({ n, arrayName }) {
                     });
                     continue;
                 }
+                const constantCodes = constantCodesOf(
+                    globalDependencyValues.templateAnalysis,
+                    n,
+                );
                 const written = writeThroughTemplate({
-                    globalDependencyValues,
+                    globalDependencyValues: withConstantsByCode(
+                        globalDependencyValues,
+                        n,
+                    ),
+                    constantChildIndex: (c) => constantCodes.indexOf(c),
                     dependencyValues,
                     writability: await readWritability(stateValues),
                     dependencyNames: dependencyNamesByKey[arrayKey],
@@ -473,10 +510,12 @@ function coordinateArrayDefinition({ n, arrayName }) {
  * (`dependencyNames`): the entry's copy of the template's text, and the
  * entries and values the node reads. `texts` holds the entry's texts written
  * earlier in the same write, and `writability` what decides whether a write
- * is taken (`readWritability`).
+ * is taken (`readWritability`). `constantChildIndex` gives the child of the
+ * `constants` dependency that holds a constant code.
  */
 function writeThroughTemplate({
     globalDependencyValues,
+    constantChildIndex = (c) => c,
     dependencyValues,
     dependencyNames,
     desiredValue,
@@ -513,7 +552,7 @@ function writeThroughTemplate({
                 : {
                       setDependency: "constants",
                       desiredValue,
-                      childIndex: code.constant,
+                      childIndex: constantChildIndex(code.constant),
                       variableIndex: 0,
                   },
         );
