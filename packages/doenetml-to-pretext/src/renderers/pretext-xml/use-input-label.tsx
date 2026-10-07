@@ -8,7 +8,7 @@ import { Element } from "../element";
  * Where the label comes from a `<label>` element (`labelElementId`, see
  * `detachLabelChildren`), that element is printed, so the label keeps its markup. Otherwise
  * the label string is printed. It may hold math, written between `\(` and `\)`, which
- * becomes `<m>`.
+ * becomes `<m>`; an unmatched `\(` or `\)` is printed as written.
  */
 export function labelContent(
     rawLabel: string | undefined,
@@ -21,12 +21,17 @@ export function labelContent(
     if (labelElementId != null) {
         return <Element id={labelElementId} annotation="original" />;
     }
-    // Every odd-indexed part lay between the delimiters, so it is math.
-    return label
-        .split(/\\\(|\\\)/)
-        .map((part, index) =>
-            index % 2 === 0 ? part : <m key={index}>{part}</m>,
-        );
+    // Only a `\(` closed by a later `\)` opens math; a delimiter without its partner is
+    // printed as written.
+    const parts: React.ReactNode[] = [];
+    let start = 0;
+    for (const match of label.matchAll(/\\\(([\s\S]*?)\\\)/g)) {
+        parts.push(label.slice(start, match.index));
+        parts.push(<m key={match.index}>{match[1]}</m>);
+        start = match.index + match[0].length;
+    }
+    parts.push(label.slice(start));
+    return parts;
 }
 
 /**

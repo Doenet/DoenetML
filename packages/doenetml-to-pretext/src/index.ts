@@ -15,7 +15,8 @@ import { prefixIds } from "./utils/pretext/prefix-ids";
 const defaultFlags = {
     showCorrectness: true,
     readOnly: false,
-    solutionDisplayMode: "button",
+    // Solutions are written out in full; the publisher's settings decide whether they print.
+    solutionDisplayMode: "displayed",
     showFeedback: true,
     showHints: true,
     allowLoadState: true,
