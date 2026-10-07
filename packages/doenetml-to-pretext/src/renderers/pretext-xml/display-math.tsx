@@ -140,7 +140,7 @@ function withoutComments(latex: string) {
     return result;
 }
 
-/** `latex` cut at each `\\` outside every group and environment. */
+/** `latex` cut at each `\\` outside every group, environment and comment. */
 function splitAtTopLevelRowBreaks(latex: string): string[] {
     const rows: string[] = [];
     let depth = 0;
@@ -158,6 +158,10 @@ function splitAtTopLevelRowBreaks(latex: string): string[] {
             }
             // Skip the escaped character, so that `\{` or `\\` is not read again.
             i++;
+        } else if (char === "%") {
+            // A comment runs to the end of its line, and nothing in it counts.
+            const end = latex.indexOf("\n", i);
+            i = end < 0 ? latex.length : end;
         } else if (char === "{") {
             depth++;
         } else if (char === "}") {

@@ -647,6 +647,30 @@ describe("Pretext export", async () => {
         );
     });
 
+    it("a comment in displayed math neither ends a row nor hides one", async () => {
+        // A `\\` in a comment ends no row.
+        source = `<md><mrow>x = 1 % a \\\\ b\n+ 0</mrow><mrow>y</mrow></md>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source))
+            .toMatchInlineSnapshot(`
+          "<md number="no"><mrow>x = 1 % a \\\\ b
+          + 0</mrow><mrow>y</mrow></md>"
+        `);
+
+        // A brace or an environment opened in a comment leaves the next row break as it is.
+        source = `<md><mrow>x = 1 % { \\begin{array}\n+ 0</mrow><mrow>y</mrow></md>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source))
+            .toMatchInlineSnapshot(`
+          "<md number="no"><mrow>x = 1 % { \\begin{array}
+          + 0</mrow><mrow>y</mrow></md>"
+        `);
+
+        // An equation whose only `\\` is in a comment is one line.
+        source = `<me>x = 1 % a \\\\ b\n+ 0</me>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).not.toContain(`gathered`);
+    });
+
     it("text written straight into a problem is given a paragraph", async () => {
         // PreTeXt drops text that is not in a paragraph. A display goes in with the text
         // around it, since PreTeXt writes an `<md>` inside a paragraph.
