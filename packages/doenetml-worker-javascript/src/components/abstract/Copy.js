@@ -1,5 +1,6 @@
 import { SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX } from "./BaseComponent";
 import CompositeComponent from "./CompositeComponent";
+import ValueListComponent from "./ValueListComponent";
 import {
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
@@ -15,6 +16,7 @@ import {
 } from "../../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../../utils/componentIndices";
 import { codedDiagnostic } from "../../utils/diagnostics";
+import { returnNumberDisplayAttributes } from "../../utils/numberDisplay";
 import { isListEntryArrayVariable } from "../../utils/listEntryReference";
 import { errorComponentState } from "../../utils/dast/errors";
 import {
@@ -45,6 +47,7 @@ export default class Copy extends CompositeComponent {
         delete attributes.disabled;
         delete attributes.modifyIndirectly;
         delete attributes.fixed;
+        delete attributes.fixLocation;
         delete attributes.styleNumber;
         delete attributes.isResponse;
         delete attributes.isPotentialResponse;
@@ -1660,6 +1663,17 @@ export default class Copy extends CompositeComponent {
                 delete repl.attributes.displayDecimals;
             }
             Object.assign(repl.attributes, attributesFromComposite);
+
+            if (link && copyInChildren) {
+                diagnostics.push(
+                    ...extendIgnoresAttributesAndChildren({
+                        replacementType: repl.componentType,
+                        attributeNames: Object.keys(attributesFromComposite),
+                        children: component.serializedChildren,
+                        componentInfoObjects,
+                    }),
+                );
+            }
         }
 
         // if have copy target, then add additional children from the composite itself
@@ -4090,6 +4104,87 @@ export async function replacementFromProp({
         diagnostics,
         nComponents,
     };
+}
+
+/**
+ * Warnings for what an `extend` of a composite or a list cannot apply
+ * (#2041). `copyInChildren` marks a `_copy` an author wrote as `extend=` or
+ * `copy=`, and a linked one is an `extend`.
+ *
+ * Such an extend is a shadow of what it extends: a composite copies the
+ * replacements of the composite it shadows (`expandShadowingComposite`), and a
+ * list reads the values of the list it shadows (`shadowVariable`). So an
+ * attribute that its own class declares, beyond what every composite or list
+ * has, is set on it and never read: `to` on `<sequence extend="$s" to="5"/>`,
+ * `for` on a `<repeat>`. `asList` is read by the parent, and the number-display
+ * attributes by the replacements themselves, so those still apply. Children
+ * written inside the extend of a composite are dropped as well, except by a
+ * class that adds them after the replacements it copies (`<group>`). A list
+ * takes no children, which is already reported as invalid children.
+ */
+function extendIgnoresAttributesAndChildren({
+    replacementType,
+    attributeNames,
+    children,
+    componentInfoObjects,
+}) {
+    const replacementClass =
+        componentInfoObjects.allComponentClasses[replacementType];
+    if (!replacementClass) {
+        return [];
+    }
+
+    const isComposite = componentInfoObjects.isCompositeComponent({
+        componentType: replacementType,
+    });
+    const isList = replacementClass.prototype instanceof ValueListComponent;
+    if (!isComposite && !isList) {
+        return [];
+    }
+
+    const sharedAttributes = new Set([
+        ...Object.keys(
+            (isComposite
+                ? CompositeComponent
+                : ValueListComponent
+            ).createAttributesObject(),
+        ),
+        ...Object.keys(returnNumberDisplayAttributes()),
+        "asList",
+    ]);
+
+    const diagnostics = [];
+
+    for (const attrName of attributeNames) {
+        if (!sharedAttributes.has(attrName)) {
+            diagnostics.push(
+                codedDiagnostic({
+                    type: "warning",
+                    code: "doenet-w0168",
+                    args: {
+                        attribute: attrName,
+                        componentType: replacementType,
+                    },
+                }),
+            );
+        }
+    }
+
+    if (
+        isComposite &&
+        !replacementClass.addExtraSerializedChildrenWhenShadowing &&
+        children.some((x) => typeof x !== "string" || x.trim() !== "")
+    ) {
+        diagnostics.push(
+            codedDiagnostic({
+                type: "warning",
+                code: "doenet-w0169",
+                args: { componentType: replacementType },
+            }),
+        );
+    }
+
+    return diagnostics;
 }
 
 export function addChildrenFromComposite({

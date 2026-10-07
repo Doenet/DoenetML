@@ -465,6 +465,8 @@ export type MessageKey =
     | "reference-no-referent"
     | "reference-multiple-referents"
     | "reference-index-not-a-number"
+    | "extend-attribute-ignored"
+    | "extend-children-ignored"
     | "children-invalid-attribute-format"
     | "children-invalid"
     | "attribute-value-invalid-using-default"
@@ -1102,6 +1104,8 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "reference-no-referent",
     "reference-multiple-referents",
     "reference-index-not-a-number",
+    "extend-attribute-ignored",
+    "extend-children-ignored",
     "children-invalid-attribute-format",
     "children-invalid",
     "attribute-value-invalid-using-default",
