@@ -937,6 +937,11 @@ export default class GraphicalValueList extends AuthoredValueList {
     async performOnEntryChild({ actionName, triggeringAction, args }) {
         const { listEntryIndex, actionId, sourceInformation = {} } = args;
         const skipRendererUpdate = args.skipRendererUpdate ?? false;
+        // An entry the list does not have (a `<callAction>` naming `$pl[5]`
+        // of two) has no `entryFixed` and fires nothing.
+        const firesEntryChain =
+            triggeringAction !== undefined &&
+            (await this.stateValues.entryFixed)[listEntryIndex] === false;
         const child = (await this.stateValues.entryChildren)[listEntryIndex];
         if (child) {
             const { listEntryIndex: _, ...childArgs } = args;
@@ -949,15 +954,12 @@ export default class GraphicalValueList extends AuthoredValueList {
                     ...(child.listEntryIndex === undefined
                         ? {}
                         : { listEntryIndex: child.listEntryIndex }),
+                    // the renderers are updated once, after the entry's chain
+                    ...(firesEntryChain ? { skipRendererUpdate: true } : {}),
                 },
             });
         }
-        // An entry the list does not have (a `<callAction>` naming `$pl[5]`
-        // of two) has no `entryFixed` and fires nothing.
-        if (
-            triggeringAction !== undefined &&
-            (await this.stateValues.entryFixed)[listEntryIndex] === false
-        ) {
+        if (firesEntryChain) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction,
                 componentIdx: this.componentIdx,
