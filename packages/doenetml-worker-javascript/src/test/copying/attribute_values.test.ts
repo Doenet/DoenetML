@@ -923,6 +923,61 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(await fixLocations(second)).eqls([false, true]);
         });
 
+        it("an attribute that is one reference follows its referent and writes to it", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <boolean name="b">false</boolean>
+    <number name="n">-3</number>
+    <p name="p" hide="$b">a</p>
+    <graph name="g" xMin="$n" />
+    <booleanInput name="bi" bindValueTo="$p.hide" />
+    <mathInput name="mi" bindValueTo="$g.xMin" />
+    `,
+            });
+            async function values() {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const sv = async (name: string) =>
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .stateValues;
+                return [
+                    (await sv("p")).hidden,
+                    (await sv("b")).value,
+                    (await sv("g")).xMin,
+                    (await sv("n")).value,
+                    (await sv("p")).text,
+                ];
+            }
+            expect(await values()).eqls([false, false, -3, -3, "a"]);
+
+            // written through the attribute, the value lands on the referent
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("bi"),
+                core,
+            });
+            await updateMathInputValue({
+                latex: "-7",
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+            expect(await values()).eqls([true, true, -7, -7, "a"]);
+
+            // the attribute's reference is held in place of a component of
+            // the attribute's type (B2)
+            const components = (core as any).core._components;
+            expect(
+                components[await resolvePathToNodeIdx("p")].attributes.hide
+                    .component.componentType,
+            ).eq("_ref");
+            expect(
+                components[await resolvePathToNodeIdx("g")].attributes.xMin
+                    .component.componentType,
+            ).eq("_ref");
+        });
+
         it("a copy of a repeat whose iterations reference a prop or a list entry shows what the source's iterations show", async () => {
             // Each iteration's `a` and `b` take their display settings, and
             // `b` its `hide`, from what they reference. The copies of the

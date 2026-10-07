@@ -376,10 +376,15 @@ export function convertLiteralAttributes(
                               attrDef: attributesObject[attrName],
                               sourceDoc: attribute.sourceDoc,
                           });
+                const reference =
+                    literal ||
+                    attributesObject[attrName]?.keepAttributeComponent
+                        ? undefined
+                        : referenceAttributeComponent(attribute.component);
                 attributes[attrName] = literal ?? {
                     ...attribute,
                     component: convertLiteralAttributes(
-                        [attribute.component],
+                        [reference ?? attribute.component],
                         componentInfoObjects,
                     )[0],
                 };
@@ -514,4 +519,44 @@ export function literalWrittenValue(attribute: LiteralAttribute, written: any) {
         );
     }
     return written;
+}
+
+/**
+ * For an attribute component of a type holding one value whose only content
+ * is one value reference (`displayDigits="$n"`: an `integer` holding a
+ * `_ref` presenting as an `integer`), that value reference, to be the
+ * attribute component in its place (Doenet/DoenetML#2129, step B2): it
+ * already presents as the attribute's type, and reads and writes the
+ * referent as the component holding it did. `undefined` otherwise.
+ */
+function referenceAttributeComponent(
+    component: SerializedComponent,
+): SerializedComponent | undefined {
+    const children = component.children ?? [];
+    const reference = children[0];
+    if (
+        !LITERAL_ATTRIBUTE_TYPES.has(component.componentType) ||
+        children.length !== 1 ||
+        typeof reference !== "object" ||
+        reference.componentType !== "_ref" ||
+        reference.doenetAttributes?.presentedComponentType !==
+            component.componentType ||
+        Object.keys(component.attributes ?? {}).length > 0 ||
+        component.extending ||
+        Object.keys(component.state ?? {}).length > 0 ||
+        Object.keys(component.doenetAttributes ?? {}).some(
+            (key) => key !== "isAttributeChildFor",
+        )
+    ) {
+        return undefined;
+    }
+    return {
+        ...reference,
+        doenetAttributes: {
+            ...reference.doenetAttributes,
+            isAttributeChildFor:
+                component.doenetAttributes?.isAttributeChildFor,
+        },
+        position: reference.position ?? component.position,
+    };
 }
