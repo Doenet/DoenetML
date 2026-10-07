@@ -436,11 +436,49 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             ).eq("(3, -5)");
         });
 
+        it("a copy of a group holding a prop reference shows the settings its own source has", async () => {
+            // The prop reference's display settings come from its source. A
+            // linked copy of the group shows the original's; an unlinked copy
+            // has a source of its own (its own `Q`), whose settings it follows.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="k" prefill="3" />
+    <group name="g">
+        <point name="Q" displayDigits="$k">(1.23456,2)</point>
+        <math extend="$Q.x" name="c" />
+    </group>
+    <group extend="$g" name="g2" />
+    <group copy="$g" name="g3" />
+    `,
+            });
+            async function texts() {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                return Promise.all(
+                    ["g.c", "g2.c", "g3.c"].map(
+                        async (name) =>
+                            stateVariables[await resolvePathToNodeIdx(name)]
+                                .stateValues.text,
+                    ),
+                );
+            }
+            expect(await texts()).eqls(["1.23", "1.23", "1.23"]);
+
+            await updateMathInputValue({
+                latex: "5",
+                componentIdx: await resolvePathToNodeIdx("k"),
+                core,
+            });
+            expect(await texts()).eqls(["1.2346", "1.2346", "1.2346"]);
+        });
+
         it("what each attribute construct creates", async () => {
             // Stream B's targets, by step: a literal `displayDigits` loses its
-            // `integer` (B1a), a literal `anchor` its point, mathList and two
-            // maths (B1b), and a prop reference its five shadow attribute
-            // components (B3).
+            // `integer` (B1a) and a literal `anchor` its point, mathList and
+            // two maths (B1b). A prop reference has lost its five shadow
+            // attribute components (B3).
             async function census(doenetML: string) {
                 const { core } = await createTestCore({ doenetML });
                 return censusOfCore(core);
@@ -496,15 +534,14 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 math: 3,
                 mathList: 1,
                 _copy: 1,
-                integer: 3,
-                number: 1,
-                boolean: 2,
+                integer: 1,
                 text: 1,
             });
-            // the point's literal displayDigits, its coordinates' mathList,
-            // the reference's literal simplify, and its five shadow
-            // attribute components
-            expect(propReference.attributeComponents).eq(8);
+            // the point's literal displayDigits, its coordinates' mathList
+            // and the reference's literal simplify; the five attributes the
+            // reference takes from P are references to P's variables, not
+            // components (B3)
+            expect(propReference.attributeComponents).eq(3);
         });
     },
 );

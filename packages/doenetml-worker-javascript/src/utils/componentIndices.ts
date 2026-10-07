@@ -225,6 +225,8 @@ function newComponentIndicesForAttributes(
                 attribute.primitive = { type: "number", value: newIdx };
                 idxMap[originalIdx] = newIdx;
             }
+        } else if (attribute.type === "variableRef") {
+            // refers to a component outside what is being copied
         } else {
             console.error("Found invalid attribute", attribute);
             throw Error("Found invalid attribute");
@@ -747,6 +749,8 @@ function newComponentIndicesForAttributesFromSerialized(
                 attribute.primitive.value = newIdx;
                 idxMap[originalIdx] = newIdx;
             }
+        } else if (attribute.type === "variableRef") {
+            // refers to a component outside what is being copied
         } else {
             console.error("Found invalid attribute", attribute);
             throw Error("Found invalid attribute");

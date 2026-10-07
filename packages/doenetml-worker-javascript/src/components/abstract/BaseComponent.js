@@ -3,6 +3,7 @@ import { SHARED_STATE_VARIABLE_DEFINITIONS } from "../../core/StateVariableDefin
 import { flattenDeep, mapDeep } from "@doenet/utils";
 import { deepClone, enumerateCombinations } from "@doenet/utils";
 import { gatherVariantComponents } from "../../utils/variants";
+import { variableRefSnapshot } from "../../utils/variableRefAttribute";
 import {
     addContextAttributeDefinitions,
     CONTEXT_ATTRIBUTES,
@@ -1533,6 +1534,23 @@ export default class BaseComponent {
                         ),
                         sourceDoc: attribute.component.sourceDoc,
                     };
+                }
+            } else if (attribute.type === "variableRef") {
+                // Like the attribute component it stands for: copied only
+                // when copying all, and then as the value it has now, since
+                // an unlinked copy keeps what it showed (Doenet/DoenetML#2127,
+                // decision 4)
+                if (
+                    parameters.copyAll &&
+                    !componentSourceAttributesToIgnore.includes(attrName)
+                ) {
+                    const snapshot = await variableRefSnapshot({
+                        attribute,
+                        components: parameters.components,
+                    });
+                    if (snapshot) {
+                        serializedComponent.attributes[attrName] = snapshot;
+                    }
                 }
             } else if (attribute.references) {
                 const references = [];

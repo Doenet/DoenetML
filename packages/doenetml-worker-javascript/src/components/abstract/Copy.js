@@ -19,6 +19,10 @@ import { createNewComponentIndices } from "../../utils/componentIndices";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import { returnNumberDisplayAttributes } from "../../utils/numberDisplay";
 import { isListEntryArrayVariable } from "../../utils/listEntryReference";
+import {
+    attributeShadowIsReference,
+    shadowAttributeReference,
+} from "../../utils/variableRefAttribute";
 import { errorComponentState } from "../../utils/dast/errors";
 import {
     CONTEXT_ATTRIBUTES,
@@ -2938,7 +2942,19 @@ export async function replacementFromProp({
                                 let attributeComponentType =
                                     attrObj[attrName]?.createComponentOfType;
 
-                                if (attributeComponentType) {
+                                if (
+                                    attributeShadowIsReference(
+                                        attributeComponentType,
+                                    )
+                                ) {
+                                    attributesForReplacement[attrName] =
+                                        shadowAttributeReference({
+                                            attrName,
+                                            attributeComponentType,
+                                            target,
+                                            stateVariableToShadow,
+                                        });
+                                } else if (attributeComponentType) {
                                     let shadowComponent = {
                                         type: "serialized",
                                         componentType: attributeComponentType,
@@ -3380,7 +3396,19 @@ export async function replacementFromProp({
                                         attrObj[attrName]
                                             ?.createComponentOfType;
 
-                                    if (attributeComponentType) {
+                                    if (
+                                        attributeShadowIsReference(
+                                            attributeComponentType,
+                                        )
+                                    ) {
+                                        attributesForReplacement[attrName] =
+                                            shadowAttributeReference({
+                                                attrName,
+                                                attributeComponentType,
+                                                target,
+                                                stateVariableToShadow,
+                                            });
+                                    } else if (attributeComponentType) {
                                         let shadowComponent = {
                                             type: "serialized",
                                             componentType:
@@ -3687,7 +3715,19 @@ export async function replacementFromProp({
                                         attrObj[attrName]
                                             ?.createComponentOfType;
 
-                                    if (attributeComponentType) {
+                                    if (
+                                        attributeShadowIsReference(
+                                            attributeComponentType,
+                                        )
+                                    ) {
+                                        attributesForReplacement[attrName] =
+                                            shadowAttributeReference({
+                                                attrName,
+                                                attributeComponentType,
+                                                target,
+                                                stateVariableToShadow,
+                                            });
+                                    } else if (attributeComponentType) {
                                         let shadowComponent = {
                                             type: "serialized",
                                             componentType:
@@ -4002,7 +4042,17 @@ export async function replacementFromProp({
                         let attributeComponentType =
                             attrObj[attrName]?.createComponentOfType;
 
-                        if (attributeComponentType) {
+                        if (
+                            attributeShadowIsReference(attributeComponentType)
+                        ) {
+                            attributesForReplacement[attrName] =
+                                shadowAttributeReference({
+                                    attrName,
+                                    attributeComponentType,
+                                    target,
+                                    stateVariableToShadow,
+                                });
+                        } else if (attributeComponentType) {
                             let shadowComponent = {
                                 type: "serialized",
                                 componentType: attributeComponentType,
@@ -4491,6 +4541,15 @@ async function arrayListReplacement({
             !attributeComponentType ||
             target.state[stateVariableToShadow]?.isArray
         ) {
+            continue;
+        }
+        if (attributeShadowIsReference(attributeComponentType)) {
+            attributes[attrName] = shadowAttributeReference({
+                attrName,
+                attributeComponentType,
+                target,
+                stateVariableToShadow,
+            });
             continue;
         }
         attributes[attrName] = {

@@ -8,6 +8,10 @@ import {
     contextAttributeDefinition,
 } from "../../utils/contextAttribute";
 import {
+    attributeShadowIsReference,
+    shadowAttributeReference,
+} from "../../utils/variableRefAttribute";
+import {
     parentDrawsValueReferences,
     variableOfCopiedReferentVariable,
     variableOfReferentVariable,
@@ -795,6 +799,21 @@ export default class ValueRef extends BaseComponent {
             const attributeComponentType =
                 attributesObject[name]?.createComponentOfType;
             if (!attributeComponentType || name in serialized.attributes) {
+                continue;
+            }
+            if (
+                !parameters.copyAll &&
+                attributeShadowIsReference(attributeComponentType)
+            ) {
+                // a reference to the referent's variable in the attribute
+                // slot, in place of a component shadowing it
+                // (`variableRefAttribute.ts`)
+                serialized.attributes[name] = shadowAttributeReference({
+                    attrName: name,
+                    attributeComponentType,
+                    target: { componentIdx: referentInfo.componentIdx },
+                    stateVariableToShadow: referentInfo.companions[name],
+                });
                 continue;
             }
             const component = {

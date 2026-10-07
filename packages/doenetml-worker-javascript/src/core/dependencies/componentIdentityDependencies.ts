@@ -6,6 +6,22 @@
 
 import { Dependency } from "./Dependency";
 import { isReferenceShadow } from "../../utils/referenceShadow";
+import {
+    variableRefVariableName,
+    type VariableRefAttribute,
+} from "../../utils/variableRefAttribute";
+
+/**
+ * Whether `attribute` was taken from a copy's source rather than written on
+ * the component: a shadowing attribute component, or a reference to the
+ * source's variable (`variableRefAttribute.ts`).
+ */
+function isShadowAttribute(attribute: any) {
+    return Boolean(
+        attribute?.component?.shadows ||
+        (attribute?.type === "variableRef" && attribute.isShadow),
+    );
+}
 
 export class ComponentIdentityDependency extends Dependency {
     static dependencyType = "componentIdentity";
@@ -180,12 +196,15 @@ export class AttributeComponentDependency extends Dependency {
             };
         }
 
+        this.variableRef = undefined;
+
         let attribute = parent.attributes[this.attributeName];
 
-        if (attribute?.component) {
-            // have an attribute that is a component
+        if (attribute?.component || attribute?.type === "variableRef") {
+            // have an attribute that is a component, or a reference to a
+            // variable of one
 
-            if (attribute.component.shadows) {
+            if (isShadowAttribute(attribute)) {
                 if (this.dontRecurseToShadows) {
                     // The current attribute is a shadow
                     // so we don't use the current attribute
@@ -200,8 +219,9 @@ export class AttributeComponentDependency extends Dependency {
                             this.dontRecurseToShadowsIfHaveAttribute
                         ];
                     if (
-                        otherAttribute?.component &&
-                        !otherAttribute.component.shadows
+                        (otherAttribute?.component ||
+                            otherAttribute?.type === "variableRef") &&
+                        !isShadowAttribute(otherAttribute)
                     ) {
                         // The current attribute is a shadow
                         // but the dontRecurseToShadows attribute is not,
@@ -214,11 +234,7 @@ export class AttributeComponentDependency extends Dependency {
                     }
                 }
             }
-            return {
-                success: true,
-                downstreamComponentIndices: [attribute.component.componentIdx],
-                downstreamComponentTypes: [attribute.component.componentType],
-            };
+            return this.attributeDownstream(attribute);
         }
 
         // if don't have an attribute component,
@@ -296,16 +312,11 @@ export class AttributeComponentDependency extends Dependency {
                     comp = namedComponent;
                     visited.add(comp.componentIdx);
                     attribute = comp.attributes[this.attributeName];
-                    if (attribute?.component) {
-                        return {
-                            success: true,
-                            downstreamComponentIndices: [
-                                attribute.component.componentIdx,
-                            ],
-                            downstreamComponentTypes: [
-                                attribute.component.componentType,
-                            ],
-                        };
+                    if (
+                        attribute?.component ||
+                        attribute?.type === "variableRef"
+                    ) {
+                        return this.attributeDownstream(attribute);
                     }
                     continue;
                 }
@@ -313,16 +324,11 @@ export class AttributeComponentDependency extends Dependency {
                     (replacement: any) => typeof replacement === "object",
                 );
                 const copiedAttribute = copied?.attributes[this.attributeName];
-                if (copiedAttribute?.component) {
-                    return {
-                        success: true,
-                        downstreamComponentIndices: [
-                            copiedAttribute.component.componentIdx,
-                        ],
-                        downstreamComponentTypes: [
-                            copiedAttribute.component.componentType,
-                        ],
-                    };
+                if (
+                    copiedAttribute?.component ||
+                    copiedAttribute?.type === "variableRef"
+                ) {
+                    return this.attributeDownstream(copiedAttribute);
                 }
                 break;
             }
@@ -346,16 +352,8 @@ export class AttributeComponentDependency extends Dependency {
                 }
                 visited.add(comp.componentIdx);
                 attribute = comp.attributes[this.attributeName];
-                if (attribute?.component) {
-                    return {
-                        success: true,
-                        downstreamComponentIndices: [
-                            attribute.component.componentIdx,
-                        ],
-                        downstreamComponentTypes: [
-                            attribute.component.componentType,
-                        ],
-                    };
+                if (attribute?.component || attribute?.type === "variableRef") {
+                    return this.attributeDownstream(attribute);
                 }
                 continue;
             }
@@ -409,16 +407,8 @@ export class AttributeComponentDependency extends Dependency {
 
             attribute = comp.attributes[this.attributeName];
 
-            if (attribute?.component) {
-                return {
-                    success: true,
-                    downstreamComponentIndices: [
-                        attribute.component.componentIdx,
-                    ],
-                    downstreamComponentTypes: [
-                        attribute.component.componentType,
-                    ],
-                };
+            if (attribute?.component || attribute?.type === "variableRef") {
+                return this.attributeDownstream(attribute);
             }
         }
 
@@ -427,6 +417,51 @@ export class AttributeComponentDependency extends Dependency {
             downstreamComponentIndices: [],
             downstreamComponentTypes: [],
         };
+    }
+
+    /**
+     * The downstream component of `attribute`: the attribute component, or,
+     * for a reference to a variable of another component, that component,
+     * whose variable `renameDownstreamVariables` then reads in place of the
+     * attribute's `value`.
+     */
+    attributeDownstream(attribute: any) {
+        if (attribute.component) {
+            return {
+                success: true,
+                downstreamComponentIndices: [attribute.component.componentIdx],
+                downstreamComponentTypes: [attribute.component.componentType],
+            };
+        }
+
+        const referenced =
+            this.dependencyHandler._components[attribute.componentIdx];
+        if (!referenced) {
+            return {
+                success: true,
+                downstreamComponentIndices: [],
+                downstreamComponentTypes: [],
+            };
+        }
+        this.variableRef = attribute;
+        return {
+            success: true,
+            downstreamComponentIndices: [referenced.componentIdx],
+            downstreamComponentTypes: [referenced.componentType],
+        };
+    }
+
+    renameDownstreamVariables(downComponent: any, originalVarNames: string[]) {
+        const variableRef: VariableRefAttribute | undefined = this.variableRef;
+        if (
+            !variableRef ||
+            variableRef.componentIdx !== downComponent.componentIdx
+        ) {
+            return undefined;
+        }
+        return originalVarNames.map((name) =>
+            variableRefVariableName(variableRef, name),
+        );
     }
 
     async getValue({ verbose, consumeChanges = true }: any = {}) {
