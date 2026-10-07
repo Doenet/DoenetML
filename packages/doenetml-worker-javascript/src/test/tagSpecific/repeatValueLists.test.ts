@@ -51,7 +51,8 @@ describe("Repeats whose template is one value @group4", () => {
     /**
      * Load `doenetML` with and without repeat lists; check that the repeat
      * `repeatName` is a list only with them (or never, for one that must
-     * stay a composite), and that the `text` of each of `names` is the same.
+     * stay a composite), that every other repeat of a document that becomes
+     * a list is one too, and that the `text` of each of `names` is the same.
      */
     async function compare({
         doenetML,
@@ -74,6 +75,16 @@ describe("Repeats whose template is one value @group4", () => {
             const { core, resolvePathToNodeIdx } = await load(doenetML, asList);
             const type = await typeOf(core, resolvePathToNodeIdx, repeatName);
             expect(type === "_repeatValueList").toBe(asList && becomesList);
+            if (asList && becomesList) {
+                const composites = Object.values(core.core!._components)
+                    .filter(
+                        (component: any) =>
+                            component?.componentType === "repeat" ||
+                            component?.componentType === "repeatForSequence",
+                    )
+                    .map((component: any) => component.componentIdx);
+                expect(composites).toEqual([]);
+            }
             if (afterLoad) {
                 await afterLoad(core, resolvePathToNodeIdx);
             }
