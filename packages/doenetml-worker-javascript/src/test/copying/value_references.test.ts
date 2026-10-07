@@ -1718,6 +1718,388 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             }
         });
 
+        it("a reference to a point where its parent reads its coords reads them, with no copy", async () => {
+            // A `<boolean>` takes no `<point>`, but takes the `coords` a
+            // point adapts to. The reference reads `P.coords` instead of
+            // copying the point for the boolean to adapt.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <graph><point name="P">(1,2)</point></graph>
+    <boolean name="b">$P = (1,2)</boolean>
+    `,
+            });
+            const PIdx = await resolvePathToNodeIdx("P");
+            const bIdx = await resolvePathToNodeIdx("b");
+
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(stateVariables[bIdx].stateValues.value).eq(true);
+
+            const census = censusOfCore(core);
+            expect(census.byType).eqls({
+                document: 1,
+                graph: 1,
+                _dynamicChildren: 1,
+                point: 1,
+                mathList: 1,
+                math: 2,
+                boolean: 1,
+                _ref: 1,
+            });
+            expect(census.copies).eq(0);
+
+            const [ref] = valueRefs(core);
+            expect(ref.presentedComponentType).eq("coords");
+            expect(ref.presentsAsAdapter).eq(true);
+            const referentInfo = await ref.stateValues.referentInfo;
+            expect(referentInfo.componentIdx).eq(PIdx);
+            expect(referentInfo.variableName).eq("coords");
+
+            await movePoint({ componentIdx: PIdx, x: 3, y: 4, core });
+            stateVariables = await core.returnAllStateVariables(false, true);
+            expect(stateVariables[bIdx].stateValues.value).eq(false);
+        });
+
+        it("a constrained point compared in each repeat iteration is not copied", async () => {
+            // The shape of the unit-circle labeling document: a point
+            // constrained to a set of points, compared to each of them. A
+            // copy of `P` brought copies of its constraint's targets along.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <graph>
+      <repeatForSequence name="pts" from="1" to="4" valueName="k">
+        <point>($k, 0)</point>
+      </repeatForSequence>
+      <point name="P"><constrainTo>$pts</constrainTo>(1.1, 0.2)</point>
+    </graph>
+    <repeatForSequence name="matches" from="1" to="4" valueName="j">
+      <boolean name="b">$P = <point>$pts[$j]</point></boolean>
+    </repeatForSequence>
+    `,
+            });
+            const PIdx = await resolvePathToNodeIdx("P");
+            const matches = async () => {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const result: boolean[] = [];
+                for (let j = 1; j <= 4; j++) {
+                    result.push(
+                        stateVariables[
+                            await resolvePathToNodeIdx(`matches[${j}].b`)
+                        ].stateValues.value,
+                    );
+                }
+                return result;
+            };
+
+            expect(await matches()).eqls([true, false, false, false]);
+
+            // Nothing shadows `P`, and its constraint is not copied. (The
+            // `$pts[$j]` in each iteration's `<point>` is still a copy: its
+            // referent, an entry of a repeat, is only known at run time.)
+            const shadowsOfP = (
+                Object.values(core.core._components) as any[]
+            ).filter((c) => c?.shadows?.componentIdx === PIdx);
+            expect(shadowsOfP).eqls([]);
+            expect(censusOfCore(core).byType.constrainTo).eq(1);
+            expect(
+                valueRefs(core).filter(
+                    (ref) => ref.presentedComponentType === "coords",
+                ),
+            ).toHaveLength(4);
+
+            await movePoint({ componentIdx: PIdx, x: 3.2, y: 1, core });
+            expect(await matches()).eqls([false, false, true, false]);
+        });
+
+        it("a write through a reference to a point's coords lands on the point", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <graph><point name="P">(1,2)</point></graph>
+    <math name="m">$P</math>
+    <mathInput name="mi" bindValueTo="$m" />
+    `,
+            });
+            const PIdx = await resolvePathToNodeIdx("P");
+            const mIdx = await resolvePathToNodeIdx("m");
+
+            await updateMathInputValue({
+                latex: "(7,8)",
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[PIdx].stateValues.xs.map((x: any) => x.tree),
+            ).eqls([7, 8]);
+            expect(stateVariables[mIdx].stateValues.value.toString()).eq(
+                "(7, 8)",
+            );
+            expect(censusOfCore(core).copies).eq(0);
+        });
+
+        it("a reference to a location cannot write to a referent at a fixed location", async () => {
+            // `fixLocation` keeps a location (`isLocation`: a point's
+            // coordinates, a line's equation) from changing, whether the
+            // reference reads it through an adapter (`$X`) or by name
+            // (`$X.x`). Any other value (an `<m>`'s, a `<text>`'s) takes the
+            // write: `fixLocation` keeps those where they are drawn.
+            for (const [referent, reference, latex, before, after, blocks] of [
+                [
+                    `<point name="X" $fl>(1,2)</point>`,
+                    "$X",
+                    "(7,8)",
+                    "(1, 2)",
+                    "(7, 8)",
+                    true,
+                ],
+                [
+                    `<point name="X" $fl>(1,2)</point>`,
+                    "$X.x",
+                    "7",
+                    "1",
+                    "7",
+                    true,
+                ],
+                [
+                    `<line name="X" $fl>y=2x+1</line>`,
+                    "$X",
+                    "y=3x+5",
+                    "y = 2 x + 1",
+                    "y = 3 x + 5",
+                    true,
+                ],
+                [`<m name="X" $fl>x</m>`, "$X", "y", "x", "y", false],
+                [`<text name="X" $fl>a</text>`, "$X", "b", "a", "b", false],
+            ] as const) {
+                for (const fixLocation of [true, false]) {
+                    const doenetML = `
+    <graph>${referent.replace("$fl", fixLocation ? "fixLocation" : "")}</graph>
+    <math name="h">${reference}</math>
+    <mathInput name="mi" bindValueTo="$h" />
+    `;
+                    const blocked = blocks && fixLocation;
+                    const { core, resolvePathToNodeIdx } = await createTestCore(
+                        { doenetML },
+                    );
+                    expect(censusOfCore(core).copies, doenetML).eq(0);
+                    const hIdx = await resolvePathToNodeIdx("h");
+                    let stateVariables = await core.returnAllStateVariables(
+                        false,
+                        true,
+                    );
+                    expect(
+                        stateVariables[hIdx].stateValues.canBeModified,
+                        doenetML,
+                    ).eq(!blocked);
+
+                    await updateMathInputValue({
+                        latex,
+                        componentIdx: await resolvePathToNodeIdx("mi"),
+                        core,
+                    });
+                    stateVariables = await core.returnAllStateVariables(
+                        false,
+                        true,
+                    );
+                    expect(
+                        stateVariables[hIdx].stateValues.value.toString(),
+                        doenetML,
+                    ).eq(blocked ? before : after);
+                }
+            }
+        });
+
+        it("a math holding a location at a fixed location solves for its other operands", async () => {
+            // The location is held at its referent's fixed location, so
+            // dragging the midpoint moves `Q` alone, however the midpoint
+            // reads it: a whole point, its coordinates or its coordinates
+            // one by one, a circle's center, or a line's point. (The last
+            // two read a `<coords>`, whose value is a location.)
+            for (const [fixedComponent, midpoint] of [
+                [`<point name="P" fixLocation>(3,4)</point>`, "($P+$Q)/2"],
+                [
+                    `<point name="P" fixLocation>(3,4)</point>`,
+                    "($P.coords+$Q.coords)/2",
+                ],
+                [
+                    `<point name="P" fixLocation>(3,4)</point>`,
+                    "(($P.x+$Q.x)/2, ($P.y+$Q.y)/2)",
+                ],
+                [
+                    `<circle name="c" center="(3,4)" fixLocation />`,
+                    "($c.center+$Q)/2",
+                ],
+                [
+                    `<line name="l" through="(3,4) (0,0)" fixLocation />`,
+                    "($l.points[1]+$Q)/2",
+                ],
+            ]) {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <graph>
+      ${fixedComponent}
+      <point name="Q">(5,6)</point>
+      <point name="M">${midpoint}</point>
+    </graph>
+    `,
+                });
+                await movePoint({
+                    componentIdx: await resolvePathToNodeIdx("M"),
+                    x: 5,
+                    y: 6,
+                    core,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const xs = async (name: string) =>
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.xs.map((x: any) => x.tree);
+                expect(await xs("Q"), midpoint).eqls([7, 8]);
+                expect(await xs("M"), midpoint).eqls([5, 6]);
+            }
+        });
+
+        it("a list entry from a reference to a whole point is placed as the point", async () => {
+            // A `<mathList>` in a graph places each entry as the component
+            // it comes from. The copy of `P` was that component; the
+            // reference reading `P.coords` places the entry as `P`, so a
+            // click on the entry fires what a click on `P` fires.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <graph>
+      <point name="P">(1,2)</point>
+      <mathList name="ml">$P 3</mathList>
+    </graph>
+    <number name="n">0</number>
+    <updateValue target="$n" newValue="$n+1" triggerWhenObjectsClicked="$P" />
+    `,
+            });
+            const mlIdx = await resolvePathToNodeIdx("ml");
+            expect(
+                valueRefs(core).filter(
+                    (ref) => ref.presentedComponentType === "coords",
+                ),
+            ).toHaveLength(1);
+
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(stateVariables[mlIdx].stateValues.entryGraphSources).eqls([
+                await resolvePathToNodeIdx("P"),
+                null,
+            ]);
+            expect(stateVariables[mlIdx].stateValues.entryDraggable).eqls([
+                true,
+                false,
+            ]);
+
+            await core.requestAction({
+                componentIdx: mlIdx,
+                actionName: "mathClicked",
+                args: { listEntryIndex: 0 },
+            });
+            stateVariables = await core.returnAllStateVariables(false, true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n")].stateValues
+                    .value,
+            ).eq(1);
+        });
+
+        it("a reference to a point stays a copy where the point itself is taken, drawn or recorded", async () => {
+            // A `<graph>` takes the point, a `<p>` draws it, and an answer
+            // with no input of its own records the point as its response.
+            const { core } = await createTestCore({
+                doenetML: `
+    <graph name="g1"><point name="P">(1,2)</point></graph>
+    <graph name="g2">$P</graph>
+    <p>$P</p>
+    <answer><award><when>$P = (1,2)</when></award></answer>
+    `,
+            });
+            const census = censusOfCore(core);
+            expect(census.copies).eq(3);
+            expect(census.byType._ref ?? 0).eq(0);
+        });
+
+        it("what each value-reference construct creates", async () => {
+            // Exact counts for the constructs the plan in
+            // Doenet/DoenetML#2128 measured. Every one makes no `_copy` and
+            // no shadow; a reference is one `_ref`. (A repeat's `$i^2`
+            // template is a list since Doenet/DoenetML#2194, and makes no
+            // reference at all.) The census snapshot
+            // (`perf/census.test.ts`) holds the same documents with their
+            // state variables and dependencies.
+            const cases: [string, Record<string, number>][] = [
+                [
+                    `<number name="n">5</number><math displayDigits="$n">3.123456x</math>`,
+                    { document: 1, number: 1, math: 1, integer: 1, _ref: 1 },
+                ],
+                [
+                    `<number name="n">5</number>$n`,
+                    { document: 1, number: 1, _ref: 1 },
+                ],
+                [
+                    `<number name="n">5</number><number>$n+1</number>`,
+                    { document: 1, number: 2, math: 1, _ref: 1 },
+                ],
+                [
+                    `<mathInput name="mi">5</mathInput><number name="n">2$mi</number>`,
+                    {
+                        document: 1,
+                        mathInput: 1,
+                        number: 1,
+                        math: 2,
+                        _ref: 1,
+                    },
+                ],
+                [
+                    `<numberList name="l">1 2 3 4</numberList><number>$l[1]</number>`,
+                    { document: 1, numberList: 1, number: 1, _ref: 1 },
+                ],
+                [
+                    `<repeatForSequence from="1" to="4" valueName="i"><number>$i^2</number></repeatForSequence>`,
+                    {
+                        document: 1,
+                        _repeatValues: 1,
+                        _repeatValueList: 1,
+                        _componentWithSelectableType: 2,
+                        number: 2,
+                    },
+                ],
+                [
+                    `<graph><point name="P">(1,2)</point></graph><boolean>$P = (1,2)</boolean>`,
+                    {
+                        document: 1,
+                        graph: 1,
+                        _dynamicChildren: 1,
+                        point: 1,
+                        mathList: 1,
+                        math: 2,
+                        boolean: 1,
+                        _ref: 1,
+                    },
+                ],
+            ];
+            for (const [doenetML, byType] of cases) {
+                const { core } = await createTestCore({ doenetML });
+                const census = censusOfCore(core);
+                expect(census.byType, doenetML).eqls(byType);
+                expect(census.shadows, doenetML).eq(0);
+            }
+        });
+
         describe("references with nothing to read", () => {
             // An index past the end of a list, or a `<choiceInput>`'s
             // `selectedIndex` before a choice, leaves a reference nothing to

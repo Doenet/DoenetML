@@ -1487,6 +1487,89 @@ describe("RepeatForSequence tag tests @group3", async () => {
         await check_items(2);
     });
 
+    it("children written inside a copy of a repeatForSequence are added to each iteration", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <repeatForSequence from="1" to="2" valueName="v" name="r"><number>$v</number></repeatForSequence>
+    <repeatForSequence from="1" to="2" name="rNoValueName"><number>7</number></repeatForSequence>
+    <p name="p1"><repeatForSequence copy="$r" name="r1"><text>x</text></repeatForSequence></p>
+    <p name="p2"><repeatForSequence copy="$rNoValueName"><text>x</text></repeatForSequence></p>
+    <p name="p3"><repeatForSequence copy="$r" to="3"><text>x</text></repeatForSequence></p>
+    <p name="p4"><repeatForSequence copy="$r1"><text>y</text></repeatForSequence></p>
+    <p name="p5"><repeatForSequence copy="$r" /></p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("1x, 2x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("7x, 7x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p3")].stateValues.text,
+        ).eq("1x, 2x, 3x");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p4")].stateValues.text,
+        ).eq("1xy, 2xy");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p5")].stateValues.text,
+        ).eq("1, 2");
+    });
+
+    it("a copy of a repeatForSequence with added children starts from the source's state", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="n" prefill="0" />
+    <graph description="source">
+        <repeatForSequence from="1" to="2" name="r"><point name="P">(1,1)</point></repeatForSequence>
+    </graph>
+    <repeatForSequence length="$n" name="outer">
+        <graph description="copy">
+            <repeatForSequence copy="$r" name="r2"><point name="Q">(5,5)</point></repeatForSequence>
+        </graph>
+    </repeatForSequence>
+    `,
+        });
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("r[1].P"),
+            x: 3,
+            y: 4,
+            core,
+        });
+        // The copy is made only now, after the point moved.
+        await updateMathInputValue({
+            latex: "1",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        function coords(name: number) {
+            return stateVariables[name].stateValues.xs.map(
+                (x: { tree: number }) => x.tree,
+            );
+        }
+
+        expect(coords(await resolvePathToNodeIdx("r[1].P"))).eqls([3, 4]);
+        expect(coords(await resolvePathToNodeIdx("outer[1].r2[1].P"))).eqls([
+            3, 4,
+        ]);
+        expect(coords(await resolvePathToNodeIdx("outer[1].r2[2].P"))).eqls([
+            1, 1,
+        ]);
+        expect(coords(await resolvePathToNodeIdx("outer[1].r2[1].Q"))).eqls([
+            5, 5,
+        ]);
+        expect(coords(await resolvePathToNodeIdx("outer[1].r2[2].Q"))).eqls([
+            5, 5,
+        ]);
+    });
+
     it("repeatForSequence remaps extend indices of all attributes", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

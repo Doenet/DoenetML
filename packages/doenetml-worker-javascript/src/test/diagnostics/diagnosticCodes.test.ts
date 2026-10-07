@@ -373,7 +373,7 @@ describe("coded diagnostics reach the record @group4", () => {
         const { core } = await createTestCore({
             doenetML: `
 <point name="a">(2,3)
-  <label><answer>$a</answer></label>
+  <label><section>$a</section></label>
 </point>
 `,
         });

@@ -1130,10 +1130,10 @@ export class EssentialValueWriter {
                             return;
                         }
 
-                        // if any of the shadow sources of a locatoin are fixLocation, reject this change
+                        // if any of the shadow sources of a location are fixLocation, reject this change
                         if (
                             !instruction.overrideFixed &&
-                            !stateVarObj.isLocation &&
+                            stateVarObj.isLocation &&
                             (await baseComponent.stateValues.fixLocation)
                         ) {
                             reportInternalError(

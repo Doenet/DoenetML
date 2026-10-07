@@ -323,10 +323,8 @@ export const PRETEXT_TEXT_MODE_COMPONENTS: RendererObject = {
     div: PassThroughWithoutTagConverter,
     cascade: PassThroughWithoutTagConverter,
 
-    // XXX: Currently we have no access to the children of <solution>. Update this to a passthrough when we do.
-    solution: _DEBUG_PassThroughWithLoggingConverter,
-    // XXX: <givenAnswer> should be renamed to <answer> in PreTeXt, but we currently don't have access to the children. Update this when we do.
-    givenAnswer: _DEBUG_PassThroughWithLoggingConverter,
+    // A given answer is what PreTeXt calls an `<answer>`.
+    givenAnswer: passThroughWithRenamedTag("answer"),
 
     // Provide a renderer for unrecognized elements. This allows us to support
     // pretext tags we don't currently know about.

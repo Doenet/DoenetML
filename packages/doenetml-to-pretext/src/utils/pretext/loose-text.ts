@@ -1,6 +1,6 @@
 /**
- * Text an author writes straight into a problem or a section, rather than inside a
- * paragraph, is shown on screen as written. PreTeXt holds text
+ * Text an author writes straight into a problem, a section or a solution, rather than
+ * inside a paragraph, is shown on screen as written. PreTeXt holds text
  * only in a paragraph (or a title, a list item and the like), and drops it where a block
  * is expected, so such a run of text is given a paragraph of its own.
  *
@@ -37,6 +37,14 @@ const HOLDS_BLOCKS = new Set([
     "aside",
     "note",
     "proof",
+    // The parts of a statement, and the openings and closings of a division.
+    "statement",
+    "solution",
+    "givenAnswer",
+    "hint",
+    "feedback",
+    "introduction",
+    "conclusion",
 ]);
 
 /** Displayed mathematics. */

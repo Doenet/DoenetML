@@ -403,13 +403,14 @@ export default class ValueRef extends BaseComponent {
 
         // The referent and the variable read on it: `{componentIdx,
         // componentType, variableName, referencedVariable,
-        // referencedPrimaryValue, companions}`, or `null` while there is
-        // nothing to read. The variable read is the adapter's when the
-        // reference presents as an adapter's type; `referencedVariable` is
-        // the one the author's reference resolved to, whose companions
-        // travel with it. Worked out by a `referent` dependency on the
-        // component the reference resolved to, or fixed by the copy that
-        // made the reference (`fixedReferent`).
+        // referencedPrimaryValue, referencedWholeComponent, isLocation,
+        // companions}`, or
+        // `null` while there is nothing to read. The variable read is the
+        // adapter's when the reference presents as an adapter's type;
+        // `referencedVariable` is the one the author's reference resolved
+        // to, whose companions travel with it. Worked out by a `referent`
+        // dependency on the component the reference resolved to, or fixed
+        // by the copy that made the reference (`fixedReferent`).
         //
         // Shadowed when a copy of the component holding this reference
         // shadows it, so that the copy's reference reads the same referent.
@@ -433,8 +434,14 @@ export default class ValueRef extends BaseComponent {
                 // read the entry's property that an adapter of the entries'
                 // type reads (`$l[$i]` in a `<math>` reads `$l[$i].math`,
                 // `planListEntryAdapterReference`).
-                const adapterProperty =
-                    this.svComponent.doenetAttributes.listEntryAdapterProperty;
+                // A reference to the whole of a component with no implicit
+                // prop, planned to read the variable of the referent's
+                // adapter that its parent takes (`$P` in a `<boolean>` reads
+                // `P.coords`, `planReferentAdapterReference`).
+                const { doenetAttributes } = this.svComponent;
+                const adapterProperty = doenetAttributes.readsReferentAdapter
+                    ? doenetAttributes.adapterVariable
+                    : doenetAttributes.listEntryAdapterProperty;
                 return {
                     referent: {
                         dependencyType: "referent",
@@ -486,6 +493,15 @@ export default class ValueRef extends BaseComponent {
                                 adapterVariable ?? referent.variableName,
                             referencedVariable: referent.variableName,
                             referencedPrimaryValue: referent.isPrimaryValue,
+                            // a reference to the whole referent, read
+                            // through its adapter (`$P` in a `<mathList>`),
+                            // which a list places its entry as
+                            // (`graphSourceOf`), as it placed the copy
+                            ...(this.svComponent.doenetAttributes
+                                .readsReferentAdapter
+                                ? { referencedWholeComponent: true }
+                                : {}),
+                            isLocation: referent.isLocation,
                             companions: referent.companions,
                             listEntryPosition: referent.listEntryPosition,
                         };
@@ -674,11 +690,29 @@ export default class ValueRef extends BaseComponent {
                               variableName: "modifyIndirectly",
                               variablesOptional: true,
                           },
+                          // A location (`isLocation`: a point's `coords`
+                          // or `x`) stays put under its referent's
+                          // `fixLocation`, so a math holding it solves for
+                          // its other operands: `$P` in
+                          // `<point>($P+$Q)/2</point>` with `P` at a fixed
+                          // location leaves the drag to `Q`. Any other value
+                          // (a text's, a number's) takes the write.
+                          ...(referentInfo.isLocation
+                              ? {
+                                    targetFixLocation: {
+                                        dependencyType: "stateVariable",
+                                        componentIdx: referentIdx,
+                                        variableName: "fixLocation",
+                                        variablesOptional: true,
+                                    },
+                                }
+                              : {}),
                       },
             fallback: (dependencyValues) =>
                 ("entriesCanBeModified" in dependencyValues
                     ? dependencyValues.entriesCanBeModified !== false
                     : !dependencyValues.targetFixed) &&
+                !dependencyValues.targetFixLocation &&
                 dependencyValues.modifyIndirectly !== false,
         });
 
@@ -1044,6 +1078,7 @@ const VALUE_REFERENCE_DOENET_ATTRIBUTES = [
     "fixedReferent",
     "copiesReferent",
     "listEntryAdapterProperty",
+    "readsReferentAdapter",
 ];
 
 /** The renderer variables of a reference that is not drawn. */

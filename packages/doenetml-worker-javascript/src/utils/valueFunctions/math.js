@@ -368,7 +368,8 @@ const CANNOT_BE_MODIFIED = {
  * @param {boolean[]} args.childCanBeModified - for each math child
  * @param {boolean} args.modifyIndirectly
  * @param {boolean} args.fixed
- * @param {boolean} args.fixLocation
+ * @param {boolean} args.fixLocation - whether the value is a location kept by
+ *   `fixLocation` (a `<coords>`'s; a math's value is not a location)
  */
 export function mathInverseAnalysis({
     expressionWithCodes,

@@ -19,6 +19,7 @@ import {
 import {
     copiesReferent,
     planListEntryAdapterReference,
+    planReferentAdapterReference,
     planValueReference,
     RESPONSE_MARKS,
     staticValueReferenceTarget,
@@ -152,7 +153,21 @@ export function convertCopiesToValueReferences({
             componentInfoObjects,
         });
         if (!target) {
-            return;
+            if (
+                betweenBrackets ||
+                asEntryOf ||
+                unresolvedPath != null ||
+                naming.length > 0 ||
+                Object.keys(component.attributes).length > 0
+            ) {
+                return;
+            }
+            return planReferentAdapter(
+                component,
+                parent,
+                targetComponentType,
+                targetClass,
+            );
         }
 
         if (betweenBrackets) {
@@ -257,6 +272,44 @@ export function convertCopiesToValueReferences({
                 component.doenetAttributes.listEntryAdapterProperty =
                     listEntryAdapterProperty;
             }
+        };
+    }
+
+    /**
+     * Plan making the `_copy` `component`, a reference to the whole of a
+     * component with no implicit prop (`$P` of a `<point>`), a value
+     * reference that reads the variable of the referent's adapter that its
+     * parent takes (`P.coords` in a `<boolean>`,
+     * `planReferentAdapterReference`), in place of a copy of the referent
+     * and the adapter its parent would make from that copy. A reference an
+     * answer records as a response stays a copy: the answer records the
+     * referent itself.
+     */
+    function planReferentAdapter(
+        component: SerializedComponent,
+        parent: SerializedComponent,
+        targetComponentType: string,
+        targetClass: any,
+    ): (() => void) | undefined {
+        const parentClass =
+            componentInfoObjects.allComponentClasses[
+                parent.componentType
+            ]?.classForSerializedComponent(parent);
+        const plan = planReferentAdapterReference({
+            parentClass,
+            targetComponentType,
+            targetClass,
+            componentInfoObjects,
+        });
+        if (!plan) {
+            return;
+        }
+        return () => {
+            makeValueReference(component, {
+                ...plan,
+                valueComponentType: plan.presentedComponentType,
+            });
+            component.doenetAttributes.readsReferentAdapter = true;
         };
     }
 

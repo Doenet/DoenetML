@@ -33,6 +33,11 @@ export type ReferentDescription = {
      */
     companions: Record<string, string>;
     /**
+     * Whether the variable is a location (`isLocation`, a point's `coords`),
+     * which the referent's `fixLocation` keeps from changing.
+     */
+    isLocation: boolean;
+    /**
      * For an entry of a list component (`number3` of a `<numberList>`,
      * `isListEntryArrayVariable`), its position in the list, 1 for the
      * first. The list holds the entry while its `listEntryCountVariable` is
@@ -121,6 +126,7 @@ export function describeReferentVariable(
             variableName === "value" ||
             variableName === component.constructor.variableForImplicitProp,
         companions,
+        isLocation: Boolean(arrayStateVarObj?.isLocation),
         ...(listEntryPosition === undefined ? {} : { listEntryPosition }),
     };
 }
