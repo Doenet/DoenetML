@@ -4,6 +4,7 @@ import {
     clickPoint,
     focusPoint,
     movePoint,
+    submitAnswer,
     updateBooleanInputValue,
     updateMathInputValue,
     updateSelectedIndices,
@@ -7071,14 +7072,15 @@ describe("Point tag tests @group4", async () => {
         );
     });
 
-    it("self-reference inside a non-sensical context like <answer> still errors", async () => {
-        // Components like <answer> are not in the recognized rendering-context
-        // list and don't make sense inside a <label>. The circular-dependency
-        // error is the expected outcome in such cases.
+    it("self-reference inside a nonsensical context like <section> still errors", async () => {
+        // Components like <section> are not in the recognized rendering-context
+        // list and don't make sense inside a <label>. The reference there is
+        // a copy of the point inside its own label, and the
+        // circular-dependency error is the expected outcome in such cases.
         const { core } = await createTestCore({
             doenetML: `
 <point name="a">(2,3)
-  <label><answer>$a</answer></label>
+  <label><section>$a</section></label>
 </point>
 `,
         });
@@ -7088,6 +7090,46 @@ describe("Point tag tests @group4", async () => {
         expect(diagnostics.errors[0].message).contain(
             "Circular dependency detected",
         );
+    });
+
+    it("self-reference as an <answer>'s award compares the point's coordinates", async () => {
+        // The award reads the point through its `coords` adapter, so the
+        // reference reads `a.coords` (a value reference, Doenet/DoenetML#2128)
+        // rather than copying the point into its own label: no cycle.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<point name="a">(2,3)
+  <label><answer name="ans">$a</answer></label>
+</point>
+`,
+        });
+
+        const diagnostics = getDiagnosticsByType(core);
+        expect(diagnostics.errors.length).eq(0);
+
+        const ansIdx = await resolvePathToNodeIdx("ans");
+        let stateVariables = await core.returnAllStateVariables(false, true);
+        const mathInputIdx =
+            stateVariables[ansIdx].stateValues.inputChildren[0].componentIdx;
+
+        await updateMathInputValue({
+            latex: "(2,3)",
+            componentIdx: mathInputIdx,
+            core,
+        });
+        await submitAnswer({ componentIdx: ansIdx, core });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.creditAchieved).eq(1);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("a"),
+            x: 5,
+            y: -1,
+            core,
+        });
+        await submitAnswer({ componentIdx: ansIdx, core });
+        stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[ansIdx].stateValues.creditAchieved).eq(0);
     });
 
     // A constrained point whose position is essential used to be unloadable

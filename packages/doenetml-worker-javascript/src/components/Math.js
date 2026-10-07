@@ -67,6 +67,14 @@ export default class MathComponent extends InlineComponent {
     static descendantCompositesMustHaveAReplacement = true;
     static descendantCompositesDefaultReplacementType = "math";
 
+    /**
+     * Whether the value is a location (`isLocation`), which `fixLocation`
+     * keeps from changing. A math's value is not: `fixLocation` keeps it
+     * where it is drawn (its `anchor`), not at its value. A `<coords>`'s
+     * value is the coordinates of the point it belongs to.
+     */
+    static valueIsLocation = false;
+
     static createAttributesObject() {
         let attributes = super.createAttributesObject();
         attributes.format = {
@@ -575,7 +583,7 @@ export default class MathComponent extends InlineComponent {
         };
 
         stateVariableDefinitions.unnormalizedValue = {
-            isLocation: true,
+            isLocation: this.valueIsLocation,
             returnDependencies: () => ({
                 mathChildren: {
                     dependencyType: "child",
@@ -611,7 +619,7 @@ export default class MathComponent extends InlineComponent {
 
         stateVariableDefinitions.value = {
             description: "The math expression value.",
-            isLocation: true,
+            isLocation: this.valueIsLocation,
             public: true,
             shadowingInstructions: {
                 createComponentOfType: this.componentType,
@@ -995,6 +1003,7 @@ export default class MathComponent extends InlineComponent {
             }),
         };
 
+        const valueIsLocation = this.valueIsLocation;
         stateVariableDefinitions.canBeModified = {
             additionalStateVariablesDefined: [
                 "constantChildIndices",
@@ -1021,10 +1030,16 @@ export default class MathComponent extends InlineComponent {
                     dependencyType: "stateVariable",
                     variableName: "fixed",
                 },
-                fixLocation: {
-                    dependencyType: "stateVariable",
-                    variableName: "fixLocation",
-                },
+                // only a value that is a location stays put under
+                // `fixLocation`
+                ...(valueIsLocation
+                    ? {
+                          fixLocation: {
+                              dependencyType: "stateVariable",
+                              variableName: "fixLocation",
+                          },
+                      }
+                    : {}),
                 codePre: {
                     dependencyType: "stateVariable",
                     variableName: "codePre",
@@ -1040,7 +1055,7 @@ export default class MathComponent extends InlineComponent {
                         ),
                     modifyIndirectly: dependencyValues.modifyIndirectly,
                     fixed: dependencyValues.fixed,
-                    fixLocation: dependencyValues.fixLocation,
+                    fixLocation: Boolean(dependencyValues.fixLocation),
                 }),
             }),
         };

@@ -20,6 +20,28 @@ exports[`component census of the micro-documents > answer when $mi=x 1`] = `
 }
 `;
 
+exports[`component census of the micro-documents > boolean $P=(1,2) 1`] = `
+{
+  "attributeComponents": 1,
+  "byType": {
+    "_dynamicChildren": 1,
+    "_ref": 1,
+    "boolean": 1,
+    "document": 1,
+    "graph": 1,
+    "math": 2,
+    "mathList": 1,
+    "point": 1,
+  },
+  "components": 9,
+  "copies": 0,
+  "dependencies": 541,
+  "shadows": 0,
+  "stateVariables": 528,
+  "stateVariablesResolved": 254,
+}
+`;
+
 exports[`component census of the micro-documents > collect numbers x4 1`] = `
 {
   "attributeComponents": 0,

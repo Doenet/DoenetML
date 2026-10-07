@@ -333,7 +333,8 @@ describe("Repeats whose template is one value @group4", () => {
         });
     });
 
-    it("a math under fixLocation takes no write, as each iteration's math did", async () => {
+    it("a math under fixLocation takes a write, as each iteration's math does", async () => {
+        // `fixLocation` keeps a math where it is drawn, not at its value
         const texts = await compare({
             doenetML: `
 <numberList name="l">1 2 3</numberList>
@@ -359,9 +360,9 @@ describe("Repeats whose template is one value @group4", () => {
             },
         });
         expect(texts).toMatchObject({
-            p: "1, 2, 3",
-            p2: "x, x, x",
-            pl: "1, 2, 3",
+            p: "9, 2, 3",
+            p2: "9, x, x",
+            pl: "9, 2, 3",
         });
     });
 

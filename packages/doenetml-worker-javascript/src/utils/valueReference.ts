@@ -304,6 +304,106 @@ export function planListEntryAdapterReference({
 }
 
 /**
+ * For a reference to the whole of a component of class `targetClass` that
+ * has no implicit prop (`$P` of a `<point>`), in a parent that takes no
+ * component of the target's type but takes that of one of its adapters
+ * (a `<boolean>` takes the `coords` a point adapts to): the adapter's type,
+ * which the reference then presents as, and the adapter's variable, which
+ * it reads on the referent (`P.coords`). That is what the adapter component
+ * made from a copy of the referent would have read, so the reference stands
+ * in for the copy and its adapter with no component of either.
+ *
+ * The adapter is the one `ChildMatcher` would choose for a component of the
+ * target's type: the first, in the class's order, whose type the parent
+ * takes. The plan is made only when that adapter's type is a value type
+ * (`isValueComponentType`: one of `VALUE_COMPONENT_TYPES` or a type that
+ * inherits from one, as `coords` does from `math`) and is the type of the
+ * adapter's variable
+ * (`createComponentOfType`), and the variable is one value, as for the
+ * re-pointing `planValueReference` does for `$n` in a `<math>`. A parent that
+ * renders its children (`<p>$P</p>`) draws the referent, and is turned away.
+ */
+export function planReferentAdapterReference({
+    parentClass,
+    targetComponentType,
+    targetClass: givenTargetClass,
+    componentInfoObjects,
+}: {
+    parentClass: any;
+    targetComponentType: string;
+    /**
+     * The class the target is created as, when it is not the one registered
+     * for its type (`classForSerializedComponent`).
+     */
+    targetClass?: any;
+    componentInfoObjects: ComponentInfoObjects;
+}): Required<ValueReferencePlan> | undefined {
+    const targetClass =
+        givenTargetClass ??
+        componentInfoObjects.allComponentClasses[targetComponentType];
+    if (
+        !targetClass ||
+        targetClass.variableForImplicitProp ||
+        !parentClass ||
+        parentClass.renderChildren ||
+        componentInfoObjects.isInheritedComponentType({
+            inheritedComponentType: parentClass.componentType,
+            baseComponentType: "_composite",
+        }) ||
+        componentInfoObjects.isCompositeComponent({
+            componentType: targetComponentType,
+            includeNonStandard: true,
+        }) ||
+        childGroupAccepts(
+            parentClass,
+            targetComponentType,
+            componentInfoObjects,
+        )
+    ) {
+        return undefined;
+    }
+    const targetVariables =
+        componentInfoObjects.publicStateVariableInfo[targetComponentType]
+            ?.stateVariableDescriptions;
+    if (!targetVariables) {
+        return undefined;
+    }
+    for (let n = 0; n < targetClass.numAdapters; n++) {
+        const adapter = targetClass.adapters[n];
+        const adapterType = targetClass.getAdapterComponentType(
+            n,
+            componentInfoObjects.publicStateVariableInfo,
+        );
+        if (
+            !adapterType ||
+            !childGroupAccepts(parentClass, adapterType, componentInfoObjects)
+        ) {
+            continue;
+        }
+        // the adapter `ChildMatcher` would choose: plan with it or not at all
+        if (
+            (typeof adapter !== "string" &&
+                adapter.substituteForPrimaryStateVariable) ||
+            !isValueComponentType(adapterType, componentInfoObjects)
+        ) {
+            return undefined;
+        }
+        const adapterVariable =
+            typeof adapter === "string" ? adapter : adapter.stateVariable;
+        const description = targetVariables[adapterVariable];
+        if (
+            !description ||
+            description.isArray ||
+            description.createComponentOfType !== adapterType
+        ) {
+            return undefined;
+        }
+        return { presentedComponentType: adapterType, adapterVariable };
+    }
+    return undefined;
+}
+
+/**
  * What a reference to a component of `targetComponentType` with the
  * remaining path `unresolvedPath` reads, worked out from the type alone:
  * the type of the component the value is read from (`referentComponentType`),
@@ -517,6 +617,7 @@ export function serializeValueReference({
             referencedVariable,
             referencedPrimaryValue: description?.isPrimaryValue ?? false,
             companions: description?.companions ?? {},
+            isLocation: description?.isLocation ?? false,
             ...(description?.listEntryPosition === undefined
                 ? {}
                 : { listEntryPosition: description.listEntryPosition }),

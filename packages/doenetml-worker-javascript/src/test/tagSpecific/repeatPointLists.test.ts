@@ -238,6 +238,43 @@ describe("Repeats whose template is one point @group4", () => {
         });
     });
 
+    it("a point under fixLocation takes no write, as the iteration's point did", async () => {
+        // its coordinates are its location, which `fixLocation` keeps
+        const result = await compare({
+            doenetML: `
+<numberList name="ns">1 2 3</numberList>
+<graph name="g" fixLocation>
+  <repeatForSequence from="1" to="3" indexName="i" name="r"><point>($ns[$i], 1)</point></repeatForSequence>
+</graph>
+<mathInput name="mi" bindValueTo="$r[2]" />
+<p name="pns">$ns</p>
+`,
+            names: ["pns"],
+            graphs: ["g"],
+            act: async (core, resolvePathToNodeIdx) => {
+                await dragPoint({
+                    core,
+                    resolvePathToNodeIdx,
+                    graph: "g",
+                    index: 0,
+                    x: -1,
+                    y: -2,
+                });
+                await updateMathInputValue({
+                    latex: "(9,9)",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+            },
+        });
+        expect(result.pns).toBe("1, 2, 3");
+        expect(result.g).toEqual([
+            [1, 1],
+            [2, 1],
+            [3, 1],
+        ]);
+    });
+
     it("a dragged literal is kept while the repeat is shorter", async () => {
         await compare({
             doenetML: `
