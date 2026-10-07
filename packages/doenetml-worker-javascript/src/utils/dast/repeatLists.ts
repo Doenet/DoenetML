@@ -33,9 +33,11 @@
  *   iteration (`$r[2].m`, which then reads the entry, `$r[2]`, and
  *   `$r[2].m.x`, which reads `$r[2].x`), or, of a list of points, to a
  *   coordinate of every entry (`$Ps.x`, `.y`, `.z`), and is not
- *   an `extend` or `copy`, or named by a reference attribute (a trigger, a
- *   label's `forObject`, a `<ref>`'s `to`), which an entry of a list cannot
- *   be yet (#2181, #2184, #2176);
+ *   an `extend` or `copy` (#2176), or named by a reference attribute,
+ *   except, of a list of points, one that takes an entry of a list as its
+ *   target (#2181, `ENTRY_TARGET_ATTRIBUTES`: a trigger, a label's
+ *   `forObject`, a `<ref>`'s `to`, a `<callAction>`'s `target`, an
+ *   `<annotation>`'s `ref`) naming the whole repeat or one iteration;
  * - no reference reaches the template's name another way, as through an
  *   outer repeat (`$a[2][1][3].m`), which would name a component the list
  *   does not have;
@@ -74,6 +76,36 @@ const NESTED_TYPES = new Set(["math", "number"]);
  * (`$Ps.x`), as of a `<pointList>`.
  */
 const POINT_LIST_PROPERTIES = new Set(["x", "y", "z"]);
+
+/**
+ * The reference attributes that take one entry of a list as their target
+ * (`utils/refTargets.ts`), by the component they are on (`*` for any), in
+ * lower case. Of a list of points, the entry is drawn as the iteration's
+ * point was, so naming it finds what naming the point did.
+ */
+const ENTRY_TARGET_ATTRIBUTES: Record<string, Set<string>> = {
+    "*": new Set([
+        "triggerwith",
+        "triggerwhenobjectsclicked",
+        "triggerwhenobjectsfocused",
+    ]),
+    label: new Set(["forobject"]),
+    ref: new Set(["to"]),
+    callaction: new Set(["target"]),
+    annotation: new Set(["ref"]),
+};
+
+/** Whether the reference attribute `namedBy` takes an entry as its target. */
+function takesEntryTarget({ componentType, attribute }: NamedBy) {
+    const name = attribute.toLowerCase();
+    return (
+        ENTRY_TARGET_ATTRIBUTES["*"].has(name) ||
+        ENTRY_TARGET_ATTRIBUTES[componentType.toLowerCase()]?.has(name) === true
+    );
+}
+
+/** The reference attribute that names a reference, and what it is on. */
+type NamedBy = { componentType: string; attribute: string };
 
 /** The list types that hold a repeat's value and index. */
 const ITERATION_LIST_TYPES = new Set(["_repeatValues", "_repeatIndices"]);
@@ -181,7 +213,7 @@ export function convertRepeatsToLists({
         return { nComponents };
     }
 
-    // Every reference of the document, with whether a reference attribute
+    // Every reference of the document, with the reference attribute that
     // names it (`createReferences`), as a trigger or a `<ref>`'s `to` does.
     // Each is kept under the component it reads, and under each name
     // written after the first part of its path (`$a[2].m`), so that a
@@ -189,11 +221,14 @@ export function convertRepeatsToLists({
     // A plan carried out changes references only to read a list in place of
     // a repeat's value, or to drop a name, so what a repeat looks up here
     // holds every reference that can reach it.
-    type Reference = { component: SerializedComponent; named: boolean };
+    type Reference = {
+        component: SerializedComponent;
+        namedBy: NamedBy | undefined;
+    };
     const referencesByTarget = new Map<number, Reference[]>();
     const referencesByPathName = new Map<string, Reference[]>();
-    forEachReference(serializedComponents, (component, named) => {
-        const reference = { component, named };
+    forEachReference(serializedComponents, (component, namedBy) => {
+        const reference = { component, namedBy };
         const refResolution = unwrapSource(
             component.extending!,
         ) as SerializedRefResolution;
@@ -337,7 +372,7 @@ export function convertRepeatsToLists({
 
         // References to the repeat, or into the template, from elsewhere.
         const rewrites: SerializedRefResolution[] = [];
-        for (const { component, named } of [
+        for (const { component, namedBy } of [
             repeat.componentIdx,
             ...nodes.keys(),
         ].flatMap((idx) => referencesByTarget.get(idx) ?? [])) {
@@ -353,10 +388,31 @@ export function convertRepeatsToLists({
             if (refResolution.nodeIdx !== repeat.componentIdx) {
                 continue;
             }
-            if (named || component.attributes.createComponentOfType) {
+            if (component.attributes.createComponentOfType) {
                 return;
             }
             const path = refResolution.unresolvedPath ?? [];
+            if (namedBy) {
+                // An entry of a list of points is a target as the iteration's
+                // point was (#2181); the whole list, one the composite did
+                // not have. What names an iteration's point names the entry.
+                const namesEntry =
+                    path.length === 0 ||
+                    (path[0].name === "" &&
+                        path[0].index.length === 1 &&
+                        (path.length === 1 ||
+                            (path.length === 2 &&
+                                topName !== undefined &&
+                                path[1].name === topName &&
+                                path[1].index.length === 0)));
+                if (
+                    listType !== "_repeatPointList" ||
+                    !takesEntryTarget(namedBy) ||
+                    !namesEntry
+                ) {
+                    return;
+                }
+            }
             if (path.length === 0) {
                 continue;
             }
@@ -1096,22 +1152,25 @@ function pathReads(
 
 /**
  * Call `visit` for every component of the tree that extends a reference,
- * with whether a reference attribute (`createReferences`) names it: children,
- * attribute components, the references of a reference attribute, the
- * children of an attribute not yet converted, and what is written between the
- * brackets of a reference's path.
+ * with the reference attribute (`createReferences`) that names it, if any:
+ * children, attribute components, the references of a reference attribute,
+ * the children of an attribute not yet converted, and what is written
+ * between the brackets of a reference's path.
  */
 function forEachReference(
     components: (SerializedComponent | string)[],
-    visit: (component: SerializedComponent, named: boolean) => void,
-    named = false,
+    visit: (
+        component: SerializedComponent,
+        namedBy: NamedBy | undefined,
+    ) => void,
+    namedBy?: NamedBy,
 ) {
     for (const component of components) {
         if (typeof component === "string") {
             continue;
         }
         if (component.extending) {
-            visit(component, named);
+            visit(component, namedBy);
             // what is written between the brackets of its path, held both
             // as written and as left to resolve
             const refResolution = unwrapSource(
@@ -1129,11 +1188,14 @@ function forEachReference(
             }
         }
         forEachReference(component.children, visit);
-        for (const attribute of Object.values(component.attributes)) {
+        for (const [name, attribute] of Object.entries(component.attributes)) {
             if (attribute.type === "component") {
                 forEachReference([attribute.component], visit);
             } else if (attribute.type === "references") {
-                forEachReference(attribute.references, visit, true);
+                forEachReference(attribute.references, visit, {
+                    componentType: component.componentType,
+                    attribute: name,
+                });
             } else if (attribute.type === "unresolved") {
                 forEachReference(
                     attribute.children as (SerializedComponent | string)[],

@@ -1,6 +1,7 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import { movePoint, movePolygon, updateMathInputValue } from "../utils/actions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
 import { setRepeatListsEnabled } from "../../utils/dast/repeatLists";
 
 const Mock = vi.fn();
@@ -472,6 +473,142 @@ describe("Repeats whose template is one point @group4", () => {
         });
     });
 
+    it("an entry is a target, as the iteration's point was", async () => {
+        // #2203: a trigger, a legend's label, a `<ref>` and a `<callAction>`
+        // find an entry of a list. What names an iteration's point finds
+        // the same point; what names an iteration (`$Ps[2]`) or the whole
+        // repeat (`$Ps`), which found nothing, finds the entry, or each
+        // entry, as of a `<pointList>`.
+        const doenetML = `
+    <graph name="g">
+      <repeatForSequence name="Ps" length="3" valueName="v"><point name="P">($v, 1)</point></repeatForSequence>
+      <legend name="legend">
+        <label forObject="$Ps[2].P">second</label>
+        <label forObject="$Ps[1]">first</label>
+      </legend>
+    </graph>
+    <number name="nP">0</number>
+    <number name="nIteration">0</number>
+    <number name="nAll">0</number>
+    <number name="nFocus">0</number>
+    <updateValue target="$nP" newValue="$nP+1" triggerWhenObjectsClicked="$Ps[2].P" />
+    <updateValue target="$nIteration" newValue="$nIteration+1" triggerWhenObjectsClicked="$Ps[2]" />
+    <updateValue target="$nAll" newValue="$nAll+1" triggerWhenObjectsClicked="$Ps" />
+    <updateValue target="$nFocus" newValue="$nFocus+1" triggerWhenObjectsFocused="$Ps[1].P" />
+    <p><ref name="ref" to="$Ps[2].P">second</ref></p>
+    `;
+        const names = ["nP", "nIteration", "nAll", "nFocus"];
+
+        for (const asList of [true, false]) {
+            setRepeatListsEnabled(asList);
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            setRepeatListsEnabled(true);
+            expect(
+                core.core!._components[await resolvePathToNodeIdx("Ps")]
+                    .componentType === "_repeatPointList",
+            ).toBe(asList);
+
+            const drawn = await pointsDrawnIn(core, resolvePathToNodeIdx, "g");
+            for (const [index, actionName] of [
+                [1, "pointClicked"],
+                [0, "pointFocused"],
+            ] as const) {
+                const componentIdx = drawn[index].componentIdx;
+                await core.requestAction({
+                    componentIdx,
+                    actionName,
+                    args: { componentIdx },
+                });
+            }
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const counts: Record<string, number> = {};
+            for (const name of names) {
+                counts[name] =
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.value;
+            }
+            const labels = stateVariables[
+                await resolvePathToNodeIdx("legend")
+            ].stateValues.legendElements.map((x: any) => x.label.value);
+            const url =
+                stateVariables[await resolvePathToNodeIdx("ref")].stateValues
+                    .url;
+            const ids = core.core.rendererInstructionBuilder.rendererState[
+                await resolvePathToNodeIdx("g")
+            ].childrenInstructions
+                .filter((child: any) => child?.componentType === "point")
+                .map((child: any) => child.id);
+
+            if (asList) {
+                expect(counts).eqls({
+                    nP: 1,
+                    nIteration: 1,
+                    nAll: 1,
+                    nFocus: 1,
+                });
+                expect(labels).eqls(["second", "first"]);
+                expect(url).eq("#Ps:2");
+                expect(ids[1]).eq("Ps:2");
+            } else {
+                expect(counts).eqls({
+                    nP: 1,
+                    nIteration: 0,
+                    nAll: 0,
+                    nFocus: 1,
+                });
+                expect(labels).eqls(["second"]);
+                expect(url).eq("#Ps:2.P");
+            }
+        }
+    });
+
+    it("a PreFigure annotation of an iteration's point", async () => {
+        const doenetML = `
+    <graph name="g" renderer="prefigure">
+      <repeatForSequence name="Ps" length="3" valueName="v"><point name="P">($v, 1)</point></repeatForSequence>
+      <annotations>
+        <annotation ref="$Ps[2].P" text="second point" />
+      </annotations>
+    </graph>
+    `;
+        for (const asList of [true, false]) {
+            setRepeatListsEnabled(asList);
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            setRepeatListsEnabled(true);
+            expect(
+                core.core!._components[await resolvePathToNodeIdx("Ps")]
+                    .componentType === "_repeatPointList",
+            ).toBe(asList);
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const xml: string =
+                stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                    .prefigureXML;
+            const handles = [...xml.matchAll(/<point at="([^"]+)"/g)].map(
+                (m) => m[1],
+            );
+            expect(handles.length).eq(3);
+            expect(xml).toContain(
+                `<annotation ref="${handles[1]}" text="second point"></annotation>`,
+            );
+            const { warnings } = getDiagnosticsByType(core);
+            expect(
+                warnings.filter((x) => x.message.includes("<annotation>")),
+            ).eqls([]);
+        }
+    });
+
     it("stays a composite where an entry cannot stand in for an iteration", async () => {
         for (const doenetML of [
             // a label
@@ -484,6 +621,9 @@ describe("Repeats whose template is one point @group4", () => {
             `<graph><repeatForSequence name="r" from="1" to="2" valueName="v"><point x="$v" y="0" /></repeatForSequence></graph>`,
             // a sampler
             `<graph><repeatForSequence name="r" from="1" to="2" valueName="v"><point>($v, <selectFromSequence from="1" to="5"/>)</point></repeatForSequence></graph>`,
+            // reference attributes that do not take an entry as a target
+            `<graph><repeatForSequence name="r" from="1" to="2" valueName="v"><point>($v, 0)</point></repeatForSequence></graph><collect from="$r" componentType="point" />`,
+            `<graph><repeatForSequence name="r" from="1" to="2" valueName="v"><point name="P">($v, 0)</point></repeatForSequence></graph><number name="n">1</number><updateValue target="$n" newValue="2" triggerWith="$r[1].P.x" />`,
         ]) {
             await compare({ doenetML, becomesList: false });
         }
