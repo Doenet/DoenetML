@@ -16,7 +16,9 @@
  *   references and further unnamed `<math>`s and `<number>`s
  *   (`templateNodeQualifies`), or one `<point>` whose content is its
  *   coordinates, each such a `<math>`, and constraints that read the same
- *   values in every iteration, which become the list's (`pointQualifies`);
+ *   values in every iteration and hold no sampler or input, which each
+ *   iteration would have its own of; they become the list's
+ *   (`pointQualifies`);
  *   with no attributes but those of `NODE_ATTRIBUTES`, each written as a
  *   literal;
  * - every reference in the template reads one of (`classifyReference`):
@@ -705,13 +707,48 @@ export function convertRepeatsToLists({
                         baseComponentType: "_constraint",
                     }) ||
                     authorName(child) !== undefined ||
-                    readsOtherThanConstants(child)
+                    readsOtherThanConstants(child) ||
+                    hasPerIterationState(child)
                 ) {
                     return false;
                 }
                 constraints.push(child);
             }
             return true;
+        }
+
+        /**
+         * Whether `component` holds a component that each iteration has a
+         * state of its own for: one that draws random values from the
+         * iteration's seed (a sampler), or an input. Shared by the whole
+         * list, it would draw once, or hold one value, for every entry.
+         */
+        function hasPerIterationState(component: SerializedComponent): boolean {
+            if (
+                component.componentType in
+                    componentInfoObjects.componentTypesCreatingVariants ||
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: component.componentType,
+                    baseComponentType: "_input",
+                })
+            ) {
+                return true;
+            }
+            return [
+                ...component.children,
+                ...Object.values(component.attributes).flatMap((attribute) =>
+                    attribute.type === "component"
+                        ? [attribute.component]
+                        : attribute.type === "unresolved"
+                          ? (attribute.children as (
+                                SerializedComponent | string
+                            )[])
+                          : [],
+                ),
+            ].some(
+                (child) =>
+                    typeof child !== "string" && hasPerIterationState(child),
+            );
         }
 
         /**

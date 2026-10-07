@@ -621,11 +621,19 @@ describe("Repeats whose template is one point @group4", () => {
             `<graph><repeatForSequence name="r" from="1" to="2" valueName="v"><point x="$v" y="0" /></repeatForSequence></graph>`,
             // a sampler
             `<graph><repeatForSequence name="r" from="1" to="2" valueName="v"><point>($v, <selectFromSequence from="1" to="5"/>)</point></repeatForSequence></graph>`,
+            // a constraint with a sampler, which draws for each iteration
+            `<graph name="g"><repeatForSequence name="r" length="4" valueName="v"><point>($v, 3)<constrainTo><point>(<selectFromSequence from="1" to="50"/>, 0)</point></constrainTo></point></repeatForSequence></graph>`,
+            // a constraint with an input, which each iteration has its own of
+            `<graph name="g"><repeatForSequence name="r" length="2" valueName="v"><point>($v, 3)<constrainTo><point>(<mathInput prefill="5"/>, 0)</point></constrainTo></point></repeatForSequence></graph>`,
             // reference attributes that do not take an entry as a target
             `<graph><repeatForSequence name="r" from="1" to="2" valueName="v"><point>($v, 0)</point></repeatForSequence></graph><collect from="$r" componentType="point" />`,
             `<graph><repeatForSequence name="r" from="1" to="2" valueName="v"><point name="P">($v, 0)</point></repeatForSequence></graph><number name="n">1</number><updateValue target="$n" newValue="2" triggerWith="$r[1].P.x" />`,
         ]) {
-            await compare({ doenetML, becomesList: false });
+            await compare({
+                doenetML,
+                becomesList: false,
+                graphs: doenetML.includes('<graph name="g">') ? ["g"] : [],
+            });
         }
     });
 });
