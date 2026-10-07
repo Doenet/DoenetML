@@ -185,7 +185,7 @@ F5's `GraphicalValueList` already gives each point entry:
 
 A point template therefore needs the following:
 - **Its value per entry** is the `evaluate` of its coordinate nodes. A pure point function covers only the case with no constraints, no sticky group and no graph (agent survey, `Point.js:518-1246`). Constraints are not part of it: they are F5's `adjustEntryValues`, applied to the evaluated coordinates.
-- **The template's constraint children and attributes** (`<constrainToGraph/>`, `<constrainToGrid dx="$dx"/>`, `labelPosition`) become the list's own. They are the same at every index, which is the qualification rule. A constraint holding a sampler or an input keeps the composite: each iteration draws its own random values and has its own input, which one constraint shared by the list would not.
+- **The template's constraint children and attributes** (`<constrainToGraph/>`, `<constrainToGrid dx="$dx"/>`, `labelPosition`) become the list's own. They are the same at every index, which is the qualification rule. A constraint holding a sampler keeps the composite: each iteration draws its own random values, and one constraint shared by the list would draw once. One holding an input keeps it too, as a precaution, though an input inside a constraint is not drawn.
 - **A drag on entry k** goes through F5's path. It unapplies the constraints as `Point`'s `constraintResults` inverse does, then calls each coordinate node's `invert` at k. The writes then land on the codes: key k of `values`, of `sortedPos`, and so on.
 
 This is the part that waits for #2172. Its hooks (`entryValueAdjustmentDependencies`, `listEntryRendererDefaults`, `listValuesEntryPrefix`, the per-entry `draggable` and `fixed`) are what is under review.

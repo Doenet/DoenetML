@@ -15,10 +15,9 @@
  * - its template is one `<math>` or `<number>`, whose content is text,
  *   references and further unnamed `<math>`s and `<number>`s
  *   (`templateNodeQualifies`), or one `<point>` whose content is its
- *   coordinates, each such a `<math>`, and constraints that read the same
- *   values in every iteration and hold no sampler or input, which each
- *   iteration would have its own of; they become the list's
- *   (`pointQualifies`);
+ *   coordinates, each such a `<math>`, and constraints, which become the
+ *   list's, that read the same values in every iteration and hold no
+ *   sampler (`pointQualifies`);
  *   with no attributes but those of `NODE_ATTRIBUTES`, each written as a
  *   literal;
  * - every reference in the template reads one of (`classifyReference`):
@@ -674,8 +673,9 @@ export function convertRepeatsToLists({
          * Whether the template `<point>` `node`, with non-blank `children`,
          * qualifies: its coordinates (`xs`, which sugar made of its content)
          * each a nested `<math>` that qualifies, and its children
-         * constraints that read the same values in every iteration, which
-         * become the list's (`constraints`).
+         * constraints that read the same values in every iteration and hold
+         * no sampler (`hasPerIterationState`), which become the list's
+         * (`constraints`).
          */
         function pointQualifies(
             node: SerializedComponent,
@@ -720,8 +720,10 @@ export function convertRepeatsToLists({
         /**
          * Whether `component` holds a component that each iteration has a
          * state of its own for: one that draws random values from the
-         * iteration's seed (a sampler), or an input. Shared by the whole
-         * list, it would draw once, or hold one value, for every entry.
+         * iteration's seed (a sampler), which, shared by the whole list,
+         * would draw once for every entry. An input is rejected too, as a
+         * precaution: inside a constraint it is not drawn, so no reader can
+         * change it.
          */
         function hasPerIterationState(component: SerializedComponent): boolean {
             if (
