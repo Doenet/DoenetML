@@ -13632,4 +13632,28 @@ describe("Math tag tests @group3", async () => {
                 .tree,
         ).eq(5);
     });
+
+    it("fixLocation keeps a math where it is drawn, not at its value", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <math name="m" fixLocation anchor="(1,2)" draggable>x</math>
+    </graph>
+    <math name="m2" extend="$m" />
+    <mathInput name="mi" bindValueTo="$m2" />
+    `,
+        });
+        const mIdx = await resolvePathToNodeIdx("m");
+
+        await moveMath({ componentIdx: mIdx, x: 5, y: 6, core });
+        await updateMathInputValue({
+            latex: "y",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(stateVariables[mIdx].stateValues.anchor.toString()).eq("(1, 2)");
+        expect(stateVariables[mIdx].stateValues.value.tree).eq("y");
+        expect(stateVariables[mIdx].stateValues.canBeModified).eq(true);
+    });
 });

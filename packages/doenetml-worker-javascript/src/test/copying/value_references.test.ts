@@ -1845,33 +1845,47 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(censusOfCore(core).copies).eq(0);
         });
 
-        it("a reference read through an adapter cannot write to a referent at a fixed location", async () => {
-            // The adapter component a copy made took its source's
-            // `fixLocation`; the reference reads it into `canBeModified`.
-            for (const [referent, latex, before, after] of [
+        it("a reference to a location cannot write to a referent at a fixed location", async () => {
+            // `fixLocation` keeps a location (`isLocation`: a point's
+            // coordinates, a line's equation) from changing, whether the
+            // reference reads it through an adapter (`$X`) or by name
+            // (`$X.x`). Any other value (an `<m>`'s, a `<text>`'s) takes the
+            // write: `fixLocation` keeps those where they are drawn.
+            for (const [referent, reference, latex, before, after, blocks] of [
                 [
                     `<point name="X" $fl>(1,2)</point>`,
+                    "$X",
                     "(7,8)",
                     "(1, 2)",
                     "(7, 8)",
+                    true,
+                ],
+                [
+                    `<point name="X" $fl>(1,2)</point>`,
+                    "$X.x",
+                    "7",
+                    "1",
+                    "7",
+                    true,
                 ],
                 [
                     `<line name="X" $fl>y=2x+1</line>`,
+                    "$X",
                     "y=3x+5",
                     "y = 2 x + 1",
                     "y = 3 x + 5",
+                    true,
                 ],
-                [`<m name="X" $fl>x</m>`, "y", "x", "y"],
-                // a `<text>` has a value of its own but no `canBeModified`
-                // to answer with: `$X` reads `X.math`
-                [`<text name="X" $fl>a</text>`, "b", "a", "b"],
-            ]) {
+                [`<m name="X" $fl>x</m>`, "$X", "y", "x", "y", false],
+                [`<text name="X" $fl>a</text>`, "$X", "b", "a", "b", false],
+            ] as const) {
                 for (const fixLocation of [true, false]) {
                     const doenetML = `
     <graph>${referent.replace("$fl", fixLocation ? "fixLocation" : "")}</graph>
-    <math name="h">$X</math>
+    <math name="h">${reference}</math>
     <mathInput name="mi" bindValueTo="$h" />
     `;
+                    const blocked = blocks && fixLocation;
                     const { core, resolvePathToNodeIdx } = await createTestCore(
                         { doenetML },
                     );
@@ -1884,7 +1898,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     expect(
                         stateVariables[hIdx].stateValues.canBeModified,
                         doenetML,
-                    ).eq(!fixLocation);
+                    ).eq(!blocked);
 
                     await updateMathInputValue({
                         latex,
@@ -1898,8 +1912,45 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     expect(
                         stateVariables[hIdx].stateValues.value.toString(),
                         doenetML,
-                    ).eq(fixLocation ? before : after);
+                    ).eq(blocked ? before : after);
                 }
+            }
+        });
+
+        it("a math holding a location at a fixed location solves for its other operands", async () => {
+            // `P` is at a fixed location, so dragging the midpoint moves `Q`
+            // alone, however the midpoint reads `P`.
+            for (const midpoint of [
+                "($P+$Q)/2",
+                "($P.coords+$Q.coords)/2",
+                "(($P.x+$Q.x)/2, ($P.y+$Q.y)/2)",
+            ]) {
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML: `
+    <graph>
+      <point name="P" fixLocation>(3,4)</point>
+      <point name="Q">(5,6)</point>
+      <point name="M">${midpoint}</point>
+    </graph>
+    `,
+                });
+                await movePoint({
+                    componentIdx: await resolvePathToNodeIdx("M"),
+                    x: 5,
+                    y: 6,
+                    core,
+                });
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const xs = async (name: string) =>
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.xs.map((x: any) => x.tree);
+                expect(await xs("P"), midpoint).eqls([3, 4]);
+                expect(await xs("Q"), midpoint).eqls([7, 8]);
+                expect(await xs("M"), midpoint).eqls([5, 6]);
             }
         });
 

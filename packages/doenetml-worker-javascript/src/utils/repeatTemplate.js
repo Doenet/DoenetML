@@ -301,12 +301,12 @@ export function invertRepeatTemplate({
     ind = 0,
 }) {
     const node = nodeAt(analysis, ind, texts);
-    // a `<math>` under `fixLocation` takes no write, as `mathInverseAnalysis`
-    // reports for it
+    // a `<point>` under `fixLocation` takes no write: its coordinates are
+    // its location. A `<math>` or `<number>` does, as its value is not one.
     if (
         node === undefined ||
         node.fixed ||
-        (fixLocation && node.type === "math")
+        (fixLocation && node.type === "point")
     ) {
         return { success: false };
     }
@@ -490,7 +490,8 @@ function valueOfCode(code, context) {
  * Whether the template takes a write at all, as the iteration's component
  * reports it (`canBeModified`): given whether each entry and constant code it
  * reads takes one (`codeCanBeModified`), and not as written to one entry. A
- * `<math>` under `fixLocation` takes none, as `mathInverseAnalysis` reports.
+ * `<point>` under `fixLocation` takes none, as its coordinates are its
+ * location.
  */
 export function templateCanBeModified({
     analysis,
@@ -512,7 +513,7 @@ function canBeModified(code, context) {
         return context.codeCanBeModified(code);
     }
     const node = nodeAt(context.analysis, code.node, context.texts);
-    if (node.fixed || (context.fixLocation && node.type === "math")) {
+    if (node.fixed || (context.fixLocation && node.type === "point")) {
         return false;
     }
     if (node.string !== undefined || node.codes.length === 0) {

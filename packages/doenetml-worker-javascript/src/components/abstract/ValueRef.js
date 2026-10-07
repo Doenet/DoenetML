@@ -403,7 +403,8 @@ export default class ValueRef extends BaseComponent {
 
         // The referent and the variable read on it: `{componentIdx,
         // componentType, variableName, referencedVariable,
-        // referencedPrimaryValue, referencedWholeComponent, companions}`, or
+        // referencedPrimaryValue, referencedWholeComponent, isLocation,
+        // companions}`, or
         // `null` while there is nothing to read. The variable read is the
         // adapter's when the reference presents as an adapter's type;
         // `referencedVariable` is the one the author's reference resolved
@@ -500,6 +501,7 @@ export default class ValueRef extends BaseComponent {
                                 .readsReferentAdapter
                                 ? { referencedWholeComponent: true }
                                 : {}),
+                            isLocation: referent.isLocation,
                             companions: referent.companions,
                             listEntryPosition: referent.listEntryPosition,
                         };
@@ -661,7 +663,7 @@ export default class ValueRef extends BaseComponent {
         // to the list is refused when it is false.
         stateVariableDefinitions.canBeModified = referentOrFallback({
             stateVariable: "canBeModified",
-            fallbackDependencies: (referentIdx, referentInfo, component) =>
+            fallbackDependencies: (referentIdx, referentInfo) =>
                 referentIdx === undefined
                     ? {}
                     : {
@@ -688,13 +690,14 @@ export default class ValueRef extends BaseComponent {
                               variableName: "modifyIndirectly",
                               variablesOptional: true,
                           },
-                          // The adapter component a reference presenting as
-                          // an adapter's type stands in for took its
-                          // source's `fixLocation`, and could not be
-                          // modified when it was set: `$P` in
+                          // A location (`isLocation`: a point's `coords`
+                          // or `x`) stays put under its referent's
+                          // `fixLocation`, so a math holding it solves for
+                          // its other operands: `$P` in
                           // `<point>($P+$Q)/2</point>` with `P` at a fixed
-                          // location leaves the drag to `Q`.
-                          ...(component.presentsAsAdapter
+                          // location leaves the drag to `Q`. Any other value
+                          // (a text's, a number's) takes the write.
+                          ...(referentInfo.isLocation
                               ? {
                                     targetFixLocation: {
                                         dependencyType: "stateVariable",
@@ -1449,7 +1452,6 @@ function referentOrFallback({
             const dependencies = fallbackDependencies(
                 referentInfo?.componentIdx,
                 referentInfo,
-                this.svComponent,
             );
             if (referentInfo?.referencedPrimaryValue) {
                 dependencies.fromReferent = {

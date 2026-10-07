@@ -617,6 +617,7 @@ export function serializeValueReference({
             referencedVariable,
             referencedPrimaryValue: description?.isPrimaryValue ?? false,
             companions: description?.companions ?? {},
+            isLocation: description?.isLocation ?? false,
             ...(description?.listEntryPosition === undefined
                 ? {}
                 : { listEntryPosition: description.listEntryPosition }),
