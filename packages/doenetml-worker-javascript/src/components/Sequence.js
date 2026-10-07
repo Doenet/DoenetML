@@ -3,6 +3,7 @@ import {
     returnSequenceValues,
     returnStandardSequenceAttributes,
     returnStandardSequenceStateVariableDefinitions,
+    returnSequenceWriteBasis,
     sequenceEntryComponentType,
 } from "../utils/sequence";
 
@@ -122,18 +123,8 @@ export default class Sequence extends ValueListComponent {
             }),
             definition: ({ dependencyValues }) => ({
                 setValue: {
-                    sequenceWriteBasis: JSON.stringify(
-                        [
-                            dependencyValues.from,
-                            dependencyValues.step,
-                            dependencyValues.type,
-                            dependencyValues.exclude,
-                        ],
-                        (key, value) =>
-                            typeof value === "object" && value?.tree
-                                ? value.tree
-                                : value,
-                    ),
+                    sequenceWriteBasis:
+                        returnSequenceWriteBasis(dependencyValues),
                 },
             }),
         };

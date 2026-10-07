@@ -804,6 +804,18 @@ export function returnSequenceValues(
     return sequenceValues;
 }
 
+/**
+ * What a value written to an entry of a sequence stands over: the `from`,
+ * `step`, `type` and `exclude` its values are computed from, as one string,
+ * so that the value is kept while only its length changes and dropped when
+ * its values are computed anew (`listEntryWriteBasisVariable`).
+ */
+export function returnSequenceWriteBasis({ from, step, type, exclude }) {
+    return JSON.stringify([from, step, type, exclude], (key, value) =>
+        typeof value === "object" && value?.tree ? value.tree : value,
+    );
+}
+
 export function returnSequenceValueForIndex({
     index,
     from,

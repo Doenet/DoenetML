@@ -1,5 +1,8 @@
 import ValueListComponent from "./abstract/ValueListComponent";
-import { sequenceEntryComponentType } from "../utils/sequence";
+import {
+    returnSequenceWriteBasis,
+    sequenceEntryComponentType,
+} from "../utils/sequence";
 
 /**
  * The values of the iterations a `<repeatForSequence>` shows (`forValues`),
@@ -16,7 +19,15 @@ import { sequenceEntryComponentType } from "../utils/sequence";
  * for a `<group extend="$r[2]" name="g"/>`); the repeat creates it as a
  * child of its own, and points each iteration's references at its entry
  * (`remapExtendIndices` in `Repeat.js`). Its entries are of the repeat's
- * `type`, which the pass copies to it, and are fixed.
+ * `type`, which the pass copies to it.
+ *
+ * Its entries are fixed unless the repeat has `fixed="false"`, its own or an
+ * ancestor's, as the components of each iteration were. Then a value written
+ * to one, such as by dragging a point at `($v, $$f($v))`, is that
+ * iteration's value while the repeat computes its values from the same
+ * `from`, `step`, `type` and `exclude`, as for a `<sequence>`, and is kept
+ * while the repeat withholds the iteration, as the iteration kept what was
+ * written to its other components.
  */
 export class RepeatValues extends ValueListComponent {
     static componentType = "_repeatValues";
@@ -27,6 +38,12 @@ export class RepeatValues extends ValueListComponent {
     static listEntryValuesVariable = "repeatValues";
 
     static listEntryTypeAttribute = "type";
+
+    static listEntriesTakeWrites = true;
+
+    static listEntryWriteBasisVariable = "repeatValuesWriteBasis";
+
+    static listKeepsEntryWritesPastEnd = true;
 
     static listEntryTypeFromAttribute(attribute) {
         return sequenceEntryComponentType(attribute);
@@ -57,6 +74,33 @@ export class RepeatValues extends ValueListComponent {
             }),
         };
 
+        stateVariableDefinitions.repeatValuesWriteBasis = {
+            returnDependencies: () => ({
+                from: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "from",
+                },
+                step: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "step",
+                },
+                type: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "type",
+                },
+                exclude: {
+                    dependencyType: "parentStateVariable",
+                    variableName: "exclude",
+                },
+            }),
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    repeatValuesWriteBasis:
+                        returnSequenceWriteBasis(dependencyValues),
+                },
+            }),
+        };
+
         return stateVariableDefinitions;
     }
 }
@@ -67,7 +111,12 @@ export class RepeatValues extends ValueListComponent {
  * repeat's `indexName` (`$i`) is the entry of this list for the iteration it
  * is read in, as `RepeatValues` is for `valueName`. The pass that makes value
  * references turns the `integer` the repeat's sugar made for `indexName` into
- * this list; its entries are integers (`listEntryComponentType`) and fixed.
+ * this list; its entries are integers (`listEntryComponentType`).
+ *
+ * Its entries are fixed unless the repeat has `fixed="false"`, its own or an
+ * ancestor's, as the components of each iteration were. Then a value written
+ * to one is that iteration's index from then on, kept while the repeat
+ * withholds the iteration.
  *
  * Neither list holds an entry for an iteration the repeat withholds while it
  * has fewer items. Such an iteration reads nothing until it is shown again,
@@ -80,6 +129,10 @@ export class RepeatIndices extends ValueListComponent {
     static listEntryComponentType = "integer";
 
     static listEntryValuesVariable = "repeatIndices";
+
+    static listEntriesTakeWrites = true;
+
+    static listKeepsEntryWritesPastEnd = true;
 
     static returnStateVariableDefinitions() {
         const stateVariableDefinitions = super.returnStateVariableDefinitions();
