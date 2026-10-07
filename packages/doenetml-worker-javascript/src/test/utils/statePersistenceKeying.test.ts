@@ -187,6 +187,66 @@ describe("saved state is keyed by an identifier a rebuild reproduces @group4", (
         ).eqls(["3,-5"]);
     });
 
+    it("keys a dragged copy with fixLocation as before fixLocation went to the copy's point", async () => {
+        // `fixLocation` written on a copy now goes to the point it makes, as
+        // `fixed` does, rather than staying on the `_copy` (#2201). The ids
+        // the copies' replacements are minted must not move with it, or a
+        // drag saved by one build lands elsewhere in the other.
+        const doenetML = `<graph><point name="A" x="1" y="2" /><point copy="$A" name="A2" fixLocation="false" /><point copy="$A" name="A3" fixLocation /><point copy="$A" name="A4" /></graph>`;
+
+        // Saved, with the same drags as below, by the build before that change.
+        const savedBefore = JSON.stringify({
+            "/0/1|1": { expressionWithCodes: 3, __def_primitive_ignore_0: "3" },
+            "/0/1|2": {
+                expressionWithCodes: -5,
+                __def_primitive_ignore_0: "-5",
+            },
+            "/0/3|1": { expressionWithCodes: 7, __def_primitive_ignore_0: "7" },
+            "/0/3|2": { expressionWithCodes: 8, __def_primitive_ignore_0: "8" },
+        });
+
+        // Loaded here, the drags come back where they were.
+        const restored = await createTestCore({
+            doenetML,
+            initialState: savedBefore,
+        });
+        const stateVariables = await restored.core.returnAllStateVariables(
+            false,
+            true,
+        );
+        const positions: Record<string, string> = {};
+        for (const name of ["A", "A2", "A3", "A4"]) {
+            positions[name] = stateVariables[
+                await restored.resolvePathToNodeIdx(name)
+            ].stateValues.xs
+                .map((x: any) => x.evaluate_to_constant())
+                .join(",");
+        }
+        expect(positions).eqls({ A: "1,2", A2: "3,-5", A3: "1,2", A4: "7,8" });
+
+        // Saved here, the same drags give the same keys and values, so a
+        // payload saved by this build loads the same in the one before.
+        const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
+            { doenetML },
+        );
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("A2"),
+            x: 3,
+            y: -5,
+            core,
+        });
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("A4"),
+            x: 7,
+            y: 8,
+            core,
+        });
+        await core.saveImmediately();
+        expect(keyedValues(scoreState.state as string)).eq(
+            keyedValues(savedBefore),
+        );
+    });
+
     it("survives an edit elsewhere in the document", async () => {
         // The point of keying on the document rather than on the build. A
         // component index is a position in the build, so inserting anything
