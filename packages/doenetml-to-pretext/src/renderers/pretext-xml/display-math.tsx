@@ -25,9 +25,11 @@ export const DisplayMathNumbered: BasicComponent<MathData> = ({ node }) =>
  * and is given no number of PreTeXt's.
  */
 function singleEquation(rawLatex: string, numbered: boolean) {
-    const latex = withoutTrailingComment(rawLatex);
-    const mdAttrs = { number: numbered && !hasAuthorTag(latex) ? "yes" : "no" };
-    const lines = splitAtTopLevelRowBreaks(latex);
+    const latex = withoutTrailingComment(rawLatex, false);
+    const mdAttrs = {
+        number: numbered && !hasAuthorTag(latex, false) ? "yes" : "no",
+    };
+    const lines = splitAtTopLevelRowBreaks(latex, false);
     const content =
         lines.length > 1 ? `\\begin{gathered}${latex}\\end{gathered}` : latex;
     return <md {...mdAttrs}>{mathContentWithBlanks(content)}</md>;
@@ -92,7 +94,7 @@ const CORE_NOTAG = /^\\notag(?![a-zA-Z])/;
  */
 export function parseDisplayRows(latex: string): DisplayRow[] {
     const rows: DisplayRow[] = [];
-    for (const raw of splitAtTopLevelRowBreaks(latex)) {
+    for (const raw of splitAtTopLevelRowBreaks(latex, true)) {
         let row = raw;
         let numbered: boolean | undefined;
         if (CORE_TAG.test(row)) {
@@ -101,8 +103,11 @@ export function parseDisplayRows(latex: string): DisplayRow[] {
         } else if (CORE_NOTAG.test(row)) {
             numbered = false;
         }
-        row = withoutTrailingComment(row).replace(/\\notag(?![a-zA-Z])/g, "");
-        if (hasAuthorTag(row)) {
+        row = withoutTrailingComment(row, true).replace(
+            /\\notag(?![a-zA-Z])/g,
+            "",
+        );
+        if (hasAuthorTag(row, true)) {
             numbered = false;
         }
         // An empty row is kept: it is a row, and numbered, on screen as well.
@@ -116,12 +121,12 @@ export function parseDisplayRows(latex: string): DisplayRow[] {
  * wrote. Its argument may hold braces of its own, as in `\tag{a_{1}}`. A tag in a `%`
  * comment is no tag, since TeX never reads it.
  */
-function hasAuthorTag(latex: string) {
-    return /\\tag(?![a-zA-Z])\*?\s*\{/.test(withoutComments(latex));
+function hasAuthorTag(latex: string, inDisplay: boolean) {
+    return /\\tag(?![a-zA-Z])\*?\s*\{/.test(withoutComments(latex, inDisplay));
 }
 
 /** `latex` without its comments. */
-function withoutComments(latex: string) {
+function withoutComments(latex: string, inDisplay: boolean) {
     let result = "";
     for (let i = 0; i < latex.length; i++) {
         const char = latex[i];
@@ -130,7 +135,7 @@ function withoutComments(latex: string) {
             result += latex.slice(i, i + 2);
             i++;
         } else if (char === "%") {
-            i = commentEnd(latex, i) - 1;
+            i = commentEnd(latex, i, inDisplay) - 1;
         } else {
             result += char;
         }
@@ -138,16 +143,17 @@ function withoutComments(latex: string) {
     return result;
 }
 
-/** `latex` without a comment that runs to its end. */
-function withoutTrailingComment(latex: string) {
-    for (let i = 0; i < latex.length; i++) {
-        const char = latex[i];
+/** `latex` without a comment that nothing but space follows. */
+function withoutTrailingComment(latex: string, inDisplay: boolean) {
+    const trimmed = latex.trimEnd();
+    for (let i = 0; i < trimmed.length; i++) {
+        const char = trimmed[i];
         if (char === "\\") {
             i++;
         } else if (char === "%") {
-            const end = commentEnd(latex, i);
-            if (end === latex.length) {
-                return latex.slice(0, i).trimEnd();
+            const end = commentEnd(trimmed, i, inDisplay);
+            if (end === trimmed.length) {
+                return trimmed.slice(0, i).trimEnd();
             }
             i = end - 1;
         }
@@ -157,18 +163,22 @@ function withoutTrailingComment(latex: string) {
 
 /**
  * Where the comment that starts at `start`, an unescaped `%`, ends: at the end of its
- * line, or where the core starts the next row of a display, since the core joins the rows
- * with no line break between them.
+ * line, or, in a display (`inDisplay`), where the core starts the next row, since the core
+ * joins the rows with no line break between them.
  */
-function commentEnd(latex: string, start: number) {
-    const match = /\n|\\\\(?=\\tag\{\d+\}|\\notag(?![a-zA-Z]))/.exec(
-        latex.slice(start),
-    );
+function commentEnd(latex: string, start: number, inDisplay: boolean) {
+    const pattern = inDisplay
+        ? /\n|\\\\(?=\\tag\{\d+\}|\\notag(?![a-zA-Z]))/
+        : /\n/;
+    const match = pattern.exec(latex.slice(start));
     return match ? start + match.index : latex.length;
 }
 
-/** `latex` cut at each `\\` outside every group, environment and comment. */
-function splitAtTopLevelRowBreaks(latex: string): string[] {
+/**
+ * `latex` cut at each `\\` outside every group, environment and comment. `inDisplay` says
+ * whether `latex` is a display the core composed of rows, as for {@link commentEnd}.
+ */
+function splitAtTopLevelRowBreaks(latex: string, inDisplay: boolean): string[] {
     const rows: string[] = [];
     let depth = 0;
     let start = 0;
@@ -187,7 +197,7 @@ function splitAtTopLevelRowBreaks(latex: string): string[] {
             i++;
         } else if (char === "%") {
             // Nothing in a comment counts.
-            i = commentEnd(latex, i) - 1;
+            i = commentEnd(latex, i, inDisplay) - 1;
         } else if (char === "{") {
             depth++;
         } else if (char === "}") {

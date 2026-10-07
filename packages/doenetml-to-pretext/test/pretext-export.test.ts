@@ -685,6 +685,21 @@ describe("Pretext export", async () => {
             await coreRunner.processToFlatDastAsFragment(source),
         ).toMatchInlineSnapshot(`"<md number="yes">x</md>"`);
 
+        // So is a comment on the last line before a row break the author wrote.
+        source = `<md><mrow>x % note\n\\\\ y</mrow></md>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<md number="no"><mrow>x</mrow><mrow>y</mrow></md>"`,
+        );
+
+        // An equation has no rows of the core's, so its comment ends at the end of its line
+        // alone, even where it holds what looks like the start of one.
+        source = `<men>x = 1 % a \\\\\\tag{7}\n+ 0</men>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toMatch(
+            /^<md number="yes">x = 1 % a \\\\\\tag\{7\}\n\+ 0<\/md>$/,
+        );
+
         // An equation whose only `\\` is in a comment is one line.
         source = `<me>x = 1 % a \\\\ b\n+ 0</me>`;
         expect(
