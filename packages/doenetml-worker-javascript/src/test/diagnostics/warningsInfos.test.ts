@@ -1141,6 +1141,269 @@ describe("Warning Tests @group4", async () => {
         }
     });
 
+    it("warns about attributes and children an extend of a composite or list ignores", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<sequence name="s" from="1" to="3" />
+<p name="p1"><sequence extend="$s" to="5" step="2" /></p>
+<repeatForSequence from="1" to="2" valueName="v" name="r"><number>$v</number></repeatForSequence>
+<p name="p2"><repeatForSequence extend="$r" to="4"><text>x</text></repeatForSequence></p>
+<repeat for="a b" valueName="w" name="r2"><text>$w</text></repeat>
+<p name="p3"><repeat extend="$r2" for="c d e"><text>y</text></repeat></p>
+<select name="sel"><option><text>c</text></option></select>
+<p name="p4"><select extend="$sel" numToSelect="1" /></p>
+            `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const texts: string[] = [];
+        for (const name of ["p1", "p2", "p3", "p4"]) {
+            texts.push(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            );
+        }
+        expect(texts).eqls(["1, 2, 3", "1, 2", "a, b", "c"]);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(
+            diagnosticsByType.warnings.map((warning) => warning.message),
+        ).eqls([
+            "The `to` attribute is ignored: a `<sequence>` with `extend` shows the same content as the component it extends.",
+            "The `step` attribute is ignored: a `<sequence>` with `extend` shows the same content as the component it extends.",
+            "The `to` attribute is ignored: a `<repeatForSequence>` with `extend` shows the same content as the component it extends.",
+            "Children written inside a `<repeatForSequence>` with `extend` are ignored: it shows the same content as the component it extends.",
+            "The `for` attribute is ignored: a `<repeat>` with `extend` shows the same content as the component it extends.",
+            "Children written inside a `<repeat>` with `extend` are ignored: it shows the same content as the component it extends.",
+            "The `numToSelect` attribute is ignored: a `<select>` with `extend` shows the same content as the component it extends.",
+        ]);
+        expect(diagnosticsByType.warnings.map((warning) => warning.code)).eqls([
+            "doenet-w0168",
+            "doenet-w0168",
+            "doenet-w0168",
+            "doenet-w0169",
+            "doenet-w0168",
+            "doenet-w0169",
+            "doenet-w0168",
+        ]);
+        // Each points at the extend it is about.
+        expect(
+            diagnosticsByType.warnings.map(
+                (warning) => warning.position?.start.line,
+            ),
+        ).eqls([3, 3, 5, 5, 7, 7, 9]);
+    });
+
+    it("an extend keeps its source's type when another is written on it", async () => {
+        // `type` picks the class a list's values are made for, so it is
+        // left off the extend, which shows its source's values.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<sequence name="s" from="1" to="3"/>
+<p name="p1"><sequence extend="$s" type="letters"/></p>
+<sequence name="t" type="letters" from="a" to="c"/>
+<p name="p2"><sequence extend="$t" type="number"/></p>
+            `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const texts: string[] = [];
+        for (const name of ["p1", "p2"]) {
+            texts.push(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            );
+        }
+        expect(texts).eqls(["1, 2, 3", "a, b, c"]);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(
+            diagnosticsByType.warnings.map((warning) => warning.message),
+        ).eqls([
+            "The `type` attribute is ignored: a `<sequence>` with `extend` shows the same content as the component it extends.",
+            "The `type` attribute is ignored: a `<sequence>` with `extend` shows the same content as the component it extends.",
+        ]);
+    });
+
+    it("says nothing about what an extend applies, or about a copy", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<sequence name="s" type="math" from="1.2345" to="3.2345" />
+<p name="p1"><sequence extend="$s" asList="false" displayDigits="2" hide="false" fixed /></p>
+<p name="p2"><sequence copy="$s" to="5.2345" /></p>
+<repeatForSequence from="1" to="2" valueName="v" name="r"><number>$v</number></repeatForSequence>
+<p name="p3"><repeatForSequence extend="$r" asList="false">  </repeatForSequence></p>
+<group name="g"><text>a</text></group>
+<p name="p4"><group extend="$g"><text>x</text></group></p>
+<p name="p5"><number extend="$s[2]" displayDigits="3" /></p>
+            `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const texts: string[] = [];
+        for (const name of ["p1", "p2", "p3", "p4", "p5"]) {
+            texts.push(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            );
+        }
+        expect(texts).eqls([
+            "1.22.23.2",
+            "1.23, 2.23, 3.23, 4.23, 5.23",
+            "12",
+            "ax",
+            "2.23",
+        ]);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
+    });
+
+    it("applies rendered on an extend of a group or module, without a warning", async () => {
+        // A `<group>`, and a `<module>`, makes its replacements again on its
+        // extend, so it reads `rendered` there.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<group name="g"><text>a</text></group>
+<group name="h" rendered="false"><text>b</text></group>
+<p name="p1"><group extend="$h" rendered="true"/></p>
+<p name="p2"><group extend="$h"/></p>
+<p name="p3"><group extend="$g" rendered="false"><text>x</text></group></p>
+<module name="n" rendered="false"><moduleAttributes><text name="a">q</text></moduleAttributes><text>c</text></module>
+<p name="p4"><module extend="$n" rendered="true"/></p>
+<p name="p5"><module extend="$n"/></p>
+            `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const texts: string[] = [];
+        for (const name of ["p1", "p2", "p3", "p4", "p5"]) {
+            texts.push(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            );
+        }
+        expect(texts).eqls(["b", "", "a", "c", ""]);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(diagnosticsByType.warnings.length).eq(0);
+    });
+
+    it("warns about a module parameter named as a number-display attribute on an extend", async () => {
+        // A `<module>` does not declare `displayDigits`, so here it is a
+        // parameter of the module, which its extend ignores as any other.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<module name="m"><moduleAttributes><text name="displayDigits">hi</text></moduleAttributes><text>$displayDigits</text></module>
+<p name="p1"><module extend="$m" displayDigits="bye" /></p>
+<p name="p2"><module copy="$m" displayDigits="bye" /></p>
+            `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const texts: string[] = [];
+        for (const name of ["p1", "p2"]) {
+            texts.push(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            );
+        }
+        expect(texts).eqls(["hi", "bye"]);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(
+            diagnosticsByType.warnings.map((warning) => warning.message),
+        ).eqls([
+            "The `displayDigits` attribute is ignored: a `<module>` with `extend` shows the same content as the component it extends.",
+        ]);
+        expect(
+            diagnosticsByType.warnings.map(
+                (warning) => warning.position?.start.line,
+            ),
+        ).eqls([3]);
+    });
+
+    it("warns about only the attributes an author wrote on an extend of a module", async () => {
+        // A `<module>` accepts any attribute, so it is handed the `_copy`'s
+        // own (`createComponentIdx`, `copyInChildren`, …) too.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<module name="m"><moduleAttributes><text name="a">hi</text></moduleAttributes><text>$a</text></module>
+<p name="p1"><module extend="$m" /></p>
+<p name="p2"><module extend="$m" a="bye" /></p>
+<p name="p3"><module copy="$m" a="bye" /></p>
+            `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const texts: string[] = [];
+        for (const name of ["p1", "p2", "p3"]) {
+            texts.push(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            );
+        }
+        expect(texts).eqls(["hi", "hi", "bye"]);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(
+            diagnosticsByType.warnings.map((warning) => warning.message),
+        ).eqls([
+            "The `a` attribute is ignored: a `<module>` with `extend` shows the same content as the component it extends.",
+        ]);
+        expect(
+            diagnosticsByType.warnings.map(
+                (warning) => warning.position?.start.line,
+            ),
+        ).eqls([4]);
+    });
+
+    it("warns once about an extend's ignored attribute, wherever it is and however it updates", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<mathInput name="n" prefill="3" />
+<sequence name="s" from="1" to="$n" />
+<sequence name="e" extend="$s" />
+<p name="p1"><sequence extend="$e" to="5" /></p>
+<repeatForSequence from="1" to="2" name="outer"><p><sequence extend="$s" to="6" /></p></repeatForSequence>
+            `,
+        });
+
+        async function check_items(text: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("p1")].stateValues
+                    .text,
+            ).eq(text);
+
+            const diagnosticsByType = getDiagnosticsByType(core);
+            expect(
+                diagnosticsByType.warnings.map((warning) => warning.message),
+            ).eqls([
+                "The `to` attribute is ignored: a `<sequence>` with `extend` shows the same content as the component it extends.",
+                "The `to` attribute is ignored: a `<sequence>` with `extend` shows the same content as the component it extends.",
+            ]);
+        }
+
+        await check_items("1, 2, 3");
+
+        await updateMathInputValue({
+            latex: "4",
+            componentIdx: await resolvePathToNodeIdx("n"),
+            core,
+        });
+        await check_items("1, 2, 3, 4");
+    });
+
     it("non-numeric requested variant index produces an info", async () => {
         const { core } = await createTestCore({
             doenetML: `<text>hi</text>`,

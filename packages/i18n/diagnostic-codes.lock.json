@@ -264,5 +264,7 @@
     "doenet-w0164": "index-operator-values-not-sorted",
     "doenet-w0165": "sample-lognormal-parameters-invalid",
     "doenet-w0166": "sample-normal-mixture-parameters-invalid",
-    "doenet-w0167": "cascade-title-not-shown"
+    "doenet-w0167": "cascade-title-not-shown",
+    "doenet-w0168": "extend-attribute-ignored",
+    "doenet-w0169": "extend-children-ignored"
 }

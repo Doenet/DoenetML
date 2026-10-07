@@ -797,6 +797,30 @@ export class EssentialValueWriter {
             return;
         }
 
+        // A shadow's location is its source's, so the source's `fixLocation`
+        // keeps it put even when the shadow's own is false, as on
+        // `<point extend="$F" fixLocation="false"/>`. The change may reach
+        // the source only through components whose values are not locations
+        // (the coordinates of a point given as a `<math>`), so check here.
+        if (!instruction.overrideFixed && stateVarObj.isLocation) {
+            let source = component;
+            while (
+                source.shadows &&
+                source.shadows.propVariable === undefined
+            ) {
+                source = this.core._components[source.shadows.componentIdx];
+                if (!source) {
+                    break;
+                }
+                if (await source.stateValues.fixLocation) {
+                    reportInternalError(
+                        `Changing ${stateVariable} of ${component.componentIdx} did not succeed because fixLocation of ${source.componentIdx} is true.`,
+                    );
+                    return;
+                }
+            }
+        }
+
         if (!(
             initialChange ||
             (await component.stateValues.modifyIndirectly) !== false

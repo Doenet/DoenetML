@@ -658,6 +658,15 @@ reference-multiple-referents = Multiple referents found for reference: `{ $refer
 # failing silently.
 reference-index-not-a-number = The index of `{ $reference }` did not work out to a number, so the reference found nothing.
 
+# An `extend` of a composite or a list (a `<sequence>`, a `<repeat>`) shows the
+# same content as the component it extends, so an attribute that would set
+# that content, and children written inside it, are not used. $attribute and
+# $componentType are an attribute name and an element name, part of the
+# DoenetML language, so they stay in English, as does `extend`.
+extend-attribute-ignored = The `{ $attribute }` attribute is ignored: a `<{ $componentType }>` with `extend` shows the same content as the component it extends.
+
+extend-children-ignored = Children written inside a `<{ $componentType }>` with `extend` are ignored: it shows the same content as the component it extends.
+
 ## Children that do not match
 
 children-invalid-attribute-format = Invalid format for attribute { $attribute } of `<{ $componentType }>`.

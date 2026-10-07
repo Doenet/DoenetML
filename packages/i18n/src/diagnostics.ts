@@ -256,6 +256,8 @@ export const DIAGNOSTIC_CODES = {
     "doenet-w0165": "sample-lognormal-parameters-invalid",
     "doenet-w0166": "sample-normal-mixture-parameters-invalid",
     "doenet-w0167": "cascade-title-not-shown",
+    "doenet-w0168": "extend-attribute-ignored",
+    "doenet-w0169": "extend-children-ignored",
 
     "doenet-e0001": "pretzel-circuit-first-problem-distractor",
     "doenet-e0002": "component-type-invalid",

@@ -1,5 +1,7 @@
 import { SERIALIZE_ENCOUNTERED_COMPONENT_PREFIX } from "./BaseComponent";
 import CompositeComponent from "./CompositeComponent";
+import ValueListComponent from "./ValueListComponent";
+import Group from "../Group";
 import {
     postProcessCopy,
     verifyReplacementsMatchSpecifiedType,
@@ -15,6 +17,7 @@ import {
 } from "../../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../../utils/componentIndices";
 import { codedDiagnostic } from "../../utils/diagnostics";
+import { returnNumberDisplayAttributes } from "../../utils/numberDisplay";
 import { isListEntryArrayVariable } from "../../utils/listEntryReference";
 import { errorComponentState } from "../../utils/dast/errors";
 import {
@@ -45,6 +48,7 @@ export default class Copy extends CompositeComponent {
         delete attributes.disabled;
         delete attributes.modifyIndirectly;
         delete attributes.fixed;
+        delete attributes.fixLocation;
         delete attributes.styleNumber;
         delete attributes.isResponse;
         delete attributes.isPotentialResponse;
@@ -1659,6 +1663,24 @@ export default class Copy extends CompositeComponent {
                 delete repl.attributes.displayDigits;
                 delete repl.attributes.displayDecimals;
             }
+
+            if (link && copyInChildren) {
+                const ignored = extendIgnoresAttributesAndChildren({
+                    replacementType: repl.componentType,
+                    attributeNames: Object.keys(attributesFromComposite),
+                    copyAttributeNames: Object.keys(compositeAttributesObj),
+                    children: component.serializedChildren,
+                    componentInfoObjects,
+                });
+                diagnostics.push(...ignored.diagnostics);
+                // Keep the source's value of an ignored attribute, so that,
+                // for example, `type` on a sequence's extend does not change
+                // the class its values are made for.
+                for (const attrName of ignored.attributeNames) {
+                    delete attributesFromComposite[attrName];
+                }
+            }
+
             Object.assign(repl.attributes, attributesFromComposite);
         }
 
@@ -4090,6 +4112,113 @@ export async function replacementFromProp({
         diagnostics,
         nComponents,
     };
+}
+
+/**
+ * Warnings for what an `extend` of a composite or a list cannot apply
+ * (#2041). `copyInChildren` marks a `_copy` an author wrote as `extend=` or
+ * `copy=`, and a linked one is an `extend`.
+ *
+ * Such an extend is a shadow of what it extends: a composite copies the
+ * replacements of the composite it shadows (`expandShadowingComposite`), and a
+ * list reads the values of the list it shadows (`shadowVariable`). So an
+ * attribute that its own class declares, beyond what every composite or list
+ * has, cannot change what it shows: `to` on `<sequence extend="$s" to="5"/>`,
+ * `for` on a `<repeat>`. Such an attribute is returned in `attributeNames`, for
+ * the caller to leave off the extend, which then keeps the source's value. Set
+ * on the extend, some would break it instead: `type` on a sequence's extend
+ * picks the class its values are made for. `asList` is read by the parent,
+ * and the number-display attributes, where declared, by the replacements
+ * themselves, so those still apply. Children written inside the extend of a
+ * composite are dropped as well, except by a class that adds them after the
+ * replacements it copies (`<group>`). A list takes no children, which is
+ * already reported as invalid children. A `<group>`, or a class built on it,
+ * makes its replacements again on its extend, so the attributes a group
+ * declares (`rendered`) apply there too.
+ */
+function extendIgnoresAttributesAndChildren({
+    replacementType,
+    attributeNames,
+    copyAttributeNames,
+    children,
+    componentInfoObjects,
+}) {
+    const replacementClass =
+        componentInfoObjects.allComponentClasses[replacementType];
+    if (!replacementClass) {
+        return { attributeNames: [], diagnostics: [] };
+    }
+
+    const isComposite = componentInfoObjects.isCompositeComponent({
+        componentType: replacementType,
+    });
+    const isList = replacementClass.prototype instanceof ValueListComponent;
+    if (!isComposite && !isList) {
+        return { attributeNames: [], diagnostics: [] };
+    }
+
+    const declaredAttributes = replacementClass.createAttributesObject();
+    const sharedAttributes = new Set([
+        ...Object.keys(
+            (isComposite
+                ? CompositeComponent
+                : ValueListComponent
+            ).createAttributesObject(),
+        ),
+        // The number-display attributes, where they apply: a class that
+        // declares them, and a `<collect>`, which passes them on to the
+        // copies it makes. A `<module>` reads one only as a parameter of
+        // its own, which its extend ignores as any other.
+        ...Object.keys(returnNumberDisplayAttributes()).filter(
+            (attrName) =>
+                replacementType === "collect" || attrName in declaredAttributes,
+        ),
+        // A `<group>`, and a `<module>`, shadows by making its replacements
+        // again (`addExtraSerializedChildrenWhenShadowing`), so it reads the
+        // attributes a group declares, such as `rendered`, on its extend.
+        ...(replacementClass === Group ||
+        replacementClass.prototype instanceof Group
+            ? Object.keys(Group.createAttributesObject())
+            : []),
+        // The `_copy`'s own attributes (`createComponentIdx`,
+        // `copyInChildren`, …), which a class that accepts any attribute
+        // (`<module>`, `<collect>`) is handed along with the author's.
+        ...copyAttributeNames,
+    ]);
+
+    const diagnostics = [];
+    const ignoredAttributeNames = attributeNames.filter(
+        (attrName) => !sharedAttributes.has(attrName),
+    );
+
+    for (const attrName of ignoredAttributeNames) {
+        diagnostics.push(
+            codedDiagnostic({
+                type: "warning",
+                code: "doenet-w0168",
+                args: {
+                    attribute: attrName,
+                    componentType: replacementType,
+                },
+            }),
+        );
+    }
+
+    if (
+        isComposite &&
+        !replacementClass.addExtraSerializedChildrenWhenShadowing &&
+        children.some((x) => typeof x !== "string" || x.trim() !== "")
+    ) {
+        diagnostics.push(
+            codedDiagnostic({
+                type: "warning",
+                code: "doenet-w0169",
+                args: { componentType: replacementType },
+            }),
+        );
+    }
+
+    return { attributeNames: ignoredAttributeNames, diagnostics };
 }
 
 export function addChildrenFromComposite({

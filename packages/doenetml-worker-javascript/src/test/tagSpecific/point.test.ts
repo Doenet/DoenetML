@@ -6430,6 +6430,289 @@ describe("Point tag tests @group4", async () => {
         await check_items(params);
     });
 
+    it("fixLocation written on an extend or copy of a point takes precedence", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <point name="F" fixLocation>(5,6)</point>
+      <point name="H">(1,1)</point>
+    </graph>
+    <graph>
+      <point name="XF" extend="$F" fixLocation="false" />
+      <point name="CF" copy="$F" fixLocation="false" />
+      <point name="XH" extend="$H" fixLocation />
+      <point name="XF2" extend="$F" />
+      <point name="CF2" copy="$F" />
+    </graph>
+    `,
+        });
+
+        async function check_items(positions: Record<string, number[]>) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const [name, xs] of Object.entries(positions)) {
+                expect(
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.xs.map((v) => v.tree),
+                    name,
+                ).eqls(xs);
+            }
+        }
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const fixLocations: Record<string, boolean> = {};
+        for (const name of ["F", "H", "XF", "CF", "XH", "XF2", "CF2"]) {
+            fixLocations[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.fixLocation;
+        }
+        expect(fixLocations).eqls({
+            F: true,
+            H: false,
+            XF: false,
+            CF: false,
+            XH: true,
+            XF2: true,
+            CF2: true,
+        });
+
+        const positions = {
+            F: [5, 6],
+            H: [1, 1],
+            XF: [5, 6],
+            CF: [5, 6],
+            XH: [1, 1],
+            XF2: [5, 6],
+            CF2: [5, 6],
+        };
+        await check_items(positions);
+
+        // The unlinked copy is its own point, so it moves.
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("CF"),
+            x: 9,
+            y: 9,
+            core,
+        });
+        positions.CF = [9, 9];
+        await check_items(positions);
+
+        // A drag of the extend lands on `F`, whose `fixLocation` refuses it,
+        // as `fixed="false"` on an extend of a fixed point does.
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("XF"),
+            x: 9,
+            y: 9,
+            core,
+        });
+        await check_items(positions);
+
+        // The extend of `H` has its own `fixLocation`.
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("XH"),
+            x: 9,
+            y: 9,
+            core,
+        });
+        await check_items(positions);
+    });
+
+    it("fixLocation written on a copy or extend takes precedence over an enclosing group's", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <point name="Q">(1,2)</point>
+    </graph>
+    <group fixLocation>
+      <graph>
+        <point name="GC" copy="$Q" fixLocation="false" />
+        <point name="GX" extend="$Q" fixLocation="false" />
+        <point name="GP" copy="$Q" />
+        <point name="GD" fixLocation="false">(3,4)</point>
+      </graph>
+    </group>
+    `,
+        });
+
+        async function check_items(positions: Record<string, number[]>) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const [name, xs] of Object.entries(positions)) {
+                expect(
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.xs.map((v) => v.tree),
+                    name,
+                ).eqls(xs);
+            }
+        }
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const fixLocations: Record<string, boolean> = {};
+        for (const name of ["Q", "GC", "GX", "GP", "GD"]) {
+            fixLocations[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.fixLocation;
+        }
+        // As on `GD`, written directly, the copy's and extend's own
+        // `fixLocation="false"` wins over the group's. A copy with none
+        // inherits the group's.
+        expect(fixLocations).eqls({
+            Q: false,
+            GC: false,
+            GX: false,
+            GP: true,
+            GD: false,
+        });
+
+        const positions = {
+            Q: [1, 2],
+            GC: [1, 2],
+            GX: [1, 2],
+            GP: [1, 2],
+            GD: [3, 4],
+        };
+        await check_items(positions);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("GC"),
+            x: 5,
+            y: 6,
+            core,
+        });
+        positions.GC = [5, 6];
+        await check_items(positions);
+
+        // A drag of the extend lands on `Q`, which is not location-fixed.
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("GX"),
+            x: 7,
+            y: 8,
+            core,
+        });
+        positions.Q = [7, 8];
+        positions.GX = [7, 8];
+        await check_items(positions);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("GP"),
+            x: 9,
+            y: 9,
+            core,
+        });
+        await check_items(positions);
+    });
+
+    it("fixLocation written on an extend or copy of a list entry takes precedence", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <pointList name="L" fixLocation>(1,2) (3,4)</pointList>
+      <point name="E" extend="$L[1]" />
+    </graph>
+    <graph>
+      <point name="CE" copy="$E" fixLocation="false" />
+      <point name="XE" extend="$E" fixLocation="false" />
+      <point name="CL" copy="$L[1]" fixLocation="false" />
+      <point name="XL" extend="$L[1]" fixLocation="false" />
+      <point name="CE2" copy="$E" />
+      <point name="XL2" extend="$L[1]" />
+    </graph>
+    `,
+        });
+
+        async function check_items(positions: Record<string, number[]>) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const [name, xs] of Object.entries(positions)) {
+                expect(
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.xs.map((v) => v.tree),
+                    name,
+                ).eqls(xs);
+            }
+        }
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const fixLocations: Record<string, boolean> = {};
+        for (const name of ["E", "CE", "XE", "CL", "XL", "CE2", "XL2"]) {
+            fixLocations[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.fixLocation;
+        }
+        expect(fixLocations).eqls({
+            E: true,
+            CE: false,
+            XE: false,
+            CL: false,
+            XL: false,
+            CE2: true,
+            XL2: true,
+        });
+
+        const positions = {
+            E: [1, 2],
+            CE: [1, 2],
+            XE: [1, 2],
+            CL: [1, 2],
+            XL: [1, 2],
+            CE2: [1, 2],
+            XL2: [1, 2],
+        };
+        await check_items(positions);
+
+        // The unlinked copies are their own points, so they move.
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("CE"),
+            x: 9,
+            y: 9,
+            core,
+        });
+        positions.CE = [9, 9];
+        await check_items(positions);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("CL"),
+            x: 8,
+            y: 8,
+            core,
+        });
+        positions.CL = [8, 8];
+        await check_items(positions);
+
+        // A drag of an extend lands on the list's entry, whose
+        // `fixLocation` refuses it.
+        for (const name of ["XE", "XL"]) {
+            await movePoint({
+                componentIdx: await resolvePathToNodeIdx(name),
+                x: 7,
+                y: 7,
+                core,
+            });
+            await check_items(positions);
+        }
+
+        // A copy with no `fixLocation` of its own keeps the list's.
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("CE2"),
+            x: 7,
+            y: 7,
+            core,
+        });
+        await check_items(positions);
+    });
+
     it("fix location or fixed is communicated so know math from point can't be changed", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
