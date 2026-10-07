@@ -1,8 +1,9 @@
 /**
  * The pass that makes a `<repeat>` or `<repeatForSequence>` whose template
- * is one value a list component (`_repeatValueList`,
- * `components/RepeatValueList.js`) in place of the composite it otherwise
- * is. Part of Doenet/DoenetML#2163 (F6), whose design is
+ * is one value a list component in place of the composite it otherwise is:
+ * a `_repeatValueList` (`components/RepeatValueList.js`) for a `<math>` or
+ * `<number>`, a `_repeatPointList` (`components/RepeatPointList.js`) for a
+ * `<point>` (`LIST_OF_TEMPLATE`). Part of Doenet/DoenetML#2163 (F6), whose design is
  * `docs/f6-repeat-templates-as-lists.md`.
  *
  * The composite makes a copy of its template for each iteration. The list
@@ -12,8 +13,13 @@
  * known at run time keeps the composite. A repeat qualifies when:
  *
  * - its template is one `<math>` or `<number>`, whose content is text,
- *   references and further unnamed `<math>`s (`templateNodeQualifies`), with
- *   no attributes but those of `NODE_ATTRIBUTES`, each written as a literal;
+ *   references and further unnamed `<math>`s and `<number>`s
+ *   (`templateNodeQualifies`), or one `<point>` whose content is its
+ *   coordinates, each such a `<math>`, and constraints, which become the
+ *   list's, that read the same values in every iteration and hold no
+ *   sampler (`pointQualifies`);
+ *   with no attributes but those of `NODE_ATTRIBUTES`, each written as a
+ *   literal;
  * - every reference in the template reads one of (`classifyReference`):
  *   - its value or index, read as an entry of the list the repeat holds them
  *     in (`_repeatValues`, `_repeatIndices`; the value-reference pass made
@@ -24,16 +30,21 @@
  *   - a value that is the same in every iteration, which becomes a child of
  *     the list;
  * - every reference to the repeat from elsewhere is to the whole repeat
- *   (`$r`), to one iteration (`$r[2]`), or to the template's component in an
- *   iteration (`$r[2].m`, which then reads the entry, `$r[2]`), and is not
- *   an `extend` or `copy`, or named by a reference attribute (a trigger, a
- *   label's `forObject`, a `<ref>`'s `to`), which an entry of a list cannot
- *   be yet (#2181, #2184, #2176);
+ *   (`$r`), to one iteration (`$r[2]`), to the template's component in an
+ *   iteration (`$r[2].m`, which then reads the entry, `$r[2]`, and
+ *   `$r[2].m.x`, which reads `$r[2].x`), or, of a list of points, to a
+ *   coordinate of every entry (`$Ps.x`, `.y`, `.z`), and is not
+ *   an `extend` or `copy` (#2176), or named by a reference attribute,
+ *   except, of a list of points, one that takes an entry of a list as its
+ *   target (#2181, `ENTRY_TARGET_ATTRIBUTES`: a trigger, a label's
+ *   `forObject`, a `<ref>`'s `to`, a `<callAction>`'s `target`, an
+ *   `<annotation>`'s `ref`) naming the whole repeat or one iteration;
  * - no reference reaches the template's name another way, as through an
  *   outer repeat (`$a[2][1][3].m`), which would name a component the list
  *   does not have;
- * - and it is not in a `<graph>`, where each iteration's component is placed
- *   at an anchor of its own and an entry of the list has none (#2186).
+ * - and, unless its template is a `<point>`, whose coordinates place it, it
+ *   is not in a `<graph>`, where each iteration's component is placed at an
+ *   anchor of its own and an entry of the list has none (#2186).
  *
  * It runs after the value-reference pass, which decides whether the value
  * and index are lists and makes the references in the template that read
@@ -49,9 +60,53 @@ import type {
 import { unwrapSource } from "./convertNormalizedDast";
 import { documentReferents } from "./valueReferences";
 import { sequenceEntryComponentType } from "../sequence";
+import { STYLE_OVERRIDE_CATEGORIES } from "@doenet/utils";
 
-/** The types a template, and each component nested in it, can be. */
-const TEMPLATE_TYPES = new Set(["math", "number"]);
+/** The types a template can be, and the list each becomes. */
+const LIST_OF_TEMPLATE: Record<string, string> = {
+    math: "_repeatValueList",
+    number: "_repeatValueList",
+    point: "_repeatPointList",
+};
+
+/** The types a component nested in a template can be. */
+const NESTED_TYPES = new Set(["math", "number"]);
+
+/**
+ * The properties of a whole list of points a reference can read
+ * (`$Ps.x`), as of a `<pointList>`.
+ */
+const POINT_LIST_PROPERTIES = new Set(["x", "y", "z"]);
+
+/**
+ * The reference attributes that take one entry of a list as their target
+ * (`utils/refTargets.ts`), by the component they are on (`*` for any), in
+ * lower case. Of a list of points, the entry is drawn as the iteration's
+ * point was, so naming it finds what naming the point did.
+ */
+const ENTRY_TARGET_ATTRIBUTES: Record<string, Set<string>> = {
+    "*": new Set([
+        "triggerwith",
+        "triggerwhenobjectsclicked",
+        "triggerwhenobjectsfocused",
+    ]),
+    label: new Set(["forobject"]),
+    ref: new Set(["to"]),
+    callaction: new Set(["target"]),
+    annotation: new Set(["ref"]),
+};
+
+/** Whether the reference attribute `namedBy` takes an entry as its target. */
+function takesEntryTarget({ componentType, attribute }: NamedBy) {
+    const name = attribute.toLowerCase();
+    return (
+        ENTRY_TARGET_ATTRIBUTES["*"].has(name) ||
+        ENTRY_TARGET_ATTRIBUTES[componentType.toLowerCase()]?.has(name) === true
+    );
+}
+
+/** The reference attribute that names a reference, and what it is on. */
+type NamedBy = { componentType: string; attribute: string };
 
 /** The list types that hold a repeat's value and index. */
 const ITERATION_LIST_TYPES = new Set(["_repeatValues", "_repeatIndices"]);
@@ -110,6 +165,23 @@ const NODE_ATTRIBUTES: Record<
         top: new Set(["fixed", ...NUMBER_DISPLAY_ATTRIBUTES]),
         nested: new Set(["fixed"]),
     },
+    // the attributes `RepeatPointList` holds as its own, and its
+    // coordinates, `xs`, which sugar made of its content
+    point: {
+        top: new Set([
+            "xs",
+            "fixed",
+            "stylenumber",
+            "labelposition",
+            "draggable",
+            "showcoordswhendragging",
+            "layer",
+            ...Object.keys(STYLE_OVERRIDE_CATEGORIES.marker).map((name) =>
+                name.toLowerCase(),
+            ),
+        ]),
+        nested: new Set(),
+    },
 };
 
 /** Disable the pass, to compare a document with and without it in tests. */
@@ -142,7 +214,7 @@ export function convertRepeatsToLists({
         return { nComponents };
     }
 
-    // Every reference of the document, with whether a reference attribute
+    // Every reference of the document, with the reference attribute that
     // names it (`createReferences`), as a trigger or a `<ref>`'s `to` does.
     // Each is kept under the component it reads, and under each name
     // written after the first part of its path (`$a[2].m`), so that a
@@ -150,11 +222,14 @@ export function convertRepeatsToLists({
     // A plan carried out changes references only to read a list in place of
     // a repeat's value, or to drop a name, so what a repeat looks up here
     // holds every reference that can reach it.
-    type Reference = { component: SerializedComponent; named: boolean };
+    type Reference = {
+        component: SerializedComponent;
+        namedBy: NamedBy | undefined;
+    };
     const referencesByTarget = new Map<number, Reference[]>();
     const referencesByPathName = new Map<string, Reference[]>();
-    forEachReference(serializedComponents, (component, named) => {
-        const reference = { component, named };
+    forEachReference(serializedComponents, (component, namedBy) => {
+        const reference = { component, namedBy };
         const refResolution = unwrapSource(
             component.extending!,
         ) as SerializedRefResolution;
@@ -191,10 +266,6 @@ export function convertRepeatsToLists({
         ) {
             return;
         }
-        if (inGraph(repeat) || copiedIntoGraph(repeat)) {
-            return;
-        }
-
         const iterationLists = new Map<number, SerializedComponent>();
         let setup: SerializedComponent | undefined;
         const templateComponents: SerializedComponent[] = [];
@@ -215,6 +286,19 @@ export function convertRepeatsToLists({
             return;
         }
         const template = templateComponents[0];
+        const listType = LIST_OF_TEMPLATE[template.componentType];
+        if (listType === undefined) {
+            return;
+        }
+        // An iteration's math or number in a graph was placed at an anchor
+        // of its own, which an entry of the list has none of; a point's own
+        // coordinates place it.
+        if (
+            listType === "_repeatValueList" &&
+            (inGraph(repeat) || copiedIntoGraph(repeat))
+        ) {
+            return;
+        }
 
         // The value of a `<repeat>`, which reads `$l[$i]` of the list its
         // `for` is. A `<repeatForSequence>`'s value and index, and a
@@ -265,6 +349,8 @@ export function convertRepeatsToLists({
         const nodes = new Map<number, SerializedComponent>();
         const topName = authorName(template);
         const constants: SerializedComponent[] = [];
+        // a point's constraints, which become the list's
+        const constraints: SerializedComponent[] = [];
         const entryReferences: {
             reference: SerializedComponent;
             listIdx?: number;
@@ -287,7 +373,7 @@ export function convertRepeatsToLists({
 
         // References to the repeat, or into the template, from elsewhere.
         const rewrites: SerializedRefResolution[] = [];
-        for (const { component, named } of [
+        for (const { component, namedBy } of [
             repeat.componentIdx,
             ...nodes.keys(),
         ].flatMap((idx) => referencesByTarget.get(idx) ?? [])) {
@@ -303,21 +389,52 @@ export function convertRepeatsToLists({
             if (refResolution.nodeIdx !== repeat.componentIdx) {
                 continue;
             }
-            if (named || component.attributes.createComponentOfType) {
+            if (component.attributes.createComponentOfType) {
                 return;
             }
             const path = refResolution.unresolvedPath ?? [];
+            if (namedBy) {
+                // An entry of a list of points is a target as the iteration's
+                // point was (#2181); the whole list, one the composite did
+                // not have. What names an iteration's point names the entry.
+                const namesEntry =
+                    path.length === 0 ||
+                    (path[0].name === "" &&
+                        path[0].index.length === 1 &&
+                        (path.length === 1 ||
+                            (path.length === 2 &&
+                                topName !== undefined &&
+                                path[1].name === topName &&
+                                path[1].index.length === 0)));
+                if (
+                    listType !== "_repeatPointList" ||
+                    !takesEntryTarget(namedBy) ||
+                    !namesEntry
+                ) {
+                    return;
+                }
+            }
             if (path.length === 0) {
                 continue;
             }
             if (path[0].name !== "") {
+                // a property of the whole list of points
+                if (
+                    listType === "_repeatPointList" &&
+                    path.length === 1 &&
+                    path[0].index.length === 0 &&
+                    POINT_LIST_PROPERTIES.has(path[0].name.toLowerCase())
+                ) {
+                    continue;
+                }
                 return;
             }
             if (path.length === 1) {
                 continue;
             }
+            // the template in one iteration, which is the entry
+            // (`$r[2].P`, `$r[2].P.x`)
             if (
-                path.length === 2 &&
                 path[0].index.length === 1 &&
                 topName !== undefined &&
                 path[1].name === topName &&
@@ -352,16 +469,17 @@ export function convertRepeatsToLists({
 
         return (nComponents: number) => {
             for (const refResolution of rewrites) {
-                refResolution.unresolvedPath =
-                    refResolution.unresolvedPath!.slice(0, 1);
-                // `.m` ends the path as written too, which may name the
-                // repeat through others first (`$g.r[2].m`)
+                const [first, , ...rest] = refResolution.unresolvedPath!;
+                refResolution.unresolvedPath = [first, ...rest];
+                // The path as written ends as the path to resolve does, and
+                // may name the repeat through others first (`$g.r[2].m`).
                 const written = refResolution.originalPath;
-                if (
-                    written.length > 1 &&
-                    written[written.length - 1].name === topName
-                ) {
-                    refResolution.originalPath = written.slice(0, -1);
+                const nameInd = written.length - rest.length - 1;
+                if (nameInd > 0 && written[nameInd].name === topName) {
+                    refResolution.originalPath = [
+                        ...written.slice(0, nameInd),
+                        ...written.slice(nameInd + 1),
+                    ];
                 }
             }
 
@@ -418,23 +536,32 @@ export function convertRepeatsToLists({
             // its components keeps a name.
             const listAttributes: Record<string, SerializedAttribute> = {
                 ...repeat.attributes,
-                entryType: {
-                    type: "primitive",
-                    name: "entryType",
-                    primitive: {
-                        type: "string",
-                        value: template.componentType,
-                    },
-                },
+                ...(listType === "_repeatValueList"
+                    ? {
+                          entryType: {
+                              type: "primitive",
+                              name: "entryType",
+                              primitive: {
+                                  type: "string",
+                                  value: template.componentType,
+                              },
+                          },
+                      }
+                    : {}),
             };
             for (const [name, attribute] of Object.entries(
                 template.attributes,
             )) {
-                if (name !== "name") {
+                if (name !== "name" && name !== "xs") {
                     listAttributes[name] = attribute;
                 }
             }
-            template.attributes = {};
+            template.attributes = template.attributes.xs
+                ? { xs: template.attributes.xs }
+                : {};
+            template.children = template.children.filter(
+                (child) => !constraints.includes(child as SerializedComponent),
+            );
             for (const node of nodes.values()) {
                 delete node.attributes.name;
             }
@@ -443,12 +570,13 @@ export function convertRepeatsToLists({
                 repeatTemplate: true,
             };
 
-            repeat.componentType = "_repeatValueList";
+            repeat.componentType = listType;
             repeat.attributes = listAttributes;
             repeat.children = [
                 ...iterationLists.values(),
                 template,
                 ...constantChildren,
+                ...constraints,
             ];
             return nComponents;
         };
@@ -482,7 +610,9 @@ export function convertRepeatsToLists({
             top: boolean,
         ): boolean {
             if (
-                !TEMPLATE_TYPES.has(node.componentType) ||
+                !(top
+                    ? node.componentType in LIST_OF_TEMPLATE
+                    : NESTED_TYPES.has(node.componentType)) ||
                 node.extending !== undefined
             ) {
                 return false;
@@ -493,6 +623,10 @@ export function convertRepeatsToLists({
                     if (!top && authorName(node) !== undefined) {
                         return false;
                     }
+                    continue;
+                }
+                if (name === "xs" && node.componentType === "point") {
+                    // its coordinates, checked by `pointQualifies`
                     continue;
                 }
                 if (
@@ -510,6 +644,9 @@ export function convertRepeatsToLists({
             const children = node.children.filter(
                 (child) => typeof child !== "string" || child.trim() !== "",
             );
+            if (node.componentType === "point") {
+                return pointQualifies(node, children);
+            }
             if (node.componentType === "number" && children.length > 1) {
                 return false;
             }
@@ -517,7 +654,7 @@ export function convertRepeatsToLists({
                 if (typeof child === "string") {
                     continue;
                 }
-                if (child.componentType === "math") {
+                if (NESTED_TYPES.has(child.componentType)) {
                     if (!templateNodeQualifies(child, false)) {
                         return false;
                     }
@@ -530,6 +667,110 @@ export function convertRepeatsToLists({
                 }
             }
             return true;
+        }
+
+        /**
+         * Whether the template `<point>` `node`, with non-blank `children`,
+         * qualifies: its coordinates (`xs`, which sugar made of its content)
+         * each a nested `<math>` that qualifies, and its children
+         * constraints that read the same values in every iteration and hold
+         * no sampler (`hasPerIterationState`), which become the list's
+         * (`constraints`).
+         */
+        function pointQualifies(
+            node: SerializedComponent,
+            children: (SerializedComponent | string)[],
+        ): boolean {
+            const xs = node.attributes.xs;
+            if (xs?.type !== "component" || xs.component.extending) {
+                return false;
+            }
+            const coordinates = xs.component.children.filter(
+                (child) => typeof child !== "string" || child.trim() !== "",
+            );
+            if (
+                coordinates.length === 0 ||
+                !coordinates.every(
+                    (coordinate) =>
+                        typeof coordinate !== "string" &&
+                        coordinate.componentType === "math" &&
+                        templateNodeQualifies(coordinate, false),
+                )
+            ) {
+                return false;
+            }
+            for (const child of children) {
+                if (
+                    typeof child === "string" ||
+                    !componentInfoObjects.isInheritedComponentType({
+                        inheritedComponentType: child.componentType,
+                        baseComponentType: "_constraint",
+                    }) ||
+                    authorName(child) !== undefined ||
+                    readsOtherThanConstants(child) ||
+                    hasPerIterationState(child)
+                ) {
+                    return false;
+                }
+                constraints.push(child);
+            }
+            return true;
+        }
+
+        /**
+         * Whether `component` holds a component that each iteration has a
+         * state of its own for: one that draws random values from the
+         * iteration's seed (a sampler), which, shared by the whole list,
+         * would draw once for every entry. An input is rejected too, as a
+         * precaution: inside a constraint it is not drawn, so no reader can
+         * change it.
+         */
+        function hasPerIterationState(component: SerializedComponent): boolean {
+            if (
+                component.componentType in
+                    componentInfoObjects.componentTypesCreatingVariants ||
+                componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: component.componentType,
+                    baseComponentType: "_input",
+                })
+            ) {
+                return true;
+            }
+            return [
+                ...component.children,
+                ...Object.values(component.attributes).flatMap((attribute) =>
+                    attribute.type === "component"
+                        ? [attribute.component]
+                        : attribute.type === "unresolved"
+                          ? (attribute.children as (
+                                SerializedComponent | string
+                            )[])
+                          : [],
+                ),
+            ].some(
+                (child) =>
+                    typeof child !== "string" && hasPerIterationState(child),
+            );
+        }
+
+        /**
+         * Whether anything in `component` reads a value that is not the same
+         * in every iteration: the repeat's value or index, or the template.
+         */
+        function readsOtherThanConstants(component: SerializedComponent) {
+            let reads = false;
+            forEachReference([component], (reference) => {
+                const refResolution = unwrapSource(
+                    reference.extending!,
+                ) as SerializedRefResolution;
+                if (
+                    forbidden.has(refResolution.nodeIdx) ||
+                    pathReads(refResolution, forbidden)
+                ) {
+                    reads = true;
+                }
+            });
+            return reads;
         }
 
         /**
@@ -855,6 +1096,11 @@ function collectNodes(
             collectNodes(child, nodes);
         }
     }
+    // a point's coordinates
+    const xs = node.attributes.xs;
+    if (xs?.type === "component" && xs.component.extending === undefined) {
+        collectNodes(xs.component, nodes);
+    }
 }
 
 /**
@@ -945,22 +1191,25 @@ function pathReads(
 
 /**
  * Call `visit` for every component of the tree that extends a reference,
- * with whether a reference attribute (`createReferences`) names it: children,
- * attribute components, the references of a reference attribute, the
- * children of an attribute not yet converted, and what is written between the
- * brackets of a reference's path.
+ * with the reference attribute (`createReferences`) that names it, if any:
+ * children, attribute components, the references of a reference attribute,
+ * the children of an attribute not yet converted, and what is written
+ * between the brackets of a reference's path.
  */
 function forEachReference(
     components: (SerializedComponent | string)[],
-    visit: (component: SerializedComponent, named: boolean) => void,
-    named = false,
+    visit: (
+        component: SerializedComponent,
+        namedBy: NamedBy | undefined,
+    ) => void,
+    namedBy?: NamedBy,
 ) {
     for (const component of components) {
         if (typeof component === "string") {
             continue;
         }
         if (component.extending) {
-            visit(component, named);
+            visit(component, namedBy);
             // what is written between the brackets of its path, held both
             // as written and as left to resolve
             const refResolution = unwrapSource(
@@ -978,11 +1227,14 @@ function forEachReference(
             }
         }
         forEachReference(component.children, visit);
-        for (const attribute of Object.values(component.attributes)) {
+        for (const [name, attribute] of Object.entries(component.attributes)) {
             if (attribute.type === "component") {
                 forEachReference([attribute.component], visit);
             } else if (attribute.type === "references") {
-                forEachReference(attribute.references, visit, true);
+                forEachReference(attribute.references, visit, {
+                    componentType: component.componentType,
+                    attribute: name,
+                });
             } else if (attribute.type === "unresolved") {
                 forEachReference(
                     attribute.children as (SerializedComponent | string)[],

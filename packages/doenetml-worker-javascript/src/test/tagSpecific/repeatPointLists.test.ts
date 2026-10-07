@@ -1,0 +1,692 @@
+import { afterEach, describe, expect, it, vi } from "vitest";
+import { createTestCore } from "../utils/test-core";
+import { movePoint, movePolygon, updateMathInputValue } from "../utils/actions";
+import { getDiagnosticsByType } from "../utils/diagnostics";
+import { setRepeatListsEnabled } from "../../utils/dast/repeatLists";
+
+const Mock = vi.fn();
+vi.stubGlobal("postMessage", Mock);
+vi.mock("hyperformula");
+
+/**
+ * A repeat whose template is one `<point>` is a list of points
+ * (`_repeatPointList`, Doenet/DoenetML#2163). Each document here is checked
+ * against itself with the repeat left a composite (`setRepeatListsEnabled`):
+ * what an author sees, and what a graph draws, must be the same.
+ */
+describe("Repeats whose template is one point @group4", () => {
+    afterEach(() => setRepeatListsEnabled(true));
+
+    async function textsOf(
+        core: any,
+        resolvePathToNodeIdx: any,
+        names: string[],
+    ) {
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const texts: Record<string, string> = {};
+        for (const name of names) {
+            texts[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.text;
+        }
+        return texts;
+    }
+
+    async function pointsDrawnIn(
+        core: any,
+        resolvePathToNodeIdx: any,
+        name: string,
+    ) {
+        const rendererState =
+            core.core.rendererInstructionBuilder.rendererState;
+        const points: { componentIdx: number; coords: number[] }[] = [];
+        function visit(instructions: any[]) {
+            for (const child of instructions) {
+                if (typeof child !== "object" || !child) {
+                    continue;
+                }
+                const state = rendererState[child.componentIdx];
+                if (child.componentType === "point") {
+                    if (!state.stateValues.hidden) {
+                        points.push({
+                            componentIdx: child.componentIdx,
+                            coords: state.stateValues.numericalXs,
+                        });
+                    }
+                } else if (state?.childrenInstructions) {
+                    visit(state.childrenInstructions);
+                }
+            }
+        }
+        visit(
+            rendererState[await resolvePathToNodeIdx(name)]
+                .childrenInstructions,
+        );
+        return points;
+    }
+
+    async function dragPoint({
+        core,
+        resolvePathToNodeIdx,
+        graph,
+        index,
+        x,
+        y,
+    }: {
+        core: any;
+        resolvePathToNodeIdx: any;
+        graph: string;
+        index: number;
+        x: number;
+        y: number;
+    }) {
+        const drawn = await pointsDrawnIn(core, resolvePathToNodeIdx, graph);
+        await core.requestAction({
+            componentIdx: drawn[index].componentIdx,
+            actionName: "movePoint",
+            args: { x, y },
+        });
+    }
+
+    /**
+     * Load `doenetML` with and without repeat lists; check that the repeat
+     * `repeatName` is a list of points only with them (or never, for one
+     * that must stay a composite), then, after `act`, that the `text` of each
+     * of `names` and the points each of `graphs` draws are the same.
+     */
+    async function compare({
+        doenetML,
+        names = [],
+        graphs = [],
+        repeatName = "r",
+        becomesList = true,
+        act,
+    }: {
+        doenetML: string;
+        names?: string[];
+        graphs?: string[];
+        repeatName?: string;
+        becomesList?: boolean;
+        act?: (core: any, resolvePathToNodeIdx: any) => Promise<void>;
+    }) {
+        const results: any[] = [];
+        for (const asList of [true, false]) {
+            setRepeatListsEnabled(asList);
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            setRepeatListsEnabled(true);
+            const type =
+                core.core!._components[await resolvePathToNodeIdx(repeatName)]
+                    .componentType;
+            expect(type === "_repeatPointList", doenetML).toBe(
+                asList && becomesList,
+            );
+            if (act) {
+                await act(core, resolvePathToNodeIdx);
+            }
+            const result: any = await textsOf(
+                core,
+                resolvePathToNodeIdx,
+                names,
+            );
+            for (const graph of graphs) {
+                // `-0` and `0` are drawn the same
+                result[graph] = (
+                    await pointsDrawnIn(core, resolvePathToNodeIdx, graph)
+                ).map((p) => p.coords.map((x: number) => (x === 0 ? 0 : x)));
+            }
+            results.push(result);
+        }
+        expect(results[0]).toEqual(results[1]);
+        return results[0];
+    }
+
+    it("points of the index, a value and an entry of a list", async () => {
+        const result = await compare({
+            doenetML: `
+<numberList name="l">10 20 30</numberList>
+<number name="c">2</number>
+<graph name="g"><repeatForSequence name="r" from="1" to="3" indexName="i"><point name="P">($i, $l[$i]/10 + $c)</point></repeatForSequence></graph>
+<p name="p">$r</p>
+<p name="p2">$r[2] $r[2].P $r[3].P.x $r.x</p>
+<p name="p3"><sum>$r.y</sum></p>
+`,
+            names: ["p", "p2", "p3"],
+            graphs: ["g"],
+        });
+        expect(result.p).toBe("(1, 3), (2, 4), (3, 5)");
+        expect(result.g).toEqual([
+            [1, 3],
+            [2, 4],
+            [3, 5],
+        ]);
+    });
+
+    it("the dot plot's point: a nested fixed number and constraints", async () => {
+        const result = await compare({
+            doenetML: `
+<numberList name="values">1.2 3.9 4.1</numberList>
+<numberList name="heights">1 1 2</numberList>
+<number name="dx">1</number>
+<graph name="g" xMin="0" xMax="10" yMin="0" yMax="5">
+  <repeatForSequence from="1" to="3" indexName="i" name="r">
+    <point name="P" labelPosition="top">
+      ($values[$i], <number fixed>0.5 $heights[$i]</number>)
+      <constrainToGraph /> <constrainToGrid dx="$dx" dy="0.5" />
+    </point>
+  </repeatForSequence>
+</graph>
+<p name="pv">$values</p>
+`,
+            names: ["pv"],
+            graphs: ["g"],
+            act: async (core, resolvePathToNodeIdx) => {
+                await dragPoint({
+                    core,
+                    resolvePathToNodeIdx,
+                    graph: "g",
+                    index: 1,
+                    x: 6.2,
+                    y: 3.3,
+                });
+            },
+        });
+        expect(result.pv).toBe("1.2, 6, 4.1");
+        expect(result.g).toEqual([
+            [1, 0.5],
+            [6, 0.5],
+            [4, 1],
+        ]);
+    });
+
+    it("drags through a list entry, the index, a literal and a value outside", async () => {
+        await compare({
+            doenetML: `
+<numberList name="ns">1 2 3</numberList>
+<number name="c">5</number>
+<graph name="g">
+  <repeatForSequence from="1" to="3" indexName="i" name="r"><point>($ns[$i], 1)</point></repeatForSequence>
+</graph>
+<graph name="g2">
+  <repeatForSequence from="1" to="3" indexName="i" name="r2"><point>($i, $c)</point></repeatForSequence>
+</graph>
+<p name="pns">$ns</p>
+<p name="pc">$c</p>
+`,
+            names: ["pns", "pc"],
+            graphs: ["g", "g2"],
+            act: async (core, resolvePathToNodeIdx) => {
+                await dragPoint({
+                    core,
+                    resolvePathToNodeIdx,
+                    graph: "g",
+                    index: 0,
+                    x: -1,
+                    y: -2,
+                });
+                await dragPoint({
+                    core,
+                    resolvePathToNodeIdx,
+                    graph: "g2",
+                    index: 1,
+                    x: 7,
+                    y: 8,
+                });
+            },
+        });
+    });
+
+    it("a dragged literal is kept while the repeat is shorter", async () => {
+        await compare({
+            doenetML: `
+<mathInput name="n" prefill="3" />
+<graph name="g">
+  <repeatForSequence from="1" to="$n" indexName="i" name="r"><point>($i, 1)</point></repeatForSequence>
+</graph>
+`,
+            graphs: ["g"],
+            act: async (core, resolvePathToNodeIdx) => {
+                await dragPoint({
+                    core,
+                    resolvePathToNodeIdx,
+                    graph: "g",
+                    index: 2,
+                    x: 3,
+                    y: 4,
+                });
+                const n = await resolvePathToNodeIdx("n");
+                await updateMathInputValue({
+                    latex: "1",
+                    componentIdx: n,
+                    core,
+                });
+                await updateMathInputValue({
+                    latex: "4",
+                    componentIdx: n,
+                    core,
+                });
+            },
+        });
+    });
+
+    it("the template's attributes are the list's", async () => {
+        const doenetML = `
+<graph name="g">
+  <repeatForSequence from="1" to="2" valueName="k" name="r">
+    <point styleNumber="2" markerStyle="square" markerSize="4" showCoordsWhenDragging="false" labelPosition="left" draggable="false" layer="2">(cos($k), sin($k))</point>
+  </repeatForSequence>
+</graph>
+`;
+        const results: any[] = [];
+        for (const asList of [true, false]) {
+            setRepeatListsEnabled(asList);
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            setRepeatListsEnabled(true);
+            const rendererState =
+                core.core!.rendererInstructionBuilder.rendererState;
+            const drawn = await pointsDrawnIn(core, resolvePathToNodeIdx, "g");
+            results.push(
+                drawn.map((p) => {
+                    const sv = rendererState[p.componentIdx].stateValues;
+                    return {
+                        coords: p.coords,
+                        markerStyle: sv.selectedStyle.markerStyle,
+                        markerSize: sv.selectedStyle.markerSize,
+                        lineColor: sv.selectedStyle.markerColor,
+                        showCoordsWhenDragging: sv.showCoordsWhenDragging,
+                        labelPosition: sv.labelPosition,
+                        draggable: sv.draggable,
+                        layer: sv.layer,
+                    };
+                }),
+            );
+        }
+        expect(results[0]).toEqual(results[1]);
+        expect(results[0][0]).toMatchObject({
+            markerStyle: "square",
+            markerSize: 4,
+            showCoordsWhenDragging: false,
+            labelPosition: "left",
+            draggable: false,
+            layer: 2,
+        });
+    });
+
+    it("constrained to the points of the list", async () => {
+        await compare({
+            doenetML: `
+<setup>
+  <repeatForSequence name="r" from="1" to="4" valueName="k"><point>(cos($k pi/2), sin($k pi/2))</point></repeatForSequence>
+</setup>
+<graph name="g">
+  $r
+  <point name="P"><constrainTo>$r</constrainTo>(0.9, 0.2)</point>
+</graph>
+<p name="pP">$P</p>
+`,
+            names: ["pP"],
+            graphs: ["g"],
+        });
+    });
+
+    it("the vertices of a polygon, as the list grows, shrinks and is moved", async () => {
+        // A reference to the whole list shadows its coordinate arrays, which
+        // the entries' coordinates are read from.
+        const result = await compare({
+            doenetML: `
+<mathInput name="n" prefill="3" />
+<numberList name="l">1 2 3 4 5 6</numberList>
+<graph name="g">
+  <repeatForSequence from="1" to="$n" indexName="i" name="r"><point name="P">($i, $l[$i])</point></repeatForSequence>
+  <polygon name="pg" vertices="$r" />
+</graph>
+<p name="pl">$l</p>
+<p name="pv">$pg.vertices</p>
+`,
+            names: ["pl", "pv"],
+            graphs: ["g"],
+            act: async (core, resolvePathToNodeIdx) => {
+                await movePolygon({
+                    componentIdx: await resolvePathToNodeIdx("pg"),
+                    pointCoords: { 1: [2, 9] },
+                    core,
+                });
+                const n = await resolvePathToNodeIdx("n");
+                await updateMathInputValue({
+                    latex: "4",
+                    componentIdx: n,
+                    core,
+                });
+            },
+        });
+        expect(result.pl).toBe("1, 9, 3, 4, 5, 6");
+        expect(result.pv).toBe("(1, 1), (2, 9), (3, 3), (4, 4)");
+    });
+
+    it("a coordinate reads the entries' other coordinate", async () => {
+        // Each coordinate array is computed from its coordinate alone, so the
+        // y of each point can read the x of the points.
+        const result = await compare({
+            doenetML: `
+<numberList name="l">1.2 3.9 4.1</numberList>
+<numberList name="xs">$r.x</numberList>
+<graph name="g">
+  <repeatForSequence from="1" to="3" indexName="i" name="r"><point name="P">($l[$i], <number fixed>$xs[$i] + 1</number>)<constrainToGrid dx="1" /></point></repeatForSequence>
+</graph>
+<p name="pl">$l</p>
+<p name="pxs">$xs</p>
+`,
+            names: ["pl", "pxs"],
+            graphs: ["g"],
+            act: async (core, resolvePathToNodeIdx) => {
+                await dragPoint({
+                    core,
+                    resolvePathToNodeIdx,
+                    graph: "g",
+                    index: 1,
+                    x: 6.2,
+                    y: 3.3,
+                });
+            },
+        });
+        expect(result.pxs).toBe("1, 6, 4");
+        expect(result.g).toEqual([
+            [1, 2],
+            [6, 7],
+            [4, 5],
+        ]);
+    });
+
+    it("a value outside read by one coordinate reads the other", async () => {
+        // Each coordinate depends only on the values outside that it reads,
+        // so `c`, read by the y of each point, can read their x.
+        const result = await compare({
+            doenetML: `
+<number name="a">1</number>
+<graph name="g">
+  <repeatForSequence name="r" length="3" indexName="i"><point>($i + $a, $c)</point></repeatForSequence>
+</graph>
+<number name="c"><sum>$r.x</sum></number>
+<p name="pa">$a</p>
+<p name="pc">$c</p>
+`,
+            names: ["pa", "pc"],
+            graphs: ["g"],
+        });
+        expect(result.pc).toBe("9");
+        expect(result.g).toEqual([
+            [2, 9],
+            [3, 9],
+            [4, 9],
+        ]);
+    });
+
+    it("drags through a value outside in each coordinate", async () => {
+        // Each coordinate writes to the value it reads, though each depends
+        // on only that one.
+        const result = await compare({
+            doenetML: `
+<number name="a">1</number>
+<number name="b">5</number>
+<graph name="g">
+  <repeatForSequence name="r" length="3" indexName="i"><point>($i + $a, $b)</point></repeatForSequence>
+</graph>
+<p name="pa">$a</p>
+<p name="pb">$b</p>
+`,
+            names: ["pa", "pb"],
+            graphs: ["g"],
+            act: async (core, resolvePathToNodeIdx) => {
+                await dragPoint({
+                    core,
+                    resolvePathToNodeIdx,
+                    graph: "g",
+                    index: 1,
+                    x: 7,
+                    y: -3,
+                });
+            },
+        });
+        expect([result.pa, result.pb]).toEqual(["5", "-3"]);
+    });
+
+    it("constraints that are not by coordinate, with the coordinates read", async () => {
+        // A constraint that is not independent by coordinate constrains the
+        // whole entry, and each coordinate array reads the constrained entry.
+        // A point copying two coordinates of an entry writes both in one
+        // update, which are constrained together.
+        await compare({
+            doenetML: `
+<numberList name="l">1 2 3</numberList>
+<graph name="g">
+  <circle name="c" />
+  <repeatForSequence from="1" to="3" indexName="i" name="r"><point name="P">($l[$i], 0.5)<constrainTo>$c</constrainTo></point></repeatForSequence>
+  <point name="Q">($r[3].P.x, $r[3].P.y)</point>
+</graph>
+<p name="pl">$l</p>
+<p name="px">$r.x</p>
+<p name="py">$r.y</p>
+<p name="pq">$Q</p>
+<mathInput name="mx" bindValueTo="$r[2].P.x" />
+<mathInput name="my" bindValueTo="$r[3].P.y" />
+`,
+            names: ["pl", "px", "py", "pq"],
+            graphs: ["g"],
+            act: async (core, resolvePathToNodeIdx) => {
+                await dragPoint({
+                    core,
+                    resolvePathToNodeIdx,
+                    graph: "g",
+                    index: 0,
+                    x: -3,
+                    y: 4,
+                });
+                await updateMathInputValue({
+                    latex: "-0.2",
+                    componentIdx: await resolvePathToNodeIdx("mx"),
+                    core,
+                });
+                await updateMathInputValue({
+                    latex: "-5",
+                    componentIdx: await resolvePathToNodeIdx("my"),
+                    core,
+                });
+                await movePoint({
+                    componentIdx: await resolvePathToNodeIdx("Q"),
+                    x: -2,
+                    y: -2,
+                    core,
+                });
+            },
+        });
+    });
+
+    it("a coordinate the points do not have is nothing", async () => {
+        const result = await compare({
+            doenetML: `
+<graph name="g"><repeatForSequence from="1" to="3" indexName="i" name="r"><point name="P">($i)</point></repeatForSequence></graph>
+<graph name="g2"><repeatForSequence from="1" to="3" indexName="i" name="r2"><point name="Q">($i, 2)</point></repeatForSequence></graph>
+<p name="px">$r.x</p>
+<p name="py">$r.y</p><p name="py2">$r[2].P.y</p><p name="sy"><sum>$r.y</sum></p>
+<p name="pz">$r2.z</p><p name="pz2">$r2[2].Q.z</p>
+`,
+            names: ["px", "py", "py2", "sy", "pz", "pz2"],
+            graphs: ["g", "g2"],
+        });
+        expect(result).toMatchObject({
+            px: "1, 2, 3",
+            py: "",
+            py2: "",
+            pz: "",
+            pz2: "",
+        });
+    });
+
+    it("an entry is a target, as the iteration's point was", async () => {
+        // #2203: a trigger, a legend's label, a `<ref>` and a `<callAction>`
+        // find an entry of a list. What names an iteration's point finds
+        // the same point; what names an iteration (`$Ps[2]`) or the whole
+        // repeat (`$Ps`), which found nothing, finds the entry, or each
+        // entry, as of a `<pointList>`.
+        const doenetML = `
+    <graph name="g">
+      <repeatForSequence name="Ps" length="3" valueName="v"><point name="P">($v, 1)</point></repeatForSequence>
+      <legend name="legend">
+        <label forObject="$Ps[2].P">second</label>
+        <label forObject="$Ps[1]">first</label>
+      </legend>
+    </graph>
+    <number name="nP">0</number>
+    <number name="nIteration">0</number>
+    <number name="nAll">0</number>
+    <number name="nFocus">0</number>
+    <updateValue target="$nP" newValue="$nP+1" triggerWhenObjectsClicked="$Ps[2].P" />
+    <updateValue target="$nIteration" newValue="$nIteration+1" triggerWhenObjectsClicked="$Ps[2]" />
+    <updateValue target="$nAll" newValue="$nAll+1" triggerWhenObjectsClicked="$Ps" />
+    <updateValue target="$nFocus" newValue="$nFocus+1" triggerWhenObjectsFocused="$Ps[1].P" />
+    <p><ref name="ref" to="$Ps[2].P">second</ref></p>
+    `;
+        const names = ["nP", "nIteration", "nAll", "nFocus"];
+
+        for (const asList of [true, false]) {
+            setRepeatListsEnabled(asList);
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            setRepeatListsEnabled(true);
+            expect(
+                core.core!._components[await resolvePathToNodeIdx("Ps")]
+                    .componentType === "_repeatPointList",
+            ).toBe(asList);
+
+            const drawn = await pointsDrawnIn(core, resolvePathToNodeIdx, "g");
+            for (const [index, actionName] of [
+                [1, "pointClicked"],
+                [0, "pointFocused"],
+            ] as const) {
+                const componentIdx = drawn[index].componentIdx;
+                await core.requestAction({
+                    componentIdx,
+                    actionName,
+                    args: { componentIdx },
+                });
+            }
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const counts: Record<string, number> = {};
+            for (const name of names) {
+                counts[name] =
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.value;
+            }
+            const labels = stateVariables[
+                await resolvePathToNodeIdx("legend")
+            ].stateValues.legendElements.map((x: any) => x.label.value);
+            const url =
+                stateVariables[await resolvePathToNodeIdx("ref")].stateValues
+                    .url;
+            const ids = core.core.rendererInstructionBuilder.rendererState[
+                await resolvePathToNodeIdx("g")
+            ].childrenInstructions
+                .filter((child: any) => child?.componentType === "point")
+                .map((child: any) => child.id);
+
+            if (asList) {
+                expect(counts).eqls({
+                    nP: 1,
+                    nIteration: 1,
+                    nAll: 1,
+                    nFocus: 1,
+                });
+                expect(labels).eqls(["second", "first"]);
+                expect(url).eq("#Ps:2");
+                expect(ids[1]).eq("Ps:2");
+            } else {
+                expect(counts).eqls({
+                    nP: 1,
+                    nIteration: 0,
+                    nAll: 0,
+                    nFocus: 1,
+                });
+                expect(labels).eqls(["second"]);
+                expect(url).eq("#Ps:2.P");
+            }
+        }
+    });
+
+    it("a PreFigure annotation of an iteration's point", async () => {
+        const doenetML = `
+    <graph name="g" renderer="prefigure">
+      <repeatForSequence name="Ps" length="3" valueName="v"><point name="P">($v, 1)</point></repeatForSequence>
+      <annotations>
+        <annotation ref="$Ps[2].P" text="second point" />
+      </annotations>
+    </graph>
+    `;
+        for (const asList of [true, false]) {
+            setRepeatListsEnabled(asList);
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            setRepeatListsEnabled(true);
+            expect(
+                core.core!._components[await resolvePathToNodeIdx("Ps")]
+                    .componentType === "_repeatPointList",
+            ).toBe(asList);
+
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const xml: string =
+                stateVariables[await resolvePathToNodeIdx("g")].stateValues
+                    .prefigureXML;
+            const handles = [...xml.matchAll(/<point at="([^"]+)"/g)].map(
+                (m) => m[1],
+            );
+            expect(handles.length).eq(3);
+            expect(xml).toContain(
+                `<annotation ref="${handles[1]}" text="second point"></annotation>`,
+            );
+            const { warnings } = getDiagnosticsByType(core);
+            expect(
+                warnings.filter((x) => x.message.includes("<annotation>")),
+            ).eqls([]);
+        }
+    });
+
+    it("stays a composite where an entry cannot stand in for an iteration", async () => {
+        for (const doenetML of [
+            // a label
+            `<graph><repeatForSequence name="r" from="1" to="2" valueName="v"><point>($v, 0)<label>$v</label></point></repeatForSequence></graph>`,
+            // an attribute that reads the index
+            `<graph><repeatForSequence name="r" from="1" to="2" valueName="v"><point styleNumber="$v">($v, 0)</point></repeatForSequence></graph>`,
+            // a constraint that reads the index
+            `<graph><repeatForSequence name="r" from="1" to="2" valueName="v"><point>($v, 0)<constrainToGrid dx="$v"/></point></repeatForSequence></graph>`,
+            // coordinates as attributes
+            `<graph><repeatForSequence name="r" from="1" to="2" valueName="v"><point x="$v" y="0" /></repeatForSequence></graph>`,
+            // a sampler
+            `<graph><repeatForSequence name="r" from="1" to="2" valueName="v"><point>($v, <selectFromSequence from="1" to="5"/>)</point></repeatForSequence></graph>`,
+            // a constraint with a sampler, which draws for each iteration
+            `<graph name="g"><repeatForSequence name="r" length="4" valueName="v"><point>($v, 3)<constrainTo><point>(<selectFromSequence from="1" to="50"/>, 0)</point></constrainTo></point></repeatForSequence></graph>`,
+            // a constraint with an input, which each iteration has its own of
+            `<graph name="g"><repeatForSequence name="r" length="2" valueName="v"><point>($v, 3)<constrainTo><point>(<mathInput prefill="5"/>, 0)</point></constrainTo></point></repeatForSequence></graph>`,
+            // reference attributes that do not take an entry as a target
+            `<graph><repeatForSequence name="r" from="1" to="2" valueName="v"><point>($v, 0)</point></repeatForSequence></graph><collect from="$r" componentType="point" />`,
+            `<graph><repeatForSequence name="r" from="1" to="2" valueName="v"><point name="P">($v, 0)</point></repeatForSequence></graph><number name="n">1</number><updateValue target="$n" newValue="2" triggerWith="$r[1].P.x" />`,
+        ]) {
+            await compare({
+                doenetML,
+                becomesList: false,
+                graphs: doenetML.includes('<graph name="g">') ? ["g"] : [],
+            });
+        }
+    });
+});

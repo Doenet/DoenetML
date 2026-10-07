@@ -1,20 +1,13 @@
-import ValueListComponent, {
-    entryValueOfType,
-} from "./abstract/ValueListComponent";
+import ValueListComponent from "./abstract/ValueListComponent";
 import MathComponent from "./Math";
 import {
-    returnSequenceValues,
-    returnStandardSequenceAttributes,
-    returnStandardSequenceStateVariableDefinitions,
-} from "../utils/sequence";
-import { setUpVariantSeedAndRng } from "../utils/variants";
-import {
-    templateCanBeModified,
-    analyzeRepeatTemplate,
-    evaluateRepeatTemplate,
-    invertRepeatTemplate,
-} from "../utils/repeatTemplate";
+    REPEAT_LIST_STATICS,
+    addRepeatListAttributes,
+    addRepeatListDefinitions,
+    repeatTemplateEntriesDefinition,
+} from "./abstract/repeatList";
 import { mathValueForDisplay } from "../utils/valueFunctions/math";
+import { templateCanBeModified } from "../utils/repeatTemplate";
 
 /**
  * A `<repeat>` or `<repeatForSequence>` whose template is one value, made a
@@ -50,7 +43,6 @@ import { mathValueForDisplay } from "../utils/valueFunctions/math";
  */
 export default class RepeatValueList extends ValueListComponent {
     static componentType = "_repeatValueList";
-    static excludeFromSchema = true;
 
     static listEntryComponentType = "math";
 
@@ -66,37 +58,9 @@ export default class RepeatValueList extends ValueListComponent {
     // ancestor's.
     static listEntriesFixedByDefault = false;
 
-    // The text of the template's components as written to an entry
-    // (`entryWrites`), when they took a value by changing it, kept past the
-    // end of the entries as a withheld iteration kept its own.
-    static listEntriesTakeWrites = true;
-    static listKeepsEntryWritesPastEnd = true;
-
-    static createsVariants = true;
-
-    static keepChildrenSerialized({ serializedComponent }) {
-        return Object.keys(serializedComponent.children ?? []).filter(
-            (ind) =>
-                serializedComponent.children[ind].doenetAttributes
-                    ?.repeatTemplate,
-        );
-    }
-
     static createAttributesObject() {
         const attributes = super.createAttributesObject();
-        // A `<repeatForSequence>`'s, which a list made from a `<repeat>`
-        // does not set.
-        Object.assign(attributes, returnStandardSequenceAttributes());
-        attributes.type = { ...attributes.type, defaultValue: "number" };
-        attributes.for = {
-            createComponentOfType: "group",
-        };
-        attributes.valueName = {
-            createPrimitiveOfType: "string",
-        };
-        attributes.indexName = {
-            createPrimitiveOfType: "string",
-        };
+        addRepeatListAttributes(attributes);
         attributes.entryType = {
             createPrimitiveOfType: "string",
         };
@@ -126,217 +90,7 @@ export default class RepeatValueList extends ValueListComponent {
         const entryType = this.listEntryComponentType;
         const arrayName = this.listValuesArrayName;
 
-        Object.assign(
-            stateVariableDefinitions,
-            returnStandardSequenceStateVariableDefinitions(),
-        );
-
-        stateVariableDefinitions.sourcesComponentIdx = {
-            returnDependencies: () => ({
-                forAttr: {
-                    dependencyType: "attributeComponent",
-                    attributeName: "for",
-                },
-            }),
-            definition: ({ dependencyValues }) => ({
-                setValue: {
-                    sourcesComponentIdx:
-                        dependencyValues.forAttr?.componentIdx ?? null,
-                },
-            }),
-        };
-
-        // As the repeat counts its iterations: the items of its `for`, or
-        // the values of its sequence (`RepeatForSequence.forValues`).
-        stateVariableDefinitions.numIterates = {
-            additionalStateVariablesDefined: ["forValues"],
-            stateVariablesDeterminingDependencies: ["sourcesComponentIdx"],
-            returnDependencies({ stateValues }) {
-                if (stateValues.sourcesComponentIdx !== null) {
-                    return {
-                        sources: {
-                            dependencyType: "replacement",
-                            compositeIdx: stateValues.sourcesComponentIdx,
-                            recursive: true,
-                            recurseNonStandardComposites: true,
-                            variableNames: ["numEntries"],
-                            variablesOptional: true,
-                        },
-                    };
-                }
-                return {
-                    type: {
-                        dependencyType: "stateVariable",
-                        variableName: "type",
-                    },
-                    length: {
-                        dependencyType: "stateVariable",
-                        variableName: "length",
-                    },
-                    from: {
-                        dependencyType: "stateVariable",
-                        variableName: "from",
-                    },
-                    step: {
-                        dependencyType: "stateVariable",
-                        variableName: "step",
-                    },
-                    exclude: {
-                        dependencyType: "stateVariable",
-                        variableName: "exclude",
-                    },
-                    lowercase: {
-                        dependencyType: "stateVariable",
-                        variableName: "lowercase",
-                    },
-                };
-            },
-            definition({ dependencyValues }) {
-                if (dependencyValues.sources) {
-                    const numIterates = dependencyValues.sources
-                        .filter(
-                            (source) =>
-                                typeof source !== "string" ||
-                                source.trim() !== "",
-                        )
-                        .reduce(
-                            (count, source) =>
-                                count + (source.stateValues?.numEntries ?? 1),
-                            0,
-                        );
-                    return { setValue: { numIterates, forValues: [] } };
-                }
-                const forValues = returnSequenceValues(dependencyValues);
-                return {
-                    setValue: { numIterates: forValues.length, forValues },
-                };
-            },
-        };
-
-        stateVariableDefinitions.computedNumEntries = {
-            returnDependencies: () => ({
-                numIterates: {
-                    dependencyType: "stateVariable",
-                    variableName: "numIterates",
-                },
-            }),
-            markStale: () => ({ updateReplacements: true }),
-            definition: ({ dependencyValues }) => ({
-                setValue: { computedNumEntries: dependencyValues.numIterates },
-            }),
-        };
-
-        stateVariableDefinitions.templateAnalysis = {
-            returnDependencies: () => ({
-                serializedChildren: {
-                    dependencyType: "serializedChildren",
-                    doNotProxy: true,
-                },
-            }),
-            definition({ dependencyValues }) {
-                const template = dependencyValues.serializedChildren.find(
-                    (child) => child.doenetAttributes?.repeatTemplate,
-                );
-                // A reference to the whole list shadows its values, and
-                // holds no template.
-                return {
-                    setValue: {
-                        templateAnalysis: template
-                            ? analyzeRepeatTemplate(template)
-                            : { nodes: [], entryLists: [] },
-                    },
-                };
-            },
-        };
-
-        // For each list the template reads an entry of, the prefix of the
-        // names of its entries (`number3`), by which the values depend on
-        // them.
-        stateVariableDefinitions.entryListPrefixes = {
-            stateVariablesDeterminingDependencies: ["templateAnalysis"],
-            returnDependencies({ stateValues }) {
-                const dependencies = {};
-                for (const [
-                    e,
-                    componentIdx,
-                ] of stateValues.templateAnalysis.entryLists.entries()) {
-                    dependencies[`prefix${e}`] = {
-                        dependencyType: "stateVariable",
-                        componentIdx,
-                        variableName: "listEntryVariablePrefix",
-                    };
-                }
-                return dependencies;
-            },
-            definition({ dependencyValues }) {
-                const entryListPrefixes = [];
-                for (let e = 0; `prefix${e}` in dependencyValues; e++) {
-                    entryListPrefixes.push(dependencyValues[`prefix${e}`]);
-                }
-                return { setValue: { entryListPrefixes } };
-            },
-        };
-
-        // Whether the entries of each of those lists take a write, read only
-        // when a value is written, apart from what the values depend on, as
-        // it may read the values (`<numberList fixed="$r[1]=1">`). As a
-        // reference to an entry (`ValueRef`), which reads its list's
-        // `modifyIndirectly` too, so that a write the template can take
-        // elsewhere goes there.
-        stateVariableDefinitions.entryListsCanBeModified = {
-            stateVariablesDeterminingDependencies: ["templateAnalysis"],
-            returnDependencies({ stateValues }) {
-                const dependencies = {};
-                for (const [
-                    e,
-                    componentIdx,
-                ] of stateValues.templateAnalysis.entryLists.entries()) {
-                    dependencies[`canBeModified${e}`] = {
-                        dependencyType: "stateVariable",
-                        componentIdx,
-                        variableName: "entriesCanBeModified",
-                        variablesOptional: true,
-                    };
-                    dependencies[`modifyIndirectly${e}`] = {
-                        dependencyType: "stateVariable",
-                        componentIdx,
-                        variableName: "modifyIndirectly",
-                        variablesOptional: true,
-                    };
-                }
-                return dependencies;
-            },
-            definition({ dependencyValues }) {
-                const entryListsCanBeModified = [];
-                for (let e = 0; `canBeModified${e}` in dependencyValues; e++) {
-                    entryListsCanBeModified.push(
-                        (dependencyValues[`canBeModified${e}`] ?? false) &&
-                            dependencyValues[`modifyIndirectly${e}`] !== false,
-                    );
-                }
-                return { setValue: { entryListsCanBeModified } };
-            },
-        };
-
-        // Whether each value the template reads at every index takes a write.
-        stateVariableDefinitions.constantsCanBeModified = {
-            returnDependencies: () => ({
-                constants: {
-                    dependencyType: "child",
-                    childGroups: ["constants"],
-                    variableNames: ["canBeModified"],
-                    variablesOptional: true,
-                },
-            }),
-            definition: ({ dependencyValues }) => ({
-                setValue: {
-                    constantsCanBeModified: dependencyValues.constants.map(
-                        (constant) =>
-                            constant.stateValues.canBeModified === true,
-                    ),
-                },
-            }),
-        };
+        addRepeatListDefinitions(stateVariableDefinitions);
 
         // An entry takes a write when the template does, as the iteration's
         // component reported, so that what reads it (`$r[2] + $c`) writes
@@ -399,143 +153,13 @@ export default class RepeatValueList extends ValueListComponent {
             },
         };
 
-        // Entry k is the template's value with what it reads at index k, or
-        // the value written to it while that is unchanged.
-        stateVariableDefinitions[arrayName] = {
-            ...stateVariableDefinitions[arrayName],
-            stateVariablesDeterminingDependencies: [
-                "templateAnalysis",
-                "entryListPrefixes",
-            ],
-            returnArrayDependenciesByKey({ arrayKeys, stateValues }) {
-                const globalDependencies = {
-                    templateAnalysis: {
-                        dependencyType: "stateVariable",
-                        variableName: "templateAnalysis",
-                    },
-                    // What decides whether a write is taken is read only
-                    // when one is (`writability`), so the values do not
-                    // depend on it, which may itself read the values
-                    // (`<p fixLocation="$r[1]=1">` around the repeat).
-                    constants: {
-                        dependencyType: "child",
-                        childGroups: ["constants"],
-                        variableNames: ["value"],
-                        variablesOptional: true,
-                    },
-                    ...settingsDependencies,
-                };
-                const { entryLists } = stateValues.templateAnalysis;
-                const dependenciesByKey = {};
-                for (const arrayKey of arrayKeys) {
-                    const index = Number(arrayKey) + 1;
-                    const dependencies = {
-                        write: {
-                            dependencyType: "stateVariable",
-                            variableName: `entryWrite${index}`,
-                        },
-                    };
-                    for (const [e, componentIdx] of entryLists.entries()) {
-                        dependencies[`entry${e}`] = {
-                            dependencyType: "stateVariable",
-                            componentIdx,
-                            variableName: `${stateValues.entryListPrefixes[e]}${index}`,
-                            variablesOptional: true,
-                        };
-                    }
-                    dependenciesByKey[arrayKey] = dependencies;
-                }
-                return { globalDependencies, dependenciesByKey };
-            },
-            arrayDefinitionByKey({
-                globalDependencyValues,
-                dependencyValuesByKey,
-                arrayKeys,
-            }) {
-                const entries = {};
-                const unchangedChecks = {};
-                for (const arrayKey of arrayKeys) {
-                    entries[arrayKey] = evaluateRepeatTemplate(
-                        templateContext({
-                            globalDependencyValues,
-                            dependencyValues: dependencyValuesByKey[arrayKey],
-                        }),
-                    );
-                    unchangedChecks[arrayKey] = true;
-                }
-                return {
-                    setValue: { [arrayName]: entries },
-                    checkForActualChange: { [arrayName]: unchangedChecks },
-                };
-            },
-            async inverseArrayDefinitionByKey({
-                desiredStateVariableValues,
-                globalDependencyValues,
-                dependencyValuesByKey,
-                dependencyNamesByKey,
-                stateValues,
-            }) {
-                if (await stateValues.entriesFixed) {
-                    return { success: false };
-                }
-                const writability = {
-                    entryListsCanBeModified:
-                        await stateValues.entryListsCanBeModified,
-                    constantsCanBeModified:
-                        await stateValues.constantsCanBeModified,
-                    fixLocation: await stateValues.fixLocation,
-                };
-                const instructions = [];
-                for (const arrayKey in desiredStateVariableValues[arrayName]) {
-                    const dependencyValues = dependencyValuesByKey[arrayKey];
-                    if (!dependencyValues) {
-                        continue;
-                    }
-                    const inverse = invertRepeatTemplate({
-                        ...templateContext({
-                            globalDependencyValues,
-                            dependencyValues,
-                            writability,
-                        }),
-                        desiredValue: entryValueOfType(
-                            desiredStateVariableValues[arrayName][arrayKey],
-                            entryType,
-                        ),
-                    });
-                    if (!inverse.success) {
-                        return { success: false };
-                    }
-                    if (Object.keys(inverse.texts).length > 0) {
-                        instructions.push({
-                            setDependency: dependencyNamesByKey[arrayKey].write,
-                            desiredValue: {
-                                ...dependencyValues.write,
-                                ...inverse.texts,
-                            },
-                        });
-                    }
-                    for (const { code, desiredValue } of inverse.writes) {
-                        if (code.entry !== undefined) {
-                            instructions.push({
-                                setDependency:
-                                    dependencyNamesByKey[arrayKey][
-                                        `entry${code.entry}`
-                                    ],
-                                desiredValue,
-                            });
-                        } else {
-                            instructions.push({
-                                setDependency: "constants",
-                                desiredValue,
-                                childIndex: code.constant,
-                                variableIndex: 0,
-                            });
-                        }
-                    }
-                }
-                return { success: true, instructions };
-            },
-        };
+        // Entry k is the template's value with what it reads at index k.
+        stateVariableDefinitions[arrayName] = repeatTemplateEntriesDefinition({
+            baseValues: stateVariableDefinitions[arrayName],
+            arrayName,
+            entryType,
+            settingsDependencies,
+        });
 
         if (entryType === "math") {
             // As a `<math>` shows its value: rounded, then simplified and
@@ -563,88 +187,8 @@ export default class RepeatValueList extends ValueListComponent {
             };
         }
 
-        stateVariableDefinitions.isVariantComponent = {
-            returnDependencies: () => ({}),
-            definition: () => ({ setValue: { isVariantComponent: true } }),
-        };
-
-        stateVariableDefinitions.generatedVariantInfo = {
-            returnDependencies: ({ sharedParameters }) => ({
-                variantSeed: {
-                    dependencyType: "value",
-                    value: sharedParameters.variantSeed,
-                },
-            }),
-            definition: ({ dependencyValues, componentIdx }) => ({
-                setValue: {
-                    generatedVariantInfo: {
-                        seed: dependencyValues.variantSeed,
-                        meta: { createdBy: componentIdx },
-                        subvariants: [],
-                    },
-                },
-            }),
-        };
-
         return stateVariableDefinitions;
     }
-
-    static setUpVariant({
-        serializedComponent,
-        sharedParameters,
-        descendantVariantComponents,
-    }) {
-        setUpVariantSeedAndRng({
-            serializedComponent,
-            sharedParameters,
-            descendantVariantComponents,
-            useSubpartVariantRng: true,
-        });
-    }
-
-    static determineNumberOfUniqueVariants({ serializedComponent }) {
-        serializedComponent.variants = {
-            ...serializedComponent.variants,
-            numVariants: 1,
-        };
-        return { success: true, numVariants: 1 };
-    }
-
-    static getUniqueVariant({ variantIndex }) {
-        if (variantIndex !== 1) {
-            return { success: false };
-        }
-        return { success: true, desiredVariant: { index: variantIndex } };
-    }
 }
 
-/**
- * The template's settings, the text of its components as written to one
- * entry, and the values of its codes at that entry's index. `writability`,
- * read only when a value is written, says which codes take a write and
- * whether the list is under `fixLocation`.
- */
-function templateContext({
-    globalDependencyValues,
-    dependencyValues,
-    writability,
-}) {
-    const constants = globalDependencyValues.constants;
-    return {
-        analysis: globalDependencyValues.templateAnalysis,
-        settings: {
-            simplify: globalDependencyValues.simplify,
-            expand: globalDependencyValues.expand,
-        },
-        texts: dependencyValues.write ?? undefined,
-        fixLocation: writability?.fixLocation ?? false,
-        codeValue: (code) =>
-            code.entry !== undefined
-                ? dependencyValues[`entry${code.entry}`]
-                : constants[code.constant]?.stateValues.value,
-        codeCanBeModified: (code) =>
-            code.entry !== undefined
-                ? writability?.entryListsCanBeModified[code.entry] === true
-                : writability?.constantsCanBeModified[code.constant] === true,
-    };
-}
+Object.assign(RepeatValueList, REPEAT_LIST_STATICS);

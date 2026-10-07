@@ -16,7 +16,7 @@ npm run test -w @doenet/doenetml-worker-javascript -- --run src/test/perf/census
 
 ## The instrument: `perf-bench.test.ts`
 
-Loads each fixture once and reports the census, the wall-clock load time, the core's per-phase timings (`core.loadPhaseTimings`, recorded by `ComponentBuilder.addComponents` on the initial build) and the Rust resolver's call counts and times across the WASM boundary. For the drag fixture (`dot-plot-drag-50`, the 50-point dot plot `drag-bench.test.ts` drags) it then drags the point the fixture names (`Ps[1].P`) 25 times with transient `movePoint` actions, as the renderer sends on every pointermove, checks that the point moved, and reports the median wall-clock cost of one awaited move. That covers the state update and the renderer pull for visible graphs; the rest of the renderer update is deferred to a timer by design and is not in the number.
+Loads each fixture once and reports the census, the wall-clock load time, the core's per-phase timings (`core.loadPhaseTimings`, recorded by `ComponentBuilder.addComponents` on the initial build) and the Rust resolver's call counts and times across the WASM boundary. For the drag fixture (`dot-plot-drag-50`, the 50-point dot plot `drag-bench.test.ts` drags) it then drags the point the fixture names (`Ps[1].P`, the first entry of the list of points the repeat is made; `drag-timing.ts`) 25 times with transient `movePoint` actions, as the renderer sends on every pointermove, checks that the point moved, and reports the median wall-clock cost of one awaited move. That covers the state update and the renderer pull for visible graphs; the rest of the renderer update is deferred to a timer by design and is not in the number.
 
 ```bash
 PERFBENCH_RESULT=/tmp/perf-bench.json \

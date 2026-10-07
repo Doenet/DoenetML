@@ -1,6 +1,6 @@
 # F6 design: a repeat whose template is one value becomes a list
 
-Design for #2163, step F6 of stream F (#2157) of #2125. Status: decisions settled 2026-10-06; #2172 (F5) and #2177 (F4) merged the same day, and #2187 and #2189 since. Steps 1 to 4 are done, step 4 for number and math templates (see [Phasing](#phasing)). Line numbers are on `main` at 682ff8f28 (#2171); the `Math.js` ones are from before step 2 moved that code out. Paths are under `packages/doenetml-worker-javascript/src/` unless they start with `packages/`.
+Design for #2163, step F6 of stream F (#2157) of #2125. Status: decisions settled 2026-10-06; #2172 (F5) and #2177 (F4) merged the same day, and #2187 and #2189 since. Steps 1 to 5 are done, step 4 for number and math templates and step 5 for point templates (see [Phasing](#phasing)). Line numbers are on `main` at 682ff8f28 (#2171); the `Math.js` ones are from before step 2 moved that code out. Paths are under `packages/doenetml-worker-javascript/src/` unless they start with `packages/`.
 
 ## Summary
 
@@ -185,7 +185,7 @@ F5's `GraphicalValueList` already gives each point entry:
 
 A point template therefore needs the following:
 - **Its value per entry** is the `evaluate` of its coordinate nodes. A pure point function covers only the case with no constraints, no sticky group and no graph (agent survey, `Point.js:518-1246`). Constraints are not part of it: they are F5's `adjustEntryValues`, applied to the evaluated coordinates.
-- **The template's constraint children and attributes** (`<constrainToGraph/>`, `<constrainToGrid dx="$dx"/>`, `labelPosition`) become the list's own. They are the same at every index, which is the qualification rule.
+- **The template's constraint children and attributes** (`<constrainToGraph/>`, `<constrainToGrid dx="$dx"/>`, `labelPosition`) become the list's own. They are the same at every index, which is the qualification rule. A constraint holding a sampler keeps the composite: each iteration draws its own random values, and one constraint shared by the list would draw once. One holding an input keeps it too, as a precaution, though an input inside a constraint is not drawn.
 - **A drag on entry k** goes through F5's path. It unapplies the constraints as `Point`'s `constraintResults` inverse does, then calls each coordinate node's `invert` at k. The writes then land on the codes: key k of `values`, of `sortedPos`, and so on.
 
 This is the part that waits for #2172. Its hooks (`entryValueAdjustmentDependencies`, `listEntryRendererDefaults`, `listValuesEntryPrefix`, the per-entry `draggable` and `fixed`) are what is under review.
@@ -231,7 +231,7 @@ Several issues filed while reviewing F4 and F5 are gaps in what a list entry can
 
 | issue | what an entry lacks | guard in the qualification pass |
 |---|---|---|
-| #2181 | an entry as the target of `triggerWhenObjectsClicked`/`Focused`, `<label forObject>`, a PreFigure `annotation ref`, `<ref to>`, `<callAction target>` | an entry of the repeat (`$Ps[k]`, `$Ps[k].P`) named as any of these |
+| #2181 | an entry as the target of `triggerWith`, `triggerWhenObjectsClicked`/`Focused`, `<label forObject>`, a PreFigure `annotation ref`, `<ref to>`, `<callAction target>` | fixed by #2203, which makes `$pl[k]` name the entry. Of a list of points, the guard is lifted for these attributes (`ENTRY_TARGET_ATTRIBUTES`) when they name the whole repeat (`$Ps`) or one iteration (`$Ps[k]`, `$Ps[k].P`, which is read as `$Ps[k]`). What named an iteration's point finds the same point. What named an iteration or the whole repeat, which found nothing, finds the entry, or each entry, as for a `<pointList>`. A value list keeps the guard: outside a graph its entries are not click targets (#2203), and inside one it keeps the composite anyway (#2186). So do the other reference attributes (`<collect from>`, `<updateValue target>`, an answer's) |
 | #2185 | an entry referenced on its own does not take its source's `label`, `fixed` or `draggable` | fixed by #2187 for point and vector lists, which read them from each entry's source (`entryChildren`). An entry of the repeat's list has no source component, so step 5 gives it the template's values of these as the list's own, or guards an entry referenced on its own in a graph |
 | #2191 | a point made from an entry ignores its graph's `fixed` and its source's `fixLocation` | step 5: an entry of the repeat referenced on its own in a graph, unless #2191 is fixed first |
 | #2186 | a value-type entry drawn in a graph ignores its own `anchor`, `draggable` and `layer` | fixed by #2189, which places each entry at its source's anchor (`entryGraphSources`). An entry of the repeat's list has no source to take an anchor from, so a number, math, text or boolean template inside a `<graph>` keeps the composite |
@@ -249,7 +249,8 @@ Not relevant to F6: #2179 (a standalone `<vector>`), #2182 (an authored child's 
 | 3. `ValueListComponent`'s copies call the functions | #2172, #2177 (merged) | `ValueListComponent.js` | done |
 | 4. Qualification pass and `_repeatValueList` for number and math templates | #2177 (the listForms pass, the `valueReferences.ts` refactor) | `utils/dast/repeatLists.ts`, `utils/repeatTemplate.js`, `RepeatValueList.js` | done |
 | 4b. Text and boolean templates | step 4 | the same | when evidence asks |
-| 5. `_repeatGraphicalList` for point and vector templates | #2172 | new list class on `GraphicalValueList` | now |
+| 5. `_repeatPointList` for point templates | #2172 | `RepeatPointList.js`, `abstract/repeatList.js`, `GraphicalValueList.js` | done |
+| 5b. Vector templates | step 5 | the same, on `VectorList` | when evidence asks |
 | later | evidence | samplers, per-entry attributes, computed indices, the values of a `<repeat>` over anything but one list, the math operators (including `$$f(…)`) | — |
 
 **Step 1, pinning tests.** These all pass on `main`. Each records today's behaviour for a qualifying template:
@@ -268,7 +269,7 @@ Step 4 alone reaches the number and math fixtures (the unit-circle boolean's nes
 - **What qualifies, beyond [Qualification](#qualification):**
   - the template is a `<math>` or `<number>`, and a nested component is an unnamed `<math>`;
   - the attributes are, on the template, `simplify`, `expand`, `fixed` and the number display settings, and on a nested `<math>`, `simplify` and `expand`, each written as a literal;
-  - a reference from elsewhere is `$r`, `$r[k]` or `$r[k].m` (or `$g.r[k].m`, naming the repeat through another; not `$r[k][j].m`, which names nothing in the composite), not an `extend` or `copy`, not named by a reference attribute (#2181), and does not reach the template's name another way, as through an outer repeat (`$a[2][1][3].m`);
+  - a reference from elsewhere is `$r`, `$r[k]` or `$r[k].m` (or `$g.r[k].m`, naming the repeat through another; not `$r[k][j].m`, which names nothing in the composite), not an `extend` or `copy`, not named by a reference attribute (#2181) unless, of a list of points, one that takes an entry as its target names `$r` or one iteration, and does not reach the template's name another way, as through an outer repeat (`$a[2][1][3].m`);
   - the repeat is not in a `<graph>` (#2186), and neither it nor anything holding it is referenced, copied or extended from inside one (`$r`, `<group extend="$g"/>`), following copies of those copies;
   - a `<repeat>`'s `for` is one reference to a whole list (`$l`, not `$l.maths`).
 - **The list** (`RepeatValueList.js`) counts its entries as the repeat counted its iterations. It analyses the template once (`templateAnalysis`, `utils/repeatTemplate.js`). Entry k depends on entry k of each list the template reads (by the list's `listEntryVariablePrefix`), on the constants, and on the list's `simplify` and `expand`, and is computed with the value functions. Its `entryValuesForDisplay` rounds, then simplifies and expands, as a `<math>`'s `valueForDisplay` does.
@@ -279,6 +280,62 @@ Step 4 alone reaches the number and math fixtures (the unit-circle boolean's nes
 - **Randomness.** The list draws its seed from its parent as the repeat did (`setUpVariantSeedAndRng`), and has no variant descendants, so its `generatedVariantInfo` has no subvariants.
 - **Tests.** `tagSpecific/repeatValueLists.test.ts` loads each document with and without the pass (`setRepeatListsEnabled`) and compares what is shown, after writes and changes. The step 1 pinning tests pass unchanged.
 - **Census.** `repeatForSequence $i^2 x4`: 23 components, 1059 dependencies, 461 state variables resolved, to 7, 277 and 126. `repeatForSequence literal x4`: 14, 665, 282 to 6, 256, 117. The heavy fixtures change less, since their points wait for step 5: unit-circle-labeling (one list) 3256 components and 59549 dependencies to 3109 and 59145; measures-of-spread (two lists) 8672 and 210140 to 8374 and 205982. Load times did not change beyond their noise.
+
+**Step 5, as built.**
+- **Shared code.** What a repeat made a list does whatever its entries are moved to `components/abstract/repeatList.js`, and `RepeatValueList` uses it:
+  - counting the entries;
+  - the template and its analysis;
+  - the entries computed and inverted through the template;
+  - the variant.
+  
+  `GraphicalValueList` exports the wrapper that gives each entry the list's dimensions and constraints (`graphicalEntryValuesDefinition`), so that a list whose entries come from elsewhere can use it.
+- **The list** (`RepeatPointList.js`) is a `<pointList>` with no authored entries (`entryStructure` is one empty source per iteration).
+  - Its entries are the template's points (`repeatTemplateEntriesDefinition` wrapped by `graphicalEntryValuesDefinition`), so its constraint children constrain each entry.
+  - Its number of dimensions is the template's number of coordinates.
+  - The template's renderer attributes (`labelPosition`, `draggable`, `showCoordsWhenDragging`, `layer`), `styleNumber`, `fixed` and marker style become the list's own, and every entry is drawn with them, as every iteration's point was drawn with the same ones.
+- **The evaluator** (`utils/repeatTemplate.js`) gains a point node.
+  - The point's coordinates, the maths sugar made in its `xs`, are its codes.
+  - Its value is the vector of them, each simplified, as a point's `unconstrainedXs` simplifies them.
+  - A write to it writes each coordinate on its own, and keeps one that does not take its value (a `<number fixed>`, `$i`), as a point's coordinates are written.
+  - Each node records the entry codes it reads, itself or through nested nodes (`entryCodes`).
+- **Coordinates read on their own.** The dot plots' y reads `$Ps.x`, through `sortIndices` and `indexOf`. A point's x does not depend on its y, because `constrainToGrid` and `constrainToGraph` constrain each coordinate independently (`independentComponentConstraints`). So each coordinate of the entries is an array of the list's own (`entryCoordinates1` to `3`, the entries' `x1` to `x3`).
+  - Each is computed from that coordinate of the template alone (its `entryCodes`), and constrained coordinate by coordinate when every constraint allows it (`independentConstraints`); otherwise it is read from the whole entry.
+  - A write to one (`$Ps[2].P.x` as a `bindValueTo`) goes through that coordinate of the template alone. The value written is constrained as a point constrains a write to one coordinate: on its own, or, when a constraint is not by coordinate (`<constrainTo>` a circle), with the entry's other coordinates, keeping only this one. Coordinates written in one update (a point copying `$Ps[2].P.x` and `$Ps[2].P.y`, dragged) are constrained together, as a point's are: each such write is a write of the entry with only that coordinate specified, and only the coordinates specified in the update are written through the template.
+  - Without these arrays the dot plots are a circular dependency.
+  - A coordinate the template's point does not have has no entries, so `$Ps.z` of points `(x, y)` shows nothing, as it showed for the composite (an authored `<pointList>` shows a blank for each point).
+- **References to the whole list** (`$Ps` as a polygon's `vertices`) shadow the list's coordinate arrays, which a shadow, holding no template, cannot compute; without that a polygon's vertices are blanks. (The number of entries is already shadowed by `ValueListComponent`; a shadow computes `numIterates` from the attributes it copies.)
+- **What qualifies, beyond step 4:**
+  - the template is a `<point>` whose content is its coordinates;
+  - a coordinate, or a `<math>` template, may nest a `<number>` (the dot plot's `<number fixed>`), not only a `<math>`;
+  - its attributes are those above, as literals;
+  - its children are constraints that read the same values in every iteration, and become the list's;
+  - it may be in a `<graph>`;
+  - a reference from elsewhere may read a property of all the points (`$Ps.x`, `.y`, `.z`) or of one (`$Ps[2].P.x`, rewritten to `$Ps[2].x`).
+  - A `<label>`, a coordinate given as an attribute (`x="$v"`), or an attribute that reads the index keeps the composite.
+- **Tests.** `tagSpecific/repeatPointLists.test.ts` compares each document with and without the pass:
+  - what is shown and drawn;
+  - drags through a list entry, the index, a literal and a value outside;
+  - the dot plot's point with a nested fixed number and constraints;
+  - a shrink and regrow;
+  - the template's attributes as drawn;
+  - `<constrainTo>` the list;
+  - a polygon whose `vertices` are the list, moved, grown and shrunk;
+  - a coordinate that reads the entries' other coordinate (`$Ps.x`), which is circular without the coordinate arrays;
+  - constraints not by coordinate (`<constrainTo>` a circle), with `$Ps.x` read, one coordinate written, and two written at once;
+  - a coordinate the points do not have (`$Ps.z` of points `(x, y)`);
+  - the guards.
+  
+  The step 1 pinning tests pass unchanged. Tests of a composite's own mechanics keep their repeats composites: renderer deferral in `utils/deferredRendererUpdates.test.ts`, and `allChildrenOrdered` in `collect.test.ts`. So how renderer updates are deferred during a drag of a list's entry is not yet tested.
+- **Census and load.** These load the same documents, which show and draw the same; the load times are the range over two runs each.
+
+  | fixture | components | dependencies | state variables resolved | load |
+  |---|--:|--:|--:|--:|
+  | dot-plot-2 | 2418 → 336 | 55913 → 11078 | 25442 → 3942 | 4.2–7.3 s → 0.7–1.4 s |
+  | drag-dot-plot-50 | 1112 → 117 | 27190 → 4893 | 12348 → 1710 | 1.7–2.5 s → 0.4–1.0 s |
+  | unit-circle-labeling | 3256 → 1231 | 59549 → 28364 | 28072 → 13423 | 6.9–7.7 s → 3.0–3.4 s |
+  | measures-of-spread | 8672 → 4195 | 210140 → 116554 | 98826 → 53792 | 19.8–22.3 s → 9.1–13.4 s |
+
+  A drag of one point of drag-dot-plot-50 (`perf-bench`'s `Ps[1].P`, which `test/perf/drag-timing.ts` and `drag-bench.test.ts` now resolve to the list's first entry) takes a median 25–34 ms per move, against 66–71 ms with the pass off.
 
 ## Decisions to settle
 

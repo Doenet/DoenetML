@@ -4,8 +4,9 @@
  * inverted, at each entry's index. Part of Doenet/DoenetML#2163 (F6); see
  * `docs/f6-repeat-templates-as-lists.md`.
  *
- * The template is a `<math>` or `<number>` (`utils/dast/repeatLists.ts`
- * decides which qualify), with nested `<math>`s. Each is a node. The values
+ * The template is a `<math>`, `<number>` or `<point>`
+ * (`utils/dast/repeatLists.ts` decides which qualify), with nested `<math>`s
+ * and `<number>`s, and a point's coordinates. Each is a node. The values
  * a node reads are codes, as a `<math>`'s math children are:
  * - an entry code reads, at index k, entry k of a list (`$i`, `$v`,
  *   `$l[$i]`), the same list at every index;
@@ -35,6 +36,10 @@ import {
     numberValueFromCodes,
 } from "./valueFunctions/number";
 import { numberToMathExpression, plainComplex } from "./math";
+import {
+    coordinatesOf,
+    vectorOf,
+} from "../components/abstract/GraphicalValueList";
 
 const BLANK = me.fromAst("＿");
 
@@ -52,9 +57,11 @@ const PARSE_SETTINGS = {
  * first (`nodes[0]`), and the list each entry code reads (`entryLists`, by
  * the component index the reference resolved to).
  *
- * A node is `{ type, simplify, expand, fixed, codes, ... }`, where each code
- * is `{ entry: e }`, `{ constant: c }` or `{ node: n }`. A math node also has
- * its `codePre`, `expressionWithCodes` and `numStrings`; a number node the
+ * A node is `{ type, simplify, expand, fixed, codes, entryCodes, ... }`,
+ * where each code is `{ entry: e }`, `{ constant: c }` or `{ node: n }`, and
+ * `entryCodes` and `constantCodes` are the entry and constant codes the node
+ * reads, itself or through a nested node. A math node also has its
+ * `codePre`, `expressionWithCodes` and `numStrings`; a number node the
  * `string` it reads when its one child is text.
  */
 export function analyzeRepeatTemplate(template) {
@@ -94,7 +101,15 @@ export function analyzeRepeatTemplate(template) {
         };
         nodes.push(node);
 
-        if (node.type === "math") {
+        if (node.type === "point") {
+            // its coordinates, the maths sugar made of its content
+            for (const child of component.attributes.xs?.component.children ??
+                []) {
+                if (typeof child !== "string") {
+                    node.codes.push({ node: addNode(child) });
+                }
+            }
+        } else if (node.type === "math") {
             const content = [];
             const strings = [];
             for (const child of component.children) {
@@ -128,6 +143,33 @@ export function analyzeRepeatTemplate(template) {
     }
 
     addNode(template);
+
+    // The entry and constant codes each node reads, itself or through a
+    // nested node, so that a value computed from one node alone (a point's
+    // coordinate) depends on those alone.
+    function codesOf(ind) {
+        const node = nodes[ind];
+        if (node.entryCodes === undefined) {
+            const entryCodes = new Set();
+            const constantCodes = new Set();
+            for (const code of node.codes) {
+                if (code.entry !== undefined) {
+                    entryCodes.add(code.entry);
+                } else if (code.constant !== undefined) {
+                    constantCodes.add(code.constant);
+                } else if (code.node !== undefined) {
+                    const nested = codesOf(code.node);
+                    nested.entryCodes.forEach((e) => entryCodes.add(e));
+                    nested.constantCodes.forEach((c) => constantCodes.add(c));
+                }
+            }
+            node.entryCodes = [...entryCodes];
+            node.constantCodes = [...constantCodes].sort((a, b) => a - b);
+        }
+        return node;
+    }
+    nodes.forEach((_, ind) => codesOf(ind));
+
     return { nodes, entryLists };
 }
 
@@ -182,6 +224,14 @@ export function evaluateRepeatTemplate({
                   texts,
                   ind: code.node,
               });
+
+    if (node.type === "point") {
+        // each coordinate simplified, as a point's `unconstrainedXs` reads
+        // its coordinates
+        return vectorOf(
+            node.codes.map((code) => asMath(valueOf(code)).simplify()),
+        );
+    }
 
     if (node.type === "math") {
         if (node.expressionWithCodes === null) {
@@ -268,6 +318,38 @@ export function invertRepeatTemplate({
         texts,
         fixLocation,
     };
+
+    if (node.type === "point") {
+        // Each coordinate is written on its own, as a point's coordinates
+        // are, and one that does not take its value is left as it is.
+        const coordinates = coordinatesOf(
+            convertValueToMathExpression(desiredValue),
+        );
+        const writes = [];
+        const newTexts = {};
+        let changesOne = false;
+        let wroteOne = false;
+        for (const [dim, code] of node.codes.entries()) {
+            const desired = coordinates[dim];
+            const current = asMath(valueOfCode(code, context));
+            if (
+                desired === undefined ||
+                JSON.stringify(desired.tree) === JSON.stringify(current.tree)
+            ) {
+                continue;
+            }
+            changesOne = true;
+            const result = writeCode(code, desired, context);
+            if (result.success) {
+                wroteOne = true;
+                writes.push(...result.writes);
+                Object.assign(newTexts, result.texts);
+            }
+        }
+        return wroteOne || !changesOne
+            ? { success: true, writes, texts: newTexts }
+            : { success: false };
+    }
 
     if (node.type === "number") {
         const number = numberFromDesiredValue(desiredValue, NaN);

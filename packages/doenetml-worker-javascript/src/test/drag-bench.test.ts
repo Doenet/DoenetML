@@ -1,6 +1,7 @@
 import { describe, expect, it } from "vitest";
 import { createTestCore } from "./utils/test-core";
 import fs from "node:fs";
+import { resolveDragTarget } from "./perf/drag-timing";
 
 // Per-phase drag benchmark for the drag-responsiveness workstream
 // (https://github.com/Doenet/DoenetML/issues/1978). Drives a stream of
@@ -249,10 +250,12 @@ async function measureTyping({ offscreen }: { offscreen: boolean }) {
  */
 async function measure({ withTabular }: { withTabular: boolean }) {
     const doenetML = buildDoc({ withTabular });
-    const { core, resolvePathToNodeIdx } = await createTestCore({ doenetML });
+    const testCore = await createTestCore({ doenetML });
+    const { core } = testCore;
 
     const innerCore = (core as any).core;
-    const pointIdx = await resolvePathToNodeIdx("Ps[1].P");
+    // the first point, an entry of the list the repeat is made
+    const { pointIdx } = await resolveDragTarget(testCore, "Ps[1].P");
 
     const samples: Record<Phase, number[]> = {
         performUpdate: [],
