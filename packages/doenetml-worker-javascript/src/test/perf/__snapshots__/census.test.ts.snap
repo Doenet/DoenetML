@@ -80,6 +80,46 @@ exports[`component census of the micro-documents > inline $n 1`] = `
 }
 `;
 
+exports[`component census of the micro-documents > literal attributes 1`] = `
+{
+  "attributeComponents": 3,
+  "byType": {
+    "boolean": 1,
+    "document": 1,
+    "integer": 1,
+    "math": 1,
+    "number": 1,
+    "text": 2,
+  },
+  "components": 7,
+  "copies": 0,
+  "dependencies": 378,
+  "shadows": 0,
+  "stateVariables": 343,
+  "stateVariablesResolved": 164,
+}
+`;
+
+exports[`component census of the micro-documents > math anchor=(1,2) 1`] = `
+{
+  "attributeComponents": 2,
+  "byType": {
+    "_dynamicChildren": 1,
+    "document": 1,
+    "graph": 1,
+    "math": 3,
+    "mathList": 1,
+    "point": 1,
+  },
+  "components": 8,
+  "copies": 0,
+  "dependencies": 472,
+  "shadows": 0,
+  "stateVariables": 543,
+  "stateVariablesResolved": 218,
+}
+`;
+
 exports[`component census of the micro-documents > math displayDigits=$n 1`] = `
 {
   "attributeComponents": 1,
@@ -114,6 +154,28 @@ exports[`component census of the micro-documents > math displayDigits=5 1`] = `
   "shadows": 0,
   "stateVariables": 228,
   "stateVariablesResolved": 121,
+}
+`;
+
+exports[`component census of the micro-documents > math extend=$P.x 1`] = `
+{
+  "attributeComponents": 7,
+  "byType": {
+    "_copy": 1,
+    "boolean": 2,
+    "document": 1,
+    "integer": 3,
+    "math": 3,
+    "mathList": 1,
+    "number": 1,
+    "point": 1,
+  },
+  "components": 13,
+  "copies": 1,
+  "dependencies": 510,
+  "shadows": 6,
+  "stateVariables": 751,
+  "stateVariablesResolved": 216,
 }
 `;
 
@@ -318,5 +380,28 @@ exports[`component census of the micro-documents > sort $l of 4 1`] = `
   "shadows": 1,
   "stateVariables": 410,
   "stateVariablesResolved": 238,
+}
+`;
+
+exports[`component census of the micro-documents > textList $mi a 1`] = `
+{
+  "attributeComponents": 5,
+  "byType": {
+    "_copy": 1,
+    "boolean": 2,
+    "document": 1,
+    "integer": 2,
+    "math": 1,
+    "mathInput": 1,
+    "number": 1,
+    "text": 1,
+    "textList": 1,
+  },
+  "components": 11,
+  "copies": 1,
+  "dependencies": 471,
+  "shadows": 6,
+  "stateVariables": 605,
+  "stateVariablesResolved": 221,
 }
 `;

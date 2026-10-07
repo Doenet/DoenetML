@@ -89,6 +89,19 @@ export const MICRO_DOCUMENTS: Fixture[] = [
         `<numberList name="l">3 1 4 2</numberList><p><sort>$l</sort></p>`,
     ),
     micro("shuffle literal x4", `<p><shuffle>3 1 4 2</shuffle></p>`),
+    // Attributes as values (Doenet/DoenetML#2129): a prop reference that
+    // stays a copy and the shadow attributes it carries, literal attributes
+    // of scalar types, and a literal anchor.
+    micro(
+        "math extend=$P.x",
+        `<point name="P" displayDigits="3">(1.23456,2)</point><math extend="$P.x"/>`,
+    ),
+    micro("textList $mi a", `<mathInput name="mi"/><textList>$mi a</textList>`),
+    micro(
+        "literal attributes",
+        `<text hide="false">a</text><math simplify>x+x</math><number displayDigits="2">1.234</number>`,
+    ),
+    micro("math anchor=(1,2)", `<graph><math anchor="(1,2)">x</math></graph>`),
 ];
 
 /** The four sample distributions of the Doenet/DoenetML#2023 document, cycled. */
