@@ -7072,7 +7072,7 @@ describe("Point tag tests @group4", async () => {
         );
     });
 
-    it("self-reference inside a non-sensical context like <section> still errors", async () => {
+    it("self-reference inside a nonsensical context like <section> still errors", async () => {
         // Components like <section> are not in the recognized rendering-context
         // list and don't make sense inside a <label>. The reference there is
         // a copy of the point inside its own label, and the
