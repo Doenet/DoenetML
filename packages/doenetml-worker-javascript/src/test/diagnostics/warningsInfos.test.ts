@@ -1195,6 +1195,38 @@ describe("Warning Tests @group4", async () => {
         ).eqls([3, 3, 5, 5, 7, 7, 9]);
     });
 
+    it("an extend keeps its source's type when another is written on it", async () => {
+        // `type` picks the class a list's values are made for, so it is
+        // left off the extend, which shows its source's values.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<sequence name="s" from="1" to="3"/>
+<p name="p1"><sequence extend="$s" type="letters"/></p>
+<sequence name="t" type="letters" from="a" to="c"/>
+<p name="p2"><sequence extend="$t" type="number"/></p>
+            `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const texts: string[] = [];
+        for (const name of ["p1", "p2"]) {
+            texts.push(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            );
+        }
+        expect(texts).eqls(["1, 2, 3", "a, b, c"]);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(
+            diagnosticsByType.warnings.map((warning) => warning.message),
+        ).eqls([
+            "The `type` attribute is ignored: a `<sequence>` with `extend` shows the same content as the component it extends.",
+            "The `type` attribute is ignored: a `<sequence>` with `extend` shows the same content as the component it extends.",
+        ]);
+    });
+
     it("says nothing about what an extend applies, or about a copy", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

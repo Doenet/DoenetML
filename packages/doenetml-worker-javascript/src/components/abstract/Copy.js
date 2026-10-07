@@ -1662,19 +1662,25 @@ export default class Copy extends CompositeComponent {
                 delete repl.attributes.displayDigits;
                 delete repl.attributes.displayDecimals;
             }
-            Object.assign(repl.attributes, attributesFromComposite);
 
             if (link && copyInChildren) {
-                diagnostics.push(
-                    ...extendIgnoresAttributesAndChildren({
-                        replacementType: repl.componentType,
-                        attributeNames: Object.keys(attributesFromComposite),
-                        copyAttributeNames: Object.keys(compositeAttributesObj),
-                        children: component.serializedChildren,
-                        componentInfoObjects,
-                    }),
-                );
+                const ignored = extendIgnoresAttributesAndChildren({
+                    replacementType: repl.componentType,
+                    attributeNames: Object.keys(attributesFromComposite),
+                    copyAttributeNames: Object.keys(compositeAttributesObj),
+                    children: component.serializedChildren,
+                    componentInfoObjects,
+                });
+                diagnostics.push(...ignored.diagnostics);
+                // Keep the source's value of an ignored attribute, so that,
+                // for example, `type` on a sequence's extend does not change
+                // the class its values are made for.
+                for (const attrName of ignored.attributeNames) {
+                    delete attributesFromComposite[attrName];
+                }
             }
+
+            Object.assign(repl.attributes, attributesFromComposite);
         }
 
         // if have copy target, then add additional children from the composite itself
@@ -4116,9 +4122,13 @@ export async function replacementFromProp({
  * replacements of the composite it shadows (`expandShadowingComposite`), and a
  * list reads the values of the list it shadows (`shadowVariable`). So an
  * attribute that its own class declares, beyond what every composite or list
- * has, is set on it and never read: `to` on `<sequence extend="$s" to="5"/>`,
- * `for` on a `<repeat>`. `asList` is read by the parent, and the number-display
- * attributes by the replacements themselves, so those still apply. Children
+ * has, cannot change what it shows: `to` on `<sequence extend="$s" to="5"/>`,
+ * `for` on a `<repeat>`. Such an attribute is returned in `attributeNames`, for
+ * the caller to leave off the extend, which then keeps the source's value. Set
+ * on the extend, some would break it instead: `type` on a sequence's extend
+ * picks the class its values are made for. `asList` is read by the parent,
+ * and the number-display attributes by the replacements themselves, so those
+ * still apply. Children
  * written inside the extend of a composite are dropped as well, except by a
  * class that adds them after the replacements it copies (`<group>`). A list
  * takes no children, which is already reported as invalid children.
@@ -4133,7 +4143,7 @@ function extendIgnoresAttributesAndChildren({
     const replacementClass =
         componentInfoObjects.allComponentClasses[replacementType];
     if (!replacementClass) {
-        return [];
+        return { attributeNames: [], diagnostics: [] };
     }
 
     const isComposite = componentInfoObjects.isCompositeComponent({
@@ -4141,7 +4151,7 @@ function extendIgnoresAttributesAndChildren({
     });
     const isList = replacementClass.prototype instanceof ValueListComponent;
     if (!isComposite && !isList) {
-        return [];
+        return { attributeNames: [], diagnostics: [] };
     }
 
     const sharedAttributes = new Set([
@@ -4159,20 +4169,21 @@ function extendIgnoresAttributesAndChildren({
     ]);
 
     const diagnostics = [];
+    const ignoredAttributeNames = attributeNames.filter(
+        (attrName) => !sharedAttributes.has(attrName),
+    );
 
-    for (const attrName of attributeNames) {
-        if (!sharedAttributes.has(attrName)) {
-            diagnostics.push(
-                codedDiagnostic({
-                    type: "warning",
-                    code: "doenet-w0168",
-                    args: {
-                        attribute: attrName,
-                        componentType: replacementType,
-                    },
-                }),
-            );
-        }
+    for (const attrName of ignoredAttributeNames) {
+        diagnostics.push(
+            codedDiagnostic({
+                type: "warning",
+                code: "doenet-w0168",
+                args: {
+                    attribute: attrName,
+                    componentType: replacementType,
+                },
+            }),
+        );
     }
 
     if (
@@ -4189,7 +4200,7 @@ function extendIgnoresAttributesAndChildren({
         );
     }
 
-    return diagnostics;
+    return { attributeNames: ignoredAttributeNames, diagnostics };
 }
 
 export function addChildrenFromComposite({
