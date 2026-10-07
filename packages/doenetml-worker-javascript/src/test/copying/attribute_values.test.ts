@@ -732,6 +732,46 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             ]).eqls([-9, true, false, -3]);
         });
 
+        it("an unlinked copy of a repeat takes a dragged anchor written as numbers", async () => {
+            // the anchor's point kept a drag in the essential state of its
+            // coordinates, which the copy's iterates took
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <graph>
+        <repeat name="r" for="1 2" valueName="v"><number name="n" anchor="(1,2)">$v</number></repeat>
+    </graph>
+    <booleanInput name="show" />
+    <conditionalContent condition="$show" name="cc">
+        <graph><repeat copy="$r" name="rc" /></graph>
+    </conditionalContent>
+    `,
+            });
+            await core.requestAction({
+                componentIdx: await resolvePathToNodeIdx("r[1].n"),
+                actionName: "moveNumber",
+                args: { x: 7, y: 8 },
+            });
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("show"),
+                core,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const anchor = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .anchor.tree;
+            expect([
+                await anchor("cc.rc[1].n"),
+                await anchor("cc.rc[2].n"),
+            ]).eqls([
+                ["vector", 7, 8],
+                ["vector", 1, 2],
+            ]);
+        });
+
         it("a write to a literal attribute is not refused by its owner's modifyIndirectly", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `

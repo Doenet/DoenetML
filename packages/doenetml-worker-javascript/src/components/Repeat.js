@@ -837,7 +837,8 @@ function copyStateFromUnlinkedSourceSub(replacements, sources) {
                     );
                 } else if (
                     repl.attributes[attrName].type === "literal" &&
-                    "value" in repl.attributes[attrName] &&
+                    ("value" in repl.attributes[attrName] ||
+                        repl.attributes[attrName].componentType === "point") &&
                     src.attributes[attrName]?.type === "literal" &&
                     "value" in src.attributes[attrName]
                 ) {
@@ -845,9 +846,11 @@ function copyStateFromUnlinkedSourceSub(replacements, sources) {
                     // written with no value) takes the value the source's
                     // literal has now, with a reader's write over it, as the
                     // essential state of the attribute component it stands
-                    // for was taken. A literal written as text is not: the
-                    // component kept a write in its text child, not its
-                    // state.
+                    // for was taken. So does a point written as numbers
+                    // (`anchor="(1,2)"`): its point kept a write in the
+                    // essential state of its coordinates. A literal written
+                    // as text is not: the component kept a write in its text
+                    // child, not its state.
                     repl.attributes[attrName] = {
                         ...repl.attributes[attrName],
                         value: src.attributes[attrName].value,
