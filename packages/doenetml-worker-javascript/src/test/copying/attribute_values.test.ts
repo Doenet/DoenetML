@@ -99,22 +99,41 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect((await sv("g")).displayDecimals).eq(1);
         });
 
-        it("a prop reference takes its source's fixed, inside a fixed group as well", async () => {
-            // Today's behavior, which stream B must keep: the shadow `fixed`
-            // a prop reference carries from its source decides, so `a` is not
-            // fixed although its group is.
+        it("a prop reference's fixed: the shadow `fixed` of a value reference beats a fixed parent", async () => {
+            // Today's behavior, which stream B must keep. A reference to a
+            // math's `value` carries a shadow `fixed` attribute from its
+            // source, and that attribute decides even when its source took
+            // the default: `d` and `f` are not fixed although their `<p>` is.
+            // A reference to a point's coordinate carries no shadow `fixed`,
+            // so it is fixed with its parent, whatever its source's `fixed`.
+            // In a `<group>`, which is a composite, no reference takes the
+            // group's `fixed`, shadow `fixed` or not.
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <point name="P">(1,2)</point>
     <point name="Q" fixed>(3,4)</point>
     <point name="R" fixed="false">(5,6)</point>
-    <group fixed>
+    <math name="m">y</math>
+    <math name="mf" fixed>y</math>
+    <math name="mu" fixed="false">y</math>
+    <p fixed>
         <math extend="$P.x" name="a" />
-        <math extend="$Q.x" name="b" />
         <math extend="$R.x" name="c" />
+        <math extend="$m.value" name="d" />
+        <math extend="$mf.value" name="e" />
+        <math extend="$mu.value" name="f" />
+        <math name="z">x</math>
+    </p>
+    <group fixed>
+        <math extend="$P.x" name="ga" />
+        <math extend="$Q.x" name="gb" />
+        <math extend="$R.x" name="gc" />
+        <math extend="$m.value" name="gd" />
+        <math extend="$mf.value" name="ge" />
     </group>
-    <math extend="$P.x" name="d" />
-    <math extend="$Q.x" name="e" />
+    <math extend="$P.x" name="na" />
+    <math extend="$Q.x" name="nb" />
+    <math extend="$mf.value" name="ne" />
     `,
             });
             const stateVariables = await core.returnAllStateVariables(
@@ -125,29 +144,58 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 stateVariables[await resolvePathToNodeIdx(name)].stateValues
                     .fixed;
 
-            expect(await fixed("a")).eq(false);
-            expect(await fixed("b")).eq(true);
-            expect(await fixed("c")).eq(false);
+            // under a fixed `<p>`
+            expect(await fixed("z")).eq(true);
+            expect(await fixed("a")).eq(true);
+            expect(await fixed("c")).eq(true);
             expect(await fixed("d")).eq(false);
             expect(await fixed("e")).eq(true);
+            expect(await fixed("f")).eq(false);
+
+            // under a fixed `<group>`
+            expect(await fixed("ga")).eq(false);
+            expect(await fixed("gb")).eq(true);
+            expect(await fixed("gc")).eq(false);
+            expect(await fixed("gd")).eq(false);
+            expect(await fixed("ge")).eq(true);
+
+            // under no fixed parent
+            expect(await fixed("na")).eq(false);
+            expect(await fixed("nb")).eq(true);
+            expect(await fixed("ne")).eq(true);
         });
 
         it("an unlinked copy of a prop reference keeps the display settings it showed", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <point name="P" displayDigits="3">(1.23456,2)</point>
+    <mathInput name="k" prefill="3" />
+    <point name="P" displayDigits="$k">(1.23456,2)</point>
     <math extend="$P.x" name="c" />
     <math copy="$c" name="u" />
     <math copy="$c" name="v" displayDigits="5" />
     `,
             });
-            const stateVariables = await core.returnAllStateVariables(
-                false,
-                true,
-            );
-            const sv = async (name: string) =>
-                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            async function sv(name: string) {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                return stateVariables[await resolvePathToNodeIdx(name)]
+                    .stateValues;
+            }
 
+            expect((await sv("u")).text).eq("1.23");
+            expect((await sv("u")).displayDigits).eq(3);
+            expect((await sv("v")).text).eq("1.2346");
+
+            // `u` took a snapshot of the digits `c` showed: when P's digits
+            // change, `c` follows and `u` does not
+            await updateMathInputValue({
+                latex: "2",
+                componentIdx: await resolvePathToNodeIdx("k"),
+                core,
+            });
+            expect((await sv("c")).text).eq("1.2");
             expect((await sv("u")).text).eq("1.23");
             expect((await sv("u")).displayDigits).eq(3);
             expect((await sv("v")).text).eq("1.2346");
