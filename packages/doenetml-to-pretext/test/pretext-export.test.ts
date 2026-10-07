@@ -724,6 +724,12 @@ describe("Pretext export", async () => {
             `"<md number="no">\\begin{gathered} x \\\\ y\\end{gathered}\\tag{Q}</md>"`,
         );
 
+        // A comment within the lines stays where it is, and a tag inside it is not moved.
+        source = `<men>x \\tag{A} % \\tag{B}\n\\\\ y</men>`;
+        expect(await coreRunner.processToFlatDastAsFragment(source)).toBe(
+            `<md number="no">\\begin{gathered}x  % \\tag{B}\n\\\\ y\\end{gathered}\\tag{A}</md>`,
+        );
+
         // Braces inside the tag, and a comment after it.
         source = `<men>x \\\\ y \\tag{a_{1}} % c</men>`;
         expect(
