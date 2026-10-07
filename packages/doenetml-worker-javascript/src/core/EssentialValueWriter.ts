@@ -825,6 +825,10 @@ export class EssentialValueWriter {
 
         if (!(
             initialChange ||
+            // a write to a literal attribute (`literalAttribute.ts`), which
+            // its attribute component, with no `modifyIndirectly` of its
+            // own, took whatever the owner's
+            stateVariable === "literalAttributeWrites" ||
             (await component.stateValues.modifyIndirectly) !== false
         )) {
             reportInternalError(
@@ -1403,19 +1407,25 @@ export class EssentialValueWriter {
                         );
                     }
                     // A literal attribute (`literalAttribute.ts`) is written
-                    // as an entry of its owner's `literalAttributeWrites`.
+                    // as an entry of its owner's `literalAttributeWrites`,
+                    // unless the attribute component it stands for would
+                    // have ignored the value.
                     const literal = dep.literal;
+                    const literalValue = literal
+                        ? literalWriteValue(
+                              literal,
+                              newInstruction.desiredValue,
+                          )
+                        : undefined;
+                    if (literal && literalValue === undefined) {
+                        continue;
+                    }
                     await this._recurseInto({
                         inst: {
                             componentIdx: cIdx,
                             stateVariable: varName,
                             value: literal
-                                ? {
-                                      [literal.name]: literalWriteValue(
-                                          literal,
-                                          newInstruction.desiredValue,
-                                      ),
-                                  }
+                                ? { [literal.name]: literalValue }
                                 : newInstruction.desiredValue,
                             overrideFixed:
                                 instruction.overrideFixed ||

@@ -600,6 +600,96 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             );
         });
 
+        it("an unlinked copy of a repeat takes a write to a boolean literal in an iterate", async () => {
+            // The iterates of an unlinked copy take the essential state of
+            // the source's iterates: a write to a boolean, but not one to a
+            // number written as text, which the attribute component kept in
+            // its text child.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <repeat name="r" for="1 2" valueName="v"><text name="t" hide="false">$v</text><graph name="g" xMin="-3" /></repeat>
+    <booleanInput name="b" bindValueTo="$r[1].t.hide" />
+    <updateValue name="u" target="$r[1].g.xMin" newValue="-9" type="number" />
+    <booleanInput name="show" />
+    <conditionalContent condition="$show" name="cc">
+        <repeat copy="$r" name="rc" />
+    </conditionalContent>
+    `,
+            });
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("b"),
+                core,
+            });
+            await core.requestAction({
+                componentIdx: await resolvePathToNodeIdx("u"),
+                actionName: "updateValue",
+                args: {},
+            });
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("show"),
+                core,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect([
+                (await sv("r[1].g")).xMin,
+                (await sv("cc.rc[1].t")).hidden,
+                (await sv("cc.rc[2].t")).hidden,
+                (await sv("cc.rc[1].g")).xMin,
+            ]).eqls([-9, true, false, -3]);
+        });
+
+        it("a write to a literal attribute is not refused by its owner's modifyIndirectly", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <point name="P" draggable="true" modifyIndirectly="false">(1,2)</point>
+    <updateValue name="u" target="$P.draggable" newValue="false" type="boolean" />
+    `,
+            });
+            await core.requestAction({
+                componentIdx: await resolvePathToNodeIdx("u"),
+                actionName: "updateValue",
+                args: {},
+            });
+            expect(
+                (await core.returnAllStateVariables(false, true))[
+                    await resolvePathToNodeIdx("P")
+                ].stateValues.draggable,
+            ).eq(false);
+        });
+
+        it("a write to a text literal that is not text is ignored", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <textInput name="ti" prefill="abc" />
+    <updateValue name="u1" target="$ti.prefill" newValue="5" type="number" />
+    <updateValue name="u2" target="$ti.prefill" newValue="zz" type="text" />
+    `,
+            });
+            const prefill = async () =>
+                (await core.returnAllStateVariables(false, true))[
+                    await resolvePathToNodeIdx("ti")
+                ].stateValues.prefill;
+            const update = async (name: string) =>
+                core.requestAction({
+                    componentIdx: await resolvePathToNodeIdx(name),
+                    actionName: "updateValue",
+                    args: {},
+                });
+            await update("u1");
+            expect(await prefill()).eq("abc");
+            await update("u2");
+            expect(await prefill()).eq("zz");
+            await update("u1");
+            expect(await prefill()).eq("zz");
+        });
+
         it("a copy of a repeat whose iterations reference a prop or a list entry shows what the source's iterations show", async () => {
             // Each iteration's `a` and `b` take their display settings, and
             // `b` its `hide`, from what they reference. The copies of the

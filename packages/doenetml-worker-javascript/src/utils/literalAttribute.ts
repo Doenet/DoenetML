@@ -258,7 +258,10 @@ export function serializedAttributeComponent(
 /**
  * The value a write of `desiredValue` to the literal attribute `attribute`
  * keeps (`literalAttributeWrites`): what the attribute component of its type
- * would have kept, a number for a `number`, rounded for an `integer`.
+ * would have kept, a number for a `number`, rounded for an `integer`; or
+ * `undefined` if that component would have ignored the write. A `text`
+ * written as text ignored a value that is not a string, which its text child
+ * could not take.
  */
 export function literalWriteValue(
     attribute: LiteralAttribute,
@@ -272,7 +275,10 @@ export function literalWriteValue(
         case "boolean":
             return Boolean(desiredValue);
         case "text":
-            return String(desiredValue);
+            if ("value" in attribute) {
+                return desiredValue === null ? "" : String(desiredValue);
+            }
+            return typeof desiredValue === "string" ? desiredValue : undefined;
     }
     return desiredValue;
 }
