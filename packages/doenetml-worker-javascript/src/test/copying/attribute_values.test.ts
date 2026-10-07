@@ -197,8 +197,10 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect((await sv("u")).displayDigits).eq(3);
             expect((await sv("v")).text).eq("1.2346");
 
-            // `u` took a snapshot of the digits `c` showed: when P's digits
-            // change, `c` follows and `u` does not
+            // `u` keeps the digits `c` showed when it was copied: when P's
+            // digits change, `c` follows and `u` does not. (The copy carries
+            // them in the essential state it takes from `c`, since they are
+            // not a default; the snapshot of a default is pinned with B3.)
             await updateMathInputValue({
                 latex: "2",
                 componentIdx: await resolvePathToNodeIdx("k"),
