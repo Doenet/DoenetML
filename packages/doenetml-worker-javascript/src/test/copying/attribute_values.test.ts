@@ -211,16 +211,20 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
         });
 
         it("other references with shadow attributes follow their source's display settings", async () => {
-            // Two more of the places that make shadow attribute components
+            // Three more of the places that make shadow attribute components
             // (B3 replaces them). `$P.xs` in a paragraph is a list whose
-            // display settings shadow P's. `$n.value` in the group is a value
-            // reference, and `$g[1]` names it, so `a` and `b` are made from
-            // the reference itself (`ValueRef.serialize`).
+            // display settings shadow P's. `$pg.vertex1` is an entry of an
+            // array wrapped in a point, whose display settings go on the
+            // point. `$n.value` in the group is a value reference, and
+            // `$g[1]` names it, so `a` and `b` are made from the reference
+            // itself (`ValueRef.serialize`).
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <mathInput name="k" prefill="4" />
     <point name="P" displayDigits="$k">(1.23456,2.34567)</point>
     <p name="xs">$P.xs</p>
+    <polygon name="pg" vertices="(1.23456,2.34567) (3,4) (5,6)" displayDigits="$k" />
+    <p name="v">$pg.vertex1</p>
     <number name="n" displayDigits="$k">1.23456</number>
     <p><group name="g">$n.value</group></p>
     <number extend="$g[1]" name="a" />
@@ -235,21 +239,36 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 const text = async (name: string) =>
                     stateVariables[await resolvePathToNodeIdx(name)].stateValues
                         .text;
-                return [await text("xs"), await text("a"), await text("b")];
+                return [
+                    await text("xs"),
+                    await text("v"),
+                    await text("a"),
+                    await text("b"),
+                ];
             }
 
             // four digits, not a number's default three, so that `b` keeping
             // them is told apart from `b` having no display settings
-            expect(await texts()).eqls(["1.235, 2.346", "1.235", "1.235"]);
+            expect(await texts()).eqls([
+                "1.235, 2.346",
+                "(1.235, 2.346)",
+                "1.235",
+                "1.235",
+            ]);
 
-            // the list and the extend follow the digits; the unlinked copy
-            // keeps the ones it showed
+            // the list, the vertex and the extend follow the digits; the
+            // unlinked copy keeps the ones it showed
             await updateMathInputValue({
                 latex: "2",
                 componentIdx: await resolvePathToNodeIdx("k"),
                 core,
             });
-            expect(await texts()).eqls(["1.2, 2.3", "1.2", "1.235"]);
+            expect(await texts()).eqls([
+                "1.2, 2.3",
+                "(1.2, 2.3)",
+                "1.2",
+                "1.235",
+            ]);
         });
 
         it("a literal attribute is read as its type", async () => {
