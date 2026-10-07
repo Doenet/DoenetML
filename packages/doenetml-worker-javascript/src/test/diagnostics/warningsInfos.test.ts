@@ -1149,7 +1149,7 @@ describe("Warning Tests @group4", async () => {
 <repeatForSequence from="1" to="2" valueName="v" name="r"><number>$v</number></repeatForSequence>
 <p name="p2"><repeatForSequence extend="$r" to="4"><text>x</text></repeatForSequence></p>
 <repeat for="a b" valueName="w" name="r2"><text>$w</text></repeat>
-<p name="p3"><repeat extend="$r2"><text>y</text></repeat></p>
+<p name="p3"><repeat extend="$r2" for="c d e"><text>y</text></repeat></p>
 <select name="sel"><option><text>c</text></option></select>
 <p name="p4"><select extend="$sel" numToSelect="1" /></p>
             `,
@@ -1174,6 +1174,7 @@ describe("Warning Tests @group4", async () => {
             "The `step` attribute is ignored: a `<sequence>` with `extend` shows the same content as the component it extends.",
             "The `to` attribute is ignored: a `<repeatForSequence>` with `extend` shows the same content as the component it extends.",
             "Children written inside a `<repeatForSequence>` with `extend` are ignored: it shows the same content as the component it extends.",
+            "The `for` attribute is ignored: a `<repeat>` with `extend` shows the same content as the component it extends.",
             "Children written inside a `<repeat>` with `extend` are ignored: it shows the same content as the component it extends.",
             "The `numToSelect` attribute is ignored: a `<select>` with `extend` shows the same content as the component it extends.",
         ]);
@@ -1182,6 +1183,7 @@ describe("Warning Tests @group4", async () => {
             "doenet-w0168",
             "doenet-w0168",
             "doenet-w0169",
+            "doenet-w0168",
             "doenet-w0169",
             "doenet-w0168",
         ]);
@@ -1190,7 +1192,7 @@ describe("Warning Tests @group4", async () => {
             diagnosticsByType.warnings.map(
                 (warning) => warning.position?.start.line,
             ),
-        ).eqls([3, 3, 5, 5, 7, 9]);
+        ).eqls([3, 3, 5, 5, 7, 7, 9]);
     });
 
     it("says nothing about what an extend applies, or about a copy", async () => {

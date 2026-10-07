@@ -6520,6 +6520,95 @@ describe("Point tag tests @group4", async () => {
         await check_items(positions);
     });
 
+    it("fixLocation written on a copy or extend takes precedence over an enclosing group's", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <graph>
+      <point name="Q">(1,2)</point>
+    </graph>
+    <group fixLocation>
+      <graph>
+        <point name="GC" copy="$Q" fixLocation="false" />
+        <point name="GX" extend="$Q" fixLocation="false" />
+        <point name="GP" copy="$Q" />
+        <point name="GD" fixLocation="false">(3,4)</point>
+      </graph>
+    </group>
+    `,
+        });
+
+        async function check_items(positions: Record<string, number[]>) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const [name, xs] of Object.entries(positions)) {
+                expect(
+                    stateVariables[
+                        await resolvePathToNodeIdx(name)
+                    ].stateValues.xs.map((v) => v.tree),
+                    name,
+                ).eqls(xs);
+            }
+        }
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const fixLocations: Record<string, boolean> = {};
+        for (const name of ["Q", "GC", "GX", "GP", "GD"]) {
+            fixLocations[name] =
+                stateVariables[
+                    await resolvePathToNodeIdx(name)
+                ].stateValues.fixLocation;
+        }
+        // As on `GD`, written directly, the copy's and extend's own
+        // `fixLocation="false"` wins over the group's. A copy with none
+        // inherits the group's.
+        expect(fixLocations).eqls({
+            Q: false,
+            GC: false,
+            GX: false,
+            GP: true,
+            GD: false,
+        });
+
+        const positions = {
+            Q: [1, 2],
+            GC: [1, 2],
+            GX: [1, 2],
+            GP: [1, 2],
+            GD: [3, 4],
+        };
+        await check_items(positions);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("GC"),
+            x: 5,
+            y: 6,
+            core,
+        });
+        positions.GC = [5, 6];
+        await check_items(positions);
+
+        // A drag of the extend lands on `Q`, which is not location-fixed.
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("GX"),
+            x: 7,
+            y: 8,
+            core,
+        });
+        positions.Q = [7, 8];
+        positions.GX = [7, 8];
+        await check_items(positions);
+
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("GP"),
+            x: 9,
+            y: 9,
+            core,
+        });
+        await check_items(positions);
+    });
+
     it("fix location or fixed is communicated so know math from point can't be changed", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
