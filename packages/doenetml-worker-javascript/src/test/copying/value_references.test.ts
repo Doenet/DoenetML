@@ -1845,6 +1845,53 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(censusOfCore(core).copies).eq(0);
         });
 
+        it("a list entry from a reference to a whole point is placed as the point", async () => {
+            // A `<mathList>` in a graph places each entry as the component
+            // it comes from. The copy of `P` was that component; the
+            // reference reading `P.coords` places the entry as `P`, so a
+            // click on the entry fires what a click on `P` fires.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <graph>
+      <point name="P">(1,2)</point>
+      <mathList name="ml">$P 3</mathList>
+    </graph>
+    <number name="n">0</number>
+    <updateValue target="$n" newValue="$n+1" triggerWhenObjectsClicked="$P" />
+    `,
+            });
+            const mlIdx = await resolvePathToNodeIdx("ml");
+            expect(
+                valueRefs(core).filter(
+                    (ref) => ref.presentedComponentType === "coords",
+                ),
+            ).toHaveLength(1);
+
+            let stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(stateVariables[mlIdx].stateValues.entryGraphSources).eqls([
+                await resolvePathToNodeIdx("P"),
+                null,
+            ]);
+            expect(stateVariables[mlIdx].stateValues.entryDraggable).eqls([
+                true,
+                false,
+            ]);
+
+            await core.requestAction({
+                componentIdx: mlIdx,
+                actionName: "mathClicked",
+                args: { listEntryIndex: 0 },
+            });
+            stateVariables = await core.returnAllStateVariables(false, true);
+            expect(
+                stateVariables[await resolvePathToNodeIdx("n")].stateValues
+                    .value,
+            ).eq(1);
+        });
+
         it("a reference to a point stays a copy where the point itself is taken, drawn or recorded", async () => {
             // A `<graph>` takes the point, a `<p>` draws it, and an answer
             // with no input of its own records the point as its response.

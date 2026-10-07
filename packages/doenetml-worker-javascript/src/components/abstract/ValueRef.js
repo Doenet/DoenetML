@@ -403,13 +403,13 @@ export default class ValueRef extends BaseComponent {
 
         // The referent and the variable read on it: `{componentIdx,
         // componentType, variableName, referencedVariable,
-        // referencedPrimaryValue, companions}`, or `null` while there is
-        // nothing to read. The variable read is the adapter's when the
-        // reference presents as an adapter's type; `referencedVariable` is
-        // the one the author's reference resolved to, whose companions
-        // travel with it. Worked out by a `referent` dependency on the
-        // component the reference resolved to, or fixed by the copy that
-        // made the reference (`fixedReferent`).
+        // referencedPrimaryValue, referencedWholeComponent, companions}`, or
+        // `null` while there is nothing to read. The variable read is the
+        // adapter's when the reference presents as an adapter's type;
+        // `referencedVariable` is the one the author's reference resolved
+        // to, whose companions travel with it. Worked out by a `referent`
+        // dependency on the component the reference resolved to, or fixed
+        // by the copy that made the reference (`fixedReferent`).
         //
         // Shadowed when a copy of the component holding this reference
         // shadows it, so that the copy's reference reads the same referent.
@@ -492,6 +492,14 @@ export default class ValueRef extends BaseComponent {
                                 adapterVariable ?? referent.variableName,
                             referencedVariable: referent.variableName,
                             referencedPrimaryValue: referent.isPrimaryValue,
+                            // a reference to the whole referent, read
+                            // through its adapter (`$P` in a `<mathList>`),
+                            // which a list places its entry as
+                            // (`graphSourceOf`), as it placed the copy
+                            ...(this.svComponent.doenetAttributes
+                                .readsReferentAdapter
+                                ? { referencedWholeComponent: true }
+                                : {}),
                             companions: referent.companions,
                             listEntryPosition: referent.listEntryPosition,
                         };

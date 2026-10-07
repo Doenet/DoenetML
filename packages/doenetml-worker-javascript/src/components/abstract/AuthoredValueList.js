@@ -1503,7 +1503,8 @@ const ENTRY_GRAPH_SOURCE_VARIABLES = Object.freeze({
  * list or a component a list reads an entry from: for an entry of a list,
  * the component that list places the entry as (or `null`); for a value
  * reference, its referent when it references the referent's own value (`$m`,
- * `$m.value`), and none when it references another value (`$m.x`, `$l[2]`);
+ * `$m.value`) or the whole referent through its adapter (`$P`, which reads
+ * `P.coords`), and none when it references another value (`$m.x`, `$l[2]`);
  * otherwise the component itself. `stateValues` holds `listEntryGraphSource` and
  * `referentInfo`, when the source has them.
  */
@@ -1516,7 +1517,8 @@ export function graphSourceOf(source) {
     }
     const referentInfo = source.stateValues?.referentInfo;
     if (referentInfo !== undefined) {
-        return referentInfo?.referencedPrimaryValue &&
+        return (referentInfo?.referencedPrimaryValue ||
+            referentInfo?.referencedWholeComponent) &&
             referentInfo.listEntryPosition === undefined
             ? referentInfo.componentIdx
             : null;
