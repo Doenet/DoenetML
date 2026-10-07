@@ -91,10 +91,12 @@ vi.mock("../../core/ResolverAdapter", async (importOriginal) => {
  */
 describe("a composite reports its own failure rather than losing it @group4", () => {
     // A `<sequence>` is not a composite (it is a list component), so a
-    // composite that creates one component per value stands in for it.
+    // composite that creates one component per value stands in for it. Its
+    // template is in a `<group>`, so that it is not made a list either
+    // (`utils/dast/repeatLists.ts`).
     const buildDoenetML = `
 <p name="before">before</p>
-<p name="vals"><repeatForSequence name="s" from="1" to="3" valueName="v"><number>$v</number> </repeatForSequence></p>
+<p name="vals"><repeatForSequence name="s" from="1" to="3" valueName="v"><group><number>$v</number></group> </repeatForSequence></p>
 <p name="after">after</p>`;
 
     it("reports a failure registering replacements while building", async () => {
@@ -155,7 +157,7 @@ describe("a composite reports its own failure rather than losing it @group4", ()
     const growDoenetML = `
 <mathInput name="n" prefill="3" />
 <p name="after">after</p>
-<p name="vals"><repeatForSequence name="s" from="1" to="$n" valueName="v"><number>$v</number> </repeatForSequence></p>`;
+<p name="vals"><repeatForSequence name="s" from="1" to="$n" valueName="v"><group><number>$v</number></group> </repeatForSequence></p>`;
 
     it("reports a failure registering replacements while updating", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
@@ -215,7 +217,7 @@ describe("a composite reports its own failure rather than losing it @group4", ()
     const shrinkDoenetML = `
 <mathInput name="n" prefill="5" />
 <p name="after">after</p>
-<p name="vals"><repeatForSequence name="s" from="1" to="$n" valueName="v"><number>$v</number> </repeatForSequence></p>`;
+<p name="vals"><repeatForSequence name="s" from="1" to="$n" valueName="v"><group><number>$v</number></group> </repeatForSequence></p>`;
 
     it("reports a failure adjusting which replacements are withheld", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({

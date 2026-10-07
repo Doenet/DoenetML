@@ -141,7 +141,12 @@ export class EssentialValueWriter {
         if (computedNumEntries === previousNumEntries) {
             return;
         }
-        if (computedNumEntries < previousNumEntries) {
+        // A repeat made a list keeps them, as it kept the iterations it
+        // withheld (`RepeatValueList`).
+        if (
+            computedNumEntries < previousNumEntries &&
+            !list.constructor.listKeepsEntryWritesPastEnd
+        ) {
             this.dropListEntryWritesFrom(list, computedNumEntries);
         }
         list.entryCountChanged = true;
@@ -465,6 +470,24 @@ export class EssentialValueWriter {
                         let set = (x: any) => x;
                         if (compStateObj.set) {
                             set = compStateObj.set;
+                        }
+
+                        // A repeat made a list keeps what was written to
+                        // entries past its end (`listKeepsEntryWritesPastEnd`),
+                        // so a saved one is restored past its end too, and
+                        // shown when it grows.
+                        if (
+                            newComponent &&
+                            comp.constructor.listKeepsEntryWritesPastEnd &&
+                            compStateObj.numDimensions === 1
+                        ) {
+                            const ind = compStateObj.keyToIndex(arrayKey);
+                            if (Number.isInteger(ind) && ind >= arraySize[0]) {
+                                essentialArray[ind] = set(
+                                    newComponentStateVariables[vName][arrayKey],
+                                );
+                                continue;
+                            }
                         }
 
                         let setResult = compStateObj.setArrayValue({

@@ -28,29 +28,18 @@ describe("Repeat tag tests @group1", async () => {
 
         let stateVariables = await core.returnAllStateVariables(false, true);
 
-        let replacements =
-            stateVariables[await resolvePathToNodeIdx("repeat1")].replacements!;
-        let mathr1Name =
-            stateVariables[replacements[0].componentIdx].replacements![0]
-                .componentIdx;
-        let mathr2Name =
-            stateVariables[replacements[1].componentIdx].replacements![0]
-                .componentIdx;
+        // A repeat whose template is one math is a list of its values
+        // (`RepeatValueList.js`).
+        let maths =
+            stateVariables[await resolvePathToNodeIdx("repeat1")].stateValues
+                .maths;
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("sin(2 x) + 1, sin(2 y) + 2");
 
-        expect(stateVariables[mathr1Name].stateValues.value.tree).eqls([
-            "+",
-            ["apply", "sin", ["*", 2, "x"]],
-            1,
-        ]);
-        expect(stateVariables[mathr2Name].stateValues.value.tree).eqls([
-            "+",
-            ["apply", "sin", ["*", 2, "y"]],
-            2,
-        ]);
+        expect(maths[0].tree).eqls(["+", ["apply", "sin", ["*", 2, "x"]], 1]);
+        expect(maths[1].tree).eqls(["+", ["apply", "sin", ["*", 2, "y"]], 2]);
     });
 
     it("single repeat of texts", async () => {
@@ -102,20 +91,16 @@ describe("Repeat tag tests @group1", async () => {
         });
 
         let stateVariables = await core.returnAllStateVariables(false, true);
-        let replacements =
-            stateVariables[await resolvePathToNodeIdx("repeat1")].replacements!;
-        let mathrNames = replacements.map(
-            (x) => stateVariables[x.componentIdx].replacements![0].componentIdx,
-        );
+        // A repeat whose template is one math is a list of its values
+        // (`RepeatValueList.js`).
+        let maths =
+            stateVariables[await resolvePathToNodeIdx("repeat1")].stateValues
+                .maths;
 
         expect(
             stateVariables[await resolvePathToNodeIdx("p")].stateValues.text,
         ).eq("1, 4, 9, 16, 25");
-        expect(stateVariables[mathrNames[0]].stateValues.value.tree).eq(1);
-        expect(stateVariables[mathrNames[1]].stateValues.value.tree).eq(4);
-        expect(stateVariables[mathrNames[2]].stateValues.value.tree).eq(9);
-        expect(stateVariables[mathrNames[3]].stateValues.value.tree).eq(16);
-        expect(stateVariables[mathrNames[4]].stateValues.value.tree).eq(25);
+        expect(maths.map((math) => math.tree)).eqls([1, 4, 9, 16, 25]);
     });
 
     it("triple parallel repeat", async () => {
@@ -1863,22 +1848,19 @@ describe("Repeat tag tests @group1", async () => {
 
         const stateVariables = await core.returnAllStateVariables(false, true);
 
+        // A repeat whose template is one math or number is a list of its
+        // values (`RepeatValueList.js`).
         expect(
-            stateVariables[await resolvePathToNodeIdx("m[1].math")].stateValues
-                .value.tree,
-        ).eqls(["*", 2, "x"]);
+            stateVariables[
+                await resolvePathToNodeIdx("m")
+            ].stateValues.maths.map((math) => math.tree),
+        ).eqls([
+            ["*", 2, "x"],
+            ["*", 2, "y"],
+        ]);
         expect(
-            stateVariables[await resolvePathToNodeIdx("m[2].math")].stateValues
-                .value.tree,
-        ).eqls(["*", 2, "y"]);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("n[1].number")]
-                .stateValues.value,
-        ).eq(2);
-        expect(
-            stateVariables[await resolvePathToNodeIdx("n[2].number")]
-                .stateValues.value,
-        ).eq(4);
+            stateVariables[await resolvePathToNodeIdx("n")].stateValues.numbers,
+        ).eqls([2, 4]);
         expect(
             stateVariables[await resolvePathToNodeIdx("t[1].text")].stateValues
                 .value,
