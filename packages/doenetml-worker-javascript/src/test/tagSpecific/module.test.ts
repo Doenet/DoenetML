@@ -1,5 +1,6 @@
-import { describe, expect, it, vi } from "vitest";
+import { afterEach, describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
+import { setRepeatListsEnabled } from "../../utils/dast/repeatLists";
 import { cleanLatex } from "../utils/math";
 import {
     movePoint,
@@ -1797,6 +1798,8 @@ ${moduleDefinition}
     });
 
     describe("point in a repeat over a module-attribute list of random values", async () => {
+        afterEach(() => setRepeatListsEnabled(true));
+
         // A point in a repeat whose x is the module attribute's entry at
         // the repeat index, `$values[$i]`, with the module copied with
         // `values="$v"` for a random selection or sample `v`.
@@ -1806,7 +1809,7 @@ ${moduleDefinition}
   <module name="m">
     <moduleAttributes><numberList name="values"/></moduleAttributes>
     <count name="n">$values</count>
-    <graph>
+    <graph name="g">
       <repeatForSequence from="1" to="$n" indexName="i" name="Ps">
         <point name="P">($values[$i], 0)</point>
       </repeatForSequence>
@@ -1818,6 +1821,32 @@ ${source}
 `;
         }
 
+        // The points the graph draws, whether the repeat is a list of points
+        // or a composite of one point per iteration.
+        async function pointsDrawn(core: any, graphIdx: number) {
+            const rendererState =
+                core.core.rendererInstructionBuilder.rendererState;
+            const points: { componentIdx: number; x: number }[] = [];
+            function visit(instructions: any[]) {
+                for (const child of instructions) {
+                    if (typeof child !== "object" || !child) {
+                        continue;
+                    }
+                    const state = rendererState[child.componentIdx];
+                    if (child.componentType === "point") {
+                        points.push({
+                            componentIdx: child.componentIdx,
+                            x: state.stateValues.numericalXs[0],
+                        });
+                    } else if (state?.childrenInstructions) {
+                        visit(state.childrenInstructions);
+                    }
+                }
+            }
+            visit(rendererState[graphIdx].childrenInstructions);
+            return points;
+        }
+
         async function checkDrags({
             doenetML,
             draggable,
@@ -1825,49 +1854,71 @@ ${source}
             doenetML: string;
             draggable: boolean;
         }) {
-            const { core, resolvePathToNodeIdx } = await createTestCore({
-                doenetML,
-            });
-
-            const P1Idx = await resolvePathToNodeIdx("mc.Ps[1].P");
-            const P2Idx = await resolvePathToNodeIdx("mc.Ps[2].P");
-            const vIdx = await resolvePathToNodeIdx("v");
-
-            async function getValues() {
-                const stateVariables = await core.returnAllStateVariables(
-                    false,
-                    true,
-                );
-                return {
-                    x1: stateVariables[P1Idx].stateValues.numericalXs[0],
-                    x2: stateVariables[P2Idx].stateValues.numericalXs[0],
-                    v: stateVariables[vIdx].stateValues.numbers,
-                };
-            }
-
-            const before = await getValues();
-            expect(before.v).toHaveLength(2);
-            expect(before.x1).eq(before.v[0]);
-            expect(before.x2).eq(before.v[1]);
-
-            await movePoint({ componentIdx: P1Idx, x: 20, y: 0, core });
-            let values = await getValues();
-            if (draggable) {
-                expect(values).toEqual({
-                    x1: 20,
-                    x2: before.x2,
-                    v: [20, before.x2],
+            // with the repeat a list of points, and left a composite
+            for (const asList of [true, false]) {
+                setRepeatListsEnabled(asList);
+                const { core, resolvePathToNodeIdx } = await createTestCore({
+                    doenetML,
                 });
-            } else {
-                expect(values).toEqual(before);
-            }
+                setRepeatListsEnabled(true);
 
-            await movePoint({ componentIdx: P2Idx, x: -3, y: 0, core });
-            values = await getValues();
-            if (draggable) {
-                expect(values).toEqual({ x1: 20, x2: -3, v: [20, -3] });
-            } else {
-                expect(values).toEqual(before);
+                expect(
+                    core.core!._components[await resolvePathToNodeIdx("mc.Ps")]
+                        .componentType === "_repeatPointList",
+                ).toBe(asList);
+
+                const graphIdx = await resolvePathToNodeIdx("mc.g");
+                const vIdx = await resolvePathToNodeIdx("v");
+
+                async function getValues() {
+                    const stateVariables = await core.returnAllStateVariables(
+                        false,
+                        true,
+                    );
+                    const xs = (await pointsDrawn(core, graphIdx)).map(
+                        (p) => p.x,
+                    );
+                    return {
+                        x1: xs[0],
+                        x2: xs[1],
+                        v: stateVariables[vIdx].stateValues.numbers,
+                    };
+                }
+
+                async function drag(index: number, x: number) {
+                    const points = await pointsDrawn(core, graphIdx);
+                    await movePoint({
+                        componentIdx: points[index].componentIdx,
+                        x,
+                        y: 0,
+                        core,
+                    });
+                }
+
+                const before = await getValues();
+                expect(before.v).toHaveLength(2);
+                expect(before.x1).eq(before.v[0]);
+                expect(before.x2).eq(before.v[1]);
+
+                await drag(0, 20);
+                let values = await getValues();
+                if (draggable) {
+                    expect(values).toEqual({
+                        x1: 20,
+                        x2: before.x2,
+                        v: [20, before.x2],
+                    });
+                } else {
+                    expect(values).toEqual(before);
+                }
+
+                await drag(1, -3);
+                values = await getValues();
+                if (draggable) {
+                    expect(values).toEqual({ x1: 20, x2: -3, v: [20, -3] });
+                } else {
+                    expect(values).toEqual(before);
+                }
             }
         }
 
