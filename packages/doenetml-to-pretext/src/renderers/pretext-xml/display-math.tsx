@@ -24,7 +24,8 @@ export const DisplayMathNumbered: BasicComponent<MathData> = ({ node }) =>
  * PreTeXt would number one by one. An equation the author tagged by hand keeps that tag
  * and is given no number of PreTeXt's.
  */
-function singleEquation(latex: string, numbered: boolean) {
+function singleEquation(rawLatex: string, numbered: boolean) {
+    const latex = withoutTrailingComment(rawLatex);
     const mdAttrs = { number: numbered && !hasAuthorTag(latex) ? "yes" : "no" };
     const lines = splitAtTopLevelRowBreaks(latex);
     const content =
@@ -86,7 +87,8 @@ const CORE_NOTAG = /^\\notag(?![a-zA-Z])/;
  * the rows PreTeXt numbers are the rows DoenetML numbers.
  *
  * A `\tag` the author wrote in a row stays in it, and the row is reported unnumbered, so
- * that the author's tag is the only one it gets.
+ * that the author's tag is the only one it gets. A comment that runs to the end of a row is
+ * left out, since PreTeXt writes the row's number and the break after it on the same line.
  */
 export function parseDisplayRows(latex: string): DisplayRow[] {
     const rows: DisplayRow[] = [];
@@ -99,7 +101,7 @@ export function parseDisplayRows(latex: string): DisplayRow[] {
         } else if (CORE_NOTAG.test(row)) {
             numbered = false;
         }
-        row = row.replace(/\\notag(?![a-zA-Z])/g, "");
+        row = withoutTrailingComment(row).replace(/\\notag(?![a-zA-Z])/g, "");
         if (hasAuthorTag(row)) {
             numbered = false;
         }
@@ -118,7 +120,7 @@ function hasAuthorTag(latex: string) {
     return /\\tag(?![a-zA-Z])\*?\s*\{/.test(withoutComments(latex));
 }
 
-/** `latex` without its comments: each `%` that is not escaped, to the end of its line. */
+/** `latex` without its comments. */
 function withoutComments(latex: string) {
     let result = "";
     for (let i = 0; i < latex.length; i++) {
@@ -128,16 +130,41 @@ function withoutComments(latex: string) {
             result += latex.slice(i, i + 2);
             i++;
         } else if (char === "%") {
-            const end = latex.indexOf("\n", i);
-            if (end < 0) {
-                break;
-            }
-            i = end - 1;
+            i = commentEnd(latex, i) - 1;
         } else {
             result += char;
         }
     }
     return result;
+}
+
+/** `latex` without a comment that runs to its end. */
+function withoutTrailingComment(latex: string) {
+    for (let i = 0; i < latex.length; i++) {
+        const char = latex[i];
+        if (char === "\\") {
+            i++;
+        } else if (char === "%") {
+            const end = commentEnd(latex, i);
+            if (end === latex.length) {
+                return latex.slice(0, i).trimEnd();
+            }
+            i = end - 1;
+        }
+    }
+    return latex;
+}
+
+/**
+ * Where the comment that starts at `start`, an unescaped `%`, ends: at the end of its
+ * line, or where the core starts the next row of a display, since the core joins the rows
+ * with no line break between them.
+ */
+function commentEnd(latex: string, start: number) {
+    const match = /\n|\\\\(?=\\tag\{\d+\}|\\notag(?![a-zA-Z]))/.exec(
+        latex.slice(start),
+    );
+    return match ? start + match.index : latex.length;
 }
 
 /** `latex` cut at each `\\` outside every group, environment and comment. */
@@ -159,9 +186,8 @@ function splitAtTopLevelRowBreaks(latex: string): string[] {
             // Skip the escaped character, so that `\{` or `\\` is not read again.
             i++;
         } else if (char === "%") {
-            // A comment runs to the end of its line, and nothing in it counts.
-            const end = latex.indexOf("\n", i);
-            i = end < 0 ? latex.length : end;
+            // Nothing in a comment counts.
+            i = commentEnd(latex, i) - 1;
         } else if (char === "{") {
             depth++;
         } else if (char === "}") {

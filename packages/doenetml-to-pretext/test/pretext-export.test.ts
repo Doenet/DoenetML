@@ -664,6 +664,27 @@ describe("Pretext export", async () => {
           + 0</mrow><mrow>y</mrow></md>"
         `);
 
+        // A comment that runs to the end of a row ends there, where the next row begins,
+        // and is left out, so that what PreTeXt writes after the row is not commented out.
+        source = `<mdn><mrow>x % note</mrow><mrow>y</mrow></mdn>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<md number="yes"><mrow>x</mrow><mrow>y</mrow></md>"`,
+        );
+
+        source = `<md><mrow>x % note</mrow><mrow>y</mrow></md>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<md number="no"><mrow>x</mrow><mrow>y</mrow></md>"`,
+        );
+
+        source = `<men>x % note</men>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(`"<md number="yes">x</md>"`);
+
         // An equation whose only `\\` is in a comment is one line.
         source = `<me>x = 1 % a \\\\ b\n+ 0</me>`;
         expect(
