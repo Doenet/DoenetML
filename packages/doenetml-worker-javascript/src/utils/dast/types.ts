@@ -295,6 +295,14 @@ export type AttributeDefinition<T> = {
      * for a reader that reads more of the component than its value.
      */
     keepAttributeComponent?: boolean;
+    /**
+     * Hold the attribute as a literal (`literalAttribute.ts`) when the author
+     * wrote plain numbers for a `math` or the coordinates of a `point`, which
+     * parse the same whatever the parse settings: `anchor="(1,2)"`. Opted in
+     * by attribute, since a reader of a `point` or `math` attribute may read
+     * its component by index.
+     */
+    literalWhenNumeric?: boolean;
     /** Create an attribute of type "component" with componentType `createComponentOfType` */
     createComponentOfType?: string;
     /** Create an attribute of type "primitive" with primitive type determined by `createPrimitiveOfType` */

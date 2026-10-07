@@ -1416,6 +1416,7 @@ export class EssentialValueWriter {
                         ? literalWriteValue(
                               literal,
                               newInstruction.desiredValue,
+                              dep.literalCurrentValue,
                           )
                         : undefined;
                     if (literal && literalValue === undefined) {

@@ -100,21 +100,19 @@ exports[`component census of the micro-documents > literal attributes 1`] = `
 
 exports[`component census of the micro-documents > math anchor=(1,2) 1`] = `
 {
-  "attributeComponents": 2,
+  "attributeComponents": 0,
   "byType": {
     "_dynamicChildren": 1,
     "document": 1,
     "graph": 1,
-    "math": 3,
-    "mathList": 1,
-    "point": 1,
+    "math": 1,
   },
-  "components": 8,
+  "components": 4,
   "copies": 0,
-  "dependencies": 469,
+  "dependencies": 315,
   "shadows": 0,
-  "stateVariables": 549,
-  "stateVariablesResolved": 218,
+  "stateVariables": 242,
+  "stateVariablesResolved": 158,
 }
 `;
 

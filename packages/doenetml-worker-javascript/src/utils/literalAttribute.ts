@@ -34,7 +34,8 @@ import {
     numberFromDesiredValue,
     numberFromString,
 } from "./valueFunctions/number";
-import { plainComplex } from "./math";
+import me from "math-expressions";
+import { isUnspecifiedComponentValue, plainComplex, textToAst } from "./math";
 import { textFromChildren } from "./text";
 
 export type LiteralAttribute = {
@@ -44,6 +45,8 @@ export type LiteralAttribute = {
     componentType: string;
     /** What the author wrote, for a value computed from it. */
     text?: string;
+    /** For a point, what the author wrote for each coordinate. */
+    coordinateTexts?: string[];
     /**
      * The value itself, when the conversion already computed it (an
      * attribute written with no value, or `"true"` for a boolean).
@@ -79,14 +82,29 @@ export function literalFromAttributeComponent({
 }: {
     name: string;
     component: SerializedComponent;
-    attrDef?: { keepAttributeComponent?: boolean };
+    attrDef?: {
+        keepAttributeComponent?: boolean;
+        literalWhenNumeric?: boolean;
+    };
     sourceDoc?: number;
 }): LiteralAttribute | undefined {
     const componentType = component.componentType;
-    if (
-        !LITERAL_ATTRIBUTE_TYPES.has(componentType) ||
-        attrDef?.keepAttributeComponent
-    ) {
+    if (attrDef?.keepAttributeComponent) {
+        return undefined;
+    }
+    if (attrDef?.literalWhenNumeric) {
+        const numeric = numericLiteral(name, component);
+        if (numeric) {
+            if (sourceDoc !== undefined) {
+                numeric.sourceDoc = sourceDoc;
+            }
+            if (component.position) {
+                numeric.position = component.position;
+            }
+            return numeric;
+        }
+    }
+    if (!LITERAL_ATTRIBUTE_TYPES.has(componentType)) {
         return undefined;
     }
     if (
@@ -132,8 +150,134 @@ export function literalFromAttributeComponent({
 }
 
 /**
+ * A number as an author writes it, with no exponent, so that it parses to
+ * the same number whatever the parse settings (`splitSymbols`,
+ * `parseScientificNotation`, …) of the component that has the attribute.
+ */
+const PLAIN_NUMBER = /^\s*-?(\d+\.?\d*|\.\d+)\s*$/;
+
+/** Whether `component` has nothing but the one child `text`, a plain number. */
+function isPlainNumberComponent(component: any, componentType: string) {
+    return (
+        typeof component === "object" &&
+        component?.componentType === componentType &&
+        Object.keys(component.attributes ?? {}).length === 0 &&
+        !component.extending &&
+        Object.keys(component.state ?? {}).length === 0 &&
+        component.children?.length === 1 &&
+        typeof component.children[0] === "string" &&
+        PLAIN_NUMBER.test(component.children[0])
+    );
+}
+
+/**
+ * For an attribute whose definition has `literalWhenNumeric`, the literal a
+ * `math` or a `point` attribute component made of plain numbers stands for
+ * (`anchor="(1,2)"`, which the point's sugar made into maths of `xs`).
+ */
+function numericLiteral(
+    name: string,
+    component: SerializedComponent,
+): LiteralAttribute | undefined {
+    if (
+        Object.keys(component.doenetAttributes ?? {}).some(
+            (key) => key !== "isAttributeChildFor",
+        ) ||
+        component.extending ||
+        Object.keys(component.state ?? {}).length > 0
+    ) {
+        return undefined;
+    }
+    if (component.componentType === "math") {
+        if (isPlainNumberComponent(component, "math")) {
+            return {
+                type: "literal",
+                name,
+                componentType: "math",
+                text: component.children[0] as string,
+            };
+        }
+        return undefined;
+    }
+    if (component.componentType !== "point") {
+        return undefined;
+    }
+    const attributeNames = Object.keys(component.attributes ?? {});
+    const xs: any = component.attributes?.xs;
+    if (
+        (component.children ?? []).length > 0 ||
+        attributeNames.length !== 1 ||
+        xs?.type !== "component" ||
+        xs.component.componentType !== "mathList" ||
+        Object.keys(xs.component.attributes ?? {}).length > 0 ||
+        xs.component.extending ||
+        Object.keys(xs.component.state ?? {}).length > 0 ||
+        xs.component.children.length === 0 ||
+        !xs.component.children.every((child: any) =>
+            isPlainNumberComponent(child, "math"),
+        )
+    ) {
+        return undefined;
+    }
+    return {
+        type: "literal",
+        name,
+        componentType: "point",
+        coordinateTexts: xs.component.children.map(
+            (child: any) => child.children[0],
+        ),
+    };
+}
+
+/** The math a plain number written as `text` is. */
+function mathFromPlainNumber(text: string) {
+    return me.fromAst(textToAst.convert(text));
+}
+
+/**
+ * The coordinates of a point whose coordinates are `xs`: a vector of them,
+ * or the one coordinate, as `Point`'s `coords`.
+ */
+function coordsFromXs(xs: any[]) {
+    return xs.length === 1
+        ? xs[0]
+        : me.fromAst(["vector", ...xs.map((x) => x.tree)]);
+}
+
+/**
+ * The variables a reader may ask of the literal attribute `attribute`, as it
+ * asked them of its attribute component, given its value `value`
+ * (`literalAttributeValue`, or a value a reader wrote over it): the `value`;
+ * for a point, its `coords` and the variables of its coordinates.
+ */
+export function literalAttributeVariables(
+    attribute: LiteralAttribute,
+    value: any,
+): Record<string, any> {
+    if (attribute.componentType !== "point") {
+        return { value };
+    }
+    const tree = value.tree;
+    const xs =
+        Array.isArray(tree) && (tree[0] === "vector" || tree[0] === "tuple")
+            ? tree.slice(1).map((x: any) => me.fromAst(x))
+            : [value];
+    const variables: Record<string, any> = {
+        coords: value,
+        xs,
+        numDimensions: xs.length,
+    };
+    xs.forEach((x: any, i: number) => {
+        variables[`x${i + 1}`] = x;
+        variables[["x", "y", "z"][i]] = x;
+    });
+    return variables;
+}
+
+/**
  * The value of the literal attribute `attribute`: the `value` of an attribute
- * component of its type whose one child is its text.
+ * component of its type whose one child is its text, or, for a point, its
+ * `coords`.
  */
 export function literalAttributeValue(
     attribute: LiteralAttribute,
@@ -142,8 +286,15 @@ export function literalAttributeValue(
     if ("value" in attribute) {
         return attribute.value;
     }
+    if (attribute.componentType === "point") {
+        return coordsFromXs(
+            attribute.coordinateTexts!.map(mathFromPlainNumber),
+        );
+    }
     const text = attribute.text!;
     switch (attribute.componentType) {
+        case "math":
+            return mathFromPlainNumber(text);
         case "text":
             return textFromChildren([text]);
         case "number":
@@ -287,8 +438,11 @@ export function copyOfLiteralAttribute(
 export function literalWriteValue(
     attribute: LiteralAttribute,
     desiredValue: any,
+    currentValue?: any,
 ) {
     switch (attribute.componentType) {
+        case "point":
+            return pointFromDesiredCoords(desiredValue, currentValue);
         case "number":
             return numberFromDesiredValue(desiredValue, NaN);
         case "integer":
@@ -302,4 +456,51 @@ export function literalWriteValue(
             return typeof desiredValue === "string" ? desiredValue : undefined;
     }
     return desiredValue;
+}
+
+/**
+ * The coordinates a point keeps when `desired` is written to coordinates
+ * `current`: a coordinate left unspecified in `desired` keeps its current
+ * value, as `Point`'s inverse keeps it.
+ */
+function pointFromDesiredCoords(desired: any, current: any) {
+    const desiredTree = desired?.tree;
+    if (
+        !current ||
+        !Array.isArray(desiredTree) ||
+        !["vector", "tuple"].includes(desiredTree[0])
+    ) {
+        return desired;
+    }
+    const currentXs = literalAttributeVariables(
+        { type: "literal", name: "", componentType: "point" },
+        current,
+    ).xs;
+    const xs = desiredTree.slice(1).map((_: any, i: number) => {
+        const x = desired.get_component(i);
+        return isUnspecifiedComponentValue(x) && currentXs[i]
+            ? currentXs[i]
+            : x;
+    });
+    return coordsFromXs(xs);
+}
+
+/**
+ * The value written over the literal attribute `attribute` (an entry of
+ * `literalAttributeWrites`) as a value of its type. Saved state keeps a math
+ * as its tree, and restores the math values of a state variable it knows to
+ * hold one, which an entry of this object is not, so a `math` or a `point`
+ * written over a literal comes back as a tree.
+ */
+export function literalWrittenValue(attribute: LiteralAttribute, written: any) {
+    if (
+        (attribute.componentType === "math" ||
+            attribute.componentType === "point") &&
+        !(written instanceof me.class)
+    ) {
+        return me.fromAst(
+            written?.objectType === "math-expression" ? written.tree : written,
+        );
+    }
+    return written;
 }

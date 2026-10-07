@@ -4,6 +4,8 @@ export function returnAnchorAttributes() {
     return {
         anchor: {
             createComponentOfType: "point",
+            // `anchor="(1,2)"` is held as its value (`literalAttribute.ts`)
+            literalWhenNumeric: true,
             groupName: "positioning",
             description:
                 "Coordinates of the anchor point used to position this component on a graph.",

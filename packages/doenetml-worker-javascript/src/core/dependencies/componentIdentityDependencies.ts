@@ -13,6 +13,8 @@ import {
 import {
     attributesObjectOf,
     literalAttributeValue,
+    literalAttributeVariables,
+    literalWrittenValue,
     type LiteralAttribute,
 } from "../../utils/literalAttribute";
 
@@ -488,9 +490,16 @@ export class AttributeComponentDependency extends Dependency {
             this.literal &&
             this.literalOwnerIdx === downComponent.componentIdx
         ) {
-            if (originalVarNames.some((name) => name !== "value")) {
+            const variables = literalAttributeVariables(
+                this.literal,
+                this.literalValueOf(this.literal),
+            );
+            const missing = originalVarNames.filter(
+                (name) => !(name in variables),
+            );
+            if (missing.length > 0) {
                 throw Error(
-                    `Cannot read ${originalVarNames.join(", ")} of the literal attribute ${this.literal.name}: only its value.`,
+                    `Cannot read ${missing.join(", ")} of the literal attribute ${this.literal.name}.`,
                 );
             }
             return originalVarNames.map(() => "literalAttributeWrites");
@@ -544,25 +553,36 @@ export class AttributeComponentDependency extends Dependency {
             value.sourceDoc = literal.sourceDoc;
         }
         const usedDefault: Record<string, boolean> = {};
-        if (this.originalDownstreamVariableNames.length > 0) {
-            const writes = result.value?.stateValues?.value;
-            let literalValue;
-            if (writes && literal.name in writes) {
-                literalValue = writes[literal.name];
-            } else {
-                if (this.literalValueFor !== literal) {
-                    this.literalValueFor = literal;
-                    this.literalValue_ = literalAttributeValue(
-                        literal,
-                        this.dependencyHandler.componentInfoObjects,
-                    );
-                }
-                literalValue = this.literalValue_;
+        const names = this.originalDownstreamVariableNames;
+        if (names.length > 0) {
+            // what the reader wrote over it, or the literal's own value
+            const writes = result.value?.stateValues?.[names[0]];
+            const literalValue =
+                writes && literal.name in writes
+                    ? literalWrittenValue(literal, writes[literal.name])
+                    : this.literalValueOf(literal);
+            // kept for a write that changes part of it (`literalWriteValue`)
+            this.literalCurrentValue = literalValue;
+            const variables = literalAttributeVariables(literal, literalValue);
+            value.stateValues = {};
+            for (const name of names) {
+                value.stateValues[name] = variables[name];
+                usedDefault[name] = false;
             }
-            value.stateValues = { value: literalValue };
-            usedDefault.value = false;
         }
         return { value, changes: result.changes, usedDefault };
+    }
+
+    /** The value of `literal`, computed once and kept on the dependency. */
+    literalValueOf(literal: LiteralAttribute) {
+        if (this.literalValueFor !== literal) {
+            this.literalValueFor = literal;
+            this.literalValue_ = literalAttributeValue(
+                literal,
+                this.dependencyHandler.componentInfoObjects,
+            );
+        }
+        return this.literalValue_;
     }
 
     deleteFromUpdateTriggers() {

@@ -870,10 +870,10 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
         });
 
         it("what each attribute construct creates", async () => {
-            // Stream B's targets, by step: a literal `anchor` loses its point,
-            // mathList and two maths (B1b). A literal `displayDigits` has lost
-            // its `integer` (B1a), and a prop reference its five shadow
-            // attribute components (B3).
+            // Stream B's steps: a literal `displayDigits` has lost its
+            // `integer` (B1a), a literal `anchor` its point, mathList and two
+            // maths (B1b), and a prop reference its five shadow attribute
+            // components (B3).
             async function census(doenetML: string) {
                 const { core } = await createTestCore({ doenetML });
                 return censusOfCore(core);
@@ -904,16 +904,15 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             const anchored = await census(
                 `<graph><math anchor="(1,2)">x</math></graph>`,
             );
+            // the literal anchor is a value, not a point with a mathList of
+            // two maths (B1b)
             expect(anchored.byType).eqls({
                 document: 1,
                 graph: 1,
                 _dynamicChildren: 1,
-                math: 3,
-                mathList: 1,
-                point: 1,
+                math: 1,
             });
-            // the anchor's point, and the mathList of its coordinates
-            expect(anchored.attributeComponents).eq(2);
+            expect(anchored.attributeComponents).eq(0);
 
             // an extend with nothing else on it is a bare reference (`_ref`),
             // which makes no attribute components; one with an attribute of
