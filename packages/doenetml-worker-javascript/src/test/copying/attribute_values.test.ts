@@ -72,6 +72,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 doenetML: `
     <point name="P" displayDigits="3">(1.23456,2)</point>
     <math extend="$P.x" name="c" />
+    <math extend="$P.x" name="a" displayDigits="5" />
+    <math extend="$P.x" name="b" displayDecimals="1" />
     <math extend="$c" name="d" displayDigits="5" />
     <math extend="$c" name="e" displayDecimals="1" />
     <math extend="$c" name="f" />
@@ -88,6 +90,12 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             // `c` takes P's digits through the prop reference
             expect((await sv("c")).text).eq("1.23");
             expect((await sv("c")).displayDigits).eq(3);
+            // an attribute on the prop reference itself beats the one it
+            // takes from P, and displayDecimals displaces displayDigits
+            expect((await sv("a")).text).eq("1.2346");
+            expect((await sv("a")).displayDigits).eq(5);
+            expect((await sv("b")).text).eq("1.2");
+            expect((await sv("b")).displayDecimals).eq(1);
             // an attribute on a later link beats what `c` took from P
             expect((await sv("d")).text).eq("1.2346");
             expect((await sv("d")).displayDigits).eq(5);
@@ -201,6 +209,46 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect((await sv("v")).text).eq("1.2346");
         });
 
+        it("other references with shadow attributes follow their source's display settings", async () => {
+            // Two more of the places that make shadow attribute components
+            // (B3 replaces them). `$P.xs` in a paragraph is a list whose
+            // display settings shadow P's. `$n.value` in the group is a value
+            // reference, and `$g[1]` names it, so `a` and `b` are made from
+            // the reference itself (`ValueRef.serialize`).
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="k" prefill="3" />
+    <point name="P" displayDigits="$k">(1.23456,2.34567)</point>
+    <p name="xs">$P.xs</p>
+    <number name="n" displayDigits="$k">1.23456</number>
+    <p><group name="g">$n.value</group></p>
+    <number extend="$g[1]" name="a" />
+    <number copy="$g[1]" name="b" />
+    `,
+            });
+            async function texts() {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const text = async (name: string) =>
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .text;
+                return [await text("xs"), await text("a"), await text("b")];
+            }
+
+            expect(await texts()).eqls(["1.23, 2.35", "1.23", "1.23"]);
+
+            // the list and the extend follow the digits; the unlinked copy
+            // keeps the ones it showed
+            await updateMathInputValue({
+                latex: "2",
+                componentIdx: await resolvePathToNodeIdx("k"),
+                core,
+            });
+            expect(await texts()).eqls(["1.2, 2.3", "1.2", "1.23"]);
+        });
+
         it("a literal attribute is read as its type", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
@@ -211,6 +259,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
     <math name="s" simplify>x+x</math>
     <math name="t" simplify="nonsense">x+x</math>
     <text name="h" hide="TRUE">hidden</text>
+    <math name="ma" splitSymbols="false" assumptions="xy > 0">xy</math>
+    <math name="mb" assumptions="xy > 0">xy</math>
     `,
             });
             const stateVariables = await core.returnAllStateVariables(
@@ -236,6 +286,13 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect((await sv("t")).simplify).eq("none");
             expect((await sv("t")).text).eq("x + x");
             expect((await sv("h")).hidden).eq(true);
+            // a math attribute is parsed with its owner's splitSymbols
+            expect((await sv("ma")).assumptions.tree).eqls([">", "xy", 0]);
+            expect((await sv("mb")).assumptions.tree).eqls([
+                ">",
+                ["*", "x", "y"],
+                0,
+            ]);
         });
 
         it("a reader's write to a literal attribute is kept and restored", async () => {
