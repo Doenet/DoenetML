@@ -707,6 +707,32 @@ describe("Pretext export", async () => {
         ).not.toContain(`gathered`);
     });
 
+    it("an equation of several lines keeps its author's tag outside the lines", async () => {
+        // MathJax allows no tag inside `gathered`, and the tag belongs to the whole
+        // equation, so it goes after the gathered lines.
+        source = `<men>x \\\\ y \\tag{A}</men>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<md number="no">\\begin{gathered}x \\\\ y \\end{gathered}\\tag{A}</md>"`,
+        );
+
+        source = `<me>\\tag{Q} x \\\\ y</me>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<md number="no">\\begin{gathered} x \\\\ y\\end{gathered}\\tag{Q}</md>"`,
+        );
+
+        // Braces inside the tag, and a comment after it.
+        source = `<men>x \\\\ y \\tag{a_{1}} % c</men>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<md number="no">\\begin{gathered}x \\\\ y \\end{gathered}\\tag{a_{1}}</md>"`,
+        );
+    });
+
     it("a row break followed by the word tag is no tag", async () => {
         source = `<men>\\begin{array}{c}x\\\\tag{A}\\end{array}</men>`;
         expect(await coreRunner.processToFlatDastAsFragment(source)).toMatch(

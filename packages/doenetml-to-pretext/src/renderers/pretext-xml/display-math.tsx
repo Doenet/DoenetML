@@ -22,16 +22,26 @@ export const DisplayMathNumbered: BasicComponent<MathData> = ({ node }) =>
  * author breaks it into. A `\\` the author wrote is a line break inside the equation, as
  * it is on screen, so the lines are gathered into one rather than split into rows that
  * PreTeXt would number one by one. An equation the author tagged by hand keeps that tag
- * and is given no number of PreTeXt's.
+ * and is given no number of PreTeXt's. The tag goes after the gathered lines, since a tag
+ * belongs to the equation as a whole and MathJax allows none inside `gathered`.
  */
 function singleEquation(rawLatex: string, numbered: boolean) {
     const latex = withoutTrailingComment(rawLatex, false);
-    const mdAttrs = {
-        number: numbered && !hasAuthorTag(latex, false) ? "yes" : "no",
-    };
+    const tags = authorTags(latex, false);
+    const mdAttrs = { number: numbered && tags.length === 0 ? "yes" : "no" };
     const lines = splitAtTopLevelRowBreaks(latex, false);
-    const content =
-        lines.length > 1 ? `\\begin{gathered}${latex}\\end{gathered}` : latex;
+    if (lines.length <= 1) {
+        return <md {...mdAttrs}>{mathContentWithBlanks(latex)}</md>;
+    }
+    let body = "";
+    let start = 0;
+    for (const tag of tags) {
+        body += latex.slice(start, tag.start);
+        start = tag.end;
+    }
+    body += latex.slice(start);
+    const tagText = tags.map((tag) => latex.slice(tag.start, tag.end)).join("");
+    const content = `\\begin{gathered}${body}\\end{gathered}${tagText}`;
     return <md {...mdAttrs}>{mathContentWithBlanks(content)}</md>;
 }
 
@@ -118,39 +128,58 @@ export function parseDisplayRows(latex: string): DisplayRow[] {
 
 /**
  * Whether `latex` holds a `\tag{…}` or `\tag*{…}` that is not the core's: one the author
- * wrote. Its argument may hold braces of its own, as in `\tag{a_{1}}`. A tag in a `%`
- * comment is no tag, since TeX never reads it.
+ * wrote.
  */
 function hasAuthorTag(latex: string, inDisplay: boolean) {
-    const text = withoutComments(latex, inDisplay);
-    for (let i = 0; i < text.length; i++) {
-        if (text[i] === "\\") {
-            if (/^\\tag(?![a-zA-Z])\*?\s*\{/.test(text.slice(i))) {
-                return true;
-            }
-            // Skip the escaped character, so that the `tag` after a `\\` is not read.
-            i++;
-        }
-    }
-    return false;
+    return authorTags(latex, inDisplay).length > 0;
 }
 
-/** `latex` without its comments. */
-function withoutComments(latex: string, inDisplay: boolean) {
-    let result = "";
+/**
+ * Where each `\tag{…}` or `\tag*{…}` the author wrote in `latex` starts and ends. Its
+ * argument may hold braces of its own, as in `\tag{a_{1}}`. A tag in a `%` comment is no
+ * tag, since TeX never reads it, and neither is the word `tag` after a `\\`.
+ */
+function authorTags(latex: string, inDisplay: boolean) {
+    const tags: { start: number; end: number }[] = [];
     for (let i = 0; i < latex.length; i++) {
         const char = latex[i];
         if (char === "\\") {
-            // Keep the escaped character, so that `\%` stays a percent sign.
-            result += latex.slice(i, i + 2);
-            i++;
+            const opening = /^\\tag(?![a-zA-Z])\*?\s*\{/.exec(latex.slice(i));
+            if (opening) {
+                const end = closingBrace(latex, i + opening[0].length);
+                tags.push({ start: i, end });
+                i = end - 1;
+            } else {
+                // Skip the escaped character, so that the `tag` after a `\\` is not read.
+                i++;
+            }
         } else if (char === "%") {
             i = commentEnd(latex, i, inDisplay) - 1;
-        } else {
-            result += char;
         }
     }
-    return result;
+    return tags;
+}
+
+/**
+ * Just past the `}` that closes the group whose contents start at `start`, or the end of
+ * `latex` if nothing closes it.
+ */
+function closingBrace(latex: string, start: number) {
+    let depth = 1;
+    for (let i = start; i < latex.length; i++) {
+        const char = latex[i];
+        if (char === "\\") {
+            i++;
+        } else if (char === "{") {
+            depth++;
+        } else if (char === "}") {
+            depth--;
+            if (depth === 0) {
+                return i + 1;
+            }
+        }
+    }
+    return latex.length;
 }
 
 /** `latex` without the comments that nothing but space follows. */
