@@ -14,7 +14,9 @@
  *
  * - its template is one `<math>` or `<number>`, whose content is text,
  *   references and further unnamed `<math>`s and `<number>`s
- *   (`templateNodeQualifies`), or one `<point>` whose content is its
+ *   (`templateNodeQualifies`), or one `<abs>`, `<round>` or `<evaluate>`
+ *   (`$$f(…)`) of such content (`OPERATOR_TYPES`), which may also be nested
+ *   in one, or one `<point>` whose content is its
  *   coordinates, each such a `<math>`, and constraints, which become the
  *   list's, that read the same values in every iteration and hold no
  *   sampler (`pointQualifies`);
@@ -62,15 +64,24 @@ import { documentReferents } from "./valueReferences";
 import { sequenceEntryComponentType } from "../sequence";
 import { STYLE_OVERRIDE_CATEGORIES } from "@doenet/utils";
 
+/**
+ * The math operators a template can be or hold, each a `<math>` whose value
+ * is computed from its content or inputs (`utils/repeatTemplate.js`).
+ */
+const OPERATOR_TYPES = ["abs", "round", "evaluate"];
+
 /** The types a template can be, and the list each becomes. */
 const LIST_OF_TEMPLATE: Record<string, string> = {
     math: "_repeatValueList",
     number: "_repeatValueList",
     point: "_repeatPointList",
+    ...Object.fromEntries(
+        OPERATOR_TYPES.map((type) => [type, "_repeatValueList"]),
+    ),
 };
 
 /** The types a component nested in a template can be. */
-const NESTED_TYPES = new Set(["math", "number"]);
+const NESTED_TYPES = new Set(["math", "number", ...OPERATOR_TYPES]);
 
 /**
  * The properties of a whole list of points a reference can read
@@ -144,6 +155,29 @@ const NUMBER_DISPLAY_ATTRIBUTES = [
 ];
 
 /**
+ * The attributes, in lowercase, that a component of the template keeps for
+ * itself, which `utils/repeatTemplate.js` reads, where the list takes the
+ * template's others as its own: what a `<round>` rounds to, and what an
+ * `<evaluate>` evaluates and how.
+ */
+const OWN_ATTRIBUTES = new Set([
+    "numdecimals",
+    "numdigits",
+    "function",
+    "input",
+    "forcesymbolic",
+    "forcenumeric",
+]);
+
+/** The attributes of `<evaluate>`, in lowercase, a template's can have. */
+const EVALUATE_ATTRIBUTES = [
+    "function",
+    "input",
+    "forcesymbolic",
+    "forcenumeric",
+];
+
+/**
  * The attributes, in lowercase, a component of the template can have, by
  * its type and whether it is the template itself (`top`). The template's own
  * become the list's. Each must be written as a literal.
@@ -164,6 +198,35 @@ const NODE_ATTRIBUTES: Record<
     number: {
         top: new Set(["fixed", ...NUMBER_DISPLAY_ATTRIBUTES]),
         nested: new Set(["fixed"]),
+    },
+    abs: {
+        top: new Set([
+            "simplify",
+            "expand",
+            "fixed",
+            ...NUMBER_DISPLAY_ATTRIBUTES,
+        ]),
+        nested: new Set(["simplify", "expand"]),
+    },
+    round: {
+        top: new Set([
+            "simplify",
+            "expand",
+            "fixed",
+            "numdecimals",
+            "numdigits",
+            ...NUMBER_DISPLAY_ATTRIBUTES,
+        ]),
+        nested: new Set(["simplify", "expand", "numdecimals", "numdigits"]),
+    },
+    evaluate: {
+        top: new Set([
+            "simplify",
+            "expand",
+            ...EVALUATE_ATTRIBUTES,
+            ...NUMBER_DISPLAY_ATTRIBUTES,
+        ]),
+        nested: new Set(["simplify", "expand", ...EVALUATE_ATTRIBUTES]),
     },
     // the attributes `RepeatPointList` holds as its own, and its
     // coordinates, `xs`, which sugar made of its content
@@ -510,23 +573,41 @@ export function convertRepeatsToLists({
             }
 
             // Each value that is the same in every iteration is read once,
-            // by a child of the list, and the template holds its place.
+            // by a child of the list, and the template holds its place. So is
+            // the function an `<evaluate>` evaluates, which held the place of
+            // its `function` attribute.
             const constantChildren: SerializedComponent[] = [];
             for (const [ind, constant] of constants.entries()) {
                 const parent = parentInTemplate(constant);
-                const presented =
-                    constant.doenetAttributes?.presentedComponentType ?? "math";
-                parent.children[parent.children.indexOf(constant)] = {
+                const isFunction =
+                    parent.componentType === "evaluate" &&
+                    parent.attributes.function?.type === "component" &&
+                    parent.attributes.function.component === constant;
+                const placeholder = {
                     type: "serialized",
-                    componentType: presented,
+                    componentType: isFunction
+                        ? "function"
+                        : (constant.doenetAttributes?.presentedComponentType ??
+                          "math"),
                     componentIdx: nComponents++,
                     attributes: {},
                     doenetAttributes: { repeatTemplateConstant: ind },
                     children: [],
                     state: {},
                 } as SerializedComponent;
+                if (isFunction) {
+                    parent.attributes.function = {
+                        ...parent.attributes.function,
+                        component: placeholder,
+                    } as SerializedAttribute;
+                } else {
+                    parent.children[parent.children.indexOf(constant)] =
+                        placeholder;
+                }
+                const { isAttributeChildFor, ...doenetAttributes } =
+                    constant.doenetAttributes ?? {};
                 constant.doenetAttributes = {
-                    ...constant.doenetAttributes,
+                    ...doenetAttributes,
                     repeatTemplateConstant: ind,
                 };
                 constantChildren.push(constant);
@@ -543,22 +624,28 @@ export function convertRepeatsToLists({
                               name: "entryType",
                               primitive: {
                                   type: "string",
-                                  value: template.componentType,
+                                  value:
+                                      template.componentType === "number"
+                                          ? "number"
+                                          : "math",
                               },
                           },
                       }
                     : {}),
             };
+            // A component of the template keeps its own (`OWN_ATTRIBUTES`),
+            // and a point its coordinates.
+            const keptAttributes: Record<string, SerializedAttribute> = {};
             for (const [name, attribute] of Object.entries(
                 template.attributes,
             )) {
-                if (name !== "name" && name !== "xs") {
+                if (name === "xs" || OWN_ATTRIBUTES.has(name.toLowerCase())) {
+                    keptAttributes[name] = attribute;
+                } else if (name !== "name") {
                     listAttributes[name] = attribute;
                 }
             }
-            template.attributes = template.attributes.xs
-                ? { xs: template.attributes.xs }
-                : {};
+            template.attributes = keptAttributes;
             template.children = template.children.filter(
                 (child) => !constraints.includes(child as SerializedComponent),
             );
@@ -603,7 +690,9 @@ export function convertRepeatsToLists({
          * for the template itself, its author's name; holding text,
          * references that `classifyReference` accepts, and nested `<math>`s
          * that qualify. A `<number>` holds one child, which sugar made a
-         * `<math>` around content of more than one piece.
+         * `<math>` around content of more than one piece. An `<evaluate>`
+         * holds nothing, and evaluates a function and inputs that
+         * `evaluateQualifies` accepts; the one `$$f(…)` makes extends `f`.
          */
         function templateNodeQualifies(
             node: SerializedComponent,
@@ -613,12 +702,17 @@ export function convertRepeatsToLists({
                 !(top
                     ? node.componentType in LIST_OF_TEMPLATE
                     : NESTED_TYPES.has(node.componentType)) ||
-                node.extending !== undefined
+                (node.extending !== undefined &&
+                    !(
+                        node.componentType === "evaluate" &&
+                        "Ref" in node.extending
+                    ))
             ) {
                 return false;
             }
             const allowed = NODE_ATTRIBUTES[node.componentType];
             for (const [name, attribute] of Object.entries(node.attributes)) {
+                const lowerName = name.toLowerCase();
                 if (name === "name") {
                     if (!top && authorName(node) !== undefined) {
                         return false;
@@ -629,14 +723,20 @@ export function convertRepeatsToLists({
                     // its coordinates, checked by `pointQualifies`
                     continue;
                 }
+                if (!(top ? allowed.top : allowed.nested).has(lowerName)) {
+                    return false;
+                }
+                if (lowerName === "function" || lowerName === "input") {
+                    // checked by `evaluateQualifies`
+                    continue;
+                }
                 if (
-                    !(top ? allowed.top : allowed.nested).has(
-                        name.toLowerCase(),
-                    ) ||
                     !isLiteral(attribute) ||
-                    (!top &&
-                        BOOLEAN_NODE_ATTRIBUTES.has(name.toLowerCase()) &&
-                        !isPlainBooleanLiteral(attribute))
+                    ((!top || OWN_ATTRIBUTES.has(lowerName)) &&
+                        BOOLEAN_NODE_ATTRIBUTES.has(lowerName) &&
+                        !isPlainBooleanLiteral(attribute)) ||
+                    (INTEGER_NODE_ATTRIBUTES.has(lowerName) &&
+                        !isIntegerLiteral(attribute))
                 ) {
                     return false;
                 }
@@ -647,9 +747,21 @@ export function convertRepeatsToLists({
             if (node.componentType === "point") {
                 return pointQualifies(node, children);
             }
+            if (node.componentType === "evaluate") {
+                return children.length === 0 && evaluateQualifies(node);
+            }
             if (node.componentType === "number" && children.length > 1) {
                 return false;
             }
+            return contentQualifies(children);
+        }
+
+        /**
+         * Whether each of `children`, the content of a component of the
+         * template, is text, a reference that `classifyReference` accepts,
+         * or a nested component that qualifies.
+         */
+        function contentQualifies(children: (SerializedComponent | string)[]) {
             for (const child of children) {
                 if (typeof child === "string") {
                     continue;
@@ -666,6 +778,87 @@ export function convertRepeatsToLists({
                     return false;
                 }
             }
+            return true;
+        }
+
+        /**
+         * Whether the `<evaluate>` `node` qualifies: its function one
+         * reference to a function outside the template, the same in every
+         * iteration, which becomes a constant of the list (`constants`), and
+         * its inputs, if any, a `<mathList>` of content that qualifies, each
+         * piece one math.
+         */
+        function evaluateQualifies(node: SerializedComponent) {
+            const fn = node.attributes.function;
+            if (fn?.type !== "component" || !functionQualifies(fn.component)) {
+                return false;
+            }
+            const input = node.attributes.input;
+            if (input === undefined) {
+                return true;
+            }
+            if (
+                input.type !== "component" ||
+                input.component.componentType !== "mathList" ||
+                input.component.extending !== undefined ||
+                Object.keys(input.component.attributes).length > 0 ||
+                input.component.children.some(
+                    (child) => typeof child === "string" && child.trim() !== "",
+                )
+            ) {
+                return false;
+            }
+            return contentQualifies(input.component.children);
+        }
+
+        /**
+         * Whether `wrapper`, the `<function>` an `<evaluate>` evaluates,
+         * is one reference (`$f`) to a function outside the template,
+         * which reads the same function in every iteration. It becomes a
+         * constant of the list.
+         */
+        function functionQualifies(wrapper: SerializedComponent) {
+            if (
+                wrapper.componentType !== "function" ||
+                wrapper.extending !== undefined ||
+                Object.keys(wrapper.attributes).length > 0
+            ) {
+                return false;
+            }
+            const pieces = wrapper.children.filter(
+                (child) => typeof child !== "string" || child.trim() !== "",
+            );
+            if (pieces.length !== 1 || typeof pieces[0] === "string") {
+                return false;
+            }
+            const reference = pieces[0];
+            if (
+                !reference.extending ||
+                !("Ref" in reference.extending) ||
+                Object.keys(reference.attributes).length > 0
+            ) {
+                return false;
+            }
+            const refResolution = reference.extending.Ref;
+            if (
+                refResolution.nodeIdx < 0 ||
+                refResolution.unresolvedPath?.length ||
+                forbidden.has(refResolution.nodeIdx) ||
+                pathReads(refResolution, forbidden)
+            ) {
+                return false;
+            }
+            const type = referentType(refResolution.nodeIdx);
+            if (
+                type === undefined ||
+                !componentInfoObjects.isInheritedComponentType({
+                    inheritedComponentType: type,
+                    baseComponentType: "function",
+                })
+            ) {
+                return false;
+            }
+            constants.push(wrapper);
             return true;
         }
 
@@ -1092,22 +1285,65 @@ function collectNodes(
 ) {
     nodes.set(node.componentIdx, node);
     for (const child of node.children) {
-        if (typeof child !== "string" && child.extending === undefined) {
+        // the `<evaluate>` that `$$f(…)` makes extends `f`
+        if (
+            typeof child !== "string" &&
+            (child.extending === undefined ||
+                child.componentType === "evaluate")
+        ) {
             collectNodes(child, nodes);
         }
     }
-    // a point's coordinates
-    const xs = node.attributes.xs;
-    if (xs?.type === "component" && xs.component.extending === undefined) {
-        collectNodes(xs.component, nodes);
+    // a point's coordinates, and an `<evaluate>`'s inputs
+    for (const name of ["xs", "input"]) {
+        const attribute = node.attributes[name];
+        if (
+            attribute?.type === "component" &&
+            attribute.component.extending === undefined
+        ) {
+            collectNodes(attribute.component, nodes);
+        }
     }
 }
 
 /**
- * The boolean attributes of a nested component, which the list reads itself
+ * The boolean attributes of a nested component, and those a component of the
+ * template keeps (`OWN_ATTRIBUTES`), which the list reads itself
  * (`utils/repeatTemplate.js`), as only `true`, `false` or nothing.
  */
-const BOOLEAN_NODE_ATTRIBUTES = new Set(["expand", "fixed"]);
+const BOOLEAN_NODE_ATTRIBUTES = new Set([
+    "expand",
+    "fixed",
+    "forcesymbolic",
+    "forcenumeric",
+]);
+
+/**
+ * The attributes a component of the template keeps that the list reads as a
+ * number (`utils/repeatTemplate.js`): what a `<round>` rounds to.
+ */
+const INTEGER_NODE_ATTRIBUTES = new Set(["numdecimals", "numdigits"]);
+
+/**
+ * Whether `attribute` is written as an integer and nothing else (`2`), which
+ * the list reads as a `<number>` would; another literal (`1+1`) keeps the
+ * composite, whose `<number>` evaluates it.
+ */
+function isIntegerLiteral(attribute: SerializedAttribute): boolean {
+    if (attribute.type === "primitive") {
+        return Number.isInteger(attribute.primitive.value);
+    }
+    if (attribute.type !== "component") {
+        return false;
+    }
+    const value = attribute.component.state?.value;
+    if (value !== undefined) {
+        return Number.isInteger(value);
+    }
+    return /^\s*-?\d+\s*$/.test(
+        (attribute.component.children as string[]).join(""),
+    );
+}
 
 /**
  * Whether the boolean `attribute` is written as `true`, `false` or nothing

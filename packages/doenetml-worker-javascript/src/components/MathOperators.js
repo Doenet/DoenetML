@@ -4,6 +4,12 @@ import MathBaseOperatorOneInput from "./abstract/MathBaseOperatorOneInput";
 import me from "math-expressions";
 import { codedDiagnostic } from "../utils/diagnostics";
 import { isNumericConstant } from "../utils/math";
+import {
+    absInverse,
+    absValue,
+    roundInverse,
+    roundValue,
+} from "../utils/valueFunctions/mathOperators";
 const { mod, median } = me.math;
 
 export class Sum extends MathBaseOperator {
@@ -344,34 +350,11 @@ export class Round extends MathBaseOperatorOneInput {
             }),
             definition: ({ dependencyValues }) => ({
                 setValue: {
-                    mathOperator: function (value) {
-                        // First convert all numbers and constants (such as pi)
-                        // to floating point numbers. `max_digits: Infinity` is
-                        // what does that: it is the only setting under which an
-                        // exact rational floats, and rounding is the whole
-                        // point here — without it `<round numDecimals="3">1/3
-                        // </round>` answers `1/3`.
-                        //
-                        // The cost is that a decimal literal carrying more than
-                        // ~17 significant digits goes through an f64 on the way
-                        // in, so `35203423.02352343201` rounds to
-                        // `…523435` rather than the exact `…523432`. Accepted:
-                        // the alternative loses rounding for every fraction.
-                        let valueWithNumbers = value.evaluate_numbers({
-                            max_digits: Infinity,
-                            evaluate_functions: true,
-                        });
-
-                        if (dependencyValues.numDigits !== null) {
-                            return valueWithNumbers.round_numbers_to_precision(
-                                dependencyValues.numDigits,
-                            );
-                        } else {
-                            return valueWithNumbers.round_numbers_to_decimals(
-                                dependencyValues.numDecimals,
-                            );
-                        }
-                    },
+                    mathOperator: (value) =>
+                        roundValue(value, {
+                            numDecimals: dependencyValues.numDecimals,
+                            numDigits: dependencyValues.numDigits,
+                        }),
                 },
             }),
         };
@@ -380,7 +363,7 @@ export class Round extends MathBaseOperatorOneInput {
             returnDependencies: () => ({}),
             definition: () => ({
                 setValue: {
-                    inverseMathOperator: (value) => value,
+                    inverseMathOperator: roundInverse,
                 },
             }),
         };
@@ -615,18 +598,7 @@ export class Abs extends MathBaseOperatorOneInput {
             returnDependencies: () => ({}),
             definition: () => ({
                 setValue: {
-                    mathOperator: function (value) {
-                        // TODO: is this the right behavior?
-                        // or should <abs>log(5)</abs> yield |log(5)|?
-                        let numericValue = value.evaluate_to_constant();
-
-                        // if don't have a number, just return symbolic absolute value
-                        if (!Number.isFinite(numericValue)) {
-                            return me.fromAst(["apply", "abs", value.tree]);
-                        }
-
-                        return me.fromAst(Math.abs(numericValue));
-                    },
+                    mathOperator: absValue,
                 },
             }),
         };
@@ -635,22 +607,7 @@ export class Abs extends MathBaseOperatorOneInput {
             returnDependencies: () => ({}),
             definition: () => ({
                 setValue: {
-                    inverseMathOperator: function (value) {
-                        let desiredValue = value;
-                        let valueNumeric = value.evaluate_to_constant();
-                        if (Number.isFinite(valueNumeric)) {
-                            if (valueNumeric < 0) {
-                                desiredValue = me.fromAst(0);
-                            }
-                        } else if (
-                            Array.isArray(value.tree) &&
-                            value.tree[0] === "apply" &&
-                            value.tree[1] === "abs"
-                        ) {
-                            desiredValue = me.fromAst(value.tree[2]);
-                        }
-                        return desiredValue;
-                    },
+                    inverseMathOperator: absInverse,
                 },
             }),
         };

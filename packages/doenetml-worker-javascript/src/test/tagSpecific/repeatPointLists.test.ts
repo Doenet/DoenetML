@@ -491,6 +491,60 @@ describe("Repeats whose template is one point @group4", () => {
         expect([result.pa, result.pb]).toEqual(["5", "-3"]);
     });
 
+    it("a coordinate of math operators, with a function evaluated, dragged", async () => {
+        const doenetML = `
+<numberList name="l">1 2 3</numberList>
+<function name="f" variables="t">t^2/2</function>
+<function name="fn" variables="t" symbolic="false">t + 1</function>
+<graph name="g">
+  <repeat name="r" for="$l" valueName="v"><point>(<abs>$v</abs>, $$f($v) + <round numDecimals="1">$$fn($v)/3</round>)</point></repeat>
+</graph>
+<p name="pl">$l</p>
+<p name="pr">$r</p>
+`;
+        const result = await compare({
+            doenetML,
+            names: ["pl", "pr"],
+            graphs: ["g"],
+            act: async (core, resolvePathToNodeIdx) => {
+                await dragPoint({
+                    core,
+                    resolvePathToNodeIdx,
+                    graph: "g",
+                    index: 1,
+                    x: -5,
+                    y: 7,
+                });
+                await dragPoint({
+                    core,
+                    resolvePathToNodeIdx,
+                    graph: "g",
+                    index: 2,
+                    x: 4,
+                    y: 7,
+                });
+            },
+        });
+        expect(result.pl).toBe("1, 0, 4");
+        expect(result.g).toEqual([
+            [1, 1.2],
+            [0, 0.3],
+            [4, 9.7],
+        ]);
+
+        // The function the list evaluates is not drawn.
+        setRepeatListsEnabled(true);
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        const rendererState =
+            core.core.rendererInstructionBuilder.rendererState;
+        const drawnTypes = rendererState[
+            await resolvePathToNodeIdx("g")
+        ].childrenInstructions.map((child: any) => child.componentType);
+        expect(drawnTypes).toEqual(["point", "point", "point"]);
+    });
+
     it("constraints that are not by coordinate, with the coordinates read", async () => {
         // A constraint that is not independent by coordinate constrains the
         // whole entry, and each coordinate array reads the constrained entry.

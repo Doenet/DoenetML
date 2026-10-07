@@ -15,6 +15,7 @@ import {
     REPEAT_LIST_STATICS,
     addRepeatListAttributes,
     addRepeatListDefinitions,
+    evaluatorDependencies,
     repeatTemplateEntriesDefinition,
     templateContext,
     readWritability,
@@ -315,6 +316,7 @@ function coordinateArrayDefinition({ n, arrayName }) {
             "templateAnalysis",
             "entryListPrefixes",
             "independentConstraints",
+            "evaluateSymbolically",
         ],
         returnArraySizeDependencies: () => ({
             numEntries: {
@@ -340,6 +342,15 @@ function coordinateArrayDefinition({ n, arrayName }) {
             const coordinateNode =
                 templateAnalysis.nodes[0]?.codes[n - 1]?.node;
             const globalDependencies = {
+                ...evaluatorDependencies({
+                    templateAnalysis,
+                    evaluateSymbolically: stateValues.evaluateSymbolically,
+                    evaluateNodes:
+                        coordinateNode === undefined
+                            ? []
+                            : templateAnalysis.nodes[coordinateNode]
+                                  .evaluateNodes,
+                }),
                 templateAnalysis: {
                     dependencyType: "stateVariable",
                     variableName: "templateAnalysis",
