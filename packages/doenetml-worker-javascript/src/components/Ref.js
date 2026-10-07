@@ -57,8 +57,14 @@ export default class Ref extends InlineComponent {
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = super.returnStateVariableDefinitions();
 
+        // `targetListEntryIndex`: for one entry of a list component
+        // (`$pl[2]`), which has no component, `targetComponentIdx` is the
+        // list and this is the entry's index (from 0).
         stateVariableDefinitions.targetComponentIdx = {
-            additionalStateVariablesDefined: ["referenceFound"],
+            additionalStateVariablesDefined: [
+                "referenceFound",
+                "targetListEntryIndex",
+            ],
             returnDependencies: () => ({
                 toAttr: {
                     dependencyType: "attributeRefResolutions",
@@ -74,6 +80,17 @@ export default class Ref extends InlineComponent {
                             setValue: {
                                 targetComponentIdx: toAttr.componentIdx,
                                 referenceFound: true,
+                                targetListEntryIndex: null,
+                            },
+                        };
+                    }
+                    if (toAttr.listEntry) {
+                        return {
+                            setValue: {
+                                targetComponentIdx: toAttr.listEntry.listIdx,
+                                referenceFound: true,
+                                targetListEntryIndex:
+                                    toAttr.listEntry.entryIndex,
                             },
                         };
                     }
@@ -85,6 +102,7 @@ export default class Ref extends InlineComponent {
                         referenceFound: Boolean(
                             dependencyValues.toAttr?.length > 0,
                         ),
+                        targetListEntryIndex: null,
                     },
                 };
             },
@@ -110,12 +128,25 @@ export default class Ref extends InlineComponent {
                             dependencyType: "rendererId",
                             componentIdx: stateValues.targetComponentIdx,
                         },
+                        targetListEntryIndex: {
+                            dependencyType: "stateVariable",
+                            variableName: "targetListEntryIndex",
+                        },
                     };
                 } else {
                     return {};
                 }
             },
             definition: function ({ dependencyValues }) {
+                // An entry of a list is drawn with the list's id followed by
+                // the entry's index
+                // (`RendererInstructionBuilder.initializeListEntryInstruction`).
+                const targetRendererId =
+                    dependencyValues.targetListEntryIndex != null
+                        ? `${dependencyValues.targetRendererId}:${
+                              dependencyValues.targetListEntryIndex + 1
+                          }`
+                        : dependencyValues.targetRendererId;
                 if (dependencyValues.targetComponent) {
                     const targetComponent = dependencyValues.targetComponent;
                     if (
@@ -134,8 +165,7 @@ export default class Ref extends InlineComponent {
                             setValue: {
                                 targetComponent,
                                 targetInactive: false,
-                                targetRendererId:
-                                    dependencyValues.targetRendererId,
+                                targetRendererId,
                             },
                         };
                     }

@@ -244,15 +244,26 @@ export class ActionTriggerScheduler {
      * don't propagate authored intent). Re-syncs the chain graph first
      * so `componentsToUpdateActionChaining` doesn't miss any pending
      * registration changes.
+     *
+     * For an action on entry `listEntryIndex` of the list component
+     * `componentIdx` (or on the renderer index of an entry, which stands for
+     * the list and the entry), the actions chained to the entry fire
+     * (`$pl[2]`, keyed by the entry's renderer index, `listEntryTargets.ts`),
+     * then those chained to the list (`$pl`), which an action on any of its
+     * entries fires; along the shadows, those chained to the same entry of
+     * the list a reference to the whole list shadows. An action chained to
+     * more than one of these fires once.
      */
     async triggerChainedActions({
         componentIdx,
+        listEntryIndex,
         triggeringAction,
         actionId,
         sourceInformation = {},
         skipRendererUpdate = false,
     }: {
         componentIdx: number;
+        listEntryIndex?: number;
         triggeringAction?: string;
         actionId?: string;
         sourceInformation?: any;
@@ -272,20 +283,40 @@ export class ActionTriggerScheduler {
         this.core.updateInfo.componentsToUpdateActionChaining = {};
 
         let actionsToChain: any[] = [];
+        const chainedKeys = new Set<string>();
+        const actionsChangedToActions = this.actionsChangedToActions;
+        function addActionsChangedTo(idx: number | undefined) {
+            if (idx === undefined) {
+                return;
+            }
+            const id = triggeringAction ? `${idx}|${triggeringAction}` : idx;
+            for (const chained of actionsChangedToActions[id] ?? []) {
+                const key = `${chained.componentIdx}|${chained.actionName}`;
+                if (!chainedKeys.has(key)) {
+                    chainedKeys.add(key);
+                    actionsToChain.push(chained);
+                }
+            }
+        }
 
+        const builder = this.core.rendererInstructionBuilder;
         let cIdx = componentIdx;
+        let entryIndex = listEntryIndex;
+        const entryOfRenderer = builder.listEntryOfRendererIdx.get(cIdx);
+        if (entryOfRenderer && !this.core._components[cIdx]) {
+            cIdx = entryOfRenderer.listIdx;
+            entryIndex = entryOfRenderer.entryIndex;
+        }
 
         while (true) {
             let comp = this.core._components[cIdx];
-            let id: string | number = cIdx;
 
-            if (triggeringAction) {
-                id = id + "|" + triggeringAction;
+            if (entryIndex !== undefined) {
+                addActionsChangedTo(
+                    builder.listEntryRendererIndices.get(cIdx)?.get(entryIndex),
+                );
             }
-
-            if (this.actionsChangedToActions[id]) {
-                actionsToChain.push(...this.actionsChangedToActions[id]);
-            }
+            addActionsChangedTo(cIdx);
 
             if (comp?.shadows) {
                 let composite =
@@ -306,6 +337,12 @@ export class ActionTriggerScheduler {
                 // where we want the button to be.
 
                 cIdx = comp.shadows.componentIdx;
+
+                // A list made from a property (`$P.xs`) has entries of its
+                // own, which are not the entries of the component it shadows.
+                if (comp.shadows.propVariable !== undefined) {
+                    entryIndex = undefined;
+                }
             } else {
                 break;
             }

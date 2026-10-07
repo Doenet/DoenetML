@@ -63,11 +63,17 @@ export default class AuthoredValueList extends ValueListComponent {
     constructor(args) {
         super(args);
 
+        // The actions of a component of the entries' type: an `<interval>`
+        // is drawn, and acted on, as a `<math>` is.
         if (this.constructor.listEntriesAnchoredBySources) {
+            const kind = entryKind(this.constructor.listEntryComponentType);
+            const Kind = kind[0].toUpperCase() + kind.slice(1);
             Object.assign(this.actions, {
-                moveMath: this.moveEntry.bind(this),
-                moveNumber: this.moveEntry.bind(this),
-                moveText: this.moveEntry.bind(this),
+                [`move${Kind}`]: this.moveEntry.bind(this),
+                [`${kind}Clicked`]: (args) =>
+                    this.entryTriggered({ triggeringAction: "click", args }),
+                [`${kind}Focused`]: (args) =>
+                    this.entryTriggered({ triggeringAction: "focus", args }),
             });
         }
     }
@@ -1350,6 +1356,48 @@ export default class AuthoredValueList extends ValueListComponent {
             listEntryIndex,
             values: { entryAnchor: me.fromAst(components) },
             result: { x, y, z },
+        });
+    }
+
+    /**
+     * A click or focus on entry `listEntryIndex`, unless the entry is fixed:
+     * the actions chained to the component it is placed as
+     * (`entryGraphSources`), as a click on that component fires them, then
+     * those chained to the entry (`$ml[2]`) and to the list (`$ml`;
+     * `triggerChainedActions`).
+     */
+    async entryTriggered({ triggeringAction, args }) {
+        const {
+            listEntryIndex,
+            actionId,
+            sourceInformation = {},
+            skipRendererUpdate = false,
+        } = args;
+        if (
+            !Number.isInteger(listEntryIndex) ||
+            (await this.stateValues.entryFixed)[listEntryIndex] !== false
+        ) {
+            return;
+        }
+        const source = (await this.stateValues.entryGraphSources)[
+            listEntryIndex
+        ];
+        if (typeof source === "number") {
+            await this.coreFunctions.triggerChainedActions({
+                triggeringAction,
+                componentIdx: source,
+                actionId,
+                sourceInformation,
+                skipRendererUpdate: true,
+            });
+        }
+        await this.coreFunctions.triggerChainedActions({
+            triggeringAction,
+            componentIdx: this.componentIdx,
+            listEntryIndex,
+            actionId,
+            sourceInformation,
+            skipRendererUpdate,
         });
     }
 

@@ -55,6 +55,16 @@ const LIST_ENTRY_ACTIONS: Record<string, string[]> = {
 };
 
 /**
+ * The actions an entry of a list component whose entries are of type
+ * `componentType` takes (`LIST_ENTRY_ACTIONS`): those its renderer sends,
+ * and the only ones a `<callAction>` naming the entry can run, as a
+ * component of that type has no others but the one for copying DoenetML.
+ */
+export function listEntryActionNames(componentType: string): string[] {
+    return LIST_ENTRY_ACTIONS[componentType] ?? [];
+}
+
+/**
  * Builds the dast/instruction stream sent to the renderer. Owns the
  * per-component "what's currently rendered" registry, the cached
  * renderer state used for save/restore, and the queue of components
@@ -92,10 +102,12 @@ export class RendererInstructionBuilder {
     /** Whether an idle-lane chunk is waiting for the viewer to draw it. */
     _awaitingRendererAck: boolean;
     /**
-     * The renderer index of each entry of each list component drawn so far,
-     * by the list's index (see `rendererIdxForListEntry`).
+     * The renderer index of each entry of each list component drawn or
+     * named so far, by the list's index and then the entry's (see
+     * `rendererIdxForListEntry`). A map, not an array, as an entry named far
+     * past the end of the list (`$pl[$i]`) holds a renderer index alone.
      */
-    listEntryRendererIndices: Map<number, number[]>;
+    listEntryRendererIndices: Map<number, Map<number, number>>;
     /** The list and entry each of those renderer indices stands for. */
     listEntryOfRendererIdx: Map<
         number,
@@ -414,10 +426,7 @@ export class RendererInstructionBuilder {
                 this.listEntryRendererIndices.get(componentIdx);
             if (listEntryIndices) {
                 const list = this.core._components[componentIdx];
-                for (const [
-                    entryIndex,
-                    entryIdx,
-                ] of listEntryIndices.entries()) {
+                for (const [entryIndex, entryIdx] of listEntryIndices) {
                     if (list && entryIdx in this.componentsToRender) {
                         const stateValues = await this.listEntryRendererState(
                             list,
@@ -849,23 +858,26 @@ export class RendererInstructionBuilder {
      * any renderer, by a component index; the entry has no component, so an
      * index is reserved for it, as for an adapter, and kept for as long as
      * the document is, so the entry keeps its renderer while it is drawn.
+     * Only the entry asked for is given one: a reference to an entry far
+     * past the end of the list (`listEntryTargets.ts`) reserves one index.
      */
     rendererIdxForListEntry(list: any, entryIndex: number): number {
         let indices = this.listEntryRendererIndices.get(list.componentIdx);
         if (!indices) {
-            indices = [];
+            indices = new Map();
             this.listEntryRendererIndices.set(list.componentIdx, indices);
         }
-        while (indices.length <= entryIndex) {
-            const idx = this.core._components.length;
+        let idx = indices.get(entryIndex);
+        if (idx === undefined) {
+            idx = this.core._components.length;
             this.core._components[idx] = undefined;
             this.listEntryOfRendererIdx.set(idx, {
                 listIdx: list.componentIdx,
-                entryIndex: indices.length,
+                entryIndex,
             });
-            indices.push(idx);
+            indices.set(entryIndex, idx);
         }
-        return indices[entryIndex];
+        return idx;
     }
 
     /**

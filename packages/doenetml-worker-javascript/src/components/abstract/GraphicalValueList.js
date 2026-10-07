@@ -928,14 +928,20 @@ export default class GraphicalValueList extends AuthoredValueList {
     }
 
     /**
-     * A click or focus on entry `listEntryIndex`: for an entry from a child,
+     * A click or focus on entry `listEntryIndex`. For an entry from a child,
      * the child's own action (`actionName`), with the entry's index when the
-     * child is a list; for another entry, the actions chained to the list,
-     * unless the entry is fixed.
+     * child is a list, which fires what is chained to the child. Then, if the
+     * list has the entry and it is not fixed, the actions chained to the
+     * entry (`$pl[2]`) and to the list (`$pl`; `triggerChainedActions`).
      */
     async performOnEntryChild({ actionName, triggeringAction, args }) {
         const { listEntryIndex, actionId, sourceInformation = {} } = args;
         const skipRendererUpdate = args.skipRendererUpdate ?? false;
+        // An entry the list does not have (a `<callAction>` naming `$pl[5]`
+        // of two) has no `entryFixed` and fires nothing.
+        const firesEntryChain =
+            triggeringAction !== undefined &&
+            (await this.stateValues.entryFixed)[listEntryIndex] === false;
         const child = (await this.stateValues.entryChildren)[listEntryIndex];
         if (child) {
             const { listEntryIndex: _, ...childArgs } = args;
@@ -948,17 +954,16 @@ export default class GraphicalValueList extends AuthoredValueList {
                     ...(child.listEntryIndex === undefined
                         ? {}
                         : { listEntryIndex: child.listEntryIndex }),
+                    // the renderers are updated once, after the entry's chain
+                    ...(firesEntryChain ? { skipRendererUpdate: true } : {}),
                 },
             });
-            return;
         }
-        if (
-            triggeringAction !== undefined &&
-            !(await this.stateValues.entryFixed)[listEntryIndex]
-        ) {
+        if (firesEntryChain) {
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction,
                 componentIdx: this.componentIdx,
+                listEntryIndex,
                 actionId,
                 sourceInformation,
                 skipRendererUpdate,

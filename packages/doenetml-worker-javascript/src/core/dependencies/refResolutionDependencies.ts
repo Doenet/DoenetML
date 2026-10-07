@@ -11,6 +11,7 @@ import {
     doenetMLStringForReference,
 } from "../../utils/sourceLocation";
 import { listEntryAtResolverNode } from "../listEntryResolverNodes";
+import { listEntryTargetOfResolution } from "../listEntryTargets";
 
 /**
  * The same path with every index emptied.
@@ -898,6 +899,12 @@ export class RefResolutionDependency extends Dependency {
  *   or `undefined` if no referent was found
  * - unresolvedPath: any unresolved path remaining after `componentIdx` was resolved
  * - originalPath: the original path corresponding to the given reference
+ * - listEntry: when the reference names one entry of a list component
+ *   (`$pl[2]`), which has no component, the entry as a target
+ *   (`listEntryTargetOfResolution`): the renderer index reserved for it, with
+ *   the list and the entry's index; `undefined` otherwise. A consumer that
+ *   needs a component as a target takes `componentIdx` when `unresolvedPath`
+ *   is `null`, and otherwise this entry's `componentIdx`, if there is one.
  */
 export class AttributeRefResolutions extends Dependency {
     static dependencyType = "attributeRefResolutions";
@@ -968,13 +975,21 @@ export class AttributeRefResolutions extends Dependency {
 
         for (const comp of result.value) {
             const extendIdx = comp.stateValues.extendIdx;
+            const unresolvedPath = comp.stateValues.unresolvedPath;
 
             newValue.push({
                 componentIdx: extendIdx,
-                unresolvedPath: comp.stateValues.unresolvedPath,
+                unresolvedPath,
                 originalPath: comp.stateValues.originalPath,
                 position: comp.position,
                 sourceDoc: comp.sourceDoc,
+                listEntry:
+                    extendIdx === -1
+                        ? undefined
+                        : listEntryTargetOfResolution(
+                              this.dependencyHandler.core,
+                              { componentIdx: extendIdx, unresolvedPath },
+                          ),
             });
 
             if (extendIdx !== -1) {

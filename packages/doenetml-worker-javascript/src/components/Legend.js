@@ -123,6 +123,7 @@ export default class Legend extends GraphicalComponent {
                             "value",
                             "hasLatex",
                             "forObjectComponentIdx",
+                            "forObjectListEntry",
                         ],
                     },
                     displayClosedSwatches: {
@@ -147,6 +148,8 @@ export default class Legend extends GraphicalComponent {
                                 "selectedStyle",
                                 "styleNumber",
                                 "filled",
+                                "entrySelectedStyle",
+                                "numEntries",
                             ],
                             variablesOptional: true,
                         };
@@ -223,6 +226,23 @@ export default class Legend extends GraphicalComponent {
                         }
 
                         graphicalDescendantsLeft.push(graphicalElement);
+
+                        // An entry of a list that a label is for
+                        // (`forObject="$pl[2]"`) is an element of its own,
+                        // in the entry's style.
+                        if (entryType !== undefined) {
+                            graphicalDescendantsLeft.push(
+                                ...listEntryElementsForLabels({
+                                    list: graphicalElement,
+                                    listIndices: [
+                                        graphicalElement.componentIdx,
+                                        shadowSource?.componentIdx,
+                                    ],
+                                    labelChildren:
+                                        dependencyValues.labelChildren,
+                                }),
+                            );
+                        }
                     }
 
                     let graphicalDescendantComponentIndicesLeft =
@@ -452,4 +472,50 @@ export default class Legend extends GraphicalComponent {
 
         return stateVariableDefinitions;
     }
+}
+
+/**
+ * The legend elements for the entries of the list `list` (a graphical
+ * element whose `componentType` is its entries') that it has and that labels among
+ * `labelChildren` are for (`forObjectListEntry`), whether they name the list
+ * by its index or by one in `listIndices` (the component a reference to the
+ * list shadows). Each is keyed by the index the label names it by, in the
+ * entry's style (`entrySelectedStyle`) and, for an entry in the list's
+ * style, with the list's style number.
+ */
+function listEntryElementsForLabels({ list, listIndices, labelChildren }) {
+    const elements = [];
+    const entriesAdded = new Set();
+    for (const labelChild of labelChildren) {
+        const listEntry = labelChild.stateValues.forObjectListEntry;
+        const entryIdx = labelChild.stateValues.forObjectComponentIdx;
+        if (
+            !listEntry ||
+            !listIndices.includes(listEntry.listIdx) ||
+            !(listEntry.entryIndex < list.stateValues.numEntries) ||
+            entriesAdded.has(entryIdx)
+        ) {
+            continue;
+        }
+        entriesAdded.add(entryIdx);
+        const entrySelectedStyle =
+            list.stateValues.entrySelectedStyle?.[listEntry.entryIndex];
+        const inListStyle =
+            entrySelectedStyle === undefined ||
+            JSON.stringify(entrySelectedStyle) ===
+                JSON.stringify(list.stateValues.selectedStyle);
+        elements.push({
+            componentType: list.componentType,
+            componentIdx: entryIdx,
+            stateValues: {
+                selectedStyle:
+                    entrySelectedStyle ?? list.stateValues.selectedStyle,
+                styleNumber: inListStyle
+                    ? list.stateValues.styleNumber
+                    : undefined,
+                filled: list.stateValues.filled,
+            },
+        });
+    }
+    return elements;
 }

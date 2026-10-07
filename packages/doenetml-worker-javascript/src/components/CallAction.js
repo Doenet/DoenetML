@@ -16,6 +16,7 @@ import {
 import InlineComponent from "./abstract/InlineComponent";
 import { returnSelectedStyleStateVariableDefinition } from "@doenet/utils";
 import { codedDiagnostic } from "../utils/diagnostics";
+import { targetIdxOfRefResolution } from "../utils/refTargets";
 
 export default class CallAction extends InlineComponent {
     constructor(args) {
@@ -176,11 +177,15 @@ export default class CallAction extends InlineComponent {
                 if (dependencyValues.target?.length === 1) {
                     const target = dependencyValues.target[0];
 
-                    if (target.unresolvedPath == null) {
+                    // One entry of a list component (`$pl[2]`) is the index
+                    // reserved for it, to which an action for the entry goes
+                    // (`targetIdxOfRefResolution`).
+                    const targetComponentIdx = targetIdxOfRefResolution(target);
+                    if (targetComponentIdx !== null) {
                         return {
                             setValue: {
-                                targetComponentIdx: target.componentIdx,
-                                unresolvedPath: target.unresolvedPath,
+                                targetComponentIdx,
+                                unresolvedPath: null,
                                 targetOriginalPath: target.originalPath,
                             },
                         };
