@@ -620,6 +620,25 @@ describe("Repeat tag tests @group1", async () => {
         }
     });
 
+    it("children written inside a copy of a repeat are added to each iteration", async () => {
+        let { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <repeat for="a b" type="text" valueName="w" name="r"><text>$w</text></repeat>
+    <p name="p1"><repeat copy="$r"><text>y</text></repeat></p>
+    <p name="p2"><repeat copy="$r" /></p>
+    `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p1")].stateValues.text,
+        ).eq("ay, by");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p2")].stateValues.text,
+        ).eq("a, b");
+    });
+
     it("repeat length depending on other repeat", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
