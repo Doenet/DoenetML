@@ -1262,6 +1262,41 @@ describe("Warning Tests @group4", async () => {
         expect(diagnosticsByType.warnings.length).eq(0);
     });
 
+    it("warns about a module parameter named as a number-display attribute on an extend", async () => {
+        // A `<module>` does not declare `displayDigits`, so here it is a
+        // parameter of the module, which its extend ignores as any other.
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<module name="m"><moduleAttributes><text name="displayDigits">hi</text></moduleAttributes><text>$displayDigits</text></module>
+<p name="p1"><module extend="$m" displayDigits="bye" /></p>
+<p name="p2"><module copy="$m" displayDigits="bye" /></p>
+            `,
+        });
+
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const texts: string[] = [];
+        for (const name of ["p1", "p2"]) {
+            texts.push(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .text,
+            );
+        }
+        expect(texts).eqls(["hi", "bye"]);
+
+        const diagnosticsByType = getDiagnosticsByType(core);
+        expect(diagnosticsByType.errors.length).eq(0);
+        expect(
+            diagnosticsByType.warnings.map((warning) => warning.message),
+        ).eqls([
+            "The `displayDigits` attribute is ignored: a `<module>` with `extend` shows the same content as the component it extends.",
+        ]);
+        expect(
+            diagnosticsByType.warnings.map(
+                (warning) => warning.position?.start.line,
+            ),
+        ).eqls([3]);
+    });
+
     it("warns about only the attributes an author wrote on an extend of a module", async () => {
         // A `<module>` accepts any attribute, so it is handed the `_copy`'s
         // own (`createComponentIdx`, `copyInChildren`, …) too.

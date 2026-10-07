@@ -4127,11 +4127,11 @@ export async function replacementFromProp({
  * the caller to leave off the extend, which then keeps the source's value. Set
  * on the extend, some would break it instead: `type` on a sequence's extend
  * picks the class its values are made for. `asList` is read by the parent,
- * and the number-display attributes by the replacements themselves, so those
- * still apply. Children
- * written inside the extend of a composite are dropped as well, except by a
- * class that adds them after the replacements it copies (`<group>`). A list
- * takes no children, which is already reported as invalid children.
+ * and the number-display attributes, where declared, by the replacements
+ * themselves, so those still apply. Children written inside the extend of a
+ * composite are dropped as well, except by a class that adds them after the
+ * replacements it copies (`<group>`). A list takes no children, which is
+ * already reported as invalid children.
  */
 function extendIgnoresAttributesAndChildren({
     replacementType,
@@ -4154,6 +4154,7 @@ function extendIgnoresAttributesAndChildren({
         return { attributeNames: [], diagnostics: [] };
     }
 
+    const declaredAttributes = replacementClass.createAttributesObject();
     const sharedAttributes = new Set([
         ...Object.keys(
             (isComposite
@@ -4161,7 +4162,14 @@ function extendIgnoresAttributesAndChildren({
                 : ValueListComponent
             ).createAttributesObject(),
         ),
-        ...Object.keys(returnNumberDisplayAttributes()),
+        // The number-display attributes, where they apply: a class that
+        // declares them, and a `<collect>`, which passes them on to the
+        // copies it makes. A `<module>` reads one only as a parameter of
+        // its own, which its extend ignores as any other.
+        ...Object.keys(returnNumberDisplayAttributes()).filter(
+            (attrName) =>
+                replacementType === "collect" || attrName in declaredAttributes,
+        ),
         // The `_copy`'s own attributes (`createComponentIdx`,
         // `copyInChildren`, …), which a class that accepts any attribute
         // (`<module>`, `<collect>`) is handed along with the author's.
