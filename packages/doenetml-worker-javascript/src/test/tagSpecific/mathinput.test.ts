@@ -12394,4 +12394,39 @@ describe("MathInput tag tests @group2", async () => {
         const diagnosticsByType = getDiagnosticsByType(core);
         expect(diagnosticsByType.warnings.length).eq(0);
     });
+
+    it("a copy of a mathInput at a fixed location takes typing with no refused write", async () => {
+        // `fixLocation` refuses only a write to a location. The input's own
+        // state written through the copy's shadow chain is not one, and was
+        // refused, with an internal warning, on every keystroke.
+        const warn = vi.spyOn(console, "warn");
+        try {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="mi" fixLocation />
+    <mathInput extend="$mi" name="mi2" />
+    `,
+            });
+            await updateMathInputValue({
+                latex: "7",
+                componentIdx: await resolvePathToNodeIdx("mi2"),
+                core,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("mi")].stateValues
+                    .value.tree,
+            ).eq(7);
+            expect(
+                warn.mock.calls.filter((args) =>
+                    String(args[0]).includes("because fixLocation is true"),
+                ),
+            ).eqls([]);
+        } finally {
+            warn.mockRestore();
+        }
+    });
 });
