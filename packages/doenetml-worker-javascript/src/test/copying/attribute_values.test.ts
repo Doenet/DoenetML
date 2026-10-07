@@ -976,6 +976,32 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 components[await resolvePathToNodeIdx("g")].attributes.xMin
                     .component.componentType,
             ).eq("_ref");
+
+            // a reader of the attribute is told the type it presents as, as
+            // it was told the type of the component that held it
+            const attributeDependencyType = async (
+                name: string,
+                variable: string,
+                attributeName: string,
+            ) => {
+                const dependencies = Object.values<any>(
+                    (core as any).core.dependencies.downstreamDependencies[
+                        await resolvePathToNodeIdx(name)
+                    ][variable],
+                );
+                const dependency = dependencies.find(
+                    (dep) =>
+                        dep.dependencyType === "attributeComponent" &&
+                        dep.attributeName === attributeName,
+                );
+                return (await dependency.getValue()).value.componentType;
+            };
+            expect(await attributeDependencyType("p", "hide", "hide")).eq(
+                "boolean",
+            );
+            expect(await attributeDependencyType("g", "xminPrelim", "xMin")).eq(
+                "number",
+            );
         });
 
         it("a diagnostic about an attribute that is one reference points to the attribute, one about the reference to the reference", async () => {

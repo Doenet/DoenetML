@@ -445,7 +445,13 @@ export class AttributeComponentDependency extends Dependency {
             return {
                 success: true,
                 downstreamComponentIndices: [attribute.component.componentIdx],
-                downstreamComponentTypes: [attribute.component.componentType],
+                // a reference that is the attribute component
+                // (`hide="$b"`) is reported as the type it presents as, the
+                // type of the attribute component holding it before
+                downstreamComponentTypes: [
+                    attribute.component.presentedComponentType ??
+                        attribute.component.componentType,
+                ],
             };
         }
 
