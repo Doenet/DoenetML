@@ -29,8 +29,10 @@ import { sequenceEntryComponentType } from "../sequence";
 /**
  * Turn, in place, every `_copy` that can be a value reference into a `_ref`.
  *
- * A `_copy` qualifies when it is a bare reference (`$…`, not `extend` or
- * `copy`) whose referent resolved, with no attributes but the marks by which
+ * A `_copy` qualifies when it is a bare reference (`$…`, or an `extend` with
+ * nothing else on it that names the type the reference reads and does not
+ * read an entry of a list; not `copy`) whose referent resolved, with no
+ * attributes but the marks by which
  * an answer records it as a response (`RESPONSE_MARKS`), the component it
  * sits in is not a composite (one that renders its children then draws the
  * reference, `parentDrawsValueReferences`), what it reads is one value of a
@@ -249,10 +251,14 @@ export function convertCopiesToValueReferences({
         // An extend names a type: it is the bare reference written out only
         // where that is the type of what the reference reads, which the
         // parent then takes as it takes the bare reference (as itself, or
-        // through an adapter). One that names another type converts.
+        // through an adapter). One that names another type converts. One
+        // that reads an entry of a list (`$c[1]` of a `<collect>`) copies
+        // the entry, with how it is typeset and whether it takes clicks,
+        // which a reference to the entry does not read, so it stays a copy.
         if (
             extendType !== undefined &&
-            extendType !== target.valueComponentType
+            (extendType !== target.valueComponentType ||
+                target.listEntryProperty === "value")
         ) {
             return;
         }
