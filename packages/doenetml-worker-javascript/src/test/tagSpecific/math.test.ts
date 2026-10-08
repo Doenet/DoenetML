@@ -13663,6 +13663,8 @@ describe("Math tag tests @group3", async () => {
         <math name="m" anchor="(1,2)">x</math>
         <text name="t" anchor="(1,2,3)">hi</text>
         <number name="n" anchor="(a,2)">1</number>
+        <point name="P">(1,2,3)</point>
+        <label name="l" anchor="$P">hi</label>
     </graph>
     `,
         });
@@ -13675,6 +13677,7 @@ describe("Math tag tests @group3", async () => {
             ["m", "moveMath"],
             ["t", "moveText"],
             ["n", "moveNumber"],
+            ["l", "moveLabel"],
         ]) {
             await core.requestAction({
                 componentIdx: await resolvePathToNodeIdx(name),
@@ -13685,6 +13688,13 @@ describe("Math tag tests @group3", async () => {
         expect(await anchorOf("m")).eqls(["vector", 1, 5]);
         expect(await anchorOf("t")).eqls(["vector", 1, 5, 3]);
         expect(await anchorOf("n")).eqls(["vector", "a", 5]);
+        // An anchor referencing a point moves that point.
+        expect(await anchorOf("l")).eqls(["vector", 1, 5, 3]);
+        expect(
+            (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx("P")
+            ].stateValues.xs.map((v: any) => v.tree),
+        ).eqls([1, 5, 3]);
 
         await core.requestAction({
             componentIdx: await resolvePathToNodeIdx("t"),
