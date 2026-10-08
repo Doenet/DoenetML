@@ -17,7 +17,7 @@ vi.mock("hyperformula");
  * of it when a copy made then would differ.
  */
 describe("An unlinked copy through a reload @group4", () => {
-    it("keeps its value, its fixed and its children's values", async () => {
+    it("keeps its value and its children's values, and follows what its attributes reference", async () => {
         const doenetML = `
     <mathInput name="mi" prefill="1" />
     <math copy="$mi" name="c" />
@@ -47,6 +47,8 @@ describe("An unlinked copy through a reload @group4", () => {
 
         const initial = { c: 1, cmFixed: false, inner: 2 };
         await check(initial);
+        // `cm` has the `fixed="$bi"` written on `m`, which follows `bi`
+        const changed = { ...initial, cmFixed: true };
 
         await updateMathInputValue({
             latex: "5",
@@ -63,7 +65,7 @@ describe("An unlinked copy through a reload @group4", () => {
             componentIdx: await resolvePathToNodeIdx("p.inner"),
             core,
         });
-        await check(initial);
+        await check(changed);
 
         await core.saveImmediately();
         const savedState = scoreState.state;
@@ -71,12 +73,12 @@ describe("An unlinked copy through a reload @group4", () => {
             doenetML,
             initialState: savedState,
         }));
-        await check(initial);
+        await check(changed);
 
-        // only the copies whose source changed are held
+        // only the copies whose source changed are held (`c` and `cp`)
         const coreState = JSON.parse(savedState);
         const held = Object.keys(coreState.__copySnapshots ?? {});
-        expect(held.length).eq(3);
+        expect(held.length).eq(2);
     });
 
     it("holds nothing when no copy's source changed", async () => {

@@ -2,9 +2,8 @@ import { deepClone, serializedComponentsReplacer } from "@doenet/utils";
 
 /**
  * What an unlinked copy (`copy=`) made of its source when it was made, for
- * each component among its serialized replacements: its essential state, its
- * primitive (string) children, and what it holds of its source's `fixed` and
- * `fixLocation` (`copySourceContext`), with its `stateId`. The primitive
+ * each component among its serialized replacements: its essential state and
+ * its primitive (string) children, with its `stateId`. The primitive
  * children are held because a write to a value defined by one, such as
  * dragging `<point>(1,2)</point>`, changes the child itself rather than any
  * essential state.
@@ -35,8 +34,6 @@ export function copySnapshotOf(serializedComponents) {
                 ...(Object.keys(primitiveChildren).length > 0
                     ? { primitiveChildren }
                     : {}),
-                copySourceContext:
-                    component.doenetAttributes?.copySourceContext ?? null,
             });
         }
         for (const child of component.children ?? []) {
@@ -53,9 +50,8 @@ export function copySnapshotOf(serializedComponents) {
 }
 
 /**
- * Give the serialized replacements of an unlinked copy the essential state,
- * primitive children and `copySourceContext` that `snapshot` holds for their
- * `stateId`s.
+ * Give the serialized replacements of an unlinked copy the essential state
+ * and primitive children that `snapshot` holds for their `stateId`s.
  */
 export function applyCopySnapshot(serializedComponents, snapshot) {
     const byStateId = new Map(snapshot.map((entry) => [entry.stateId, entry]));
@@ -76,11 +72,6 @@ export function applyCopySnapshot(serializedComponents, snapshot) {
                 ) {
                     component.children[ind] = child;
                 }
-            }
-            if (entry.copySourceContext) {
-                component.doenetAttributes ??= {};
-                component.doenetAttributes.copySourceContext =
-                    entry.copySourceContext;
             }
         }
         for (const child of component.children ?? []) {
@@ -130,8 +121,7 @@ export async function snapshotStillMade(fresh, snapshot, componentOfStateId) {
         const then = snapshot[ind];
         if (
             now.stateId !== then.stateId ||
-            !same(now.primitiveChildren, then.primitiveChildren) ||
-            !same(now.copySourceContext, then.copySourceContext)
+            !same(now.primitiveChildren, then.primitiveChildren)
         ) {
             return false;
         }
