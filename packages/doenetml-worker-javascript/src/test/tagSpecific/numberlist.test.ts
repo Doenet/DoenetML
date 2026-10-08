@@ -1289,7 +1289,8 @@ describe("NumberList tag tests @group4", async () => {
         });
         stateVariables = await core.returnAllStateVariables(false, true);
 
-        // all but copied list become ordered
+        // all become ordered, the copied list too: a copy keeps the
+        // `unordered="$unordered"` its source wrote, as pasted DoenetML would
         expect(
             stateVariables[await resolvePathToNodeIdx("b1")].stateValues.value,
         ).eq(false);
@@ -1301,12 +1302,12 @@ describe("NumberList tag tests @group4", async () => {
         ).eq(false);
         expect(
             stateVariables[await resolvePathToNodeIdx("b4")].stateValues.value,
-        ).eq(true);
+        ).eq(false);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("pUnordered")].stateValues
                 .text,
-        ).eq("false, false, true");
+        ).eq("false, false, false");
     });
 
     it("compare unordered number lists, overwrite attribute", async () => {
@@ -1385,7 +1386,7 @@ describe("NumberList tag tests @group4", async () => {
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("b5")].stateValues.value,
-        ).eq(false);
+        ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("b6")].stateValues.value,
         ).eq(true);
@@ -1394,11 +1395,11 @@ describe("NumberList tag tests @group4", async () => {
         ).eq(true);
         expect(
             stateVariables[await resolvePathToNodeIdx("b8")].stateValues.value,
-        ).eq(false);
+        ).eq(true);
 
         expect(
             stateVariables[await resolvePathToNodeIdx("pUnordered")].stateValues
                 .text,
-        ).eq("true, true, true, false, true, false");
+        ).eq("true, true, true, true, true, true");
     });
 });

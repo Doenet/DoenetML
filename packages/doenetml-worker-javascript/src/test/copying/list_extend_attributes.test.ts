@@ -239,4 +239,67 @@ describe("Attributes of an extend or copy of a list @group4", () => {
             1000,
         ]);
     });
+    it("a copy of a list is unlinked from it as pasted DoenetML is: a later change to the list's attribute does not reach it, a reference it wrote does", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="h" />
+    <mathList name="ml" hide="false" unordered="$h">1 2</mathList>
+    <math name="m" hide="false" unordered="$h">1</math>
+    <mathList copy="$ml" name="c" />
+    <math copy="$m" name="cm" />
+    <mathList extend="$ml" name="e" />
+    <booleanInput name="bl" bindValueTo="$ml.hide" />
+    <booleanInput name="bm" bindValueTo="$m.hide" />
+    `,
+        });
+        async function check(expected: Record<string, [boolean, boolean]>) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const name in expected) {
+                const stateValues =
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .stateValues;
+                expect([stateValues.hidden, stateValues.unordered], name).eqls(
+                    expected[name],
+                );
+            }
+        }
+        const set = async (name: string, value: boolean) =>
+            updateBooleanInputValue({
+                boolean: value,
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+
+        await check({
+            ml: [false, false],
+            c: [false, false],
+            e: [false, false],
+            m: [false, false],
+            cm: [false, false],
+        });
+
+        // a write to the source's own attribute reaches the extend, not a copy
+        await set("bl", true);
+        await set("bm", true);
+        await check({
+            ml: [true, false],
+            c: [false, false],
+            e: [true, false],
+            m: [true, false],
+            cm: [false, false],
+        });
+
+        // what the attribute references, every copy keeps following
+        await set("h", true);
+        await check({
+            ml: [true, true],
+            c: [false, true],
+            e: [true, true],
+            m: [true, true],
+            cm: [false, true],
+        });
+    });
 });

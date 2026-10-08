@@ -1186,7 +1186,8 @@ export default class AuthoredValueList extends ValueListComponent {
                     // those written on it win over the entries'.
                     ...(this.svComponent?.doenetAttributes?.extendsList !==
                         undefined ||
-                    this.svComponent?.doenetAttributes?.copiesList !== undefined
+                    this.svComponent?.doenetAttributes?.copyListViaComposite !==
+                        undefined
                         ? Object.fromEntries(
                               displayNames.map((name) => [
                                   `written_${name}`,

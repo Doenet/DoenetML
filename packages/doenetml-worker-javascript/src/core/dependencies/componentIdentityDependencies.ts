@@ -93,14 +93,11 @@ export class ComponentIdentityDependency extends Dependency {
 }
 
 /**
- * For a list made by an `extend` or a `copy` of a list, the list it names,
- * when the reference names it with nothing left to resolve (`convertToCopy`).
+ * For a list made by an `extend` of a list, the list it names, when the
+ * reference names it with nothing left to resolve (`convertToCopy`).
  */
 function listSourceIdx(component: any): number | undefined {
-    return (
-        component.doenetAttributes?.extendsList ??
-        component.doenetAttributes?.copiesList
-    );
+    return component.doenetAttributes?.extendsList;
 }
 
 export class AttributeComponentDependency extends Dependency {
@@ -241,18 +238,70 @@ export class AttributeComponentDependency extends Dependency {
         // reports as a circular dependency; stop rather than loop.
         const visited = new Set<number>([comp.componentIdx]);
 
-        while (comp.shadows || listSourceIdx(comp) !== undefined) {
-            if (!comp.shadows) {
-                // A list made by an `extend` or `copy` of a list holds a copy
-                // of its entries rather than shadowing it (`convertToCopy`),
-                // and takes the attributes of the list it names as an
-                // `extend` or `copy` of any component takes its source's. A
-                // copy keeps whether its list was `unordered` when it was
-                // made (`unorderedFromCopyListSource`).
+        while (
+            comp.shadows ||
+            listSourceIdx(comp) !== undefined ||
+            comp.doenetAttributes?.copyListViaComposite !== undefined
+        ) {
+            if (
+                !comp.shadows &&
+                comp.doenetAttributes?.copyListViaComposite !== undefined
+            ) {
+                // A list made by a `copy` of a list (`convertToCopy`) holds,
+                // as its child, a `_copy` whose replacement is an unlinked
+                // copy of that list, made as if its DoenetML were pasted
+                // there: its attributes are copies of the list's, keeping
+                // what is written and following what they reference. The
+                // list takes those, as a copy of any component has its own,
+                // so a later change to the list's own does not reach it.
                 if (
                     this.notFromReferenceSource ||
-                    (this.attributeName === "unordered" &&
-                        comp.doenetAttributes?.copiesList !== undefined) ||
+                    (this.dontRecurseToShadowsIfHaveAttribute &&
+                        comp.attributes[
+                            this.dontRecurseToShadowsIfHaveAttribute
+                        ])
+                ) {
+                    break;
+                }
+                const copyComposite =
+                    this.dependencyHandler._components[
+                        comp.doenetAttributes.copyListViaComposite
+                    ];
+                if (!copyComposite) {
+                    break;
+                }
+                if (!copyComposite.isExpanded) {
+                    await this.addBlockerForUnexpandedComposite(copyComposite);
+                    return {
+                        success: false,
+                        downstreamComponentIndices: [],
+                        downstreamComponentTypes: [],
+                    };
+                }
+                const copied = copyComposite.replacements?.find(
+                    (replacement: any) => typeof replacement === "object",
+                );
+                const copiedAttribute = copied?.attributes[this.attributeName];
+                if (copiedAttribute?.component) {
+                    return {
+                        success: true,
+                        downstreamComponentIndices: [
+                            copiedAttribute.component.componentIdx,
+                        ],
+                        downstreamComponentTypes: [
+                            copiedAttribute.component.componentType,
+                        ],
+                    };
+                }
+                break;
+            }
+            if (!comp.shadows) {
+                // A list made by an `extend` of a list holds a copy of its
+                // entries rather than shadowing it (`convertToCopy`), and
+                // takes the attributes of the list it names as an `extend`
+                // of any component takes its source's.
+                if (
+                    this.notFromReferenceSource ||
                     (this.dontRecurseToShadowsIfHaveAttribute &&
                         comp.attributes[
                             this.dontRecurseToShadowsIfHaveAttribute
