@@ -1,8 +1,10 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
 import {
+    movePoint,
     updateBooleanInputValue,
     updateMathInputValue,
+    updateTextInputValue,
 } from "../utils/actions";
 
 const Mock = vi.fn();
@@ -94,5 +96,42 @@ describe("An unlinked copy through a reload @group4", () => {
         await core.saveImmediately();
         const coreState = JSON.parse(scoreState.state);
         expect(coreState.__copySnapshots).eq(undefined);
+    });
+
+    it("keeps values its source holds in primitive children", async () => {
+        // Dragging `<point>(1,2)</point>` or binding an input to
+        // `<text>hi</text>` changes the source's string child, not its
+        // essential state.
+        const doenetML = `
+    <graph><point name="P">(1,2)</point><point copy="$P" name="Q" /></graph>
+    <text name="t">hi</text><textInput bindValueTo="$t" name="ti" />
+    <text copy="$t" name="t2" />
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            x: 3,
+            y: 4,
+            core,
+        });
+        await updateTextInputValue({
+            text: "yo",
+            componentIdx: await resolvePathToNodeIdx("ti"),
+            core,
+        });
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        expect((await sv("P")).xs.map((x: any) => x.tree)).eqls([3, 4]);
+        expect((await sv("Q")).xs.map((x: any) => x.tree)).eqls([1, 2]);
+        expect((await sv("t")).value).eq("yo");
+        expect((await sv("t2")).value).eq("hi");
     });
 });

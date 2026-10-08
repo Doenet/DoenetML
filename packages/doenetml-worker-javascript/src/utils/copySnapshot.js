@@ -2,9 +2,12 @@ import { deepClone, serializedComponentsReplacer } from "@doenet/utils";
 
 /**
  * What an unlinked copy (`copy=`) made of its source when it was made, for
- * each component among its serialized replacements: its essential state and
- * what it holds of its source's `fixed` and `fixLocation`
- * (`copySourceContext`), with its `stateId`.
+ * each component among its serialized replacements: its essential state, its
+ * primitive (string) children, and what it holds of its source's `fixed` and
+ * `fixLocation` (`copySourceContext`), with its `stateId`. The primitive
+ * children are held because a write to a value defined by one, such as
+ * dragging `<point>(1,2)</point>`, changes the child itself rather than any
+ * essential state.
  *
  * A copy present when a document loads is made again on every load, from
  * its source as it is then: after a reader has changed the source and
@@ -20,9 +23,18 @@ export function copySnapshotOf(serializedComponents) {
             return;
         }
         if (component.stateId !== undefined) {
+            const primitiveChildren = {};
+            (component.children ?? []).forEach((child, ind) => {
+                if (typeof child !== "object" || child === null) {
+                    primitiveChildren[ind] = child;
+                }
+            });
             snapshot.push({
                 stateId: component.stateId,
                 state: deepClone(component.state ?? {}),
+                ...(Object.keys(primitiveChildren).length > 0
+                    ? { primitiveChildren }
+                    : {}),
                 copySourceContext:
                     component.doenetAttributes?.copySourceContext ?? null,
             });
@@ -51,8 +63,9 @@ export function copySnapshotsMatch(a, b) {
 }
 
 /**
- * Give the serialized replacements of an unlinked copy the essential state
- * and `copySourceContext` that `snapshot` holds for their `stateId`s.
+ * Give the serialized replacements of an unlinked copy the essential state,
+ * primitive children and `copySourceContext` that `snapshot` holds for their
+ * `stateId`s.
  */
 export function applyCopySnapshot(serializedComponents, snapshot) {
     const byStateId = new Map(snapshot.map((entry) => [entry.stateId, entry]));
@@ -63,6 +76,17 @@ export function applyCopySnapshot(serializedComponents, snapshot) {
         const entry = byStateId.get(component.stateId);
         if (entry) {
             component.state = deepClone(entry.state);
+            for (const [ind, child] of Object.entries(
+                entry.primitiveChildren ?? {},
+            )) {
+                const current = component.children?.[ind];
+                if (
+                    current !== undefined &&
+                    (typeof current !== "object" || current === null)
+                ) {
+                    component.children[ind] = child;
+                }
+            }
             if (entry.copySourceContext) {
                 component.doenetAttributes ??= {};
                 component.doenetAttributes.copySourceContext =
