@@ -234,6 +234,10 @@ export class AttributeComponentDependency extends Dependency {
         }
 
         let comp = parent;
+        // An extend of a list can name itself, directly or through other
+        // extends (`<mathList name="a" extend="$a" />`), which the core
+        // reports as a circular dependency; stop rather than loop.
+        const visited = new Set<number>([comp.componentIdx]);
 
         while (comp.shadows || listSourceIdx(comp) !== undefined) {
             if (!comp.shadows) {
@@ -251,9 +255,10 @@ export class AttributeComponentDependency extends Dependency {
                     break;
                 }
                 comp = this.dependencyHandler._components[listSourceIdx(comp)!];
-                if (!comp) {
+                if (!comp || visited.has(comp.componentIdx)) {
                     break;
                 }
+                visited.add(comp.componentIdx);
                 attribute = comp.attributes[this.attributeName];
                 if (attribute?.component) {
                     return {
@@ -287,9 +292,10 @@ export class AttributeComponentDependency extends Dependency {
             }
 
             comp = this.dependencyHandler._components[shadows.componentIdx];
-            if (!comp) {
+            if (!comp || visited.has(comp.componentIdx)) {
                 break;
             }
+            visited.add(comp.componentIdx);
 
             // if a prop variable was created from a plain copy that is marked as returning the same type
             // then treat it like a regular copy (as if there was no prop variable)

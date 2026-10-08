@@ -9,9 +9,11 @@ vi.mock("hyperformula");
 /**
  * An `extend` or `copy` of a list is a list holding a copy of the entries
  * of the list it names, so that it can add entries of its own or be a list
- * of another type. It takes that list's attributes as an `extend` of any
- * other component takes its source's: those it does not set itself, with
- * `fixed` and `fixLocation` taken alongside where it sits.
+ * of another type. An extend takes that list's attributes as an `extend`
+ * of any other component takes its source's: those it does not set itself,
+ * with `fixed` and `fixLocation` taken alongside where it sits. A copy
+ * takes only `fixed` and `fixLocation`, as the list had them when it was
+ * made.
  */
 describe("Attributes of an extend or copy of a list @group4", () => {
     it("takes the attributes of the list it extends", async () => {
@@ -111,5 +113,46 @@ describe("Attributes of an extend or copy of a list @group4", () => {
         expect((await sv("c")).fixed).eq(true);
         expect((await sv("c2")).fixed).eq(true);
         expect((await sv("p")).text).eq("1.2346, 2");
+    });
+
+    it("a copy of a list made in a repeat or an extend of a group is fixed with the list", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="ml" fixed>1 2</mathList>
+    <repeat for="1 2" name="r"><mathList copy="$ml" name="c" /></repeat>
+    <group name="g"><p fixed="false"><mathList copy="$ml" name="c" /></p></group>
+    <group extend="$g" name="g2" />
+    <group extend="$g2" name="g4" />
+    <group copy="$g" name="g3" />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of [
+            "r[1].c",
+            "r[2].c",
+            "g.c",
+            "g2.c",
+            "g4.c",
+            "g3.c",
+        ]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .fixed,
+                name,
+            ).eq(true);
+        }
+    });
+
+    it("an extend of a list that names itself is reported as circular", async () => {
+        await expect(
+            createTestCore({
+                doenetML: `<mathList name="a" extend="$a">1</mathList>`,
+            }),
+        ).rejects.toThrow("Circular dependency involving these components");
+        await expect(
+            createTestCore({
+                doenetML: `<mathList name="a" extend="$b" /><mathList name="b" extend="$a" />`,
+            }),
+        ).rejects.toThrow("Circular dependency involving these components");
     });
 });
