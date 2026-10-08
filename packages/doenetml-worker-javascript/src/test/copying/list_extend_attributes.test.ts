@@ -9,11 +9,11 @@ vi.mock("hyperformula");
 /**
  * An `extend` or `copy` of a list is a list holding a copy of the entries
  * of the list it names, so that it can add entries of its own or be a list
- * of another type. An extend takes that list's attributes as an `extend`
- * of any other component takes its source's: those it does not set itself,
- * with `fixed` and `fixLocation` taken alongside where it sits. A copy
- * takes only `fixed` and `fixLocation`, as the list had them when it was
- * made.
+ * of another type. Both take that list's attributes as an `extend` or
+ * `copy` of any other component takes its source's: those they do not set
+ * themselves. An extend takes `fixed` and `fixLocation` alongside where it
+ * sits; a copy holds them, and `unordered`, as the list had them when it
+ * was made.
  */
 describe("Attributes of an extend or copy of a list @group4", () => {
     it("takes the attributes of the list it extends", async () => {
