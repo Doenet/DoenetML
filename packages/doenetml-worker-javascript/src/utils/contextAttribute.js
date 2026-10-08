@@ -200,6 +200,30 @@ export function contextAttributeDefinition({
             return { setValue: { [attributeName]: value } };
         },
         inverseDefinition({ dependencyValues, desiredStateVariableValues }) {
+            // A reference with no attribute of its own for it passes a write
+            // to its source, as it did when it took its source's attribute,
+            // so that what turned its source's `fixed` on through it can turn
+            // it off again.
+            const attribute = this?.svComponent?.attributes?.[attributeName];
+            const written =
+                attribute?.component !== undefined ||
+                attribute?.primitive !== undefined;
+            if (
+                !written &&
+                dependencyValues.source !== null &&
+                dependencyValues.source !== undefined
+            ) {
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setDependency: "source",
+                            desiredValue:
+                                desiredStateVariableValues[attributeName],
+                        },
+                    ],
+                };
+            }
             if (
                 dependencyValues.own !== null &&
                 dependencyValues.own !== undefined

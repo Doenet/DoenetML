@@ -1390,6 +1390,7 @@ export class EssentialValueWriter {
                         "parentStateVariable",
                         "adapterSourceStateVariable",
                         "sourceCompositeStateVariable",
+                        "shadowSourceStateVariable",
                     ].includes(dep.dependencyType) &&
                     dep.downstreamComponentIndices.length === 1
                 ) {

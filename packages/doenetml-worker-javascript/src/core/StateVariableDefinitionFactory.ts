@@ -1580,6 +1580,11 @@ function _copyPassthroughAttributes(
             stateVarDef[attrName2] = attributeSpecification[attrName2];
         }
     }
+    // An essential value of an attribute a reference does not take from its
+    // source is not mirrored into the reference either.
+    if (attributeSpecification.notFromReferenceSource) {
+        stateVarDef.doNotShadowEssential = true;
+    }
 }
 
 /**

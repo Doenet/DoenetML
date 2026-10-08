@@ -252,6 +252,50 @@ describe("Fixed and fixLocation of references @group4", () => {
         ).eq(false);
     });
 
+    it("a write to a reference's fixed reaches its source, so the reference can turn it on and off", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="m">y</math>
+    <math extend="$m" name="r" />
+    <p fixed><math extend="$m" name="rp" /></p>
+    <booleanInput name="bi" bindValueTo="$r.fixed" />
+    <math extend="$m" name="own" fixed="false" />
+    <booleanInput name="bo" bindValueTo="$own.fixed" />
+    `,
+        });
+        async function check(expected: Record<string, boolean>) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const name in expected) {
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .fixed,
+                    name,
+                ).eq(expected[name]);
+            }
+        }
+        const set = async (name: string, value: boolean) =>
+            updateBooleanInputValue({
+                boolean: value,
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+
+        await check({ m: false, r: false, rp: true, own: false });
+
+        await set("bi", true);
+        await check({ m: true, r: true, rp: true, own: false });
+
+        await set("bi", false);
+        await check({ m: false, r: false, rp: true, own: false });
+
+        // a reference with its own attribute changes only that
+        await set("bo", true);
+        await check({ m: false, r: false, own: true });
+    });
+
     it("a container's fixed=false does not unfix a reference to a fixed source", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
