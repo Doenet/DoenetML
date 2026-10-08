@@ -296,6 +296,66 @@ describe("Fixed and fixLocation of references @group4", () => {
         await check({ m: false, r: false, own: true });
     });
 
+    it("a write to a source's fixed does not decide over where a later or reloaded reference sits", async () => {
+        const doenetML = `
+    <math name="m">y</math>
+    <booleanInput name="bm" bindValueTo="$m.fixed" />
+    <booleanInput name="show" />
+    <p fixed><math extend="$m" name="early" /></p>
+    <conditionalContent condition="$show" name="cc"><p fixed><math extend="$m" name="late" /></p></conditionalContent>
+    <section name="s"><math name="x">y</math></section>
+    <section extend="$s" fixed="false" name="s2" />
+    <booleanInput name="bx" bindValueTo="$s2.x.fixed" />
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        async function check(expected: Record<string, boolean>) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const name in expected) {
+                expect(
+                    stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                        .fixed,
+                    name,
+                ).eq(expected[name]);
+            }
+        }
+        const set = async (name: string, value: boolean) =>
+            updateBooleanInputValue({
+                boolean: value,
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+
+        await set("bm", true);
+        await set("bm", false);
+        await set("show", true);
+        await check({ m: false, early: true, "cc[1].late": true });
+
+        // a write to a component inside a copy changes it, wherever it sits
+        await set("bx", true);
+        await check({ "s.x": true, "s2.x": true });
+        await set("bx", false);
+        await check({ "s.x": false, "s2.x": false });
+        await set("bx", true);
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        await check({
+            m: false,
+            early: true,
+            "cc[1].late": true,
+            "s.x": true,
+            "s2.x": true,
+        });
+    });
+
     it("a container's fixed=false does not unfix a reference to a fixed source", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

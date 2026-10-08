@@ -1565,12 +1565,20 @@ export default class BaseComponent {
             }
         }
 
-        // always copy essential state
+        // always copy essential state, except that of an attribute a copy
+        // does not take from its source (`notFromReferenceSource`): a write
+        // to the source's `fixed` would otherwise decide over where a copy
+        // made after it sits, as one made before it is not given it.
         if (
             this.essentialState &&
             Object.keys(this.essentialState).length > 0
         ) {
             serializedComponent.state = deepClone(this.essentialState);
+            for (const varName in serializedComponent.state) {
+                if (this.state[varName]?.notFromReferenceSource) {
+                    delete serializedComponent.state[varName];
+                }
+            }
         }
 
         if (unlinkedAsValues) {
