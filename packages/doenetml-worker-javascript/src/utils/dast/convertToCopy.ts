@@ -156,16 +156,6 @@ export function convertRefsToCopies({
                     addNodesToResolver(flatFragment, "None");
                 }
 
-                // The list it extends or copies, when the reference names
-                // it with nothing left to resolve, whose attributes it
-                // takes as an extend takes its source's
-                // (`AttributeComponentDependency`, `utils/contextAttribute.js`).
-                const listSource =
-                    refResolution.unresolvedPath === null ||
-                    refResolution.unresolvedPath.length === 0
-                        ? refResolution.nodeIdx
-                        : undefined;
-
                 if ("CopyAttribute" in extending) {
                     newComponent.attributes.link = {
                         name: "link",
@@ -174,16 +164,20 @@ export function convertRefsToCopies({
 
                     wrappingComponent.doenetAttributes.copyListViaComposite =
                         newComponent.componentIdx;
-                    if (listSource !== undefined) {
-                        wrappingComponent.doenetAttributes.copiesList =
-                            listSource;
-                    }
                 } else {
                     wrappingComponent.doenetAttributes.extendListViaComposite =
                         newComponent.componentIdx;
-                    if (listSource !== undefined) {
+
+                    // The list it extends, when the reference names it with
+                    // nothing left to resolve, whose attributes it takes as
+                    // an extend takes its source's
+                    // (`AttributeComponentDependency`, `utils/contextAttribute.js`).
+                    if (
+                        refResolution.unresolvedPath === null ||
+                        refResolution.unresolvedPath.length === 0
+                    ) {
                         wrappingComponent.doenetAttributes.extendsList =
-                            listSource;
+                            refResolution.nodeIdx;
                     }
                 }
 

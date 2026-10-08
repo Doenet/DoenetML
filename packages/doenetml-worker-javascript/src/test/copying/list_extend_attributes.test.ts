@@ -50,6 +50,43 @@ describe("Attributes of an extend or copy of a list @group4", () => {
         expect((await sv("e4")).fixed).eq(true);
     });
 
+    it("a display setting it takes yields to an entry's own, as the list's does", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="ml" displayDigits="5">1.23456789 <math displayDigits="2">3.456789</math></mathList>
+    <p name="p">$ml</p>
+    <p name="p1"><mathList extend="$ml" /></p>
+    <p name="p2"><mathList extend="$ml" displayDigits="6" /></p>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const text = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues.text;
+        expect(await text("p")).eq("1.2346, 3.5");
+        expect(await text("p1")).eq("1.2346, 3.5");
+        // one written on the extend wins over the entries'
+        expect(await text("p2")).eq("1.23457, 3.45679");
+    });
+
+    it("takes the other attributes of what it extends, a list or not", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="ml" disabled styleNumber="2">1 2</mathList>
+    <mathList extend="$ml" name="e" />
+    <point name="P" hide disabled styleNumber="3">(1,2)</point>
+    <mathList extend="$P" name="eP" />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        expect((await sv("e")).disabled).eq(true);
+        expect((await sv("e")).styleNumber).eq(2);
+        expect((await sv("eP")).hidden).eq(true);
+        expect((await sv("eP")).disabled).eq(true);
+        expect((await sv("eP")).styleNumber).eq(3);
+    });
+
     it("is fixed when the list it extends is or where it sits is", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

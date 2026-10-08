@@ -93,9 +93,9 @@ export class ComponentIdentityDependency extends Dependency {
 }
 
 /**
- * The list a list made by an `extend` of one names, when the reference
- * names it with nothing left to resolve (`convertToCopy`). A `copy` of a
- * list takes no attribute from it, keeping what it was made with.
+ * For a list made by an `extend` of a list, the list it names, when the
+ * reference names it with nothing left to resolve (`convertToCopy`). A
+ * `copy` of a list records none and takes no attribute from its list.
  */
 function listSourceIdx(component: any): number | undefined {
     return component.doenetAttributes?.extendsList;
