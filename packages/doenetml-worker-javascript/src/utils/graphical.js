@@ -188,7 +188,7 @@ export async function moveGraphicalObjectWithAnchorAction({
     componentType,
     coreFunctions,
 }) {
-    // A coordinate the move does not give (a drag of `y` alone) stays
+    // A coordinate the move does not give (a move given `y` alone) stays
     // where the anchor has it.
     const given = [x, y, z];
     const current = anchorCoordinates(

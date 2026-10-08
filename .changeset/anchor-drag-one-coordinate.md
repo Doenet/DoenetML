@@ -6,4 +6,4 @@
 "doenet-vscode-extension": patch
 ---
 
-Moving a component placed at an `anchor` by one coordinate (only its `y`, from an action or a `<callAction>`) now moves it there and keeps its other coordinates, where it used to leave it in place.
+An action that moves a component placed at an `anchor` but gives only some coordinates (only `y`, say) now moves it there and keeps its other coordinates, where it used to leave it in place.
