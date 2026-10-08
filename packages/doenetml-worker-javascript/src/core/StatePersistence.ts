@@ -358,10 +358,12 @@ export class StatePersistence {
      * Hold, under `__copySnapshots`, the snapshot of each unlinked copy that
      * a copy made now would not match (`snapshotStillMade`): a reload makes
      * the copy again from its source as restored, and takes the saved
-     * snapshot instead (`utils/copySnapshot.js`). A copy whose source has not
-     * changed since it was made needs nothing saved, as #1940 asks of what a
-     * reader has not changed. A save with no unlinked copies does not look
-     * (`unlinkedCopies`).
+     * snapshot instead (`utils/copySnapshot.js`). A copy that one made now
+     * would reproduce needs nothing saved, as #1940 asks of what a reader has
+     * not changed. A copy made now can differ where a reload would not: a
+     * `<sampleRandomNumbers copy>` made now takes the values its source has
+     * drawn since, so it is held though a reload would draw the same. A save
+     * with no unlinked copies does not look (`unlinkedCopies`).
      */
     unlinkedCopies(): any[] {
         return (Object.values(this.core._components ?? {}) as any[]).filter(
