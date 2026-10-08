@@ -93,12 +93,14 @@ export class ComponentIdentityDependency extends Dependency {
 }
 
 /**
- * For a list made by an `extend` of a list, the list it names, when the
- * reference names it with nothing left to resolve (`convertToCopy`). A
- * `copy` of a list records none and takes no attribute from its list.
+ * For a list made by an `extend` or a `copy` of a list, the list it names,
+ * when the reference names it with nothing left to resolve (`convertToCopy`).
  */
 function listSourceIdx(component: any): number | undefined {
-    return component.doenetAttributes?.extendsList;
+    return (
+        component.doenetAttributes?.extendsList ??
+        component.doenetAttributes?.copiesList
+    );
 }
 
 export class AttributeComponentDependency extends Dependency {
@@ -241,12 +243,16 @@ export class AttributeComponentDependency extends Dependency {
 
         while (comp.shadows || listSourceIdx(comp) !== undefined) {
             if (!comp.shadows) {
-                // A list made by an `extend` of a list holds a copy of its
-                // entries rather than shadowing it (`convertToCopy`), and
-                // takes the attributes of the list it names as a reference
-                // takes its source's.
+                // A list made by an `extend` or `copy` of a list holds a copy
+                // of its entries rather than shadowing it (`convertToCopy`),
+                // and takes the attributes of the list it names as an
+                // `extend` or `copy` of any component takes its source's. A
+                // copy keeps whether its list was `unordered` when it was
+                // made (`unorderedFromCopyListSource`).
                 if (
                     this.notFromReferenceSource ||
+                    (this.attributeName === "unordered" &&
+                        comp.doenetAttributes?.copiesList !== undefined) ||
                     (this.dontRecurseToShadowsIfHaveAttribute &&
                         comp.attributes[
                             this.dontRecurseToShadowsIfHaveAttribute

@@ -1180,12 +1180,13 @@ export default class AuthoredValueList extends ValueListComponent {
                         ]),
                     ),
 
-                    // An `extend` of a list takes the settings of the list it
-                    // names (`AttributeComponentDependency`), which, as that
-                    // list's own, yield to an entry's own; only those written
-                    // on the extend win over the entries'.
+                    // An `extend` or `copy` of a list takes the settings of
+                    // the list it names (`AttributeComponentDependency`),
+                    // which, as that list's own, yield to an entry's own; only
+                    // those written on it win over the entries'.
                     ...(this.svComponent?.doenetAttributes?.extendsList !==
-                    undefined
+                        undefined ||
+                    this.svComponent?.doenetAttributes?.copiesList !== undefined
                         ? Object.fromEntries(
                               displayNames.map((name) => [
                                   `written_${name}`,

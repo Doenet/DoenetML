@@ -164,6 +164,18 @@ export function convertRefsToCopies({
 
                     wrappingComponent.doenetAttributes.copyListViaComposite =
                         newComponent.componentIdx;
+
+                    // The list it copies, when the reference names it with
+                    // nothing left to resolve, whose attributes it takes as
+                    // a copy of any component takes its source's
+                    // (`AttributeComponentDependency`).
+                    if (
+                        refResolution.unresolvedPath === null ||
+                        refResolution.unresolvedPath.length === 0
+                    ) {
+                        wrappingComponent.doenetAttributes.copiesList =
+                            refResolution.nodeIdx;
+                    }
                 } else {
                     wrappingComponent.doenetAttributes.extendListViaComposite =
                         newComponent.componentIdx;

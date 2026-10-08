@@ -192,4 +192,51 @@ describe("Attributes of an extend or copy of a list @group4", () => {
             }),
         ).rejects.toThrow("Circular dependency involving these components");
     });
+    it("a copy of a list takes the list's attributes, as a copy of any component does", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="ml" hide displayDigits="5" styleNumber="2">1.23456789 2</mathList>
+    <math name="m" hide displayDigits="5">1.23456789</math>
+    <p name="p1"><mathList copy="$ml" name="c" /></p>
+    <p name="p2"><mathList copy="$ml" name="cs" hide="false" /></p>
+    <math copy="$m" name="cm" />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        // hidden as a copy of a hidden math is
+        expect((await sv("cm")).hidden).eq(true);
+        expect((await sv("c")).hidden).eq(true);
+        expect((await sv("c")).displayDigits).eq(5);
+        expect((await sv("c")).styleNumber).eq(2);
+        expect((await sv("p1")).text).eq("");
+        // its own attribute decides
+        expect((await sv("cs")).hidden).eq(false);
+        expect((await sv("p2")).text).eq("1.2346, 2");
+    });
+
+    it("takes the list's maxNumber and how it parses text, for entries it adds", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathList name="ml" maxNumber="3" splitSymbols="false" functionSymbols="g" parseScientificNotation>a b</mathList>
+    <p name="p1"><mathList extend="$ml" name="e">xy g(x) 1E3</mathList></p>
+    <p name="p2"><mathList extend="$ml" name="eo" maxNumber="5">xy g(x) 1E3</mathList></p>
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const trees = async (name: string) =>
+            stateVariables[
+                await resolvePathToNodeIdx(name)
+            ].stateValues.maths.map((m: any) => m.tree);
+        // only three entries, and `xy` is one symbol, `g` a function, 1E3 a number
+        expect(await trees("e")).eqls(["a", "b", "xy"]);
+        expect(await trees("eo")).eqls([
+            "a",
+            "b",
+            "xy",
+            ["apply", "g", "x"],
+            1000,
+        ]);
+    });
 });
