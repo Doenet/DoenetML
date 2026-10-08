@@ -13656,7 +13656,7 @@ describe("Math tag tests @group3", async () => {
         expect(stateVariables[mIdx].stateValues.value.tree).eq("y");
         expect(stateVariables[mIdx].stateValues.canBeModified).eq(true);
     });
-    it("a drag of one coordinate keeps the anchor's others", async () => {
+    it("a move giving one coordinate keeps the anchor's others", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <graph>
