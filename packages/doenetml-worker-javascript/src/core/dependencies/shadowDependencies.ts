@@ -432,7 +432,7 @@ export class ShadowSourceStateVariableDependency extends Dependency {
         }
 
         if (this.contextVariableOfProp) {
-            const propVariable = shadowing.shadows.propVariable;
+            const propVariable = shadowing.shadows?.propVariable;
             const contextVariable =
                 propVariable === undefined
                     ? undefined
