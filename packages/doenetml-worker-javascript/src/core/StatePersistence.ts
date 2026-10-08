@@ -355,6 +355,16 @@ export class StatePersistence {
     }
 
     /**
+     * The unlinked copies whose snapshot a save compares
+     * (`recordCopySnapshots`). A save with none does not wait on them.
+     */
+    unlinkedCopies(): any[] {
+        return (Object.values(this.core._components ?? {}) as any[]).filter(
+            (component) => component?.freshUnlinkedSnapshot,
+        );
+    }
+
+    /**
      * Hold, under `__copySnapshots`, the snapshot of each unlinked copy that
      * a copy made now would not match (`snapshotStillMade`): a reload makes
      * the copy again from its source as restored, and takes the saved
@@ -363,14 +373,8 @@ export class StatePersistence {
      * not changed. A copy made now can differ where a reload would not: a
      * `<sampleRandomNumbers copy>` made now takes the values its source has
      * drawn since, so it is held though a reload would draw the same. A save
-     * with no unlinked copies does not look (`unlinkedCopies`).
+     * with no unlinked copies does not call this (`unlinkedCopies`).
      */
-    unlinkedCopies(): any[] {
-        return (Object.values(this.core._components ?? {}) as any[]).filter(
-            (component) => component?.freshUnlinkedSnapshot,
-        );
-    }
-
     async recordCopySnapshots(copies: any[]): Promise<void> {
         const cumulative = this.core.cumulativeStateVariableChanges;
         const snapshots: Record<string, any> = {
