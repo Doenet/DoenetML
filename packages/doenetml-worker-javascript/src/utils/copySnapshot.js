@@ -12,9 +12,9 @@ import { deepClone, serializedComponentsReplacer } from "@doenet/utils";
  * A copy present when a document loads is made again on every load, from
  * its source as it is then: after a reader has changed the source and
  * reloaded, as they are restored. So that it keeps what it showed, a save
- * holds its snapshot when a copy made now would differ
- * (`StatePersistence.recordCopySnapshots`), and a copy made again on load
- * takes the saved one (`applyCopySnapshot`).
+ * holds its snapshot when a copy made then would not show the same
+ * (`snapshotStillMade`, `StatePersistence.recordCopySnapshots`), and a copy
+ * made again on load takes the saved one (`applyCopySnapshot`).
  */
 export function copySnapshotOf(serializedComponents) {
     const snapshot = [];
@@ -50,16 +50,6 @@ export function copySnapshotOf(serializedComponents) {
         visit(component);
     }
     return snapshot;
-}
-
-/**
- * Whether two snapshots (`copySnapshotOf`) hold the same.
- */
-export function copySnapshotsMatch(a, b) {
-    return (
-        JSON.stringify(a, serializedComponentsReplacer) ===
-        JSON.stringify(b, serializedComponentsReplacer)
-    );
 }
 
 /**
@@ -103,4 +93,71 @@ export function applyCopySnapshot(serializedComponents, snapshot) {
     for (const component of serializedComponents) {
         visit(component);
     }
+}
+
+function isEmpty(value) {
+    return (
+        value === null ||
+        value === undefined ||
+        (Array.isArray(value) && value.every((entry) => entry == null)) ||
+        (typeof value === "object" &&
+            value.constructor === Object &&
+            Object.keys(value).length === 0)
+    );
+}
+
+function same(a, b) {
+    return (
+        JSON.stringify(a, serializedComponentsReplacer) ===
+        JSON.stringify(b, serializedComponentsReplacer)
+    );
+}
+
+/**
+ * Whether a copy made now (`fresh`, a `copySnapshotOf` its replacements)
+ * would show what the copy made with `snapshot` shows. A value `fresh`
+ * holds that `snapshot` does not was not yet computed on its source when
+ * the copy was made, and a copy made again would compute it as the copy
+ * has: it matches when the copy's component (`componentOfStateId`) has that
+ * value now.
+ */
+export async function snapshotStillMade(fresh, snapshot, componentOfStateId) {
+    if (fresh.length !== snapshot.length) {
+        return false;
+    }
+    for (let ind = 0; ind < fresh.length; ind++) {
+        const now = fresh[ind];
+        const then = snapshot[ind];
+        if (
+            now.stateId !== then.stateId ||
+            !same(now.primitiveChildren, then.primitiveChildren) ||
+            !same(now.copySourceContext, then.copySourceContext)
+        ) {
+            return false;
+        }
+        for (const name of new Set([
+            ...Object.keys(now.state),
+            ...Object.keys(then.state),
+        ])) {
+            if (name in then.state) {
+                if (!same(now.state[name], then.state[name])) {
+                    return false;
+                }
+                continue;
+            }
+            // an essential value holding nothing (no writes to a list's
+            // entries) holds nothing a copy could lose
+            if (isEmpty(now.state[name])) {
+                continue;
+            }
+            const component = componentOfStateId(now.stateId);
+            if (
+                !component?.state?.[name] ||
+                !same(await component.stateValues[name], now.state[name])
+            ) {
+                return false;
+            }
+        }
+    }
+    return true;
 }

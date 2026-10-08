@@ -5,8 +5,8 @@ import {
 } from "@doenet/utils";
 import { set as idb_set } from "idb-keyval";
 import { reportTimerError, TimerLabels } from "../utils/timerErrors";
-import { copySnapshotsMatch } from "../utils/copySnapshot";
 import type Core from "../Core";
+import { snapshotStillMade } from "../utils/copySnapshot";
 
 /**
  * Owns the save-to-localStorage and save-to-database pipeline for a Core
@@ -356,15 +356,12 @@ export class StatePersistence {
 
     /**
      * Hold, under `__copySnapshots`, the snapshot of each unlinked copy that
-     * a copy made now would not match: a reload makes the copy again from
-     * its source as restored, and takes the saved snapshot instead
-     * (`utils/copySnapshot.js`). A copy whose source has not changed since
-     * it was made needs nothing saved, as #1940 asks of what a reader has
-     * not changed.
-     */
-    /**
-     * The unlinked copies whose snapshot a save compares
-     * (`recordCopySnapshots`). A save with none does not wait on them.
+     * a copy made now would not match (`snapshotStillMade`): a reload makes
+     * the copy again from its source as restored, and takes the saved
+     * snapshot instead (`utils/copySnapshot.js`). A copy whose source has not
+     * changed since it was made needs nothing saved, as #1940 asks of what a
+     * reader has not changed. A save with no unlinked copies does not look
+     * (`unlinkedCopies`).
      */
     unlinkedCopies(): any[] {
         return (Object.values(this.core._components ?? {}) as any[]).filter(
@@ -377,9 +374,17 @@ export class StatePersistence {
         const snapshots: Record<string, any> = {
             ...(cumulative.__copySnapshots ?? {}),
         };
+        const componentOfStateId = (stateId: string) =>
+            this.core._components[this.core.componentIdxByStateId?.[stateId]];
         for (const component of copies) {
             const fresh = await component.freshUnlinkedSnapshot();
-            if (copySnapshotsMatch(fresh, component.unlinkedSnapshot)) {
+            if (
+                await snapshotStillMade(
+                    fresh,
+                    component.unlinkedSnapshot,
+                    componentOfStateId,
+                )
+            ) {
                 delete snapshots[component.stateId];
             } else {
                 snapshots[component.stateId] = component.unlinkedSnapshot;

@@ -302,6 +302,10 @@ export async function deleteComponents({
 
         // delete from cumulativeStateVariableChanges
         delete core.cumulativeStateVariableChanges[component.stateId];
+        // and the snapshot a save held of it as an unlinked copy
+        delete core.cumulativeStateVariableChanges.__copySnapshots?.[
+            component.stateId
+        ];
         core.readerTouchedStateIds.delete(component.stateId);
         core.definitionSetStateIds.delete(component.stateId);
 

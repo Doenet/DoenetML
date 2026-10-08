@@ -83,6 +83,12 @@ describe("An unlinked copy through a reload @group4", () => {
         const doenetML = `
     <mathInput name="mi" prefill="1" />
     <math copy="$mi" name="c" />
+    <point name="P">(1,2)</point>
+    <point copy="$P" name="cP" />
+    <selectFromSequence name="s" from="1" to="100" />
+    <number copy="$s" name="cs" />
+    <p name="p"><math copy="$cP.x" name="cx" /></p>
+    <p copy="$p" name="cp" />
     <mathInput name="other" />
     `;
         const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
@@ -98,12 +104,13 @@ describe("An unlinked copy through a reload @group4", () => {
         expect(coreState.__copySnapshots).eq(undefined);
     });
 
-    it("keeps values its source holds in primitive children", async () => {
+    it("keeps values its source holds in primitive children or in essential state", async () => {
         // Dragging `<point>(1,2)</point>` or binding an input to
         // `<text>hi</text>` changes the source's string child, not its
         // essential state.
         const doenetML = `
-    <graph><point name="P">(1,2)</point><point copy="$P" name="Q" /></graph>
+    <graph><point name="P">(1,2)</point><point copy="$P" name="Q" />
+        <point name="A" /><point copy="$A" name="B" /></graph>
     <text name="t">hi</text><textInput bindValueTo="$t" name="ti" />
     <text copy="$t" name="t2" />
     `;
@@ -114,6 +121,13 @@ describe("An unlinked copy through a reload @group4", () => {
             componentIdx: await resolvePathToNodeIdx("P"),
             x: 3,
             y: 4,
+            core,
+        });
+        // a point with no children holds its coordinates in essential state
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("A"),
+            x: 5,
+            y: 6,
             core,
         });
         await updateTextInputValue({
@@ -131,6 +145,8 @@ describe("An unlinked copy through a reload @group4", () => {
             stateVariables[await resolvePathToNodeIdx(name)].stateValues;
         expect((await sv("P")).xs.map((x: any) => x.tree)).eqls([3, 4]);
         expect((await sv("Q")).xs.map((x: any) => x.tree)).eqls([1, 2]);
+        expect((await sv("A")).xs.map((x: any) => x.tree)).eqls([5, 6]);
+        expect((await sv("B")).xs.map((x: any) => x.tree)).eqls([0, 0]);
         expect((await sv("t")).value).eq("yo");
         expect((await sv("t2")).value).eq("hi");
     });
