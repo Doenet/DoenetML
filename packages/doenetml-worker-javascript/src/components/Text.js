@@ -142,16 +142,6 @@ export default class Text extends InlineComponent {
             public: true,
             shadowingInstructions: {
                 createComponentOfType: this.componentType,
-                // the reason we create a attribute component from the state variable,
-                // rather than just shadowing the attribute,
-                // is that a sequence creates a text where it sets fixed directly in the state
-                // TODO: how to deal with this in general?  Should we disallow that way to set state?
-                // Or should we always shadow attributes this way?
-                addAttributeComponentsShadowingStateVariables: {
-                    fixed: {
-                        stateVariableToShadow: "fixed",
-                    },
-                },
             },
             hasEssential: true,
             returnDependencies: () => ({

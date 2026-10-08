@@ -294,6 +294,15 @@ export class ShadowSourceStateVariableDependency extends Dependency {
         // This matches which shadows `triggerChainedActions` follows.
         this.onlyBareReferences = this.definition.onlyBareReferences || false;
 
+        // If `contextVariableOfProp` is set, a shadow of a prop reads the
+        // variable the prop names for `variableName` in its
+        // `shadowingInstructions.contextVariables` in place of
+        // `variableName`: an entry of a list reads the list's
+        // `entriesFixed` for `fixed` (`utils/contextAttribute.js`).
+        this.contextVariableOfProp =
+            this.definition.contextVariableOfProp || false;
+        this.variableName = this.definition.variableName;
+
         this.returnSingleVariableValue = true;
 
         // for shadow source
@@ -382,6 +391,18 @@ export class ShadowSourceStateVariableDependency extends Dependency {
                 downstreamComponentIndices: [],
                 downstreamComponentTypes: [],
             };
+        }
+
+        if (this.contextVariableOfProp) {
+            const propVariable = component.shadows.propVariable;
+            const contextVariable =
+                propVariable === undefined
+                    ? undefined
+                    : shadowSource.state[propVariable]?.shadowingInstructions
+                          ?.contextVariables?.[this.variableName];
+            this.originalDownstreamVariableNames = [
+                contextVariable ?? this.variableName,
+            ];
         }
 
         return {

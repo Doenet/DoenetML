@@ -1237,7 +1237,9 @@ function modifyStateDefToDeleteVariableReferences({
  * single-key dependency entry for an attribute-derived state variable.
  * The shape is determined by the attribute spec: `createPrimitiveOfType`
  * → primitive, `createReferences` → ref-resolutions, otherwise →
- * the attribute component (reading `stateVariableForAttributeValue`).
+ * the attribute component (reading `stateVariableForAttributeValue`),
+ * which a shadow takes from its source, except that a reference does not
+ * take an attribute that is `notFromReferenceSource`.
  */
 function _buildAttributeValueDependency(
     attributeSpecification: any,
@@ -1264,6 +1266,9 @@ function _buildAttributeValueDependency(
                 dependencyType: "attributeComponent",
                 attributeName: attrName,
                 variableNames: [stateVariableForAttributeValue],
+                ...(attributeSpecification.notFromReferenceSource
+                    ? { notFromReferenceSource: true }
+                    : {}),
             },
         };
     }

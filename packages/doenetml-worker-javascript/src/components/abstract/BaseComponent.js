@@ -4,9 +4,9 @@ import { flattenDeep, mapDeep } from "@doenet/utils";
 import { deepClone, enumerateCombinations } from "@doenet/utils";
 import { gatherVariantComponents } from "../../utils/variants";
 import {
-    listEntrySourceDependencies,
-    listEntrySourceValue,
-} from "../../utils/listEntrySource";
+    addContextAttributeDefinitions,
+    CONTEXT_ATTRIBUTES,
+} from "../../utils/contextAttribute";
 import {
     returnDefaultArrayVarNameFromPropIndex,
     returnDefaultGetArrayKeysFromVarName,
@@ -564,6 +564,7 @@ export default class BaseComponent {
                 createStateVariable: "fixedPreliminary",
                 defaultValue: false,
                 ignoreFixed: true,
+                notFromReferenceSource: true,
                 description:
                     "Whether this component's value is fixed and cannot be modified.",
             },
@@ -571,6 +572,7 @@ export default class BaseComponent {
                 createComponentOfType: "boolean",
                 createStateVariable: "fixLocationPreliminary",
                 defaultValue: false,
+                notFromReferenceSource: true,
                 description:
                     "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications).",
             },
@@ -944,147 +946,11 @@ export default class BaseComponent {
             hasEssential: true,
             doNotShadowEssential: true,
             ignoreFixed: true,
-            returnDependencies() {
-                return {
-                    fixedPreliminary: {
-                        dependencyType: "stateVariable",
-                        variableName: "fixedPreliminary",
-                        variablesOptional: true,
-                    },
-                    parentFixed: {
-                        dependencyType: "parentStateVariable",
-                        variableName: "fixed",
-                    },
-                    sourceCompositeFixed: {
-                        dependencyType: "sourceCompositeStateVariable",
-                        variableName: "fixed",
-                    },
-                    adapterSourceFixed: {
-                        dependencyType: "adapterSourceStateVariable",
-                        variableName: "fixed",
-                    },
-                    shadowSourceFixed: {
-                        dependencyType: "shadowSourceStateVariable",
-                        variableName: "fixed",
-                    },
-                    shadowSource: {
-                        dependencyType: "shadowSource",
-                        givePropVariableValue: true,
-                    },
-                    ignoreParentFixed: {
-                        dependencyType: "doenetAttribute",
-                        attributeName: "ignoreParentFixed",
-                    },
-                    ...listEntrySourceDependencies(this.svComponent, "fixed"),
-                };
-            },
-            definition({ dependencyValues, usedDefault }) {
-                if (!usedDefault.fixedPreliminary) {
-                    return {
-                        setValue: {
-                            fixed: dependencyValues.fixedPreliminary,
-                        },
-                    };
-                }
-
-                let fixed = false;
-                let useEssential = true;
-
-                if (
-                    dependencyValues.parentFixed !== null &&
-                    !usedDefault.parentFixed &&
-                    !dependencyValues.ignoreParentFixed
-                ) {
-                    fixed = fixed || dependencyValues.parentFixed;
-                    useEssential = false;
-                }
-                if (
-                    dependencyValues.sourceCompositeFixed !== null &&
-                    !usedDefault.sourceCompositeFixed
-                ) {
-                    fixed = fixed || dependencyValues.sourceCompositeFixed;
-                    useEssential = false;
-                }
-                if (
-                    dependencyValues.adapterSourceFixed !== null &&
-                    !usedDefault.adapterSourceFixed
-                ) {
-                    fixed = fixed || dependencyValues.adapterSourceFixed;
-                    useEssential = false;
-                }
-                if (
-                    dependencyValues.shadowSourceFixed !== null &&
-                    !usedDefault.shadowSourceFixed
-                ) {
-                    // If the shadow source is fixed, then we fix this component, too.
-                    // Exception: if we are shadowing the `fixed` state variable itself,
-                    // then we do not fix this component, or we will be unable to change the `fixed` state variable.
-                    // In this case, the `ignoreFixed` of this state variable is insufficient,
-                    // because it will be the `value` state variable that we need to change on the shadow.
-                    if (!dependencyValues.shadowSource.stateValues) {
-                        // A shadow of the whole component (no prop
-                        // variable, so no `stateValues`) is fixed with its
-                        // source only where its parent, composite and adapter
-                        // source leave `fixed` unset, as for `<point
-                        // extend="$s[1]"/>` of a fixed `<sort>`: a write to
-                        // it goes past its source to what that shadows, so
-                        // its source's `fixed` would not refuse it.
-                        if (useEssential) {
-                            fixed = dependencyValues.shadowSourceFixed;
-                            useEssential = false;
-                        }
-                    } else if (
-                        !("fixed" in dependencyValues.shadowSource.stateValues)
-                    ) {
-                        fixed = fixed || dependencyValues.shadowSourceFixed;
-                        useEssential = false;
-                    }
-                }
-                // A component made from an entry of a list is fixed with
-                // the entry's source (`listEntrySource`), below its own
-                // attribute and alongside its parent.
-                if (listEntrySourceValue(dependencyValues) === true) {
-                    fixed = true;
-                    useEssential = false;
-                }
-
-                if (useEssential) {
-                    return {
-                        useEssentialOrDefaultValue: {
-                            fixed: true,
-                        },
-                    };
-                } else {
-                    return { setValue: { fixed } };
-                }
-            },
-            inverseDefinition({
-                dependencyValues,
-                desiredStateVariableValues,
-            }) {
-                if (dependencyValues.fixedPreliminary !== null) {
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setDependency: "fixedPreliminary",
-                                desiredValue: desiredStateVariableValues.fixed,
-                            },
-                        ],
-                    };
-                } else {
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setEssentialValue: "fixed",
-                                value: desiredStateVariableValues.fixed,
-                            },
-                        ],
-                    };
-                }
-            },
         };
+        addContextAttributeDefinitions({
+            stateVariableDefinitions,
+            attributeName: "fixed",
+        });
 
         // If fixLocation is set to true, then the inverseDefinition
         // of any state variable marked with isLocation will fail.
@@ -1108,127 +974,11 @@ export default class BaseComponent {
             defaultValue: false,
             hasEssential: true,
             doNotShadowEssential: true,
-            returnDependencies() {
-                return {
-                    fixLocationPreliminary: {
-                        dependencyType: "stateVariable",
-                        variableName: "fixLocationPreliminary",
-                        variablesOptional: true,
-                    },
-                    parentFixLocation: {
-                        dependencyType: "parentStateVariable",
-                        variableName: "fixLocation",
-                    },
-                    sourceCompositeFixLocation: {
-                        dependencyType: "sourceCompositeStateVariable",
-                        variableName: "fixLocation",
-                    },
-                    adapterSourceFixLocation: {
-                        dependencyType: "adapterSourceStateVariable",
-                        variableName: "fixLocation",
-                    },
-                    shadowSourceFixLocation: {
-                        dependencyType: "shadowSourceStateVariable",
-                        variableName: "fixLocation",
-                    },
-                    ...listEntrySourceDependencies(
-                        this.svComponent,
-                        "fixLocation",
-                    ),
-                };
-            },
-            definition({ dependencyValues, usedDefault }) {
-                if (!usedDefault.fixLocationPreliminary) {
-                    return {
-                        setValue: {
-                            fixLocation:
-                                dependencyValues.fixLocationPreliminary,
-                        },
-                    };
-                }
-
-                let fixLocation = false;
-                let useEssential = true;
-
-                if (
-                    dependencyValues.parentFixLocation !== null &&
-                    !usedDefault.parentFixLocation
-                ) {
-                    fixLocation =
-                        fixLocation || dependencyValues.parentFixLocation;
-                    useEssential = false;
-                }
-                if (
-                    dependencyValues.sourceCompositeFixLocation !== null &&
-                    !usedDefault.sourceCompositeFixLocation
-                ) {
-                    fixLocation =
-                        fixLocation ||
-                        dependencyValues.sourceCompositeFixLocation;
-                    useEssential = false;
-                }
-                if (
-                    dependencyValues.adapterSourceFixLocation !== null &&
-                    !usedDefault.adapterSourceFixLocation
-                ) {
-                    fixLocation =
-                        fixLocation ||
-                        dependencyValues.adapterSourceFixLocation;
-                    useEssential = false;
-                }
-                if (
-                    dependencyValues.shadowSourceFixLocation !== null &&
-                    !usedDefault.shadowSourceFixLocation
-                ) {
-                    fixLocation =
-                        fixLocation || dependencyValues.shadowSourceFixLocation;
-                    useEssential = false;
-                }
-                // A component made from an entry of a list has the
-                // `fixLocation` of the entry's source (`listEntrySource`).
-                if (listEntrySourceValue(dependencyValues) === true) {
-                    fixLocation = true;
-                    useEssential = false;
-                }
-
-                if (useEssential) {
-                    return {
-                        useEssentialOrDefaultValue: {
-                            fixLocation: true,
-                        },
-                    };
-                } else {
-                    return { setValue: { fixLocation } };
-                }
-            },
-            inverseDefinition({
-                dependencyValues,
-                desiredStateVariableValues,
-            }) {
-                if (dependencyValues.fixLocationPreliminary !== null) {
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setDependency: "fixLocationPreliminary",
-                                desiredValue:
-                                    desiredStateVariableValues.fixLocation,
-                            },
-                        ],
-                    };
-                } else {
-                    return {
-                        success: true,
-                        instructions: [
-                            {
-                                setEssentialValue: "fixLocation",
-                                value: desiredStateVariableValues.fixLocation,
-                            },
-                        ],
-                    };
-                }
-            },
         };
+        addContextAttributeDefinitions({
+            stateVariableDefinitions,
+            attributeName: "fixLocation",
+        });
 
         stateVariableDefinitions.isInactiveCompositeReplacement = {
             defaultValue: false,
@@ -2407,12 +2157,9 @@ function dropListEntryLabel(doenetAttributes) {
  * For an unlinked copy (`copyAll`) of a component made from a list entry,
  * remove the `listEntrySource` it would read from the list, so that it does
  * not follow the list after it is made. The values it read there are carried
- * by its essential state (`copyEssentialStateIfShadow`), except
- * `fixLocation`: the source's, as it is now, goes to
- * `fixLocationPreliminary`, which holds an attribute's value, so that it
- * takes precedence over the copy's parent, as the `fixLocation` attribute an
- * unlinked copy of a point keeps does. `fixed` is not carried, as a `copy`
- * does not take its source's `fixed` (`Copy.js`).
+ * by its essential state (`copyEssentialStateIfShadow`), except `fixed` and
+ * `fixLocation`: the source's, as they are now, are held as an unlinked copy
+ * holds its source's (`copySourceContext`), alongside where the copy sits.
  */
 async function snapshotListEntrySource(serializedComponent, components) {
     const listEntrySource =
@@ -2421,15 +2168,23 @@ async function snapshotListEntrySource(serializedComponent, components) {
         return;
     }
     delete serializedComponent.doenetAttributes.listEntrySource;
-    const arrayName = listEntrySource.variables.fixLocation;
     const list = components?.[listEntrySource.componentIdx];
-    if (!arrayName || !list) {
+    if (!list) {
         return;
     }
-    const fixLocation = (await list.stateValues[arrayName])?.[
-        listEntrySource.index
-    ];
-    if (fixLocation === true) {
-        serializedComponent.state.fixLocationPreliminary = true;
+    for (const attributeName of CONTEXT_ATTRIBUTES) {
+        const arrayName = listEntrySource.variables[attributeName];
+        if (!arrayName) {
+            continue;
+        }
+        const value = (await list.stateValues[arrayName])?.[
+            listEntrySource.index
+        ];
+        if (value === true) {
+            serializedComponent.doenetAttributes.copySourceContext = {
+                ...serializedComponent.doenetAttributes.copySourceContext,
+                [attributeName]: true,
+            };
+        }
     }
 }

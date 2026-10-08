@@ -669,7 +669,7 @@ describe("Base component property tests @group4", async () => {
         });
     });
 
-    it("an extend of a component fixed by its graph or group is fixed, unless its own graph sets fixed", async () => {
+    it("an extend of a component fixed by its graph or group is fixed, even where its own graph sets fixed false", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
   <graph fixed><point name="P">(1,2)</point></graph>
@@ -688,7 +688,8 @@ describe("Base component property tests @group4", async () => {
 
         expect((await stateValuesOf("Q")).fixed).eq(true);
         expect((await stateValuesOf("mi2")).fixed).eq(true);
-        expect((await stateValuesOf("Qf")).fixed).eq(false);
+        // a graph's fixed="false" only stops the graph from fixing it
+        expect((await stateValuesOf("Qf")).fixed).eq(true);
 
         // as before, a drag or a change of one of them does not reach its source
         for (const name of ["Q", "Qf"]) {

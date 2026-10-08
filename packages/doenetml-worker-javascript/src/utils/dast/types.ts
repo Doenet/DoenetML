@@ -280,6 +280,15 @@ export type AttributeDefinition<T> = {
     // `propagateToProps` is only on `modifyIndirectly`. It means this attribute
     // is propagated to references of props. (Normally references of props don't copy attributes.)
     propagateToProps?: boolean;
+    /**
+     * A reference does not take this attribute of its source as its own:
+     * the attribute component is not looked up past the component a
+     * reference made (`isReferenceShadow`), though it is past a component
+     * inside a copied one, where the attribute was written. For
+     * `fixed` and `fixLocation`, which a reference reads from its source
+     * alongside where it sits instead (`utils/contextAttribute.js`).
+     */
+    notFromReferenceSource?: boolean;
     excludeFromSchema?: boolean;
     /**
      * Set by the developer in the attribute definition: the *name* of a state

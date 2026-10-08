@@ -592,15 +592,16 @@ export default class ValueListComponent extends BaseComponent {
             // one entry as for the entries a parent sees. A copy of an entry
             // (`<math copy="$l[2]"/>`) takes the list's display attributes as
             // written, so one given as a reference (`displayDigits="$dd"`)
-            // keeps following it. It is fixed as the entry is.
+            // keeps following it. It is fixed as the entries are
+            // (`contextVariables`, `utils/contextAttribute.js`).
             shadowingInstructions: {
                 createComponentOfType: entryType,
                 addAttributeComponentsShadowingStateVariables: {
                     ...(hasNumberDisplay(kind)
                         ? returnNumberDisplayAttributeComponentShadowing()
                         : {}),
-                    fixed: { stateVariableToShadow: "entriesFixed" },
                 },
+                contextVariables: { fixed: "entriesFixed" },
                 attributesToShadow: hasNumberDisplay(kind)
                     ? Object.keys(returnNumberDisplayAttributes())
                     : [],
