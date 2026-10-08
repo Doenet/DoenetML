@@ -235,8 +235,8 @@ export default class ValueRef extends BaseComponent {
     /**
      * Do for `actionName` (a click or a focus) what the referent this
      * reference reads now does for it (`numberClicked` in `Number.js`, …):
-     * nothing when the referent is fixed (`fixed`, which a drawn reference
-     * that stands for a copy of its referent reads from it), and otherwise
+     * nothing when the reference is fixed (`fixed`: its referent's alongside
+     * where the reference sits, `utils/contextAttribute.js`), and otherwise
      * trigger the actions chained to a click or focus on the referent.
      */
     async _performOnReferent(
