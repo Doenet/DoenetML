@@ -2031,7 +2031,7 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         expect(await coordsOf("B")).eqls([-3, 0]);
     });
 
-    it("an unlinked copy of a component made from an entry keeps what the source had when it was made", async () => {
+    it("an unlinked copy of a component made from an entry takes what is written on the entry's source", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name="b" />
@@ -2099,7 +2099,9 @@ describe("Collect, sort and shuffle of values @group4", async () => {
             U: unfixed,
             UF: { fixed: false, fixLocation: true },
             UV: unfixed,
-            UG: { fixed: true, fixLocation: false },
+            // the `fixed="$b"` written on `A`, pasted, decides over the
+            // fixed graph
+            UG: unfixed,
             // under a parent that sets them false, the source's fixLocation
             // is kept, as an unlinked copy of a point keeps it (UH and UHA,
             // whose source is not fixed, are controls; UK, below, shows that
@@ -2107,22 +2109,31 @@ describe("Collect, sort and shuffle of values @group4", async () => {
             UH: unfixed,
             UHF: { fixed: false, fixLocation: true },
             UHA: unfixed,
-            // a source fixed when the copy is made fixes the copy
             EK: { fixed: true, fixLocation: false },
             UK: { fixed: true, fixLocation: false },
             UVheadDraggable: false,
         };
         expect(await stateOf()).eqls(expected);
 
-        // fixing the source fixes the linked component, not the unlinked copy
+        // the copies keep following the `$b` written on `A`
         await updateBooleanInputValue({
             boolean: true,
             componentIdx: await resolvePathToNodeIdx("b"),
             core,
         });
+        const fixedByB = { fixed: true, fixLocation: false };
         expect(await stateOf()).eqls({
             ...expected,
-            E: { fixed: true, fixLocation: false },
+            E: fixedByB,
+            U: fixedByB,
+            UG: fixedByB,
+            UH: fixedByB,
+            UHA: fixedByB,
+        });
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
         });
 
         // the unlinked copy is dragged on its own; the ones with fixed or

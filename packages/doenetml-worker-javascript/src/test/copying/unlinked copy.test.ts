@@ -5,6 +5,7 @@ import {
     callAction,
     moveLine,
     movePoint,
+    updateBooleanInputValue,
     updateMathInputValue,
     updateTextInputValue,
     updateValue,
@@ -2400,5 +2401,47 @@ describe("Unlinked Copying Tests @group4", async () => {
                 await resolvePathToNodeIdx("r[2].P")
             ].stateValues.xs.map((v) => v.tree),
         ).eqls([8, 7]);
+    });
+
+    it("a copy of a reference is what the reference is linked to, pasted", async () => {
+        // a copy of `r` is the DoenetML of `m` pasted, with what `r` writes
+        // itself: `hide="$h"` keeps following `h`, and a later change to
+        // `m` does not reach it
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="h" />
+    <math name="m" hide="$h" displayDigits="2">1.2345</math>
+    <math extend="$m" name="r" />
+    <math copy="$r" name="c" />
+    <math extend="$m" displayDigits="4" name="r2" />
+    <p><math copy="$r2" name="c2" /></p>
+    <p name="p"><math extend="$m" name="inner" /></p>
+    <p copy="$p" name="cp" />
+    `,
+        });
+        async function check(hidden: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const [name, digits] of [
+                ["c", 2],
+                ["c2", 4],
+                ["cp.inner", 2],
+            ] as const) {
+                const stateValues =
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .stateValues;
+                expect(stateValues.hidden, name).eq(hidden);
+                expect(stateValues.displayDigits, name).eq(digits);
+            }
+        }
+        await check(false);
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("h"),
+            core,
+        });
+        await check(true);
     });
 });
