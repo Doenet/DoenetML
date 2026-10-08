@@ -1751,6 +1751,31 @@ describe("Pretext export", async () => {
         ).toMatchInlineSnapshot(`"<m>x^{2}</m><m>2 x</m>"`);
     });
 
+    it("<round> of a math in a setup renders its rounded value as m", async () => {
+        source = `<setup><math name="x" simplify="full">0.237*100</math></setup><p><round numDecimals="0">$x</round>%</p>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(`"<p><m>24</m>%</p>"`);
+    });
+
+    it("operators core renders as a math render as m", async () => {
+        source = `<p><sum>1 2 3</sum> <product>2 3</product> <ceil>2.3</ceil> <floor>2.3</floor> <sign>-2</sign> <mean>1 2 3</mean> <max>1 2</max> <mod>7 3</mod> <gcd>4 6</gcd> <count>1 2 3</count> <argMax>3 1 2</argMax> <convertSetToList>{1,2}</convertSetToList></p>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<p><m>6</m> <m>6</m> <m>3</m> <m>2</m> <m>-1</m> <m>2</m> <m>2</m> <m>1</m> <m>2</m> <m>3</m> <m>1</m> <m>1, 2</m></p>"`,
+        );
+    });
+
+    it("operators core renders as a boolean render as em", async () => {
+        source = `<p><and>true false</and> <or>true false</or> <not>true</not> <xor>true false</xor> <iff>true false</iff> <implies>true false</implies> <matchesPattern pattern="()^2">x^2</matchesPattern></p>`;
+        expect(
+            await coreRunner.processToFlatDastAsFragment(source),
+        ).toMatchInlineSnapshot(
+            `"<p><em>false</em> <em>true</em> <em>false</em> <em>true</em> <em>false</em> <em>false</em> <em>true</em></p>"`,
+        );
+    });
+
     it("<matrix> renders as m", async () => {
         source = `<matrix><row>1 0</row><row>0 1</row></matrix>`;
         expect(
