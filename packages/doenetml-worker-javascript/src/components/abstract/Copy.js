@@ -3144,6 +3144,7 @@ export async function replacementFromProp({
                         await snapshotContextAttributes({
                             serializedComponent,
                             source: target,
+                            components,
                             alsoFixed: entrySourceFixed,
                         });
 
@@ -4099,6 +4100,7 @@ export async function replacementFromProp({
                 await snapshotContextAttributes({
                     serializedComponent,
                     source: target,
+                    components,
                 });
 
                 serializedReplacements.push(serializedComponent);

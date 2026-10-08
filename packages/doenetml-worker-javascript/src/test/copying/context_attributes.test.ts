@@ -342,6 +342,31 @@ describe("Fixed and fixLocation of references @group4", () => {
         });
     });
 
+    it("an unlinked copy of a prop or list entry keeps what fixed its source's container", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <p fixed>
+        <math name="m">x</math>
+        <point name="P">(1,2)</point>
+        <mathList name="ml">a b</mathList>
+        <sequence name="s" length="2" />
+    </p>
+    <math copy="$m.value" name="a" />
+    <math copy="$P.x" name="b" />
+    <math copy="$ml[1]" name="c" />
+    <number copy="$s[1]" name="d" />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["a", "b", "c", "d"]) {
+            expect(
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .fixed,
+                name,
+            ).eq(true);
+        }
+    });
+
     it("an unlinked copy of what a composite fixed is not fixed", async () => {
         // the entries of a sequence and a repeat's value are fixed by what
         // made them; a reference to one is, an unlinked copy is not
