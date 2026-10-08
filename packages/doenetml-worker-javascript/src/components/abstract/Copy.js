@@ -21,6 +21,10 @@ import { returnNumberDisplayAttributes } from "../../utils/numberDisplay";
 import { isListEntryArrayVariable } from "../../utils/listEntryReference";
 import { errorComponentState } from "../../utils/dast/errors";
 import {
+    CONTEXT_ATTRIBUTES,
+    snapshotContextAttributes,
+} from "../../utils/contextAttribute";
+import {
     copiesReferent,
     planValueReference,
     separateResponseMarks,
@@ -1611,13 +1615,18 @@ export default class Copy extends CompositeComponent {
             return { serializedReplacements, diagnostics, nComponents };
         }
 
-        // for a `copy` (not an `extend`), ignore fixed if from essential state
-        // so that, for example, a `copy` from a sequence is not fixed
-        // TODO: also now removing the `fixed` attribute. Is that the right choice?
-        if (!link && serializedReplacements[0].state) {
-            delete serializedReplacements[0].state.fixed;
-            delete serializedReplacements[0].state.fixedPreliminary;
-            delete serializedReplacements[0].attributes.fixed;
+        // An unlinked copy (`copy`, not `extend`) takes `fixed` and
+        // `fixLocation` from its source as the document sets them there
+        // when it is made, alongside where it sits (`utils/contextAttribute.js`).
+        // What the composite that made the source gave it (a `<sequence>`
+        // its entries, a `<repeat>` its index) is not carried.
+        if (!link) {
+            await snapshotContextAttributes({
+                serializedComponent: serializedReplacements[0],
+                source: replacementSourceComponent,
+                components,
+                removeSourceAttributes: true,
+            });
         }
 
         // console.log(`serializedReplacements for ${component.componentIdx}`);
@@ -2955,6 +2964,7 @@ export async function replacementFromProp({
                         // no link
 
                         let attributesForReplacement = {};
+                        const entrySourceFixed = {};
 
                         if (attributeComponentsShadowingStateVariables) {
                             let classOfComponentToCreate =
@@ -3006,7 +3016,13 @@ export async function replacementFromProp({
                                             ],
                                         );
                                     }
-                                    if (!usedDefault) {
+                                    if (CONTEXT_ATTRIBUTES.includes(attrName)) {
+                                        // taken alongside where the copy
+                                        // sits, not as an attribute
+                                        // (`snapshotContextAttributes`)
+                                        entrySourceFixed[attrName] =
+                                            attributeValue === true;
+                                    } else if (!usedDefault) {
                                         additionalAttributes[attrName] =
                                             attributeValue;
                                     }
@@ -3125,6 +3141,12 @@ export async function replacementFromProp({
                             },
                             children: entrySource.children,
                         };
+                        await snapshotContextAttributes({
+                            serializedComponent,
+                            source: target,
+                            components,
+                            alsoFixed: entrySourceFixed,
+                        });
 
                         serializedReplacements.push(serializedComponent);
                     }
@@ -3967,9 +3989,9 @@ export async function replacementFromProp({
                     for (let attrName in stateVarObj.shadowingInstructions
                         .addAttributeComponentsShadowingStateVariables) {
                         if (attrObj[attrName]?.createComponentOfType) {
-                            // for a `copy` (not an `extend`), don't copy fixed attribute
-                            // so that, for example, a `copy` from a sequence is not fixed
-                            if (attrName !== "fixed") {
+                            // `fixed` and `fixLocation` are taken alongside
+                            // where the copy sits (`snapshotContextAttributes`)
+                            if (!CONTEXT_ATTRIBUTES.includes(attrName)) {
                                 let vName =
                                     stateVarObj.shadowingInstructions
                                         .addAttributeComponentsShadowingStateVariables[
@@ -4075,6 +4097,11 @@ export async function replacementFromProp({
                         [primaryEssentialStateVariable]: stateVarValue,
                     },
                 };
+                await snapshotContextAttributes({
+                    serializedComponent,
+                    source: target,
+                    components,
+                });
 
                 serializedReplacements.push(serializedComponent);
             }
@@ -4470,9 +4497,9 @@ async function listEntrySourceSnapshot({
         return { children, state, nComponents };
     }
 
-    // `fixed` and `fixLocation`, which an unlinked copy takes as attributes
-    // (`addAttributeComponentsShadowingStateVariables`), where the source
-    // sets them
+    // `fixed` and `fixLocation`, which an unlinked copy holds alongside
+    // where it sits (`snapshotContextAttributes`), where the source sets
+    // them
     const attributes =
         arrayStateVarObj.shadowingInstructions
             .addAttributeComponentsShadowingStateVariables ?? {};

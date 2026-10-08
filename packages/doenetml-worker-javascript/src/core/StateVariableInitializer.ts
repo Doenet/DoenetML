@@ -1580,6 +1580,11 @@ async function initializeArrayEntryStateVariable({
                 arrayStateVarObj.shadowingInstructions.attributesToShadow;
         }
 
+        if (arrayStateVarObj.shadowingInstructions.contextVariables) {
+            stateVarObj.shadowingInstructions.contextVariables =
+                arrayStateVarObj.shadowingInstructions.contextVariables;
+        }
+
         if (arrayStateVarObj.shadowingInstructions.createComponentOfType) {
             let entryPrefixInd =
                 arrayStateVarObj.entryPrefixes.indexOf(arrayEntryPrefix);

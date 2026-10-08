@@ -4,6 +4,10 @@ import { reportInternalError } from "../../utils/internalErrors";
 import { currentReferentValue } from "../../utils/referentDescription";
 import { LIST_ENTRY_PREFIX } from "../../utils/listEntryReference";
 import {
+    CONTEXT_ATTRIBUTES,
+    contextAttributeDefinition,
+} from "../../utils/contextAttribute";
+import {
     parentDrawsValueReferences,
     variableOfCopiedReferentVariable,
     variableOfReferentVariable,
@@ -38,10 +42,10 @@ import {
  * from the presented type's definitions, redirected to the referent for the
  * settings that travel with the referenced variable
  * (`createOnDemandStateVariableDefinitions`), so a reference costs the
- * variables that are actually read and nothing else. It has no `fixed` of
- * its own: a write through it lands on the referent, whose own `fixed`
- * refuses it there. (A drawn one that stands for a copy of its referent
- * reads the referent's `fixed` for its renderer, below.) It declares no attributes. The only attributes it can
+ * variables that are actually read and nothing else. Its `fixed` and
+ * `fixLocation`, made when asked, are its referent's alongside where it sits
+ * (`utils/contextAttribute.js`); a write through it lands on the referent,
+ * whose own `fixed` refuses it there. It declares no attributes. The only attributes it can
  * hold are the marks by which an `<answer>` records what a reference in its
  * awards reads as a response (`isPotentialResponse`, `isResponse`); the
  * answer asks for them, and they are made on demand like the rest and read
@@ -56,8 +60,9 @@ import {
  * `value`, `selectedStyle` and `hidden`. `renderAsMath`, `renderMode` and
  * `clickTarget` are sent at the value a component of that type has by
  * default (`rendererConstants`), unless it stands for a copy of its referent
- * (`copiesReferent`), when they, `selectedStyle` and `fixed` are read from
- * the referent. Nothing that places it in a graph is sent.
+ * (`copiesReferent`), when they and `selectedStyle` are read from the
+ * referent, and `fixed` is sent too. Nothing that places it in a graph is
+ * sent.
  *
  * Part of Doenet/DoenetML#2128.
  */
@@ -230,8 +235,8 @@ export default class ValueRef extends BaseComponent {
     /**
      * Do for `actionName` (a click or a focus) what the referent this
      * reference reads now does for it (`numberClicked` in `Number.js`, …):
-     * nothing when the referent is fixed (`fixed`, which a drawn reference
-     * that stands for a copy of its referent reads from it), and otherwise
+     * nothing when the reference is fixed (`fixed`: its referent's alongside
+     * where the reference sits, `utils/contextAttribute.js`), and otherwise
      * trigger the actions chained to a click or focus on the referent.
      */
     async _performOnReferent(
@@ -961,6 +966,26 @@ export default class ValueRef extends BaseComponent {
                 ],
             ];
         }
+        // `fixed` and `fixLocation` are the referent's alongside where the
+        // reference sits, as for any reference (`utils/contextAttribute.js`).
+        if (CONTEXT_ATTRIBUTES.includes(stateVariable)) {
+            return [
+                [
+                    stateVariable,
+                    contextAttributeDefinition({
+                        attributeName: stateVariable,
+                        base: { hasEssential: true, defaultValue: false },
+                        ownAttribute: false,
+                        sourceDependency:
+                            referentContextDependency(stateVariable),
+                        stateVariablesDeterminingDependencies: this
+                            .fixedReferent
+                            ? undefined
+                            : ["referentInfo"],
+                    }),
+                ],
+            ];
+        }
         // A drawn reference that stands for a copy of its referent shows as
         // the referent does: the copy made for it shadowed the referent's
         // attributes.
@@ -1114,16 +1139,43 @@ const DRAWN_REFERENCE_CONSTANTS = Object.freeze({
 
 /**
  * The renderer variables a drawn reference that stands for a copy of its
- * referent (`copiesReferent`) reads from the referent as they are there,
- * because the copy made for it shadowed the attributes they come from:
- * the style, how it is typeset, and whether it is a click target that
- * takes clicks (`fixed`).
+ * referent (`copiesReferent`) sends: the style and how it is typeset, read
+ * from the referent as they are there, because the copy made for it
+ * shadowed the attributes they come from, and whether it takes clicks
+ * (`fixed`), the referent's alongside where the reference sits
+ * (`utils/contextAttribute.js`).
  */
 const COPIED_REFERENT_VARIABLES = new Set([
     "selectedStyle",
     "fixed",
     ...Object.keys(DRAWN_REFERENCE_CONSTANTS),
 ]);
+
+/**
+ * The dependency by which a reference reads `attributeName` (`fixed` or
+ * `fixLocation`) of its referent, given its `referentInfo` (or the referent
+ * a copy fixed): none when it reads that variable itself. An entry of a list
+ * is fixed as the list's entries are (`entriesFixed`).
+ */
+function referentContextDependency(attributeName) {
+    return (component, stateValues) => {
+        const referentInfo =
+            component.fixedReferent ?? stateValues.referentInfo;
+        if (!referentInfo || referentInfo.variableName === attributeName) {
+            return null;
+        }
+        return {
+            dependencyType: "stateVariable",
+            componentIdx: referentInfo.componentIdx,
+            variableName:
+                attributeName === "fixed" &&
+                referentInfo.listEntryPosition !== undefined
+                    ? "entriesFixed"
+                    : attributeName,
+            variablesOptional: true,
+        };
+    };
+}
 
 /**
  * The actions by which the renderer of a type reports a click or a focus,

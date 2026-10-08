@@ -2103,13 +2103,13 @@ describe("Collect, sort and shuffle of values @group4", async () => {
             // under a parent that sets them false, the source's fixLocation
             // is kept, as an unlinked copy of a point keeps it (UH and UHA,
             // whose source is not fixed, are controls; UK, below, shows that
-            // a copy does not take its source's fixed)
+            // a copy takes its source's fixed in the same way)
             UH: unfixed,
             UHF: { fixed: false, fixLocation: true },
             UHA: unfixed,
-            // a source fixed when the copy is made does not fix the copy
+            // a source fixed when the copy is made fixes the copy
             EK: { fixed: true, fixLocation: false },
-            UK: unfixed,
+            UK: { fixed: true, fixLocation: false },
             UVheadDraggable: false,
         };
         expect(await stateOf()).eqls(expected);
@@ -2125,8 +2125,8 @@ describe("Collect, sort and shuffle of values @group4", async () => {
             E: { fixed: true, fixLocation: false },
         });
 
-        // the unlinked copy is dragged on its own; the ones with fixLocation
-        // are not, even under a parent that sets fixLocation false
+        // the unlinked copy is dragged on its own; the ones with fixed or
+        // fixLocation are not, even under a parent that sets them false
         for (const [name, x] of [
             ["U", 7],
             ["UF", 0],
@@ -2147,7 +2147,7 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         expect(await coordsOf("A")).eqls([1, 2]);
         expect(await coordsOf("UF")).eqls([5, 6]);
         expect(await coordsOf("UHF")).eqls([5, 6]);
-        expect(await coordsOf("UK")).eqls([3, 3]);
+        expect(await coordsOf("UK")).eqls([9, 9]);
         expect(await coordsOf("K")).eqls([9, 9]);
     });
 

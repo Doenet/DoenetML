@@ -5,6 +5,7 @@
  */
 
 import { Dependency } from "./Dependency";
+import { isReferenceShadow } from "../../utils/referenceShadow";
 
 export class SourceCompositeStateVariableDependency extends Dependency {
     static dependencyType = "sourceCompositeStateVariable";
@@ -294,6 +295,23 @@ export class ShadowSourceStateVariableDependency extends Dependency {
         // This matches which shadows `triggerChainedActions` follows.
         this.onlyBareReferences = this.definition.onlyBareReferences || false;
 
+        // If `contextVariableOfProp` is set, a shadow of a prop reads the
+        // variable the prop names for `variableName` in its
+        // `shadowingInstructions.contextVariables` in place of
+        // `variableName`: an entry of a list reads the list's
+        // `entriesFixed` for `fixed` (`utils/contextAttribute.js`).
+        this.contextVariableOfProp =
+            this.definition.contextVariableOfProp || false;
+        this.variableName = this.definition.variableName;
+
+        // If `throughCopiedComponents` is set, the shadow source of a
+        // component inside a copied one (`isReferenceShadow` false) is
+        // passed through, as are any such components it shadows in turn, to
+        // what the first one that is a reference (or a prop) is a
+        // reference to; nothing when none is.
+        this.throughCopiedComponents =
+            this.definition.throughCopiedComponents || false;
+
         this.returnSingleVariableValue = true;
 
         // for shadow source
@@ -375,6 +393,35 @@ export class ShadowSourceStateVariableDependency extends Dependency {
         let shadowSourceComponentIdx = component.shadows.componentIdx;
         let shadowSource =
             this.dependencyHandler._components[shadowSourceComponentIdx];
+        let shadowing = component;
+
+        if (this.throughCopiedComponents) {
+            while (
+                shadowSource?.shadows &&
+                shadowSource.shadows.propVariable === undefined &&
+                !isReferenceShadow(shadowSource)
+            ) {
+                shadowSource =
+                    this.dependencyHandler._components[
+                        shadowSource.shadows.componentIdx
+                    ];
+            }
+            if (
+                !shadowSource?.shadows ||
+                shadowSource.shadows.propVariable === this.variableName
+            ) {
+                return {
+                    success: true,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            }
+            shadowing = shadowSource;
+            shadowSource =
+                this.dependencyHandler._components[
+                    shadowSource.shadows.componentIdx
+                ];
+        }
 
         if (!shadowSource) {
             return {
@@ -382,6 +429,18 @@ export class ShadowSourceStateVariableDependency extends Dependency {
                 downstreamComponentIndices: [],
                 downstreamComponentTypes: [],
             };
+        }
+
+        if (this.contextVariableOfProp) {
+            const propVariable = shadowing.shadows?.propVariable;
+            const contextVariable =
+                propVariable === undefined
+                    ? undefined
+                    : shadowSource.state[propVariable]?.shadowingInstructions
+                          ?.contextVariables?.[this.variableName];
+            this.originalDownstreamVariableNames = [
+                contextVariable ?? this.variableName,
+            ];
         }
 
         return {

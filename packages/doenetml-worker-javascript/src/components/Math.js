@@ -624,13 +624,7 @@ export default class MathComponent extends InlineComponent {
             shadowingInstructions: {
                 createComponentOfType: this.componentType,
                 attributesToShadow: ["unordered", "simplify", "expand"],
-                // the reason we create a attribute component from the state variable fixed,
-                // rather than just shadowing the attribute,
-                // is that a sequence creates a math where it sets fixed directly in the state
                 addAttributeComponentsShadowingStateVariables: {
-                    fixed: {
-                        stateVariableToShadow: "fixed",
-                    },
                     ...returnNumberDisplayAttributeComponentShadowing(),
                 },
             },

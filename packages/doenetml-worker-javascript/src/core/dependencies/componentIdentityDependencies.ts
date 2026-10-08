@@ -5,6 +5,7 @@
  */
 
 import { Dependency } from "./Dependency";
+import { isReferenceShadow } from "../../utils/referenceShadow";
 
 export class ComponentIdentityDependency extends Dependency {
     static dependencyType = "componentIdentity";
@@ -121,6 +122,7 @@ export class AttributeComponentDependency extends Dependency {
         this.dontRecurseToShadows = this.definition.dontRecurseToShadows;
         this.dontRecurseToShadowsIfHaveAttribute =
             this.definition.dontRecurseToShadowsIfHaveAttribute;
+        this.notFromReferenceSource = this.definition.notFromReferenceSource;
     }
 
     async determineDownstreamComponents() {
@@ -225,6 +227,13 @@ export class AttributeComponentDependency extends Dependency {
         let comp = parent;
 
         while (comp.shadows) {
+            // A reference (the replacement of the composite that shadows
+            // through it) does not take an attribute that is
+            // `notFromReferenceSource` from its source; a component inside a
+            // copied one takes it from the component it copies.
+            if (this.notFromReferenceSource && isReferenceShadow(comp)) {
+                break;
+            }
             let shadows = comp.shadows;
             let propVariable = comp.shadows.propVariable;
             let fromImplicitProp = comp.doenetAttributes.fromImplicitProp;

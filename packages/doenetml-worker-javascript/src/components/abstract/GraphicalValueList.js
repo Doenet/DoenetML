@@ -81,8 +81,8 @@ export default class GraphicalValueList extends AuthoredValueList {
      * source does not stop the entry being dragged by it. A linked component
      * reads `fixed` and `fixLocation` from the list instead
      * (`listEntrySourceVariables`); an unlinked copy (`<point copy="$c[1]"
-     * link="false"/>`) takes them as attributes where they are not that
-     * value.
+     * link="false"/>`) holds them where they are not that value, alongside
+     * where it sits (`snapshotContextAttributes`).
      */
     static entrySourceAttributeArrays = Object.freeze({
         fixed: { arrayName: "entrySourceFixeds", defaultValue: false },
@@ -764,9 +764,8 @@ export default class GraphicalValueList extends AuthoredValueList {
 
         // A component made from one entry (`$c[1]` in a graph, `<point
         // extend="$c[1]"/>`) takes the `draggable` attribute of the entry's
-        // source, and an unlinked copy also `fixed` and `fixLocation`, where
-        // they stop it being dragged (`entrySourceAttributeArrays`), as the
-        // copy of the source it stood for took them. A linked one reads its
+        // source, and an unlinked copy also holds `fixed` and `fixLocation`,
+        // where they stop it being dragged (`entrySourceAttributeArrays`). A linked one reads its
         // label, `fixed` and `fixLocation` from the list
         // (`listEntrySourceVariables`, which `Copy.js` records on the
         // component).

@@ -1237,7 +1237,9 @@ function modifyStateDefToDeleteVariableReferences({
  * single-key dependency entry for an attribute-derived state variable.
  * The shape is determined by the attribute spec: `createPrimitiveOfType`
  * → primitive, `createReferences` → ref-resolutions, otherwise →
- * the attribute component (reading `stateVariableForAttributeValue`).
+ * the attribute component (reading `stateVariableForAttributeValue`),
+ * which a shadow takes from its source, except that a reference does not
+ * take an attribute that is `notFromReferenceSource`.
  */
 function _buildAttributeValueDependency(
     attributeSpecification: any,
@@ -1264,6 +1266,9 @@ function _buildAttributeValueDependency(
                 dependencyType: "attributeComponent",
                 attributeName: attrName,
                 variableNames: [stateVariableForAttributeValue],
+                ...(attributeSpecification.notFromReferenceSource
+                    ? { notFromReferenceSource: true }
+                    : {}),
             },
         };
     }
@@ -1574,6 +1579,14 @@ function _copyPassthroughAttributes(
         if (attrName2 in attributeSpecification) {
             stateVarDef[attrName2] = attributeSpecification[attrName2];
         }
+    }
+    // An essential value of an attribute a reference does not take from its
+    // source is not mirrored into the reference either, nor copied into a
+    // reference when it is made (`BaseComponent.serialize`); it is mirrored
+    // into components inside copies (`EssentialValueWriter`).
+    if (attributeSpecification.notFromReferenceSource) {
+        stateVarDef.doNotShadowEssential = true;
+        stateVarDef.notFromReferenceSource = true;
     }
 }
 

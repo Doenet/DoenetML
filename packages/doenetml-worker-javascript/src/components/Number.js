@@ -415,13 +415,7 @@ export default class NumberComponent extends InlineComponent {
             description: "The numeric value.",
             shadowingInstructions: {
                 createComponentOfType: this.componentType,
-                // the reason we create a attribute component from the state variable,
-                // rather than just shadowing the attribute,
-                // is that a sequence creates a number where it sets fixed directly in the state
                 addAttributeComponentsShadowingStateVariables: {
-                    fixed: {
-                        stateVariableToShadow: "fixed",
-                    },
                     ...returnNumberDisplayAttributeComponentShadowing(),
                 },
             },

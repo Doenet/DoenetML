@@ -12,6 +12,7 @@ import {
     isUnspecifiedComponentValue,
 } from "../utils/math";
 import { giveListEntriesToIndexParent } from "./listEntryResolverNodes";
+import { isReferenceShadow } from "../utils/referenceShadow";
 
 /**
  * Loose-typed bag of `componentIdx → varName → newValue` entries that the
@@ -1107,6 +1108,34 @@ export class EssentialValueWriter {
 
                 if (
                     component.state[newInstruction.setEssentialValue]
+                        .notFromReferenceSource
+                ) {
+                    // The essential value of an attribute a reference does
+                    // not take from its source (`fixed`) is kept in sync
+                    // between a component and the components inside copies
+                    // of it, but not given to the references to it
+                    // (`isReferenceShadow`), as for them it would decide
+                    // over where they sit.
+                    let baseComponent = component;
+                    while (
+                        baseComponent.shadows &&
+                        baseComponent.shadows.propVariable === undefined &&
+                        !isReferenceShadow(baseComponent)
+                    ) {
+                        baseComponent =
+                            this.core._components[
+                                baseComponent.shadows.componentIdx
+                            ];
+                    }
+                    this.calculateEssentialVariableChanges({
+                        component: baseComponent,
+                        varName: newInstruction.setEssentialValue,
+                        value,
+                        newStateVariableValues,
+                        onlyInsideCopies: true,
+                    });
+                } else if (
+                    component.state[newInstruction.setEssentialValue]
                         .doNotShadowEssential ||
                     component.state[newInstruction.setEssentialValue]
                         .shadowVariable
@@ -1390,6 +1419,7 @@ export class EssentialValueWriter {
                         "parentStateVariable",
                         "adapterSourceStateVariable",
                         "sourceCompositeStateVariable",
+                        "shadowSourceStateVariable",
                     ].includes(dep.dependencyType) &&
                     dep.downstreamComponentIndices.length === 1
                 ) {
@@ -1495,12 +1525,14 @@ export class EssentialValueWriter {
         value,
         newStateVariableValues,
         recurseToShadows = true,
+        onlyInsideCopies = false,
     }: {
         component: ComponentInstance;
         varName: string;
         value: any;
         newStateVariableValues: NewStateVariableValues;
         recurseToShadows?: boolean;
+        onlyInsideCopies?: boolean;
     }) {
         if (!newStateVariableValues[component.componentIdx]) {
             newStateVariableValues[component.componentIdx] = {};
@@ -1528,7 +1560,21 @@ export class EssentialValueWriter {
             for (let shadow of component.shadowedBy) {
                 // Don't include shadows due to propVariable
                 // unless it is a plain copy marked as returning the same type
-                if (
+                // (with `onlyInsideCopies`, only components inside copies)
+                if (onlyInsideCopies) {
+                    if (
+                        shadow.shadows!.propVariable === undefined &&
+                        !isReferenceShadow(shadow)
+                    ) {
+                        this.calculateEssentialVariableChanges({
+                            component: shadow,
+                            varName,
+                            value,
+                            newStateVariableValues,
+                            onlyInsideCopies,
+                        });
+                    }
+                } else if (
                     shadow.shadows!.propVariable === undefined ||
                     (shadow.doenetAttributes.fromImplicitProp &&
                         component.constructor.implicitPropReturnsSameType)
