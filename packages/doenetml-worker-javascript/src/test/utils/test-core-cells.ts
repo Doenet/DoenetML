@@ -46,7 +46,14 @@ const UNSUPPORTED_OPTIONS = [
 ] as const;
 
 type Get = (prop: string) => number;
-type Reader = (get: Get) => unknown;
+/** What a reader may ask beyond numeric props: text and expressions. */
+type Ctx = {
+    idx: number;
+    cells: any;
+    /** The cell of a prop, or undefined. */
+    cell: (prop: string) => number | undefined;
+};
+type Reader = (get: Get, x: Ctx) => unknown;
 
 const M = (v: number) => me.fromAst(v);
 const pt = (get: Get, x: string, y: string) => [M(get(x)), M(get(y))];
@@ -69,6 +76,26 @@ const valueReaders: Record<string, Reader> = {
     immediateValue: (g) => M(g("value")),
     valueForDisplay: (g) => M(g("value")),
 };
+
+/** A math's value: its expression when it is a math cell (plan 5), else
+ * the number its lowered chain computes. */
+const mathValue: Reader = (g, x) => {
+    const e = x.cell("expr");
+    if (e !== undefined && !Number.isNaN(x.cells.cell_value(e))) {
+        return me.fromText(x.cells.expr_text(e));
+    }
+    return M(g("value"));
+};
+const mathReaders: Record<string, Reader> = {
+    value: mathValue,
+    immediateValue: mathValue,
+    valueForDisplay: mathValue,
+    text: (_g, x) => x.cells.component_text(x.idx),
+};
+
+/** The text a container shows, through active cases only (plan 6). */
+const textOf: Reader = (_g, x) => x.cells.component_text(x.idx);
+const containerReaders: Record<string, Reader> = { text: textOf };
 
 /**
  * JavaScript-core state variable name -> reader over the prototype's props,
@@ -144,9 +171,23 @@ const STATE: Record<string, Record<string, Reader>> = {
         numericalVertices: (g) =>
             items("x", "y", g("numVertices")).map(([x, y]) => npt(g, x, y)),
     },
-    mathInput: valueReaders,
-    math: valueReaders,
-    number: valueReaders,
+    mathInput: mathReaders,
+    math: mathReaders,
+    // The current core's number values are plain numbers.
+    number: {
+        value: (g) => g("value"),
+        valueForDisplay: (g) => g("value"),
+        text: textOf,
+    },
+    text: {
+        value: (_g, x) => x.cells.text_value(x.cell("value")!).trim(),
+        text: (_g, x) => x.cells.text_value(x.cell("value")!).trim(),
+    },
+    p: containerReaders,
+    group: containerReaders,
+    document: containerReaders,
+    conditionalContent: containerReaders,
+    select: containerReaders,
     numberInput: valueReaders,
     slider: valueReaders,
     booleanInput: { value: (g) => g("value") !== 0 },
@@ -197,8 +238,7 @@ export async function createTestCoreCells({
             throw new CellsCoreGap(`createTestCore option \`${option}\``);
         }
     }
-    if (requestedVariantIndex !== 1)
-        throw new CellsCoreGap("variants (`requestedVariantIndex`)");
+    // Plan 6: the variant index is the document seed.
     if (Object.keys(initializeCounters).length > 0)
         throw new CellsCoreGap("`initializeCounters`");
     if (Object.keys(externalDoenetMLs).length > 0)
@@ -222,7 +262,10 @@ export async function createTestCoreCells({
     );
     let core_: any;
     try {
-        core_ = new mod.Core(new TextEncoder().encode(JSON.stringify(dast)));
+        core_ = mod.Core.with_seed(
+            new TextEncoder().encode(JSON.stringify(dast)),
+            requestedVariantIndex,
+        );
     } catch (e) {
         throw new CellsCoreGap(`load: ${String(e)}`);
     }
@@ -262,7 +305,14 @@ export async function createTestCoreCells({
             throw new CellsCoreGap(
                 `state variable \`${componentType}.${name}\``,
             );
-        const v = reader(getter(idx, componentType));
+        const v = reader(getter(idx, componentType), {
+            idx,
+            cells,
+            cell: (prop: string) => {
+                const c = propCells(idx, prop);
+                return c.length === 0 ? undefined : c[0];
+            },
+        });
         if (process.env.CELLS_TRACE) {
             console.log(
                 `[cells]   read ${componentType}#${idx}.${name} = ${JSON.stringify(v, (_k, x) => (x && x.tree !== undefined ? x.tree : x))}`,
@@ -516,6 +566,30 @@ export async function createTestCoreCells({
                     return;
                 case "updateValue": {
                     const latex = rawValues.get(componentIdx) ?? "";
+                    // An unbound mathInput holds an expression (plan 5):
+                    // what was typed goes to its essential `expr` cell.
+                    // A number keeps the numeric path (the value cell's
+                    // inverse writes a constant expression).
+                    const expr = propCells(componentIdx, "expr")[0];
+                    if (
+                        expr !== undefined &&
+                        cells.cell_class(expr) === "essential" &&
+                        Number.isNaN(latexToNumber(latex)) &&
+                        latex.trim() !== ""
+                    ) {
+                        let handle = NaN;
+                        if (latex.trim() !== "") {
+                            try {
+                                handle = cells.parse_math(
+                                    me.fromLatex(latex).toString(),
+                                );
+                            } catch {
+                                handle = NaN;
+                            }
+                        }
+                        request([[expr, handle]]);
+                        return;
+                    }
                     request([
                         [
                             propCells(componentIdx, "value")[0],
