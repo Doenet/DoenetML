@@ -12,8 +12,8 @@ vi.mock("hyperformula");
  * of another type. Both take that list's attributes as an `extend` or
  * `copy` of any other component takes its source's: those they do not set
  * themselves. An extend takes `fixed` and `fixLocation` alongside where it
- * sits; a copy holds them, and `unordered`, as the list had them when it
- * was made.
+ * sits; a copy, as the list's DoenetML pasted, takes them as written on the
+ * list, as its own.
  */
 describe("Attributes of an extend or copy of a list @group4", () => {
     it("takes the attributes of the list it extends", async () => {
@@ -87,7 +87,7 @@ describe("Attributes of an extend or copy of a list @group4", () => {
         expect((await sv("eP")).styleNumber).eq(3);
     });
 
-    it("is fixed when the list it extends is or where it sits is", async () => {
+    it("is fixed when the list it extends is or where it sits is; a copy has the list's written fixed", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name="bi" />
@@ -119,11 +119,12 @@ describe("Attributes of an extend or copy of a list @group4", () => {
             e: [false, false],
             ep: [true, false],
             eg: [false, true],
+            // the `fixed="$bi"` pasted on `cp` decides over its paragraph
             c: [false, false],
-            cp: [true, false],
+            cp: [false, false],
         });
 
-        // the extend follows its list; the copy keeps what it had
+        // the extend follows its list, and the copies the `$bi` written on it
         await updateBooleanInputValue({
             boolean: true,
             componentIdx: await resolvePathToNodeIdx("bi"),
@@ -131,12 +132,12 @@ describe("Attributes of an extend or copy of a list @group4", () => {
         });
         await check({
             e: [true, true],
-            c: [false, false],
-            cp: [true, false],
+            c: [true, true],
+            cp: [true, true],
         });
     });
 
-    it("a copy of a list fixed when it is made is fixed, and shows its entries as they were", async () => {
+    it("a copy of a fixed list is fixed, and shows its entries as they were", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <mathList name="ml" fixed displayDigits="5">1.23456789 2</mathList>

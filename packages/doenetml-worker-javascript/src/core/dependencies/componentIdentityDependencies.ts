@@ -252,14 +252,12 @@ export class AttributeComponentDependency extends Dependency {
                 // copy of that list, made as if its DoenetML were pasted
                 // there: its attributes are copies of the list's, keeping
                 // what is written and following what they reference. The
-                // list takes those, as a copy of any component has its own,
-                // so a later change to the list's own does not reach it.
+                // list takes those, `fixed` and `fixLocation` included, as a
+                // copy of any component has its own, so a later change to
+                // the list's own does not reach it.
                 if (
-                    this.notFromReferenceSource ||
-                    (this.dontRecurseToShadowsIfHaveAttribute &&
-                        comp.attributes[
-                            this.dontRecurseToShadowsIfHaveAttribute
-                        ])
+                    this.dontRecurseToShadowsIfHaveAttribute &&
+                    comp.attributes[this.dontRecurseToShadowsIfHaveAttribute]
                 ) {
                     break;
                 }
