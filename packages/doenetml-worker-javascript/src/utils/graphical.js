@@ -163,6 +163,18 @@ export function returnAnchorStateVariableDefinition() {
     };
 }
 
+/**
+ * The coordinates of `anchor`, a math holding a point: its entries, or the
+ * one coordinate it is when it is a single value.
+ */
+function anchorCoordinates(anchor) {
+    const tree = anchor?.tree;
+    if (Array.isArray(tree) && (tree[0] === "vector" || tree[0] === "tuple")) {
+        return tree.slice(1);
+    }
+    return tree === undefined || tree === null ? [] : [tree];
+}
+
 export async function moveGraphicalObjectWithAnchorAction({
     x,
     y,
@@ -172,18 +184,23 @@ export async function moveGraphicalObjectWithAnchorAction({
     sourceInformation = {},
     skipRendererUpdate = false,
     componentIdx,
+    component,
     componentType,
     coreFunctions,
 }) {
+    // A coordinate the move does not give (a drag of `y` alone) stays
+    // where the anchor has it.
+    const given = [x, y, z];
+    const current = anchorCoordinates(
+        component ? await component.stateValues.anchor : undefined,
+    );
+    const numDimensions = Math.max(
+        current.length,
+        given.findLastIndex((value) => value !== undefined) + 1,
+    );
     let components = ["vector"];
-    if (x !== undefined) {
-        components[1] = x;
-    }
-    if (y !== undefined) {
-        components[2] = y;
-    }
-    if (z !== undefined) {
-        components[3] = z;
+    for (let ind = 0; ind < numDimensions; ind++) {
+        components.push(given[ind] ?? current[ind] ?? 0);
     }
     if (transient) {
         return await coreFunctions.performUpdate({
