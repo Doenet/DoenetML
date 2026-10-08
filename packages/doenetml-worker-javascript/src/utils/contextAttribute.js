@@ -73,6 +73,15 @@ function contextAttributeDependencies({
         if (source) {
             dependencies.source = source;
         }
+    } else if (component?.doenetAttributes?.extendsList !== undefined) {
+        // A list made by an `extend` of a list (`convertToCopy`) reads the
+        // list it names as a reference reads its source.
+        dependencies.source = {
+            dependencyType: "stateVariable",
+            componentIdx: component.doenetAttributes.extendsList,
+            variableName: attributeName,
+            variablesOptional: true,
+        };
     } else if (component?.shadows?.propVariable !== attributeName) {
         // A component inside a copied one (a shadow that is neither of a
         // prop nor the reference itself, `isReferenceShadow`) sits in the

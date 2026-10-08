@@ -48,6 +48,8 @@ const REFERENCES: [string, string, string][] = [
     ["point", "copy", "$P"],
     ["math", "extend", "$P.x"],
     ["math", "copy", "$P.x"],
+    ["mathList", "extend", "$ml"],
+    ["mathList", "copy", "$ml"],
     ["math", "extend", "$ml[1]"],
     ["math", "copy", "$ml[1]"],
     ["point", "extend", "$pl[1]"],

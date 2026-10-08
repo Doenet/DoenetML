@@ -1141,47 +1141,73 @@ export default class AuthoredValueList extends ValueListComponent {
         stateVariableDefinitions.entryDisplaySettings = {
             // A reference to the whole list reads them from the list.
             shadowVariable: true,
-            returnDependencies: () => ({
-                entryStructure: {
-                    dependencyType: "stateVariable",
-                    variableName: "entryStructure",
-                },
-                children: {
-                    dependencyType: "child",
-                    childGroups: componentGroups,
-                    variableNames: [
-                        ...displayNames,
-                        "displaySettings",
-                        "referentInfo",
-                        "entryOfReference",
-                    ],
-                    variablesOptional: true,
-                },
-                shadow: {
-                    dependencyType: "stateVariable",
-                    variableName: "entryDisplaySettingsShadow",
-                },
-                copyListViaComposite: {
-                    dependencyType: "stateVariable",
-                    variableName: "copyListViaComposite",
-                },
-                extendListViaComposite: {
-                    dependencyType: "stateVariable",
-                    variableName: "extendListViaComposite",
-                },
-                ...Object.fromEntries(
-                    displayNames.map((name) => [
-                        name,
-                        { dependencyType: "stateVariable", variableName: name },
-                    ]),
-                ),
-            }),
+            returnDependencies() {
+                return {
+                    entryStructure: {
+                        dependencyType: "stateVariable",
+                        variableName: "entryStructure",
+                    },
+                    children: {
+                        dependencyType: "child",
+                        childGroups: componentGroups,
+                        variableNames: [
+                            ...displayNames,
+                            "displaySettings",
+                            "referentInfo",
+                            "entryOfReference",
+                        ],
+                        variablesOptional: true,
+                    },
+                    shadow: {
+                        dependencyType: "stateVariable",
+                        variableName: "entryDisplaySettingsShadow",
+                    },
+                    copyListViaComposite: {
+                        dependencyType: "stateVariable",
+                        variableName: "copyListViaComposite",
+                    },
+                    extendListViaComposite: {
+                        dependencyType: "stateVariable",
+                        variableName: "extendListViaComposite",
+                    },
+                    ...Object.fromEntries(
+                        displayNames.map((name) => [
+                            name,
+                            {
+                                dependencyType: "stateVariable",
+                                variableName: name,
+                            },
+                        ]),
+                    ),
+
+                    // An `extend` of a list takes the settings of the list it
+                    // names (`AttributeComponentDependency`), which, as that
+                    // list's own, yield to an entry's own; only those written
+                    // on the extend win over the entries'.
+                    ...(this.svComponent?.doenetAttributes?.extendsList !==
+                    undefined
+                        ? Object.fromEntries(
+                              displayNames.map((name) => [
+                                  `written_${name}`,
+                                  {
+                                      dependencyType: "attributeComponent",
+                                      attributeName: name,
+                                      dontRecurseToShadows: true,
+                                  },
+                              ]),
+                          )
+                        : {}),
+                };
+            },
             definition({ dependencyValues, usedDefault }) {
                 const listSettings = {};
                 const listSetsDisplay = {};
                 for (const name of displayNames) {
                     listSettings[name] = dependencyValues[name];
-                    listSetsDisplay[name] = !usedDefault[name];
+                    listSetsDisplay[name] =
+                        !usedDefault[name] &&
+                        (!(`written_${name}` in dependencyValues) ||
+                            dependencyValues[`written_${name}`] !== null);
                 }
                 if (dependencyValues.shadow !== null) {
                     // The entries' settings as they were in the list a

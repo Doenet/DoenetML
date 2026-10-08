@@ -92,6 +92,15 @@ export class ComponentIdentityDependency extends Dependency {
     }
 }
 
+/**
+ * The list a list made by an `extend` of one names, when the reference
+ * names it with nothing left to resolve (`convertToCopy`). A `copy` of a
+ * list takes no attribute from it, keeping what it was made with.
+ */
+function listSourceIdx(component: any): number | undefined {
+    return component.doenetAttributes?.extendsList;
+}
+
 export class AttributeComponentDependency extends Dependency {
     static dependencyType = "attributeComponent";
 
@@ -226,7 +235,39 @@ export class AttributeComponentDependency extends Dependency {
 
         let comp = parent;
 
-        while (comp.shadows) {
+        while (comp.shadows || listSourceIdx(comp) !== undefined) {
+            if (!comp.shadows) {
+                // A list made by an `extend` of a list holds a copy of its
+                // entries rather than shadowing it (`convertToCopy`), and
+                // takes the attributes of the list it names as a reference
+                // takes its source's.
+                if (
+                    this.notFromReferenceSource ||
+                    (this.dontRecurseToShadowsIfHaveAttribute &&
+                        comp.attributes[
+                            this.dontRecurseToShadowsIfHaveAttribute
+                        ])
+                ) {
+                    break;
+                }
+                comp = this.dependencyHandler._components[listSourceIdx(comp)!];
+                if (!comp) {
+                    break;
+                }
+                attribute = comp.attributes[this.attributeName];
+                if (attribute?.component) {
+                    return {
+                        success: true,
+                        downstreamComponentIndices: [
+                            attribute.component.componentIdx,
+                        ],
+                        downstreamComponentTypes: [
+                            attribute.component.componentType,
+                        ],
+                    };
+                }
+                continue;
+            }
             // A reference (the replacement of the composite that shadows
             // through it) does not take an attribute that is
             // `notFromReferenceSource` from its source; a component inside a
