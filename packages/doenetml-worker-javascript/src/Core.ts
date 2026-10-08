@@ -417,6 +417,10 @@ export default class Core {
             // reach core through `svComponent.coreFunctions`.
             getStateVariableValue: this.getStateVariableValue, // bound above
             addDiagnostic: this.addDiagnostic.bind(this),
+            // What a save holds of an unlinked copy's snapshot
+            // (`utils/copySnapshot.js`), by the copy's stateId.
+            savedCopySnapshot: (stateId: string) =>
+                this.cumulativeStateVariableChanges?.__copySnapshots?.[stateId],
         };
 
         this.updateInfo = {

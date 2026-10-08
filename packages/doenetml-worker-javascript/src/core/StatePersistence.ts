@@ -5,6 +5,7 @@ import {
 } from "@doenet/utils";
 import { set as idb_set } from "idb-keyval";
 import { reportTimerError, TimerLabels } from "../utils/timerErrors";
+import { copySnapshotsMatch } from "../utils/copySnapshot";
 import type Core from "../Core";
 
 /**
@@ -353,6 +354,44 @@ export class StatePersistence {
         };
     }
 
+    /**
+     * Hold, under `__copySnapshots`, the snapshot of each unlinked copy that
+     * a copy made now would not match: a reload makes the copy again from
+     * its source as restored, and takes the saved snapshot instead
+     * (`utils/copySnapshot.js`). A copy whose source has not changed since
+     * it was made needs nothing saved, as #1940 asks of what a reader has
+     * not changed.
+     */
+    /**
+     * The unlinked copies whose snapshot a save compares
+     * (`recordCopySnapshots`). A save with none does not wait on them.
+     */
+    unlinkedCopies(): any[] {
+        return (Object.values(this.core._components ?? {}) as any[]).filter(
+            (component) => component?.freshUnlinkedSnapshot,
+        );
+    }
+
+    async recordCopySnapshots(copies: any[]): Promise<void> {
+        const cumulative = this.core.cumulativeStateVariableChanges;
+        const snapshots: Record<string, any> = {
+            ...(cumulative.__copySnapshots ?? {}),
+        };
+        for (const component of copies) {
+            const fresh = await component.freshUnlinkedSnapshot();
+            if (copySnapshotsMatch(fresh, component.unlinkedSnapshot)) {
+                delete snapshots[component.stateId];
+            } else {
+                snapshots[component.stateId] = component.unlinkedSnapshot;
+            }
+        }
+        if (Object.keys(snapshots).length > 0) {
+            cumulative.__copySnapshots = snapshots;
+        } else {
+            delete cumulative.__copySnapshots;
+        }
+    }
+
     async saveState(
         overrideThrottle = false,
         onSubmission = false,
@@ -391,6 +430,11 @@ export class StatePersistence {
         }
 
         const sequence = ++this._saveSequence;
+
+        const copies = this.unlinkedCopies();
+        if (copies.length > 0) {
+            await this.recordCopySnapshots(copies);
+        }
 
         const { payload, coreStateString, rendererStateString } =
             this.buildDocStatePayload(onSubmission);
