@@ -203,9 +203,9 @@ export function contextAttributeDefinition({
             // A reference with no attribute of its own for it passes a write
             // to its source, as it did when it took its source's attribute,
             // so that what turned its source's `fixed` on through it can turn
-            // it off again. A component inside a copied one, whose source's
-            // value stands only where nothing else sets one, also keeps the
-            // value written, so that the write changes it wherever it sits.
+            // it off again. A component inside a copied one keeps the value
+            // its source is given (`EssentialValueWriter`), so the write
+            // changes it wherever it sits.
             const attribute = this?.svComponent?.attributes?.[attributeName];
             const written =
                 attribute?.component !== undefined ||
@@ -215,18 +215,16 @@ export function contextAttributeDefinition({
                 dependencyValues.source !== null &&
                 dependencyValues.source !== undefined
             ) {
-                const desiredValue = desiredStateVariableValues[attributeName];
-                const instructions = [
-                    { setDependency: "source", desiredValue },
-                ];
-                if (
-                    dependencyValues.sourceOnlyIfUnset &&
-                    dependencyValues.own !== null &&
-                    dependencyValues.own !== undefined
-                ) {
-                    instructions.push({ setDependency: "own", desiredValue });
-                }
-                return { success: true, instructions };
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setDependency: "source",
+                            desiredValue:
+                                desiredStateVariableValues[attributeName],
+                        },
+                    ],
+                };
             }
             if (
                 dependencyValues.own !== null &&

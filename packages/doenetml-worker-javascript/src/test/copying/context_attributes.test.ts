@@ -302,10 +302,11 @@ describe("Fixed and fixLocation of references @group4", () => {
     <booleanInput name="bm" bindValueTo="$m.fixed" />
     <booleanInput name="show" />
     <p fixed><math extend="$m" name="early" /></p>
-    <conditionalContent condition="$show" name="cc"><p fixed><math extend="$m" name="late" /></p></conditionalContent>
+    <conditionalContent condition="$show" name="cc"><p fixed><math extend="$m" name="late" /></p><section copy="$s" name="sc" /></conditionalContent>
     <section name="s"><math name="x">y</math></section>
     <section extend="$s" fixed="false" name="s2" />
     <booleanInput name="bx" bindValueTo="$s2.x.fixed" />
+    <booleanInput name="bsx" bindValueTo="$s.x.fixed" />
     `;
         let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
             doenetML,
@@ -341,6 +342,11 @@ describe("Fixed and fixLocation of references @group4", () => {
         await set("bx", false);
         await check({ "s.x": false, "s2.x": false });
         await set("bx", true);
+        // and a write to its source changes it after that
+        await set("bsx", false);
+        await check({ "s.x": false, "s2.x": false });
+        await set("bsx", true);
+        await check({ "s.x": true, "s2.x": true });
 
         await core.saveImmediately();
         ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
@@ -353,6 +359,8 @@ describe("Fixed and fixLocation of references @group4", () => {
             "cc[1].late": true,
             "s.x": true,
             "s2.x": true,
+            // a component inside a copy made after the write keeps it
+            "cc[1].sc.x": true,
         });
     });
 

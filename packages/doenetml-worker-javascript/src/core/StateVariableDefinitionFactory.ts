@@ -1582,7 +1582,8 @@ function _copyPassthroughAttributes(
     }
     // An essential value of an attribute a reference does not take from its
     // source is not mirrored into the reference either, nor copied into a
-    // copy when it is made (`BaseComponent.serialize`).
+    // reference when it is made (`BaseComponent.serialize`); it is mirrored
+    // into components inside copies (`EssentialValueWriter`).
     if (attributeSpecification.notFromReferenceSource) {
         stateVarDef.doNotShadowEssential = true;
         stateVarDef.notFromReferenceSource = true;
