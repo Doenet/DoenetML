@@ -203,6 +203,32 @@ describe("Fixed and fixLocation of references @group4", () => {
         }
     });
 
+    it("a reference inside a copied component is fixed with what it references, whatever the copy's container sets", async () => {
+        // `s.i` is a reference to the fixed `mf`; the `i` of an extend or
+        // a copy of `s` stands for that reference too, so a fixed="false"
+        // on the extend only stops it from fixing `i`
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="mf" fixed>y</math>
+    <math name="m">y</math>
+    <section name="s"><math extend="$mf" name="i" /><math extend="$m" name="j" /></section>
+    <section extend="$s" fixed="false" name="s2" />
+    <section copy="$s" fixed="false" name="s3" />
+    <section extend="$s" name="s4" fixed />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const fixed = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues.fixed;
+        for (const s of ["s", "s2", "s3", "s4"]) {
+            expect(await fixed(`${s}.i`), `${s}.i`).eq(true);
+        }
+        expect(await fixed("s.j")).eq(false);
+        expect(await fixed("s2.j")).eq(false);
+        expect(await fixed("s3.j")).eq(false);
+        expect(await fixed("s4.j")).eq(true);
+    });
+
     it("a reference to fixed itself can change it", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

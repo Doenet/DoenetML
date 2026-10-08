@@ -5,6 +5,7 @@
  */
 
 import { Dependency } from "./Dependency";
+import { isReferenceShadow } from "../../utils/referenceShadow";
 
 export class SourceCompositeStateVariableDependency extends Dependency {
     static dependencyType = "sourceCompositeStateVariable";
@@ -303,6 +304,14 @@ export class ShadowSourceStateVariableDependency extends Dependency {
             this.definition.contextVariableOfProp || false;
         this.variableName = this.definition.variableName;
 
+        // If `throughCopiedComponents` is set, the shadow source of a
+        // component inside a copied one (`isReferenceShadow` false) is
+        // passed through, as are any such components it shadows in turn, to
+        // what the first one that is a reference (or a prop) is a
+        // reference to; nothing when none is.
+        this.throughCopiedComponents =
+            this.definition.throughCopiedComponents || false;
+
         this.returnSingleVariableValue = true;
 
         // for shadow source
@@ -384,6 +393,35 @@ export class ShadowSourceStateVariableDependency extends Dependency {
         let shadowSourceComponentIdx = component.shadows.componentIdx;
         let shadowSource =
             this.dependencyHandler._components[shadowSourceComponentIdx];
+        let shadowing = component;
+
+        if (this.throughCopiedComponents) {
+            while (
+                shadowSource?.shadows &&
+                shadowSource.shadows.propVariable === undefined &&
+                !isReferenceShadow(shadowSource)
+            ) {
+                shadowSource =
+                    this.dependencyHandler._components[
+                        shadowSource.shadows.componentIdx
+                    ];
+            }
+            if (
+                !shadowSource?.shadows ||
+                shadowSource.shadows.propVariable === this.variableName
+            ) {
+                return {
+                    success: true,
+                    downstreamComponentIndices: [],
+                    downstreamComponentTypes: [],
+                };
+            }
+            shadowing = shadowSource;
+            shadowSource =
+                this.dependencyHandler._components[
+                    shadowSource.shadows.componentIdx
+                ];
+        }
 
         if (!shadowSource) {
             return {
@@ -394,7 +432,7 @@ export class ShadowSourceStateVariableDependency extends Dependency {
         }
 
         if (this.contextVariableOfProp) {
-            const propVariable = component.shadows.propVariable;
+            const propVariable = shadowing.shadows.propVariable;
             const contextVariable =
                 propVariable === undefined
                     ? undefined

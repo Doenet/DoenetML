@@ -21,8 +21,9 @@ import { isReferenceShadow } from "./referenceShadow";
  * attribute is `notFromReferenceSource`), as an attribute would decide over
  * where the reference sits; it reads its source's value alongside the rest.
  * A component inside a copied one keeps the attribute written on it, and
- * takes its source's value only where nothing else sets one, as it sits in
- * the copy in place of where its source sat.
+ * reads what its source is a reference to, if anything, but takes its
+ * source's own value only where nothing else sets one, as it sits in the
+ * copy in place of where its source sat.
  * A reference to the variable itself (`<boolean extend="$P.fixed"/>`) does
  * not read it, so that the value it shows can be changed.
  *
@@ -86,6 +87,14 @@ function contextAttributeDependencies({
                 dependencyType: "value",
                 value: true,
             };
+            // What its source is a reference to still fixes it, as the
+            // copy stands for that reference too.
+            dependencies.referenceSource = {
+                dependencyType: "shadowSourceStateVariable",
+                variableName: attributeName,
+                contextVariableOfProp: true,
+                throughCopiedComponents: true,
+            };
         }
         dependencies.source = {
             dependencyType: "shadowSourceStateVariable",
@@ -125,6 +134,7 @@ function contextAttributeValue({ dependencyValues, usedDefault }) {
         "sourceComposite",
         "adapterSource",
         "copySource",
+        "referenceSource",
         "source",
     ]) {
         if (
@@ -314,14 +324,35 @@ async function fromDocument(component, attributeName, components) {
             value = true;
         }
     }
+    const insideCopy =
+        component.shadows &&
+        component.shadows.propVariable === undefined &&
+        !isReferenceShadow(component);
+    if (insideCopy) {
+        // what its source is a reference to, as in its definition
+        let copied = components?.[component.shadows.componentIdx];
+        while (
+            copied?.shadows &&
+            copied.shadows.propVariable === undefined &&
+            !isReferenceShadow(copied)
+        ) {
+            copied = components?.[copied.shadows.componentIdx];
+        }
+        if (copied?.shadows && copied.shadows.propVariable !== attributeName) {
+            const setting = await fromDocument(
+                components?.[copied.shadows.componentIdx],
+                attributeName,
+                components,
+            );
+            if (setting !== null) {
+                value = Boolean(value) || setting;
+            }
+        }
+    }
     if (
         component.shadows &&
         component.shadows.propVariable !== attributeName &&
-        !(
-            component.shadows.propVariable === undefined &&
-            !isReferenceShadow(component) &&
-            value !== null
-        )
+        !(insideCopy && value !== null)
     ) {
         const setting = await fromDocument(
             components?.[component.shadows.componentIdx],
