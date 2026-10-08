@@ -2156,6 +2156,21 @@ export default class BaseComponent {
 }
 
 /**
+ * Attributes that are alternatives to each other: a component that writes
+ * one does not read the other from what it shadows (the
+ * `dontRecurseToShadowsIfHaveAttribute` of their dependencies, in
+ * `utils/numberDisplay.js`, `Function.js` and `FunctionOperators.js`).
+ */
+const ALTERNATIVE_ATTRIBUTES = Object.freeze({
+    displayDigits: "displayDecimals",
+    displayDecimals: "displayDigits",
+    variable: "variables",
+    variables: "variable",
+    derivVariable: "derivVariables",
+    derivVariables: "derivVariable",
+});
+
+/**
  * For an unlinked copy (`copyAll`) of `component`, which is pasted as the
  * DoenetML it is linked to: when `component` is a reference or a component
  * inside one (a shadow, not of a prop), give `serializedComponent` the
@@ -2177,11 +2192,17 @@ async function serializeShadowedAttributes({
         comp;
         comp = pastedShadowSource(comp, components)
     ) {
+        // what the copy already has, from `component` or a component
+        // between it and `comp`: a reference that writes one of a pair of
+        // alternatives does not read the other from what it shadows
+        // (`dontRecurseToShadowsIfHaveAttribute`), so neither does its copy
+        const written = new Set(Object.keys(serializedComponent.attributes));
         for (const attrName in comp.attributes) {
             const attribute = comp.attributes[attrName];
             if (
                 !attribute.component ||
-                attrName in serializedComponent.attributes ||
+                written.has(attrName) ||
+                written.has(ALTERNATIVE_ATTRIBUTES[attrName]) ||
                 componentSourceAttributesToIgnore.includes(attrName)
             ) {
                 continue;

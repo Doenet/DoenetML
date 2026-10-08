@@ -2444,4 +2444,33 @@ describe("Unlinked Copying Tests @group4", async () => {
         });
         await check(true);
     });
+
+    it("a copy of a reference that writes one of a pair of alternatives does not take the other", async () => {
+        // `r` writes `displayDecimals`, so it does not read the
+        // `displayDigits` written on `m`, and `g` writes `variable`, so it
+        // does not read the `variables` written on `f`: neither do their
+        // copies
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="m" displayDigits="5">1.23456789</math>
+    <math extend="$m" name="r" displayDecimals="1" />
+    <math copy="$r" name="c" />
+    <function name="f" variables="x y">x+y</function>
+    <function extend="$f" name="g" variable="t" />
+    <function copy="$g" name="h" />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const stateValues = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        for (const name of ["r", "c"]) {
+            expect((await stateValues(name)).text, name).eq("1.2");
+        }
+        for (const name of ["g", "h"]) {
+            expect(
+                (await stateValues(name)).variables.map((v) => v.tree),
+                name,
+            ).eqls(["t"]);
+        }
+    });
 });
