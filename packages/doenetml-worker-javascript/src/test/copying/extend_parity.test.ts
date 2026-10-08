@@ -116,6 +116,7 @@ describe("A bare reference and the extend written out @group4", () => {
     <section name="s"><math renderMode="display">2</math></section>
     <collect componentType="math" from="$s" name="c" />
     <p name="p7"><math extend="$c[1]" /></p>
+    <p name="p8"><math extend="$c[1].value" /></p>
     <graph name="g"><point name="P">(1,2)</point><point extend="$P" /></graph>
     `,
         });
@@ -135,6 +136,7 @@ describe("A bare reference and the extend written out @group4", () => {
         // a copy of a list's entry, typeset as the entry is, which a
         // reference to the entry is not
         expect(await firstChildType("p7")).eq("math");
+        expect(await firstChildType("p8")).eq("math");
         // a graph draws a point, not a value reference
         expect(
             stateVariables[await resolvePathToNodeIdx("g")].activeChildren.map(

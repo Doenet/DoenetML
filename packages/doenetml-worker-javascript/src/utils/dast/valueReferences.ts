@@ -31,7 +31,8 @@ import { sequenceEntryComponentType } from "../sequence";
  *
  * A `_copy` qualifies when it is a bare reference (`$…`, or an `extend` with
  * nothing else on it that names the type the reference reads and does not
- * read an entry of a list; not `copy`) whose referent resolved, with no
+ * read the value of an entry of a list, `$c[1]`; not `copy`) whose referent
+ * resolved, with no
  * attributes but the marks by which
  * an answer records it as a response (`RESPONSE_MARKS`), the component it
  * sits in is not a composite (one that renders its children then draws the
