@@ -1,0 +1,94 @@
+# B4 design: coordinates and expressions over references without attribute components
+
+Design for #2252, step B4 of stream B (#2129) of #2125. Status: shape and order settled 2026-10-09; step 1 in progress. Measured on `main` at b27371d73 (#2255). Paths are under `packages/doenetml-worker-javascript/src/` unless they start with `packages/`.
+
+## Summary
+
+- **The cost is in the wrappers, not the references.** A point written `<point>($i, 2$i)</point>` holds its coordinates in `xs`: a `mathList` attribute component with one `<math>` per coordinate, each holding the coordinate's text and its value references (`_ref`). On repeat-150, one such `xs` costs 124 dependencies. The `mathList` accounts for 32 of them, the two `<math>`s for 80, and the two `_ref`s for 12.
+- **Coordinates first, then boolean and math expressions.** #2252 proposed starting with a `boolean` or `math` attribute that is one expression over references (`hide="not $b"`, `equation="x=$a"`). Measured, those are at most 4% of a fixture's dependencies. A point's `xs` is 15.5% on repeat-150 and 6.2% on measures-of-spread.
+- **No components at all.** The owner holds the attribute: its text, parsed once, and one *reference slot* per reference in it.
+  - A reference slot is a set of state variables on the owner that resolve one reference and read its value. They are the definitions `ValueRef` uses for its own reference, moved into one function that both call.
+  - The owner computes the attribute's values from its slots with the value functions F6 already uses (`utils/repeatTemplate.js`), so nothing is written twice: not reference resolution, not parsing.
+
+## Measured
+
+Each figure is the share of the fixture's dependencies at load (the census measure) held by attribute components with references and the components under them.
+
+| fixture | `point.xs` | boolean expressions (`hide`, `condition`) | math expressions (`equation`, `parMax`) | other |
+|---|--:|--:|--:|---|
+| repeat-150 | 15.5% (150 points, 28% of components) | — | — | |
+| measures-of-spread | 6.2% (84 points, 11% of components) | 3.8% | 0.5% | `indexOf.target`, `searchSorted.target` 2.0% (#2253) |
+| unit-circle-labeling | 0.7% | 2.0% | 0.4% | `point.coords` 7.1%, `triggerWhen` 4.7%: a `_copy` inside (#2253) |
+| hardware-assignment-2 | — | 0.3% | — | |
+| dot plots | — | — | — | `indexOf.target`, `searchSorted.target` 6.5–6.9% (#2253) |
+| discrete-sir | — | — | 0.4% (one `_ref` in a `<math>`, B2's descoped second stage) | `polyline.vertices` 2.0% (#2253) |
+
+How the cost of a `point.xs` divides:
+
+| fixture | points | `mathList` deps | `<math>` deps | `_ref` deps |
+|---|--:|--:|--:|--:|
+| repeat-150 (`($i, 2$i)`) | 150 | 4,800 | 12,000 (300) | 1,800 (300) |
+| measures-of-spread (`($a-$b, 2.5)`, …) | 84 | 1,792 | 4,480 (168) | 504 (126) |
+
+The coordinates of the points inside a repeat that F6 makes a list (#2163, #2255) already have no components. These points are in repeats F6 does not take (repeat-150's template is a `<p>`) or outside repeats.
+
+## Reference slots
+
+`ValueRef` (`components/abstract/ValueRef.js`) resolves its reference through a chain of state variables, each reading one dependency type the core already has:
+
+1. `refResolutionIndexDependencies` and `refResolutionIndexDependencyValues`: the components written between the brackets of the path (`$i` of `$l[$i]`) and their values.
+2. `extendIdx`, `unresolvedPath`, `originalPath`: the path resolved against composites (`refResolution` dependency), re-resolved when an index changes.
+3. `referentInfo`: the component and the variable read on it, its companions and whether it is a location (`referent` dependency).
+4. `value`: that variable, through a `stateVariable` dependency `referentInfo` determines. Its inverse writes there.
+
+The rest of `ValueRef` is presentation: being drawn, adapters, response marks, `hidden`, display settings.
+
+A **reference slot** is that chain as a function, `referenceSlotDefinitions`, which takes:
+- the names to give the state variables (`ValueRef`'s own, or a prefix per slot, `__xs_ref0_value`);
+- where the slot's `refResolution` is (`component.refResolution` for a `ValueRef`, the attribute's slot `k` for an owner);
+- the fixed referent and the adapter plan, which only a `ValueRef` has;
+- the empty value of the type the reference is read as.
+
+The `refResolution` and `refResolutionIndexDependencies` dependencies take the slot from their definition, reading `component.refResolution` when none is given. That is where they read the path, and where a shadowing copy finds the origin it resolves from.
+
+An owner's slots are made as state variables on the owner, on demand, as `ensureListEntryPropertyArray` makes arrays on a list (`core/listEntryPropertyArrays.ts`). There is precedent for references held in an attribute without components: `attributeRefResolutions` resolves those of a `createReferences` attribute (`triggerWith`).
+
+## Parsing and evaluating
+
+The abstraction is `utils/valueFunctions/` (`math.js`, `number.js`, `boolean.js`, `text.js`, `mathOperators.js`), which F6 extracted from the components so that `<math>` and a repeat list call the same functions:
+- **Parse once.** `mathCodePre` picks the prefix of the codes (`math0`, `math1`, …) that stand for the references, and `mathExpressionWithCodes` parses the text, with the codes in place of the references, into one expression, with the parse settings.
+- **Evaluate by substitution.** `mathValueFromCodes` substitutes each reference's value for its code, then the value is normalized (`simplify`, `expand`). A change of a reference re-substitutes; nothing is re-parsed. Nothing is compiled: a `<math>` never is. Only a `<function>`'s numeric functions are, and B4 does not touch them.
+- **Invert.** `mathInverseAnalysis`, once, decides which codes and which pieces of text take a write. `invertMathValue`, per write, returns the writes to the codes, or the new text of a coordinate that takes a value by changing its own text (`($a, 0)` dragged to `(2, 5)` changes `0` to `5`).
+
+`analyzeRepeatTemplate` (`utils/repeatTemplate.js`) composes these into a tree of nodes: nested `<math>`s and `<number>`s, `<abs>`, `<round>`, `<evaluate>`, and a point's coordinates. B4 uses the same analysis, with each code reading a slot where F6's reads an entry of a list.
+
+Two things differ from F6:
+- **Parse settings are read, not assumed.** F6 parses a template with the defaults, since a template with parse settings does not qualify. An attribute's `<math>` falls back to its parent's `functionSymbols`, `referencesAreFunctionSymbols`, `splitSymbols` and `parseScientificNotation` (`Math.js:205–238`, `fallBackToParentStateVariable`), and that parent is the owner, whose ancestors can set them. So the owner's analysis of the attribute is a state variable that depends on them: parsed once, and again only if a setting changes.
+- **A reference read as a function symbol** (`referencesAreFunctionSymbols`, `mathChildrenFunctionSymbols`) keeps the attribute component, as F6 keeps the composite.
+
+Parsing once across owners is possible: on repeat-150, 150 points parse the same `2 math0`. A cache keyed by the text and the settings would parse it once. That needs a parsed expression to be safe to share (substitution returns a new expression, which suggests it is); to be checked, and measured, before it is done.
+
+## Model of an owner-held attribute
+
+- **The attribute** is `{ type: "expression", componentType, template, slots }`: the serialized coordinates (the `<math>`s sugar made) with each `_ref` replaced by a code (`repeatTemplateConstant`), and the `refResolution` and plan of each `_ref`. It is copied with the owner, as a literal attribute is (`copyOfLiteralAttribute`), so a copy resolves its references from where it is.
+- **What readers read.** A point reads `xs.numComponents` and `xs.math1…n` (`Point.js:583`, `:728`), a vector the same. The `attributeComponent` dependency maps those to the owner's `__xs_numComponents` and `__xs_math1…n`, as it maps a literal to `literalAttributeWrites`.
+- **Writes.** A drag writes `math k`. The inverse is `invertRepeatTemplate`: to the slots, whose `value` writes the referent, or to the owner's essential copy of a coordinate's text, as `_repeatPointList` keeps `entryWrites`. What takes a write follows F6's settled rules.
+- **Which attributes qualify:** `xs` of a `<point>` or `<vector>` whose coordinates are each a `<math>` of text and `_ref`s (and nested unnamed `<math>`s and `<number>`s), with no attributes and no reference read as a function symbol. A reference whose index is itself a reference (`$l[$i]`) keeps the attribute component in the first version, since the index is a component the slot would have to hold. Anything else keeps the component too: a `_copy` inside, a sampler, a named component.
+
+## Steps
+
+1. **Reference slots, behavior unchanged.** Move `ValueRef`'s chain into `referenceSlotDefinitions`; `ValueRef` calls it with its own names. The two dependencies take a slot. The value-reference tests and the census snapshot must not change.
+2. **Prototype one `point.xs` held by its owner,** and measure it against 124 dependencies.
+3. **Every qualifying `xs`** of a `<point>` or `<vector>`.
+4. **Boolean and math expressions** (`hide`, `condition`, `equation`), with a boolean node in `utils/repeatTemplate.js`, which F6's step 4b needs too.
+
+## Alternatives considered
+
+- **One light component per attribute,** holding the `_ref`s as children. That removes the `mathList` and the `<math>`s, 90% of the cost, but leaves a component and the `_ref`s, and is a second way of holding an attribute beside the literals.
+- **Each owner resolving its references itself.** That duplicates `ValueRef`'s resolution in every owner. Reference slots are this without the duplication.
+- **Keep the `mathList`, drop the `<math>`s.** That keeps the 32 dependencies of the `mathList`, and makes `mathList` carry a template, which no author's `mathList` has.
+
+## Decided
+
+- **2026-10-09:** coordinates first, then expressions; no components, through reference slots shared with `ValueRef`.
+- **2026-10-09:** a state saved before the change need not reload what it held in the attribute components, on the 0.8 development line or anywhere.

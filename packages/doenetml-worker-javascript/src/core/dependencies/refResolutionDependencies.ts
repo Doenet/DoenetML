@@ -12,6 +12,7 @@ import {
 } from "../../utils/sourceLocation";
 import { listEntryAtResolverNode } from "../listEntryResolverNodes";
 import { listEntryTargetOfResolution } from "../listEntryTargets";
+import { refResolutionAt } from "../../utils/referenceSlot";
 
 /**
  * The same path with every index emptied.
@@ -63,7 +64,18 @@ export class RefResolutionIndexDependencies extends Dependency {
             this.compositeIdx = this.upstreamComponentIdx;
         }
 
+        // the reference of an attribute's slot, or the component's own
+        this.slot = this.definition.slot;
+
         this.missingComponentBlockers = [];
+    }
+
+    /**
+     * The reference this dependency resolves on `component`: its slot's
+     * (`refResolutionAt`), or the component's own.
+     */
+    refResolutionOf(component: any) {
+        return refResolutionAt(component, this.slot);
     }
 
     async determineDownstreamComponents() {
@@ -87,7 +99,7 @@ export class RefResolutionIndexDependencies extends Dependency {
         this.componentList = [];
 
         const gatherResult = await this.gatherComponentsInPath(
-            composite.refResolution.originalPath,
+            this.refResolutionOf(composite).originalPath,
         );
 
         if (gatherResult.success) {
@@ -235,6 +247,9 @@ export class RefResolutionDependency extends Dependency {
         }
 
         this.indexDependencyValues = this.definition.indexDependencyValues;
+        // the reference of an attribute's slot, or the component's own
+        this.slot = this.definition.slot;
+
         this.missingComponentBlockers = [];
     }
 
@@ -271,12 +286,12 @@ export class RefResolutionDependency extends Dependency {
         let source = composite;
 
         while (
-            source?.refResolution &&
+            this.refResolutionOf(source) &&
             !visitedSources.has(source.componentIdx)
         ) {
             visitedSources.add(source.componentIdx);
 
-            const origin = source.refResolution.nodesInResolvedPath[0];
+            const origin = this.refResolutionOf(source).nodesInResolvedPath[0];
 
             if (origin != undefined && !yieldedOrigins.has(origin)) {
                 yieldedOrigins.add(origin);
@@ -314,6 +329,14 @@ export class RefResolutionDependency extends Dependency {
         );
     }
 
+    /**
+     * The reference this dependency resolves on `component`: its slot's
+     * (`refResolutionAt`), or the component's own.
+     */
+    refResolutionOf(component: any) {
+        return refResolutionAt(component, this.slot);
+    }
+
     async determineDownstreamComponents({ force = false } = {}) {
         this.compositeReplacementDependencies = [];
 
@@ -332,7 +355,7 @@ export class RefResolutionDependency extends Dependency {
             };
         }
 
-        let nodeIdx = composite.refResolution.nodeIdx;
+        let nodeIdx = this.refResolutionOf(composite).nodeIdx;
 
         // If `nodeIdx` is a component that was created via an `extend` or `copy` attribute,
         // then it was (or will be) created from a copy that has a `createComponentIdx` attribute
@@ -380,7 +403,7 @@ export class RefResolutionDependency extends Dependency {
         // Resolve all components in the path indices to integer values
         const resolveComponentResult =
             await this.resolveComponentsInPathIndices(
-                composite.refResolution.originalPath,
+                this.refResolutionOf(composite).originalPath,
                 force,
             );
 
@@ -397,10 +420,10 @@ export class RefResolutionDependency extends Dependency {
                     code: "doenet-w0163",
                     args: {
                         reference: `${doenetMLDollarsForReference(
-                            composite.refResolution.originalPath,
+                            this.refResolutionOf(composite).originalPath,
                             this.dependencyHandler.core.allDoenetMLs,
                         )}${doenetMLStringForReference(
-                            composite.refResolution.originalPath,
+                            this.refResolutionOf(composite).originalPath,
                             this.dependencyHandler.core.allDoenetMLs,
                         )}`,
                     },
@@ -422,7 +445,7 @@ export class RefResolutionDependency extends Dependency {
             // through an index we could not work out anyway, and the names and
             // positions the reporting paths read are all still here.
             this.originalPath = dropPathIndices(
-                composite.refResolution.originalPath,
+                this.refResolutionOf(composite).originalPath,
             );
             this.unresolvedPath = this.originalPath;
             return {
@@ -485,13 +508,13 @@ export class RefResolutionDependency extends Dependency {
         }
 
         /**
-         * Given the ref resolution `composite.refResolution`
+         * Given the ref resolution `this.refResolutionOf(composite)`
          * and the DoenetML string from `this.dependencyHandler.core.allDoenetMLs[0]`,
          * return the substring of DoenetML corresponding to the resolution's `originalPath`.
          */
         const getDoenetMLStringForReference = () =>
             doenetMLStringForReference(
-                composite.refResolution.originalPath,
+                this.refResolutionOf(composite).originalPath,
                 this.dependencyHandler.core.allDoenetMLs,
             );
 
@@ -502,7 +525,7 @@ export class RefResolutionDependency extends Dependency {
          */
         const getDollarsForReference = () =>
             doenetMLDollarsForReference(
-                composite.refResolution.originalPath,
+                this.refResolutionOf(composite).originalPath,
                 this.dependencyHandler.core.allDoenetMLs,
             );
 
