@@ -92,6 +92,14 @@ export class ComponentIdentityDependency extends Dependency {
     }
 }
 
+/**
+ * For a list made by an `extend` of a list, the list it names, when the
+ * reference names it with nothing left to resolve (`convertToCopy`).
+ */
+function listSourceIdx(component: any): number | undefined {
+    return component.doenetAttributes?.extendsList;
+}
+
 export class AttributeComponentDependency extends Dependency {
     static dependencyType = "attributeComponent";
 
@@ -225,8 +233,132 @@ export class AttributeComponentDependency extends Dependency {
         }
 
         let comp = parent;
+        // An extend of a list can name itself, directly or through other
+        // extends (`<mathList name="a" extend="$a" />`), which the core
+        // reports as a circular dependency; stop rather than loop.
+        const visited = new Set<number>([comp.componentIdx]);
 
-        while (comp.shadows) {
+        while (
+            comp.shadows ||
+            listSourceIdx(comp) !== undefined ||
+            comp.doenetAttributes?.copyListViaComposite !== undefined
+        ) {
+            if (
+                !comp.shadows &&
+                comp.doenetAttributes?.copyListViaComposite !== undefined
+            ) {
+                // A list made by a `copy` of a list (`convertToCopy`) holds,
+                // as its child, a `_copy` whose replacement is an unlinked
+                // copy of that list, made as if its DoenetML were pasted
+                // there: its attributes are copies of the list's, keeping
+                // what is written and following what they reference. The
+                // list takes those, `fixed` and `fixLocation` included, as a
+                // copy of any component has its own, so a later change to
+                // the list's own does not reach it.
+                if (
+                    this.dontRecurseToShadowsIfHaveAttribute &&
+                    comp.attributes[this.dontRecurseToShadowsIfHaveAttribute]
+                ) {
+                    break;
+                }
+                const copyComposite =
+                    this.dependencyHandler._components[
+                        comp.doenetAttributes.copyListViaComposite
+                    ];
+                if (!copyComposite) {
+                    break;
+                }
+                if (!copyComposite.isExpanded) {
+                    await this.addBlockerForUnexpandedComposite(copyComposite);
+                    return {
+                        success: false,
+                        downstreamComponentIndices: [],
+                        downstreamComponentTypes: [],
+                    };
+                }
+                if (await copyComposite.stateValues.usedReplacements) {
+                    // A copy of a composite other than a list (`<mathList
+                    // copy="$g"/>` of a `<group>`) copies what the composite
+                    // stands for, its replacements, not the composite. The
+                    // list takes the composite's attributes, as an extend of
+                    // it does.
+                    const named = (await copyComposite.stateValues
+                        .extendedComponent) as { componentIdx: number } | null;
+                    const namedComponent =
+                        named &&
+                        this.dependencyHandler._components[named.componentIdx];
+                    if (
+                        !namedComponent ||
+                        visited.has(namedComponent.componentIdx)
+                    ) {
+                        break;
+                    }
+                    comp = namedComponent;
+                    visited.add(comp.componentIdx);
+                    attribute = comp.attributes[this.attributeName];
+                    if (attribute?.component) {
+                        return {
+                            success: true,
+                            downstreamComponentIndices: [
+                                attribute.component.componentIdx,
+                            ],
+                            downstreamComponentTypes: [
+                                attribute.component.componentType,
+                            ],
+                        };
+                    }
+                    continue;
+                }
+                const copied = copyComposite.replacements?.find(
+                    (replacement: any) => typeof replacement === "object",
+                );
+                const copiedAttribute = copied?.attributes[this.attributeName];
+                if (copiedAttribute?.component) {
+                    return {
+                        success: true,
+                        downstreamComponentIndices: [
+                            copiedAttribute.component.componentIdx,
+                        ],
+                        downstreamComponentTypes: [
+                            copiedAttribute.component.componentType,
+                        ],
+                    };
+                }
+                break;
+            }
+            if (!comp.shadows) {
+                // A list made by an `extend` of a list holds a copy of its
+                // entries rather than shadowing it (`convertToCopy`), and
+                // takes the attributes of the list it names as an `extend`
+                // of any component takes its source's.
+                if (
+                    this.notFromReferenceSource ||
+                    (this.dontRecurseToShadowsIfHaveAttribute &&
+                        comp.attributes[
+                            this.dontRecurseToShadowsIfHaveAttribute
+                        ])
+                ) {
+                    break;
+                }
+                comp = this.dependencyHandler._components[listSourceIdx(comp)!];
+                if (!comp || visited.has(comp.componentIdx)) {
+                    break;
+                }
+                visited.add(comp.componentIdx);
+                attribute = comp.attributes[this.attributeName];
+                if (attribute?.component) {
+                    return {
+                        success: true,
+                        downstreamComponentIndices: [
+                            attribute.component.componentIdx,
+                        ],
+                        downstreamComponentTypes: [
+                            attribute.component.componentType,
+                        ],
+                    };
+                }
+                continue;
+            }
             // A reference (the replacement of the composite that shadows
             // through it) does not take an attribute that is
             // `notFromReferenceSource` from its source; a component inside a
@@ -246,9 +378,10 @@ export class AttributeComponentDependency extends Dependency {
             }
 
             comp = this.dependencyHandler._components[shadows.componentIdx];
-            if (!comp) {
+            if (!comp || visited.has(comp.componentIdx)) {
                 break;
             }
+            visited.add(comp.componentIdx);
 
             // if a prop variable was created from a plain copy that is marked as returning the same type
             // then treat it like a regular copy (as if there was no prop variable)

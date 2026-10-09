@@ -167,6 +167,18 @@ export function convertRefsToCopies({
                 } else {
                     wrappingComponent.doenetAttributes.extendListViaComposite =
                         newComponent.componentIdx;
+
+                    // The list it extends, when the reference names it with
+                    // nothing left to resolve, whose attributes it takes as
+                    // an extend takes its source's
+                    // (`AttributeComponentDependency`, `utils/contextAttribute.js`).
+                    if (
+                        refResolution.unresolvedPath === null ||
+                        refResolution.unresolvedPath.length === 0
+                    ) {
+                        wrappingComponent.doenetAttributes.extendsList =
+                            refResolution.nodeIdx;
+                    }
                 }
 
                 // The "removeEmptyArrayEntries" attribute needs to be on the copy component, not the list component

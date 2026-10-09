@@ -404,6 +404,10 @@ function remapRefResolutions(
                 component.doenetAttributes.copyListViaComposite = newNodeIdx;
             }
         }
+        const listIdx = component.doenetAttributes.extendsList;
+        if (listIdx != undefined && idxMap[listIdx] != undefined) {
+            component.doenetAttributes.extendsList = idxMap[listIdx];
+        }
 
         remapRefResolutions(component.children, idxMap);
 

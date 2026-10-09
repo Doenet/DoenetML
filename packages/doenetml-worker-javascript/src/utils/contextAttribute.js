@@ -73,6 +73,15 @@ function contextAttributeDependencies({
         if (source) {
             dependencies.source = source;
         }
+    } else if (component?.doenetAttributes?.extendsList !== undefined) {
+        // A list made by an `extend` of a list (`convertToCopy`) reads the
+        // list it names as a reference reads its source.
+        dependencies.source = {
+            dependencyType: "stateVariable",
+            componentIdx: component.doenetAttributes.extendsList,
+            variableName: attributeName,
+            variablesOptional: true,
+        };
     } else if (component?.shadows?.propVariable !== attributeName) {
         // A component inside a copied one (a shadow that is neither of a
         // prop nor the reference itself, `isReferenceShadow`) sits in the
@@ -270,12 +279,40 @@ export function addContextAttributeDefinitions({
 
 /**
  * What `component` shadows, when it is a reference or a component inside one
- * (a shadow, not of a prop), so that a copy of it, pasted as the DoenetML it
- * is linked to, takes the attributes written there; otherwise `undefined`.
+ * (a shadow, not of a prop), or the list it names, when it is a list made by
+ * an `extend` of a list (`extendsList`), or the unlinked copy of the list it
+ * names, when it is a list made by a `copy` of a list (`copyListViaComposite`),
+ * or the composite it names, when that copy copied the composite's
+ * replacements, so that a copy of it, pasted as the DoenetML it is linked
+ * to, takes the attributes written there; otherwise `undefined`. An extend of a list that
+ * names itself makes this a cycle (reported as circular elsewhere), so a walk
+ * along it stops at a component it has seen.
  */
-export function pastedShadowSource(component, components) {
+export async function pastedShadowSource(component, components) {
     const shadows = component?.shadows;
     if (!shadows) {
+        // a list made by an `extend` of a list (`convertToCopy`) stands for
+        // the list it names, as a reference does for its source
+        const listIdx = component?.doenetAttributes?.extendsList;
+        if (listIdx !== undefined) {
+            return components?.[listIdx];
+        }
+        // a list made by a `copy` of a list stands for the unlinked copy of
+        // that list its `_copy` makes, which has the list's attributes as
+        // pasted, or, when the `_copy` copied the replacements of a
+        // composite (`<mathList copy="$g"/>` of a `<group>`), for that
+        // composite (`AttributeComponentDependency`)
+        const copyComposite =
+            components?.[component?.doenetAttributes?.copyListViaComposite];
+        if (copyComposite) {
+            if (await copyComposite.stateValues.usedReplacements) {
+                const named = await copyComposite.stateValues.extendedComponent;
+                return named ? components[named.componentIdx] : undefined;
+            }
+            return copyComposite.replacements?.find(
+                (replacement) => typeof replacement === "object",
+            );
+        }
         return undefined;
     }
     const source = components?.[shadows.componentIdx];
@@ -296,11 +333,13 @@ export function pastedShadowSource(component, components) {
  * copy of `component` takes as its own (`serialize`).
  */
 async function writtenAttributeComponent(component, attributeName, components) {
+    const visited = new Set();
     for (
         let comp = component;
-        comp;
-        comp = pastedShadowSource(comp, components)
+        comp && !visited.has(comp);
+        comp = await pastedShadowSource(comp, components)
     ) {
+        visited.add(comp);
         const attribute = comp.attributes?.[attributeName]?.component;
         if (attribute) {
             return attribute;

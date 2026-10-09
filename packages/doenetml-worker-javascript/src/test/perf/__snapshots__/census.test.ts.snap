@@ -37,7 +37,7 @@ exports[`component census of the micro-documents > boolean $P=(1,2) 1`] = `
   "copies": 0,
   "dependencies": 537,
   "shadows": 0,
-  "stateVariables": 528,
+  "stateVariables": 526,
   "stateVariablesResolved": 254,
 }
 `;
@@ -58,7 +58,7 @@ exports[`component census of the micro-documents > collect numbers x4 1`] = `
   "copies": 1,
   "dependencies": 822,
   "shadows": 0,
-  "stateVariables": 567,
+  "stateVariables": 565,
   "stateVariablesResolved": 349,
 }
 `;
@@ -200,7 +200,7 @@ exports[`component census of the micro-documents > numberList $l[1] 1`] = `
   "copies": 0,
   "dependencies": 348,
   "shadows": 0,
-  "stateVariables": 223,
+  "stateVariables": 221,
   "stateVariablesResolved": 149,
 }
 `;
@@ -221,7 +221,7 @@ exports[`component census of the micro-documents > point $P 1`] = `
   "copies": 1,
   "dependencies": 776,
   "shadows": 1,
-  "stateVariables": 696,
+  "stateVariables": 694,
   "stateVariablesResolved": 365,
 }
 `;
@@ -243,7 +243,7 @@ exports[`component census of the micro-documents > point $P.x 1`] = `
   "copies": 0,
   "dependencies": 579,
   "shadows": 0,
-  "stateVariables": 551,
+  "stateVariables": 549,
   "stateVariablesResolved": 273,
 }
 `;
@@ -297,7 +297,7 @@ exports[`component census of the micro-documents > shuffle literal x4 1`] = `
   "copies": 0,
   "dependencies": 313,
   "shadows": 0,
-  "stateVariables": 211,
+  "stateVariables": 209,
   "stateVariablesResolved": 145,
 }
 `;
@@ -316,7 +316,7 @@ exports[`component census of the micro-documents > sort $l of 4 1`] = `
   "copies": 1,
   "dependencies": 536,
   "shadows": 1,
-  "stateVariables": 416,
+  "stateVariables": 410,
   "stateVariablesResolved": 238,
 }
 `;
