@@ -127,6 +127,8 @@ import Select from "./components/Select";
 import Group from "./components/Group";
 import AnimateFromSequence from "./components/AnimateFromSequence";
 import Timer from "./components/Timer";
+import Drill from "./components/Drill";
+import DrillRound from "./components/DrillRound";
 import Evaluate from "./components/Evaluate";
 import SelectRandomNumbers from "./components/SelectRandomNumbers";
 import SampleRandomNumbers from "./components/SampleRandomNumbers";
@@ -351,6 +353,8 @@ const componentTypeArray = [
     Group,
     AnimateFromSequence,
     Timer,
+    Drill,
+    DrillRound,
     Evaluate,
     SelectRandomNumbers,
     SampleRandomNumbers,

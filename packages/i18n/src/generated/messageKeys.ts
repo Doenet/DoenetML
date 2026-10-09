@@ -57,6 +57,15 @@ export type MessageKey =
     | "timer-resume"
     | "timer-reset"
     | "timer-expired"
+    | "drill-start"
+    | "drill-try-again"
+    | "drill-progress"
+    | "drill-correct"
+    | "drill-incorrect"
+    | "drill-incorrect-retry"
+    | "drill-succeeded"
+    | "drill-expired"
+    | "drill-best"
     | "summary-statistics-caption"
     | "math-input-preview-region"
     | "math-input-preview"
@@ -701,6 +710,15 @@ export const MESSAGE_KEYS: readonly MessageKey[] = [
     "timer-resume",
     "timer-reset",
     "timer-expired",
+    "drill-start",
+    "drill-try-again",
+    "drill-progress",
+    "drill-correct",
+    "drill-incorrect",
+    "drill-incorrect-retry",
+    "drill-succeeded",
+    "drill-expired",
+    "drill-best",
     "summary-statistics-caption",
     "math-input-preview-region",
     "math-input-preview",

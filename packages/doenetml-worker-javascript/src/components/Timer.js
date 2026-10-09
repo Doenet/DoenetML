@@ -1,6 +1,7 @@
 import InlineComponent from "./abstract/InlineComponent";
 import {
     cancelTimerTick,
+    formatTimerSeconds,
     nowMs,
     returnTimerAttributes,
     returnTimerExpireInstructions,
@@ -151,7 +152,10 @@ export default class Timer extends InlineComponent {
                         : dependencyValues.timeRemaining;
                 return {
                     setValue: {
-                        text: formatSeconds(seconds, dependencyValues.format),
+                        text: formatTimerSeconds(
+                            seconds,
+                            dependencyValues.format,
+                        ),
                     },
                 };
             },
@@ -465,24 +469,4 @@ export default class Timer extends InlineComponent {
             skipRendererUpdate,
         });
     }
-}
-
-/**
- * `seconds` as `m:ss` (`h:mm:ss` from an hour up) or as plain seconds.
- */
-function formatSeconds(seconds, format) {
-    if (!Number.isFinite(seconds)) {
-        seconds = 0;
-    }
-    seconds = Math.max(0, Math.round(seconds));
-    if (format === "s") {
-        return String(seconds);
-    }
-    const hours = Math.floor(seconds / 3600);
-    const minutes = Math.floor((seconds % 3600) / 60);
-    const secs = String(seconds % 60).padStart(2, "0");
-    if (hours > 0) {
-        return `${hours}:${String(minutes).padStart(2, "0")}:${secs}`;
-    }
-    return `${minutes}:${secs}`;
 }

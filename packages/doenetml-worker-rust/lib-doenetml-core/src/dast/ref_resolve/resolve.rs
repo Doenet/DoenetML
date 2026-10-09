@@ -61,8 +61,17 @@ pub(super) enum Visibility {
     ChildrenInvisibleToTheirGrandparents,
 }
 
-const CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS: [&str; 5] =
-    ["repeat", "repeatForSequence", "option", "case", "else"];
+/// `_drillRound` holds the question template of a `<drill>`, which the drill
+/// copies afresh for each round; like a `<repeat>`'s template, its names are
+/// local to it.
+const CHILDREN_INVISIBLE_TO_THEIR_GRANDPARENTS: [&str; 6] = [
+    "repeat",
+    "repeatForSequence",
+    "option",
+    "case",
+    "else",
+    "_drillRound",
+];
 
 impl Visibility {
     fn lookup_by_name(name: &str) -> Self {

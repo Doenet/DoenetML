@@ -65,7 +65,10 @@ export function returnTimerAttributes({
     };
 }
 
-function essentialDefinition(variableName, defaultValue) {
+/**
+ * A state variable that holds a saved value, `defaultValue` until set.
+ */
+export function essentialDefinition(variableName, defaultValue) {
     return {
         hasEssential: true,
         defaultValue,
@@ -393,4 +396,24 @@ export async function cancelTimerTick(component) {
         await component.coreFunctions.cancelAnimationFrame(component._tickId);
         component._tickId = undefined;
     }
+}
+
+/**
+ * `seconds` as `m:ss` (`h:mm:ss` from an hour up) or as plain seconds.
+ */
+export function formatTimerSeconds(seconds, format = "m:ss") {
+    if (!Number.isFinite(seconds)) {
+        seconds = 0;
+    }
+    seconds = Math.max(0, Math.round(seconds));
+    if (format === "s") {
+        return String(seconds);
+    }
+    const hours = Math.floor(seconds / 3600);
+    const minutes = Math.floor((seconds % 3600) / 60);
+    const secs = String(seconds % 60).padStart(2, "0");
+    if (hours > 0) {
+        return `${hours}:${String(minutes).padStart(2, "0")}:${secs}`;
+    }
+    return `${minutes}:${secs}`;
 }

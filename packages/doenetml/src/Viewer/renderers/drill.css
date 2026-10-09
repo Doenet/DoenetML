@@ -1,0 +1,50 @@
+.doenet-viewer .doenet-drill {
+    border: var(--mainBorder);
+    border-radius: var(--mainBorderRadius);
+    padding: 8px 12px;
+    margin: 12px 0;
+}
+
+.doenet-viewer .doenet-drill-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 12px;
+}
+
+.doenet-viewer .doenet-drill-time {
+    font-variant-numeric: tabular-nums;
+    font-weight: bold;
+    font-size: 1.25em;
+}
+
+.doenet-viewer .doenet-drill-progress {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.doenet-viewer .doenet-drill-progress-bar {
+    display: inline-block;
+    width: 120px;
+    height: 10px;
+    border: 1px solid var(--canvasText);
+    border-radius: 5px;
+    overflow: hidden;
+}
+
+.doenet-viewer .doenet-drill-progress-fill {
+    display: block;
+    height: 100%;
+    background-color: var(--mainBlue);
+}
+
+.doenet-viewer .doenet-drill-status {
+    min-height: 1.5em;
+    margin: 6px 0;
+    font-weight: bold;
+}
+
+.doenet-viewer .doenet-drill-status-incorrect {
+    color: var(--mainRed);
+}

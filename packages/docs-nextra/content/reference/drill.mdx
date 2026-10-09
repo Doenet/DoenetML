@@ -1,0 +1,120 @@
+import { DoenetViewer, DoenetEditor, DoenetExample } from "../../components"
+
+import { ComponentDisplay, AttrPropDisplay } from "../../components"
+
+
+# `<drill>{:dn}`
+
+<ComponentDisplay name='drill'/>
+
+`<drill>{:dn}` is timed practice. Its contents are a template for one question. When the student presses Start, the drill asks that question, checks the answer, and then asks it again with new random values. It keeps asking until the student has answered `numRequired` questions correctly, or until `timeLimit` seconds have passed. When time runs out, Try again begins a new attempt with new questions and a full clock.
+
+Each round is a new copy of the template, so every `<selectFromSequence>{:dn}`, `<select>{:dn}` and `shuffleOrder` inside it chooses again. Names inside the template refer to that round's copy, and they can't be referenced from outside the drill. The same student variant gets the same questions in the same order.
+
+The drill is scored as one item: its credit is 1 once an attempt reaches `numRequired`, and the answers inside it don't count toward the score on their own. Like `<timer>{:dn}`, its clock follows real time and keeps counting while the page is closed, so reloading neither pauses nor restarts an attempt.
+
+<AttrPropDisplay name='drill'/>
+
+## Examples
+
+### Example: Multiplication facts
+```doenet-editor-horiz
+<drill timeLimit="60" numRequired="5">
+  <setup>
+    <selectFromSequence name="a" from="2" to="9" />
+    <selectFromSequence name="b" from="2" to="9" />
+  </setup>
+  <answer>
+    <mathInput><label><m>$a \times $b =</m></label></mathInput>
+    <award><math>$a * $b</math></award>
+  </answer>
+</drill>
+```
+
+Five products must be answered correctly within a minute. After each answer, the drill shows whether it was right, then asks a new product.
+
+
+---
+
+### Example: A random number of correct choices
+```doenet-editor-horiz
+<drill timeLimit="120" numRequired="15">
+  <setup>
+    <selectFromSequence name="k" from="1" to="4" />
+    <selectFromSequence name="c" from="2" to="9" numToSelect="5" />
+    <select name="good" numToSelect="$k">
+      <option><math>(x+$c[1])(x-$c[1])</math></option>
+      <option><math>($c[2] x-1)($c[2] x+1)</math></option>
+      <option><math>($c[3]-y)($c[3]+y)</math></option>
+      <option><math>(x^2+$c[4])(x^2-$c[4])</math></option>
+      <option><math>($c[5] a+b)($c[5] a-b)</math></option>
+    </select>
+    <select name="bad" numToSelect="5 - $k">
+      <option><math>(x+$c[1])(x+$c[1])</math></option>
+      <option><math>($c[2] x-1)($c[2] x-1)</math></option>
+      <option><math>(x+$c[3])(x-$c[4])</math></option>
+      <option><math>($c[5] x+1)(x-$c[5])</math></option>
+      <option><math>(y-$c[1])(y-$c[2])</math></option>
+    </select>
+  </setup>
+  <answer>
+    <choiceInput selectMultiple shuffleOrder>
+      <label>Which of these could be expanded using the difference of squares formula?</label>
+      <repeat for="$good" valueName="g"><choice credit="1">$g</choice></repeat>
+      <repeat for="$bad" valueName="b"><choice>$b</choice></repeat>
+    </choiceInput>
+  </answer>
+</drill>
+```
+
+Each question has five choices, of which `k`, between one and four, are correct. Each round chooses a new `k`, new products and a new order.
+
+
+---
+
+### Attribute Example: wrongAnswerBehavior
+```doenet-editor-horiz
+<drill timeLimit="45" numRequired="4" wrongAnswerBehavior="retry">
+  <setup>
+    <selectFromSequence name="n" from="11" to="19" />
+  </setup>
+  <answer>
+    <mathInput><label><m>$n^2 =</m></label></mathInput>
+    <award><math>$n^2</math></award>
+  </answer>
+</drill>
+```
+
+By default (`wrongAnswerBehavior="next"`) a wrong answer briefly shows that it was wrong, and the next question appears. With `wrongAnswerBehavior="retry"` the drill stays on a question until it is answered correctly.
+
+
+---
+
+### Property Example: phase, numCorrect and bestNumCorrect
+```doenet-editor-horiz
+<drill name="d" timeLimit="20" numRequired="3">
+  <setup>
+    <selectFromSequence name="n" from="2" to="20" />
+  </setup>
+  <answer>
+    <mathInput><label><m>$n + $n =</m></label></mathInput>
+    <award><math>2 * $n</math></award>
+  </answer>
+</drill>
+
+<p>Phase: $d.phase. Correct this attempt: $d.numCorrect. Best attempt: $d.bestNumCorrect.</p>
+
+<p>Attempts finished: <number name="finished">0</number></p>
+<updateValue triggerWith="$d" target="$finished" newValue="$finished + 1" type="number" />
+```
+
+`phase` is `notStarted`, `running`, `succeeded` or `expired`. An action with `triggerWith` on the drill runs each time an attempt ends, whether it succeeded or time ran out.
+
+
+---
+
+## Time limits and accessibility
+
+A time limit can stop some students from finishing at all, such as students who use a screen reader or who have extended time as an accommodation. When a time limit is essential to the practice, consider giving `timeLimit` a value that a version of the activity with more time can change.
+
+The ticking time is not read aloud. A screen reader announces whether each answer was right, and how each attempt ended.

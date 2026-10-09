@@ -83,6 +83,7 @@ export default {
     displayDoenetML: { title: "displayDoenetML" },
     div: { title: "div" },
     document: { title: "document" },
+    drill: { title: "drill" },
     eigenDecomposition: { title: "eigenDecomposition" },
     electronConfiguration: { title: "electronConfiguration" },
     ellipsis: { title: "ellipsis" },

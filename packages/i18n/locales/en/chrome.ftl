@@ -143,6 +143,29 @@ timer-reset = Reset
 # open. The ticking clock itself is never announced.
 timer-expired = Time's up
 
+## Drill — timed practice that asks one question at a time.
+
+# The button that begins the first attempt, and every attempt after it.
+drill-start = Start
+drill-try-again = Try again
+
+# Progress through an attempt: how many questions have been answered correctly
+# out of how many are needed.
+drill-progress = { $numCorrect } of { $numRequired } correct
+
+# Shown, and announced, after each answer is checked. `-retry` is shown when
+# the drill stays on a question until it is answered correctly.
+drill-correct = Correct
+drill-incorrect = Not quite
+drill-incorrect-retry = Not quite, try again
+
+# Shown when an attempt ends. `$time` is how long the attempt took, as 1:42.
+drill-succeeded = Done: { $numRequired } correct in { $time }
+drill-expired = Time's up: { $numCorrect } of { $numRequired } correct
+
+# The best attempt so far, shown between attempts.
+drill-best = Best: { $numCorrect } of { $numRequired }
+
 # Caption above the table a `<summaryStatistics>` renders. It used to name the
 # data column being summarized; the statistics now come from values written in
 # the document, so there is no column to name and the message takes no
