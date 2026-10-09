@@ -757,6 +757,45 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             ]).eqls([false, false, -4, -4]);
         });
 
+        it("a write to a reference's own literal fixLocation stays on the reference", async () => {
+            // `fixLocation="false"` on the extend is a literal; a reader's
+            // write to it is the extend's, as it was to its attribute
+            // component, and does not reach the source
+            const doenetML = `
+    <graph>
+        <point name="A">(1,2)</point>
+        <point extend="$A" name="B" fixLocation="false" />
+    </graph>
+    <booleanInput name="bi" bindValueTo="$B.fixLocation" />
+    `;
+            const first = await createTestCore({ doenetML });
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await first.resolvePathToNodeIdx("bi"),
+                core: first.core,
+            });
+            async function fixLocations(tc: typeof first) {
+                const stateVariables = await tc.core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                return [
+                    stateVariables[await tc.resolvePathToNodeIdx("A")]
+                        .stateValues.fixLocation,
+                    stateVariables[await tc.resolvePathToNodeIdx("B")]
+                        .stateValues.fixLocation,
+                ];
+            }
+            expect(await fixLocations(first)).eqls([false, true]);
+
+            await first.core.saveImmediately();
+            const second = await createTestCore({
+                doenetML,
+                initialState: first.scoreState.state as string,
+            });
+            expect(await fixLocations(second)).eqls([false, true]);
+        });
+
         it("a copy of a repeat whose iterations reference a prop or a list entry shows what the source's iterations show", async () => {
             // Each iteration's `a` and `b` take their display settings, and
             // `b` its `hide`, from what they reference. The copies of the

@@ -213,7 +213,8 @@ export function contextAttributeDefinition({
             const attribute = this?.svComponent?.attributes?.[attributeName];
             const written =
                 attribute?.component !== undefined ||
-                attribute?.primitive !== undefined;
+                attribute?.primitive !== undefined ||
+                attribute?.type === "literal";
             if (
                 !written &&
                 dependencyValues.source !== null &&
