@@ -651,6 +651,53 @@ describe("Dragging points at values that are not fixed @group3", async () => {
         });
     });
 
+    it("a coordinate reading the value and another value that takes a write takes no drag with fixed=false", async () => {
+        // Both `$v` and `$a` could take the drag, so neither does, as for a
+        // `<sequence>` entry under `fixed="false"` (`$s[2] + $a`). With the
+        // repeat fixed, `$a` takes it.
+        const a = `<number name="a">0</number>`;
+        const repeat = `<repeatForSequence name="r" from="1" to="3" valueName="v"FIXED><point>($v + $a, 1)</point></repeatForSequence>`;
+        for (const { repeat: notFixedRepeat, becomesList } of notFixed(
+            repeat,
+        )) {
+            expect(
+                await dragResult(
+                    `${a}<graph name="g">${notFixedRepeat}</graph>`,
+                    1,
+                    becomesList,
+                ),
+                notFixedRepeat,
+            ).toEqual({
+                before: [
+                    [1, 1],
+                    [2, 1],
+                    [3, 1],
+                ],
+                after: [
+                    [1, 1],
+                    [2, 8],
+                    [3, 1],
+                ],
+            });
+        }
+        expect(
+            await dragResult(
+                `${a}<graph name="g">${repeat.replace("FIXED", "")}</graph>`,
+            ),
+        ).toEqual({
+            before: [
+                [1, 1],
+                [2, 1],
+                [3, 1],
+            ],
+            after: [
+                [6, 1],
+                [7, 8],
+                [8, 1],
+            ],
+        });
+    });
+
     it("a sampler's or sequence's value takes a drag with fixed=false", async () => {
         const cases: { component: string; point: string }[] = [
             {
