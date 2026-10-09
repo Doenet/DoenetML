@@ -18,9 +18,9 @@
  * number and have no components between the brackets of their path
  * (`$l[$i]`). Anything else keeps the attribute component. So does the
  * template of a repeat made a list (`utils/dast/repeatLists.ts`), whose
- * references read entries of lists, and a component that is itself an
- * attribute component, whose index the resolver does not have to resolve a
- * slot from.
+ * references read entries of lists, and a component made after the resolver
+ * was given the document, whose index it does not have to resolve a slot
+ * from.
  *
  * It runs last among the passes that read attribute components, after the
  * value references, which make the `_ref`s.
@@ -54,8 +54,17 @@ export function setExpressionAttributesEnabled(enabled: boolean) {
     expressionAttributesEnabled = enabled;
 }
 
+/**
+ * Hold the attributes of `serializedComponents` that qualify. `numResolverNodes`
+ * is the number of nodes the resolver was given (`normalized_root.nodes`):
+ * a component made after it, by sugar or for an attribute (the points of a
+ * polygon's `vertices`, a label's `anchor`), has an index the resolver does
+ * not know, which a slot could not resolve from, so its references keep
+ * their own.
+ */
 export function convertExpressionAttributes(
     serializedComponents: (SerializedComponent | string)[],
+    numResolverNodes: number,
 ) {
     if (!expressionAttributesEnabled) {
         return;
@@ -68,12 +77,10 @@ export function convertExpressionAttributes(
         if (component.doenetAttributes?.repeatTemplate) {
             continue;
         }
-        // A component that is itself an attribute component (a label's
-        // `anchor`) has an index the resolver was not given, which a slot
-        // could not resolve from; its references keep their own.
-        const names = component.doenetAttributes?.isAttributeChildFor
-            ? undefined
-            : EXPRESSION_ATTRIBUTES[component.componentType];
+        const names =
+            component.componentIdx < numResolverNodes
+                ? EXPRESSION_ATTRIBUTES[component.componentType]
+                : undefined;
         for (const [name, attribute] of Object.entries(
             component.attributes ?? {},
         )) {
@@ -86,10 +93,13 @@ export function convertExpressionAttributes(
             if (held) {
                 component.attributes[name] = held;
             } else {
-                convertExpressionAttributes([attribute.component]);
+                convertExpressionAttributes(
+                    [attribute.component],
+                    numResolverNodes,
+                );
             }
         }
-        convertExpressionAttributes(component.children ?? []);
+        convertExpressionAttributes(component.children ?? [], numResolverNodes);
     }
 }
 

@@ -79,7 +79,7 @@ Parsing once across owners is possible: on repeat-150, 150 points parse the same
 
 1. **Reference slots, behavior unchanged.** Done. `ValueRef`'s chain, its `canBeModified` included, is `referenceSlotDefinitions` (`components/abstract/referenceSlotDefinitions.js`); `ValueRef` calls it with its own names. The two dependencies take a slot (`refResolutionAt`, `utils/referenceSlot.ts`).
 2. **A `point.xs` held by its point.** Done, for every qualifying point, not only one; see below.
-3. **The rest of `xs`:** a `<vector>`'s, and a point that is itself an attribute component (a label's `anchor`), which needs the resolver to have a node for it.
+3. **The rest of `xs`:** a `<vector>`'s, and a point made after the resolver was given the document (the points of a polygon's `vertices`, a label's `anchor`), which needs the resolver to have a node for it. That is measures-of-spread's 6.2%.
 4. **Boolean and math expressions** (`hide`, `condition`, `equation`), with a boolean node in `utils/repeatTemplate.js`, which F6's step 4b needs too.
 
 **Step 2, as built.**
@@ -92,15 +92,14 @@ Parsing once across owners is possible: on repeat-150, 150 points parse the same
   - An unlinked copy takes the attribute with the text written to it (`copyOfExpressionAttribute`), which a copy snapshot holds and restores (`copySnapshot.js`).
   - A linked copy reads the source's, through the `attributeComponent` dependency.
 - **One change to the core.** Setting an essential value also sets it on each shadow; a shadow that does not have the variable, as a linked copy has none of its source's `__xs_writes`, is now skipped.
-- **A point that is itself an attribute component** keeps its components. Its index was made after the resolver was given the document, so a slot cannot resolve from it.
+- **A point made after the resolver was given the document** keeps its components: one sugar made for an attribute (each point of a polygon's `vertices="($a,1) ($b,2)"`, a label's `anchor`). The resolver has no node for its index, so a slot cannot resolve from it. The pass holds only an owner whose index is below the number of nodes the resolver was given (`normalized_root.nodes.length`). A repeat's iterations are given to the resolver as they are made, so a point in one is held.
 - **Measured,** branch against `main`'s sources:
 
   | fixture | components | dependencies | state variables resolved | load ms |
   |---|--:|--:|--:|--:|
   | repeat-150 | 2,706 → 1,956 | 120,341 → 105,941 | 53,194 → 47,644 | 3,420 → 3,015 |
-  | measures-of-spread | 3,535 → 3,395 | 108,560 → 106,064 | 50,433 → 49,471 | 3,941 → 3,803 |
 
-  One `xs` of repeat-150 now costs about 28 dependencies, against 124. The other fixtures are unchanged: their points are in repeats made lists, have no references, or are attribute components. Measures-of-spread gains less than estimated, since many of its 84 points are attribute components (vertices and endpoints).
+  One `xs` of repeat-150 now costs about 28 dependencies, against 124. The other fixtures are unchanged. Their points are in repeats made lists, have no references, or were made for an attribute. All 84 of measures-of-spread's are of the last kind, which step 3 takes.
 
 ## Alternatives considered
 
