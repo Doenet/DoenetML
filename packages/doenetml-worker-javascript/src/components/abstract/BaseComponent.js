@@ -6,6 +6,8 @@ import { gatherVariantComponents } from "../../utils/variants";
 import {
     addContextAttributeDefinitions,
     CONTEXT_ATTRIBUTES,
+    pastedShadowSource,
+    writtenEntryAttributeComponent,
 } from "../../utils/contextAttribute";
 import {
     returnDefaultArrayVarNameFromPropIndex,
@@ -1565,6 +1567,15 @@ export default class BaseComponent {
             }
         }
 
+        if (parameters.copyAll) {
+            await serializeShadowedAttributes({
+                component: this,
+                serializedComponent,
+                parametersForChildren,
+                componentSourceAttributesToIgnore,
+            });
+        }
+
         // always copy essential state, except, for the component a copy is
         // made of, that of an attribute a reference does not take from its
         // source (`notFromReferenceSource`): a write to the source's `fixed`
@@ -1712,7 +1723,7 @@ export default class BaseComponent {
         if (parameters.copyAll) {
             await snapshotListEntrySource(
                 serializedComponent,
-                parameters.components,
+                parametersForChildren,
             );
         } else {
             dropListEntryLabel(serializedComponent.doenetAttributes);
@@ -1800,6 +1811,16 @@ export default class BaseComponent {
             serializedCopy.attributes = deepClone(
                 serializedComponent.attributes,
             );
+            // an attribute component is copied as a child is, so that one
+            // in the template of a reference to a `<repeat>`, which shadows
+            // the template of what it references, does not keep that link
+            for (const attribute of Object.values(serializedCopy.attributes)) {
+                if (attribute.component) {
+                    attribute.component = this.copySerializedComponent(
+                        attribute.component,
+                    );
+                }
+            }
             serializedCopy.originalAttributes = deepClone(
                 serializedComponent.attributes,
             );
@@ -2145,6 +2166,69 @@ export default class BaseComponent {
 }
 
 /**
+ * Attributes that are alternatives to each other: a component that writes
+ * one does not read the other from what it shadows (the
+ * `dontRecurseToShadowsIfHaveAttribute` of their dependencies, in
+ * `utils/numberDisplay.js`, `Function.js` and `FunctionOperators.js`).
+ */
+const ALTERNATIVE_ATTRIBUTES = Object.freeze({
+    displayDigits: "displayDecimals",
+    displayDecimals: "displayDigits",
+    variable: "variables",
+    variables: "variable",
+    derivVariable: "derivVariables",
+    derivVariables: "derivVariable",
+});
+
+/**
+ * For an unlinked copy (`copyAll`) of `component`, which is pasted as the
+ * DoenetML it is linked to: when `component` is a reference or a component
+ * inside one (a shadow, not of a prop), give `serializedComponent` the
+ * attributes `component` takes from what it shadows and does not write
+ * itself, as they are written there, so that one given as a reference
+ * (`hide="$h"`) keeps following it. These include `fixed` and `fixLocation`,
+ * which a reference reads alongside where it sits instead
+ * (`notFromReferenceSource`).
+ */
+async function serializeShadowedAttributes({
+    component,
+    serializedComponent,
+    parametersForChildren,
+    componentSourceAttributesToIgnore,
+}) {
+    const components = parametersForChildren.components;
+    for (
+        let comp = pastedShadowSource(component, components);
+        comp;
+        comp = pastedShadowSource(comp, components)
+    ) {
+        // what the copy already has, from `component` or a component
+        // between it and `comp`: a reference that writes one of a pair of
+        // alternatives does not read the other from what it shadows
+        // (`dontRecurseToShadowsIfHaveAttribute`), so neither does its copy
+        const written = new Set(Object.keys(serializedComponent.attributes));
+        for (const attrName in comp.attributes) {
+            const attribute = comp.attributes[attrName];
+            if (
+                !attribute.component ||
+                written.has(attrName) ||
+                written.has(ALTERNATIVE_ATTRIBUTES[attrName]) ||
+                componentSourceAttributesToIgnore.includes(attrName)
+            ) {
+                continue;
+            }
+            serializedComponent.attributes[attrName] = {
+                type: "component",
+                component: await attribute.component.serialize(
+                    parametersForChildren,
+                ),
+                sourceDoc: attribute.component.sourceDoc,
+            };
+        }
+    }
+}
+
+/**
  * Remove, from the `doenetAttributes` of a linked copy of a component made
  * from a list entry (`listEntrySourceDoenetAttributes` in `Copy.js`), the
  * label it reads from the list: the copy is labeled as that component is
@@ -2171,32 +2255,39 @@ function dropListEntryLabel(doenetAttributes) {
  * remove the `listEntrySource` it would read from the list, so that it does
  * not follow the list after it is made. The values it read there are carried
  * by its essential state (`copyEssentialStateIfShadow`), except `fixed` and
- * `fixLocation`: the source's, as they are now, are held as an unlinked copy
- * holds its source's (`copySourceContext`), alongside where the copy sits.
+ * `fixLocation`, for which it takes the attributes written on the list or
+ * the entry's source, as an unlinked copy of the entry does (`Copy.js`).
  */
-async function snapshotListEntrySource(serializedComponent, components) {
+async function snapshotListEntrySource(serializedComponent, parameters) {
     const listEntrySource =
         serializedComponent.doenetAttributes.listEntrySource;
     if (!listEntrySource) {
         return;
     }
     delete serializedComponent.doenetAttributes.listEntrySource;
+    const components = parameters.components;
     const list = components?.[listEntrySource.componentIdx];
     if (!list) {
         return;
     }
     for (const attributeName of CONTEXT_ATTRIBUTES) {
-        const arrayName = listEntrySource.variables[attributeName];
-        if (!arrayName) {
+        if (
+            !listEntrySource.variables[attributeName] ||
+            attributeName in serializedComponent.attributes
+        ) {
             continue;
         }
-        const value = (await list.stateValues[arrayName])?.[
-            listEntrySource.index
-        ];
-        if (value === true) {
-            serializedComponent.doenetAttributes.copySourceContext = {
-                ...serializedComponent.doenetAttributes.copySourceContext,
-                [attributeName]: true,
+        const attribute = await writtenEntryAttributeComponent({
+            list,
+            index: listEntrySource.index,
+            attributeName,
+            components,
+        });
+        if (attribute) {
+            serializedComponent.attributes[attributeName] = {
+                type: "component",
+                component: await attribute.serialize(parameters),
+                sourceDoc: attribute.sourceDoc,
             };
         }
     }

@@ -15,8 +15,9 @@ vi.mock("hyperformula");
  * gets them the same way whatever its form: its own attribute decides;
  * otherwise it is fixed when its source is or where it sits is (its parent,
  * or a `<group>` it sits in). A `false` anywhere only stops that one from
- * fixing it. An unlinked copy takes what the document set on its source when
- * it was made, in place of its source.
+ * fixing it. An unlinked copy is its source's DoenetML pasted where it sits:
+ * it takes the attribute written on its source (or, for an entry, on the
+ * list) as its own, and a copy of a prop takes none.
  */
 
 const SOURCES = `
@@ -126,10 +127,20 @@ describe("Fixed and fixLocation of references @group4", () => {
                         if (!(key in results)) {
                             return;
                         }
+                        // an unlinked copy has the source's attribute as
+                        // its own, which decides; of a prop, none
+                        const copyOfProp =
+                            how === "copy" && reference.includes(".");
+                        const expected =
+                            how !== "copy"
+                                ? sourceFixed || containerFixes
+                                : copyOfProp || settingName === "unset"
+                                  ? containerFixes
+                                  : sourceFixed;
                         expect(
                             results[key],
                             `<${tag} ${how}="${reference}"/>, source ${settingName}, in ${containerName}`,
-                        ).eq(sourceFixed || containerFixes);
+                        ).eq(expected);
                     });
                 }
             }
@@ -425,7 +436,7 @@ describe("Fixed and fixLocation of references @group4", () => {
         }
     });
 
-    it("an unlinked copy keeps what fixed its source when it was made", async () => {
+    it("an unlinked copy is its source pasted: it keeps the source's attributes, not where the source sits", async () => {
         const doenetML = `
     <booleanInput name="bi" />
     <math name="m" fixed="$bi" fixLocation="$bi">x</math>
@@ -435,6 +446,14 @@ describe("Fixed and fixLocation of references @group4", () => {
     <math name="m2" fixed="$bi2">x</math>
     <math copy="$m2" name="c2" />
     <p fixed="false"><math copy="$m2" name="d2" /></p>
+    <p fixed><math name="m3">x</math></p>
+    <math copy="$m3" name="c3" />
+    <math name="m4" fixed="false">x</math>
+    <p fixed><math copy="$m4" name="d4" /></p>
+    <booleanInput name="bf" bindValueTo="$m5.fixed" />
+    <math name="m5" fixed>x</math>
+    <math extend="$m5" name="r5" />
+    <math copy="$r5" name="c5" />
     `;
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
@@ -449,22 +468,30 @@ describe("Fixed and fixLocation of references @group4", () => {
                     stateVariables[await resolvePathToNodeIdx(name)]
                         .stateValues;
                 expect(stateValues.fixed, name).eq(expected[name]);
-                // `m` has fixLocation as it has fixed, and `c` keeps it
+                // `m` has fixLocation as it has fixed, and so does `c`
                 if (name === "m" || name === "c") {
                     expect(stateValues.fixLocation, name).eq(expected[name]);
                 }
             }
         }
 
+        // `c3` is not in the fixed paragraph `m3` is in, and `d` and `d4`
+        // have the `fixed` written on `m` and `m4`, which decides over their
+        // paragraph. `c5` is a copy of what `r5` is a reference to.
         await check({
             m: false,
             c: false,
-            d: true,
+            d: false,
             m2: true,
             c2: true,
             d2: true,
+            c3: false,
+            d4: false,
+            c5: true,
         });
 
+        // a copy keeps following what its source's attributes reference,
+        // but not a change to its source
         await updateBooleanInputValue({
             boolean: true,
             componentIdx: await resolvePathToNodeIdx("bi"),
@@ -475,17 +502,25 @@ describe("Fixed and fixLocation of references @group4", () => {
             componentIdx: await resolvePathToNodeIdx("bi2"),
             core,
         });
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("bf"),
+            core,
+        });
         await check({
             m: true,
-            c: false,
+            c: true,
             d: true,
             m2: false,
-            c2: true,
-            d2: true,
+            c2: false,
+            d2: false,
+            m5: false,
+            r5: false,
+            c5: true,
         });
     });
 
-    it("an unlinked copy of a prop or list entry keeps what fixed its source's container", async () => {
+    it("an unlinked copy of a prop or list entry does not take what fixed its source's container", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <p fixed>
@@ -498,16 +533,29 @@ describe("Fixed and fixLocation of references @group4", () => {
     <math copy="$P.x" name="b" />
     <math copy="$ml[1]" name="c" />
     <number copy="$s[1]" name="d" />
+    <booleanInput name="bi" />
+    <mathList name="ml2" fixed="$bi">a b</mathList>
+    <math copy="$ml2[1]" name="e" />
     `,
         });
-        const stateVariables = await core.returnAllStateVariables(false, true);
-        for (const name of ["a", "b", "c", "d"]) {
-            expect(
-                stateVariables[await resolvePathToNodeIdx(name)].stateValues
-                    .fixed,
-                name,
-            ).eq(true);
+        async function fixed(name: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                .fixed;
         }
+        for (const name of ["a", "b", "c", "d", "e"]) {
+            expect(await fixed(name), name).eq(false);
+        }
+        // a copy of an entry takes the attribute written on the list
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("bi"),
+            core,
+        });
+        expect(await fixed("e")).eq(true);
     });
 
     it("an unlinked copy of what a composite fixed is not fixed", async () => {
@@ -539,6 +587,38 @@ describe("Fixed and fixLocation of references @group4", () => {
         expect(await fixed("r[1].ei")).eq(true);
         expect(await fixed("r[1].ci")).eq(false);
         expect(await fixed("ef")).eq(false);
+    });
+
+    it("an unlinked copy made after a write to its source's fixed or fixLocation does not take the write", async () => {
+        // the write is not written DoenetML, so the copy, its source pasted,
+        // does not have it
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="bf" bindValueTo="$m.fixed" />
+    <math name="m">x</math>
+    <booleanInput name="bfl" bindValueTo="$P.fixLocation" />
+    <graph><point name="P">(1,2)</point></graph>
+    <booleanInput name="show" />
+    <conditionalContent condition="$show" name="cc">
+      <math copy="$m" name="c" />
+      <graph><point copy="$P" name="Q" /></graph>
+    </conditionalContent>
+    `,
+        });
+        for (const name of ["bf", "bfl", "show"]) {
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+        }
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const stateValues = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        expect((await stateValues("m")).fixed).eq(true);
+        expect((await stateValues("P")).fixLocation).eq(true);
+        expect((await stateValues("cc.c")).fixed).eq(false);
+        expect((await stateValues("cc.Q")).fixLocation).eq(false);
     });
 
     it("a point extended into a fixed group cannot be dragged", async () => {

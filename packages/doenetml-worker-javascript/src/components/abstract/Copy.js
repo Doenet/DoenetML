@@ -22,7 +22,7 @@ import { isListEntryArrayVariable } from "../../utils/listEntryReference";
 import { errorComponentState } from "../../utils/dast/errors";
 import {
     CONTEXT_ATTRIBUTES,
-    snapshotContextAttributes,
+    writtenEntryAttributeComponent,
 } from "../../utils/contextAttribute";
 import {
     copiesReferent,
@@ -1615,18 +1615,21 @@ export default class Copy extends CompositeComponent {
             return { serializedReplacements, diagnostics, nComponents };
         }
 
-        // An unlinked copy (`copy`, not `extend`) takes `fixed` and
-        // `fixLocation` from its source as the document sets them there
-        // when it is made, alongside where it sits (`utils/contextAttribute.js`).
-        // What the composite that made the source gave it (a `<sequence>`
-        // its entries, a `<repeat>` its index) is not carried.
-        if (!link) {
-            await snapshotContextAttributes({
-                serializedComponent: serializedReplacements[0],
-                source: replacementSourceComponent,
-                components,
-                removeSourceAttributes: true,
-            });
+        // An unlinked copy (`copy`, not `extend`) is the DoenetML of its
+        // source pasted where it sits: it takes the `fixed` and `fixLocation`
+        // written on its source, or on what its source is a reference to, as
+        // its own attributes (`serialize`), and the rest from where it sits
+        // (`utils/contextAttribute.js`). What fixed its source otherwise (its
+        // parent, a write to it, the composite that made it, as a
+        // `<sequence>` its entries and a `<repeat>` its index) is not
+        // carried.
+        if (!link && typeof serializedReplacements[0] === "object") {
+            for (const attributeName of CONTEXT_ATTRIBUTES) {
+                delete serializedReplacements[0].state?.[attributeName];
+                delete serializedReplacements[0].state?.[
+                    `${attributeName}Preliminary`
+                ];
+            }
         }
 
         // console.log(`serializedReplacements for ${component.componentIdx}`);
@@ -2964,7 +2967,6 @@ export async function replacementFromProp({
                         // no link
 
                         let attributesForReplacement = {};
-                        const entrySourceFixed = {};
 
                         if (attributeComponentsShadowingStateVariables) {
                             let classOfComponentToCreate =
@@ -3016,13 +3018,7 @@ export async function replacementFromProp({
                                             ],
                                         );
                                     }
-                                    if (CONTEXT_ATTRIBUTES.includes(attrName)) {
-                                        // taken alongside where the copy
-                                        // sits, not as an attribute
-                                        // (`snapshotContextAttributes`)
-                                        entrySourceFixed[attrName] =
-                                            attributeValue === true;
-                                    } else if (!usedDefault) {
+                                    if (!usedDefault) {
                                         additionalAttributes[attrName] =
                                             attributeValue;
                                     }
@@ -3093,6 +3089,54 @@ export async function replacementFromProp({
                             );
                         }
 
+                        // A copy of an entry, pasted, takes the `fixed` and
+                        // `fixLocation` written on the list
+                        // (`<mathList fixed="$b">`), or else, for a list of
+                        // points or vectors, on the entry's source
+                        // (`writtenEntryAttributeComponent`).
+                        const entryAttributes =
+                            componentInfoObjects.allComponentClasses[
+                                createComponentOfType
+                            ].createAttributesObject();
+                        const entryIndex =
+                            arrayStateVarObj.keyToIndex(arrayKey);
+                        for (const attrName of CONTEXT_ATTRIBUTES) {
+                            if (
+                                !entryAttributes[attrName] ||
+                                !Number.isInteger(entryIndex) ||
+                                !isListEntryArrayVariable(target, varName)
+                            ) {
+                                continue;
+                            }
+                            const written =
+                                await writtenEntryAttributeComponent({
+                                    list: target,
+                                    index: entryIndex,
+                                    attributeName: attrName,
+                                    components,
+                                });
+                            if (!written) {
+                                continue;
+                            }
+                            const res = createNewComponentIndices(
+                                [
+                                    await written.serialize({
+                                        copyAll: true,
+                                        copyVariants: true,
+                                        components,
+                                    }),
+                                ],
+                                nComponents,
+                                stateIdInfo,
+                            );
+                            nComponents = res.nComponents;
+                            attributesForReplacement[attrName] = {
+                                type: "component",
+                                name: attrName,
+                                component: res.components[0],
+                            };
+                        }
+
                         Object.assign(
                             attributesForReplacement,
                             attributesFromComposite,
@@ -3141,12 +3185,6 @@ export async function replacementFromProp({
                             },
                             children: entrySource.children,
                         };
-                        await snapshotContextAttributes({
-                            serializedComponent,
-                            source: target,
-                            components,
-                            alsoFixed: entrySourceFixed,
-                        });
 
                         serializedReplacements.push(serializedComponent);
                     }
@@ -3989,8 +4027,9 @@ export async function replacementFromProp({
                     for (let attrName in stateVarObj.shadowingInstructions
                         .addAttributeComponentsShadowingStateVariables) {
                         if (attrObj[attrName]?.createComponentOfType) {
-                            // `fixed` and `fixLocation` are taken alongside
-                            // where the copy sits (`snapshotContextAttributes`)
+                            // a copy of a prop holds its value, not the
+                            // `fixed` and `fixLocation` of what it is a
+                            // prop of
                             if (!CONTEXT_ATTRIBUTES.includes(attrName)) {
                                 let vName =
                                     stateVarObj.shadowingInstructions
@@ -4097,11 +4136,6 @@ export async function replacementFromProp({
                         [primaryEssentialStateVariable]: stateVarValue,
                     },
                 };
-                await snapshotContextAttributes({
-                    serializedComponent,
-                    source: target,
-                    components,
-                });
 
                 serializedReplacements.push(serializedComponent);
             }
@@ -4497,9 +4531,9 @@ async function listEntrySourceSnapshot({
         return { children, state, nComponents };
     }
 
-    // `fixed` and `fixLocation`, which an unlinked copy holds alongside
-    // where it sits (`snapshotContextAttributes`), where the source sets
-    // them
+    // what an unlinked copy takes as attributes, and `fixed` and
+    // `fixLocation`, which it takes as written on the list or the entry's
+    // source
     const attributes =
         arrayStateVarObj.shadowingInstructions
             .addAttributeComponentsShadowingStateVariables ?? {};
@@ -4509,7 +4543,7 @@ async function listEntrySourceSnapshot({
             // carried by the label's text (`Label`'s `hasLatex`)
             continue;
         }
-        if (variable in attributes) {
+        if (variable in attributes || CONTEXT_ATTRIBUTES.includes(variable)) {
             continue;
         }
         const value = (await target.state[arrayName].value)[index];

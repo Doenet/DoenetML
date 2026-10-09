@@ -81,15 +81,10 @@ export default class GraphicalValueList extends AuthoredValueList {
      * source does not stop the entry being dragged by it. A linked component
      * reads `fixed` and `fixLocation` from the list instead
      * (`listEntrySourceVariables`); an unlinked copy (`<point copy="$c[1]"
-     * link="false"/>`) holds them where they are not that value, alongside
-     * where it sits (`snapshotContextAttributes`).
+     * link="false"/>`) takes them as written on the list or the entry's
+     * source (`writtenEntryAttributeComponent`).
      */
     static entrySourceAttributeArrays = Object.freeze({
-        fixed: { arrayName: "entrySourceFixeds", defaultValue: false },
-        fixLocation: {
-            arrayName: "entrySourceFixLocations",
-            defaultValue: false,
-        },
         draggable: { arrayName: "entrySourceDraggables", defaultValue: true },
     });
 
@@ -764,8 +759,7 @@ export default class GraphicalValueList extends AuthoredValueList {
 
         // A component made from one entry (`$c[1]` in a graph, `<point
         // extend="$c[1]"/>`) takes the `draggable` attribute of the entry's
-        // source, and an unlinked copy also holds `fixed` and `fixLocation`,
-        // where they stop it being dragged (`entrySourceAttributeArrays`). A linked one reads its
+        // source (`entrySourceAttributeArrays`). A linked one reads its
         // label, `fixed` and `fixLocation` from the list
         // (`listEntrySourceVariables`, which `Copy.js` records on the
         // component).
@@ -988,31 +982,17 @@ export function entryVariableName(name) {
 }
 
 /**
- * The variable of the list that, when true, sets attribute `attribute` of
- * every entry (`entrySourceAttributeDefinition`).
- */
-const LIST_VARIABLE_OF_ENTRY_SOURCE_ATTRIBUTE = Object.freeze({
-    fixed: "entriesFixed",
-    fixLocation: "fixLocation",
-});
-
-/**
  * The array `arrayName` of attribute `attribute` of the source of each entry
  * (`entrySourceAttributeArrays`), which a component made from one entry takes
- * as its own attribute (`companionOfEachEntry`; for `fixed` and
- * `fixLocation`, only an unlinked copy does): the source's value
+ * as its own attribute (`companionOfEachEntry`): the source's value
  * (`entryChildren`) where it is not `defaultValue`, and otherwise a default,
- * so that the component's attribute is marked as not set. An entry of a
- * fixed list is fixed, and of a list with `fixLocation` has `fixLocation`
- * (`LIST_VARIABLE_OF_ENTRY_SOURCE_ATTRIBUTE`; for an unlinked copy, the array
- * for `fixed` replaces `entriesFixed` as its `fixed` attribute).
+ * so that the component's attribute is marked as not set.
  */
 function entrySourceAttributeDefinition({
     attribute,
     arrayName,
     defaultValue,
 }) {
-    const listVariable = LIST_VARIABLE_OF_ENTRY_SOURCE_ATTRIBUTE[attribute];
     return {
         isArray: true,
         entryPrefixes: [arrayName.slice(0, -1)],
@@ -1036,24 +1016,16 @@ function entrySourceAttributeDefinition({
                     dependencyType: "stateVariable",
                     variableName: "entryChildren",
                 },
-                ...(listVariable
-                    ? {
-                          listValue: {
-                              dependencyType: "stateVariable",
-                              variableName: listVariable,
-                          },
-                      }
-                    : {}),
             },
         }),
         arrayDefinitionByKey({ globalDependencyValues, arrayKeys }) {
             const values = {};
             const defaults = {};
             for (const arrayKey of arrayKeys) {
-                const fromSource = globalDependencyValues.listValue
-                    ? true
-                    : globalDependencyValues.entryChildren[arrayKey]
-                          ?.stateValues[attribute];
+                const fromSource =
+                    globalDependencyValues.entryChildren[arrayKey]?.stateValues[
+                        attribute
+                    ];
                 if (
                     typeof fromSource === "boolean" &&
                     fromSource !== defaultValue

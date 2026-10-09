@@ -10,9 +10,10 @@ import { isReferenceShadow } from "./referenceShadow";
  * attribute, where it has one, decides. Otherwise it is fixed when anything
  * it sits in or stands for is: its parent, the composite that made it, the
  * component it is an adapter of, the component it is a reference to (its
- * shadow source, or the referent of a value reference), the source of the
- * list entry it was made from, and, for an unlinked copy, what the document
- * set on its source when the copy was made (`copySourceContext`). A
+ * shadow source, or the referent of a value reference), and the source of
+ * the list entry it was made from. An unlinked copy, which is its source's
+ * DoenetML pasted where it sits, takes the attribute written on its source
+ * as its own (`serialize`), and nothing else from it. A
  * setting of false in any of these only stops that one from fixing it. When
  * none of them sets anything, it keeps its own essential value (a write to
  * it, or what the composite that made it gave it), or the default.
@@ -102,12 +103,6 @@ function contextAttributeDependencies({
             contextVariableOfProp: true,
         };
     }
-    if (component?.doenetAttributes?.copySourceContext) {
-        dependencies.copySource = {
-            dependencyType: "value",
-            value: component.doenetAttributes.copySourceContext[attributeName],
-        };
-    }
     if (attributeName === "fixed") {
         dependencies.ignoreParent = {
             dependencyType: "doenetAttribute",
@@ -133,7 +128,6 @@ function contextAttributeValue({ dependencyValues, usedDefault }) {
         "parent",
         "sourceComposite",
         "adapterSource",
-        "copySource",
         "referenceSource",
         "source",
     ]) {
@@ -275,158 +269,89 @@ export function addContextAttributeDefinitions({
 }
 
 /**
- * `attributeName` of `component` as the document sets it, the same as its
- * definition above gives except `null` where nothing sets it and reading the
- * same of what the component is a reference to: no default, no essential
- * value. It is what an unlinked copy takes from its source, so that a
- * component fixed by the composite that made it, as a `<sequence>` makes its
- * entries and a `<repeat>` its index, does not make a copy of itself fixed.
- * Worked out when a copy is made, as no definition needs it.
+ * What `component` shadows, when it is a reference or a component inside one
+ * (a shadow, not of a prop), so that a copy of it, pasted as the DoenetML it
+ * is linked to, takes the attributes written there; otherwise `undefined`.
  */
-async function fromDocument(component, attributeName, components) {
-    if (!component?.state) {
-        return null;
+export function pastedShadowSource(component, components) {
+    const shadows = component?.shadows;
+    if (!shadows) {
+        return undefined;
     }
-    if (component.componentType === "_ref") {
-        const referentInfo =
-            component.fixedReferent ??
-            (await component.stateValues.referentInfo);
-        return referentInfo?.variableName === attributeName
-            ? null
-            : fromDocument(
-                  components?.[referentInfo?.componentIdx],
-                  attributeName,
-                  components,
-              );
-    }
-
-    const preliminary = `${attributeName}Preliminary`;
-    if (component.state[preliminary]) {
-        const own = await component.stateValues[preliminary];
-        if (
-            own !== null &&
-            own !== undefined &&
-            !component.state[preliminary].usedDefault
-        ) {
-            return own;
-        }
-    }
-
-    let value = null;
-    async function consider(other) {
-        if (!other?.state?.[attributeName]) {
-            return;
-        }
-        const setting = await other.stateValues[attributeName];
-        if (
-            typeof setting === "boolean" &&
-            !other.state[attributeName].usedDefault
-        ) {
-            value = Boolean(value) || setting;
-        }
-    }
-
-    if (!(
-        attributeName === "fixed" &&
-        component.doenetAttributes?.ignoreParentFixed
-    )) {
-        await consider(components?.[component.parentIdx]);
-    }
-    await consider(component.replacementOf);
-    await consider(component.adaptedFrom);
-    const copied =
-        component.doenetAttributes?.copySourceContext?.[attributeName];
-    if (typeof copied === "boolean") {
-        value = Boolean(value) || copied;
-    }
-    const listEntrySource = component.doenetAttributes?.listEntrySource;
-    const arrayName = listEntrySource?.variables[attributeName];
-    if (arrayName) {
-        const list = components?.[listEntrySource.componentIdx];
-        if (
-            (await list?.stateValues[arrayName])?.[listEntrySource.index] ===
-            true
-        ) {
-            value = true;
-        }
-    }
-    const insideCopy =
-        component.shadows &&
-        component.shadows.propVariable === undefined &&
-        !isReferenceShadow(component);
-    if (insideCopy) {
-        // what its source is a reference to, as in its definition
-        let copied = components?.[component.shadows.componentIdx];
-        while (
-            copied?.shadows &&
-            copied.shadows.propVariable === undefined &&
-            !isReferenceShadow(copied)
-        ) {
-            copied = components?.[copied.shadows.componentIdx];
-        }
-        if (copied?.shadows && copied.shadows.propVariable !== attributeName) {
-            const setting = await fromDocument(
-                components?.[copied.shadows.componentIdx],
-                attributeName,
-                components,
-            );
-            if (setting !== null) {
-                value = Boolean(value) || setting;
-            }
-        }
-    }
+    const source = components?.[shadows.componentIdx];
     if (
-        component.shadows &&
-        component.shadows.propVariable !== attributeName &&
-        !(insideCopy && value !== null)
+        shadows.propVariable === undefined ||
+        (component.doenetAttributes?.fromImplicitProp &&
+            source?.constructor.implicitPropReturnsSameType)
     ) {
-        const setting = await fromDocument(
-            components?.[component.shadows.componentIdx],
-            attributeName,
-            components,
-        );
-        if (setting !== null) {
-            value = Boolean(value) || setting;
-        }
+        return source;
     }
-    return value;
+    return undefined;
 }
 
 /**
- * Make `serializedComponent`, an unlinked copy of `source`, take `fixed` and
- * `fixLocation` from `source` as they are now, alongside where the copy
- * sits. It holds whether the document fixes `source` (`fromDocument`), or
- * `alsoFixed[attributeName]` is true (what the copy of a list entry takes
- * from the entry's source), in `doenetAttributes.copySourceContext`. A copy
- * made by serializing `source` (`removeSourceAttributes`) does not keep
- * `source`'s attributes for them, or the essential values that hold them,
- * which would decide over its parent.
+ * The attribute component written for `attributeName` on `component`, or
+ * on what it shadows (`pastedShadowSource`), or, for a component made from a
+ * list entry (`listEntrySource`), on the list or the entry's source: what a
+ * copy of `component` takes as its own (`serialize`).
  */
-export async function snapshotContextAttributes({
-    serializedComponent,
-    source,
-    components,
-    alsoFixed = {},
-    removeSourceAttributes = false,
-}) {
-    if (typeof serializedComponent !== "object") {
-        return;
-    }
-    if (removeSourceAttributes) {
-        for (const attributeName of CONTEXT_ATTRIBUTES) {
-            delete serializedComponent.attributes?.[attributeName];
-            if (serializedComponent.state) {
-                delete serializedComponent.state[attributeName];
-                delete serializedComponent.state[`${attributeName}Preliminary`];
-            }
+async function writtenAttributeComponent(component, attributeName, components) {
+    for (
+        let comp = component;
+        comp;
+        comp = pastedShadowSource(comp, components)
+    ) {
+        const attribute = comp.attributes?.[attributeName]?.component;
+        if (attribute) {
+            return attribute;
+        }
+        const listEntrySource = comp.doenetAttributes?.listEntrySource;
+        if (listEntrySource?.variables[attributeName]) {
+            return writtenEntryAttributeComponent({
+                list: components?.[listEntrySource.componentIdx],
+                index: listEntrySource.index,
+                attributeName,
+                components,
+            });
         }
     }
-    const copySourceContext = {};
-    for (const attributeName of CONTEXT_ATTRIBUTES) {
-        copySourceContext[attributeName] =
-            (await fromDocument(source, attributeName, components)) === true ||
-            alsoFixed[attributeName] === true;
+    return undefined;
+}
+
+/**
+ * The attribute component for `attributeName` (`fixed` or `fixLocation`)
+ * that a copy of entry `index` of `list` takes as its own, as the entry
+ * pasted: the one written on the list (`<pointList fixed="$b">`), which
+ * fixes its entries, or else the one written on the entry's source (`<point
+ * fixed="$b">` in a `<pointList>` or found by a `<collect>`, or, for an entry
+ * of a list among the list's children, `<pointList>$pl</pointList>`, that
+ * list's entry). Only a list of points or vectors records its entries'
+ * sources (`entryChildren`); for another list, as a `<mathList>`, it is only
+ * the one written on the list, as for a reference to the entry.
+ */
+export async function writtenEntryAttributeComponent({
+    list,
+    index,
+    attributeName,
+    components,
+}) {
+    const fromList = await writtenAttributeComponent(
+        list,
+        attributeName,
+        components,
+    );
+    if (fromList || !list?.state?.entryChildren) {
+        return fromList;
     }
-    serializedComponent.doenetAttributes ??= {};
-    serializedComponent.doenetAttributes.copySourceContext = copySourceContext;
+    const entrySource = (await list.stateValues.entryChildren)[index];
+    const source = components?.[entrySource?.componentIdx];
+    if (Number.isInteger(entrySource?.listEntryIndex)) {
+        return writtenEntryAttributeComponent({
+            list: source,
+            index: entrySource.listEntryIndex,
+            attributeName,
+            components,
+        });
+    }
+    return writtenAttributeComponent(source, attributeName, components);
 }

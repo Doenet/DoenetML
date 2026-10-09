@@ -5,6 +5,7 @@ import {
     callAction,
     moveLine,
     movePoint,
+    updateBooleanInputValue,
     updateMathInputValue,
     updateTextInputValue,
     updateValue,
@@ -2400,5 +2401,103 @@ describe("Unlinked Copying Tests @group4", async () => {
                 await resolvePathToNodeIdx("r[2].P")
             ].stateValues.xs.map((v) => v.tree),
         ).eqls([8, 7]);
+    });
+
+    it("a copy of a reference is what the reference is linked to, pasted", async () => {
+        // a copy of `r` is the DoenetML of `m` pasted, with what `r` writes
+        // itself: `hide="$h"` keeps following `h`, and a later change to
+        // `m` does not reach it
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="h" />
+    <math name="m" hide="$h" displayDigits="2">1.2345</math>
+    <math extend="$m" name="r" />
+    <math copy="$r" name="c" />
+    <math extend="$m" displayDigits="4" name="r2" />
+    <p><math copy="$r2" name="c2" /></p>
+    <p name="p"><math extend="$m" name="inner" /></p>
+    <p copy="$p" name="cp" />
+    `,
+        });
+        async function check(hidden: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            for (const [name, digits] of [
+                ["c", 2],
+                ["c2", 4],
+                ["cp.inner", 2],
+            ] as const) {
+                const stateValues =
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .stateValues;
+                expect(stateValues.hidden, name).eq(hidden);
+                expect(stateValues.displayDigits, name).eq(digits);
+            }
+        }
+        await check(false);
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("h"),
+            core,
+        });
+        await check(true);
+    });
+
+    it("a copy of a reference that writes one of a pair of alternatives does not take the other", async () => {
+        // `r` writes `displayDecimals`, so it does not read the
+        // `displayDigits` written on `m`, and `g` writes `variable`, so it
+        // does not read the `variables` written on `f`: neither do their
+        // copies
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <math name="m" displayDigits="5">1.23456789</math>
+    <math extend="$m" name="r" displayDecimals="1" />
+    <math copy="$r" name="c" />
+    <function name="f" variables="x y">x+y</function>
+    <function extend="$f" name="g" variable="t" />
+    <function copy="$g" name="h" />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const stateValues = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        for (const name of ["r", "c"]) {
+            expect((await stateValues(name)).text, name).eq("1.2");
+        }
+        for (const name of ["g", "h"]) {
+            expect(
+                (await stateValues(name)).variables.map((v) => v.tree),
+                name,
+            ).eqls(["t"]);
+        }
+    });
+
+    it("a copy of a reference to a repeat repeats the template with its attributes", async () => {
+        // the copies take the `for` written on `r` and `r2`; the template's
+        // attributes (`displayDigits`, `fixed`) are copied unlinked
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <repeat name="r" for="1 2" valueName="v">
+      <math name="x" displayDigits="2" fixed>$v+0.123456</math>
+    </repeat>
+    <repeat extend="$r" name="e" />
+    <repeat copy="$e" name="c" />
+    <repeatForSequence name="r2" from="1" to="2" valueName="v">
+      <math name="x" displayDigits="2" fixed>$v+0.123456</math>
+    </repeatForSequence>
+    <repeatForSequence extend="$r2" name="e2" />
+    <repeatForSequence copy="$e2" name="c2" />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["e", "c", "e2", "c2"]) {
+            const stateValues =
+                stateVariables[await resolvePathToNodeIdx(`${name}[2].x`)]
+                    .stateValues;
+            expect(stateValues.text, name).eq("2 + 0.12");
+            expect(stateValues.fixed, name).eq(true);
+        }
     });
 });

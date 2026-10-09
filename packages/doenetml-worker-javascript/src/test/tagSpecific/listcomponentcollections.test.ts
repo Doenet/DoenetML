@@ -2031,7 +2031,7 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         expect(await coordsOf("B")).eqls([-3, 0]);
     });
 
-    it("an unlinked copy of a component made from an entry keeps what the source had when it was made", async () => {
+    it("an unlinked copy of a component made from an entry takes what is written on the entry's source", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name="b" />
@@ -2099,7 +2099,9 @@ describe("Collect, sort and shuffle of values @group4", async () => {
             U: unfixed,
             UF: { fixed: false, fixLocation: true },
             UV: unfixed,
-            UG: { fixed: true, fixLocation: false },
+            // the `fixed="$b"` written on `A`, pasted, decides over the
+            // fixed graph
+            UG: unfixed,
             // under a parent that sets them false, the source's fixLocation
             // is kept, as an unlinked copy of a point keeps it (UH and UHA,
             // whose source is not fixed, are controls; UK, below, shows that
@@ -2107,22 +2109,31 @@ describe("Collect, sort and shuffle of values @group4", async () => {
             UH: unfixed,
             UHF: { fixed: false, fixLocation: true },
             UHA: unfixed,
-            // a source fixed when the copy is made fixes the copy
             EK: { fixed: true, fixLocation: false },
             UK: { fixed: true, fixLocation: false },
             UVheadDraggable: false,
         };
         expect(await stateOf()).eqls(expected);
 
-        // fixing the source fixes the linked component, not the unlinked copy
+        // the copies keep following the `$b` written on `A`
         await updateBooleanInputValue({
             boolean: true,
             componentIdx: await resolvePathToNodeIdx("b"),
             core,
         });
+        const fixedByB = { fixed: true, fixLocation: false };
         expect(await stateOf()).eqls({
             ...expected,
-            E: { fixed: true, fixLocation: false },
+            E: fixedByB,
+            U: fixedByB,
+            UG: fixedByB,
+            UH: fixedByB,
+            UHA: fixedByB,
+        });
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
         });
 
         // the unlinked copy is dragged on its own; the ones with fixed or
@@ -2149,6 +2160,66 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         expect(await coordsOf("UHF")).eqls([5, 6]);
         expect(await coordsOf("UK")).eqls([9, 9]);
         expect(await coordsOf("K")).eqls([9, 9]);
+    });
+
+    it("an unlinked copy of an entry of a pointList, or reached through another list, takes what is written on the entry's source", async () => {
+        // the entries of `pl` are its points, and those of `j` (an extend of
+        // `pl`), `o` (holding `pl`) and `o2` (holding references to `pl`'s
+        // entries) come from them; the extends (`jE1`, …) are the linked
+        // controls
+        const lists = ["pl", "j", "o", "o2"];
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="b" />
+    <graph>
+      <pointList name="pl">
+        <point fixed="$b">(1,2)</point>
+        <point fixLocation>(3,4)</point>
+      </pointList>
+      <pointList extend="$pl" name="j" />
+      <pointList name="o">$pl</pointList>
+      <pointList name="o2">$pl[1] $pl[2]</pointList>
+      ${lists
+          .map(
+              (list) => `
+      <point copy="$${list}[1]" name="${list}C1" />
+      <point extend="$${list}[1]" name="${list}E1" />
+      <point copy="$${list}[2]" name="${list}C2" />`,
+          )
+          .join("")}
+    </graph>
+    `,
+        });
+
+        const stateOf = async (name: string) => {
+            const { fixed, fixLocation } = await stateValuesOf(
+                core,
+                resolvePathToNodeIdx,
+                name,
+            );
+            return { fixed, fixLocation };
+        };
+        for (const b of [false, true]) {
+            if (b) {
+                await updateBooleanInputValue({
+                    boolean: true,
+                    componentIdx: await resolvePathToNodeIdx("b"),
+                    core,
+                });
+            }
+            for (const list of lists) {
+                for (const name of [`${list}C1`, `${list}E1`]) {
+                    expect(await stateOf(name), name).eqls({
+                        fixed: b,
+                        fixLocation: false,
+                    });
+                }
+                expect(await stateOf(`${list}C2`), `${list}C2`).eqls({
+                    fixed: false,
+                    fixLocation: true,
+                });
+            }
+        }
     });
 
     it("an entry of a fixed sort read by itself is fixed, and a drag of it does not reach its source", async () => {
