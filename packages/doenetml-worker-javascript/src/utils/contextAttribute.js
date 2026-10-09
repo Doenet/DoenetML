@@ -279,13 +279,18 @@ export function addContextAttributeDefinitions({
 
 /**
  * What `component` shadows, when it is a reference or a component inside one
- * (a shadow, not of a prop), so that a copy of it, pasted as the DoenetML it
- * is linked to, takes the attributes written there; otherwise `undefined`.
+ * (a shadow, not of a prop), or the list it names, when it is a list made by
+ * an `extend` of a list (`extendsList`), so that a copy of it, pasted as the
+ * DoenetML it is linked to, takes the attributes written there; otherwise
+ * `undefined`.
  */
 export function pastedShadowSource(component, components) {
     const shadows = component?.shadows;
     if (!shadows) {
-        return undefined;
+        // a list made by an `extend` of a list (`convertToCopy`) stands for
+        // the list it names, as a reference does for its source
+        const listIdx = component?.doenetAttributes?.extendsList;
+        return listIdx === undefined ? undefined : components?.[listIdx];
     }
     const source = components?.[shadows.componentIdx];
     if (

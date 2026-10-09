@@ -4,8 +4,10 @@
  * When a list is copied, it is converted to a list component
  * with a child that is the copy. When this is occurred,
  * the doenet attributes `extendListViaComposite` or `copyListViaComposite` are added.
- * These state variable chase down the sources of those composites to determine
- * if the source list was unordered.
+ * These state variable chase down the source of an extend to determine
+ * if the source list was unordered. A copy takes `unordered` as written on
+ * the list, with its other attributes (`copyListViaComposite` in
+ * `AttributeComponentDependency`).
  */
 
 export function returnUnorderedListStateVariableDefinitions() {
@@ -44,7 +46,7 @@ export function returnUnorderedListStateVariableDefinitions() {
         },
     };
 
-    // Find the component extended or copied to create the list
+    // Find the component extended to create the list
     stateVariableDefinitions.extendListSourceIdx = {
         stateVariablesDeterminingDependencies: ["extendListViaComposite"],
         returnDependencies({ stateValues }) {
@@ -76,75 +78,6 @@ export function returnUnorderedListStateVariableDefinitions() {
             }
         },
     };
-    stateVariableDefinitions.copyListSourceIdx = {
-        stateVariablesDeterminingDependencies: ["copyListViaComposite"],
-        returnDependencies({ stateValues }) {
-            if (stateValues.copyListViaComposite) {
-                return {
-                    copyListSourceIdx: {
-                        dependencyType: "stateVariable",
-                        componentIdx: stateValues.copyListViaComposite,
-                        variableName: "extendIdx",
-                    },
-                };
-            } else {
-                return {};
-            }
-        },
-        definition({ dependencyValues }) {
-            if (dependencyValues.copyListSourceIdx) {
-                return {
-                    setValue: {
-                        copyListSourceIdx: dependencyValues.copyListSourceIdx,
-                    },
-                };
-            } else {
-                return { setValue: { copyListSourceIdx: null } };
-            }
-        },
-    };
-
-    // We have yet one more step for copy to make sure that the `unordered` is immutable
-    stateVariableDefinitions.unorderedFromCopyListSource = {
-        immutable: true,
-        hasEssential: true,
-        defaultValue: false,
-        stateVariablesDeterminingDependencies: ["copyListSourceIdx"],
-        returnDependencies({ stateValues }) {
-            if (stateValues.copyListSourceIdx) {
-                return {
-                    unorderedFromCopy: {
-                        dependencyType: "stateVariable",
-                        componentIdx: stateValues.copyListSourceIdx,
-                        variableName: "unordered",
-                        variablesOptional: true,
-                    },
-                };
-            } else {
-                return {};
-            }
-        },
-        definition({ dependencyValues, usedDefault }) {
-            if (
-                dependencyValues.unorderedFromCopy != undefined &&
-                !usedDefault.unorderedFromCopy
-            ) {
-                return {
-                    setValue: {
-                        unorderedFromCopyListSource:
-                            dependencyValues.unorderedFromCopy,
-                    },
-                };
-            } else {
-                return {
-                    useEssentialOrDefaultValue: {
-                        unorderedFromCopyListSource: true,
-                    },
-                };
-            }
-        },
-    };
-
     stateVariableDefinitions.unordered = {
         description:
             "Whether the order of items in this list should be treated as unordered (e.g. for matching).",
@@ -160,10 +93,6 @@ export function returnUnorderedListStateVariableDefinitions() {
                 unorderedPrelim: {
                     dependencyType: "stateVariable",
                     variableName: "unorderedPrelim",
-                },
-                unorderedFromCopyListSource: {
-                    dependencyType: "stateVariable",
-                    variableName: "unorderedFromCopyListSource",
                 },
             };
 
@@ -192,12 +121,6 @@ export function returnUnorderedListStateVariableDefinitions() {
                 return {
                     setValue: {
                         unordered: dependencyValues.unorderedFromExtended,
-                    },
-                };
-            } else if (!usedDefault.unorderedFromCopyListSource) {
-                return {
-                    setValue: {
-                        unordered: dependencyValues.unorderedFromCopyListSource,
                     },
                 };
             } else {

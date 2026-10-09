@@ -181,6 +181,48 @@ describe("Attributes of an extend or copy of a list @group4", () => {
         }
     });
 
+    it("a copy of an extend of a list is what the extend is linked to, pasted", async () => {
+        // a copy of `le` takes the attributes written on `ml` that `le` does
+        // not write itself, `hide="$h"` following `h`, as a copy of an
+        // extend of a math does; of an extend as a list of a point, those a
+        // list has
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="h" prefill="true" />
+    <mathList name="ml" hide="$h" unordered displayDigits="2">1.2345 2</mathList>
+    <mathList extend="$ml" name="le" />
+    <mathList copy="$le" name="c" />
+    <mathList extend="$ml" name="le2" unordered="false" />
+    <mathList copy="$le2" name="c2" />
+    <point name="P" hide labelIsName>(1,2)</point>
+    <mathList extend="$P" name="eP" />
+    <mathList copy="$eP" name="cP" />
+    `,
+        });
+        async function check(hidden: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            for (const name of ["le", "c", "le2", "c2"]) {
+                expect((await sv(name)).hidden, name).eq(hidden);
+                expect((await sv(name)).displayDigits, name).eq(2);
+            }
+            expect((await sv("c")).unordered).eq(true);
+            expect((await sv("c2")).unordered).eq(false);
+            expect((await sv("cP")).hidden).eq(true);
+        }
+        await check(true);
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("h"),
+            core,
+        });
+        await check(false);
+    });
+
     it("an extend of a list that names itself is reported as circular", async () => {
         await expect(
             createTestCore({

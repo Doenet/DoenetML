@@ -2184,10 +2184,14 @@ async function serializeShadowedAttributes({
     const components = parametersForChildren.components;
     const attributesObj = component.constructor.createAttributesObject();
     for (
-        let comp = pastedShadowSource(component, components);
+        let from = component, comp = pastedShadowSource(component, components);
         comp;
-        comp = pastedShadowSource(comp, components)
+        from = comp, comp = pastedShadowSource(comp, components)
     ) {
+        // past a list made by an `extend` of what it names, which may not
+        // be a list (`<mathList extend="$P"/>`), only the attributes it has
+        // too, as it takes only those
+        const onlyOwnAttributes = !from.shadows;
         // what the copy already has, from `component` or a component
         // between it and `comp`, and what those replace on a reference
         // (`replacesOnReference`): a reference that writes `variable` does
@@ -2205,6 +2209,7 @@ async function serializeShadowedAttributes({
             const attribute = comp.attributes[attrName];
             if (
                 !attribute.component ||
+                (onlyOwnAttributes && !(attrName in attributesObj)) ||
                 written.has(attrName) ||
                 componentSourceAttributesToIgnore.includes(attrName)
             ) {
