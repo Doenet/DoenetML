@@ -195,10 +195,12 @@ export class ProcessQueue {
      * For work outside the queue that evaluates state variables over many
      * steps: an evaluation an update overtakes can store the value it began
      * with as current, losing the update. Once requests have stopped
-     * (`terminate`), nothing is queued to wait for, and `run` runs at once.
+     * (`terminate`) and none is running, nothing is queued to wait for, and
+     * `run` runs at once; while one is still running, `run` is queued behind
+     * it, as the drain in progress runs what is queued.
      */
     runExclusive<T>(run: () => Promise<T>): Promise<T> {
-        if (this.stopProcessingRequests) {
+        if (this.stopProcessingRequests && !this.processing) {
             return run();
         }
         return new Promise<T>((resolve, reject) => {

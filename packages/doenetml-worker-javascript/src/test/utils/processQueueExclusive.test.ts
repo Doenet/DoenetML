@@ -102,4 +102,30 @@ describe("ProcessQueue.runExclusive", () => {
             "update final",
         ]);
     });
+
+    it("waits for a request still running when requests have stopped", async () => {
+        // `terminate` stops requests, then waits only a while for the one
+        // running, and its save can come before that one ends
+        const { queue, log, release } = queueWithLog();
+        const action = queue.requestAction({
+            componentIdx: 1,
+            actionName: "held",
+        });
+        await Promise.resolve();
+        queue.stopProcessingRequests = true;
+        const exclusive = queue.runExclusive(async () => {
+            log.push("exclusive");
+        });
+        await Promise.resolve();
+        expect(log).eqls(["start held"]);
+        release();
+        await Promise.all([action, exclusive]);
+        expect(log).eqls(["start held", "end held", "exclusive"]);
+
+        // with nothing running, it runs at once
+        await queue.runExclusive(async () => {
+            log.push("after");
+        });
+        expect(log.at(-1)).eq("after");
+    });
 });
