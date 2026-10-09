@@ -298,7 +298,10 @@ export type AttributeDefinition<T> = {
      * `variable`; the two display attributes combine), one written on a
      * reference replaces both of its source's. A state variable reading one
      * of them stops looking through to the source where the reference writes
-     * another (`dontRecurseToShadowsIfHaveAttribute`).
+     * another (`dontRecurseToShadowsIfHaveAttribute`). Read where a copy
+     * takes its source's attributes: of the source it names (`Copy.js`) and,
+     * for a copy of a reference, of what the reference shadows
+     * (`serializeShadowedAttributes` in `BaseComponent.js`).
      */
     replacesOnReference?: string[];
     excludeFromSchema?: boolean;
