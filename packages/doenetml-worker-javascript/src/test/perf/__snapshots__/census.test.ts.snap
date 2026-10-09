@@ -302,6 +302,28 @@ exports[`component census of the micro-documents > point $P.x 1`] = `
 }
 `;
 
+exports[`component census of the micro-documents > repeat for mathList $x[1] x2 1`] = `
+{
+  "attributeComponents": 1,
+  "byType": {
+    "_copy": 5,
+    "_ref": 2,
+    "document": 1,
+    "group": 3,
+    "math": 4,
+    "mathList": 2,
+    "repeat": 1,
+    "setup": 2,
+  },
+  "components": 20,
+  "copies": 5,
+  "dependencies": 961,
+  "shadows": 3,
+  "stateVariables": 928,
+  "stateVariablesResolved": 443,
+}
+`;
+
 exports[`component census of the micro-documents > repeatForSequence $i^2 x4 1`] = `
 {
   "attributeComponents": 2,
