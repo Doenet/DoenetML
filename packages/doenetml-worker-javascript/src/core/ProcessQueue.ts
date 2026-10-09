@@ -24,6 +24,12 @@ type QueueEntry =
           event: any;
           resolve: (v?: any) => void;
           reject: (v?: any) => void;
+      }
+    | {
+          type: "exclusive";
+          run: () => Promise<any>;
+          resolve: (v?: any) => void;
+          reject: (v?: any) => void;
       };
 
 /**
@@ -105,7 +111,10 @@ export class ProcessQueue {
             let result;
             try {
                 if (nextUpdateInfo.type === "update") {
-                    if (!nextUpdateInfo.skippable || this.queue.length < 2) {
+                    if (
+                        !nextUpdateInfo.skippable ||
+                        this.requestsQueued() < 2
+                    ) {
                         result = await this.core.performUpdate(nextUpdateInfo);
                     }
 
@@ -114,13 +123,18 @@ export class ProcessQueue {
                     // } else if (nextUpdateInfo.type === "getStateVariableValues") {
                     //   result = await this.core.performGetStateVariableValues(nextUpdateInfo);
                 } else if (nextUpdateInfo.type === "action") {
-                    if (!nextUpdateInfo.skippable || this.queue.length < 2) {
+                    if (
+                        !nextUpdateInfo.skippable ||
+                        this.requestsQueued() < 2
+                    ) {
                         result = await this.core.performAction(nextUpdateInfo);
                     }
 
                     // TODO: if skip an update, presumably we should call reject???
                 } else if (nextUpdateInfo.type === "recordEvent") {
                     result = await this.core.performRecordEvent(nextUpdateInfo);
+                } else if (nextUpdateInfo.type === "exclusive") {
+                    result = await nextUpdateInfo.run();
                 } else {
                     throw Error(
                         `Unrecognized process type: ${(nextUpdateInfo as any).type}`,
@@ -157,6 +171,32 @@ export class ProcessQueue {
         }
 
         this.processing = false;
+    }
+
+    /**
+     * The requests queued, not counting `runExclusive` work, so that work
+     * queued by a save does not drop a skippable update or action ahead of
+     * it that nothing queued would replace.
+     */
+    requestsQueued(): number {
+        return this.queue.filter((entry) => entry.type !== "exclusive").length;
+    }
+
+    /**
+     * Run `run` between requests, never during one, and return its result.
+     * For work outside the queue that evaluates state variables over many
+     * steps: an evaluation an update overtakes can store the value it began
+     * with as current, losing the update. Once requests have stopped
+     * (`terminate`), nothing is queued to wait for, and `run` runs at once.
+     */
+    runExclusive<T>(run: () => Promise<T>): Promise<T> {
+        if (this.stopProcessingRequests) {
+            return run();
+        }
+        return new Promise<T>((resolve, reject) => {
+            this.queue.push({ type: "exclusive", run, resolve, reject });
+            this._kickoff();
+        });
     }
 
     /** Reject every queued request with `message` and empty the queue. */

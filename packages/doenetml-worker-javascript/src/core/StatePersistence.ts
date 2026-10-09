@@ -442,9 +442,13 @@ export class StatePersistence {
 
         const sequence = ++this._saveSequence;
 
-        const copies = this.unlinkedCopies();
-        if (copies.length > 0) {
-            await this.recordCopySnapshots(copies);
+        // Making the copies again evaluates their sources over many steps,
+        // so it waits for the update in progress and holds the next one
+        // back (`runExclusive`).
+        if (this.unlinkedCopies().length > 0) {
+            await core.processQueue.runExclusive(() =>
+                this.recordCopySnapshots(this.unlinkedCopies()),
+            );
         }
 
         const { payload, coreStateString, rendererStateString } =
