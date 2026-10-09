@@ -5,10 +5,10 @@ name: Purge jsDelivr dev
 # Started by `publish.yml` → `dev-release` right after its npm publish, with the
 # version it published. It is its own workflow, not a step of that job, because
 # npm can take well over an hour to make @doenet/standalone available — the
-# other packages from the same publish show up at once — and a wait that long
-# inside the publish job failed releases that had published fine. Here the wait
-# can be long and its polling slow, and a run that does fail says only that the
-# CDN is behind, not that the release is.
+# other packages from the same publish show up within minutes — and a wait that
+# long inside the publish job failed releases that had published fine. Here the
+# wait can be long and its polling slow, and a run that does fail says only that
+# the CDN is behind, not that the release is.
 #
 # Can also be run by hand from the Actions tab, e.g. to purge for a release
 # whose own run gave up.

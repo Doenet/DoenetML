@@ -88,10 +88,11 @@ On `main`, `dev-release` does not purge in its own job. It starts
 `purge-jsdelivr-dev.yml` with the version it published and finishes. That
 workflow waits up to three hours for npm to serve the version under `dev`,
 because @doenet/standalone has taken well over an hour to appear on npm after a
-dev publish. If it gives up, run it again from the Actions tab with the same
-version. Starting a run cancels any run still in progress on the same branch,
-whatever version either is for, so a newer dev release replaces the purge for an
-older one.
+dev publish. Starting a run cancels any run still in progress on the same
+branch, whatever version either is for, so a newer dev release replaces the
+purge for an older one. If a run gives up and no newer one is in progress, run
+it again from the Actions tab with the version npm now serves under `dev`
+(`npm view @doenet/standalone dist-tags.dev`).
 
 ## Cutting a stable release
 
