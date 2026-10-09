@@ -187,7 +187,8 @@ export async function snapshotStillMade(fresh, snapshot, componentOfStateId) {
             now.stateId !== then.stateId ||
             now.componentType !== then.componentType ||
             !same(now.primitiveChildren, then.primitiveChildren) ||
-            !same(now.literals, then.literals)
+            !same(now.literals, then.literals) ||
+            !same(now.expressionWrites, then.expressionWrites)
         ) {
             return false;
         }

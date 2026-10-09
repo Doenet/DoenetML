@@ -11,6 +11,7 @@ import {
 import { setExpressionAttributesEnabled } from "../../utils/dast/expressionAttributes";
 import { createNewComponentIndices } from "../../utils/componentIndices";
 import { copyOfExpressionAttribute } from "../../utils/expressionAttributeNames";
+import { snapshotStillMade } from "../../utils/copySnapshot";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -454,5 +455,28 @@ describe("Coordinates held by their point @group4", () => {
                 },
             }).writes,
         ).toEqual({ 2: { expressionWithCodes: 9 } });
+    });
+
+    it("a copy snapshot whose coordinate text changed is not the same snapshot", async () => {
+        const entry = (writes: any) => ({
+            stateId: "s1",
+            componentType: "point",
+            state: {},
+            expressionWrites: { xs: writes },
+        });
+        expect(
+            await snapshotStillMade(
+                [entry({ 2: { expressionWithCodes: 7 } })],
+                [entry({ 2: { expressionWithCodes: 7 } })],
+                () => undefined,
+            ),
+        ).toBe(true);
+        expect(
+            await snapshotStillMade(
+                [entry({ 2: { expressionWithCodes: 9 } })],
+                [entry({ 2: { expressionWithCodes: 7 } })],
+                () => undefined,
+            ),
+        ).toBe(false);
     });
 });
