@@ -1,6 +1,6 @@
 # B4 design: coordinates and expressions over references without attribute components
 
-Design for #2252, step B4 of stream B (#2129) of #2125. Status: shape and order settled 2026-10-09; step 1 in progress. Measured on `main` at b27371d73 (#2255). Paths are under `packages/doenetml-worker-javascript/src/` unless they start with `packages/`.
+Design for #2252, step B4 of stream B (#2129) of #2125. Status: shape and order settled 2026-10-09; steps 1 and 2 built. Measured on `main` at b27371d73 (#2255). Paths are under `packages/doenetml-worker-javascript/src/` unless they start with `packages/`.
 
 ## Summary
 
@@ -77,10 +77,30 @@ Parsing once across owners is possible: on repeat-150, 150 points parse the same
 
 ## Steps
 
-1. **Reference slots, behavior unchanged.** Move `ValueRef`'s chain into `referenceSlotDefinitions`; `ValueRef` calls it with its own names. The two dependencies take a slot. The value-reference tests and the census snapshot must not change.
-2. **Prototype one `point.xs` held by its owner,** and measure it against 124 dependencies.
-3. **Every qualifying `xs`** of a `<point>` or `<vector>`.
+1. **Reference slots, behavior unchanged.** Done. `ValueRef`'s chain, its `canBeModified` included, is `referenceSlotDefinitions` (`components/abstract/referenceSlotDefinitions.js`); `ValueRef` calls it with its own names. The two dependencies take a slot (`refResolutionAt`, `utils/referenceSlot.ts`).
+2. **A `point.xs` held by its point.** Done, for every qualifying point, not only one; see below.
+3. **The rest of `xs`:** a `<vector>`'s, and a point that is itself an attribute component (a label's `anchor`), which needs the resolver to have a node for it.
 4. **Boolean and math expressions** (`hide`, `condition`, `equation`), with a boolean node in `utils/repeatTemplate.js`, which F6's step 4b needs too.
+
+**Step 2, as built.**
+- **The pass** (`utils/dast/expressionAttributes.ts`) runs after the literal attributes. It replaces the `xs` of a `<point>` whose `mathList` and `<math>`s have no attributes, and whose `<math>`s hold only text and `_ref`s read as a math or number, with no component in their path and a path that starts with a name. A slot keeps its `_ref`'s `refResolution` and read plan, and resolves from the point (`nodesInResolvedPath[0]`).
+- **The point's variables** (`utils/expressionAttribute.js`, added by `ComponentBuilder` before its state variables are initialized): a slot per reference, `__xs_analysis`, `__xs_writes` (the text written to a coordinate, essential), `__xs_numComponents` and the array `__xs_maths` (`__xs_math1`, …). The `attributeComponent` dependency reads `xs.numComponents` and `xs.math k` from those (`expressionAttributeVariable`, `utils/expressionAttributeNames.ts`).
+- **Parse settings.** An `xs` `<math>` falls back to the `mathList`'s settings, which falls back to the point's, and a point has none, so the coordinates are parsed with the defaults, as the analysis parses them. An attribute whose owner has parse settings (step 4) needs them read.
+- **Copies and repeats.**
+  - Renumbering a copy renumbers each slot's resolution (`remapRefResolutions`, `substituteComponentIdx`).
+  - A repeat points a slot at the iteration's value or index, or its entry, as it points a reference (`remapRefResolutionForIteration`).
+  - An unlinked copy takes the attribute with the text written to it (`copyOfExpressionAttribute`), which a copy snapshot holds and restores (`copySnapshot.js`).
+  - A linked copy reads the source's, through the `attributeComponent` dependency.
+- **One change to the core.** Setting an essential value also sets it on each shadow; a shadow that does not have the variable, as a linked copy has none of its source's `__xs_writes`, is now skipped.
+- **A point that is itself an attribute component** keeps its components. Its index was made after the resolver was given the document, so a slot cannot resolve from it.
+- **Measured,** branch against `main`'s sources:
+
+  | fixture | components | dependencies | state variables resolved | load ms |
+  |---|--:|--:|--:|--:|
+  | repeat-150 | 2,706 → 1,956 | 120,341 → 105,941 | 53,194 → 47,644 | 3,420 → 3,015 |
+  | measures-of-spread | 3,535 → 3,395 | 108,560 → 106,064 | 50,433 → 49,471 | 3,941 → 3,803 |
+
+  One `xs` of repeat-150 now costs about 28 dependencies, against 124. The other fixtures are unchanged: their points are in repeats made lists, have no references, or are attribute components. Measures-of-spread gains less than estimated, since many of its 84 points are attribute components (vertices and endpoints).
 
 ## Alternatives considered
 
