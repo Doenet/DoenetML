@@ -279,6 +279,27 @@ describe("Repeats whose template is one value @group4", () => {
         expect(texts.p.replace(/\s+/g, " ").trim()).toBe("1, 2, 3, 2, 3, 4");
     });
 
+    it("a template that is one value alone shows it with that value's display settings", async () => {
+        await compare({
+            doenetML: `
+<mathList name="l" displayDigits="2">0.12345 (1.2345, 0.0012345)</mathList>
+<mathList name="ld" displayDecimals="1" padZeros>0.12345 2</mathList>
+<number name="c" displayDigits="2">0.98765</number>
+<function name="f" variables="u v">(u/3, v/7)</function>
+<functionIterates name="it" function="$f" initialValue="(1, 1)" numIterates="2" displayDigits="2" />
+<p name="p"><repeat name="r" for="$l" valueName="x"><math>$x</math></repeat></p>
+<p name="p2"><repeat name="r2" for="$l" valueName="x"><math>$x[1]</math></repeat></p>
+<p name="p3"><repeatForSequence name="r3" from="1" to="2" indexName="i"><math>$l[$i]</math></repeatForSequence></p>
+<p name="p4"><repeat name="r4" for="$ld" valueName="x"><number>$x</number></repeat></p>
+<p name="p5"><repeatForSequence name="r5" from="1" to="2"><number>$c</number></repeatForSequence></p>
+<p name="p6"><repeat name="r6" for="$it.allIteratesWithInitial" valueName="x"><math>$x[2]</math></repeat></p>
+<p name="p7"><repeat name="r7" for="$l" valueName="x"><math displayDigits="4">$x</math></repeat></p>
+<p name="p8"><repeat name="r8" for="$l" valueName="x"><math>2$x</math></repeat></p>
+`,
+            names: ["p", "p2", "p3", "p4", "p5", "p6", "p7", "p8"],
+        });
+    });
+
     it("a sum of a repeat over a list of numbers", async () => {
         const texts = await compare({
             doenetML: `

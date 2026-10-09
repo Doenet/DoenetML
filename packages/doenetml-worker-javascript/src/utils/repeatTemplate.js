@@ -100,9 +100,10 @@ const PARSE_SETTINGS = {
  * `<evaluate>` nodes among it and those nested in it. A math node, and an
  * operator, also has its `codePre`, `expressionWithCodes` and `numStrings`; a
  * `<round>` its `numDecimals` and `numDigits`; a number node the `string` it
- * reads when its one child is text. An `<evaluate>` node's codes are its
- * inputs, and it has the constant its function is (`function`) and its
- * `forceSymbolic` and `forceNumeric`.
+ * reads when its one child is text. A math or number node whose content is
+ * one entry or constant code alone has it as its `singleCode`. An
+ * `<evaluate>` node's codes are its inputs, and it has the constant its
+ * function is (`function`) and its `forceSymbolic` and `forceNumeric`.
  */
 export function analyzeRepeatTemplate(template) {
     const nodes = [];
@@ -188,6 +189,7 @@ export function analyzeRepeatTemplate(template) {
                 }
             }
             node.numStrings = strings.length;
+            node.singleCode = singleCodeOf(node.codes, strings);
             node.codePre = mathCodePre(strings);
             node.expressionWithCodes = mathExpressionWithCodes({
                 content,
@@ -203,6 +205,7 @@ export function analyzeRepeatTemplate(template) {
                 node.string = child;
             } else if (child !== undefined) {
                 node.codes.push(codeOf(child));
+                node.singleCode = singleCodeOf(node.codes, []);
             }
         }
         return ind;
@@ -242,6 +245,23 @@ export function analyzeRepeatTemplate(template) {
     nodes.forEach((_, ind) => codesOf(ind));
 
     return { nodes, entryLists, entryCoordinates };
+}
+
+/**
+ * The one entry or constant code that is the whole content of a node, with
+ * no text around it (`<math>$x</math>`, `<number>$l[$i]</number>`): the
+ * single child whose display settings a `<math>` or `<number>` takes as its
+ * defaults. `undefined` for any other content.
+ */
+function singleCodeOf(codes, strings) {
+    if (
+        codes.length !== 1 ||
+        codes[0].node !== undefined ||
+        strings.some((string) => string.trim() !== "")
+    ) {
+        return undefined;
+    }
+    return codes[0];
 }
 
 /**

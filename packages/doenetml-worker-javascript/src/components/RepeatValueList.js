@@ -44,6 +44,18 @@ const ROUND_DISPLAY_DIGITS = 14;
  * It draws its variant seed from its parent as the repeat did, so the random
  * values after it in the document are those the repeat left them.
  */
+/**
+ * The display settings a template that is one value alone takes from what
+ * it reads (`returnNumberDisplayStateVariableDefinitions`).
+ */
+const SINGLE_CODE_DISPLAY_SETTINGS = [
+    "displayDigits",
+    "displayDecimals",
+    "displaySmallAsZero",
+    "padZeros",
+    "avoidScientificNotation",
+];
+
 export default class RepeatValueList extends ValueListComponent {
     static componentType = "_repeatValueList";
 
@@ -208,6 +220,79 @@ export default class RepeatValueList extends ValueListComponent {
                 };
             },
         };
+
+        // A template that is one value alone (`<math>$x</math>`,
+        // `<number>$l[$i]</number>`) shows it with the display settings of
+        // what it reads, unless the list sets its own, as a `<math>` takes
+        // those of its single child: of the list it reads an entry or a
+        // coordinate of, or of the value it reads at every index.
+        for (const setting of SINGLE_CODE_DISPLAY_SETTINGS) {
+            const base = stateVariableDefinitions[setting];
+            stateVariableDefinitions[setting] = {
+                ...base,
+                stateVariablesDeterminingDependencies: [
+                    ...(base.stateVariablesDeterminingDependencies ?? []),
+                    "templateAnalysis",
+                ],
+                returnDependencies(args) {
+                    const dependencies = base.returnDependencies(args);
+                    const { templateAnalysis } = args.stateValues;
+                    const code = templateAnalysis.nodes[0]?.singleCode;
+                    if (code?.entry !== undefined) {
+                        dependencies.singleCodeSetting = {
+                            dependencyType: "stateVariable",
+                            componentIdx:
+                                templateAnalysis.entryLists[code.entry],
+                            variableName: setting,
+                            variablesOptional: true,
+                        };
+                    } else if (code?.constant !== undefined) {
+                        dependencies.singleCodeConstant = {
+                            dependencyType: "child",
+                            childGroups: ["constants"],
+                            childIndices: [code.constant],
+                            variableNames: [setting],
+                            variablesOptional: true,
+                        };
+                    }
+                    return dependencies;
+                },
+                definition(args) {
+                    const result = base.definition(args);
+                    if (
+                        result.useEssentialOrDefaultValue?.[setting] ===
+                        undefined
+                    ) {
+                        return result;
+                    }
+                    const { dependencyValues, usedDefault } = args;
+                    let value = dependencyValues.singleCodeSetting;
+                    let isDefault = usedDefault.singleCodeSetting;
+                    const constant = dependencyValues.singleCodeConstant?.[0];
+                    if (constant) {
+                        value = constant.stateValues[setting];
+                        isDefault =
+                            usedDefault.singleCodeConstant?.[0]?.[setting];
+                    }
+                    if (value === undefined || value === null) {
+                        return result;
+                    }
+                    if (!isDefault) {
+                        return { setValue: { [setting]: value } };
+                    }
+                    // the default of what it reads, unless the list has one
+                    // of its own (a `<round>`'s)
+                    if (result.useEssentialOrDefaultValue[setting] !== true) {
+                        return result;
+                    }
+                    return {
+                        useEssentialOrDefaultValue: {
+                            [setting]: { defaultValue: value },
+                        },
+                    };
+                },
+            };
+        }
 
         if (entryType === "math") {
             // As a `<math>` shows its value: rounded, then simplified and
