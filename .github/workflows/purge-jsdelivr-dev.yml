@@ -4,7 +4,7 @@ name: Purge jsDelivr dev
 #
 # Started by `publish.yml` → `dev-release` right after its npm publish, with the
 # version it published. It is its own workflow, not a step of that job, because
-# npm can take close to an hour to make @doenet/standalone available — the
+# npm can take well over an hour to make @doenet/standalone available — the
 # other packages from the same publish show up at once — and a wait that long
 # inside the publish job failed releases that had published fine. Here the wait
 # can be long and its polling slow, and a run that does fail says only that the
@@ -40,7 +40,7 @@ jobs:
               uses: actions/checkout@v6
 
             # The registry wait gets three hours, polled every five minutes;
-            # dev releases have taken up to 55 minutes to appear on npm. The CDN
+            # dev releases have taken up to 85 minutes to appear on npm. The CDN
             # wait (15 minutes) and the purge retries (about 8) follow it, so
             # `timeout-minutes` is the backstop over all three, there to keep a
             # wedged request from holding the runner.

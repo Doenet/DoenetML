@@ -103,7 +103,7 @@ jobs:
             # The purge itself runs in `purge-jsdelivr-dev.yml`, which this
             # starts and does not wait for. It has to wait for npm to finish
             # processing the publish before purging, and for
-            # @doenet/standalone that has taken up to an hour; see that file.
+            # @doenet/standalone that has taken well over an hour; see that file.
             #
             # Gated on the publish having *run*, not on it having succeeded:
             # `npm run publish` is four independent workspace publishes and npm

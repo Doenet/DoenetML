@@ -87,9 +87,9 @@ semver range matches a prerelease, so no range URL tracks one.
 On `main`, `dev-release` does not purge in its own job. It starts
 `purge-jsdelivr-dev.yml` with the version it published and finishes. That
 workflow waits up to three hours for npm to serve the version under `dev`,
-because @doenet/standalone has taken close to an hour to appear on npm after a
+because @doenet/standalone has taken well over an hour to appear on npm after a
 dev publish. If it gives up, run it again from the Actions tab with the same
-version. Starting a run cancels any run still waiting on the same branch,
+version. Starting a run cancels any run still in progress on the same branch,
 whatever version either is for, so a newer dev release replaces the purge for an
 older one.
 
