@@ -15,6 +15,7 @@ import {
     REPEAT_LIST_STATICS,
     addRepeatListAttributes,
     addRepeatListDefinitions,
+    entryCodeDependency,
     evaluatorDependencies,
     repeatTemplateEntriesDefinition,
     templateContext,
@@ -399,12 +400,12 @@ function coordinateArrayDefinition({ n, arrayName }) {
                     };
                     for (const e of templateAnalysis.nodes[coordinateNode]
                         .entryCodes) {
-                        dependencies[`entry${e}`] = {
-                            dependencyType: "stateVariable",
-                            componentIdx: templateAnalysis.entryLists[e],
-                            variableName: `${entryListPrefixes[e]}${index}`,
-                            variablesOptional: true,
-                        };
+                        dependencies[`entry${e}`] = entryCodeDependency({
+                            templateAnalysis,
+                            entryListPrefixes,
+                            e,
+                            index,
+                        });
                     }
                 }
                 dependenciesByKey[arrayKey] = dependencies;

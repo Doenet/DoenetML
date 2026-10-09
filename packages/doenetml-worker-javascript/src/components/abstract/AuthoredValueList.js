@@ -85,16 +85,7 @@ export default class AuthoredValueList extends ValueListComponent {
     // Each display setting of each entry is an array of its own
     // (`entryDisplayDigits`, …).
     static get listEntryOwnArrays() {
-        const kind = entryKind(this.listEntryComponentType);
-        if (kind !== "math" && kind !== "number") {
-            return {};
-        }
-        return Object.fromEntries(
-            Object.keys(returnNumberDisplayAttributes()).map((name) => [
-                name,
-                entryOwnArrayName(name),
-            ]),
-        );
+        return entryOwnDisplayArrays(this.listEntryComponentType);
     }
 
     // A `copy=` of the list holds its values, as they are.
@@ -1043,100 +1034,11 @@ export default class AuthoredValueList extends ValueListComponent {
             }),
         };
 
-        // The display settings each entry is shown with, `null` for the
-        // list's.
-        // Each display setting of each entry, as an array, which an entry
-        // read by itself (`$l[2]`, `<math copy="$l[2]"/>`) takes as its own,
-        // so that it is shown as it is in the list.
-        const valuesShadowing = {};
-        for (const name of displayNames) {
-            const entryArrayName = entryOwnArrayName(name);
-            stateVariableDefinitions[entryArrayName] = {
-                isArray: true,
-                entryPrefixes: [entryArrayName],
-                companionOfEachEntry: true,
-                shadowVariable: true,
-                shadowingInstructions: {
-                    createComponentOfType:
-                        stateVariableDefinitions[name].shadowingInstructions
-                            .createComponentOfType,
-                },
-                // never written: an entry that takes the default is marked
-                // so (`useEssentialOrDefaultValue`)
-                hasEssential: true,
-                returnArraySizeDependencies: () => ({
-                    numEntries: {
-                        dependencyType: "stateVariable",
-                        variableName: "numEntries",
-                    },
-                }),
-                returnArraySize({ dependencyValues }) {
-                    return [dependencyValues.numEntries];
-                },
-                returnArrayDependenciesByKey: () => ({
-                    globalDependencies: {
-                        entryDisplaySettings: {
-                            dependencyType: "stateVariable",
-                            variableName: "entryDisplaySettings",
-                        },
-                        listSetting: {
-                            dependencyType: "stateVariable",
-                            variableName: name,
-                        },
-                    },
-                }),
-                // A setting neither the entry nor the list sets is a default,
-                // so a copy of the entry (`<math copy="$l[1]"/>`) leaves it
-                // to where the copy is.
-                arrayDefinitionByKey({
-                    globalDependencyValues,
-                    globalUsedDefault,
-                    arrayKeys,
-                }) {
-                    const values = {};
-                    const defaults = {};
-                    for (const arrayKey of arrayKeys) {
-                        const settings =
-                            globalDependencyValues.entryDisplaySettings[
-                                arrayKey
-                            ];
-                        const value =
-                            settings?.[name] ??
-                            globalDependencyValues.listSetting;
-                        if (
-                            !settings?.setByEntry?.includes(name) &&
-                            globalUsedDefault.listSetting
-                        ) {
-                            defaults[arrayKey] = { defaultValue: value };
-                        } else {
-                            values[arrayKey] = value;
-                        }
-                    }
-                    return {
-                        setValue: { [entryArrayName]: values },
-                        useEssentialOrDefaultValue: {
-                            [entryArrayName]: defaults,
-                        },
-                    };
-                },
-            };
-            valuesShadowing[name] = {
-                ...stateVariableDefinitions[arrayName].shadowingInstructions
-                    .addAttributeComponentsShadowingStateVariables[name],
-                stateVariableToShadow: entryArrayName,
-            };
-        }
-        if (displayNames.length > 0) {
-            const shadowingInstructions =
-                stateVariableDefinitions[arrayName].shadowingInstructions;
-            stateVariableDefinitions[arrayName].shadowingInstructions = {
-                ...shadowingInstructions,
-                addAttributeComponentsShadowingStateVariables: {
-                    ...shadowingInstructions.addAttributeComponentsShadowingStateVariables,
-                    ...valuesShadowing,
-                },
-            };
-        }
+        addEntryOwnDisplayArrays({
+            stateVariableDefinitions,
+            arrayName,
+            displayNames,
+        });
 
         stateVariableDefinitions.entryDisplaySettings = {
             // A reference to the whole list reads them from the list.
@@ -1767,6 +1669,124 @@ function returnEntryGraphDefinitions(listClass) {
     };
 
     return definitions;
+}
+
+/**
+ * Give a list of math or number entries (with display settings
+ * `displayNames`) an array of each display setting of each entry
+ * (`entryDisplayDigits`, …, its `listEntryOwnArrays`), read from its
+ * `entryDisplaySettings`, `null` for the list's: what an entry read by itself
+ * (`$l[2]`, `<math copy="$l[2]"/>`) takes as its own, so that it is shown as
+ * it is in the list.
+ */
+export function addEntryOwnDisplayArrays({
+    stateVariableDefinitions,
+    arrayName,
+    displayNames,
+}) {
+    const valuesShadowing = {};
+    for (const name of displayNames) {
+        const entryArrayName = entryOwnArrayName(name);
+        stateVariableDefinitions[entryArrayName] = {
+            isArray: true,
+            entryPrefixes: [entryArrayName],
+            companionOfEachEntry: true,
+            shadowVariable: true,
+            shadowingInstructions: {
+                createComponentOfType:
+                    stateVariableDefinitions[name].shadowingInstructions
+                        .createComponentOfType,
+            },
+            // never written: an entry that takes the default is marked
+            // so (`useEssentialOrDefaultValue`)
+            hasEssential: true,
+            returnArraySizeDependencies: () => ({
+                numEntries: {
+                    dependencyType: "stateVariable",
+                    variableName: "numEntries",
+                },
+            }),
+            returnArraySize({ dependencyValues }) {
+                return [dependencyValues.numEntries];
+            },
+            returnArrayDependenciesByKey: () => ({
+                globalDependencies: {
+                    entryDisplaySettings: {
+                        dependencyType: "stateVariable",
+                        variableName: "entryDisplaySettings",
+                    },
+                    listSetting: {
+                        dependencyType: "stateVariable",
+                        variableName: name,
+                    },
+                },
+            }),
+            // A setting neither the entry nor the list sets is a default,
+            // so a copy of the entry (`<math copy="$l[1]"/>`) leaves it
+            // to where the copy is.
+            arrayDefinitionByKey({
+                globalDependencyValues,
+                globalUsedDefault,
+                arrayKeys,
+            }) {
+                const values = {};
+                const defaults = {};
+                for (const arrayKey of arrayKeys) {
+                    const settings =
+                        globalDependencyValues.entryDisplaySettings?.[arrayKey];
+                    const value =
+                        settings?.[name] ?? globalDependencyValues.listSetting;
+                    if (
+                        !settings?.setByEntry?.includes(name) &&
+                        globalUsedDefault.listSetting
+                    ) {
+                        defaults[arrayKey] = { defaultValue: value };
+                    } else {
+                        values[arrayKey] = value;
+                    }
+                }
+                return {
+                    setValue: { [entryArrayName]: values },
+                    useEssentialOrDefaultValue: {
+                        [entryArrayName]: defaults,
+                    },
+                };
+            },
+        };
+        valuesShadowing[name] = {
+            ...stateVariableDefinitions[arrayName].shadowingInstructions
+                .addAttributeComponentsShadowingStateVariables[name],
+            stateVariableToShadow: entryArrayName,
+        };
+    }
+    if (displayNames.length > 0) {
+        const shadowingInstructions =
+            stateVariableDefinitions[arrayName].shadowingInstructions;
+        stateVariableDefinitions[arrayName].shadowingInstructions = {
+            ...shadowingInstructions,
+            addAttributeComponentsShadowingStateVariables: {
+                ...shadowingInstructions.addAttributeComponentsShadowingStateVariables,
+                ...valuesShadowing,
+            },
+        };
+    }
+}
+
+/**
+ * The arrays `addEntryOwnDisplayArrays` gives a list of entries of
+ * `entryType`, by display setting, as its `listEntryOwnArrays`.
+ */
+export function entryOwnDisplayArrays(entryType) {
+    const kind = entryKind(entryType);
+    if (kind !== "math" && kind !== "number") {
+        return {};
+    }
+    return Object.fromEntries(
+        Object.keys(returnNumberDisplayAttributes()).map((name) => [
+            name,
+            entryOwnArrayName(name),
+        ]),
+    );
 }
 
 /** The array holding display setting `name` of each entry. */

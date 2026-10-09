@@ -8,9 +8,26 @@ import {
 } from "./abstract/repeatList";
 import { mathValueForDisplay } from "../utils/valueFunctions/math";
 import { templateCanBeModified } from "../utils/repeatTemplate";
+import {
+    addEntryOwnDisplayArrays,
+    entryOwnDisplayArrays,
+} from "./abstract/AuthoredValueList";
 
 /** The digits a `<round>` shows unless it says otherwise. */
 const ROUND_DISPLAY_DIGITS = 14;
+
+/**
+ * The display settings (`returnNumberDisplayStateVariableDefinitions`) a
+ * template that is one value alone takes from what it reads, and a reference
+ * to the whole list from the list it shadows.
+ */
+const DISPLAY_SETTINGS = [
+    "displayDigits",
+    "displayDecimals",
+    "displaySmallAsZero",
+    "padZeros",
+    "avoidScientificNotation",
+];
 
 /**
  * A `<repeat>` or `<repeatForSequence>` whose template is one value, made a
@@ -60,6 +77,16 @@ export default class RepeatValueList extends ValueListComponent {
     // An entry is fixed only as the template was, by its own `fixed` or an
     // ancestor's.
     static listEntriesFixedByDefault = false;
+
+    // A template that is one entry of a list alone shows each entry with
+    // that entry's own settings, as the iteration's copy of it did.
+    static listEntryDisplaySettingsVariable = "entryDisplaySettings";
+
+    // Each display setting of each entry is an array of its own, which a
+    // reference to one entry (`$r[2]`) reads, as for an authored list.
+    static get listEntryOwnArrays() {
+        return entryOwnDisplayArrays(this.listEntryComponentType);
+    }
 
     static createAttributesObject() {
         const attributes = super.createAttributesObject();
@@ -159,24 +186,19 @@ export default class RepeatValueList extends ValueListComponent {
             settingsDependencies,
         });
 
-        // A `<round>` template shows 14 digits by default, as `<round>`
-        // does. It stays a default, so what reads the list
-        // (`<mathList>$r</mathList>`) shows its own. A reference to the whole
-        // list (`$r`), which holds no template, takes the default of the list
-        // it shadows.
+        // A `<round>` template, or one around a `<round>` alone
+        // (`showsRoundDigits`), shows 14 digits by default, as `<round>` does
+        // and passes to its parent. It stays a default, so what reads the
+        // list (`<mathList>$r</mathList>`) shows its own.
         const displayDigits = stateVariableDefinitions.displayDigits;
         stateVariableDefinitions.displayDigits = {
             ...displayDigits,
             stateVariablesDeterminingDependencies: ["templateAnalysis"],
             returnDependencies(args) {
                 const dependencies = displayDigits.returnDependencies(args);
-                const top = args.stateValues.templateAnalysis.nodes[0];
-                if (top === undefined) {
-                    dependencies.shadowSourceDisplayDigits = {
-                        dependencyType: "shadowSourceStateVariable",
-                        variableName: "displayDigits",
-                    };
-                } else if (top.type === "round") {
+                if (
+                    args.stateValues.templateAnalysis.nodes[0]?.showsRoundDigits
+                ) {
                     dependencies.roundTemplate = {
                         dependencyType: "value",
                         value: true,
@@ -186,28 +208,191 @@ export default class RepeatValueList extends ValueListComponent {
             },
             definition(args) {
                 const result = displayDigits.definition(args);
-                if (result.useEssentialOrDefaultValue?.displayDigits !== true) {
-                    return result;
-                }
-                const { dependencyValues, usedDefault } = args;
-                let defaultValue;
-                if (dependencyValues.roundTemplate) {
-                    defaultValue = ROUND_DISPLAY_DIGITS;
-                } else if (
-                    dependencyValues.shadowSourceDisplayDigits != null &&
-                    usedDefault.shadowSourceDisplayDigits
+                if (
+                    result.useEssentialOrDefaultValue?.displayDigits !== true ||
+                    !args.dependencyValues.roundTemplate
                 ) {
-                    defaultValue = dependencyValues.shadowSourceDisplayDigits;
-                } else {
                     return result;
                 }
                 return {
                     useEssentialOrDefaultValue: {
-                        displayDigits: { defaultValue },
+                        displayDigits: { defaultValue: ROUND_DISPLAY_DIGITS },
                     },
                 };
             },
         };
+
+        // A template that is one value alone (`<math>$x</math>`,
+        // `<number>$l[$i]</number>`) shows it with the display settings of
+        // what it reads, unless the list sets its own, as a `<math>` takes
+        // those of its single child: of the list it reads an entry or a
+        // coordinate of, or of the value it reads at every index. A reference
+        // to the whole list (`$r`), which holds no template, shows its
+        // entries with the settings of the list it shadows.
+        for (const setting of DISPLAY_SETTINGS) {
+            const base = stateVariableDefinitions[setting];
+            stateVariableDefinitions[setting] = {
+                ...base,
+                stateVariablesDeterminingDependencies: [
+                    ...(base.stateVariablesDeterminingDependencies ?? []),
+                    "templateAnalysis",
+                ],
+                returnDependencies(args) {
+                    const dependencies = base.returnDependencies(args);
+                    const { templateAnalysis } = args.stateValues;
+                    const top = templateAnalysis.nodes[0];
+                    const code = top?.singleCode;
+                    if (top === undefined) {
+                        dependencies.singleCodeSetting = {
+                            dependencyType: "shadowSourceStateVariable",
+                            variableName: setting,
+                        };
+                    } else if (code?.entry !== undefined) {
+                        dependencies.singleCodeSetting = {
+                            dependencyType: "stateVariable",
+                            componentIdx:
+                                templateAnalysis.entryLists[code.entry],
+                            variableName: setting,
+                            variablesOptional: true,
+                        };
+                    } else if (code?.constant !== undefined) {
+                        dependencies.singleCodeConstant = {
+                            dependencyType: "child",
+                            childGroups: ["constants"],
+                            childIndices: [code.constant],
+                            variableNames: [setting],
+                            variablesOptional: true,
+                        };
+                    }
+                    return dependencies;
+                },
+                definition(args) {
+                    const result = base.definition(args);
+                    if (
+                        result.useEssentialOrDefaultValue?.[setting] ===
+                        undefined
+                    ) {
+                        return result;
+                    }
+                    const { dependencyValues, usedDefault } = args;
+                    let value = dependencyValues.singleCodeSetting;
+                    let isDefault = usedDefault.singleCodeSetting;
+                    const constant = dependencyValues.singleCodeConstant?.[0];
+                    if (constant) {
+                        value = constant.stateValues[setting];
+                        isDefault =
+                            usedDefault.singleCodeConstant?.[0]?.[setting];
+                    }
+                    if (value === undefined || value === null) {
+                        return result;
+                    }
+                    if (!isDefault) {
+                        return { setValue: { [setting]: value } };
+                    }
+                    // the default of what it reads, unless the list has one
+                    // of its own (a `<round>`'s)
+                    if (result.useEssentialOrDefaultValue[setting] !== true) {
+                        return result;
+                    }
+                    return {
+                        useEssentialOrDefaultValue: {
+                            [setting]: { defaultValue: value },
+                        },
+                    };
+                },
+            };
+        }
+
+        // The settings each entry is shown with, `null` for the list's: for
+        // a template that is one entry (or a coordinate of one) of a list
+        // alone, the settings that entry of the list has of its own
+        // (`<mathList><math displayDigits="2">…</math></mathList>`), as the
+        // iteration's `<math>` took them from its single child. A setting
+        // the list sets itself, from the template's attributes, is the
+        // list's; `displayDigits` and `displayDecimals` go together, as one
+        // set ignores the other. A reference to the whole list reads them
+        // from the list.
+        stateVariableDefinitions.entryDisplaySettings = {
+            shadowVariable: true,
+            stateVariablesDeterminingDependencies: ["templateAnalysis"],
+            returnDependencies({ stateValues }) {
+                const { templateAnalysis } = stateValues;
+                const code = templateAnalysis.nodes[0]?.singleCode;
+                if (code?.entry === undefined) {
+                    return {};
+                }
+                const dependencies = {
+                    numEntries: {
+                        dependencyType: "stateVariable",
+                        variableName: "numEntries",
+                    },
+                    sourceSettings: {
+                        dependencyType: "stateVariable",
+                        componentIdx: templateAnalysis.entryLists[code.entry],
+                        variableName: "entryDisplaySettings",
+                        variablesOptional: true,
+                    },
+                };
+                for (const setting of DISPLAY_SETTINGS) {
+                    dependencies[setting] = {
+                        dependencyType: "stateVariable",
+                        variableName: setting,
+                    };
+                    dependencies[`${setting}Attribute`] = {
+                        dependencyType: "attributeComponent",
+                        attributeName: setting,
+                    };
+                }
+                return dependencies;
+            },
+            definition({ dependencyValues }) {
+                const sourceSettings = dependencyValues.sourceSettings;
+                if (!Array.isArray(sourceSettings)) {
+                    return { setValue: { entryDisplaySettings: null } };
+                }
+                const own = new Set(
+                    DISPLAY_SETTINGS.filter(
+                        (setting) =>
+                            dependencyValues[`${setting}Attribute`] !== null,
+                    ),
+                );
+                if (own.has("displayDigits") || own.has("displayDecimals")) {
+                    own.add("displayDigits");
+                    own.add("displayDecimals");
+                }
+                const entryDisplaySettings = [];
+                for (let ind = 0; ind < dependencyValues.numEntries; ind++) {
+                    const settings = sourceSettings[ind];
+                    if (!settings) {
+                        entryDisplaySettings.push(null);
+                        continue;
+                    }
+                    // the list's own in place of the entry's, set rather
+                    // than defaults, as a list holding this one reads
+                    // `setByEntry`
+                    const entrySettings = {
+                        ...settings,
+                        setByEntry: [
+                            ...new Set([
+                                ...(settings.setByEntry ?? []),
+                                ...own,
+                            ]),
+                        ],
+                    };
+                    for (const setting of own) {
+                        entrySettings[setting] = dependencyValues[setting];
+                    }
+                    entryDisplaySettings.push(entrySettings);
+                }
+                return { setValue: { entryDisplaySettings } };
+            },
+        };
+
+        addEntryOwnDisplayArrays({
+            stateVariableDefinitions,
+            arrayName,
+            displayNames: DISPLAY_SETTINGS,
+        });
 
         if (entryType === "math") {
             // As a `<math>` shows its value: rounded, then simplified and
@@ -223,9 +408,13 @@ export default class RepeatValueList extends ValueListComponent {
                     const values = dependencyValues.values;
                     return {
                         setValue: {
-                            entryValuesForDisplay: values.map((value) =>
+                            // each with its own settings, if it has them
+                            entryValuesForDisplay: values.map((value, ind) =>
                                 mathValueForDisplay({
                                     ...dependencyValues,
+                                    ...dependencyValues.entryDisplaySettings?.[
+                                        ind
+                                    ],
                                     value,
                                 }),
                             ),

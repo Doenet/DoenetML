@@ -27,8 +27,11 @@ import { serializedAttributeComponent } from "../literalAttribute";
  *   - its value or index, read as an entry of the list the repeat holds them
  *     in (`_repeatValues`, `_repeatIndices`; the value-reference pass made
  *     them lists only when nothing else reads them);
- *   - the value of a `<repeat>` whose `for` is one list (`for="$l"`), read
- *     as `$l[$i]`;
+ *   - the value of a `<repeat>` whose `for` is one list (`for="$l"`), or a
+ *     property whose value is one (`for="$it.allIteratesWithInitial"`,
+ *     which the reference makes as that list), read as `$l[$i]`, or one
+ *     coordinate of it (`$x[2]`, an index written as a positive integer),
+ *     read as `$l[$i][2]`, of a list of maths;
  *   - an entry of a list at the iteration's index (`$l[$i]`);
  *   - a value that is the same in every iteration, which becomes a child of
  *     the list;
@@ -64,6 +67,7 @@ import { unwrapSource } from "./convertNormalizedDast";
 import { documentReferents } from "./valueReferences";
 import { sequenceEntryComponentType } from "../sequence";
 import { STYLE_OVERRIDE_CATEGORIES } from "@doenet/utils";
+import { staticValueReferenceTarget } from "../valueReference";
 
 /**
  * The math operators a template can be or hold, each a `<math>` whose value
@@ -119,6 +123,43 @@ function takesEntryTarget({ componentType, attribute }: NamedBy) {
 
 /** The reference attribute that names a reference, and what it is on. */
 type NamedBy = { componentType: string; attribute: string };
+
+/**
+ * The list a `<repeat>`'s `for` is: the component under `nodeIdx`, or the
+ * list the reference `copy` to a property makes, of class `listClass`.
+ */
+type ForList = {
+    listClass: any;
+    nodeIdx?: number;
+    copy?: SerializedComponent;
+};
+
+/**
+ * The coordinate, from 1, that the path `path` reads of a value, when it is
+ * one index written as a positive integer (`$x[2]`).
+ */
+function literalCoordinate(
+    path: SerializedRefResolutionPathPart[],
+): number | undefined {
+    if (
+        path.length !== 1 ||
+        path[0].name !== "" ||
+        path[0].index.length !== 1
+    ) {
+        return undefined;
+    }
+    const pieces = path[0].index[0].value.filter(
+        (piece) => typeof piece !== "string" || piece.trim() !== "",
+    );
+    if (
+        pieces.length !== 1 ||
+        typeof pieces[0] !== "string" ||
+        !/^[1-9]\d*$/.test(pieces[0].trim())
+    ) {
+        return undefined;
+    }
+    return Number(pieces[0].trim());
+}
 
 /** The list types that hold a repeat's value and index. */
 const ITERATION_LIST_TYPES = new Set(["_repeatValues", "_repeatIndices"]);
@@ -384,7 +425,7 @@ export function convertRepeatsToLists({
         // nothing reads them; one still in the `_repeatSetup` is read in a
         // way only a component of each iteration answers.
         let valueDummyIdx: number | undefined;
-        let forList: { nodeIdx: number } | undefined;
+        let forList: ForList | undefined;
         if (repeat.componentType === "repeatForSequence") {
             if (setup !== undefined) {
                 return;
@@ -429,9 +470,12 @@ export function convertRepeatsToLists({
         const constants: SerializedComponent[] = [];
         // a point's constraints, which become the list's
         const constraints: SerializedComponent[] = [];
+        // Each reads an entry of a list, or a coordinate of one; the value
+        // of a `<repeat>` reads its `for` (`readsFor`).
         const entryReferences: {
             reference: SerializedComponent;
-            listIdx?: number;
+            readsFor?: boolean;
+            coordinate?: number;
         }[] = [];
         const forbidden = new Set<number>([
             repeat.componentIdx,
@@ -546,6 +590,33 @@ export function convertRepeatsToLists({
         }
 
         return (nComponents: number) => {
+            // A `for` that is a property (`$it.allIteratesWithInitial`) is
+            // the list it makes, given an index here so the entries can name
+            // it. As for an `extend`, the list takes the reference's index
+            // and the reference a new one: the reference resolves from its
+            // index (`nodesInResolvedPath[0]`), which, when a repeat's
+            // template holding it is copied, is that of what it makes.
+            let forListIdx = forList?.nodeIdx;
+            if (forList?.copy) {
+                forListIdx = forList.copy.componentIdx;
+                forList.copy.componentIdx = nComponents++;
+                forList.copy.attributes = {
+                    createComponentOfType: {
+                        type: "primitive",
+                        name: "createComponentOfType",
+                        primitive: {
+                            type: "string",
+                            value: forList.listClass.componentType,
+                        },
+                    },
+                    createComponentIdx: {
+                        type: "primitive",
+                        name: "createComponentIdx",
+                        primitive: { type: "number", value: forListIdx },
+                    },
+                };
+            }
+
             for (const refResolution of rewrites) {
                 const [first, , ...rest] = refResolution.unresolvedPath!;
                 refResolution.unresolvedPath = [first, ...rest];
@@ -561,8 +632,9 @@ export function convertRepeatsToLists({
                 }
             }
 
-            for (const { reference, listIdx } of entryReferences) {
-                if (listIdx !== undefined) {
+            for (const { reference, readsFor, coordinate } of entryReferences) {
+                if (readsFor) {
+                    const listIdx = forListIdx!;
                     // the value of a `<repeat>`, read as an entry of its list
                     reference.componentType = "_ref";
                     reference.extending = {
@@ -584,6 +656,9 @@ export function convertRepeatsToLists({
                 reference.doenetAttributes = {
                     ...reference.doenetAttributes,
                     repeatEntry: true,
+                    ...(coordinate === undefined
+                        ? {}
+                        : { repeatEntryCoordinate: coordinate }),
                 };
             }
 
@@ -995,12 +1070,30 @@ export function convertRepeatsToLists({
             const refResolution = reference.extending.Ref;
             const path = refResolution.unresolvedPath ?? [];
 
-            // the value of a `<repeat>`, read as `$l[$i]` of its `for`
+            // the value of a `<repeat>`, read as `$l[$i]` of its `for`, or
+            // a coordinate of it (`$x[2]`), read as `$l[$i][2]`
             if (refResolution.nodeIdx === valueDummyIdx) {
-                if (path.length > 0 || reference.componentType !== "_copy") {
+                if (reference.componentType !== "_copy") {
                     return false;
                 }
-                entryReferences.push({ reference, listIdx: forList!.nodeIdx });
+                if (path.length === 0) {
+                    entryReferences.push({ reference, readsFor: true });
+                    return true;
+                }
+                const coordinate = literalCoordinate(path);
+                if (
+                    coordinate === undefined ||
+                    forList!.listClass.derivedEntryProperty?.(
+                        `x${coordinate}`,
+                    ) === undefined
+                ) {
+                    return false;
+                }
+                entryReferences.push({
+                    reference,
+                    readsFor: true,
+                    coordinate,
+                });
                 return true;
             }
             if (reference.componentType !== "_ref") {
@@ -1068,10 +1161,15 @@ export function convertRepeatsToLists({
 
     /**
      * For a `<repeat>`, the list its `for` is, when that is one reference to
-     * a whole list (`$l`), whose entries are values of `ENTRY_VALUE_TYPES`
+     * a whole list (`$l`), or to a property of a component that is one
+     * (`$it.allIteratesWithInitial`, which the reference makes as a
+     * `<mathList>`: `copy`), whose entries are values of `ENTRY_VALUE_TYPES`
      * when the template reads them (`readsValue`).
      */
-    function forListOf(repeat: SerializedComponent, readsValue: boolean) {
+    function forListOf(
+        repeat: SerializedComponent,
+        readsValue: boolean,
+    ): ForList | undefined {
         const forAttribute = repeat.attributes.for;
         if (forAttribute?.type !== "component") {
             return;
@@ -1094,29 +1192,76 @@ export function convertRepeatsToLists({
         if (refResolution.nodeIdx < 0) {
             return;
         }
+        const path = refResolution.unresolvedPath ?? [];
+        if (path.length === 0) {
+            const listClass = entryListClass(refResolution.nodeIdx);
+            if (
+                listClass === undefined ||
+                !entriesQualify(listClass, readsValue)
+            ) {
+                return;
+            }
+            return { nodeIdx: refResolution.nodeIdx, listClass };
+        }
+        // a property (`$it.allIteratesWithInitial`) whose value is a list
+        const referent = referentType(refResolution.nodeIdx);
         if (
-            refResolution.unresolvedPath?.length ||
-            !isEntryList(refResolution.nodeIdx, readsValue)
+            reference.componentType !== "_copy" ||
+            path.length !== 1 ||
+            referent === undefined
         ) {
             return;
         }
-        return { nodeIdx: refResolution.nodeIdx };
+        const target = staticValueReferenceTarget({
+            targetComponentType: referent,
+            targetClass: referentClass(refResolution.nodeIdx, referent),
+            unresolvedPath: path,
+            componentInfoObjects,
+        });
+        const listClass =
+            target &&
+            componentInfoObjects.allComponentClasses[target.valueComponentType];
+        if (
+            !listClass ||
+            listClass.listEntryTypeAttribute !== undefined ||
+            !entriesQualify(listClass, readsValue)
+        ) {
+            return;
+        }
+        return { listClass, copy: reference };
+    }
+
+    /**
+     * Whether `listClass` is a list whose entries are values of
+     * `ENTRY_VALUE_TYPES`, or, when its values are not read
+     * (`ofValueTypes`), a list of any entries.
+     */
+    function entriesQualify(listClass: any, ofValueTypes: boolean) {
+        const entryType = listClass.listEntryComponentType;
+        return ofValueTypes
+            ? ENTRY_VALUE_TYPES.has(entryType)
+            : entryType !== undefined;
+    }
+
+    /** The class of the list under `nodeIdx`, if it is one. */
+    function entryListClass(nodeIdx: number) {
+        const type = referentType(nodeIdx);
+        if (type === undefined) {
+            return undefined;
+        }
+        const listClass = referentClass(nodeIdx, type) as any;
+        return listClass?.listEntryComponentType === undefined
+            ? undefined
+            : listClass;
     }
 
     /**
      * Whether the component under `nodeIdx` is a list whose entries are
      * values of `ENTRY_VALUE_TYPES`.
      */
-    function isEntryList(nodeIdx: number, ofValueTypes = true) {
-        const type = referentType(nodeIdx);
-        if (type === undefined) {
-            return false;
-        }
-        const entryType = (referentClass(nodeIdx, type) as any)
-            ?.listEntryComponentType;
-        return ofValueTypes
-            ? ENTRY_VALUE_TYPES.has(entryType)
-            : entryType !== undefined;
+    function isEntryList(nodeIdx: number) {
+        const listClass = entryListClass(nodeIdx);
+        return listClass !== undefined && entriesQualify(listClass, true);
     }
 
     /**

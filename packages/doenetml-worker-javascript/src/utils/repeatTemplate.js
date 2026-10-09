@@ -87,8 +87,11 @@ const PARSE_SETTINGS = {
 
 /**
  * The analysis of the serialized `template`: its nodes, the template's own
- * first (`nodes[0]`), and the list each entry code reads (`entryLists`, by
- * the component index the reference resolved to).
+ * first (`nodes[0]`), the list each entry code reads (`entryLists`, by
+ * the component index the reference resolved to), and the coordinate of the
+ * entry it reads, from 1, or `null` for the entry itself
+ * (`entryCoordinates`, `$x[2]` of a `<repeat>`'s value, which reads
+ * coordinate 2 of the entry of its `for`).
  *
  * A node is `{ type, simplify, expand, fixed, codes, entryCodes, ... }`,
  * where each code is `{ entry: e }`, `{ constant: c }` or `{ node: n }`, and
@@ -97,21 +100,32 @@ const PARSE_SETTINGS = {
  * `<evaluate>` nodes among it and those nested in it. A math node, and an
  * operator, also has its `codePre`, `expressionWithCodes` and `numStrings`; a
  * `<round>` its `numDecimals` and `numDigits`; a number node the `string` it
- * reads when its one child is text. An `<evaluate>` node's codes are its
- * inputs, and it has the constant its function is (`function`) and its
- * `forceSymbolic` and `forceNumeric`.
+ * reads when its one child is text. A math or number node, other than a
+ * `<round>`, whose content is one entry or constant code alone, or one nested
+ * node that has one, has it as its `singleCode`; a `<round>`, or a node whose
+ * content is one alone, shows the round's digits (`showsRoundDigits`,
+ * `singleChildOf`). An `<evaluate>` node's codes are its inputs, and it has
+ * the constant its function is (`function`) and its `forceSymbolic` and
+ * `forceNumeric`.
  */
 export function analyzeRepeatTemplate(template) {
     const nodes = [];
     const entryLists = [];
+    const entryCoordinates = [];
 
     function entryCode(reference) {
         const nodeIdx = (reference.extending.Ref ?? reference.extending)
             .nodeIdx;
-        let e = entryLists.indexOf(nodeIdx);
+        const coordinate =
+            reference.doenetAttributes.repeatEntryCoordinate ?? null;
+        let e = entryLists.findIndex(
+            (listIdx, ind) =>
+                listIdx === nodeIdx && entryCoordinates[ind] === coordinate,
+        );
         if (e === -1) {
             e = entryLists.length;
             entryLists.push(nodeIdx);
+            entryCoordinates.push(coordinate);
         }
         return { entry: e };
     }
@@ -178,6 +192,12 @@ export function analyzeRepeatTemplate(template) {
                 }
             }
             node.numStrings = strings.length;
+            // a `<round>` shows its own digits, not its child's
+            if (node.type === "round") {
+                node.showsRoundDigits = true;
+            } else {
+                Object.assign(node, singleChildOf(node.codes, strings, nodes));
+            }
             node.codePre = mathCodePre(strings);
             node.expressionWithCodes = mathExpressionWithCodes({
                 content,
@@ -193,6 +213,7 @@ export function analyzeRepeatTemplate(template) {
                 node.string = child;
             } else if (child !== undefined) {
                 node.codes.push(codeOf(child));
+                Object.assign(node, singleChildOf(node.codes, [], nodes));
             }
         }
         return ind;
@@ -231,7 +252,34 @@ export function analyzeRepeatTemplate(template) {
     }
     nodes.forEach((_, ind) => codesOf(ind));
 
-    return { nodes, entryLists };
+    return { nodes, entryLists, entryCoordinates };
+}
+
+/**
+ * What a node whose content is `codes` and `strings` takes its display
+ * settings from, as a `<math>`, `<number>` or `<abs>` takes those of its
+ * single child as its defaults: when its content is one entry or constant
+ * code alone (`<math>$x</math>`, `<number>$l[$i]</number>`), that code
+ * (`singleCode`); when it is one nested node of `nodes` alone
+ * (`<math><abs>$x</abs></math>`), what that node takes its settings from, a
+ * `<round>`'s own digits (`showsRoundDigits`) included. Nothing for any other
+ * content, or an `<evaluate>`, which takes those of its function.
+ */
+function singleChildOf(codes, strings, nodes) {
+    if (codes.length !== 1 || strings.some((string) => string.trim() !== "")) {
+        return {};
+    }
+    const code = codes[0];
+    if (code.node === undefined) {
+        return { singleCode: code };
+    }
+    const nested = nodes[code.node];
+    if (nested.showsRoundDigits) {
+        return { showsRoundDigits: true };
+    }
+    return nested.singleCode === undefined
+        ? {}
+        : { singleCode: nested.singleCode };
 }
 
 /**

@@ -155,6 +155,220 @@ describe("Repeats whose template is one value @group4", () => {
         expect(texts).toEqual({ p: "1, 2, 3" });
     });
 
+    it("a coordinate of the value of a repeat over a list", async () => {
+        const texts = await compare({
+            doenetML: `
+<mathList name="l">(1,2) 5 (3,4,7) x</mathList>
+<p name="p"><repeat name="r" for="$l" valueName="x"><math>$x[1]</math></repeat></p>
+<p name="p2"><repeat name="r2" for="$l" valueName="x" indexName="i"><math>$x[1] + $i</math></repeat></p>
+<p name="p3"><repeat name="r3" for="$l" valueName="x"><number>$x[3]</number></repeat></p>
+<p name="p4"><repeat name="r4" for="$l" valueName="x"><math>($x[1], $x)</math></repeat></p>
+`,
+            names: ["p", "p2", "p3", "p4"],
+        });
+        expect(texts).toEqual({
+            p: "1, 5, 3, x",
+            p2: "1 + 1, 5 + 2, 3 + 3, x + 4",
+            p3: "NaN, NaN, 7, NaN",
+            p4: "(1, (1, 2)), (5, 5), (3, (3, 4, 7)), (x, x)",
+        });
+    });
+
+    it("a coordinate past the value's dimensions is a blank, as of a math", async () => {
+        // The composite's copy of the coordinate has nothing to copy, and
+        // leaves its place empty (`+ 1`); a reference to it elsewhere
+        // (`$m[2]`) reads a blank, as the list does.
+        const { core, resolvePathToNodeIdx } = await load(
+            `
+<mathList name="l">(1,2) 5</mathList>
+<math name="m">5</math>
+<p name="p"><repeat name="r" for="$l" valueName="x"><math>$x[2] + 1</math></repeat></p>
+<p name="pm"><math>$m[2] + 1</math></p>
+`,
+            true,
+        );
+        expect(await typeOf(core, resolvePathToNodeIdx, "r")).toBe(
+            "_repeatValueList",
+        );
+        expect(await textsOf(core, resolvePathToNodeIdx, ["p", "pm"])).toEqual({
+            p: "2 + 1, ＿ + 1",
+            pm: "＿ + 1",
+        });
+    });
+
+    it("a write to a coordinate of the value, or to the value, goes to the entry", async () => {
+        const texts = await compare({
+            doenetML: `
+<mathList name="l">(1,2) (3,4)</mathList>
+<p name="p"><repeat name="r" for="$l" valueName="x"><math>$x[2]</math></repeat></p>
+<mathInput name="mi" bindValueTo="$r[2]" />
+<p name="pq"><repeat name="q" for="$l" valueName="x"><math>$x</math></repeat></p>
+<mathInput name="mq" bindValueTo="$q[1]" />
+<p name="pl">$l</p>
+`,
+            names: ["p", "pq", "pl"],
+            afterLoad: async (core, resolvePathToNodeIdx) => {
+                await updateMathInputValue({
+                    latex: "9",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+                await updateMathInputValue({
+                    latex: "(5,6)",
+                    componentIdx: await resolvePathToNodeIdx("mq"),
+                    core,
+                });
+            },
+        });
+        expect(texts).toEqual({
+            p: "6, 9",
+            pq: "(5, 6), (3, 9)",
+            pl: "(5, 6), (3, 9)",
+        });
+    });
+
+    it("a repeat over a property whose value is a list", async () => {
+        const texts = await compare({
+            doenetML: `
+<function name="f" variables="u v">(u+1, 2v)</function>
+<mathInput name="n" prefill="3" />
+<functionIterates name="it" function="$f" initialValue="(0,1)" numIterates="$n" />
+<p name="p"><repeat name="r" for="$it.allIteratesWithInitial" valueName="x" indexName="i"><math>$x[2] + $i</math></repeat></p>
+<p name="p2"><repeat name="r2" for="$it.allIteratesWithInitial" valueName="x"><math>$x</math></repeat></p>
+<p name="p3">$r[2] <sum>$r</sum></p>
+`,
+            names: ["p", "p2", "p3"],
+            afterLoad: async (core, resolvePathToNodeIdx) => {
+                await updateMathInputValue({
+                    latex: "4",
+                    componentIdx: await resolvePathToNodeIdx("n"),
+                    core,
+                });
+            },
+        });
+        expect(texts).toEqual({
+            p: "1 + 1, 2 + 2, 4 + 3, 8 + 4, 16 + 5",
+            p2: "(0, 1), (1, 2), (2, 4), (3, 8), (4, 16)",
+            p3: "2 + 2 1 + 1 + 2 + 2 + 4 + 3 + 8 + 4 + 16 + 5",
+        });
+    });
+
+    it("a repeat over a property, in each iteration of another repeat", async () => {
+        // the list the `for` makes resolves `$it` from each iteration, as
+        // the reference it replaces did
+        const doenetML = `
+<function name="f" variables="u v">(u+1, 2v)</function>
+<p name="p"><repeat name="o" for="1 2" valueName="k">
+  <functionIterates name="it" function="$f" initialValue="($k,1)" numIterates="2" />
+  <repeat name="r" for="$it.allIteratesWithInitial" valueName="x"><math>$x[1]</math></repeat>
+</repeat></p>
+`;
+        const texts = await compare({
+            doenetML,
+            names: ["p"],
+            repeatName: "o",
+            becomesList: false,
+        });
+        const { core } = await load(doenetML, true);
+        expect(
+            Object.values(core.core!._components).filter(
+                (component: any) =>
+                    component?.componentType === "_repeatValueList",
+            ).length,
+        ).toBe(2);
+        expect(texts.p.replace(/\s+/g, " ").trim()).toBe("1, 2, 3, 2, 3, 4");
+    });
+
+    it("a template that is one value alone shows it with that value's display settings, as does a reference to the repeat", async () => {
+        const texts = await compare({
+            doenetML: `
+<mathList name="l" displayDigits="2">0.12345 (1.2345, 0.0012345)</mathList>
+<mathList name="ld" displayDecimals="1" padZeros>0.12345 2</mathList>
+<number name="c" displayDigits="2">0.98765</number>
+<function name="f" variables="u v">(u/3, v/7)</function>
+<functionIterates name="it" function="$f" initialValue="(1, 1.5)" numIterates="2" displayDigits="2" />
+<p name="p"><repeat name="r" for="$l" valueName="x"><math>$x</math></repeat></p>
+<p name="p2"><repeat name="r2" for="$l" valueName="x"><math>$x[1]</math></repeat></p>
+<p name="p3"><repeatForSequence name="r3" from="1" to="2" indexName="i"><math>$l[$i]</math></repeatForSequence></p>
+<p name="p4"><repeat name="r4" for="$ld" valueName="x"><number>$x</number></repeat></p>
+<p name="p5"><repeatForSequence name="r5" from="1" to="2"><number>$c</number></repeatForSequence></p>
+<p name="p6"><repeat name="r6" for="$it.allIteratesWithInitial" valueName="x"><math>$x[2]</math></repeat></p>
+<p name="p7"><repeat name="r7" for="$l" valueName="x"><math displayDigits="4">$x</math></repeat></p>
+<p name="p8"><repeat name="r8" for="$l" valueName="x"><math>2$x</math></repeat></p>
+<p name="p9"><repeat name="r9" for="$l" valueName="x"><round numDecimals="3">$x</round></repeat></p>
+<p name="p10">$r <mathList>$r</mathList></p>
+`,
+            names: ["p", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10"],
+        });
+        expect(texts).toEqual({
+            p: "0.12, (1.2, 0.0012)",
+            p2: "0.12, 1.2",
+            p3: "0.12, (1.2, 0.0012)",
+            p4: "0.1, 2.0",
+            p5: "0.99, 0.99",
+            p6: "1.5, 0.21, 0.031",
+            // its own, or none (`2$x`, a `<round>`)
+            p7: "0.1235, (1.235, 0.001235)",
+            p8: "2 * 0.123, 2 (1.23, 0.00123)",
+            p9: "0.123, (1.235, 0.001)",
+            p10: "0.12, (1.2, 0.0012) 0.12, (1.2, 0.0012)",
+        });
+    });
+
+    it("a template that is one entry alone shows each entry with that entry's own settings", async () => {
+        const texts = await compare({
+            doenetML: `
+<mathList name="l"><math displayDigits="2">1.23456</math><math displayDigits="5">1.23456</math>1.23456</mathList>
+<mathList name="lv"><math displayDecimals="1">(1.23456, 2.34567)</math><math>(1.23456, 2.34567)</math></mathList>
+<p name="p"><repeat name="r" for="$l" valueName="x"><math>$x</math></repeat></p>
+<p name="p2"><repeatForSequence name="r2" from="1" to="3" indexName="i"><math>$l[$i]</math></repeatForSequence></p>
+<p name="p3"><repeat name="r3" for="$lv" valueName="x"><math>$x[2]</math></repeat></p>
+<p name="p4"><repeat name="r4" for="$l" valueName="x"><math displayDigits="4">$x</math></repeat></p>
+<p name="p5"><repeat name="r5" for="$l" valueName="x"><math displayDecimals="1">$x</math></repeat></p>
+<p name="p6">$r</p>
+<p name="p7"><mathList>$r $r4</mathList></p>
+<p name="p8">$r[1] $r[2] <math>$r[1]</math> <math>$r[2]</math></p>
+`,
+            names: ["p", "p2", "p3", "p4", "p5", "p6", "p7", "p8"],
+        });
+        expect(texts).toEqual({
+            p: "1.2, 1.2346, 1.23",
+            p2: "1.2, 1.2346, 1.23",
+            p3: "2.3, 2.35",
+            p4: "1.235, 1.235, 1.235",
+            p5: "1.2, 1.2, 1.2",
+            p6: "1.2, 1.2346, 1.23",
+            p7: "1.2, 1.2346, 1.23, 1.235, 1.235, 1.235",
+            p8: "1.2 1.2346 1.2 1.2346",
+        });
+    });
+
+    it("a template around one value alone shows it with that value's display settings", async () => {
+        const texts = await compare({
+            doenetML: `
+<mathList name="l" displayDigits="2">1.23456 2.34567</mathList>
+<mathList name="le"><math displayDigits="5">1.23456</math><math displayDecimals="1">2.34567</math></mathList>
+<p name="p"><repeat name="r" for="$l" valueName="x"><math><math>$x</math></math></repeat></p>
+<p name="p2"><repeat name="r2" for="$l" valueName="x"><math><abs>$x</abs></math></repeat></p>
+<p name="p3"><repeat name="r3" for="$l" valueName="x"><abs><math>$x</math></abs></repeat></p>
+<p name="p4"><repeat name="r4" for="$l" valueName="x"><math><round numDecimals="3">$x</round></math></repeat></p>
+<p name="p5"><repeat name="r5" for="$l" valueName="x"><abs><round numDecimals="3">$x</round></abs></repeat></p>
+<p name="p6"><repeat name="r6" for="$le" valueName="x"><math><abs>$x</abs></math></repeat></p>
+<p name="p7"><repeat name="r7" for="$l" valueName="x"><math><math>2$x</math></math></repeat></p>
+`,
+            names: ["p", "p2", "p3", "p4", "p5", "p6", "p7"],
+        });
+        expect(texts).toEqual({
+            p: "1.2, 2.3",
+            p2: "1.2, 2.3",
+            p3: "1.2, 2.3",
+            p4: "1.235, 2.346",
+            p5: "1.235, 2.346",
+            p6: "1.2346, 2.3",
+            p7: "2 * 1.23, 2 * 2.35",
+        });
+    });
+
     it("a sum of a repeat over a list of numbers", async () => {
         const texts = await compare({
             doenetML: `
@@ -684,6 +898,14 @@ describe("Repeats whose template is one value @group4", () => {
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v</math><math>$v</math></repeatForSequence>`,
             // a repeat over something that is not one list
             `<repeat name="r" for="1 2" valueName="v"><math>$v</math></repeat>`,
+            // ...including a property that is an array of values, not a list
+            `<function name="f" variables="t">t+1</function><functionIterates name="it" function="$f" initialValue="0" numIterates="2" /><repeat name="r" for="$it.iterates" valueName="v"><math>$v</math></repeat>`,
+            // a coordinate of the value at a computed index, with a second
+            // index, at index 0, or of a value that is not a math
+            `<mathList name="l">(1,2) (3,4)</mathList><repeat name="r" for="$l" valueName="x" indexName="i"><math>$x[$i]</math></repeat>`,
+            `<mathList name="l">((1,2),3) ((4,5),6)</mathList><repeat name="r" for="$l" valueName="x"><math>$x[1][1]</math></repeat>`,
+            `<mathList name="l">(1,2) (3,4)</mathList><repeat name="r" for="$l" valueName="x"><math>$x[0]</math></repeat>`,
+            `<numberList name="l">1 2</numberList><repeat name="r" for="$l" valueName="x"><math>$x[1]</math></repeat>`,
             // a sampler
             `<repeatForSequence name="r" from="1" to="2" valueName="v"><math>$v + <selectFromSequence from="1" to="5"/></math></repeatForSequence>`,
         ]) {
