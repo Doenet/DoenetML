@@ -325,7 +325,9 @@ async function writtenAttributeComponent(component, attributeName, components) {
  * fixes its entries, or else the one written on the entry's source (`<point
  * fixed="$b">` in a `<pointList>` or found by a `<collect>`, or, for an entry
  * of a list among the list's children, `<pointList>$pl</pointList>`, that
- * list's entry).
+ * list's entry). Only a list of points or vectors records its entries'
+ * sources (`entryChildren`); for another list, as a `<mathList>`, it is only
+ * the one written on the list, as for a reference to the entry.
  */
 export async function writtenEntryAttributeComponent({
     list,

@@ -2162,11 +2162,12 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         expect(await coordsOf("K")).eqls([9, 9]);
     });
 
-    it("an unlinked copy of an entry reached through another list takes what is written on the entry's source", async () => {
-        // the entries of `j` (an extend of `pl`), `o` (holding `pl`) and
-        // `o2` (holding references to `pl`'s entries) come from `pl`'s
-        // points; the extends (`jE1`, …) are the linked controls
-        const lists = ["j", "o", "o2"];
+    it("an unlinked copy of an entry of a pointList, or reached through another list, takes what is written on the entry's source", async () => {
+        // the entries of `pl` are its points, and those of `j` (an extend of
+        // `pl`), `o` (holding `pl`) and `o2` (holding references to `pl`'s
+        // entries) come from them; the extends (`jE1`, …) are the linked
+        // controls
+        const lists = ["pl", "j", "o", "o2"];
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
     <booleanInput name="b" />

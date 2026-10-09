@@ -589,6 +589,38 @@ describe("Fixed and fixLocation of references @group4", () => {
         expect(await fixed("ef")).eq(false);
     });
 
+    it("an unlinked copy made after a write to its source's fixed or fixLocation does not take the write", async () => {
+        // the write is not written DoenetML, so the copy, its source pasted,
+        // does not have it
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="bf" bindValueTo="$m.fixed" />
+    <math name="m">x</math>
+    <booleanInput name="bfl" bindValueTo="$P.fixLocation" />
+    <graph><point name="P">(1,2)</point></graph>
+    <booleanInput name="show" />
+    <conditionalContent condition="$show" name="cc">
+      <math copy="$m" name="c" />
+      <graph><point copy="$P" name="Q" /></graph>
+    </conditionalContent>
+    `,
+        });
+        for (const name of ["bf", "bfl", "show"]) {
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+        }
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const stateValues = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        expect((await stateValues("m")).fixed).eq(true);
+        expect((await stateValues("P")).fixLocation).eq(true);
+        expect((await stateValues("cc.c")).fixed).eq(false);
+        expect((await stateValues("cc.Q")).fixLocation).eq(false);
+    });
+
     it("a point extended into a fixed group cannot be dragged", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

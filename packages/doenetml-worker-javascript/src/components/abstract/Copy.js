@@ -3091,7 +3091,9 @@ export async function replacementFromProp({
 
                         // A copy of an entry, pasted, takes the `fixed` and
                         // `fixLocation` written on the list
-                        // (`<mathList fixed="$b">`) or the entry's source.
+                        // (`<mathList fixed="$b">`), or else, for a list of
+                        // points or vectors, on the entry's source
+                        // (`writtenEntryAttributeComponent`).
                         const entryAttributes =
                             componentInfoObjects.allComponentClasses[
                                 createComponentOfType
