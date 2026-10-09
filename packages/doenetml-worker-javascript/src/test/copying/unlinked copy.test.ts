@@ -2522,6 +2522,12 @@ describe("Unlinked Copying Tests @group4", async () => {
     <math name="m" displayDigits="5">1.23456789</math>
     <math name="me" extend="$m" displayDecimals="1" />
     <math name="mc" copy="$m" displayDecimals="1" />
+    <point name="P" displayDigits="5">(1.23456789, 2)</point>
+    <math name="xe" extend="$P.x" displayDecimals="1" />
+    <math name="xc" copy="$P.x" displayDecimals="1" />
+    <mathList name="ml" displayDigits="5">1.23456789 2</mathList>
+    <math name="le" extend="$ml[1]" displayDecimals="1" />
+    <math name="lc" copy="$ml[1]" displayDecimals="1" />
     `,
         });
         const stateVariables = await core.returnAllStateVariables(false, true);
@@ -2544,7 +2550,9 @@ describe("Unlinked Copying Tests @group4", async () => {
                 "y",
             ]);
         }
-        for (const name of ["me", "mc"]) {
+        // also for a prop or an entry of a list, which takes the
+        // source's display settings
+        for (const name of ["me", "mc", "xe", "xc", "le", "lc"]) {
             expect((await stateValues(name)).text, name).eq("1.2");
         }
     });
