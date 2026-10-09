@@ -140,6 +140,117 @@ describe("An unlinked copy through a reload @group4", () => {
         );
     });
 
+    it("keeps its value through a reload while its source is inactive", async () => {
+        // On load the copy is made again from `cc.a`, inactive then: a copy
+        // of its type still, with no value of its own (main shows a blank),
+        // which takes the held snapshot.
+        const doenetML = `
+    <booleanInput name="b" prefill="true" />
+    <conditionalContent name="cc" condition="$b">
+        <mathInput name="a" prefill="1" />
+    </conditionalContent>
+    <math copy="$cc.a" name="c" />
+    <mathInput name="other" />
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        async function check(c: any, a: any) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect((await sv("c")).value.tree).eq(c);
+            if (a !== undefined) {
+                expect((await sv("cc.a")).value.tree).eq(a);
+            }
+        }
+        async function reload() {
+            await core.saveImmediately();
+            const state = scoreState.state;
+            ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+                doenetML,
+                initialState: state,
+            }));
+            return JSON.parse(state);
+        }
+
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("cc.a"),
+            core,
+        });
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        await check(1, 5);
+
+        let saved = await reload();
+        expect(Object.keys(saved.__copySnapshots).length).eq(1);
+        // `cc.a` is not made while `b` is false
+        await check(1, undefined);
+
+        // the source active again does not make the copy again
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        await check(1, 5);
+        saved = await reload();
+        expect(Object.keys(saved.__copySnapshots).length).eq(1);
+        await check(1, 5);
+    });
+
+    it("keeps holding what a copy made again could not take", async () => {
+        const doenetML = `
+    <mathInput name="mi" prefill="1" />
+    <math copy="$mi" name="c" />
+    <mathInput name="other" />
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await core.saveImmediately();
+        const coreState = JSON.parse(scoreState.state);
+        const [copyStateId] = Object.keys(coreState.__copySnapshots);
+        // an entry for a component the copy, made again, does not make
+        const unmade = {
+            stateId: `${copyStateId}|99`,
+            state: { value: 3 },
+        };
+        coreState.__copySnapshots[copyStateId].push(unmade);
+
+        ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+            initialState: JSON.stringify(coreState),
+        }));
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("c")].stateValues.value
+                .tree,
+        ).eq(1);
+
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("other"),
+            core,
+        });
+        await core.saveImmediately();
+        expect(
+            JSON.parse(scoreState.state).__copySnapshots[copyStateId],
+        ).toContainEqual(unmade);
+    });
+
     it("keeps values its source holds in primitive children or in essential state", async () => {
         // Dragging `<point>(1,2)</point>` or binding an input to
         // `<text>hi</text>` changes the source's string child, not its

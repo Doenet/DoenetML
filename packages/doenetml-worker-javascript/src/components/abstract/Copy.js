@@ -1069,7 +1069,10 @@ export default class Copy extends CompositeComponent {
      * The replacements (`createReplacementsFromSources`). An unlinked copy
      * keeps what it made of its source through a reload: it takes the
      * snapshot a save holds for it, and records its own, with how to make it
-     * again, for a save to compare (`utils/copySnapshot.js`).
+     * again, for a save to compare (`utils/copySnapshot.js`). The snapshot
+     * holds state by `stateId`, not the replacements' shape: were a copy made
+     * again with other `stateId`s, it would show what its source makes now,
+     * and keep holding the entries it could not take.
      */
     static async createSerializedReplacements(args) {
         const result = await this.createReplacementsFromSources(args);
@@ -1078,10 +1081,14 @@ export default class Copy extends CompositeComponent {
             const saved = component.coreFunctions.savedCopySnapshot?.(
                 component.stateId,
             );
-            if (saved) {
-                applyCopySnapshot(result.replacements, saved);
-            }
-            component.unlinkedSnapshot = copySnapshotOf(result.replacements);
+            // what no replacement took stays held (`applyCopySnapshot`)
+            const unapplied = saved
+                ? applyCopySnapshot(result.replacements, saved)
+                : [];
+            component.unlinkedSnapshot = [
+                ...copySnapshotOf(result.replacements),
+                ...unapplied,
+            ];
             component.freshUnlinkedSnapshot = async () =>
                 copySnapshotOf(
                     (

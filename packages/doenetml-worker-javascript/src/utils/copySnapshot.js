@@ -51,16 +51,27 @@ export function copySnapshotOf(serializedComponents) {
 
 /**
  * Give the serialized replacements of an unlinked copy the essential state
- * and primitive children that `snapshot` holds for their `stateId`s.
+ * and primitive children that `snapshot` holds for their `stateId`s, and
+ * return the entries of `snapshot` that no replacement took.
+ *
+ * Only state and primitive children are held, not the replacements' shape,
+ * so a snapshot applies only to a copy made again with the same `stateId`s.
+ * A copy made with `copy=` creates one component of its own type, even from
+ * an inactive source, and its descendants follow the source's authored
+ * DoenetML, so this holds of every copy we know of. An entry that no
+ * replacement takes is returned for the copy to keep holding (a later load
+ * may make that component again), not restored now.
  */
 export function applyCopySnapshot(serializedComponents, snapshot) {
     const byStateId = new Map(snapshot.map((entry) => [entry.stateId, entry]));
+    const applied = new Set();
     function visit(component) {
         if (typeof component !== "object" || component === null) {
             return;
         }
         const entry = byStateId.get(component.stateId);
         if (entry) {
+            applied.add(entry);
             component.state = deepClone(entry.state);
             for (const [ind, child] of Object.entries(
                 entry.primitiveChildren ?? {},
@@ -84,6 +95,7 @@ export function applyCopySnapshot(serializedComponents, snapshot) {
     for (const component of serializedComponents) {
         visit(component);
     }
+    return snapshot.filter((entry) => !applied.has(entry));
 }
 
 function isEmpty(value) {
