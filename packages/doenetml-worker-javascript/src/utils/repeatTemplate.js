@@ -100,10 +100,11 @@ const PARSE_SETTINGS = {
  * `<evaluate>` nodes among it and those nested in it. A math node, and an
  * operator, also has its `codePre`, `expressionWithCodes` and `numStrings`; a
  * `<round>` its `numDecimals` and `numDigits`; a number node the `string` it
- * reads when its one child is text. A math or number node whose content is
- * one entry or constant code alone has it as its `singleCode`. An
- * `<evaluate>` node's codes are its inputs, and it has the constant its
- * function is (`function`) and its `forceSymbolic` and `forceNumeric`.
+ * reads when its one child is text. A math or number node, other than a
+ * `<round>`, whose content is one entry or constant code alone has it as its
+ * `singleCode`. An `<evaluate>` node's codes are its inputs, and it has the
+ * constant its function is (`function`) and its `forceSymbolic` and
+ * `forceNumeric`.
  */
 export function analyzeRepeatTemplate(template) {
     const nodes = [];
@@ -189,7 +190,10 @@ export function analyzeRepeatTemplate(template) {
                 }
             }
             node.numStrings = strings.length;
-            node.singleCode = singleCodeOf(node.codes, strings);
+            // a `<round>` shows its own digits, not its child's
+            if (node.type !== "round") {
+                node.singleCode = singleCodeOf(node.codes, strings);
+            }
             node.codePre = mathCodePre(strings);
             node.expressionWithCodes = mathExpressionWithCodes({
                 content,

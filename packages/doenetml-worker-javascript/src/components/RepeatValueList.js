@@ -13,6 +13,19 @@ import { templateCanBeModified } from "../utils/repeatTemplate";
 const ROUND_DISPLAY_DIGITS = 14;
 
 /**
+ * The display settings (`returnNumberDisplayStateVariableDefinitions`) a
+ * template that is one value alone takes from what it reads, and a reference
+ * to the whole list from the list it shadows.
+ */
+const DISPLAY_SETTINGS = [
+    "displayDigits",
+    "displayDecimals",
+    "displaySmallAsZero",
+    "padZeros",
+    "avoidScientificNotation",
+];
+
+/**
  * A `<repeat>` or `<repeatForSequence>` whose template is one value, made a
  * list component by the pass in `utils/dast/repeatLists.ts`, which decides
  * which qualify. Part of Doenet/DoenetML#2163 (F6); see
@@ -44,18 +57,6 @@ const ROUND_DISPLAY_DIGITS = 14;
  * It draws its variant seed from its parent as the repeat did, so the random
  * values after it in the document are those the repeat left them.
  */
-/**
- * The display settings a template that is one value alone takes from what
- * it reads (`returnNumberDisplayStateVariableDefinitions`).
- */
-const SINGLE_CODE_DISPLAY_SETTINGS = [
-    "displayDigits",
-    "displayDecimals",
-    "displaySmallAsZero",
-    "padZeros",
-    "avoidScientificNotation",
-];
-
 export default class RepeatValueList extends ValueListComponent {
     static componentType = "_repeatValueList";
 
@@ -173,22 +174,16 @@ export default class RepeatValueList extends ValueListComponent {
 
         // A `<round>` template shows 14 digits by default, as `<round>`
         // does. It stays a default, so what reads the list
-        // (`<mathList>$r</mathList>`) shows its own. A reference to the whole
-        // list (`$r`), which holds no template, takes the default of the list
-        // it shadows.
+        // (`<mathList>$r</mathList>`) shows its own.
         const displayDigits = stateVariableDefinitions.displayDigits;
         stateVariableDefinitions.displayDigits = {
             ...displayDigits,
             stateVariablesDeterminingDependencies: ["templateAnalysis"],
             returnDependencies(args) {
                 const dependencies = displayDigits.returnDependencies(args);
-                const top = args.stateValues.templateAnalysis.nodes[0];
-                if (top === undefined) {
-                    dependencies.shadowSourceDisplayDigits = {
-                        dependencyType: "shadowSourceStateVariable",
-                        variableName: "displayDigits",
-                    };
-                } else if (top.type === "round") {
+                if (
+                    args.stateValues.templateAnalysis.nodes[0]?.type === "round"
+                ) {
                     dependencies.roundTemplate = {
                         dependencyType: "value",
                         value: true,
@@ -198,24 +193,15 @@ export default class RepeatValueList extends ValueListComponent {
             },
             definition(args) {
                 const result = displayDigits.definition(args);
-                if (result.useEssentialOrDefaultValue?.displayDigits !== true) {
-                    return result;
-                }
-                const { dependencyValues, usedDefault } = args;
-                let defaultValue;
-                if (dependencyValues.roundTemplate) {
-                    defaultValue = ROUND_DISPLAY_DIGITS;
-                } else if (
-                    dependencyValues.shadowSourceDisplayDigits != null &&
-                    usedDefault.shadowSourceDisplayDigits
+                if (
+                    result.useEssentialOrDefaultValue?.displayDigits !== true ||
+                    !args.dependencyValues.roundTemplate
                 ) {
-                    defaultValue = dependencyValues.shadowSourceDisplayDigits;
-                } else {
                     return result;
                 }
                 return {
                     useEssentialOrDefaultValue: {
-                        displayDigits: { defaultValue },
+                        displayDigits: { defaultValue: ROUND_DISPLAY_DIGITS },
                     },
                 };
             },
@@ -225,8 +211,10 @@ export default class RepeatValueList extends ValueListComponent {
         // `<number>$l[$i]</number>`) shows it with the display settings of
         // what it reads, unless the list sets its own, as a `<math>` takes
         // those of its single child: of the list it reads an entry or a
-        // coordinate of, or of the value it reads at every index.
-        for (const setting of SINGLE_CODE_DISPLAY_SETTINGS) {
+        // coordinate of, or of the value it reads at every index. A reference
+        // to the whole list (`$r`), which holds no template, shows its
+        // entries with the settings of the list it shadows.
+        for (const setting of DISPLAY_SETTINGS) {
             const base = stateVariableDefinitions[setting];
             stateVariableDefinitions[setting] = {
                 ...base,
@@ -237,8 +225,14 @@ export default class RepeatValueList extends ValueListComponent {
                 returnDependencies(args) {
                     const dependencies = base.returnDependencies(args);
                     const { templateAnalysis } = args.stateValues;
-                    const code = templateAnalysis.nodes[0]?.singleCode;
-                    if (code?.entry !== undefined) {
+                    const top = templateAnalysis.nodes[0];
+                    const code = top?.singleCode;
+                    if (top === undefined) {
+                        dependencies.singleCodeSetting = {
+                            dependencyType: "shadowSourceStateVariable",
+                            variableName: setting,
+                        };
+                    } else if (code?.entry !== undefined) {
                         dependencies.singleCodeSetting = {
                             dependencyType: "stateVariable",
                             componentIdx:

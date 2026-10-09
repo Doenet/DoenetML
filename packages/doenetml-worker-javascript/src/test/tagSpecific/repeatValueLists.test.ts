@@ -196,7 +196,7 @@ describe("Repeats whose template is one value @group4", () => {
         });
     });
 
-    it("a write to a coordinate of the value goes to that coordinate of the entry", async () => {
+    it("a write to a coordinate of the value, or to the value, goes to the entry", async () => {
         const texts = await compare({
             doenetML: `
 <mathList name="l">(1,2) (3,4)</mathList>
@@ -279,14 +279,14 @@ describe("Repeats whose template is one value @group4", () => {
         expect(texts.p.replace(/\s+/g, " ").trim()).toBe("1, 2, 3, 2, 3, 4");
     });
 
-    it("a template that is one value alone shows it with that value's display settings", async () => {
-        await compare({
+    it("a template that is one value alone shows it with that value's display settings, as does a reference to the repeat", async () => {
+        const texts = await compare({
             doenetML: `
 <mathList name="l" displayDigits="2">0.12345 (1.2345, 0.0012345)</mathList>
 <mathList name="ld" displayDecimals="1" padZeros>0.12345 2</mathList>
 <number name="c" displayDigits="2">0.98765</number>
 <function name="f" variables="u v">(u/3, v/7)</function>
-<functionIterates name="it" function="$f" initialValue="(1, 1)" numIterates="2" displayDigits="2" />
+<functionIterates name="it" function="$f" initialValue="(1, 1.5)" numIterates="2" displayDigits="2" />
 <p name="p"><repeat name="r" for="$l" valueName="x"><math>$x</math></repeat></p>
 <p name="p2"><repeat name="r2" for="$l" valueName="x"><math>$x[1]</math></repeat></p>
 <p name="p3"><repeatForSequence name="r3" from="1" to="2" indexName="i"><math>$l[$i]</math></repeatForSequence></p>
@@ -295,8 +295,23 @@ describe("Repeats whose template is one value @group4", () => {
 <p name="p6"><repeat name="r6" for="$it.allIteratesWithInitial" valueName="x"><math>$x[2]</math></repeat></p>
 <p name="p7"><repeat name="r7" for="$l" valueName="x"><math displayDigits="4">$x</math></repeat></p>
 <p name="p8"><repeat name="r8" for="$l" valueName="x"><math>2$x</math></repeat></p>
+<p name="p9"><repeat name="r9" for="$l" valueName="x"><round numDecimals="3">$x</round></repeat></p>
+<p name="p10">$r <mathList>$r</mathList></p>
 `,
-            names: ["p", "p2", "p3", "p4", "p5", "p6", "p7", "p8"],
+            names: ["p", "p2", "p3", "p4", "p5", "p6", "p7", "p8", "p9", "p10"],
+        });
+        expect(texts).toEqual({
+            p: "0.12, (1.2, 0.0012)",
+            p2: "0.12, 1.2",
+            p3: "0.12, (1.2, 0.0012)",
+            p4: "0.1, 2.0",
+            p5: "0.99, 0.99",
+            p6: "1.5, 0.21, 0.031",
+            // its own, or none (`2$x`, a `<round>`)
+            p7: "0.1235, (1.235, 0.001235)",
+            p8: "2 * 0.123, 2 (1.23, 0.00123)",
+            p9: "0.123, (1.235, 0.001)",
+            p10: "0.12, (1.2, 0.0012) 0.12, (1.2, 0.0012)",
         });
     });
 
@@ -831,8 +846,8 @@ describe("Repeats whose template is one value @group4", () => {
             `<repeat name="r" for="1 2" valueName="v"><math>$v</math></repeat>`,
             // ...including a property that is an array of values, not a list
             `<function name="f" variables="t">t+1</function><functionIterates name="it" function="$f" initialValue="0" numIterates="2" /><repeat name="r" for="$it.iterates" valueName="v"><math>$v</math></repeat>`,
-            // a coordinate of the value at a computed index, past its first
-            // index, or of a value that is not a math
+            // a coordinate of the value at a computed index, with a second
+            // index, at index 0, or of a value that is not a math
             `<mathList name="l">(1,2) (3,4)</mathList><repeat name="r" for="$l" valueName="x" indexName="i"><math>$x[$i]</math></repeat>`,
             `<mathList name="l">((1,2),3) ((4,5),6)</mathList><repeat name="r" for="$l" valueName="x"><math>$x[1][1]</math></repeat>`,
             `<mathList name="l">(1,2) (3,4)</mathList><repeat name="r" for="$l" valueName="x"><math>$x[0]</math></repeat>`,
