@@ -6,6 +6,7 @@ import {
 import { set as idb_set } from "idb-keyval";
 import { reportTimerError, TimerLabels } from "../utils/timerErrors";
 import type Core from "../Core";
+import { snapshotStillMade } from "../utils/copySnapshot";
 
 /**
  * Owns the save-to-localStorage and save-to-database pipeline for a Core
@@ -353,6 +354,59 @@ export class StatePersistence {
         };
     }
 
+    /**
+     * The unlinked copies whose snapshot a save compares
+     * (`recordCopySnapshots`). A save with none does not wait on them.
+     */
+    unlinkedCopies(): any[] {
+        return (Object.values(this.core._components ?? {}) as any[]).filter(
+            (component) => component?.freshUnlinkedSnapshot,
+        );
+    }
+
+    /**
+     * Hold, under `__copySnapshots`, the snapshot of each unlinked copy that
+     * a copy made now would not match (`snapshotStillMade`): a reload makes
+     * the copy again from its source as restored, and takes the saved
+     * snapshot instead (`utils/copySnapshot.js`). A copy that one made now
+     * would reproduce needs nothing saved, as #1940 asks of what a reader has
+     * not changed. A copy made now can differ where a reload would not: a
+     * `<sampleRandomNumbers copy>` made now takes the values its source has
+     * drawn since, so it is held though a reload would draw the same. A copy
+     * holds only the snapshot of what it made: one made again with a
+     * different shape (a copy of a `<conditionalContent>` made from another
+     * case) is made from its source as restored, and keeps nothing it could
+     * not apply (`applyCopySnapshot`). A save with no unlinked copies does
+     * not call this (`unlinkedCopies`).
+     */
+    async recordCopySnapshots(copies: any[]): Promise<void> {
+        const cumulative = this.core.cumulativeStateVariableChanges;
+        const snapshots: Record<string, any> = {
+            ...(cumulative.__copySnapshots ?? {}),
+        };
+        const componentOfStateId = (stateId: string) =>
+            this.core._components[this.core.componentIdxByStateId?.[stateId]];
+        for (const component of copies) {
+            const fresh = await component.freshUnlinkedSnapshot();
+            if (
+                await snapshotStillMade(
+                    fresh,
+                    component.unlinkedSnapshot,
+                    componentOfStateId,
+                )
+            ) {
+                delete snapshots[component.stateId];
+            } else {
+                snapshots[component.stateId] = component.unlinkedSnapshot;
+            }
+        }
+        if (Object.keys(snapshots).length > 0) {
+            cumulative.__copySnapshots = snapshots;
+        } else {
+            delete cumulative.__copySnapshots;
+        }
+    }
+
     async saveState(
         overrideThrottle = false,
         onSubmission = false,
@@ -392,8 +446,18 @@ export class StatePersistence {
 
         const sequence = ++this._saveSequence;
 
+        // Making the copies again evaluates their sources over many steps,
+        // so it waits for the update in progress and holds the next one
+        // back (`runExclusive`). The payload is built in the same turn, so
+        // that no request runs between the snapshots it holds and the state
+        // they are compared with.
         const { payload, coreStateString, rendererStateString } =
-            this.buildDocStatePayload(onSubmission);
+            this.unlinkedCopies().length > 0
+                ? await core.processQueue.runExclusive(async () => {
+                      await this.recordCopySnapshots(this.unlinkedCopies());
+                      return this.buildDocStatePayload(onSubmission);
+                  })
+                : this.buildDocStatePayload(onSubmission);
 
         // The credit that goes with this payload, resolved here so the pair
         // travels together from here on. Skipped when there is no host to

@@ -24,6 +24,7 @@ import {
     CONTEXT_ATTRIBUTES,
     writtenEntryAttributeComponent,
 } from "../../utils/contextAttribute";
+import { applyCopySnapshot, copySnapshotOf } from "../../utils/copySnapshot";
 import {
     copiesReferent,
     planValueReference,
@@ -1064,7 +1065,43 @@ export default class Copy extends CompositeComponent {
         return stateVariableDefinitions;
     }
 
-    static async createSerializedReplacements({
+    /**
+     * The replacements (`createReplacementsFromSources`). An unlinked copy
+     * keeps what it made of its source through a reload: it takes the
+     * snapshot a save holds for it, and records its own, with how to make it
+     * again, for a save to compare (`utils/copySnapshot.js`). The snapshot
+     * holds state by `stateId` and `componentType`, not the replacements'
+     * shape, and a copy made again need not make what it made before (a copy
+     * of a `<conditionalContent>` is made from whichever case is active). A
+     * copy made again with a different shape is made from its source as
+     * restored, and keeps nothing it cannot apply: it records only its own
+     * snapshot.
+     */
+    static async createSerializedReplacements(args) {
+        const result = await this.createReplacementsFromSources(args);
+        const { component } = args;
+        if ((await component.stateValues.link) === false) {
+            const saved = component.coreFunctions.savedCopySnapshot?.(
+                component.stateId,
+            );
+            if (saved) {
+                applyCopySnapshot(result.replacements, saved);
+            }
+            component.unlinkedSnapshot = copySnapshotOf(result.replacements);
+            component.freshUnlinkedSnapshot = async () =>
+                copySnapshotOf(
+                    (
+                        await this.createReplacementsFromSources({
+                            ...args,
+                            workspace: {},
+                        })
+                    ).replacements,
+                );
+        }
+        return result;
+    }
+
+    static async createReplacementsFromSources({
         component,
         components,
         nComponents,
