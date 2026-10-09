@@ -5,6 +5,7 @@ import { deepClone, enumerateCombinations } from "@doenet/utils";
 import { gatherVariantComponents } from "../../utils/variants";
 import { variableRefSnapshot } from "../../utils/variableRefAttribute";
 import { copyOfLiteralAttribute } from "../../utils/literalAttribute";
+import { copyOfExpressionAttribute } from "../../utils/expressionAttributeNames";
 import {
     addContextAttributeDefinitions,
     CONTEXT_ATTRIBUTES,
@@ -1586,6 +1587,18 @@ export default class BaseComponent {
                 ) {
                     serializedComponent.attributes[attrName] =
                         copyOfLiteralAttribute(attribute, this);
+                }
+            } else if (attribute.type === "expression") {
+                // Like the attribute component it stands for: a linked copy
+                // reads it from its source (`AttributeComponentDependency`),
+                // so only an unlinked copy takes it, with its references,
+                // resolved from where the copy is, and the text written to it
+                if (
+                    parameters.copyAll &&
+                    !componentSourceAttributesToIgnore.includes(attrName)
+                ) {
+                    serializedComponent.attributes[attrName] =
+                        copyOfExpressionAttribute(attribute, this);
                 }
             } else if (attribute.type === "variableRef") {
                 // Like the attribute component it stands for: copied only

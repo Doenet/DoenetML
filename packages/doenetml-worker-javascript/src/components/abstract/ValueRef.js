@@ -1,6 +1,12 @@
 import me from "math-expressions";
 import BaseComponent from "./BaseComponent";
-import { reportInternalError } from "../../utils/internalErrors";
+import {
+    pathHasIndexComponents,
+    referenceSlotDefinitions,
+    emptyValueOfType,
+    referentOrFallback,
+    targetDependencies,
+} from "./referenceSlotDefinitions";
 import { currentReferentValue } from "../../utils/referentDescription";
 import { LIST_ENTRY_PREFIX } from "../../utils/listEntryReference";
 import {
@@ -317,275 +323,18 @@ export default class ValueRef extends BaseComponent {
         const baseDefinitions = super.returnStateVariableDefinitions();
         const stateVariableDefinitions = {};
 
-        // The three variables that resolve the reference are the ones a
-        // `_copy` has. They are inert for a reference whose referent a copy
-        // fixed: no `refResolution`, no dependency, and nothing asks them.
-
-        // The components written between the brackets of the reference's
-        // path, whose values the index is read from.
-        stateVariableDefinitions.refResolutionIndexDependencies = {
-            returnDependencies() {
-                if (!pathHasIndexComponents(this.svComponent.refResolution)) {
-                    return {};
-                }
-                return {
-                    refResolutionIndexDependencies: {
-                        dependencyType: "refResolutionIndexDependencies",
-                    },
-                };
-            },
-            definition: ({ dependencyValues }) => ({
-                setValue: {
-                    refResolutionIndexDependencies:
-                        dependencyValues.refResolutionIndexDependencies ?? [],
-                },
-            }),
-        };
-
-        stateVariableDefinitions.refResolutionIndexDependencyValues = {
-            stateVariablesDeterminingDependencies: [
-                "refResolutionIndexDependencies",
-            ],
-            returnDependencies: ({ stateValues }) => {
-                const dependencies = {};
-                for (const cIdx of stateValues.refResolutionIndexDependencies) {
-                    dependencies[cIdx] = {
-                        dependencyType: "stateVariable",
-                        componentIdx: cIdx,
-                        variableName: "value",
-                    };
-                }
-                return dependencies;
-            },
-            definition: ({ dependencyValues }) => ({
-                setValue: {
-                    refResolutionIndexDependencyValues: dependencyValues,
-                },
-            }),
-        };
-
-        // The component the reference resolved to, with the path left to
-        // resolve on it (`null` for the implicit prop); `-1` when there is
-        // none.
-        stateVariableDefinitions.extendIdx = {
-            additionalStateVariablesDefined: ["unresolvedPath", "originalPath"],
-            stateVariablesDeterminingDependencies: [
-                "refResolutionIndexDependencyValues",
-            ],
-            // `stateValues` is absent when the path has no index components
-            // (the constructor then drops the determining variable)
-            returnDependencies({ stateValues = {} }) {
-                if (!this.svComponent.refResolution) {
-                    return {};
-                }
-                return {
-                    refResolution: {
-                        dependencyType: "refResolution",
-                        indexDependencyValues:
-                            stateValues.refResolutionIndexDependencyValues ??
-                            {},
-                    },
-                };
-            },
-            definition({ dependencyValues }) {
-                const resolution = dependencyValues.refResolution;
-                if (resolution) {
-                    return {
-                        setValue: {
-                            extendIdx: resolution.extendIdx,
-                            unresolvedPath: resolution.unresolvedPath,
-                            originalPath: resolution.originalPath,
-                        },
-                    };
-                }
-                const fixedReferent = this.svComponent.fixedReferent;
-                return {
-                    setValue: {
-                        extendIdx: fixedReferent?.componentIdx ?? -1,
-                        unresolvedPath: fixedReferent
-                            ? [
-                                  {
-                                      name: fixedReferent.referencedVariable,
-                                      index: [],
-                                  },
-                              ]
-                            : null,
-                        originalPath: [],
-                    },
-                };
-            },
-        };
-
-        // The referent and the variable read on it: `{componentIdx,
-        // componentType, variableName, referencedVariable,
-        // referencedPrimaryValue, referencedWholeComponent, isLocation,
-        // companions}`, or
-        // `null` while there is nothing to read. The variable read is the
-        // adapter's when the reference presents as an adapter's type;
-        // `referencedVariable` is the one the author's reference resolved
-        // to, whose companions travel with it. Worked out by a `referent`
-        // dependency on the component the reference resolved to, or fixed
-        // by the copy that made the reference (`fixedReferent`).
-        //
-        // Shadowed when a copy of the component holding this reference
-        // shadows it, so that the copy's reference reads the same referent.
-        stateVariableDefinitions.referentInfo = {
-            shadowVariable: true,
-            stateVariablesDeterminingDependencies: [
-                "extendIdx",
-                "unresolvedPath",
-            ],
-            // `stateValues` is absent for a fixed referent (the constructor
-            // then drops the determining variables)
-            returnDependencies({ stateValues = {} }) {
-                if (
-                    this.svComponent.fixedReferent ||
-                    stateValues.extendIdx == null ||
-                    stateValues.extendIdx === -1
-                ) {
-                    return {};
-                }
-                // A reference to an entry of a list component, planned to
-                // read the entry's property that an adapter of the entries'
-                // type reads (`$l[$i]` in a `<math>` reads `$l[$i].math`,
-                // `planListEntryAdapterReference`).
-                // A reference to the whole of a component with no implicit
-                // prop, planned to read the variable of the referent's
-                // adapter that its parent takes (`$P` in a `<boolean>` reads
-                // `P.coords`, `planReferentAdapterReference`).
-                const { doenetAttributes } = this.svComponent;
-                const adapterProperty = doenetAttributes.readsReferentAdapter
-                    ? doenetAttributes.adapterVariable
-                    : doenetAttributes.listEntryAdapterProperty;
-                return {
-                    referent: {
-                        dependencyType: "referent",
-                        componentIdx: stateValues.extendIdx,
-                        unresolvedPath:
-                            adapterProperty === undefined
-                                ? stateValues.unresolvedPath
-                                : [
-                                      ...(stateValues.unresolvedPath ?? []),
-                                      { name: adapterProperty, index: [] },
-                                  ],
-                    },
-                };
-            },
-            definition({ dependencyValues, componentInfoObjects }) {
-                const fixedReferent = this.svComponent.fixedReferent;
-                if (fixedReferent) {
-                    return {
-                        setValue: { referentInfo: fixedReferent },
-                        checkForActualChange: { referentInfo: true },
-                    };
-                }
-                const referent = dependencyValues.referent;
-                let referentInfo = null;
-                if (referent) {
-                    const { adapterVariable, referencedComponentType } =
-                        this.svComponent.doenetAttributes;
-                    if (
-                        referent.createComponentOfType !== undefined &&
-                        referencedComponentType !== undefined &&
-                        !componentInfoObjects.isInheritedComponentType({
-                            inheritedComponentType:
-                                referent.createComponentOfType,
-                            baseComponentType: referencedComponentType,
-                        })
-                    ) {
-                        // The reference was planned, and matched to its
-                        // parent's child groups, for a variable of another
-                        // type; reading this one would hand the parent a
-                        // value of the wrong kind.
-                        reportInternalError(
-                            `Value reference ${this.svComponent.componentIdx} planned for a ${referencedComponentType} resolved to ${referent.variableName} of ${referent.componentIdx}, a ${referent.createComponentOfType}.`,
-                        );
-                    } else {
-                        referentInfo = {
-                            componentIdx: referent.componentIdx,
-                            componentType: referent.componentType,
-                            variableName:
-                                adapterVariable ?? referent.variableName,
-                            referencedVariable: referent.variableName,
-                            referencedPrimaryValue: referent.isPrimaryValue,
-                            // a reference to the whole referent, read
-                            // through its adapter (`$P` in a `<mathList>`),
-                            // which a list places its entry as
-                            // (`graphSourceOf`), as it placed the copy
-                            ...(this.svComponent.doenetAttributes
-                                .readsReferentAdapter
-                                ? { referencedWholeComponent: true }
-                                : {}),
-                            isLocation: referent.isLocation,
-                            companions: referent.companions,
-                            listEntryPosition: referent.listEntryPosition,
-                        };
-                    }
-                }
-                return {
-                    setValue: { referentInfo },
-                    checkForActualChange: { referentInfo: true },
-                };
-            },
-        };
-
-        // The referent's variable, read through a dependency that
-        // `referentInfo` determines; the inverse writes it there, as a write
-        // from outside the referent (not a shadow's write: a `<mathInput>`
-        // whose `immediateValue` is written through a reference updates its
-        // `value` as it would for any other write). The empty value of the
-        // presented type when there is nothing to read, or the referent is a
-        // withheld replacement of a composite (a reference with a fixed
-        // referent leaves that to the copy that made it, which removes the
-        // reference when its target is withheld).
-        stateVariableDefinitions.value = {
-            shadowVariable: true,
-            stateVariablesDeterminingDependencies: ["referentInfo"],
-            // the inverse needs no dependency values; computing them would
-            // re-evaluate the referent's variable in the middle of a write
-            excludeDependencyValuesInInverseDefinition: true,
-            returnDependencies({ stateValues = {} }) {
-                return targetDependencies(
-                    this.svComponent.fixedReferent,
-                    stateValues.referentInfo,
-                );
-            },
-            definition({ dependencyValues, componentInfoObjects }) {
-                const target = dependencyValues.target;
-                if (
-                    target === undefined ||
-                    target === null ||
-                    dependencyValues.targetInactive
-                ) {
-                    return {
-                        setValue: {
-                            value: emptyValueOfType(
-                                this.svComponent.presentedComponentType,
-                                componentInfoObjects,
-                            ),
-                        },
-                    };
-                }
-                return { setValue: { value: target } };
-            },
-            async inverseDefinition({
-                desiredStateVariableValues,
-                stateValues,
-            }) {
-                if (!(await stateValues.referentInfo)) {
-                    return { success: false };
-                }
-                return {
-                    success: true,
-                    instructions: [
-                        {
-                            setDependency: "target",
-                            desiredValue: desiredStateVariableValues.value,
-                        },
-                    ],
-                };
-            },
-        };
+        // The variables that resolve the reference and read its value, as
+        // for a reference an attribute holds (`referenceSlotDefinitions`).
+        const slotDefinitions = referenceSlotDefinitions({
+            fixedReferentOf: (component) => component.fixedReferent,
+            readPlanOf: (component) => component.doenetAttributes,
+            emptyValueOf: (component, componentInfoObjects) =>
+                emptyValueOfType(
+                    component.presentedComponentType,
+                    componentInfoObjects,
+                ),
+        });
+        Object.assign(stateVariableDefinitions, slotDefinitions);
 
         // A reference is hidden with its parent or with the composite that
         // made it. One that is read for its value is never hidden with its
@@ -666,70 +415,8 @@ export default class ValueRef extends BaseComponent {
         // the reference answers as a component of the presented type holding
         // this value would.
 
-        // Whether a write through this reference can succeed. Inputs have no
-        // `canBeModified`; a `math` standing in for one answers from the
-        // referent's `fixed` and `modifyIndirectly`.
-        // An entry of a list component answers from the list's
-        // `entriesCanBeModified` in place of its `fixed`: the entries of a
-        // `<sequence>` are fixed while the list's own `fixed` is not, and a
-        // `<math>` that holds one (`$q$s[1]^2`) must solve for its other
-        // operands, as it did for the fixed component a copy made for the
-        // entry. The list's `modifyIndirectly` still applies, as the write
-        // to the list is refused when it is false.
-        stateVariableDefinitions.canBeModified = referentOrFallback({
-            stateVariable: "canBeModified",
-            fallbackDependencies: (referentIdx, referentInfo) =>
-                referentIdx === undefined
-                    ? {}
-                    : {
-                          ...(referentInfo.listEntryPosition !== undefined
-                              ? {
-                                    entriesCanBeModified: {
-                                        dependencyType: "stateVariable",
-                                        componentIdx: referentIdx,
-                                        variableName: "entriesCanBeModified",
-                                        variablesOptional: true,
-                                    },
-                                }
-                              : {
-                                    targetFixed: {
-                                        dependencyType: "stateVariable",
-                                        componentIdx: referentIdx,
-                                        variableName: "fixed",
-                                        variablesOptional: true,
-                                    },
-                                }),
-                          modifyIndirectly: {
-                              dependencyType: "stateVariable",
-                              componentIdx: referentIdx,
-                              variableName: "modifyIndirectly",
-                              variablesOptional: true,
-                          },
-                          // A location (`isLocation`: a point's `coords`
-                          // or `x`) stays put under its referent's
-                          // `fixLocation`, so a math holding it solves for
-                          // its other operands: `$P` in
-                          // `<point>($P+$Q)/2</point>` with `P` at a fixed
-                          // location leaves the drag to `Q`. Any other value
-                          // (a text's, a number's) takes the write.
-                          ...(referentInfo.isLocation
-                              ? {
-                                    targetFixLocation: {
-                                        dependencyType: "stateVariable",
-                                        componentIdx: referentIdx,
-                                        variableName: "fixLocation",
-                                        variablesOptional: true,
-                                    },
-                                }
-                              : {}),
-                      },
-            fallback: (dependencyValues) =>
-                ("entriesCanBeModified" in dependencyValues
-                    ? dependencyValues.entriesCanBeModified !== false
-                    : !dependencyValues.targetFixed) &&
-                !dependencyValues.targetFixLocation &&
-                dependencyValues.modifyIndirectly !== false,
-        });
+        // `canBeModified`, whether a write through this reference can
+        // succeed, is among the slot's definitions above.
 
         // A `math` with no `unordered` attribute and no math children is
         // ordered.
@@ -1222,51 +909,6 @@ const REFERENT_ACTIONS = {
 };
 
 /**
- * Whether the reference's path has a component written between its brackets
- * (`$P.xs[$i]`), whose value the index is read from.
- */
-function pathHasIndexComponents(refResolution) {
-    return Boolean(
-        refResolution?.originalPath.some((pathPart) =>
-            pathPart.index.some(
-                (indexPart) => typeof indexPart.value[0] !== "string",
-            ),
-        ),
-    );
-}
-
-/**
- * The dependencies through which a reference reads its referent's variable:
- * `target`, the variable, and, for a reference that resolves itself,
- * `targetInactive`, whether the referent is a withheld replacement of a
- * composite. None while there is no referent. `referentInfo` is the
- * reference's own; `fixedReferent` replaces it for a reference a copy made.
- */
-function targetDependencies(fixedReferent, referentInfo) {
-    referentInfo = fixedReferent ?? referentInfo;
-    if (!referentInfo) {
-        return {};
-    }
-    const dependencies = {
-        target: {
-            dependencyType: "stateVariable",
-            componentIdx: referentInfo.componentIdx,
-            variableName: referentInfo.variableName,
-            variablesOptional: true,
-        },
-    };
-    if (!fixedReferent) {
-        dependencies.targetInactive = {
-            dependencyType: "stateVariable",
-            componentIdx: referentInfo.componentIdx,
-            variableName: "isInactiveCompositeReplacement",
-            variablesOptional: true,
-        };
-    }
-    return dependencies;
-}
-
-/**
  * The definition of `valueMissing`, made on demand for a reference that
  * resolves itself: whether it has nothing to read where the copy it replaced
  * made no component at all. That is so with no referent (an index past the
@@ -1478,87 +1120,6 @@ function componentTypeAsResponseDefinition(
  * `math` computes its value from `unnormalizedValue`, which is where its
  * default lives).
  */
-const EMPTY_VALUE_BY_BASE_TYPE = {
-    number: NaN,
-    math: me.fromAst("\uff3f"),
-    text: "",
-    boolean: false,
-};
-
-/**
- * The value a component of `componentType` holds when it holds nothing: the
- * declared default of its `value`, or the nearest ancestor type's for a type
- * whose `value` declares none (`integer` takes `number`'s `NaN`), or else
- * the empty value of the kind it is (`＿` for a `math`).
- */
-function emptyValueOfType(componentType, componentInfoObjects) {
-    let componentClass =
-        componentInfoObjects.allComponentClasses[componentType];
-    while (componentClass?.componentType) {
-        const defaultValue =
-            componentInfoObjects.publicStateVariableInfo[
-                componentClass.componentType
-            ]?.stateVariableDescriptions.value?.defaultValue;
-        if (defaultValue !== undefined) {
-            return defaultValue;
-        }
-        componentClass = Object.getPrototypeOf(componentClass);
-    }
-    for (const baseType in EMPTY_VALUE_BY_BASE_TYPE) {
-        if (
-            componentInfoObjects.isInheritedComponentType({
-                inheritedComponentType: componentType,
-                baseComponentType: baseType,
-            })
-        ) {
-            return EMPTY_VALUE_BY_BASE_TYPE[baseType];
-        }
-    }
-    return null;
-}
-
-/**
- * A state variable definition that answers with the referent's variable of
- * the same name when the reference is to the referent's own value
- * (`referentInfo.referencedPrimaryValue`) and the referent has the variable,
- * and with `fallback` otherwise. `fallbackDependencies(referentIdx)` are the
- * dependencies the fallback reads; `fallback(dependencyValues)` computes it.
- */
-function referentOrFallback({
-    stateVariable,
-    fallbackDependencies = () => ({}),
-    fallback,
-}) {
-    return {
-        stateVariablesDeterminingDependencies: ["referentInfo"],
-        returnDependencies({ stateValues = {} }) {
-            const referentInfo =
-                this.svComponent.fixedReferent ?? stateValues.referentInfo;
-            const dependencies = fallbackDependencies(
-                referentInfo?.componentIdx,
-                referentInfo,
-            );
-            if (referentInfo?.referencedPrimaryValue) {
-                dependencies.fromReferent = {
-                    dependencyType: "stateVariable",
-                    componentIdx: referentInfo.componentIdx,
-                    variableName: stateVariable,
-                    variablesOptional: true,
-                };
-            }
-            return dependencies;
-        },
-        definition({ dependencyValues }) {
-            const fromReferent = dependencyValues.fromReferent;
-            const value =
-                fromReferent === null || fromReferent === undefined
-                    ? fallback(dependencyValues)
-                    : fromReferent;
-            return { setValue: { [stateVariable]: Boolean(value) } };
-        },
-    };
-}
-
 /**
  * The definition `classDef` of the scalar `name`, made to read the
  * referent's companion for `name` when `referentInfo` (or the referent a

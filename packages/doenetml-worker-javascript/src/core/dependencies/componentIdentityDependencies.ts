@@ -17,16 +17,19 @@ import {
     literalWrittenValue,
     type LiteralAttribute,
 } from "../../utils/literalAttribute";
+import { expressionAttributeVariable } from "../../utils/expressionAttributeNames";
 
 /**
  * Whether `attribute` is one the dependency reads: a component, a reference
- * to a variable of one, or a literal (`literalAttribute.ts`).
+ * to a variable of one, a literal (`literalAttribute.ts`), or text and
+ * references held by its component (`expressionAttribute.js`).
  */
 function isReadableAttribute(attribute: any) {
     return Boolean(
         attribute?.component ||
         attribute?.type === "variableRef" ||
-        attribute?.type === "literal",
+        attribute?.type === "literal" ||
+        attribute?.type === "expression",
     );
 }
 
@@ -218,6 +221,8 @@ export class AttributeComponentDependency extends Dependency {
         this.variableRef = undefined;
         this.literal = undefined;
         this.literalOwnerIdx = undefined;
+        this.expression = undefined;
+        this.expressionOwnerIdx = undefined;
 
         let attribute = parent.attributes[this.attributeName];
 
@@ -455,6 +460,18 @@ export class AttributeComponentDependency extends Dependency {
             };
         }
 
+        if (attribute.type === "expression") {
+            // read from `owner`'s variables for it, as the attribute
+            // component's (`expressionAttributeVariable`)
+            this.expression = attribute;
+            this.expressionOwnerIdx = owner.componentIdx;
+            return {
+                success: true,
+                downstreamComponentIndices: [owner.componentIdx],
+                downstreamComponentTypes: [attribute.componentType],
+            };
+        }
+
         if (attribute.type === "literal") {
             this.literal = attribute;
             this.literalOwnerIdx = owner.componentIdx;
@@ -492,6 +509,23 @@ export class AttributeComponentDependency extends Dependency {
     }
 
     renameDownstreamVariables(downComponent: any, originalVarNames: string[]) {
+        if (
+            this.expression &&
+            this.expressionOwnerIdx === downComponent.componentIdx
+        ) {
+            return originalVarNames.map((name) => {
+                const variable = expressionAttributeVariable(
+                    this.expression.name,
+                    name,
+                );
+                if (variable === undefined) {
+                    throw Error(
+                        `Cannot read ${name} of the expression attribute ${this.expression.name}.`,
+                    );
+                }
+                return variable;
+            });
+        }
         if (
             this.literal &&
             this.literalOwnerIdx === downComponent.componentIdx

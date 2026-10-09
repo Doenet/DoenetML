@@ -1586,6 +1586,13 @@ export class EssentialValueWriter {
 
         if (recurseToShadows && component.shadowedBy) {
             for (let shadow of component.shadowedBy) {
+                // A shadow without the variable has nothing to keep in step:
+                // one a component has for an attribute it holds itself
+                // (`expressionAttribute.js`), which a linked copy reads from
+                // its source rather than holds.
+                if (!(varName in shadow.state)) {
+                    continue;
+                }
                 // Don't include shadows due to propVariable
                 // unless it is a plain copy marked as returning the same type
                 // (with `onlyInsideCopies`, only components inside copies)

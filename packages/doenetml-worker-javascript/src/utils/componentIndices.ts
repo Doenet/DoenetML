@@ -225,6 +225,17 @@ function newComponentIndicesForAttributes(
                 attribute.primitive = { type: "number", value: newIdx };
                 idxMap[originalIdx] = newIdx;
             }
+        } else if (attribute.type === "expression") {
+            // Its slots are its own, as a reference's resolution is, so that
+            // `remapRefResolutions` renumbers them and not those of what was
+            // copied, which may be copied again (a repeat's template).
+            (newAttributes[attrName] as any) = {
+                ...attribute,
+                slots: (attribute as any).slots.map((slot: any) => ({
+                    ...slot,
+                    refResolution: structuredClone(slot.refResolution),
+                })),
+            };
         } else if (
             attribute.type === "variableRef" ||
             attribute.type === "literal"
@@ -426,9 +437,38 @@ function remapRefResolutions(
                 remapRefResolutions(attribute.references, idxMap);
             } else if (attribute.type === "unresolved") {
                 remapUnflattenedRefResolutions(attribute.children, idxMap);
+            } else if (attribute.type === "expression") {
+                // The references the component resolves itself
+                // (`utils/dast/expressionAttributes.ts`), each from the copy,
+                // which the resolver is given with the rest of what is
+                // copied, also when the original resolved them from where
+                // they were written.
+                for (const slot of (attribute as any).slots) {
+                    remapRefResolution(slot.refResolution, idxMap);
+                    slot.refResolution.nodesInResolvedPath[0] =
+                        component.componentIdx;
+                }
             }
         }
     }
+}
+
+/**
+ * Renumber the components `refResolution` names (an index in its path is
+ * held as text, not as a component, for a reference a component resolves
+ * itself).
+ */
+function remapRefResolution(
+    refResolution: { nodeIdx: number; nodesInResolvedPath: number[] },
+    idxMap: Record<number, number>,
+) {
+    const newNodeIdx = idxMap[refResolution.nodeIdx];
+    if (newNodeIdx != undefined) {
+        refResolution.nodeIdx = newNodeIdx;
+    }
+    refResolution.nodesInResolvedPath = refResolution.nodesInResolvedPath.map(
+        (idx) => idxMap[idx] ?? idx,
+    );
 }
 
 function remapUnflattenedRefResolutions(
@@ -753,6 +793,17 @@ function newComponentIndicesForAttributesFromSerialized(
                 attribute.primitive.value = newIdx;
                 idxMap[originalIdx] = newIdx;
             }
+        } else if (attribute.type === "expression") {
+            // Its slots are its own, as a reference's resolution is, so that
+            // `remapRefResolutions` renumbers them and not those of what was
+            // copied, which may be copied again (a repeat's template).
+            (newAttributes[attrName] as any) = {
+                ...attribute,
+                slots: (attribute as any).slots.map((slot: any) => ({
+                    ...slot,
+                    refResolution: structuredClone(slot.refResolution),
+                })),
+            };
         } else if (
             attribute.type === "variableRef" ||
             attribute.type === "literal"

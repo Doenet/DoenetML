@@ -1116,54 +1116,14 @@ export function remapExtendIndices(
         let newComponent = { ...comp };
         const extending = newComponent.extending;
         if (extending) {
-            const refResolution = unwrapSource(extending);
-
-            const newRefResolution = { ...refResolution };
-
-            const remapIdx = extendIdxMapping[refResolution.nodeIdx];
-            if (remapIdx != undefined) {
-                newRefResolution.nodeIdx = remapIdx;
-            }
-
-            if (refResolution.unresolvedPath) {
-                newRefResolution.unresolvedPath = remapExtendIndicesInPath(
-                    refResolution.unresolvedPath,
+            newComponent.extending = addSource(
+                remapRefResolutionForIteration(
+                    unwrapSource(extending),
                     extendIdxMapping,
                     entryIdxMapping,
-                );
-            }
-
-            newRefResolution.originalPath = remapExtendIndicesInPath(
-                refResolution.originalPath,
-                extendIdxMapping,
-                entryIdxMapping,
+                ),
+                extending,
             );
-
-            newRefResolution.nodesInResolvedPath =
-                refResolution.nodesInResolvedPath.map((idx) => {
-                    const remapIdx = extendIdxMapping[idx];
-                    if (remapIdx != undefined) {
-                        return remapIdx;
-                    } else {
-                        return idx;
-                    }
-                });
-
-            const entry = entryIdxMapping[refResolution.nodeIdx];
-            if (entry !== undefined) {
-                const entryIndex = { value: [`${entry}`] };
-                newRefResolution.unresolvedPath = [
-                    { name: "", index: [entryIndex] },
-                    ...(newRefResolution.unresolvedPath ?? []),
-                ];
-                const [first, ...rest] = newRefResolution.originalPath;
-                newRefResolution.originalPath = [
-                    { ...first, index: [entryIndex, ...first.index] },
-                    ...rest,
-                ];
-            }
-
-            newComponent.extending = addSource(newRefResolution, extending);
         }
 
         newComponent.children = remapExtendIndices(
@@ -1193,6 +1153,19 @@ export function remapExtendIndices(
                     extendIdxMapping,
                     entryIdxMapping,
                 );
+            } else if (attr.type === "expression") {
+                // the references the component resolves itself
+                attributes[attrName] = {
+                    ...attr,
+                    slots: attr.slots.map((slot) => ({
+                        ...slot,
+                        refResolution: remapRefResolutionForIteration(
+                            slot.refResolution,
+                            extendIdxMapping,
+                            entryIdxMapping,
+                        ),
+                    })),
+                };
             }
         }
 
@@ -1203,6 +1176,63 @@ export function remapExtendIndices(
 
     return newComponents;
 }
+/**
+ * `refResolution` pointed at what an iteration made for the value and index
+ * (`remapExtendIndices`).
+ */
+function remapRefResolutionForIteration(
+    refResolution,
+    extendIdxMapping,
+    entryIdxMapping,
+) {
+    const newRefResolution = { ...refResolution };
+
+    const remapIdx = extendIdxMapping[refResolution.nodeIdx];
+    if (remapIdx != undefined) {
+        newRefResolution.nodeIdx = remapIdx;
+    }
+
+    if (refResolution.unresolvedPath) {
+        newRefResolution.unresolvedPath = remapExtendIndicesInPath(
+            refResolution.unresolvedPath,
+            extendIdxMapping,
+            entryIdxMapping,
+        );
+    }
+
+    newRefResolution.originalPath = remapExtendIndicesInPath(
+        refResolution.originalPath,
+        extendIdxMapping,
+        entryIdxMapping,
+    );
+
+    newRefResolution.nodesInResolvedPath =
+        refResolution.nodesInResolvedPath.map((idx) => {
+            const remapIdx = extendIdxMapping[idx];
+            if (remapIdx != undefined) {
+                return remapIdx;
+            } else {
+                return idx;
+            }
+        });
+
+    const entry = entryIdxMapping[refResolution.nodeIdx];
+    if (entry !== undefined) {
+        const entryIndex = { value: [`${entry}`] };
+        newRefResolution.unresolvedPath = [
+            { name: "", index: [entryIndex] },
+            ...(newRefResolution.unresolvedPath ?? []),
+        ];
+        const [first, ...rest] = newRefResolution.originalPath;
+        newRefResolution.originalPath = [
+            { ...first, index: [entryIndex, ...first.index] },
+            ...rest,
+        ];
+    }
+
+    return newRefResolution;
+}
+
 function remapExtendIndicesInPath(path, extendIdxMapping, entryIdxMapping) {
     const unresolvedPath = [];
     for (const pathPath of path) {

@@ -767,6 +767,17 @@ function substituteComponentIdx(components, prevComponentIdx, newComponentIdx) {
                     prevComponentIdx,
                     newComponentIdx,
                 );
+            } else if (attribute.type === "expression") {
+                // references the component resolves itself, from itself
+                for (const { refResolution } of attribute.slots) {
+                    if (refResolution.nodeIdx === prevComponentIdx) {
+                        refResolution.nodeIdx = newComponentIdx;
+                    }
+                    refResolution.nodesInResolvedPath =
+                        refResolution.nodesInResolvedPath.map((idx) =>
+                            idx === prevComponentIdx ? newComponentIdx : idx,
+                        );
+                }
             }
         }
     }

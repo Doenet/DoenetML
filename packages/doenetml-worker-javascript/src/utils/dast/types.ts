@@ -238,7 +238,8 @@ export type SerializedAttribute =
     | ReferencesAttribute
     | UnresolvedAttribute
     | VariableRefAttribute
-    | LiteralAttribute;
+    | LiteralAttribute
+    | ExpressionAttribute;
 
 export function isSerializedAttribute(
     obj: unknown,
@@ -249,7 +250,44 @@ export function isSerializedAttribute(
         isReferencesAttribute(obj) ||
         isUnresolvedAttribute(obj) ||
         isVariableRefAttribute(obj) ||
-        isLiteralAttribute(obj)
+        isLiteralAttribute(obj) ||
+        isExpressionAttribute(obj)
+    );
+}
+
+/**
+ * An attribute its component holds as text and references, with no
+ * attribute component (`utils/expressionAttribute.js`): the template of what
+ * the attribute component held, each reference a constant code, and a slot
+ * for each reference (`utils/referenceSlot.ts`).
+ */
+export type ExpressionAttribute = {
+    type: "expression";
+    name: string;
+    /** The type the attribute component would have been. */
+    componentType: string;
+    template: SerializedComponent;
+    slots: {
+        refResolution: SerializedRefResolution;
+        /** How the reference is read (`utils/dast/valueReferences.ts`). */
+        readPlan: Record<string, any>;
+    }[];
+    /** The text written to the template's nodes, by node, of a copy. */
+    writes?: Record<string, any>;
+    sourceDoc?: number;
+};
+
+export function isExpressionAttribute(
+    obj: unknown,
+): obj is ExpressionAttribute {
+    const typedObj = obj as ExpressionAttribute;
+    return (
+        typeof typedObj === "object" &&
+        typedObj !== null &&
+        typedObj.type === "expression" &&
+        typeof typedObj.name === "string" &&
+        typeof typedObj.componentType === "string" &&
+        Array.isArray(typedObj.slots)
     );
 }
 

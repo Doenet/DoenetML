@@ -36,6 +36,7 @@ import { convertRefsToCopies } from "./convertToCopy";
 import { convertCopiesToValueReferences } from "./valueReferences";
 import { convertToListForms } from "./listForms";
 import { convertRepeatsToLists } from "./repeatLists";
+import { convertExpressionAttributes } from "./expressionAttributes";
 import { DiagnosticRecord } from "@doenet/utils";
 import {
     codedDiagnostic,
@@ -368,6 +369,10 @@ export async function normalizedDastToSerializedComponents(
         sugarResult.components,
         componentInfoObjects,
     )[0] as SerializedComponent;
+
+    // After the literal attributes, an attribute that is text and value
+    // references is held by its component (`expressionAttributes.ts`).
+    convertExpressionAttributes([document], normalized_root.nodes.length);
 
     // Last, so that the walk sees the final tree -- after references became
     // copies, after attributes became components, and after sugar added
