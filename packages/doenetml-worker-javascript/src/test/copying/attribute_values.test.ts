@@ -1,4 +1,5 @@
 import { describe, expect, it, vi } from "vitest";
+import me from "math-expressions";
 import { createTestCore } from "../utils/test-core";
 import {
     moveMath,
@@ -472,6 +473,92 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             ).eq("(3, -5)");
         });
 
+        it("a drag keeps an anchor's other coordinates, and an unlinked copy keeps the anchor it showed through a reload, as a math", async () => {
+            const doenetML = `<graph>
+  <text name="two" anchor="(1,2)">a</text>
+  <text name="three" anchor="(1,2,3)">b</text>
+  <text name="zero" anchor="(-0,2)">c</text>
+</graph>
+<graph><text name="copy" copy="$two"/></graph>`;
+            const first = await createTestCore({ doenetML });
+            const anchors = async (
+                { core, resolvePathToNodeIdx }: typeof first,
+                names: string[],
+            ) => {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                return Promise.all(
+                    names.map(
+                        async (name) =>
+                            stateVariables[await resolvePathToNodeIdx(name)]
+                                .stateValues.anchor,
+                    ),
+                );
+            };
+            const trees = async (tc: typeof first, names: string[]) =>
+                (await anchors(tc, names)).map((anchor) => anchor.tree);
+
+            // `Point` simplifies its coordinates: `-0` is `0`
+            expect(await trees(first, ["zero"])).eqls([["vector", 0, 2]]);
+
+            // a drag of `x` alone keeps `y`; a drag in the plane keeps `z`
+            await first.core.requestAction({
+                componentIdx: await first.resolvePathToNodeIdx("two"),
+                actionName: "moveText",
+                args: { x: 8 },
+            });
+            await first.core.requestAction({
+                componentIdx: await first.resolvePathToNodeIdx("three"),
+                actionName: "moveText",
+                args: { x: 4, y: 5 },
+            });
+            expect(await trees(first, ["two", "three"])).eqls([
+                ["vector", 8, 2],
+                ["vector", 4, 5, 3],
+            ]);
+
+            // the unlinked copy, made anew on restore, keeps the anchor it
+            // showed, the literal held in its snapshot (`__copySnapshots`),
+            // read as a math it can be dragged from
+            await first.core.saveImmediately();
+            const second = await createTestCore({
+                doenetML,
+                initialState: first.scoreState.state as string,
+            });
+            const [copyAnchor] = await anchors(second, ["copy"]);
+            expect(copyAnchor).toBeInstanceOf(me.class);
+            expect(copyAnchor.tree).eqls(["vector", 1, 2]);
+            await second.core.requestAction({
+                componentIdx: await second.resolvePathToNodeIdx("copy"),
+                actionName: "moveText",
+                args: { x: 6, y: 7 },
+            });
+            expect(await trees(second, ["two", "copy"])).eqls([
+                ["vector", 8, 2],
+                ["vector", 6, 7],
+            ]);
+        });
+
+        it("an anchor written with an exponent keeps its point", async () => {
+            // only plain numbers with no exponent become a literal; the point
+            // reads `1e3` as the product of `1` and `e3`, not as `1000`
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `<graph><math name="m" anchor="(1e3,2)">x</math></graph>`,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            expect(
+                stateVariables[await resolvePathToNodeIdx("m")].stateValues
+                    .anchor.tree,
+            ).eqls(["vector", "e3", 2]);
+            // the point and the mathList of its coordinates
+            expect(censusOfCore(core).attributeComponents).eq(2);
+        });
+
         it("a copy of a group holding a prop reference shows the settings its own source has", async () => {
             // The prop reference's display settings come from its source. A
             // linked copy of the group shows the original's; an unlinked copy
@@ -643,6 +730,46 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 (await sv("cc.rc[2].t")).hidden,
                 (await sv("cc.rc[1].g")).xMin,
             ]).eqls([-9, true, false, -3]);
+        });
+
+        it("an unlinked copy of a repeat takes a dragged anchor written as numbers", async () => {
+            // the anchor's point kept a drag in the essential state of its
+            // coordinates, which the copy's iterates took
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <graph>
+        <repeat name="r" for="1 2" valueName="v"><number name="n" anchor="(1,2)">$v</number></repeat>
+    </graph>
+    <booleanInput name="show" />
+    <conditionalContent condition="$show" name="cc">
+        <graph><repeat copy="$r" name="rc" /></graph>
+    </conditionalContent>
+    `,
+            });
+            await core.requestAction({
+                componentIdx: await resolvePathToNodeIdx("r[1].n"),
+                actionName: "moveNumber",
+                args: { x: 7, y: 8 },
+            });
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("show"),
+                core,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const anchor = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues
+                    .anchor.tree;
+            expect([
+                await anchor("cc.rc[1].n"),
+                await anchor("cc.rc[2].n"),
+            ]).eqls([
+                ["vector", 7, 8],
+                ["vector", 1, 2],
+            ]);
         });
 
         it("a write to a literal attribute is not refused by its owner's modifyIndirectly", async () => {
@@ -870,10 +997,10 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
         });
 
         it("what each attribute construct creates", async () => {
-            // Stream B's targets, by step: a literal `anchor` loses its point,
-            // mathList and two maths (B1b). A literal `displayDigits` has lost
-            // its `integer` (B1a), and a prop reference its five shadow
-            // attribute components (B3).
+            // Stream B's steps: a literal `displayDigits` has lost its
+            // `integer` (B1a), a literal `anchor` its point, mathList and two
+            // maths (B1b), and a prop reference its five shadow attribute
+            // components (B3).
             async function census(doenetML: string) {
                 const { core } = await createTestCore({ doenetML });
                 return censusOfCore(core);
@@ -904,16 +1031,15 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             const anchored = await census(
                 `<graph><math anchor="(1,2)">x</math></graph>`,
             );
+            // the literal anchor is a value, not a point with a mathList of
+            // two maths (B1b)
             expect(anchored.byType).eqls({
                 document: 1,
                 graph: 1,
                 _dynamicChildren: 1,
-                math: 3,
-                mathList: 1,
-                point: 1,
+                math: 1,
             });
-            // the anchor's point, and the mathList of its coordinates
-            expect(anchored.attributeComponents).eq(2);
+            expect(anchored.attributeComponents).eq(0);
 
             // an extend with nothing else on it is a bare reference (`_ref`),
             // which makes no attribute components; one with an attribute of
