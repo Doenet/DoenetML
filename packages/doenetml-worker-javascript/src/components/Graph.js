@@ -423,6 +423,8 @@ export default class Graph extends BlockComponent {
         // state variable below already matches the names case-insensitively.)
         attributes.grid = {
             createComponentOfType: "text",
+            // read by component (`gridAttrCompName`), not only as a value
+            keepAttributeComponent: true,
             valueForTrue: "medium",
             suggestedValues: [
                 { value: "none", description: "Draw no grid lines." },

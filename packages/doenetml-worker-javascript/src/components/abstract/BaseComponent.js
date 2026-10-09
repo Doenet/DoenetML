@@ -4,6 +4,7 @@ import { flattenDeep, mapDeep } from "@doenet/utils";
 import { deepClone, enumerateCombinations } from "@doenet/utils";
 import { gatherVariantComponents } from "../../utils/variants";
 import { variableRefSnapshot } from "../../utils/variableRefAttribute";
+import { copyOfLiteralAttribute } from "../../utils/literalAttribute";
 import {
     addContextAttributeDefinitions,
     CONTEXT_ATTRIBUTES,
@@ -708,6 +709,45 @@ export default class BaseComponent {
 
     static returnStateVariableDefinitions() {
         let stateVariableDefinitions = {};
+
+        // The values a reader wrote over this component's literal attributes
+        // (`literalAttribute.ts`), by attribute name. A literal is not a
+        // component, so a write to it is kept here, where it is saved and
+        // restored as essential state, and where the `attributeComponent`
+        // dependency that reads the literal finds it, for this component and
+        // for a copy reading the attribute from it. A shadow keeps its own:
+        // a copy with a literal of its own does not take its source's writes.
+        stateVariableDefinitions.literalAttributeWrites = {
+            hasEssential: true,
+            doNotShadowEssential: true,
+            defaultValue: {},
+            returnDependencies: () => ({}),
+            definition: () => ({
+                useEssentialOrDefaultValue: { literalAttributeWrites: true },
+            }),
+            async inverseDefinition({
+                desiredStateVariableValues,
+                stateValues,
+                workspace,
+            }) {
+                // merged in the workspace, so that several attributes written
+                // in one update (a graph's `xMin` and `xMax`) all stay
+                workspace.literalAttributeWrites = {
+                    ...(workspace.literalAttributeWrites ??
+                        (await stateValues.literalAttributeWrites)),
+                    ...desiredStateVariableValues.literalAttributeWrites,
+                };
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setEssentialValue: "literalAttributeWrites",
+                            value: workspace.literalAttributeWrites,
+                        },
+                    ],
+                };
+            },
+        };
 
         stateVariableDefinitions.hidden = {
             description:
@@ -1535,6 +1575,18 @@ export default class BaseComponent {
                         sourceDoc: attribute.component.sourceDoc,
                     };
                 }
+            } else if (attribute.type === "literal") {
+                // Like the attribute component it stands for: a linked copy
+                // reads it from its source (`AttributeComponentDependency`),
+                // where a reader's write to it is kept, so only an unlinked
+                // copy takes it, with any value written over it
+                if (
+                    parameters.copyAll &&
+                    !componentSourceAttributesToIgnore.includes(attrName)
+                ) {
+                    serializedComponent.attributes[attrName] =
+                        copyOfLiteralAttribute(attribute, this);
+                }
             } else if (attribute.type === "variableRef") {
                 // Like the attribute component it stands for: copied only
                 // when copying all, and then as the value it has now, since
@@ -1613,6 +1665,10 @@ export default class BaseComponent {
                     delete serializedComponent.state[varName];
                 }
             }
+            // except the writes over literal attributes, which belong to
+            // those literals: a linked copy reads them from this component,
+            // and an unlinked one takes them with the literals (above)
+            delete serializedComponent.state.literalAttributeWrites;
         }
 
         if (unlinkedAsValues) {
@@ -1677,7 +1733,11 @@ export default class BaseComponent {
             (parameters.copyEssentialStateIfShadow && this.shadows)
         ) {
             for (let varName in this.state) {
-                if (!(varName in serializedComponent.state)) {
+                if (
+                    !(varName in serializedComponent.state) &&
+                    // carried by the literals (above)
+                    varName !== "literalAttributeWrites"
+                ) {
                     let stateVar = this.state[varName];
                     if (stateVar.hasEssential) {
                         const value = await this.stateValues[varName];
@@ -2231,11 +2291,18 @@ async function serializeShadowedAttributes({
         for (const attrName in comp.attributes) {
             const attribute = comp.attributes[attrName];
             if (
-                !attribute.component ||
+                !(attribute.component || attribute.type === "literal") ||
                 (onlyOwnAttributes && !(attrName in attributesObj)) ||
                 written.has(attrName) ||
                 componentSourceAttributesToIgnore.includes(attrName)
             ) {
+                continue;
+            }
+            if (attribute.type === "literal") {
+                // a literal written on `comp`, with what a reader wrote over
+                // it, as an attribute component is copied with its state
+                serializedComponent.attributes[attrName] =
+                    copyOfLiteralAttribute(attribute, comp);
                 continue;
             }
             serializedComponent.attributes[attrName] = {
@@ -2304,7 +2371,9 @@ async function snapshotListEntrySource(serializedComponent, parameters) {
             attributeName,
             components,
         });
-        if (attribute) {
+        if (attribute?.literal) {
+            serializedComponent.attributes[attributeName] = attribute.literal;
+        } else if (attribute) {
             serializedComponent.attributes[attributeName] = {
                 type: "component",
                 component: await attribute.serialize(parameters),

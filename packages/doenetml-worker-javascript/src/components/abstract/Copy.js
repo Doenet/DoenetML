@@ -16,6 +16,7 @@ import {
     convertUnresolvedAttributesForComponentType,
 } from "../../utils/dast/convertNormalizedDast";
 import { createNewComponentIndices } from "../../utils/componentIndices";
+import { copyOfLiteralAttribute } from "../../utils/literalAttribute";
 import { codedDiagnostic } from "../../utils/diagnostics";
 import { returnNumberDisplayAttributes } from "../../utils/numberDisplay";
 import { isListEntryArrayVariable } from "../../utils/listEntryReference";
@@ -3121,6 +3122,16 @@ export async function replacementFromProp({
                                             component: res.components[0],
                                         };
                                     } else if (
+                                        target.attributes[attrName]?.type ===
+                                        "literal"
+                                    ) {
+                                        // a literal: copied as its attribute component was
+                                        attributesFromComponent[attrName] =
+                                            copyOfLiteralAttribute(
+                                                target.attributes[attrName],
+                                                target,
+                                            );
+                                    } else if (
                                         target.attributes[attrName]
                                             ?.primitive !== undefined
                                     ) {
@@ -3171,6 +3182,11 @@ export async function replacementFromProp({
                                     components,
                                 });
                             if (!written) {
+                                continue;
+                            }
+                            if (written.literal) {
+                                attributesForReplacement[attrName] =
+                                    written.literal;
                                 continue;
                             }
                             const res = createNewComponentIndices(
@@ -3546,6 +3562,16 @@ export async function replacementFromProp({
                                                     component:
                                                         res.components[0],
                                                 };
+                                        } else if (
+                                            target.attributes[attrName]
+                                                ?.type === "literal"
+                                        ) {
+                                            // a literal: copied as its attribute component was
+                                            attributesFromComponent[attrName] =
+                                                copyOfLiteralAttribute(
+                                                    target.attributes[attrName],
+                                                    target,
+                                                );
                                         } else if (
                                             target.attributes[attrName]
                                                 ?.primitive !== undefined
@@ -4196,6 +4222,15 @@ export async function replacementFromProp({
                                     name: attrName,
                                     component: res.components[0],
                                 };
+                            } else if (
+                                target.attributes[attrName]?.type === "literal"
+                            ) {
+                                // a literal: copied as its attribute component was
+                                attributesFromComponent[attrName] =
+                                    copyOfLiteralAttribute(
+                                        target.attributes[attrName],
+                                        target,
+                                    );
                             } else if (
                                 target.attributes[attrName]?.primitive !==
                                 undefined

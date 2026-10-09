@@ -1,3 +1,4 @@
+import { serializedAttributeComponent } from "../utils/literalAttribute";
 import CompositeComponent from "./abstract/CompositeComponent";
 import {
     deepClone,
@@ -707,8 +708,9 @@ export default class Select extends CompositeComponent {
         let numToSelect = 1,
             withReplacement = false;
 
-        let numToSelectComponent =
-            serializedComponent.attributes.numToSelect?.component;
+        let numToSelectComponent = serializedAttributeComponent(
+            serializedComponent.attributes.numToSelect,
+        );
         if (numToSelectComponent) {
             // only implemented if have an integer with a single string child
             if (
@@ -736,8 +738,9 @@ export default class Select extends CompositeComponent {
             }
         }
 
-        let withReplacementComponent =
-            serializedComponent.attributes.withReplacement?.component;
+        let withReplacementComponent = serializedAttributeComponent(
+            serializedComponent.attributes.withReplacement,
+        );
         if (withReplacementComponent) {
             // only implemented if have an boolean with a boolean value or a single string child
             if (withReplacementComponent.componentType === "boolean") {

@@ -5,6 +5,7 @@ import {
     UnflattenedComponent,
 } from "./intermediateTypes";
 import type { VariableRefAttribute } from "../variableRefAttribute";
+import type { LiteralAttribute } from "../literalAttribute";
 export type { Position };
 
 /**
@@ -236,7 +237,8 @@ export type SerializedAttribute =
     | PrimitiveAttribute
     | ReferencesAttribute
     | UnresolvedAttribute
-    | VariableRefAttribute;
+    | VariableRefAttribute
+    | LiteralAttribute;
 
 export function isSerializedAttribute(
     obj: unknown,
@@ -246,7 +248,22 @@ export function isSerializedAttribute(
         isPrimitiveAttribute(obj) ||
         isReferencesAttribute(obj) ||
         isUnresolvedAttribute(obj) ||
-        isVariableRefAttribute(obj)
+        isVariableRefAttribute(obj) ||
+        isLiteralAttribute(obj)
+    );
+}
+
+export function isLiteralAttribute(obj: unknown): obj is LiteralAttribute {
+    const typedObj = obj as LiteralAttribute;
+    return (
+        typeof typedObj === "object" &&
+        typedObj !== null &&
+        typedObj.type === "literal" &&
+        typeof typedObj.name === "string" &&
+        typeof typedObj.componentType === "string" &&
+        (typedObj.text === undefined || typeof typedObj.text === "string") &&
+        (typedObj.sourceDoc === undefined ||
+            typeof typedObj.sourceDoc === "number")
     );
 }
 
@@ -272,6 +289,12 @@ export function isVariableRefAttribute(
  * Typically most fields are undefined, as many cover specialized cases.
  */
 export type AttributeDefinition<T> = {
+    /**
+     * Keep the attribute a component even when the author wrote a literal of
+     * a type that is otherwise held as the literal (`literalAttribute.ts`),
+     * for a reader that reads more of the component than its value.
+     */
+    keepAttributeComponent?: boolean;
     /** Create an attribute of type "component" with componentType `createComponentOfType` */
     createComponentOfType?: string;
     /** Create an attribute of type "primitive" with primitive type determined by `createPrimitiveOfType` */

@@ -1,3 +1,4 @@
+import { serializedAttributeComponent } from "../utils/literalAttribute";
 import { enumerateSelectionCombinations } from "@doenet/utils";
 import {
     extractConstantSortAttribute,
@@ -303,8 +304,9 @@ export default class SelectPrimeNumbers extends ValueListComponent {
         let numToSelect = 1,
             withReplacement = false;
 
-        let numToSelectComponent =
-            serializedComponent.attributes.numToSelect?.component;
+        let numToSelectComponent = serializedAttributeComponent(
+            serializedComponent.attributes.numToSelect,
+        );
         if (numToSelectComponent) {
             // only implemented if have an integer with a single string child
             if (
@@ -327,8 +329,9 @@ export default class SelectPrimeNumbers extends ValueListComponent {
             }
         }
 
-        let withReplacementComponent =
-            serializedComponent.attributes.withReplacement?.component;
+        let withReplacementComponent = serializedAttributeComponent(
+            serializedComponent.attributes.withReplacement,
+        );
         if (withReplacementComponent) {
             // only implemented if have an boolean with a boolean value or a single string child
             if (withReplacementComponent.componentType === "boolean") {
@@ -360,7 +363,9 @@ export default class SelectPrimeNumbers extends ValueListComponent {
 
         let primePars = {};
 
-        let fromComponent = serializedComponent.attributes.from?.component;
+        let fromComponent = serializedAttributeComponent(
+            serializedComponent.attributes.from,
+        );
         if (fromComponent) {
             // only implemented if have a single string child
             if (
@@ -387,7 +392,9 @@ export default class SelectPrimeNumbers extends ValueListComponent {
             }
         }
 
-        let toComponent = serializedComponent.attributes.to?.component;
+        let toComponent = serializedAttributeComponent(
+            serializedComponent.attributes.to,
+        );
         if (toComponent) {
             // only implemented if have a single string child
             if (
@@ -419,8 +426,9 @@ export default class SelectPrimeNumbers extends ValueListComponent {
             return { success: false };
         }
 
-        let excludeComponent =
-            serializedComponent.attributes.exclude?.component;
+        let excludeComponent = serializedAttributeComponent(
+            serializedComponent.attributes.exclude,
+        );
         if (excludeComponent) {
             if (
                 !excludeComponent.children.every(

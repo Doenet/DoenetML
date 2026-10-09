@@ -10,6 +10,23 @@ import {
     variableRefVariableName,
     type VariableRefAttribute,
 } from "../../utils/variableRefAttribute";
+import {
+    attributesObjectOf,
+    literalAttributeValue,
+    type LiteralAttribute,
+} from "../../utils/literalAttribute";
+
+/**
+ * Whether `attribute` is one the dependency reads: a component, a reference
+ * to a variable of one, or a literal (`literalAttribute.ts`).
+ */
+function isReadableAttribute(attribute: any) {
+    return Boolean(
+        attribute?.component ||
+        attribute?.type === "variableRef" ||
+        attribute?.type === "literal",
+    );
+}
 
 /**
  * Whether `attribute` was taken from a copy's source rather than written on
@@ -197,12 +214,14 @@ export class AttributeComponentDependency extends Dependency {
         }
 
         this.variableRef = undefined;
+        this.literal = undefined;
+        this.literalOwnerIdx = undefined;
 
         let attribute = parent.attributes[this.attributeName];
 
-        if (attribute?.component || attribute?.type === "variableRef") {
-            // have an attribute that is a component, or a reference to a
-            // variable of one
+        if (isReadableAttribute(attribute)) {
+            // have an attribute that is a component, a reference to a
+            // variable of one, or a literal
 
             if (isShadowAttribute(attribute)) {
                 if (this.dontRecurseToShadows) {
@@ -219,8 +238,7 @@ export class AttributeComponentDependency extends Dependency {
                             this.dontRecurseToShadowsIfHaveAttribute
                         ];
                     if (
-                        (otherAttribute?.component ||
-                            otherAttribute?.type === "variableRef") &&
+                        isReadableAttribute(otherAttribute) &&
                         !isShadowAttribute(otherAttribute)
                     ) {
                         // The current attribute is a shadow
@@ -234,7 +252,7 @@ export class AttributeComponentDependency extends Dependency {
                     }
                 }
             }
-            return this.attributeDownstream(attribute);
+            return this.attributeDownstream(attribute, parent);
         }
 
         // if don't have an attribute component,
@@ -312,11 +330,8 @@ export class AttributeComponentDependency extends Dependency {
                     comp = namedComponent;
                     visited.add(comp.componentIdx);
                     attribute = comp.attributes[this.attributeName];
-                    if (
-                        attribute?.component ||
-                        attribute?.type === "variableRef"
-                    ) {
-                        return this.attributeDownstream(attribute);
+                    if (isReadableAttribute(attribute)) {
+                        return this.attributeDownstream(attribute, comp);
                     }
                     continue;
                 }
@@ -324,11 +339,8 @@ export class AttributeComponentDependency extends Dependency {
                     (replacement: any) => typeof replacement === "object",
                 );
                 const copiedAttribute = copied?.attributes[this.attributeName];
-                if (
-                    copiedAttribute?.component ||
-                    copiedAttribute?.type === "variableRef"
-                ) {
-                    return this.attributeDownstream(copiedAttribute);
+                if (isReadableAttribute(copiedAttribute)) {
+                    return this.attributeDownstream(copiedAttribute, copied);
                 }
                 break;
             }
@@ -352,8 +364,8 @@ export class AttributeComponentDependency extends Dependency {
                 }
                 visited.add(comp.componentIdx);
                 attribute = comp.attributes[this.attributeName];
-                if (attribute?.component || attribute?.type === "variableRef") {
-                    return this.attributeDownstream(attribute);
+                if (isReadableAttribute(attribute)) {
+                    return this.attributeDownstream(attribute, comp);
                 }
                 continue;
             }
@@ -407,8 +419,8 @@ export class AttributeComponentDependency extends Dependency {
 
             attribute = comp.attributes[this.attributeName];
 
-            if (attribute?.component || attribute?.type === "variableRef") {
-                return this.attributeDownstream(attribute);
+            if (isReadableAttribute(attribute)) {
+                return this.attributeDownstream(attribute, comp);
             }
         }
 
@@ -420,17 +432,37 @@ export class AttributeComponentDependency extends Dependency {
     }
 
     /**
-     * The downstream component of `attribute`: the attribute component, or,
-     * for a reference to a variable of another component, that component,
-     * whose variable `renameDownstreamVariables` then reads in place of the
-     * attribute's `value`.
+     * The downstream component of `attribute`, which `owner` has: the
+     * attribute component; for a reference to a variable of another
+     * component, that component, whose variable `renameDownstreamVariables`
+     * then reads in place of the attribute's `value`; for a literal, `owner`,
+     * whose `literalAttributeWrites` holds what a reader wrote over it.
      */
-    attributeDownstream(attribute: any) {
+    attributeDownstream(attribute: any, owner: any) {
         if (attribute.component) {
             return {
                 success: true,
                 downstreamComponentIndices: [attribute.component.componentIdx],
                 downstreamComponentTypes: [attribute.component.componentType],
+            };
+        }
+
+        if (attribute.type === "literal") {
+            this.literal = attribute;
+            this.literalOwnerIdx = owner.componentIdx;
+            // a write to it is refused by `owner`'s `fixed`, as its
+            // attribute component's was by the `fixed` it took from `owner`,
+            // unless the attribute ignores it. No literal does today: the
+            // one attribute with `ignoreFixed`, `fixed`, keeps its component,
+            // which its conversion marks `ignoreParentFixed`.
+            this.literalIgnoresFixed = Boolean(
+                attributesObjectOf(owner.constructor)[attribute.name]
+                    ?.ignoreFixed,
+            );
+            return {
+                success: true,
+                downstreamComponentIndices: [owner.componentIdx],
+                downstreamComponentTypes: [owner.componentType],
             };
         }
 
@@ -452,6 +484,17 @@ export class AttributeComponentDependency extends Dependency {
     }
 
     renameDownstreamVariables(downComponent: any, originalVarNames: string[]) {
+        if (
+            this.literal &&
+            this.literalOwnerIdx === downComponent.componentIdx
+        ) {
+            if (originalVarNames.some((name) => name !== "value")) {
+                throw Error(
+                    `Cannot read ${originalVarNames.join(", ")} of the literal attribute ${this.literal.name}: only its value.`,
+                );
+            }
+            return originalVarNames.map(() => "literalAttributeWrites");
+        }
         const variableRef: VariableRefAttribute | undefined = this.variableRef;
         if (
             !variableRef ||
@@ -470,11 +513,56 @@ export class AttributeComponentDependency extends Dependency {
             consumeChanges,
         });
 
+        const literal: LiteralAttribute | undefined = this.literal;
+        if (literal) {
+            return this.literalResult(literal, result);
+        }
+
         // if (!this.doNotProxy) {
         //   result.value = new Proxy(result.value, readOnlyProxyHandler)
         // }
 
         return result;
+    }
+
+    /**
+     * What the dependency answers for the literal attribute `literal`, given
+     * `result`, what it read of the literal's owner: what it answered for
+     * the attribute component the literal replaces, a component of the
+     * literal's type whose `value` is the literal's value, or what a reader
+     * wrote over it (`literalAttributeWrites`).
+     */
+    literalResult(literal: LiteralAttribute, result: any) {
+        const value: any = {
+            componentType: literal.componentType,
+            literal: true,
+        };
+        // where the author wrote it, as an attribute component has, for a
+        // diagnostic about the attribute
+        if (literal.position) {
+            value.position = literal.position;
+            value.sourceDoc = literal.sourceDoc;
+        }
+        const usedDefault: Record<string, boolean> = {};
+        if (this.originalDownstreamVariableNames.length > 0) {
+            const writes = result.value?.stateValues?.value;
+            let literalValue;
+            if (writes && literal.name in writes) {
+                literalValue = writes[literal.name];
+            } else {
+                if (this.literalValueFor !== literal) {
+                    this.literalValueFor = literal;
+                    this.literalValue_ = literalAttributeValue(
+                        literal,
+                        this.dependencyHandler.componentInfoObjects,
+                    );
+                }
+                literalValue = this.literalValue_;
+            }
+            value.stateValues = { value: literalValue };
+            usedDefault.value = false;
+        }
+        return { value, changes: result.changes, usedDefault };
     }
 
     deleteFromUpdateTriggers() {

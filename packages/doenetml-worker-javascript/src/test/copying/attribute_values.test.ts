@@ -537,6 +537,265 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(await u.stateValues.text).eq("1.235");
         });
 
+        it("a write to a literal attribute reaches the copies that read it, not one with its own", async () => {
+            const doenetML = `
+    <text name="t" hide="false">a</text>
+    <text extend="$t" name="c" />
+    <text extend="$t" name="d" hide="false" />
+    <booleanInput name="b" bindValueTo="$t.hide" />
+    <graph name="g" xMin="-4" xMax="6" />
+    <updateValue name="uv" target="$g.xScale" newValue="20" type="number" />
+    `;
+            const first = await createTestCore({ doenetML });
+            const r = first.resolvePathToNodeIdx;
+            async function values(core: any, resolve: typeof r) {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const sv = async (name: string) =>
+                    stateVariables[await resolve(name)].stateValues;
+                return [
+                    (await sv("t")).hidden,
+                    (await sv("c")).hidden,
+                    (await sv("d")).hidden,
+                    (await sv("g")).xMin,
+                    (await sv("g")).xMax,
+                ];
+            }
+            expect(await values(first.core, r)).eqls([
+                false,
+                false,
+                false,
+                -4,
+                6,
+            ]);
+
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await r("b"),
+                core: first.core,
+            });
+            // two literal attributes written in one update both change
+            await first.core.requestAction({
+                componentIdx: await r("uv"),
+                actionName: "updateValue",
+                args: {},
+            });
+            expect(await values(first.core, r)).eqls([
+                true,
+                true,
+                false,
+                -9,
+                11,
+            ]);
+
+            await first.core.saveImmediately();
+            const second = await createTestCore({
+                doenetML,
+                initialState: first.scoreState.state as string,
+            });
+            expect(await values(second.core, second.resolvePathToNodeIdx)).eqls(
+                [true, true, false, -9, 11],
+            );
+        });
+
+        it("an unlinked copy of a repeat takes a write to a boolean literal in an iterate", async () => {
+            // The iterates of an unlinked copy take the essential state of
+            // the source's iterates: a write to a boolean, but not one to a
+            // number written as text, which the attribute component kept in
+            // its text child.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <repeat name="r" for="1 2" valueName="v"><text name="t" hide="false">$v</text><graph name="g" xMin="-3" /></repeat>
+    <booleanInput name="b" bindValueTo="$r[1].t.hide" />
+    <updateValue name="u" target="$r[1].g.xMin" newValue="-9" type="number" />
+    <booleanInput name="show" />
+    <conditionalContent condition="$show" name="cc">
+        <repeat copy="$r" name="rc" />
+    </conditionalContent>
+    `,
+            });
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("b"),
+                core,
+            });
+            await core.requestAction({
+                componentIdx: await resolvePathToNodeIdx("u"),
+                actionName: "updateValue",
+                args: {},
+            });
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("show"),
+                core,
+            });
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect([
+                (await sv("r[1].g")).xMin,
+                (await sv("cc.rc[1].t")).hidden,
+                (await sv("cc.rc[2].t")).hidden,
+                (await sv("cc.rc[1].g")).xMin,
+            ]).eqls([-9, true, false, -3]);
+        });
+
+        it("a write to a literal attribute is not refused by its owner's modifyIndirectly", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <point name="P" draggable="true" modifyIndirectly="false">(1,2)</point>
+    <updateValue name="u" target="$P.draggable" newValue="false" type="boolean" />
+    `,
+            });
+            await core.requestAction({
+                componentIdx: await resolvePathToNodeIdx("u"),
+                actionName: "updateValue",
+                args: {},
+            });
+            expect(
+                (await core.returnAllStateVariables(false, true))[
+                    await resolvePathToNodeIdx("P")
+                ].stateValues.draggable,
+            ).eq(false);
+        });
+
+        it("a write to a text literal that is not text is ignored", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <textInput name="ti" prefill="abc" />
+    <updateValue name="u1" target="$ti.prefill" newValue="5" type="number" />
+    <updateValue name="u2" target="$ti.prefill" newValue="zz" type="text" />
+    `,
+            });
+            const prefill = async () =>
+                (await core.returnAllStateVariables(false, true))[
+                    await resolvePathToNodeIdx("ti")
+                ].stateValues.prefill;
+            const update = async (name: string) =>
+                core.requestAction({
+                    componentIdx: await resolvePathToNodeIdx(name),
+                    actionName: "updateValue",
+                    args: {},
+                });
+            await update("u1");
+            expect(await prefill()).eq("abc");
+            await update("u2");
+            expect(await prefill()).eq("zz");
+            await update("u1");
+            expect(await prefill()).eq("zz");
+        });
+
+        it("an unlinked copy of a variable takes the literal attributes it shadows, with a write", async () => {
+            // `<math copy="$m.value"/>` takes `simplify` and `expand` from
+            // the math (`attributesToShadow`); with no link to it, it has
+            // its own copy of each, which a later write to the math's does
+            // not reach.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <math name="m" simplify="full" expand="false">(x+1)^2+x</math>
+    <updateValue name="u1" target="$m.expand" newValue="true" type="boolean" />
+    <updateValue name="u2" target="$m.simplify" newValue="none" type="text" />
+    <booleanInput name="show" />
+    <conditionalContent condition="$show" name="cc">
+        <math copy="$m.value" name="mc" />
+    </conditionalContent>
+    `,
+            });
+            const update = async (name: string) =>
+                core.requestAction({
+                    componentIdx: await resolvePathToNodeIdx(name),
+                    actionName: "updateValue",
+                    args: {},
+                });
+            await update("u1");
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("show"),
+                core,
+            });
+            await update("u2");
+            const mc = (await core.returnAllStateVariables(false, true))[
+                await resolvePathToNodeIdx("cc.mc")
+            ].stateValues;
+            expect([mc.simplify, mc.expand]).eqls(["full", true]);
+        });
+
+        it("a write to a literal attribute is refused by its owner's fixed, also through a copy that is not fixed", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <text name="t" fixed hide="false">a</text>
+    <text extend="$t" name="c" fixed="false" />
+    <updateValue name="u1" target="$c.hide" newValue="true" type="boolean" />
+    <graph name="g" fixed xMin="-4" />
+    <graph extend="$g" name="h" fixed="false" />
+    <updateValue name="u2" target="$h.xMin" newValue="-8" type="number" />
+    `,
+            });
+            for (const name of ["u1", "u2"]) {
+                await core.requestAction({
+                    componentIdx: await resolvePathToNodeIdx(name),
+                    actionName: "updateValue",
+                    args: {},
+                });
+            }
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            expect([
+                (await sv("t")).hidden,
+                (await sv("c")).hidden,
+                (await sv("g")).xMin,
+                (await sv("h")).xMin,
+            ]).eqls([false, false, -4, -4]);
+        });
+
+        it("a write to a reference's own literal fixLocation stays on the reference", async () => {
+            // `fixLocation="false"` on the extend is a literal; a reader's
+            // write to it is the extend's, as it was to its attribute
+            // component, and does not reach the source
+            const doenetML = `
+    <graph>
+        <point name="A">(1,2)</point>
+        <point extend="$A" name="B" fixLocation="false" />
+    </graph>
+    <booleanInput name="bi" bindValueTo="$B.fixLocation" />
+    `;
+            const first = await createTestCore({ doenetML });
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await first.resolvePathToNodeIdx("bi"),
+                core: first.core,
+            });
+            async function fixLocations(tc: typeof first) {
+                const stateVariables = await tc.core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                return [
+                    stateVariables[await tc.resolvePathToNodeIdx("A")]
+                        .stateValues.fixLocation,
+                    stateVariables[await tc.resolvePathToNodeIdx("B")]
+                        .stateValues.fixLocation,
+                ];
+            }
+            expect(await fixLocations(first)).eqls([false, true]);
+
+            await first.core.saveImmediately();
+            const second = await createTestCore({
+                doenetML,
+                initialState: first.scoreState.state as string,
+            });
+            expect(await fixLocations(second)).eqls([false, true]);
+        });
+
         it("a copy of a repeat whose iterations reference a prop or a list entry shows what the source's iterations show", async () => {
             // Each iteration's `a` and `b` take their display settings, and
             // `b` its `hide`, from what they reference. The copies of the
@@ -611,9 +870,9 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
         });
 
         it("what each attribute construct creates", async () => {
-            // Stream B's targets, by step: a literal `displayDigits` loses its
-            // `integer` (B1a) and a literal `anchor` its point, mathList and
-            // two maths (B1b). A prop reference has lost its five shadow
+            // Stream B's targets, by step: a literal `anchor` loses its point,
+            // mathList and two maths (B1b). A literal `displayDigits` has lost
+            // its `integer` (B1a), and a prop reference its five shadow
             // attribute components (B3).
             async function census(doenetML: string) {
                 const { core } = await createTestCore({ doenetML });
@@ -623,13 +882,24 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             const literal = await census(
                 `<number name="n">5</number><math displayDigits="5">3.123456x</math>`,
             );
+            // the literal `displayDigits` is a value, not an `integer` (B1a)
             expect(literal.byType).eqls({
                 document: 1,
                 number: 1,
                 math: 1,
-                integer: 1,
             });
-            expect(literal.attributeComponents).eq(1);
+            expect(literal.attributeComponents).eq(0);
+
+            // so are the literals a copy writes on itself, converted when
+            // the copy is (`convertUnresolvedAttributesForComponentType`);
+            // `fixed` keeps its component (`ignoreParentFixed`)
+            const copyOwn = await census(
+                `<text name="t">a</text><text extend="$t" hide /><number copy="$t.value" displayDigits="2" />`,
+            );
+            expect(copyOwn.attributeComponents).eq(0);
+            expect(
+                (await census(`<text fixed>a</text>`)).attributeComponents,
+            ).eq(1);
 
             const anchored = await census(
                 `<graph><math anchor="(1,2)">x</math></graph>`,
@@ -657,9 +927,10 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 math: 2,
                 mathList: 1,
                 _ref: 1,
-                integer: 1,
             });
-            expect(bareReference.attributeComponents).eq(2);
+            // the mathList of the point's coordinates; the point's literal
+            // displayDigits is a value (B1a)
+            expect(bareReference.attributeComponents).eq(1);
 
             const propReference = await census(
                 `<point name="P" displayDigits="3">(1.23456,2)</point><math extend="$P.x" simplify/>`,
@@ -670,14 +941,12 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 math: 3,
                 mathList: 1,
                 _copy: 1,
-                integer: 1,
-                text: 1,
             });
-            // the point's literal displayDigits, its coordinates' mathList
-            // and the reference's literal simplify; the five attributes the
-            // reference takes from P are references to P's variables, not
-            // components (B3)
-            expect(propReference.attributeComponents).eq(3);
+            // the mathList of the point's coordinates; the point's literal
+            // displayDigits and the reference's literal simplify are values
+            // (B1a), and the five attributes the reference takes from P are
+            // references to P's variables (B3)
+            expect(propReference.attributeComponents).eq(1);
         });
     },
 );

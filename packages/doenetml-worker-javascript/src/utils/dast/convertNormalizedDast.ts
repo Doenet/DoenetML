@@ -8,6 +8,10 @@ import {
     Source,
     UntaggedContent,
 } from "@doenet/doenetml-worker";
+import {
+    convertLiteralAttributes,
+    literalFromAttributeComponent,
+} from "../literalAttribute";
 import { ComponentInfoObjects } from "../componentInfoObjects";
 import {
     AttributeDefinition,
@@ -358,7 +362,12 @@ export async function normalizedDastToSerializedComponents(
         nComponents,
     }).nComponents;
 
-    const document = sugarResult.components[0] as SerializedComponent;
+    // After everything that reads an attribute component's written text, an
+    // attribute that is only a literal becomes the literal.
+    const document = convertLiteralAttributes(
+        sugarResult.components,
+        componentInfoObjects,
+    )[0] as SerializedComponent;
 
     // Last, so that the walk sees the final tree -- after references became
     // copies, after attributes became components, and after sugar added
@@ -1521,6 +1530,20 @@ export function convertUnresolvedAttributesForComponentType({
 
                     newAttributes[attrName].component = sugarResult
                         .components[0] as SerializedComponent;
+
+                    // an attribute that is only a literal becomes the literal
+                    const literal =
+                        attrName === newClass.addAttributeToResolver
+                            ? undefined
+                            : literalFromAttributeComponent({
+                                  name: attrName,
+                                  component: newAttributes[attrName].component,
+                                  attrDef,
+                                  sourceDoc: newAttributes[attrName].sourceDoc,
+                              });
+                    if (literal) {
+                        newAttributes[attrName] = literal;
+                    }
                 }
             } else {
                 // The attribute is already resolved.

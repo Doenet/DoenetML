@@ -1,3 +1,4 @@
+import { serializedAttributeComponent } from "../utils/literalAttribute";
 import Sequence from "./Sequence";
 import {
     calculateSequenceParameters,
@@ -327,8 +328,9 @@ export default class SelectFromSequence extends Sequence {
 
         let sequenceType = serializedComponent.attributes.type.primitive.value;
 
-        let numToSelectComponent =
-            serializedComponent.attributes.numToSelect?.component;
+        let numToSelectComponent = serializedAttributeComponent(
+            serializedComponent.attributes.numToSelect,
+        );
         if (numToSelectComponent) {
             // only implemented if have an integer with a single string child
             if (
@@ -351,8 +353,9 @@ export default class SelectFromSequence extends Sequence {
             }
         }
 
-        let coprimeCombinationsComponent =
-            serializedComponent.attributes.coprime?.component;
+        let coprimeCombinationsComponent = serializedAttributeComponent(
+            serializedComponent.attributes.coprime,
+        );
         if (coprimeCombinationsComponent) {
             // unique variants is only implemented if know that coprime is false,
             // i.e., if have an boolean with a single string child that is "false"
@@ -369,8 +372,9 @@ export default class SelectFromSequence extends Sequence {
             }
         }
 
-        let withReplacementComponent =
-            serializedComponent.attributes.withReplacement?.component;
+        let withReplacementComponent = serializedAttributeComponent(
+            serializedComponent.attributes.withReplacement,
+        );
         if (withReplacementComponent) {
             // only implemented if have an boolean with a boolean value or a single string child
             if (withReplacementComponent.componentType === "boolean") {
@@ -407,7 +411,9 @@ export default class SelectFromSequence extends Sequence {
             length: null,
         };
 
-        let fromComponent = serializedComponent.attributes.from?.component;
+        let fromComponent = serializedAttributeComponent(
+            serializedComponent.attributes.from,
+        );
         if (fromComponent) {
             // from itself is a component with selectable type
             let fromComponent2 = fromComponent.children[0];
@@ -476,7 +482,9 @@ export default class SelectFromSequence extends Sequence {
             }
         }
 
-        let toComponent = serializedComponent.attributes.to?.component;
+        let toComponent = serializedAttributeComponent(
+            serializedComponent.attributes.to,
+        );
         if (toComponent) {
             // to itself is a component with selectable type
             let toComponent2 = toComponent.children[0];
@@ -545,7 +553,9 @@ export default class SelectFromSequence extends Sequence {
             }
         }
 
-        let stepComponent = serializedComponent.attributes.step?.component;
+        let stepComponent = serializedAttributeComponent(
+            serializedComponent.attributes.step,
+        );
         if (stepComponent) {
             // only implemented if have a single string child
             if (
@@ -612,7 +622,9 @@ export default class SelectFromSequence extends Sequence {
             }
         }
 
-        let lengthComponent = serializedComponent.attributes.length?.component;
+        let lengthComponent = serializedAttributeComponent(
+            serializedComponent.attributes.length,
+        );
         if (lengthComponent) {
             // only implemented if have a single string child
             if (
@@ -645,8 +657,9 @@ export default class SelectFromSequence extends Sequence {
 
         let excludes = [];
 
-        let excludeComponent =
-            serializedComponent.attributes.exclude?.component;
+        let excludeComponent = serializedAttributeComponent(
+            serializedComponent.attributes.exclude,
+        );
         if (excludeComponent) {
             if (sequenceType === "math") {
                 info({ code: "doenet-i0033", component: "selectFromSequence" });

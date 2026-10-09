@@ -1,4 +1,5 @@
 import type Core from "../Core";
+import { literalWriteValue } from "../utils/literalAttribute";
 import { reportInternalError } from "../utils/internalErrors";
 import type { ComponentInstance } from "../types/componentInstance";
 import type { ComponentIdx } from "@doenet/utils";
@@ -824,6 +825,11 @@ export class EssentialValueWriter {
 
         if (!(
             initialChange ||
+            // a write to a literal attribute (`literalAttribute.ts`): its
+            // attribute component took it whatever the owner's
+            // `modifyIndirectly`, since it had its own, true by default,
+            // which it did not take from the owner
+            stateVariable === "literalAttributeWrites" ||
             (await component.stateValues.modifyIndirectly) !== false
         )) {
             reportInternalError(
@@ -1401,12 +1407,30 @@ export class EssentialValueWriter {
                             `Invalid inverse definition of ${stateVariable} of ${component.componentIdx}: ${dependencyName} variable of index ${newInstruction.variableIndex} does not exist.`,
                         );
                     }
+                    // A literal attribute (`literalAttribute.ts`) is written
+                    // as an entry of its owner's `literalAttributeWrites`,
+                    // unless the attribute component it stands for would
+                    // have ignored the value.
+                    const literal = dep.literal;
+                    const literalValue = literal
+                        ? literalWriteValue(
+                              literal,
+                              newInstruction.desiredValue,
+                          )
+                        : undefined;
+                    if (literal && literalValue === undefined) {
+                        continue;
+                    }
                     await this._recurseInto({
                         inst: {
                             componentIdx: cIdx,
                             stateVariable: varName,
-                            value: newInstruction.desiredValue,
-                            overrideFixed: instruction.overrideFixed,
+                            value: literal
+                                ? { [literal.name]: literalValue }
+                                : newInstruction.desiredValue,
+                            overrideFixed:
+                                instruction.overrideFixed ||
+                                (literal && dep.literalIgnoresFixed),
                             arrayKey: newInstruction.arrayKey,
                         },
                         newInstruction,

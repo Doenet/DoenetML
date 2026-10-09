@@ -835,6 +835,23 @@ function copyStateFromUnlinkedSourceSub(replacements, sources) {
                         [repl.attributes[attrName].component],
                         [src.attributes[attrName].component],
                     );
+                } else if (
+                    repl.attributes[attrName].type === "literal" &&
+                    "value" in repl.attributes[attrName] &&
+                    src.attributes[attrName]?.type === "literal" &&
+                    "value" in src.attributes[attrName]
+                ) {
+                    // A literal held as its value (a boolean, or an attribute
+                    // written with no value) takes the value the source's
+                    // literal has now, with a reader's write over it, as the
+                    // essential state of the attribute component it stands
+                    // for was taken. A literal written as text is not: the
+                    // component kept a write in its text child, not its
+                    // state.
+                    repl.attributes[attrName] = {
+                        ...repl.attributes[attrName],
+                        value: src.attributes[attrName].value,
+                    };
                 }
             }
         }
