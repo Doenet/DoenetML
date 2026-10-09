@@ -74,6 +74,10 @@ export default class RepeatValueList extends ValueListComponent {
     // ancestor's.
     static listEntriesFixedByDefault = false;
 
+    // A template that is one entry of a list alone shows each entry with
+    // that entry's own settings, as the iteration's copy of it did.
+    static listEntryDisplaySettingsVariable = "entryDisplaySettings";
+
     static createAttributesObject() {
         const attributes = super.createAttributesObject();
         addRepeatListAttributes(attributes);
@@ -288,6 +292,91 @@ export default class RepeatValueList extends ValueListComponent {
             };
         }
 
+        // The settings each entry is shown with, `null` for the list's: for
+        // a template that is one entry (or a coordinate of one) of a list
+        // alone, the settings that entry of the list has of its own
+        // (`<mathList><math displayDigits="2">…</math></mathList>`), as the
+        // iteration's `<math>` took them from its single child. A setting
+        // the list sets itself, from the template's attributes, is the
+        // list's; `displayDigits` and `displayDecimals` go together, as one
+        // set ignores the other. A reference to the whole list reads them
+        // from the list.
+        stateVariableDefinitions.entryDisplaySettings = {
+            shadowVariable: true,
+            stateVariablesDeterminingDependencies: ["templateAnalysis"],
+            returnDependencies({ stateValues }) {
+                const { templateAnalysis } = stateValues;
+                const code = templateAnalysis.nodes[0]?.singleCode;
+                if (code?.entry === undefined) {
+                    return {};
+                }
+                const dependencies = {
+                    numEntries: {
+                        dependencyType: "stateVariable",
+                        variableName: "numEntries",
+                    },
+                    sourceSettings: {
+                        dependencyType: "stateVariable",
+                        componentIdx: templateAnalysis.entryLists[code.entry],
+                        variableName: "entryDisplaySettings",
+                        variablesOptional: true,
+                    },
+                };
+                for (const setting of DISPLAY_SETTINGS) {
+                    dependencies[setting] = {
+                        dependencyType: "stateVariable",
+                        variableName: setting,
+                    };
+                    dependencies[`${setting}Attribute`] = {
+                        dependencyType: "attributeComponent",
+                        attributeName: setting,
+                    };
+                }
+                return dependencies;
+            },
+            definition({ dependencyValues }) {
+                const sourceSettings = dependencyValues.sourceSettings;
+                if (!Array.isArray(sourceSettings)) {
+                    return { setValue: { entryDisplaySettings: null } };
+                }
+                const own = new Set(
+                    DISPLAY_SETTINGS.filter(
+                        (setting) =>
+                            dependencyValues[`${setting}Attribute`] !== null,
+                    ),
+                );
+                if (own.has("displayDigits") || own.has("displayDecimals")) {
+                    own.add("displayDigits");
+                    own.add("displayDecimals");
+                }
+                const entryDisplaySettings = [];
+                for (let ind = 0; ind < dependencyValues.numEntries; ind++) {
+                    const settings = sourceSettings[ind];
+                    if (!settings) {
+                        entryDisplaySettings.push(null);
+                        continue;
+                    }
+                    // the list's own in place of the entry's, set rather
+                    // than defaults, as a list holding this one reads
+                    // `setByEntry`
+                    const entrySettings = {
+                        ...settings,
+                        setByEntry: [
+                            ...new Set([
+                                ...(settings.setByEntry ?? []),
+                                ...own,
+                            ]),
+                        ],
+                    };
+                    for (const setting of own) {
+                        entrySettings[setting] = dependencyValues[setting];
+                    }
+                    entryDisplaySettings.push(entrySettings);
+                }
+                return { setValue: { entryDisplaySettings } };
+            },
+        };
+
         if (entryType === "math") {
             // As a `<math>` shows its value: rounded, then simplified and
             // expanded as its value is.
@@ -302,9 +391,13 @@ export default class RepeatValueList extends ValueListComponent {
                     const values = dependencyValues.values;
                     return {
                         setValue: {
-                            entryValuesForDisplay: values.map((value) =>
+                            // each with its own settings, if it has them
+                            entryValuesForDisplay: values.map((value, ind) =>
                                 mathValueForDisplay({
                                     ...dependencyValues,
+                                    ...dependencyValues.entryDisplaySettings?.[
+                                        ind
+                                    ],
                                     value,
                                 }),
                             ),
