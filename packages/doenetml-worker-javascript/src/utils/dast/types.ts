@@ -249,7 +249,21 @@ export function isSerializedAttribute(
         isReferencesAttribute(obj) ||
         isUnresolvedAttribute(obj) ||
         isVariableRefAttribute(obj) ||
-        (obj as LiteralAttribute)?.type === "literal"
+        isLiteralAttribute(obj)
+    );
+}
+
+export function isLiteralAttribute(obj: unknown): obj is LiteralAttribute {
+    const typedObj = obj as LiteralAttribute;
+    return (
+        typeof typedObj === "object" &&
+        typedObj !== null &&
+        typedObj.type === "literal" &&
+        typeof typedObj.name === "string" &&
+        typeof typedObj.componentType === "string" &&
+        (typedObj.text === undefined || typeof typedObj.text === "string") &&
+        (typedObj.sourceDoc === undefined ||
+            typeof typedObj.sourceDoc === "number")
     );
 }
 
