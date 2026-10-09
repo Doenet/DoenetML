@@ -570,6 +570,54 @@ fn elements_with_children_invisible_to_their_grandparents() {
 }
 
 #[test]
+fn drill_round_names_are_local_to_the_template() {
+    // Normalizing wraps a `<drill>`'s children in a `<_drillRound>`, which is
+    // tagged with `ChildrenInvisibleToTheirGrandparents`
+    let dast_root = dast_root_no_position(
+        r#"
+        <drill name="x">
+            <c name="z" />
+            <e name="w" />
+        </drill>
+        <d name="q" />"#,
+    );
+    let flat_root = FlatRoot::from_dast(&dast_root);
+    let c_idx = find(&flat_root, "c").unwrap();
+    let d_idx = find(&flat_root, "d").unwrap();
+    let e_idx = find(&flat_root, "e").unwrap();
+
+    let resolver = Resolver::from_flat_root(&flat_root);
+
+    // A name in the template cannot be reached from outside the drill
+    let referent = resolver.resolve(make_path(["z"], None), d_idx, false);
+    assert_eq!(referent, Err(ResolutionError::NoReferent));
+
+    // Names in the template resolve to each other
+    let referent = resolver.resolve(make_path(["z"], None), e_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: c_idx,
+            unresolved_path: None,
+            original_path: make_path(["z"], None),
+            nodes_in_resolved_path: vec![e_idx, c_idx]
+        })
+    );
+
+    // and the template can still reach names outside the drill
+    let referent = resolver.resolve(make_path(["q"], None), c_idx, false);
+    assert_eq!(
+        referent,
+        Ok(RefResolution {
+            node_idx: d_idx,
+            unresolved_path: None,
+            original_path: make_path(["q"], None),
+            nodes_in_resolved_path: vec![c_idx, d_idx]
+        })
+    );
+}
+
+#[test]
 fn cannot_reference_elements_from_other_source_doc_without_parent_reference() {
     let dast_root = dast_root_no_position(
         r#"
