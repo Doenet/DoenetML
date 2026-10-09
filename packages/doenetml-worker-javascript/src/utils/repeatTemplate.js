@@ -87,8 +87,11 @@ const PARSE_SETTINGS = {
 
 /**
  * The analysis of the serialized `template`: its nodes, the template's own
- * first (`nodes[0]`), and the list each entry code reads (`entryLists`, by
- * the component index the reference resolved to).
+ * first (`nodes[0]`), the list each entry code reads (`entryLists`, by
+ * the component index the reference resolved to), and the coordinate of the
+ * entry it reads, from 1, or `null` for the entry itself
+ * (`entryCoordinates`, `$x[2]` of a `<repeat>`'s value, which reads
+ * coordinate 2 of the entry of its `for`).
  *
  * A node is `{ type, simplify, expand, fixed, codes, entryCodes, ... }`,
  * where each code is `{ entry: e }`, `{ constant: c }` or `{ node: n }`, and
@@ -104,14 +107,21 @@ const PARSE_SETTINGS = {
 export function analyzeRepeatTemplate(template) {
     const nodes = [];
     const entryLists = [];
+    const entryCoordinates = [];
 
     function entryCode(reference) {
         const nodeIdx = (reference.extending.Ref ?? reference.extending)
             .nodeIdx;
-        let e = entryLists.indexOf(nodeIdx);
+        const coordinate =
+            reference.doenetAttributes.repeatEntryCoordinate ?? null;
+        let e = entryLists.findIndex(
+            (listIdx, ind) =>
+                listIdx === nodeIdx && entryCoordinates[ind] === coordinate,
+        );
         if (e === -1) {
             e = entryLists.length;
             entryLists.push(nodeIdx);
+            entryCoordinates.push(coordinate);
         }
         return { entry: e };
     }
@@ -231,7 +241,7 @@ export function analyzeRepeatTemplate(template) {
     }
     nodes.forEach((_, ind) => codesOf(ind));
 
-    return { nodes, entryLists };
+    return { nodes, entryLists, entryCoordinates };
 }
 
 /**

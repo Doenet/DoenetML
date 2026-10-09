@@ -78,8 +78,8 @@ export const MICRO_DOCUMENTS: Fixture[] = [
         `<repeatForSequence from="1" to="4" valueName="i"><number>7</number></repeatForSequence>`,
     ),
     // A repeat's value indexed (`$x[1]`, as the discrete SIR simulation
-    // reads each component of its iterates) keeps the repeat a composite
-    // with a `_copy` per reference; `<math>$x</math>` makes it a list.
+    // reads each component of its iterates), which the list reads as a
+    // coordinate of the entry of its `for`.
     micro(
         "repeat for mathList $x[1] x2",
         `<mathList name="l">(1,2) (3,4)</mathList><repeat for="$l" valueName="x"><math>$x[1]</math></repeat>`,

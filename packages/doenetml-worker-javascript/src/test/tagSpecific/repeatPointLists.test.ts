@@ -238,6 +238,76 @@ describe("Repeats whose template is one point @group4", () => {
         });
     });
 
+    it("drags through the coordinates of the value of a repeat over a list", async () => {
+        const result = await compare({
+            doenetML: `
+<mathList name="l">(1,2) (3,4) (5,6)</mathList>
+<graph name="g">
+  <repeat name="r" for="$l" valueName="x"><point>($x[2], $x[1])</point></repeat>
+</graph>
+<p name="pl">$l</p>
+`,
+            names: ["pl"],
+            graphs: ["g"],
+            act: async (core, resolvePathToNodeIdx) => {
+                await dragPoint({
+                    core,
+                    resolvePathToNodeIdx,
+                    graph: "g",
+                    index: 1,
+                    x: 7,
+                    y: 8,
+                });
+            },
+        });
+        expect(result.pl).toBe("(1, 2), (8, 7), (5, 6)");
+        expect(result.g).toEqual([
+            [2, 1],
+            [7, 8],
+            [6, 5],
+        ]);
+    });
+
+    it("points of a property whose value is a list, as a simulation plots its iterates", async () => {
+        // discrete-sir's: a polyline through points of one coordinate of
+        // each iterate
+        const result = await compare({
+            doenetML: `
+<function name="f" variables="s i">(s - 0.1 s i, i + 0.1 s i - i/2)</function>
+<functionIterates name="it" function="$f" initialValue="(9, 1)" numIterates="3" />
+<graph name="g">
+  <setup><repeat name="r" for="$it.allIteratesWithInitial" valueName="x" indexName="i"><point>($i-1, $x[1])</point></repeat></setup>
+  <polyline name="pl" vertices="$r" draggable="false" />
+  <repeat name="r2" for="$it.allIteratesWithInitial" valueName="x" indexName="i"><point>($i-1, $x[2])</point></repeat>
+</graph>
+<p name="p">$pl.vertices</p>
+`,
+            names: ["p"],
+            graphs: ["g"],
+            act: async (core, resolvePathToNodeIdx) => {
+                // both repeats are lists, or neither
+                const types = [];
+                for (const name of ["r", "r2"]) {
+                    types.push(
+                        core.core!._components[await resolvePathToNodeIdx(name)]
+                            .componentType,
+                    );
+                }
+                expect(new Set(types).size).toBe(1);
+                await dragPoint({
+                    core,
+                    resolvePathToNodeIdx,
+                    graph: "g",
+                    index: 1,
+                    x: 4,
+                    y: 4,
+                });
+            },
+        });
+        expect(result.p).toBe("(0, 9), (1, 8.1), (2, 6.97), (3, 5.69)");
+        expect(result.g.length).toBe(4);
+    });
+
     it("a point under fixLocation takes no write, as the iteration's point did", async () => {
         // its coordinates are its location, which `fixLocation` keeps
         const result = await compare({

@@ -1441,6 +1441,9 @@ export class EssentialValueWriter {
                 } else if (
                     [
                         "stateVariable",
+                        // read through a path, as a repeat made a list reads
+                        // a coordinate of an entry (`$l[2][1]`)
+                        "stateVariableFromUnresolvedPath",
                         "parentStateVariable",
                         "adapterSourceStateVariable",
                         "sourceCompositeStateVariable",

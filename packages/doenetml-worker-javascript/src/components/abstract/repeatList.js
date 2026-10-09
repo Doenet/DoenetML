@@ -216,7 +216,11 @@ export function addRepeatListDefinitions(stateVariableDefinitions) {
                 setValue: {
                     templateAnalysis: template
                         ? analyzeRepeatTemplate(template)
-                        : { nodes: [], entryLists: [] },
+                        : {
+                              nodes: [],
+                              entryLists: [],
+                              entryCoordinates: [],
+                          },
                 },
             };
         },
@@ -498,13 +502,13 @@ export function repeatTemplateEntriesDefinition({
                         variableName: `entryWrite${index}`,
                     },
                 };
-                for (const [e, componentIdx] of entryLists.entries()) {
-                    dependencies[`entry${e}`] = {
-                        dependencyType: "stateVariable",
-                        componentIdx,
-                        variableName: `${stateValues.entryListPrefixes[e]}${index}`,
-                        variablesOptional: true,
-                    };
+                for (const e of entryLists.keys()) {
+                    dependencies[`entry${e}`] = entryCodeDependency({
+                        templateAnalysis: stateValues.templateAnalysis,
+                        entryListPrefixes: stateValues.entryListPrefixes,
+                        e,
+                        index,
+                    });
                 }
                 dependenciesByKey[arrayKey] = dependencies;
             }
@@ -592,6 +596,46 @@ export function repeatTemplateEntriesDefinition({
             }
             return { success: true, instructions };
         },
+    };
+}
+
+/**
+ * The dependency of entry `index` (from 1) of what entry code `e` of
+ * `templateAnalysis` reads: the entry of its list, by the prefix of the
+ * names of the list's entries (`entryListPrefixes`), or a coordinate of that
+ * entry (`entryCoordinates`), as `$l[index][2]` reads it, through the entry
+ * property (`x2`) a list of maths computes for each entry and takes a write
+ * to.
+ */
+export function entryCodeDependency({
+    templateAnalysis,
+    entryListPrefixes,
+    e,
+    index,
+}) {
+    const componentIdx = templateAnalysis.entryLists[e];
+    const coordinate = templateAnalysis.entryCoordinates[e];
+    if (coordinate !== null) {
+        return {
+            dependencyType: "stateVariableFromUnresolvedPath",
+            componentIdx,
+            unresolvedPath: [
+                {
+                    name: "",
+                    index: [
+                        { value: [String(index)] },
+                        { value: [String(coordinate)] },
+                    ],
+                },
+            ],
+            variablesOptional: true,
+        };
+    }
+    return {
+        dependencyType: "stateVariable",
+        componentIdx,
+        variableName: `${entryListPrefixes[e]}${index}`,
+        variablesOptional: true,
     };
 }
 
