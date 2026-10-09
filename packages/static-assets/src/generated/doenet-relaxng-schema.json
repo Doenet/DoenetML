@@ -195,6 +195,7 @@
         "select",
         "group",
         "animateFromSequence",
+        "timer",
         "evaluate",
         "selectRandomNumbers",
         "sampleRandomNumbers",
@@ -691,6 +692,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -2263,6 +2267,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -2987,6 +2994,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -3927,6 +3937,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -4938,6 +4951,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -5945,6 +5961,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -6995,6 +7014,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -7895,6 +7917,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -8595,6 +8620,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -9289,6 +9317,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -9981,6 +10012,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -11176,6 +11210,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -39706,6 +39743,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -41049,6 +41089,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -42279,6 +42322,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -43237,6 +43283,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -44199,6 +44248,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -45153,6 +45205,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -50990,6 +51045,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -51592,6 +51650,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -52198,6 +52259,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -52800,6 +52864,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -53406,6 +53473,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -54008,6 +54078,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -54614,6 +54687,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -55216,6 +55292,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -55822,6 +55901,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -56424,6 +56506,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -57030,6 +57115,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -57632,6 +57720,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -59655,6 +59746,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -60879,6 +60973,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -62107,6 +62204,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -63331,6 +63431,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -64566,6 +64669,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -65790,6 +65896,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -67025,6 +67134,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -68256,6 +68368,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -69491,6 +69606,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -70724,6 +70842,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -71948,6 +72069,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -73176,6 +73300,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -74400,6 +74527,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -75628,6 +75758,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -76854,6 +76987,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -78078,6 +78214,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -79312,6 +79451,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -80535,6 +80677,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -81767,6 +81912,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -83478,6 +83626,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -91839,6 +91990,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -92764,6 +92918,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -93775,6 +93932,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -94719,6 +94879,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -95579,6 +95742,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -96471,6 +96637,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -98524,6 +98693,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -99290,6 +99462,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -100316,6 +100491,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -102207,6 +102385,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -106735,6 +106916,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -124878,6 +125062,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -131247,6 +131434,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -133600,6 +133790,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "image"
                 },
                 {
@@ -135408,6 +135601,9 @@
                     "ref": "selectFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -136204,6 +136400,9 @@
                 },
                 {
                     "ref": "selectFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -137203,6 +137402,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -138154,6 +138356,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -141592,6 +141797,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -142278,6 +142486,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -143734,6 +143945,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -144232,6 +144446,245 @@
                     "type": "text",
                     "isArray": false,
                     "description": "Current direction of the animation (\"increase\" or \"decrease\"; flips during oscillation)."
+                }
+            ]
+        },
+        "timer": {
+            "type": "element",
+            "name": "timer",
+            "attributes": {
+                "name": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "hide": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "disabled": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixed": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "fixLocation": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "styleNumber": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "isResponse": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "extend": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "copy": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "duration": {
+                    "optional": true,
+                    "type": [
+                        "string"
+                    ]
+                },
+                "reloadBehavior": {
+                    "optional": true,
+                    "type": [
+                        "continue",
+                        "reset"
+                    ]
+                },
+                "autoStart": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                },
+                "displayMode": {
+                    "optional": true,
+                    "type": [
+                        "remaining",
+                        "elapsed"
+                    ]
+                },
+                "format": {
+                    "optional": true,
+                    "type": [
+                        "m:ss",
+                        "s"
+                    ]
+                },
+                "showControls": {
+                    "optional": true,
+                    "type": [
+                        "true",
+                        "false"
+                    ]
+                }
+            },
+            "children": [],
+            "textChildrenAllowed": false,
+            "properties": [
+                {
+                    "name": "hide",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to hide this component from the rendered output.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "styleNumber",
+                    "type": "integer",
+                    "isArray": false,
+                    "description": "The style number used to select this component's visual styling from the available style definitions.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "isResponse",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is treated as a response for the purposes of assessment.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "duration",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Length of the countdown, in seconds.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "reloadBehavior",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "What a running clock does when the page is reloaded.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "autoStart",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the clock starts by itself the first time the page loads.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "displayMode",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "Which time the clock shows.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "format",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "How the time is written.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "showControls",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether to show Start/Pause and Reset buttons beside the clock.",
+                    "fromAttribute": true
+                },
+                {
+                    "name": "hidden",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is hidden from the rendered output."
+                },
+                {
+                    "name": "disabled",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component is disabled and cannot be interacted with."
+                },
+                {
+                    "name": "fixed",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's value is fixed and cannot be modified."
+                },
+                {
+                    "name": "fixLocation",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether this component's location is fixed (preventing it from being moved while still allowing other modifications)."
+                },
+                {
+                    "name": "doenetML",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The DoenetML source code that produced this component."
+                },
+                {
+                    "name": "expired",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the countdown has run out."
+                },
+                {
+                    "name": "running",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the clock is counting. Setting it to true starts or resumes the clock; setting it to false pauses it."
+                },
+                {
+                    "name": "timeRemaining",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Whole seconds left on the countdown, rounded up, so it reaches 0 only when the countdown runs out."
+                },
+                {
+                    "name": "elapsed",
+                    "type": "number",
+                    "isArray": false,
+                    "description": "Whole seconds the clock has counted, rounded down."
+                },
+                {
+                    "name": "text",
+                    "type": "text",
+                    "isArray": false,
+                    "description": "The time the clock shows, written in its `format`, such as 1:05."
+                },
+                {
+                    "name": "paused",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the clock has been stopped partway through and can be resumed."
                 }
             ]
         },
@@ -147323,6 +147776,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -149690,6 +150146,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -151892,6 +152351,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -152745,6 +153207,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -153614,6 +154079,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -155038,6 +155506,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -156477,6 +156948,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -157374,6 +157848,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -158233,6 +158710,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -158915,6 +159395,9 @@
                     "ref": "group"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -159523,6 +160006,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -161389,6 +161875,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -162374,6 +162863,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -163294,6 +163786,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -165932,6 +166427,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -169309,6 +169807,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -171600,6 +172101,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -175121,6 +175625,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -175981,6 +176488,9 @@
                 },
                 {
                     "ref": "animateFromSequence"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"
@@ -177795,6 +178305,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -178670,6 +179183,9 @@
                     "ref": "animateFromSequence"
                 },
                 {
+                    "ref": "timer"
+                },
+                {
                     "ref": "evaluate"
                 },
                 {
@@ -179335,6 +179851,9 @@
                 },
                 {
                     "ref": "group"
+                },
+                {
+                    "ref": "timer"
                 },
                 {
                     "ref": "evaluate"

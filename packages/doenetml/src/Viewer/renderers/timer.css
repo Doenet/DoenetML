@@ -1,0 +1,28 @@
+.doenet-viewer .doenet-timer {
+    display: inline-flex;
+    align-items: center;
+    gap: 6px;
+}
+
+.doenet-viewer .doenet-timer-display {
+    font-variant-numeric: tabular-nums;
+    font-weight: bold;
+    min-width: 3ch;
+}
+
+.doenet-viewer .doenet-timer-expired {
+    color: var(--mainRed);
+}
+
+/* Read by a screen reader, never shown. */
+.doenet-viewer .doenet-timer-announcer {
+    position: absolute;
+    width: 1px;
+    height: 1px;
+    padding: 0;
+    margin: -1px;
+    overflow: hidden;
+    clip: rect(0, 0, 0, 0);
+    white-space: nowrap;
+    border: 0;
+}

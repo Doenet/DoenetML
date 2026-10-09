@@ -131,6 +131,18 @@ orbital-row-label = Label for row { $row }
 # Labels the answer column of a pretzel exercise's grid.
 pretzel-answer = Answer
 
+# Buttons beside a `<timer>` countdown. The one button reads Start before the
+# clock first runs (and after it runs out), Pause while it runs, and Resume
+# once it has been paused partway.
+timer-start = Start
+timer-pause = Pause
+timer-resume = Resume
+timer-reset = Reset
+
+# Announced to a screen reader when a countdown runs out while the page is
+# open. The ticking clock itself is never announced.
+timer-expired = Time's up
+
 # Caption above the table a `<summaryStatistics>` renders. It used to name the
 # data column being summarized; the statistics now come from values written in
 # the document, so there is no column to name and the message takes no
