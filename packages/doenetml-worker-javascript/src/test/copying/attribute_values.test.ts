@@ -13,11 +13,11 @@ vi.mock("hyperformula");
 
 /**
  * Attributes as values (Doenet/DoenetML#2129). An attribute is a component
- * today: a literal `displayDigits="5"` is an `integer` component, and a copy
- * of a prop carries "shadow" attribute components for the display settings
- * of its source and, for some props (a math's `value`, but not a point's
- * `x`), its `fixed`. Stream B replaces those components with values held in
- * the attribute slot.
+ * today: a literal `displayDigits="5"` is an `integer` component, and a
+ * reference to a prop that is not a bare reference (`<math extend="$P.x"
+ * simplify/>`) carries "shadow" attribute components for the display
+ * settings of its source. Stream B replaces those components with values
+ * held in the attribute slot.
  *
  * These tests pin what authors see before that change: which attribute wins
  * along a chain of references, what `fixed` a prop reference has, what an
@@ -108,15 +108,13 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect((await sv("g")).displayDecimals).eq(1);
         });
 
-        it("a prop reference's fixed: the shadow `fixed` of a value reference beats a fixed parent", async () => {
-            // Today's behavior, which stream B must keep. A reference to a
-            // math's `value` carries a shadow `fixed` attribute from its
-            // source, and that attribute decides even when its source took
-            // the default: `d` and `f` are not fixed although their `<p>` is.
-            // A reference to a point's coordinate carries no shadow `fixed`,
-            // so it is fixed with its parent, whatever its source's `fixed`.
-            // In a `<group>`, which is a composite, no reference takes the
-            // group's `fixed`, shadow `fixed` or not.
+        it("a prop reference's fixed: its own attribute, else fixed when its source or where it sits is", async () => {
+            // The rule for every linked reference (Doenet/DoenetML#2230),
+            // which stream B must keep for prop references: a `fixed` written
+            // on the reference decides; otherwise it is fixed when its source
+            // is or where it sits is (a fixed parent, or a fixed `<group>`
+            // around it). A `fixed="false"` on the source does not undo a
+            // fixed parent of the reference.
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
     <point name="P">(1,2)</point>
@@ -131,6 +129,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
         <math extend="$m.value" name="d" />
         <math extend="$mf.value" name="e" />
         <math extend="$mu.value" name="f" />
+        <math extend="$m.value" name="o" fixed="false" />
+        <math extend="$P.x" name="op" fixed="false" />
         <math name="z">x</math>
     </p>
     <group fixed>
@@ -139,10 +139,13 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
         <math extend="$R.x" name="gc" />
         <math extend="$m.value" name="gd" />
         <math extend="$mf.value" name="ge" />
+        <math extend="$P.x" name="go" fixed="false" />
     </group>
     <math extend="$P.x" name="na" />
     <math extend="$Q.x" name="nb" />
+    <math extend="$m.value" name="nd" />
     <math extend="$mf.value" name="ne" />
+    <math extend="$mu.value" name="nf" />
     `,
             });
             const stateVariables = await core.returnAllStateVariables(
@@ -153,25 +156,31 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 stateVariables[await resolvePathToNodeIdx(name)].stateValues
                     .fixed;
 
-            // under a fixed `<p>`
+            // under a fixed `<p>`, whatever the source's `fixed`
             expect(await fixed("z")).eq(true);
             expect(await fixed("a")).eq(true);
             expect(await fixed("c")).eq(true);
-            expect(await fixed("d")).eq(false);
+            expect(await fixed("d")).eq(true);
             expect(await fixed("e")).eq(true);
-            expect(await fixed("f")).eq(false);
+            expect(await fixed("f")).eq(true);
+            // unless the reference writes its own
+            expect(await fixed("o")).eq(false);
+            expect(await fixed("op")).eq(false);
 
-            // under a fixed `<group>`
-            expect(await fixed("ga")).eq(false);
+            // under a fixed `<group>`, the same
+            expect(await fixed("ga")).eq(true);
             expect(await fixed("gb")).eq(true);
-            expect(await fixed("gc")).eq(false);
-            expect(await fixed("gd")).eq(false);
+            expect(await fixed("gc")).eq(true);
+            expect(await fixed("gd")).eq(true);
             expect(await fixed("ge")).eq(true);
+            expect(await fixed("go")).eq(false);
 
-            // under no fixed parent
+            // under no fixed parent, the source decides
             expect(await fixed("na")).eq(false);
             expect(await fixed("nb")).eq(true);
+            expect(await fixed("nd")).eq(false);
             expect(await fixed("ne")).eq(true);
+            expect(await fixed("nf")).eq(false);
         });
 
         it("an unlinked copy of a prop reference keeps the display settings it showed", async () => {
@@ -198,9 +207,11 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect((await sv("v")).text).eq("1.2346");
 
             // `u` keeps the digits `c` showed when it was copied: when P's
-            // digits change, `c` follows and `u` does not. (The copy carries
-            // them in the essential state it takes from `c`, since they are
-            // not a default; the snapshot of a default is pinned with B3.)
+            // digits change, `c` follows and `u` does not. A copy of a
+            // reference pastes what the reference is linked to, here P's `x`,
+            // a value with no DoenetML of its own, so the copy holds how it
+            // was shown, as it holds the value. (A copy of P itself pastes
+            // P's `displayDigits="$k"` and follows `k`.)
             await updateMathInputValue({
                 latex: "2",
                 componentIdx: await resolvePathToNodeIdx("k"),
@@ -460,8 +471,24 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             // the anchor's point, and the mathList of its coordinates
             expect(anchored.attributeComponents).eq(2);
 
-            const propReference = await census(
+            // an extend with nothing else on it is a bare reference (`_ref`),
+            // which makes no attribute components; one with an attribute of
+            // its own makes a copy with shadow attribute components
+            const bareReference = await census(
                 `<point name="P" displayDigits="3">(1.23456,2)</point><math extend="$P.x"/>`,
+            );
+            expect(bareReference.byType).eqls({
+                document: 1,
+                point: 1,
+                math: 2,
+                mathList: 1,
+                _ref: 1,
+                integer: 1,
+            });
+            expect(bareReference.attributeComponents).eq(2);
+
+            const propReference = await census(
+                `<point name="P" displayDigits="3">(1.23456,2)</point><math extend="$P.x" simplify/>`,
             );
             expect(propReference.byType).eqls({
                 document: 1,
@@ -472,10 +499,12 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 integer: 3,
                 number: 1,
                 boolean: 2,
+                text: 1,
             });
             // the point's literal displayDigits, its coordinates' mathList,
-            // and the reference's five shadow attribute components
-            expect(propReference.attributeComponents).eq(7);
+            // the reference's literal simplify, and its five shadow
+            // attribute components
+            expect(propReference.attributeComponents).eq(8);
         });
     },
 );
