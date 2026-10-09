@@ -696,6 +696,39 @@ describe("Dragging points at values that are not fixed @group3", async () => {
                 [8, 1],
             ],
         });
+
+        // The same for a `<math>` that a `<mathInput>` writes to.
+        const mathRepeat = `<repeatForSequence name="r" from="1" to="3" valueName="v"FIXED><math>$v + $a</math></repeatForSequence>`;
+        for (const { repeat, becomesList, expected } of [
+            ...notFixed(mathRepeat).map((variant) => ({
+                ...variant,
+                expected: "1 + 0, 2 + 0, 3 + 0",
+            })),
+            {
+                repeat: mathRepeat.replace("FIXED", ""),
+                becomesList: true,
+                expected: "1 + 6, 2 + 6, 3 + 6",
+            },
+        ]) {
+            const text = await compare({
+                doenetML: `${a}<p name="p">${repeat}</p><mathInput name="mi" bindValueTo="$r[2]" />`,
+                becomesList,
+                act: async (core, resolvePathToNodeIdx) => {
+                    await updateMathInputValue({
+                        latex: "8",
+                        componentIdx: await resolvePathToNodeIdx("mi"),
+                        core,
+                    });
+                    const stateVariables = await core.returnAllStateVariables(
+                        false,
+                        true,
+                    );
+                    return stateVariables[await resolvePathToNodeIdx("p")]
+                        .stateValues.text;
+                },
+            });
+            expect(text, repeat).eq(expected);
+        }
     });
 
     it("a sampler's or sequence's value takes a drag with fixed=false", async () => {
