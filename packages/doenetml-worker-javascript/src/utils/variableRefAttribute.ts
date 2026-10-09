@@ -123,6 +123,8 @@ export async function variableRefSnapshot({
             componentType: attribute.componentType,
             // a placeholder, which `createNewComponentIndices` replaces
             componentIdx: -1,
+            // it has no original to be an unlinked copy of
+            dontShadowOriginalIndex: true,
             attributes: {},
             doenetAttributes: {},
             state: { value },

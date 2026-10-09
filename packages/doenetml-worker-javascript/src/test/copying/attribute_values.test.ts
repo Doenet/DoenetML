@@ -518,6 +518,25 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(await texts()).eqls(["1.2346", "1.2346", "1.2"]);
         });
 
+        it("an unlinked copy's attributes made from a prop reference's values have no source", async () => {
+            // `u` gets an attribute component holding each value `c` reads
+            // from P; made from a value, it is an unlinked copy of nothing
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <point name="P" displayDigits="4">(1.23456,2)</point>
+    <math extend="$P.x" name="c" simplify />
+    <math copy="$c" name="u" />
+    `,
+            });
+            const u = (core as any).core._components[
+                await resolvePathToNodeIdx("u")
+            ];
+            const displayDigits = u.attributes.displayDigits.component;
+            expect(await displayDigits.stateValues.value).eq(4);
+            expect(displayDigits.unlinkedCopySource).eq(undefined);
+            expect(await u.stateValues.text).eq("1.235");
+        });
+
         it("what each attribute construct creates", async () => {
             // Stream B's targets, by step: a literal `displayDigits` loses its
             // `integer` (B1a) and a literal `anchor` its point, mathList and
