@@ -33,6 +33,7 @@ is not maintained.
 | event | runs | publishes |
 |---|---|---|
 | push to `main`, CI green | `publish.yml` → `dev-release` | `X.Y.Z-dev.<run>` under `dev` |
+| a `dev-release` publish | `purge-jsdelivr-dev.yml` | nothing; moves jsDelivr's `@dev` URLs to that release once npm serves it |
 | push to `main`, CI green | `publish.yml` → `dev-vscode-extension` | a Marketplace and Open VSX **pre-release**, versioned `X.Y.<run + 10000>` |
 | GitHub Release on `main` | `publish.yml` → `production-release` | `X.Y.Z` under `latest`, plus the stable extension on both registries |
 | GitHub Release on `0.7` | `publish.yml` → `production-release` | `0.7.Z` under `0.7-stable`; no extension |
@@ -82,6 +83,13 @@ must purge each one it wants fresh. `purge-jsdelivr.sh <dist-tag> [version]
 extra spec; `production-release` derives the line from the version it is
 publishing and passes it. A **prerelease** version gets the dist-tag alone — no
 semver range matches a prerelease, so no range URL tracks one.
+
+`dev-release` does not purge in its own job. It starts `purge-jsdelivr-dev.yml`
+with the version it published and finishes. That workflow waits up to three hours
+for npm to serve the version under `dev`, because @doenet/standalone has taken
+close to an hour to appear on npm after a dev publish. If it gives up, run it
+again from the Actions tab with the same version. A newer dev release cancels a
+purge still waiting for an older one.
 
 ## Cutting a stable release
 
@@ -269,5 +277,5 @@ cherry-picked backport touches none of them, so the lines do not contend.
 | CI gate | `.github/scripts/verify-ci.mjs` |
 | tag/version check | `.github/scripts/validate-tag-versions.mjs` |
 | publish wrapper | `.github/scripts/npm-publish-with-retry.mjs` |
-| CDN purge | `.github/scripts/purge-jsdelivr.sh`, `jsdelivr-purge-lib.sh` |
+| CDN purge | `.github/scripts/purge-jsdelivr.sh`, `jsdelivr-purge-lib.sh`; for dev releases, `.github/workflows/purge-jsdelivr-dev.yml` |
 | changeset rules | [`.github/skills/changesets/SKILL.md`](../.github/skills/changesets/SKILL.md) |
