@@ -316,7 +316,7 @@ exports[`component census of the micro-documents > repeat for mathList $x[1] x2 
   "copies": 1,
   "dependencies": 417,
   "shadows": 1,
-  "stateVariables": 383,
+  "stateVariables": 388,
   "stateVariablesResolved": 172,
 }
 `;
@@ -335,7 +335,7 @@ exports[`component census of the micro-documents > repeatForSequence $i^2 x4 1`]
   "copies": 0,
   "dependencies": 308,
   "shadows": 0,
-  "stateVariables": 340,
+  "stateVariables": 345,
   "stateVariablesResolved": 134,
 }
 `;
@@ -353,7 +353,7 @@ exports[`component census of the micro-documents > repeatForSequence literal x4 
   "copies": 0,
   "dependencies": 266,
   "shadows": 0,
-  "stateVariables": 278,
+  "stateVariables": 283,
   "stateVariablesResolved": 119,
 }
 `;

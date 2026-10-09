@@ -1193,19 +1193,20 @@ export class Dependency {
                                 if (mappedStateVarObj.usedDefault) {
                                     usedDefaultObj[nameForOutput] = true;
                                     foundOneUsedDefault = true;
-                                } else if (
-                                    mappedStateVarObj.isArrayEntry &&
-                                    mappedStateVarObj.arrayKeys.length === 1
-                                ) {
+                                } else if (mappedStateVarObj.isArrayEntry) {
                                     // if have an array entry with just one arrayKey,
                                     // check if used default for that arrayKey
+                                    // (`arrayKeys` of an entry is a promise)
+                                    const entryArrayKeys =
+                                        await mappedStateVarObj.arrayKeys;
                                     let arrayStateVarObj =
                                         depComponent.state[
                                             mappedStateVarObj.arrayStateVariable
                                         ];
                                     if (
+                                        entryArrayKeys.length === 1 &&
                                         arrayStateVarObj.usedDefaultByArrayKey[
-                                            mappedStateVarObj.arrayKeys[0]
+                                            entryArrayKeys[0]
                                         ]
                                     ) {
                                         usedDefaultObj[nameForOutput] = true;

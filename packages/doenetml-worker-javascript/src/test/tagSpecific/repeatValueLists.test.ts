@@ -327,8 +327,9 @@ describe("Repeats whose template is one value @group4", () => {
 <p name="p5"><repeat name="r5" for="$l" valueName="x"><math displayDecimals="1">$x</math></repeat></p>
 <p name="p6">$r</p>
 <p name="p7"><mathList>$r $r4</mathList></p>
+<p name="p8">$r[1] $r[2] <math>$r[1]</math> <math>$r[2]</math></p>
 `,
-            names: ["p", "p2", "p3", "p4", "p5", "p6", "p7"],
+            names: ["p", "p2", "p3", "p4", "p5", "p6", "p7", "p8"],
         });
         expect(texts).toEqual({
             p: "1.2, 1.2346, 1.23",
@@ -338,6 +339,7 @@ describe("Repeats whose template is one value @group4", () => {
             p5: "1.2, 1.2, 1.2",
             p6: "1.2, 1.2346, 1.23",
             p7: "1.2, 1.2346, 1.23, 1.235, 1.235, 1.235",
+            p8: "1.2 1.2346 1.2 1.2346",
         });
     });
 

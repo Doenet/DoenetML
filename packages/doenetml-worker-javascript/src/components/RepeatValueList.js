@@ -8,6 +8,10 @@ import {
 } from "./abstract/repeatList";
 import { mathValueForDisplay } from "../utils/valueFunctions/math";
 import { templateCanBeModified } from "../utils/repeatTemplate";
+import {
+    addEntryOwnDisplayArrays,
+    entryOwnDisplayArrays,
+} from "./abstract/AuthoredValueList";
 
 /** The digits a `<round>` shows unless it says otherwise. */
 const ROUND_DISPLAY_DIGITS = 14;
@@ -77,6 +81,12 @@ export default class RepeatValueList extends ValueListComponent {
     // A template that is one entry of a list alone shows each entry with
     // that entry's own settings, as the iteration's copy of it did.
     static listEntryDisplaySettingsVariable = "entryDisplaySettings";
+
+    // Each display setting of each entry is an array of its own, which a
+    // reference to one entry (`$r[2]`) reads, as for an authored list.
+    static get listEntryOwnArrays() {
+        return entryOwnDisplayArrays(this.listEntryComponentType);
+    }
 
     static createAttributesObject() {
         const attributes = super.createAttributesObject();
@@ -376,6 +386,12 @@ export default class RepeatValueList extends ValueListComponent {
                 return { setValue: { entryDisplaySettings } };
             },
         };
+
+        addEntryOwnDisplayArrays({
+            stateVariableDefinitions,
+            arrayName,
+            displayNames: DISPLAY_SETTINGS,
+        });
 
         if (entryType === "math") {
             // As a `<math>` shows its value: rounded, then simplified and
