@@ -3,8 +3,9 @@ import { deepClone, serializedComponentsReplacer } from "@doenet/utils";
 /**
  * What an unlinked copy (`copy=`) made of its source when it was made, for
  * each component among its serialized replacements: its essential state,
- * its primitive (string) children and its literal attributes
- * (`literalAttribute.ts`), with its `stateId` and `componentType`. The
+ * its primitive (string) children, its literal attributes
+ * (`literalAttribute.ts`) and the text written to its expression attributes
+ * (`expressionAttribute.js`), with its `stateId` and `componentType`. The
  * primitive children are held because a write to a value defined by one,
  * such as dragging `<point>(1,2)</point>`, changes the child itself rather
  * than any essential state, and the literals because a reader's write to
@@ -31,6 +32,7 @@ export function copySnapshotOf(serializedComponents) {
                 }
             });
             const literals = {};
+            const expressionWrites = {};
             for (const [name, attribute] of Object.entries(
                 component.attributes ?? {},
             )) {
@@ -39,6 +41,10 @@ export function copySnapshotOf(serializedComponents) {
                     // made again has (`applyCopySnapshot`)
                     const { position, ...literal } = attribute;
                     literals[name] = deepClone(literal);
+                } else if (attribute?.type === "expression") {
+                    // the text written to it (`expressionAttribute.js`); its
+                    // references are the copy made again's
+                    expressionWrites[name] = deepClone(attribute.writes ?? {});
                 }
             }
             snapshot.push({
@@ -49,6 +55,9 @@ export function copySnapshotOf(serializedComponents) {
                     ? { primitiveChildren }
                     : {}),
                 ...(Object.keys(literals).length > 0 ? { literals } : {}),
+                ...(Object.keys(expressionWrites).length > 0
+                    ? { expressionWrites }
+                    : {}),
             });
         }
         for (const child of component.children ?? []) {
@@ -104,6 +113,16 @@ export function applyCopySnapshot(serializedComponents, snapshot) {
                     component.attributes[name] = {
                         ...deepClone(literal),
                         ...(position ? { position } : {}),
+                    };
+                }
+            }
+            for (const [name, writes] of Object.entries(
+                entry.expressionWrites ?? {},
+            )) {
+                if (component.attributes?.[name]?.type === "expression") {
+                    component.attributes[name] = {
+                        ...component.attributes[name],
+                        writes: deepClone(writes),
                     };
                 }
             }

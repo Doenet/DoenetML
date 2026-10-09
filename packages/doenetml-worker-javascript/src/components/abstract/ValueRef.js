@@ -3,6 +3,8 @@ import BaseComponent from "./BaseComponent";
 import {
     pathHasIndexComponents,
     referenceSlotDefinitions,
+    emptyValueOfType,
+    referentOrFallback,
     targetDependencies,
 } from "./referenceSlotDefinitions";
 import { currentReferentValue } from "../../utils/referentDescription";
@@ -323,18 +325,16 @@ export default class ValueRef extends BaseComponent {
 
         // The variables that resolve the reference and read its value, as
         // for a reference an attribute holds (`referenceSlotDefinitions`).
-        Object.assign(
-            stateVariableDefinitions,
-            referenceSlotDefinitions({
-                fixedReferentOf: (component) => component.fixedReferent,
-                readPlanOf: (component) => component.doenetAttributes,
-                emptyValueOf: (component, componentInfoObjects) =>
-                    emptyValueOfType(
-                        component.presentedComponentType,
-                        componentInfoObjects,
-                    ),
-            }),
-        );
+        const slotDefinitions = referenceSlotDefinitions({
+            fixedReferentOf: (component) => component.fixedReferent,
+            readPlanOf: (component) => component.doenetAttributes,
+            emptyValueOf: (component, componentInfoObjects) =>
+                emptyValueOfType(
+                    component.presentedComponentType,
+                    componentInfoObjects,
+                ),
+        });
+        Object.assign(stateVariableDefinitions, slotDefinitions);
 
         // A reference is hidden with its parent or with the composite that
         // made it. One that is read for its value is never hidden with its
@@ -415,70 +415,8 @@ export default class ValueRef extends BaseComponent {
         // the reference answers as a component of the presented type holding
         // this value would.
 
-        // Whether a write through this reference can succeed. Inputs have no
-        // `canBeModified`; a `math` standing in for one answers from the
-        // referent's `fixed` and `modifyIndirectly`.
-        // An entry of a list component answers from the list's
-        // `entriesCanBeModified` in place of its `fixed`: the entries of a
-        // `<sequence>` are fixed while the list's own `fixed` is not, and a
-        // `<math>` that holds one (`$q$s[1]^2`) must solve for its other
-        // operands, as it did for the fixed component a copy made for the
-        // entry. The list's `modifyIndirectly` still applies, as the write
-        // to the list is refused when it is false.
-        stateVariableDefinitions.canBeModified = referentOrFallback({
-            stateVariable: "canBeModified",
-            fallbackDependencies: (referentIdx, referentInfo) =>
-                referentIdx === undefined
-                    ? {}
-                    : {
-                          ...(referentInfo.listEntryPosition !== undefined
-                              ? {
-                                    entriesCanBeModified: {
-                                        dependencyType: "stateVariable",
-                                        componentIdx: referentIdx,
-                                        variableName: "entriesCanBeModified",
-                                        variablesOptional: true,
-                                    },
-                                }
-                              : {
-                                    targetFixed: {
-                                        dependencyType: "stateVariable",
-                                        componentIdx: referentIdx,
-                                        variableName: "fixed",
-                                        variablesOptional: true,
-                                    },
-                                }),
-                          modifyIndirectly: {
-                              dependencyType: "stateVariable",
-                              componentIdx: referentIdx,
-                              variableName: "modifyIndirectly",
-                              variablesOptional: true,
-                          },
-                          // A location (`isLocation`: a point's `coords`
-                          // or `x`) stays put under its referent's
-                          // `fixLocation`, so a math holding it solves for
-                          // its other operands: `$P` in
-                          // `<point>($P+$Q)/2</point>` with `P` at a fixed
-                          // location leaves the drag to `Q`. Any other value
-                          // (a text's, a number's) takes the write.
-                          ...(referentInfo.isLocation
-                              ? {
-                                    targetFixLocation: {
-                                        dependencyType: "stateVariable",
-                                        componentIdx: referentIdx,
-                                        variableName: "fixLocation",
-                                        variablesOptional: true,
-                                    },
-                                }
-                              : {}),
-                      },
-            fallback: (dependencyValues) =>
-                ("entriesCanBeModified" in dependencyValues
-                    ? dependencyValues.entriesCanBeModified !== false
-                    : !dependencyValues.targetFixed) &&
-                !dependencyValues.targetFixLocation &&
-                dependencyValues.modifyIndirectly !== false,
-        });
+        // `canBeModified`, whether a write through this reference can
+        // succeed, is among the slot's definitions above.
 
         // A `math` with no `unordered` attribute and no math children is
         // ordered.
@@ -1182,87 +1120,6 @@ function componentTypeAsResponseDefinition(
  * `math` computes its value from `unnormalizedValue`, which is where its
  * default lives).
  */
-const EMPTY_VALUE_BY_BASE_TYPE = {
-    number: NaN,
-    math: me.fromAst("\uff3f"),
-    text: "",
-    boolean: false,
-};
-
-/**
- * The value a component of `componentType` holds when it holds nothing: the
- * declared default of its `value`, or the nearest ancestor type's for a type
- * whose `value` declares none (`integer` takes `number`'s `NaN`), or else
- * the empty value of the kind it is (`＿` for a `math`).
- */
-function emptyValueOfType(componentType, componentInfoObjects) {
-    let componentClass =
-        componentInfoObjects.allComponentClasses[componentType];
-    while (componentClass?.componentType) {
-        const defaultValue =
-            componentInfoObjects.publicStateVariableInfo[
-                componentClass.componentType
-            ]?.stateVariableDescriptions.value?.defaultValue;
-        if (defaultValue !== undefined) {
-            return defaultValue;
-        }
-        componentClass = Object.getPrototypeOf(componentClass);
-    }
-    for (const baseType in EMPTY_VALUE_BY_BASE_TYPE) {
-        if (
-            componentInfoObjects.isInheritedComponentType({
-                inheritedComponentType: componentType,
-                baseComponentType: baseType,
-            })
-        ) {
-            return EMPTY_VALUE_BY_BASE_TYPE[baseType];
-        }
-    }
-    return null;
-}
-
-/**
- * A state variable definition that answers with the referent's variable of
- * the same name when the reference is to the referent's own value
- * (`referentInfo.referencedPrimaryValue`) and the referent has the variable,
- * and with `fallback` otherwise. `fallbackDependencies(referentIdx)` are the
- * dependencies the fallback reads; `fallback(dependencyValues)` computes it.
- */
-function referentOrFallback({
-    stateVariable,
-    fallbackDependencies = () => ({}),
-    fallback,
-}) {
-    return {
-        stateVariablesDeterminingDependencies: ["referentInfo"],
-        returnDependencies({ stateValues = {} }) {
-            const referentInfo =
-                this.svComponent.fixedReferent ?? stateValues.referentInfo;
-            const dependencies = fallbackDependencies(
-                referentInfo?.componentIdx,
-                referentInfo,
-            );
-            if (referentInfo?.referencedPrimaryValue) {
-                dependencies.fromReferent = {
-                    dependencyType: "stateVariable",
-                    componentIdx: referentInfo.componentIdx,
-                    variableName: stateVariable,
-                    variablesOptional: true,
-                };
-            }
-            return dependencies;
-        },
-        definition({ dependencyValues }) {
-            const fromReferent = dependencyValues.fromReferent;
-            const value =
-                fromReferent === null || fromReferent === undefined
-                    ? fallback(dependencyValues)
-                    : fromReferent;
-            return { setValue: { [stateVariable]: Boolean(value) } };
-        },
-    };
-}
-
 /**
  * The definition `classDef` of the scalar `name`, made to read the
  * referent's companion for `name` when `referentInfo` (or the referent a

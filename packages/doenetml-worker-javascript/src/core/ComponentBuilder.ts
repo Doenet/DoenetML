@@ -1,3 +1,4 @@
+import { expressionAttributeDefinitions } from "../utils/expressionAttribute";
 import type Core from "../Core";
 import { reportInternalError } from "../utils/internalErrors";
 import type { ComponentIdx } from "@doenet/utils";
@@ -804,6 +805,17 @@ export async function createChildrenThenComponent({
         parent: newComponent,
         expandComposites: false,
     });
+
+    // the state variables of each attribute held as text and references
+    // (`expressionAttribute.js`), which are the component's own
+    for (const attribute of Object.values<any>(newComponent.attributes ?? {})) {
+        if (attribute?.type === "expression") {
+            Object.assign(
+                newComponent.state,
+                expressionAttributeDefinitions(attribute),
+            );
+        }
+    }
 
     await initializeComponentStateVariables({ core, component: newComponent });
 

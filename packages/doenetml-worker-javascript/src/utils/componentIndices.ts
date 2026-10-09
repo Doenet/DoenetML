@@ -227,10 +227,12 @@ function newComponentIndicesForAttributes(
             }
         } else if (
             attribute.type === "variableRef" ||
-            attribute.type === "literal"
+            attribute.type === "literal" ||
+            attribute.type === "expression"
         ) {
-            // a reference to a component outside what is being copied, or a
-            // value: no component to number
+            // a reference to a component outside what is being copied, a
+            // value, or text and references (whose resolutions
+            // `remapRefResolutions` renumbers): no component to number
         } else {
             console.error("Found invalid attribute", attribute);
             throw Error("Found invalid attribute");
@@ -426,9 +428,33 @@ function remapRefResolutions(
                 remapRefResolutions(attribute.references, idxMap);
             } else if (attribute.type === "unresolved") {
                 remapUnflattenedRefResolutions(attribute.children, idxMap);
+            } else if (attribute.type === "expression") {
+                // the references the component resolves itself, each from
+                // the component (`utils/dast/expressionAttributes.ts`)
+                for (const slot of (attribute as any).slots) {
+                    remapRefResolution(slot.refResolution, idxMap);
+                }
             }
         }
     }
+}
+
+/**
+ * Renumber the components `refResolution` names (an index in its path is
+ * held as text, not as a component, for a reference a component resolves
+ * itself).
+ */
+function remapRefResolution(
+    refResolution: { nodeIdx: number; nodesInResolvedPath: number[] },
+    idxMap: Record<number, number>,
+) {
+    const newNodeIdx = idxMap[refResolution.nodeIdx];
+    if (newNodeIdx != undefined) {
+        refResolution.nodeIdx = newNodeIdx;
+    }
+    refResolution.nodesInResolvedPath = refResolution.nodesInResolvedPath.map(
+        (idx) => idxMap[idx] ?? idx,
+    );
 }
 
 function remapUnflattenedRefResolutions(
@@ -755,10 +781,12 @@ function newComponentIndicesForAttributesFromSerialized(
             }
         } else if (
             attribute.type === "variableRef" ||
-            attribute.type === "literal"
+            attribute.type === "literal" ||
+            attribute.type === "expression"
         ) {
-            // a reference to a component outside what is being copied, or a
-            // value: no component to number
+            // a reference to a component outside what is being copied, a
+            // value, or text and references (whose resolutions
+            // `remapRefResolutions` renumbers): no component to number
         } else {
             console.error("Found invalid attribute", attribute);
             throw Error("Found invalid attribute");
