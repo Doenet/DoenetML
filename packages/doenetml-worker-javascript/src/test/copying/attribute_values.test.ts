@@ -32,7 +32,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
         it("an attribute written on an extend beats the one it would take from the referent", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <mathInput name="k" prefill="3" />
+    <mathInput name="k" prefill="4" />
     <number name="n" displayDigits="$k">1.234567</number>
     <number extend="$n" name="c" displayDigits="5" />
     <number extend="$n" name="d" />
@@ -57,7 +57,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
 
             // `c` keeps its own digits; `e`'s own displayDecimals displaces
             // the displayDigits it would inherit
-            expect(await texts()).eqls(["1.23", "1.2346", "1.23", "1.2"]);
+            expect(await texts()).eqls(["1.235", "1.2346", "1.235", "1.2"]);
 
             // only the copy that takes its digits from `n` follows `k`
             await updateMathInputValue({
@@ -71,7 +71,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
         it("along a chain of extends of a prop reference, each link's own attribute wins", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <point name="P" displayDigits="3">(1.23456,2)</point>
+    <point name="P" displayDigits="4">(1.23456,2)</point>
     <math extend="$P.x" name="c" />
     <math extend="$P.x" name="a" displayDigits="5" />
     <math extend="$P.x" name="b" displayDecimals="1" />
@@ -89,8 +89,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 stateVariables[await resolvePathToNodeIdx(name)].stateValues;
 
             // `c` takes P's digits through the prop reference
-            expect((await sv("c")).text).eq("1.23");
-            expect((await sv("c")).displayDigits).eq(3);
+            expect((await sv("c")).text).eq("1.235");
+            expect((await sv("c")).displayDigits).eq(4);
             // an attribute on the prop reference itself beats the one it
             // takes from P, and displayDecimals displaces displayDigits
             expect((await sv("a")).text).eq("1.2346");
@@ -103,7 +103,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect((await sv("e")).text).eq("1.2");
             expect((await sv("e")).displayDecimals).eq(1);
             // and a link without one passes on what it has
-            expect((await sv("f")).text).eq("1.23");
+            expect((await sv("f")).text).eq("1.235");
             expect((await sv("g")).text).eq("1.2");
             expect((await sv("g")).displayDecimals).eq(1);
         });
@@ -186,7 +186,7 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
         it("an unlinked copy of a prop reference keeps the display settings it showed", async () => {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
-    <mathInput name="k" prefill="3" />
+    <mathInput name="k" prefill="4" />
     <point name="P" displayDigits="$k">(1.23456,2)</point>
     <math extend="$P.x" name="c" />
     <math copy="$c" name="u" />
@@ -202,8 +202,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                     .stateValues;
             }
 
-            expect((await sv("u")).text).eq("1.23");
-            expect((await sv("u")).displayDigits).eq(3);
+            expect((await sv("u")).text).eq("1.235");
+            expect((await sv("u")).displayDigits).eq(4);
             expect((await sv("v")).text).eq("1.2346");
 
             // `u` keeps the digits `c` showed when it was copied: when P's
@@ -218,8 +218,8 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
                 core,
             });
             expect((await sv("c")).text).eq("1.2");
-            expect((await sv("u")).text).eq("1.23");
-            expect((await sv("u")).displayDigits).eq(3);
+            expect((await sv("u")).text).eq("1.235");
+            expect((await sv("u")).displayDigits).eq(4);
             expect((await sv("v")).text).eq("1.2346");
         });
 
