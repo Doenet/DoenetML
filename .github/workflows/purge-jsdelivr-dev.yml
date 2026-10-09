@@ -23,8 +23,10 @@ on:
 # Only the newest dev release matters: purging `@dev` serves whatever npm has
 # tagged, so a run still waiting for an older release is cancelled when a newer
 # one starts, rather than waiting out its budget for a tag that has moved past it.
+# Keyed on the branch so that a maintenance line's copy of this workflow, which
+# purges its own dev tag, does not cancel `main`'s.
 concurrency:
-    group: ${{ github.workflow }}
+    group: ${{ github.workflow }}-${{ github.ref }}
     cancel-in-progress: true
 
 jobs:
