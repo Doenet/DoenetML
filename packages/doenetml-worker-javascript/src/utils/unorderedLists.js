@@ -4,7 +4,7 @@
  * When a list is copied, it is converted to a list component
  * with a child that is the copy. When this is occurred,
  * the doenet attributes `extendListViaComposite` or `copyListViaComposite` are added.
- * These state variable chase down the source of an extend to determine
+ * These state variables chase down the source of an extend to determine
  * if the source list was unordered. A copy takes `unordered` as written on
  * the list, with its other attributes (`copyListViaComposite` in
  * `AttributeComponentDependency`).
