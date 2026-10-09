@@ -1070,9 +1070,12 @@ export default class Copy extends CompositeComponent {
      * keeps what it made of its source through a reload: it takes the
      * snapshot a save holds for it, and records its own, with how to make it
      * again, for a save to compare (`utils/copySnapshot.js`). The snapshot
-     * holds state by `stateId`, not the replacements' shape: were a copy made
-     * again with other `stateId`s, it would show what its source makes now,
-     * and keep holding the entries it could not take.
+     * holds state by `stateId` and `componentType`, not the replacements'
+     * shape, and a copy made again need not make what it made before (a copy
+     * of a `<conditionalContent>` is made from whichever case is active). A
+     * replacement the snapshot has no entry of its type for shows what its
+     * source makes now, and the copy keeps holding the entries no
+     * replacement took, with its own snapshot, for a later load.
      */
     static async createSerializedReplacements(args) {
         const result = await this.createReplacementsFromSources(args);
@@ -1085,9 +1088,13 @@ export default class Copy extends CompositeComponent {
             const unapplied = saved
                 ? applyCopySnapshot(result.replacements, saved)
                 : [];
+            const own = copySnapshotOf(result.replacements);
+            // one entry per component, the one made now first
+            const key = (entry) => `${entry.componentType}|${entry.stateId}`;
+            const made = new Set(own.map(key));
             component.unlinkedSnapshot = [
-                ...copySnapshotOf(result.replacements),
-                ...unapplied,
+                ...own,
+                ...unapplied.filter((entry) => !made.has(key(entry))),
             ];
             component.freshUnlinkedSnapshot = async () =>
                 copySnapshotOf(

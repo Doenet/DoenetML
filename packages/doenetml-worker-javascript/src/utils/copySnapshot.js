@@ -3,10 +3,10 @@ import { deepClone, serializedComponentsReplacer } from "@doenet/utils";
 /**
  * What an unlinked copy (`copy=`) made of its source when it was made, for
  * each component among its serialized replacements: its essential state and
- * its primitive (string) children, with its `stateId`. The primitive
- * children are held because a write to a value defined by one, such as
- * dragging `<point>(1,2)</point>`, changes the child itself rather than any
- * essential state.
+ * its primitive (string) children, with its `stateId` and `componentType`.
+ * The primitive children are held because a write to a value defined by
+ * one, such as dragging `<point>(1,2)</point>`, changes the child itself
+ * rather than any essential state.
  *
  * A copy present when a document loads is made again on every load, from
  * its source as it is then: after a reader has changed the source and
@@ -30,6 +30,7 @@ export function copySnapshotOf(serializedComponents) {
             });
             snapshot.push({
                 stateId: component.stateId,
+                componentType: component.componentType,
                 state: deepClone(component.state ?? {}),
                 ...(Object.keys(primitiveChildren).length > 0
                     ? { primitiveChildren }
@@ -51,25 +52,45 @@ export function copySnapshotOf(serializedComponents) {
 
 /**
  * Give the serialized replacements of an unlinked copy the essential state
- * and primitive children that `snapshot` holds for their `stateId`s, and
- * return the entries of `snapshot` that no replacement took.
+ * and primitive children that `snapshot` holds for their `stateId` and
+ * `componentType`, and return the entries of `snapshot` that no replacement
+ * took.
  *
- * Only state and primitive children are held, not the replacements' shape,
- * so a snapshot applies only to a copy made again with the same `stateId`s.
- * A copy made with `copy=` creates one component of its own type, even from
- * an inactive source, and its descendants follow the source's authored
- * DoenetML, so this holds of every copy we know of. An entry that no
- * replacement takes is returned for the copy to keep holding (a later load
- * may make that component again), not restored now.
+ * Only state and primitive children are held, not the replacements' shape.
+ * A copy made again need not make the components it made before: a copy of
+ * a `<conditionalContent>` is made from whichever case is active then, so
+ * its replacements can be fewer, or others, and a component of another type
+ * can have a `stateId` an earlier one had. An entry therefore applies only
+ * to a replacement of its own `componentType` (an entry without one, from
+ * before it was held, applies to none), and none applies within a
+ * replacement that has an entry for its `stateId` of another type: that
+ * replacement and what it contains were made from other DoenetML. An entry
+ * that no replacement takes is returned for the copy to keep holding (a
+ * later load may make that component again), not restored now.
  */
 export function applyCopySnapshot(serializedComponents, snapshot) {
-    const byStateId = new Map(snapshot.map((entry) => [entry.stateId, entry]));
+    const byStateId = new Map();
+    for (const entry of snapshot) {
+        if (!byStateId.has(entry.stateId)) {
+            byStateId.set(entry.stateId, []);
+        }
+        byStateId.get(entry.stateId).push(entry);
+    }
     const applied = new Set();
     function visit(component) {
         if (typeof component !== "object" || component === null) {
             return;
         }
-        const entry = byStateId.get(component.stateId);
+        const entries = byStateId.get(component.stateId) ?? [];
+        const entry = entries.find(
+            (entry) =>
+                !applied.has(entry) &&
+                entry.componentType === component.componentType,
+        );
+        if (entries.length > 0 && !entry) {
+            // made from other DoenetML than what was held
+            return;
+        }
         if (entry) {
             applied.add(entry);
             component.state = deepClone(entry.state);
@@ -133,6 +154,7 @@ export async function snapshotStillMade(fresh, snapshot, componentOfStateId) {
         const then = snapshot[ind];
         if (
             now.stateId !== then.stateId ||
+            now.componentType !== then.componentType ||
             !same(now.primitiveChildren, then.primitiveChildren)
         ) {
             return false;
