@@ -106,6 +106,40 @@ describe("An unlinked copy through a reload @group4", () => {
         expect(coreState.__copySnapshots).eq(undefined);
     });
 
+    it("holds nothing once its only held copy is deleted", async () => {
+        // switching the case deletes the copy in the case left
+        const doenetML = `
+    <booleanInput name="b" prefill="true" />
+    <mathInput name="mi" prefill="1" />
+    <conditionalContent>
+        <case condition="$b"><math copy="$mi" name="c" /></case>
+        <else><text>none</text></else>
+    </conditionalContent>
+    `;
+        const { core, resolvePathToNodeIdx, scoreState } = await createTestCore(
+            { doenetML },
+        );
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await core.saveImmediately();
+        expect(
+            Object.keys(JSON.parse(scoreState.state).__copySnapshots).length,
+        ).eq(1);
+
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        await core.saveImmediately();
+        expect(JSON.parse(scoreState.state)).not.toHaveProperty(
+            "__copySnapshots",
+        );
+    });
+
     it("keeps values its source holds in primitive children or in essential state", async () => {
         // Dragging `<point>(1,2)</point>` or binding an input to
         // `<text>hi</text>` changes the source's string child, not its
