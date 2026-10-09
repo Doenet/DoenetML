@@ -40,7 +40,8 @@ jobs:
             github.event.workflow_run.head_branch == 'main') ||
             (github.event_name == 'workflow_dispatch' && inputs.channel == 'dev')
         permissions:
-            actions: read
+            # `write` to start the purge workflow at the end.
+            actions: write
             id-token: write
             contents: read
         steps:
@@ -99,14 +100,10 @@ jobs:
               env:
                   WIREIT_CACHE: "local"
 
-            # Waits for npm to finish processing the publish, and then for
-            # jsDelivr to fetch it, before purging — so this is minutes rather
-            # than seconds; see `jsdelivr-purge-lib.sh`. The script gives each
-            # wait its own wall-clock budget (20 and 15 minutes) and then sleeps
-            # about another 8 between its purge retries; `timeout-minutes` is
-            # the backstop over the whole of that, since the requests themselves
-            # are bounded one at a time rather than in aggregate, and it keeps a
-            # wedged one from holding the runner.
+            # The purge itself runs in `purge-jsdelivr-dev.yml`, which this
+            # starts and does not wait for. It has to wait for npm to finish
+            # processing the publish before purging, and for
+            # @doenet/standalone that has taken well over an hour; see that file.
             #
             # Gated on the publish having *run*, not on it having succeeded:
             # `npm run publish` is four independent workspace publishes and npm
@@ -114,15 +111,20 @@ jobs:
             # you nothing about whether @doenet/standalone went out. Skipping
             # the purge on that signal would leave `dev` on the CDN a release
             # behind for 12 hours because some unrelated package failed. The
-            # registry wait inside the script is the real gate: it refuses to
-            # purge until npm serves this version under the tag.
-            - name: Purge jsDelivr cache
+            # registry wait in the purge is the real gate: it refuses to purge
+            # until npm serves this version under the tag.
+            - name: Start jsDelivr purge
               if: >-
                   !cancelled() &&
                   (steps.publish-npm.outcome == 'success' ||
                    steps.publish-npm.outcome == 'failure')
-              timeout-minutes: 50
-              run: bash .github/scripts/purge-jsdelivr.sh dev
+              env:
+                  GH_TOKEN: ${{ github.token }}
+                  REF: ${{ github.ref_name }}
+              run: |
+                  VERSION="$(node -p "require('./packages/standalone/package.json').version")"
+                  gh workflow run purge-jsdelivr-dev.yml --ref "${REF}" -f version="${VERSION}"
+                  echo "Started purge-jsdelivr-dev.yml on ${REF} for @doenet/standalone@${VERSION}."
 
     # Publishes a VS Code extension pre-release on every successful CI run on
     # main, mirroring the `dev-release` pattern for npm packages.

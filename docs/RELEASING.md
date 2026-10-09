@@ -33,6 +33,7 @@ is not maintained.
 | event | runs | publishes |
 |---|---|---|
 | push to `main`, CI green | `publish.yml` → `dev-release` | `X.Y.Z-dev.<run>` under `dev` |
+| a `dev-release` publish on `main` | `purge-jsdelivr-dev.yml` | nothing; moves jsDelivr's `@dev` URLs to that release once npm serves it |
 | push to `main`, CI green | `publish.yml` → `dev-vscode-extension` | a Marketplace and Open VSX **pre-release**, versioned `X.Y.<run + 10000>` |
 | GitHub Release on `main` | `publish.yml` → `production-release` | `X.Y.Z` under `latest`, plus the stable extension on both registries |
 | GitHub Release on `0.7` | `publish.yml` → `production-release` | `0.7.Z` under `0.7-stable`; no extension |
@@ -82,6 +83,16 @@ must purge each one it wants fresh. `purge-jsdelivr.sh <dist-tag> [version]
 extra spec; `production-release` derives the line from the version it is
 publishing and passes it. A **prerelease** version gets the dist-tag alone — no
 semver range matches a prerelease, so no range URL tracks one.
+
+On `main`, `dev-release` does not purge in its own job. It starts
+`purge-jsdelivr-dev.yml` with the version it published and finishes. That
+workflow waits up to three hours for npm to serve the version under `dev`,
+because @doenet/standalone has taken well over an hour to appear on npm after a
+dev publish. Starting a run cancels any run still in progress on the same
+branch, whatever version either is for, so a newer dev release replaces the
+purge for an older one. If a run gives up and no newer one is in progress, run
+it again from the Actions tab with the version npm now serves under `dev`
+(`npm view @doenet/standalone dist-tags.dev`).
 
 ## Cutting a stable release
 
@@ -198,6 +209,8 @@ cherry-picked backport touches none of them, so the lines do not contend.
   the branch's own name in the "tag commit is on" guard, and its own dist-tags.
   The dev build also drops the `VITE_PREFIGURE_MODULE_URL: …@latest` override,
   which would otherwise pull a current-line prefigure into an old-line bundle.
+- `purge-jsdelivr-dev.yml` → `<line>-dev` in place of `dev`. The dev purge's
+  dist-tag lives here, not in `publish.yml`.
 - `publish-doenetml-to-pretext-python.yml` → the branch's name in its guard.
 - `publish-prefigure.yml` → **deleted**. Nothing on the line releases prefigure,
   and a dispatch of it here starts from the wrong footing: the job's condition
@@ -269,5 +282,5 @@ cherry-picked backport touches none of them, so the lines do not contend.
 | CI gate | `.github/scripts/verify-ci.mjs` |
 | tag/version check | `.github/scripts/validate-tag-versions.mjs` |
 | publish wrapper | `.github/scripts/npm-publish-with-retry.mjs` |
-| CDN purge | `.github/scripts/purge-jsdelivr.sh`, `jsdelivr-purge-lib.sh` |
+| CDN purge | `.github/scripts/purge-jsdelivr.sh`, `jsdelivr-purge-lib.sh`; for dev releases, `.github/workflows/purge-jsdelivr-dev.yml` |
 | changeset rules | [`.github/skills/changesets/SKILL.md`](../.github/skills/changesets/SKILL.md) |
