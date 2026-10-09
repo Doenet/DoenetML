@@ -291,14 +291,11 @@ export function pastedShadowSource(component, components) {
 
 /**
  * The attribute component written for `attributeName` on `component`, or
- * on what it shadows (`pastedShadowSource`): what a copy of `component`
- * takes as its own (`serialize`).
+ * on what it shadows (`pastedShadowSource`), or, for a component made from a
+ * list entry (`listEntrySource`), on the list or the entry's source: what a
+ * copy of `component` takes as its own (`serialize`).
  */
-export function writtenAttributeComponent(
-    component,
-    attributeName,
-    components,
-) {
+async function writtenAttributeComponent(component, attributeName, components) {
     for (
         let comp = component;
         comp;
@@ -307,6 +304,15 @@ export function writtenAttributeComponent(
         const attribute = comp.attributes?.[attributeName]?.component;
         if (attribute) {
             return attribute;
+        }
+        const listEntrySource = comp.doenetAttributes?.listEntrySource;
+        if (listEntrySource?.variables[attributeName]) {
+            return writtenEntryAttributeComponent({
+                list: components?.[listEntrySource.componentIdx],
+                index: listEntrySource.index,
+                attributeName,
+                components,
+            });
         }
     }
     return undefined;
@@ -317,7 +323,9 @@ export function writtenAttributeComponent(
  * that a copy of entry `index` of `list` takes as its own, as the entry
  * pasted: the one written on the list (`<pointList fixed="$b">`), which
  * fixes its entries, or else the one written on the entry's source (`<point
- * fixed="$b">` in a `<pointList>` or found by a `<collect>`).
+ * fixed="$b">` in a `<pointList>` or found by a `<collect>`, or, for an entry
+ * of a list among the list's children, `<pointList>$pl</pointList>`, that
+ * list's entry).
  */
 export async function writtenEntryAttributeComponent({
     list,
@@ -325,14 +333,23 @@ export async function writtenEntryAttributeComponent({
     attributeName,
     components,
 }) {
-    const fromList = writtenAttributeComponent(list, attributeName, components);
+    const fromList = await writtenAttributeComponent(
+        list,
+        attributeName,
+        components,
+    );
     if (fromList || !list?.state?.entryChildren) {
         return fromList;
     }
     const entrySource = (await list.stateValues.entryChildren)[index];
-    return writtenAttributeComponent(
-        components?.[entrySource?.componentIdx],
-        attributeName,
-        components,
-    );
+    const source = components?.[entrySource?.componentIdx];
+    if (Number.isInteger(entrySource?.listEntryIndex)) {
+        return writtenEntryAttributeComponent({
+            list: source,
+            index: entrySource.listEntryIndex,
+            attributeName,
+            components,
+        });
+    }
+    return writtenAttributeComponent(source, attributeName, components);
 }

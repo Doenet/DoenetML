@@ -1811,6 +1811,16 @@ export default class BaseComponent {
             serializedCopy.attributes = deepClone(
                 serializedComponent.attributes,
             );
+            // an attribute component is copied as a child is, so that one
+            // in the template of a reference to a `<repeat>`, which shadows
+            // the template of what it references, does not keep that link
+            for (const attribute of Object.values(serializedCopy.attributes)) {
+                if (attribute.component) {
+                    attribute.component = this.copySerializedComponent(
+                        attribute.component,
+                    );
+                }
+            }
             serializedCopy.originalAttributes = deepClone(
                 serializedComponent.attributes,
             );

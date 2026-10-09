@@ -2162,6 +2162,65 @@ describe("Collect, sort and shuffle of values @group4", async () => {
         expect(await coordsOf("K")).eqls([9, 9]);
     });
 
+    it("an unlinked copy of an entry reached through another list takes what is written on the entry's source", async () => {
+        // the entries of `j` (an extend of `pl`), `o` (holding `pl`) and
+        // `o2` (holding references to `pl`'s entries) come from `pl`'s
+        // points; the extends (`jE1`, …) are the linked controls
+        const lists = ["j", "o", "o2"];
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="b" />
+    <graph>
+      <pointList name="pl">
+        <point fixed="$b">(1,2)</point>
+        <point fixLocation>(3,4)</point>
+      </pointList>
+      <pointList extend="$pl" name="j" />
+      <pointList name="o">$pl</pointList>
+      <pointList name="o2">$pl[1] $pl[2]</pointList>
+      ${lists
+          .map(
+              (list) => `
+      <point copy="$${list}[1]" name="${list}C1" />
+      <point extend="$${list}[1]" name="${list}E1" />
+      <point copy="$${list}[2]" name="${list}C2" />`,
+          )
+          .join("")}
+    </graph>
+    `,
+        });
+
+        const stateOf = async (name: string) => {
+            const { fixed, fixLocation } = await stateValuesOf(
+                core,
+                resolvePathToNodeIdx,
+                name,
+            );
+            return { fixed, fixLocation };
+        };
+        for (const b of [false, true]) {
+            if (b) {
+                await updateBooleanInputValue({
+                    boolean: true,
+                    componentIdx: await resolvePathToNodeIdx("b"),
+                    core,
+                });
+            }
+            for (const list of lists) {
+                for (const name of [`${list}C1`, `${list}E1`]) {
+                    expect(await stateOf(name), name).eqls({
+                        fixed: b,
+                        fixLocation: false,
+                    });
+                }
+                expect(await stateOf(`${list}C2`), `${list}C2`).eqls({
+                    fixed: false,
+                    fixLocation: true,
+                });
+            }
+        }
+    });
+
     it("an entry of a fixed sort read by itself is fixed, and a drag of it does not reach its source", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `

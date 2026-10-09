@@ -2473,4 +2473,31 @@ describe("Unlinked Copying Tests @group4", async () => {
             ).eqls(["t"]);
         }
     });
+
+    it("a copy of a reference to a repeat repeats the template with its attributes", async () => {
+        // the copies take the `for` written on `r` and `r2`; the template's
+        // attributes (`displayDigits`, `fixed`) are copied unlinked
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <repeat name="r" for="1 2" valueName="v">
+      <math name="x" displayDigits="2" fixed>$v+0.123456</math>
+    </repeat>
+    <repeat extend="$r" name="e" />
+    <repeat copy="$e" name="c" />
+    <repeatForSequence name="r2" from="1" to="2" valueName="v">
+      <math name="x" displayDigits="2" fixed>$v+0.123456</math>
+    </repeatForSequence>
+    <repeatForSequence extend="$r2" name="e2" />
+    <repeatForSequence copy="$e2" name="c2" />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        for (const name of ["e", "c", "e2", "c2"]) {
+            const stateValues =
+                stateVariables[await resolvePathToNodeIdx(`${name}[2].x`)]
+                    .stateValues;
+            expect(stateValues.text, name).eq("2 + 0.12");
+            expect(stateValues.fixed, name).eq(true);
+        }
+    });
 });
