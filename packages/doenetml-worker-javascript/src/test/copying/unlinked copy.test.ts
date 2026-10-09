@@ -2516,6 +2516,9 @@ describe("Unlinked Copying Tests @group4", async () => {
     <derivative name="d" derivVariables="x y">$f</derivative>
     <derivative name="de" extend="$d" derivVariable="y" />
     <derivative name="dc" copy="$d" derivVariable="y" />
+    <derivative name="dv" variables="x y">x^2y</derivative>
+    <derivative name="dve" extend="$dv" variable="x" />
+    <derivative name="dvc" copy="$dv" variable="x" />
     <math name="m" displayDigits="5">1.23456789</math>
     <math name="me" extend="$m" displayDecimals="1" />
     <math name="mc" copy="$m" displayDecimals="1" />
@@ -2528,6 +2531,11 @@ describe("Unlinked Copying Tests @group4", async () => {
         for (const name of ["fe", "fc"]) {
             expect(trees((await stateValues(name)).variables), name).eqls([
                 "t",
+            ]);
+        }
+        for (const name of ["dve", "dvc"]) {
+            expect(trees((await stateValues(name)).variables), name).eqls([
+                "x",
             ]);
         }
         expect(trees((await stateValues("gc")).variables)).eqls(["u", "v"]);

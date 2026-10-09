@@ -293,11 +293,12 @@ export type AttributeDefinition<T> = {
      * Attributes that this one, written on a reference (an `extend` or
      * `copy`), replaces as well as itself: the reference takes none of them
      * from its source. For two ways of writing one setting, such as
-     * `variable` and `variables`, or `displayDigits` and `displayDecimals`,
-     * which on a single component apply together but on a reference replace
-     * both of its source's. A state variable reading one of them stops
-     * looking through to the source where the reference writes another
-     * (`dontRecurseToShadowsIfHaveAttribute`).
+     * `variable` and `variables`, or `displayDigits` and `displayDecimals`:
+     * whatever they do together on a single component (`variables` wins over
+     * `variable`; the two display attributes combine), one written on a
+     * reference replaces both of its source's. A state variable reading one
+     * of them stops looking through to the source where the reference writes
+     * another (`dontRecurseToShadowsIfHaveAttribute`).
      */
     replacesOnReference?: string[];
     excludeFromSchema?: boolean;
