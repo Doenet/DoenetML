@@ -257,10 +257,12 @@ describe("An unlinked copy through a reload @group4", () => {
         expect(t.stateValues.value).eq("hi");
     });
 
-    it("keeps holding what a copy made again could not take", async () => {
+    it("is made from its source as restored when made again with a different shape", async () => {
         // Made again on load with `b` false, the copy has no replacements
-        // but itself, and keeps holding the entries of the mathInput it had,
-        // which it takes once `b` is true and a reload makes it again.
+        // but itself. It keeps nothing of the mathInput it had, so it is not
+        // held on later saves, and once `b` is true a reload makes it again
+        // from its source as restored, as a copy was made before snapshots
+        // were held.
         const doenetML = `
     <booleanInput name="b" prefill="true" />
     <conditionalContent name="cc" condition="$b">
@@ -305,18 +307,13 @@ describe("An unlinked copy through a reload @group4", () => {
         expect(Object.keys(held).length).eq(1);
         expect((await sv("c")).activeChildren).eqls([]);
 
-        // a save with `b` still false holds the same components
-        const stateIds = (snapshots: any) =>
-            Object.values(snapshots)
-                .flat()
-                .map((entry: any) => entry.stateId)
-                .sort();
+        // later saves hold nothing of the copy
         await updateMathInputValue({
             latex: "2",
             componentIdx: await resolvePathToNodeIdx("other"),
             core,
         });
-        expect(stateIds((await reload()).__copySnapshots)).eqls(stateIds(held));
+        expect((await reload()).__copySnapshots).eq(undefined);
         expect((await sv("c")).activeChildren).eqls([]);
 
         await updateBooleanInputValue({
@@ -324,9 +321,81 @@ describe("An unlinked copy through a reload @group4", () => {
             componentIdx: await resolvePathToNodeIdx("b"),
             core,
         });
-        await reload();
+        // the copy now shows nothing where one made now has a mathInput
+        expect(Object.keys((await reload()).__copySnapshots)).eqls(
+            Object.keys(held),
+        );
         expect((await sv("cc.a")).stateValues.value.tree).eq(5);
+        expect((await sv("c.a")).stateValues.value.tree).eq(5);
+
+        await updateMathInputValue({
+            latex: "3",
+            componentIdx: await resolvePathToNodeIdx("other"),
+            core,
+        });
+        expect((await reload()).__copySnapshots).eq(undefined);
+        expect((await sv("c.a")).stateValues.value.tree).eq(5);
+    });
+
+    it("takes nothing held of another case's components", async () => {
+        // The cases' wrappers differ in type and their mathInputs do not:
+        // made again on load with `b` false, the copy's div has the
+        // `stateId` its p had and takes nothing held. Made again with `b`
+        // true, its mathInput has the `stateId` the div's had, but shows
+        // its source as restored, not the div's mathInput's prefill `2`.
+        const doenetML = `
+    <booleanInput name="b" prefill="true" />
+    <conditionalContent name="cc">
+        <case condition="$b"><p><mathInput name="a" prefill="1" /></p></case>
+        <else><div><mathInput name="t" prefill="2" /></div></else>
+    </conditionalContent>
+    <group copy="$cc" name="c" />
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        async function sv(name: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            return stateVariables[await resolvePathToNodeIdx(name)];
+        }
+        async function reload() {
+            await core.saveImmediately();
+            const state = scoreState.state;
+            ({ core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+                doenetML,
+                initialState: state,
+            }));
+            return JSON.parse(state);
+        }
+
+        await updateMathInputValue({
+            latex: "5",
+            componentIdx: await resolvePathToNodeIdx("cc.a"),
+            core,
+        });
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
         expect((await sv("c.a")).stateValues.value.tree).eq(1);
+
+        await reload();
+        expect((await sv("c.t")).stateValues.value.tree).eq(2);
+
+        await updateBooleanInputValue({
+            boolean: true,
+            componentIdx: await resolvePathToNodeIdx("b"),
+            core,
+        });
+        await reload();
+        const source = (await sv("cc.a")).stateValues.value.tree;
+        const copy = (await sv("c.a")).stateValues.value.tree;
+        expect(copy).not.eq(2);
+        expect(copy).eq(source);
     });
 
     it("keeps values its source holds in primitive children or in essential state", async () => {

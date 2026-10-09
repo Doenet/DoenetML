@@ -373,11 +373,11 @@ export class StatePersistence {
      * not changed. A copy made now can differ where a reload would not: a
      * `<sampleRandomNumbers copy>` made now takes the values its source has
      * drawn since, so it is held though a reload would draw the same. A copy
-     * that keeps entries no replacement took (`applyCopySnapshot`) is held
-     * on every save while it keeps them: one entry for each component (by
-     * `stateId` and `componentType`) it has made, so it does not grow with
-     * saves. A save with no unlinked copies does not call this
-     * (`unlinkedCopies`).
+     * holds only the snapshot of what it made: one made again with a
+     * different shape (a copy of a `<conditionalContent>` made from another
+     * case) is made from its source as restored, and keeps nothing it could
+     * not apply (`applyCopySnapshot`). A save with no unlinked copies does
+     * not call this (`unlinkedCopies`).
      */
     async recordCopySnapshots(copies: any[]): Promise<void> {
         const cumulative = this.core.cumulativeStateVariableChanges;

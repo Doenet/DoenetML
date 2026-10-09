@@ -53,46 +53,33 @@ export function copySnapshotOf(serializedComponents) {
 /**
  * Give the serialized replacements of an unlinked copy the essential state
  * and primitive children that `snapshot` holds for their `stateId` and
- * `componentType`, and return the entries of `snapshot` that no replacement
- * took.
+ * `componentType`.
  *
  * Only state and primitive children are held, not the replacements' shape.
  * A copy made again need not make the components it made before: a copy of
  * a `<conditionalContent>` is made from whichever case is active then, so
  * its replacements can be fewer, or others, and a component of another type
- * can have a `stateId` an earlier one had. An entry therefore applies only
- * to a replacement of its own `componentType` (an entry without one, from
- * before it was held, applies to none), and none applies within a
- * replacement that has an entry for its `stateId` of another type: that
- * replacement and what it contains were made from other DoenetML. An entry
- * that no replacement takes is returned for the copy to keep holding (a
- * later load may make that component again), not restored now.
+ * can have a `stateId` an earlier one had (`stateId`s are positional). An
+ * entry therefore applies only to a replacement of its own `componentType`
+ * (an entry without one, from before it was held, applies to none), and
+ * none applies within a replacement whose `stateId` has an entry only of
+ * another type: that replacement and what it contains were made from other
+ * DoenetML. A copy made again with a different shape is thus made from its
+ * source as restored, and keeps nothing it cannot apply: the copy then
+ * holds only the snapshot of what it made.
  */
 export function applyCopySnapshot(serializedComponents, snapshot) {
-    const byStateId = new Map();
-    for (const entry of snapshot) {
-        if (!byStateId.has(entry.stateId)) {
-            byStateId.set(entry.stateId, []);
-        }
-        byStateId.get(entry.stateId).push(entry);
-    }
-    const applied = new Set();
+    const byStateId = new Map(snapshot.map((entry) => [entry.stateId, entry]));
     function visit(component) {
         if (typeof component !== "object" || component === null) {
             return;
         }
-        const entries = byStateId.get(component.stateId) ?? [];
-        const entry = entries.find(
-            (entry) =>
-                !applied.has(entry) &&
-                entry.componentType === component.componentType,
-        );
-        if (entries.length > 0 && !entry) {
-            // made from other DoenetML than what was held
-            return;
-        }
+        const entry = byStateId.get(component.stateId);
         if (entry) {
-            applied.add(entry);
+            if (entry.componentType !== component.componentType) {
+                // made from other DoenetML than what was held
+                return;
+            }
             component.state = deepClone(entry.state);
             for (const [ind, child] of Object.entries(
                 entry.primitiveChildren ?? {},
@@ -116,7 +103,6 @@ export function applyCopySnapshot(serializedComponents, snapshot) {
     for (const component of serializedComponents) {
         visit(component);
     }
-    return snapshot.filter((entry) => !applied.has(entry));
 }
 
 function isEmpty(value) {
