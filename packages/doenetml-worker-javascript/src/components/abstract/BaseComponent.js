@@ -2183,11 +2183,15 @@ async function serializeShadowedAttributes({
 }) {
     const components = parametersForChildren.components;
     const attributesObj = component.constructor.createAttributesObject();
+    // an extend of a list that names itself makes a cycle
+    // (`pastedShadowSource`)
+    const visited = new Set([component]);
     for (
         let from = component, comp = pastedShadowSource(component, components);
-        comp;
+        comp && !visited.has(comp);
         from = comp, comp = pastedShadowSource(comp, components)
     ) {
+        visited.add(comp);
         // past a list made by an `extend` of what it names, which may not
         // be a list (`<mathList extend="$P"/>`), only the attributes it has
         // too, as it takes only those

@@ -223,6 +223,46 @@ describe("Attributes of an extend or copy of a list @group4", () => {
         await check(false);
     });
 
+    it("a copy of a copy of a list is the list pasted, as a copy of a copy of a math is", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <booleanInput name="h" prefill="true" />
+    <mathList name="ml" hide="$h" fixed unordered displayDigits="2">1.2345 2</mathList>
+    <mathList copy="$ml" name="c" />
+    <mathList copy="$c" name="cc" />
+    <mathList extend="$cc" name="ecc" />
+    <pointList name="pl" fixed>(1,2) (3,4)</pointList>
+    <pointList copy="$pl" name="cpl" />
+    <pointList copy="$cpl" name="ccpl" />
+    <point copy="$ccpl[1]" name="P" />
+    `,
+        });
+        async function check(hidden: boolean) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            for (const name of ["c", "cc", "ecc"]) {
+                expect((await sv(name)).hidden, name).eq(hidden);
+                expect((await sv(name)).fixed, name).eq(true);
+                expect((await sv(name)).unordered, name).eq(true);
+                expect((await sv(name)).displayDigits, name).eq(2);
+            }
+            for (const name of ["cpl", "ccpl", "P"]) {
+                expect((await sv(name)).fixed, name).eq(true);
+            }
+        }
+        await check(true);
+        await updateBooleanInputValue({
+            boolean: false,
+            componentIdx: await resolvePathToNodeIdx("h"),
+            core,
+        });
+        await check(false);
+    });
+
     it("an extend of a list that names itself is reported as circular", async () => {
         await expect(
             createTestCore({
