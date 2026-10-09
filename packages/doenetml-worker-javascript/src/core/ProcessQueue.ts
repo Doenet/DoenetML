@@ -103,6 +103,11 @@ export class ProcessQueue {
             return;
         }
         if (this.stopProcessingRequests) {
+            // nothing more is drained, so nothing is processing: a request
+            // after `terminate` must not leave `processing` set, or work
+            // queued with `runExclusive` would wait for a drain that never
+            // comes
+            this.processing = false;
             return;
         }
 

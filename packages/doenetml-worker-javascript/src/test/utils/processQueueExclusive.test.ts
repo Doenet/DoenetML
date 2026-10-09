@@ -128,4 +128,19 @@ describe("ProcessQueue.runExclusive", () => {
         });
         expect(log.at(-1)).eq("after");
     });
+
+    it("runs when a request comes after requests have stopped", async () => {
+        // a viewer or timer action can reach the queue while `terminate`
+        // waits; it is not run, and must not leave the queue looking busy
+        const { queue } = queueWithLog();
+        queue.stopProcessingRequests = true;
+        queue.requestAction({ componentIdx: 1, actionName: "late" });
+        await Promise.resolve();
+        expect(queue.processing).eq(false);
+        let ran = false;
+        await queue.runExclusive(async () => {
+            ran = true;
+        });
+        expect(ran).eq(true);
+    });
 });

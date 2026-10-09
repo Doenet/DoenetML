@@ -1396,7 +1396,9 @@ export default class Core {
             }
         }
 
-        await this.saveImmediately();
+        // A request still running past the wait can stop the document with
+        // a circular dependency, which rejects the save's queued work
+        await this.saveImmediately().catch(ignoreIfStopped);
     }
 
     // → autoSubmitManager
