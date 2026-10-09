@@ -2291,11 +2291,18 @@ async function serializeShadowedAttributes({
         for (const attrName in comp.attributes) {
             const attribute = comp.attributes[attrName];
             if (
-                !attribute.component ||
+                !(attribute.component || attribute.type === "literal") ||
                 (onlyOwnAttributes && !(attrName in attributesObj)) ||
                 written.has(attrName) ||
                 componentSourceAttributesToIgnore.includes(attrName)
             ) {
+                continue;
+            }
+            if (attribute.type === "literal") {
+                // a literal written on `comp`, with what a reader wrote over
+                // it, as an attribute component is copied with its state
+                serializedComponent.attributes[attrName] =
+                    copyOfLiteralAttribute(attribute, comp);
                 continue;
             }
             serializedComponent.attributes[attrName] = {
@@ -2364,7 +2371,9 @@ async function snapshotListEntrySource(serializedComponent, parameters) {
             attributeName,
             components,
         });
-        if (attribute) {
+        if (attribute?.literal) {
+            serializedComponent.attributes[attributeName] = attribute.literal;
+        } else if (attribute) {
             serializedComponent.attributes[attributeName] = {
                 type: "component",
                 component: await attribute.serialize(parameters),

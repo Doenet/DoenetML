@@ -3184,6 +3184,11 @@ export async function replacementFromProp({
                             if (!written) {
                                 continue;
                             }
+                            if (written.literal) {
+                                attributesForReplacement[attrName] =
+                                    written.literal;
+                                continue;
+                            }
                             const res = createNewComponentIndices(
                                 [
                                     await written.serialize({

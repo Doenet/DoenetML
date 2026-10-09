@@ -330,11 +330,8 @@ export class AttributeComponentDependency extends Dependency {
                     comp = namedComponent;
                     visited.add(comp.componentIdx);
                     attribute = comp.attributes[this.attributeName];
-                    if (
-                        attribute?.component ||
-                        attribute?.type === "variableRef"
-                    ) {
-                        return this.attributeDownstream(attribute);
+                    if (isReadableAttribute(attribute)) {
+                        return this.attributeDownstream(attribute, comp);
                     }
                     continue;
                 }
@@ -342,11 +339,8 @@ export class AttributeComponentDependency extends Dependency {
                     (replacement: any) => typeof replacement === "object",
                 );
                 const copiedAttribute = copied?.attributes[this.attributeName];
-                if (
-                    copiedAttribute?.component ||
-                    copiedAttribute?.type === "variableRef"
-                ) {
-                    return this.attributeDownstream(copiedAttribute);
+                if (isReadableAttribute(copiedAttribute)) {
+                    return this.attributeDownstream(copiedAttribute, copied);
                 }
                 break;
             }
@@ -370,8 +364,8 @@ export class AttributeComponentDependency extends Dependency {
                 }
                 visited.add(comp.componentIdx);
                 attribute = comp.attributes[this.attributeName];
-                if (attribute?.component || attribute?.type === "variableRef") {
-                    return this.attributeDownstream(attribute);
+                if (isReadableAttribute(attribute)) {
+                    return this.attributeDownstream(attribute, comp);
                 }
                 continue;
             }

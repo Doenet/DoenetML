@@ -444,4 +444,50 @@ describe("An unlinked copy through a reload @group4", () => {
         expect((await sv("t")).value).eq("yo");
         expect((await sv("t2")).value).eq("hi");
     });
+
+    it("keeps a value a reader wrote over a literal attribute of its source", async () => {
+        // `hide="false"` is a literal attribute; a copy takes it with what a
+        // reader wrote over it, so a copy made again after the reader
+        // toggled `t` would be hidden
+        const doenetML = `
+    <text name="t" hide="false">a</text>
+    <text copy="$t" name="c" />
+    <p name="p"><text name="inner" hide="false">b</text></p>
+    <p copy="$p" name="cp" />
+    <booleanInput name="b1" bindValueTo="$t.hide" />
+    <booleanInput name="b2" bindValueTo="$inner.hide" />
+    `;
+        let { core, resolvePathToNodeIdx, scoreState } = await createTestCore({
+            doenetML,
+        });
+        async function hidden() {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const sv = async (name: string) =>
+                stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+            return [
+                (await sv("t")).hidden,
+                (await sv("c")).hidden,
+                (await sv("inner")).hidden,
+                (await sv("cp.inner")).hidden,
+            ];
+        }
+        for (const name of ["b1", "b2"]) {
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+        }
+        expect(await hidden()).eqls([true, false, true, false]);
+
+        await core.saveImmediately();
+        ({ core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+            initialState: scoreState.state,
+        }));
+        expect(await hidden()).eqls([true, false, true, false]);
+    });
 });

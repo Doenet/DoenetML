@@ -3,6 +3,7 @@ import {
     listEntrySourceValue,
 } from "./listEntrySource";
 import { isReferenceShadow } from "./referenceShadow";
+import { copyOfLiteralAttribute } from "./literalAttribute";
 
 /**
  * `fixed` and `fixLocation` describe where a component is, not what it
@@ -340,9 +341,14 @@ async function writtenAttributeComponent(component, attributeName, components) {
         comp = await pastedShadowSource(comp, components)
     ) {
         visited.add(comp);
-        const attribute = comp.attributes?.[attributeName]?.component;
-        if (attribute) {
-            return attribute;
+        const attribute = comp.attributes?.[attributeName];
+        if (attribute?.component) {
+            return attribute.component;
+        }
+        if (attribute?.type === "literal") {
+            // with what a reader wrote over it, as an attribute component
+            // is copied with its state
+            return { literal: copyOfLiteralAttribute(attribute, comp) };
         }
         const listEntrySource = comp.doenetAttributes?.listEntrySource;
         if (listEntrySource?.variables[attributeName]) {
@@ -358,8 +364,10 @@ async function writtenAttributeComponent(component, attributeName, components) {
 }
 
 /**
- * The attribute component for `attributeName` (`fixed` or `fixLocation`)
- * that a copy of entry `index` of `list` takes as its own, as the entry
+ * The attribute component for `attributeName` (`fixed` or `fixLocation`),
+ * or, for an attribute written as a plain value, `{ literal }`, a copy of
+ * that literal (`literalAttribute.ts`), that a copy of entry `index` of
+ * `list` takes as its own, as the entry
  * pasted: the one written on the list (`<pointList fixed="$b">`), which
  * fixes its entries, or else the one written on the entry's source (`<point
  * fixed="$b">` in a `<pointList>` or found by a `<collect>`, or, for an entry
