@@ -1,6 +1,13 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
-import { movePoint } from "../utils/actions";
+import {
+    moveLine,
+    moveLineSegment,
+    movePoint,
+    moveThroughPoint,
+    moveVector,
+    updateMathInputValue,
+} from "../utils/actions";
 import { setExpressionAttributesEnabled } from "../../utils/dast/expressionAttributes";
 
 const Mock = vi.fn();
@@ -205,7 +212,7 @@ describe("Coordinates held by their point @group4", () => {
         expect(texts.p).toBe("(1, 2) (2, 4) (3, 6) (1, 6) (2, 0) (1, 6)");
     });
 
-    it("points made for an attribute: a polygon's vertices and a label's anchor", async () => {
+    it("points made for an attribute (a polygon's vertices, a label's anchor), and a vector", async () => {
         // their references resolve from where they were written, and a copy
         // of them from the copy
         const texts = await compare({
@@ -257,5 +264,132 @@ describe("Coordinates held by their point @group4", () => {
             names: ["p"],
             held: [],
         });
+    });
+
+    it("points made for other attributes: a line's and a circle's through, a segment's endpoints, a vector's head and tail", async () => {
+        const texts = await compare({
+            doenetML: `
+<number name="a">1</number>
+<number name="b">2</number>
+<graph>
+  <line name="l" through="($a, 0) (2, $b)" />
+  <circle name="c" through="($a, 1) (3, $b) (0, 0)" />
+  <lineSegment name="s" endpoints="($a, 2) (4, $b)" />
+  <vector name="v" tail="(1, $a)">($b, 3)</vector>
+  <vector name="w" head="($a, 3)" tail="(0, $b)" />
+</graph>
+<p name="p">$l.points $c.throughPoints $s.endpoints $v.tail $v.head $w.tail $w.head $a $b</p>
+`,
+            names: ["p"],
+            // the points with references among the line's, circle's and
+            // segment's, the vectors' head and tail, and `v` itself
+            numHeld: 10,
+            act: async (core, resolvePathToNodeIdx) => {
+                await moveLineSegment({
+                    componentIdx: await resolvePathToNodeIdx("s"),
+                    point1coords: [5, 6],
+                    core,
+                });
+                await moveVector({
+                    componentIdx: await resolvePathToNodeIdx("w"),
+                    headcoords: [4, 7],
+                    core,
+                });
+                await moveThroughPoint({
+                    componentIdx: await resolvePathToNodeIdx("c"),
+                    throughPointInd: 1,
+                    throughPoint: [3, 8],
+                    core,
+                });
+                await moveLine({
+                    componentIdx: await resolvePathToNodeIdx("l"),
+                    point1coords: [6, 1],
+                    point2coords: [2, 9],
+                    core,
+                });
+            },
+            reload: true,
+        });
+        // `a` takes the segment's drag, then the vector's, then the line's;
+        // `b` the circle's, then the line's; the texts `2` and `3` take the
+        // segment's and the vector's `y`, and the line's `0` its `1`
+        expect(texts.p).toBe(
+            "(6, 1), (2, 9) (6, 1), (3, 9), (0, 0) (6, 6), (4, 9) (1, 6) (10, 9) (0, 9) (6, 7) 6 9",
+        );
+    });
+
+    it("degenerate referents: a list entry past the end of its list, and an empty number", async () => {
+        const texts = await compare({
+            doenetML: `
+<numberList name="l">1 2</numberList>
+<number name="e" />
+<graph>
+  <point name="P">($l[5], 1)</point>
+  <point name="Q">($e, $l[1])</point>
+</graph>
+<p name="p">$P $Q $l $e</p>
+`,
+            names: ["p"],
+            held: ["P", "Q"],
+            act: async (core, resolvePathToNodeIdx) => {
+                await drag("P", 3, 4)(core, resolvePathToNodeIdx);
+                await drag("Q", 5, 6)(core, resolvePathToNodeIdx);
+            },
+            reload: true,
+        });
+        // past the end of `l`, `P`'s `x` reads nothing and takes no write;
+        // `Q`'s writes `e` and the entry
+        expect(texts.p).toBe("(＿, 4) (5, 6) 6, 2 5");
+    });
+
+    it("a repeat whose number of iterations grows and shrinks around a drag", async () => {
+        const texts = await compare({
+            doenetML: `
+<mathInput name="mi" prefill="2" />
+<repeatForSequence name="r" from="1" to="$mi" valueName="i">
+  <p><point name="P">($i, 0)</point></p>
+</repeatForSequence>
+<p name="p">$r[1].P $r[2].P $r[3].P</p>
+`,
+            names: ["p"],
+            held: ["r[1].P", "r[2].P"],
+            act: async (core, resolvePathToNodeIdx) => {
+                const n = async (latex: string) =>
+                    updateMathInputValue({
+                        latex,
+                        componentIdx: await resolvePathToNodeIdx("mi"),
+                        core,
+                    });
+                await n("3");
+                await drag("r[3].P", 7, 8)(core, resolvePathToNodeIdx);
+                await drag("r[2].P", 5, 6)(core, resolvePathToNodeIdx);
+                await n("1");
+                await n("3");
+            },
+            reload: true,
+        });
+        // `x` reads the iteration's value; the `0` takes each drag's `y`,
+        // kept by the iterations withheld while the repeat is shorter
+        expect(texts.p).toBe("(1, 0) (2, 6) (3, 8)");
+    });
+
+    it("a drag of a linked copy writes the text of its source's coordinate, which the copy does not hold", async () => {
+        // the source's `__xs_writes`, which the copy reads through its
+        // source and does not have (`EssentialValueWriter` skips it)
+        const texts = await compare({
+            doenetML: `
+<number name="a">1</number>
+<graph>
+  <point name="P">($a, 0)</point>
+  <point name="Q" extend="$P" />
+</graph>
+<p name="p">$P $Q $a</p>
+`,
+            names: ["p"],
+            held: ["P"],
+            act: drag("Q", 3, 7),
+            reload: true,
+        });
+        expect(texts.p).toBe("(3, 7) (3, 7) 3");
     });
 });

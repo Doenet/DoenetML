@@ -51,7 +51,7 @@ A **reference slot** is that chain as a function, `referenceSlotDefinitions`, wh
 
 The `refResolution` and `refResolutionIndexDependencies` dependencies take the slot from their definition, reading `component.refResolution` when none is given. That is where they read the path, and where a shadowing copy finds the origin it resolves from.
 
-An owner's slots are made as state variables on the owner, on demand, as `ensureListEntryPropertyArray` makes arrays on a list (`core/listEntryPropertyArrays.ts`). There is precedent for references held in an attribute without components: `attributeRefResolutions` resolves those of a `createReferences` attribute (`triggerWith`).
+An owner's slots are state variables on the owner, added to its definitions when it is built (`ComponentBuilder`), and, like its other variables, materialized when first read. There is precedent for references held in an attribute without components: `attributeRefResolutions` resolves those of a `createReferences` attribute (`triggerWith`).
 
 ## Parsing and evaluating
 
@@ -70,10 +70,10 @@ Parsing once across owners is possible: on repeat-150, 150 points parse the same
 
 ## Model of an owner-held attribute
 
-- **The attribute** is `{ type: "expression", componentType, template, slots }`: the serialized coordinates (the `<math>`s sugar made) with each `_ref` replaced by a code (`repeatTemplateConstant`), and the `refResolution` and plan of each `_ref`. It is copied with the owner, as a literal attribute is (`copyOfLiteralAttribute`), so a copy resolves its references from where it is.
+- **The attribute** is `{ type: "expression", componentType, template, slots }`: the serialized coordinates (the `<math>`s sugar made) with each `_ref` replaced by a code (`repeatTemplateConstant`), and the `refResolution` and plan of each `_ref`. An unlinked copy takes it, as it takes a literal attribute (`copyOfExpressionAttribute`, beside `copyOfLiteralAttribute`), and resolves its references from where the copy is; a linked copy reads the source's.
 - **What readers read.** A point reads `xs.numComponents` and `xs.math1…n` (`Point.js:583`, `:728`), a vector the same. The `attributeComponent` dependency maps those to the owner's `__xs_numComponents` and `__xs_math1…n`, as it maps a literal to `literalAttributeWrites`.
 - **Writes.** A drag writes `math k`. The inverse is `invertRepeatTemplate`: to the slots, whose `value` writes the referent, or to the owner's essential copy of a coordinate's text, as `_repeatPointList` keeps `entryWrites`. What takes a write follows F6's settled rules.
-- **Which attributes qualify:** `xs` of a `<point>` or `<vector>` whose coordinates are each a `<math>` of text and `_ref`s (and nested unnamed `<math>`s and `<number>`s), with no attributes and no reference read as a function symbol. A reference whose index is itself a reference (`$l[$i]`) keeps the attribute component in the first version, since the index is a component the slot would have to hold. Anything else keeps the component too: a `_copy` inside, a sampler, a named component.
+- **Which attributes qualify:** `xs` of a `<point>` or `<vector>` whose coordinates are each a `<math>` of text and `_ref`s, with no attributes and no reference read as a function symbol. Nested `<math>`s and `<number>`s, which the template functions could evaluate, keep the attribute component as built (steps 2–3). A reference whose index is itself a reference (`$l[$i]`) keeps the attribute component in the first version, since the index is a component the slot would have to hold. Anything else keeps the component too: a `_copy` inside, a sampler, a named component.
 
 ## Steps
 
@@ -102,7 +102,7 @@ Parsing once across owners is possible: on repeat-150, 150 points parse the same
   | measures-of-spread | 3,535 → 3,325 | 108,560 → 105,872 | 50,433 → 49,397 | 3,941 → 3,755 |
   | unit-circle-labeling | 732 → 725 | 20,468 → 20,378 | 9,920 → 9,887 | 950 → 910 |
 
-  One `xs` of repeat-150 now costs about 28 dependencies, against 124. Measures-of-spread's points gain less, about 32 dependencies each against the 81 their `xs` cost; why is not yet measured. The other fixtures are unchanged: their points are in repeats made lists or have no references.
+  One `xs` of repeat-150 now costs about 28 dependencies, against 124. Measures-of-spread holds only 42 of its 84 points, the 42 that read `$mean` and `$std`, which save 64 dependencies each. The other 42 read `$min` or `$max`, and a reference to a `<min>` or `<max>` is read as that component (`presentedComponentType` `max`), not as a math or number, so they keep their components. The other fixtures are unchanged: their points are in repeats made lists or have no references.
 - **Still held as components:** a reference with a component between the brackets of its path (`$l[$i]`), a coordinate with attributes or a named or other component in it, and a reference read as other than a math or number.
 
 ## Alternatives considered

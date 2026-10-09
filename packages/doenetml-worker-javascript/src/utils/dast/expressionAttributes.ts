@@ -15,8 +15,9 @@
  *
  * An `xs` qualifies when its `mathList` and `<math>`s have no attributes and
  * each `<math>` holds only text and value references that read a math or a
- * number and have no components between the brackets of their path
- * (`$l[$i]`). Anything else keeps the attribute component. So does the
+ * number, whose path starts with a name and has no components between its
+ * brackets (`$l[$i]`). Anything else keeps the attribute component, a
+ * reference to a `<max>`, which reads it as a `max`, among them. So does the
  * template of a repeat made a list (`utils/dast/repeatLists.ts`), whose
  * references read entries of lists.
  *
