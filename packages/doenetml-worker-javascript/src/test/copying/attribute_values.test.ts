@@ -537,6 +537,79 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(await u.stateValues.text).eq("1.235");
         });
 
+        it("a copy of a repeat whose iterations reference a prop or a list entry shows what the source's iterations show", async () => {
+            // Each iteration's `a` and `b` take their display settings, and
+            // `b` its `hide`, from what they reference. The copies of the
+            // repeat, made at the start and later in a conditionalContent,
+            // show what the source's iterations show, as the settings and
+            // `hide` change. (Their `fixed` is not pinned: a reference to a
+            // list entry does not take the entry source's, #2239.)
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <mathInput name="k" prefill="4" />
+    <booleanInput name="h" />
+    <point name="P" displayDigits="$k">(1.23456,2)</point>
+    <p name="src"><math displayDigits="$k" hide="$h">2.34567</math><math>3.45678</math></p>
+    <collect name="col" componentType="math" from="$src" />
+    <repeatForSequence name="r" from="1" to="2" indexName="i">
+      <math extend="$P.x" simplify name="a" />
+      <math extend="$col[$i]" simplify name="b" />
+      <graph><point>($i, 1)</point></graph>
+    </repeatForSequence>
+    <repeatForSequence copy="$r" name="cr" />
+    <booleanInput name="show" />
+    <conditionalContent name="cc" condition="$show"><repeatForSequence copy="$r" name="cr2" /></conditionalContent>
+    `,
+            });
+            async function shown(repeat: string) {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const result: any[] = [];
+                for (const name of ["[1].a", "[1].b", "[2].b"]) {
+                    const sv =
+                        stateVariables[
+                            await resolvePathToNodeIdx(repeat + name)
+                        ].stateValues;
+                    result.push([sv.text, sv.displayDigits, sv.hidden]);
+                }
+                return result;
+            }
+
+            const initial = [
+                ["1.235", 4, false],
+                ["2.346", 4, false],
+                ["3.46", 3, false],
+            ];
+            expect(await shown("r")).eqls(initial);
+            expect(await shown("cr")).eqls(initial);
+
+            await updateMathInputValue({
+                latex: "2",
+                componentIdx: await resolvePathToNodeIdx("k"),
+                core,
+            });
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("h"),
+                core,
+            });
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("show"),
+                core,
+            });
+            const changed = [
+                ["1.2", 2, false],
+                ["2.3", 2, true],
+                ["3.46", 3, false],
+            ];
+            expect(await shown("r")).eqls(changed);
+            expect(await shown("cr")).eqls(changed);
+            expect(await shown("cc.cr2")).eqls(changed);
+        });
+
         it("what each attribute construct creates", async () => {
             // Stream B's targets, by step: a literal `displayDigits` loses its
             // `integer` (B1a) and a literal `anchor` its point, mathList and
