@@ -375,6 +375,27 @@ exports[`component census of the micro-documents > sort $l of 4 1`] = `
 }
 `;
 
+exports[`component census of the micro-documents > text hide=$b, graph xMin=$n 1`] = `
+{
+  "attributeComponents": 2,
+  "byType": {
+    "_dynamicChildren": 1,
+    "_ref": 2,
+    "boolean": 1,
+    "document": 1,
+    "graph": 1,
+    "number": 1,
+    "text": 1,
+  },
+  "components": 8,
+  "copies": 0,
+  "dependencies": 410,
+  "shadows": 0,
+  "stateVariables": 323,
+  "stateVariablesResolved": 209,
+}
+`;
+
 exports[`component census of the micro-documents > textList $mi a 1`] = `
 {
   "attributeComponents": 0,

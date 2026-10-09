@@ -103,6 +103,10 @@ export const MICRO_DOCUMENTS: Fixture[] = [
         `<text hide="false">a</text><math simplify>x+x</math><number displayDigits="2">1.234</number>`,
     ),
     micro("math anchor=(1,2)", `<graph><math anchor="(1,2)">x</math></graph>`),
+    micro(
+        "text hide=$b, graph xMin=$n",
+        `<boolean name="b">false</boolean><number name="n">-3</number><text hide="$b">a</text><graph xMin="$n" />`,
+    ),
 ];
 
 /** The four sample distributions of the Doenet/DoenetML#2023 document, cycled. */

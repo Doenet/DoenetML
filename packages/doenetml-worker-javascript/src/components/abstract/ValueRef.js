@@ -163,6 +163,12 @@ export default class ValueRef extends BaseComponent {
      * draws value references there (`parentDrawsValueReferences`).
      */
     get isDrawn() {
+        // a reference that is an attribute's component (`hide="$b"`,
+        // `referenceAttributeComponent`) is not drawn, whatever the
+        // component that has the attribute draws
+        if (this.doenetAttributes.isAttributeChildFor !== undefined) {
+            return false;
+        }
         const parentClass = this.ancestors?.[0]?.componentClass;
         if (this._drawnInParentClass !== parentClass) {
             this._drawnInParentClass = parentClass;

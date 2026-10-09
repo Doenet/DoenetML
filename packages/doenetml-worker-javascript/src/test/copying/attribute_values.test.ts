@@ -923,6 +923,114 @@ describe.skipIf(process.env.DOENET_TEST_CORE === "rust")(
             expect(await fixLocations(second)).eqls([false, true]);
         });
 
+        it("an attribute that is one reference follows its referent and writes to it", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+    <boolean name="b">false</boolean>
+    <number name="n">-3</number>
+    <p name="p" hide="$b">a</p>
+    <graph name="g" xMin="$n" />
+    <booleanInput name="bi" bindValueTo="$p.hide" />
+    <mathInput name="mi" bindValueTo="$g.xMin" />
+    `,
+            });
+            async function values() {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const sv = async (name: string) =>
+                    stateVariables[await resolvePathToNodeIdx(name)]
+                        .stateValues;
+                return [
+                    (await sv("p")).hidden,
+                    (await sv("b")).value,
+                    (await sv("g")).xMin,
+                    (await sv("n")).value,
+                    (await sv("p")).text,
+                ];
+            }
+            expect(await values()).eqls([false, false, -3, -3, "a"]);
+
+            // written through the attribute, the value lands on the referent
+            await updateBooleanInputValue({
+                boolean: true,
+                componentIdx: await resolvePathToNodeIdx("bi"),
+                core,
+            });
+            await updateMathInputValue({
+                latex: "-7",
+                componentIdx: await resolvePathToNodeIdx("mi"),
+                core,
+            });
+            expect(await values()).eqls([true, true, -7, -7, "a"]);
+
+            // the attribute's reference is held in place of a component of
+            // the attribute's type (B2)
+            const components = (core as any).core._components;
+            expect(
+                components[await resolvePathToNodeIdx("p")].attributes.hide
+                    .component.componentType,
+            ).eq("_ref");
+            expect(
+                components[await resolvePathToNodeIdx("g")].attributes.xMin
+                    .component.componentType,
+            ).eq("_ref");
+            // and is not drawn, though a `<p>` draws a reference it holds
+            // as a child
+            expect(
+                components[await resolvePathToNodeIdx("p")].attributes.hide
+                    .component.isDrawn,
+            ).eq(false);
+
+            // a reader of the attribute is told the type it presents as, as
+            // it was told the type of the component that held it
+            const attributeDependencyType = async (
+                name: string,
+                variable: string,
+                attributeName: string,
+            ) => {
+                const dependencies = Object.values<any>(
+                    (core as any).core.dependencies.downstreamDependencies[
+                        await resolvePathToNodeIdx(name)
+                    ][variable],
+                );
+                const dependency = dependencies.find(
+                    (dep) =>
+                        dep.dependencyType === "attributeComponent" &&
+                        dep.attributeName === attributeName,
+                );
+                return (await dependency.getValue()).value.componentType;
+            };
+            expect(await attributeDependencyType("p", "hide", "hide")).eq(
+                "boolean",
+            );
+            expect(await attributeDependencyType("g", "xminPrelim", "xMin")).eq(
+                "number",
+            );
+        });
+
+        it("a diagnostic about an attribute that is one reference points to the attribute, one about the reference to the reference", async () => {
+            const doenetML = `<boolean name="c">true</boolean><point name="P">(1,2)</point><mathInput name="i" prefill="x" />
+<conditionalContent condition="$c"><case condition="true">x</case></conditionalContent>
+<graph xMin="$P.xs[$i]" />`;
+            const { core } = await createTestCore({ doenetML });
+            const diagnostics = (core as any).core.diagnostics;
+            const spanOf = (message: string) => {
+                const { position } = diagnostics.find((d: any) =>
+                    d.message.includes(message),
+                );
+                return doenetML.slice(
+                    position.start.offset,
+                    position.end.offset,
+                );
+            };
+            expect(spanOf("Attribute `condition` is ignored")).eq(
+                `condition="$c"`,
+            );
+            expect(spanOf("Could not find prop xs[$i]")).eq("$P.xs[$i]");
+        });
+
         it("a copy of a repeat whose iterations reference a prop or a list entry shows what the source's iterations show", async () => {
             // Each iteration's `a` and `b` take their display settings, and
             // `b` its `hide`, from what they reference. The copies of the
