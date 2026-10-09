@@ -2500,4 +2500,62 @@ describe("Unlinked Copying Tests @group4", async () => {
             expect(stateValues.fixed, name).eq(true);
         }
     });
+
+    it("an attribute written on a copy replaces its partner on the source, as on an extend", async () => {
+        // `variable` and `variables` (and `derivVariable` and
+        // `derivVariables`, `displayDigits` and `displayDecimals`) are two
+        // ways of writing one setting: one written on a reference replaces
+        // both of its source's
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <function name="f" variables="x y">x+y</function>
+    <function name="fe" extend="$f" variable="t" />
+    <function name="fc" copy="$f" variable="t" />
+    <function name="g" variable="t">t^2</function>
+    <function name="gc" copy="$g" variables="u v" />
+    <derivative name="d" derivVariables="x y">$f</derivative>
+    <derivative name="de" extend="$d" derivVariable="y" />
+    <derivative name="dc" copy="$d" derivVariable="y" />
+    <derivative name="dv" variables="x y">x^2y</derivative>
+    <derivative name="dve" extend="$dv" variable="x" />
+    <derivative name="dvc" copy="$dv" variable="x" />
+    <math name="m" displayDigits="5">1.23456789</math>
+    <math name="me" extend="$m" displayDecimals="1" />
+    <math name="mc" copy="$m" displayDecimals="1" />
+    <point name="P" displayDigits="5">(1.23456789, 2)</point>
+    <math name="xe" extend="$P.x" displayDecimals="1" />
+    <math name="xc" copy="$P.x" displayDecimals="1" />
+    <mathList name="ml" displayDigits="5">1.23456789 2</mathList>
+    <math name="le" extend="$ml[1]" displayDecimals="1" />
+    <math name="lc" copy="$ml[1]" displayDecimals="1" />
+    <math name="xu" copy="$P.x" link="false" displayDecimals="1" />
+    <math name="lu" copy="$ml[1]" link="false" displayDecimals="1" />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const stateValues = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        const trees = (values: any[]) => values.map((v) => v.tree);
+        for (const name of ["fe", "fc"]) {
+            expect(trees((await stateValues(name)).variables), name).eqls([
+                "t",
+            ]);
+        }
+        for (const name of ["dve", "dvc"]) {
+            expect(trees((await stateValues(name)).variables), name).eqls([
+                "x",
+            ]);
+        }
+        expect(trees((await stateValues("gc")).variables)).eqls(["u", "v"]);
+        for (const name of ["de", "dc"]) {
+            expect(trees((await stateValues(name)).derivVariables), name).eqls([
+                "y",
+            ]);
+        }
+        // also for a prop or an entry of a list, which takes the
+        // source's display settings
+        for (const name of ["me", "mc", "xe", "xc", "xu", "le", "lc", "lu"]) {
+            expect((await stateValues(name)).text, name).eq("1.2");
+        }
+    });
 });

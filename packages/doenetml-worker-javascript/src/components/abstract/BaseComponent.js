@@ -2166,21 +2166,6 @@ export default class BaseComponent {
 }
 
 /**
- * Attributes that are alternatives to each other: a component that writes
- * one does not read the other from what it shadows (the
- * `dontRecurseToShadowsIfHaveAttribute` of their dependencies, in
- * `utils/numberDisplay.js`, `Function.js` and `FunctionOperators.js`).
- */
-const ALTERNATIVE_ATTRIBUTES = Object.freeze({
-    displayDigits: "displayDecimals",
-    displayDecimals: "displayDigits",
-    variable: "variables",
-    variables: "variable",
-    derivVariable: "derivVariables",
-    derivVariables: "derivVariable",
-});
-
-/**
  * For an unlinked copy (`copyAll`) of `component`, which is pasted as the
  * DoenetML it is linked to: when `component` is a reference or a component
  * inside one (a shadow, not of a prop), give `serializedComponent` the
@@ -2197,22 +2182,30 @@ async function serializeShadowedAttributes({
     componentSourceAttributesToIgnore,
 }) {
     const components = parametersForChildren.components;
+    const attributesObj = component.constructor.createAttributesObject();
     for (
         let comp = pastedShadowSource(component, components);
         comp;
         comp = pastedShadowSource(comp, components)
     ) {
         // what the copy already has, from `component` or a component
-        // between it and `comp`: a reference that writes one of a pair of
-        // alternatives does not read the other from what it shadows
-        // (`dontRecurseToShadowsIfHaveAttribute`), so neither does its copy
-        const written = new Set(Object.keys(serializedComponent.attributes));
+        // between it and `comp`, and what those replace on a reference
+        // (`replacesOnReference`): a reference that writes `variable` does
+        // not read the `variables` of what it shadows, so neither does its
+        // copy
+        const written = new Set();
+        for (const name in serializedComponent.attributes) {
+            written.add(name);
+            for (const replaced of attributesObj[name]?.replacesOnReference ??
+                []) {
+                written.add(replaced);
+            }
+        }
         for (const attrName in comp.attributes) {
             const attribute = comp.attributes[attrName];
             if (
                 !attribute.component ||
                 written.has(attrName) ||
-                written.has(ALTERNATIVE_ATTRIBUTES[attrName]) ||
                 componentSourceAttributesToIgnore.includes(attrName)
             ) {
                 continue;

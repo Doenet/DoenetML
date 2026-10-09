@@ -289,6 +289,21 @@ export type AttributeDefinition<T> = {
      * alongside where it sits instead (`utils/contextAttribute.js`).
      */
     notFromReferenceSource?: boolean;
+    /**
+     * Attributes that this one, written on a reference (an `extend` or
+     * `copy`), replaces as well as itself: the reference takes none of them
+     * from its source. For two ways of writing one setting, such as
+     * `variable` and `variables`, or `displayDigits` and `displayDecimals`:
+     * whatever they do together on a single component (`variables` wins over
+     * `variable`; the two display attributes combine), one written on a
+     * reference replaces both of its source's. A state variable reading one
+     * of them stops looking through to the source where the reference writes
+     * another (`dontRecurseToShadowsIfHaveAttribute`). Read where a copy
+     * takes its source's attributes: of the source it names (`Copy.js`) and,
+     * for a copy of a reference, of what the reference shadows
+     * (`serializeShadowedAttributes` in `BaseComponent.js`).
+     */
+    replacesOnReference?: string[];
     excludeFromSchema?: boolean;
     /**
      * Set by the developer in the attribute definition: the *name* of a state

@@ -189,11 +189,13 @@ export class Derivative extends FunctionBaseOperator {
         attributes.derivVariables = {
             createComponentOfType: "_variableNameList",
             description: "Names of variables to differentiate with respect to.",
+            replacesOnReference: ["derivVariable"],
         };
         attributes.derivVariable = {
             createComponentOfType: "_variableName",
             description:
                 "Name of the variable to differentiate with respect to.",
+            replacesOnReference: ["derivVariables"],
         };
 
         return attributes;

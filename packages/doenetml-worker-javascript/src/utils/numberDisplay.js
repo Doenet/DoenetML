@@ -357,12 +357,14 @@ export function returnNumberDisplayAttributes() {
         displayDigits: {
             createComponentOfType: "integer",
             groupName: "number-display",
+            replacesOnReference: ["displayDecimals"],
             description:
                 "Number of significant digits to display when rendering this number.",
         },
         displayDecimals: {
             createComponentOfType: "integer",
             groupName: "number-display",
+            replacesOnReference: ["displayDigits"],
             description:
                 "Number of decimal places to display when rendering this number.",
         },
@@ -514,13 +516,13 @@ export function gatherRawNumberDisplayFixedResponseAttributes(
                         componentForRawAttributes.attributes[attr];
                 }
                 attrsFound.push(attr);
-                // displayDigits and displayDecimals are treated as a single unit,
-                // so if either attribute is found, remove both when recurse
-                if (attr === "displayDigits") {
-                    attrsFound.push("displayDecimals");
-                } else if (attr === "displayDecimals") {
-                    attrsFound.push("displayDigits");
-                }
+                // one found replaces those it replaces on a reference
+                // (displayDigits and displayDecimals), so stop looking for
+                // them too
+                attrsFound.push(
+                    ...(returnNumberDisplayAttributes()[attr]
+                        ?.replacesOnReference ?? []),
+                );
             }
         }
 
@@ -625,14 +627,13 @@ export function addShadowNumberDisplayAttributes({
     const origAttrNames = Object.keys(attributes);
 
     for (const attrName in numberDisplayAttrs) {
-        if (origAttrNames.includes(attrName)) {
-            continue;
-        }
         if (
-            (attrName === "displayDigits" &&
-                origAttrNames.includes("displayDecimals")) ||
-            (attrName === "displayDecimals" &&
-                origAttrNames.includes("displayDigits"))
+            origAttrNames.includes(attrName) ||
+            origAttrNames.some((name) =>
+                numberDisplayAttrs[name]?.replacesOnReference?.includes(
+                    attrName,
+                ),
+            )
         ) {
             continue;
         }

@@ -319,10 +319,12 @@ export default class Function extends InlineComponent {
         attributes.variables = {
             createComponentOfType: "_variableNameList",
             description: "Names of the function's input variables.",
+            replacesOnReference: ["variable"],
         };
         attributes.variable = {
             createComponentOfType: "_variableName",
             description: "Name of the function's single input variable.",
+            replacesOnReference: ["variables"],
         };
         attributes.symbolic = {
             createComponentOfType: "boolean",

@@ -1664,17 +1664,12 @@ export default class Copy extends CompositeComponent {
             const attributesFromComposite = res.attributes;
             nComponents = res.nComponents;
 
-            // Since if either displayDigits or displayDecimals is supplied in the composite,
-            // it should override both displayDigits and displayDecimals from the source,
-            // we delete the attributes from the source in this special case.
-            // TODO: is there a more generic way to accomplish this?
-            if (
-                attributesFromComposite.displayDigits ||
-                attributesFromComposite.displayDecimals
-            ) {
-                delete repl.attributes.displayDigits;
-                delete repl.attributes.displayDecimals;
-            }
+            deleteReplacedAttributes({
+                attributes: repl.attributes,
+                attributesFromComposite,
+                componentType: repl.componentType,
+                componentInfoObjects,
+            });
 
             if (link && copyInChildren) {
                 const ignored = extendIgnoresAttributesAndChildren({
@@ -2937,6 +2932,13 @@ export async function replacementFromProp({
                             }
                         }
 
+                        deleteReplacedAttributes({
+                            attributes: attributesForReplacement,
+                            attributesFromComposite,
+                            componentType: createComponentOfType,
+                            componentInfoObjects,
+                        });
+
                         Object.assign(
                             attributesForReplacement,
                             attributesFromComposite,
@@ -3136,6 +3138,13 @@ export async function replacementFromProp({
                                 component: res.components[0],
                             };
                         }
+
+                        deleteReplacedAttributes({
+                            attributes: attributesForReplacement,
+                            attributesFromComposite,
+                            componentType: createComponentOfType,
+                            componentInfoObjects,
+                        });
 
                         Object.assign(
                             attributesForReplacement,
@@ -3755,6 +3764,12 @@ export async function replacementFromProp({
                 const attributesFromComposite = res.attributes;
                 nComponents = res.nComponents;
 
+                deleteReplacedAttributes({
+                    attributes: replacement.attributes,
+                    attributesFromComposite,
+                    componentType: replacement.componentType,
+                    componentInfoObjects,
+                });
                 Object.assign(replacement.attributes, attributesFromComposite);
 
                 if (link) {
@@ -3979,6 +3994,14 @@ export async function replacementFromProp({
                     }
                 }
 
+                deleteReplacedAttributes({
+                    attributes: attributesForReplacement,
+                    attributesFromComposite,
+                    componentType:
+                        stateVarObj.shadowingInstructions.createComponentOfType,
+                    componentInfoObjects,
+                });
+
                 Object.assign(
                     attributesForReplacement,
                     attributesFromComposite,
@@ -4109,6 +4132,14 @@ export async function replacementFromProp({
                         attributesFromComponent,
                     );
                 }
+
+                deleteReplacedAttributes({
+                    attributes: attributesForReplacement,
+                    attributesFromComposite,
+                    componentType:
+                        stateVarObj.shadowingInstructions.createComponentOfType,
+                    componentInfoObjects,
+                });
 
                 Object.assign(
                     attributesForReplacement,
@@ -4566,4 +4597,28 @@ async function listEntrySourceSnapshot({
     }
 
     return { children, state, nComponents };
+}
+
+/**
+ * Remove from `attributes`, those a copy or extend takes from its source,
+ * the ones that an attribute written on it (`attributesFromComposite`)
+ * replaces as well as itself (`replacesOnReference`): with `variable="t"`,
+ * a copy takes none of its source's `variables`, as an extend does not.
+ */
+function deleteReplacedAttributes({
+    attributes,
+    attributesFromComposite,
+    componentType,
+    componentInfoObjects,
+}) {
+    const attributesObj =
+        componentInfoObjects.allComponentClasses[
+            componentType
+        ]?.createAttributesObject() ?? {};
+    for (const attrName in attributesFromComposite) {
+        for (const replaced of attributesObj[attrName]?.replacesOnReference ??
+            []) {
+            delete attributes[replaced];
+        }
+    }
 }

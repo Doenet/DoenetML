@@ -620,6 +620,31 @@ describe("Module tag tests @group1", async () => {
         }
     });
 
+    it("module attributes named displayDigits and displayDecimals are independent on a copy", async () => {
+        // a module does not declare the number-display pair, so one of them
+        // written on a copy does not replace the other on its source
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <module name="m">
+      <moduleAttributes>
+        <integer name="displayDigits">7</integer>
+        <integer name="displayDecimals">3</integer>
+      </moduleAttributes>
+      <p name="p">$displayDigits $displayDecimals</p>
+    </module>
+    <module copy="$m" displayDigits="4" name="m2" />
+    <module copy="$m2" displayDecimals="1" name="m3" />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m2.p")].stateValues.text,
+        ).eq("4 3");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("m3.p")].stateValues.text,
+        ).eq("4 1");
+    });
+
     it("copy referencesAreResponses with parent target", async () => {
         let { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML: `
