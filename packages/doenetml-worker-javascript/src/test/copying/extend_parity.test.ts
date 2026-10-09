@@ -113,6 +113,7 @@ describe("A bare reference and the extend written out @group4", () => {
     <p name="p4"><math copy="$m" /></p>
     <p name="p5">$m</p>
     <p name="p6"><math extend="$m" /></p>
+    <p name="p9"><math extend="$m"><math>2</math></math></p>
     <section name="s"><math renderMode="display">2</math></section>
     <collect componentType="math" from="$s" name="c" />
     <p name="p7"><math extend="$c[1]" /></p>
@@ -133,6 +134,11 @@ describe("A bare reference and the extend written out @group4", () => {
         expect(await firstChildType("p4")).eq("math");
         expect(await firstChildType("p5")).eq("_ref");
         expect(await firstChildType("p6")).eq("_ref");
+        // one with a child keeps it
+        expect(await firstChildType("p9")).eq("math");
+        expect(
+            stateVariables[await resolvePathToNodeIdx("p9")].stateValues.text,
+        ).not.eq("1.5");
         // a copy of a list's entry, typeset as the entry is, which a
         // reference to the entry is not
         expect(await firstChildType("p7")).eq("math");
