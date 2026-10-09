@@ -2500,4 +2500,44 @@ describe("Unlinked Copying Tests @group4", async () => {
             expect(stateValues.fixed, name).eq(true);
         }
     });
+
+    it("an attribute written on a copy replaces its partner on the source, as on an extend", async () => {
+        // `variable` and `variables` (and `derivVariable` and
+        // `derivVariables`, `displayDigits` and `displayDecimals`) are two
+        // ways of writing one setting: one written on a reference replaces
+        // both of its source's
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <function name="f" variables="x y">x+y</function>
+    <function name="fe" extend="$f" variable="t" />
+    <function name="fc" copy="$f" variable="t" />
+    <function name="g" variable="t">t^2</function>
+    <function name="gc" copy="$g" variables="u v" />
+    <derivative name="d" derivVariables="x y">$f</derivative>
+    <derivative name="de" extend="$d" derivVariable="y" />
+    <derivative name="dc" copy="$d" derivVariable="y" />
+    <math name="m" displayDigits="5">1.23456789</math>
+    <math name="me" extend="$m" displayDecimals="1" />
+    <math name="mc" copy="$m" displayDecimals="1" />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const stateValues = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        const trees = (values: any[]) => values.map((v) => v.tree);
+        for (const name of ["fe", "fc"]) {
+            expect(trees((await stateValues(name)).variables), name).eqls([
+                "t",
+            ]);
+        }
+        expect(trees((await stateValues("gc")).variables)).eqls(["u", "v"]);
+        for (const name of ["de", "dc"]) {
+            expect(trees((await stateValues(name)).derivVariables), name).eqls([
+                "y",
+            ]);
+        }
+        for (const name of ["me", "mc"]) {
+            expect((await stateValues(name)).text, name).eq("1.2");
+        }
+    });
 });

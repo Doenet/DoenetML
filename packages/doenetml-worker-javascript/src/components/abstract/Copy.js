@@ -1664,16 +1664,19 @@ export default class Copy extends CompositeComponent {
             const attributesFromComposite = res.attributes;
             nComponents = res.nComponents;
 
-            // Since if either displayDigits or displayDecimals is supplied in the composite,
-            // it should override both displayDigits and displayDecimals from the source,
-            // we delete the attributes from the source in this special case.
-            // TODO: is there a more generic way to accomplish this?
-            if (
-                attributesFromComposite.displayDigits ||
-                attributesFromComposite.displayDecimals
-            ) {
-                delete repl.attributes.displayDigits;
-                delete repl.attributes.displayDecimals;
+            // An attribute given to the copy replaces, as well as itself,
+            // those of the source it names (`replacesOnReference`): with
+            // `variable="t"`, the copy takes none of the source's
+            // `variables`, as an extend does not.
+            const replAttributesObj =
+                componentInfoObjects.allComponentClasses[
+                    repl.componentType
+                ]?.createAttributesObject() ?? {};
+            for (const attrName in attributesFromComposite) {
+                for (const replaced of replAttributesObj[attrName]
+                    ?.replacesOnReference ?? []) {
+                    delete repl.attributes[replaced];
+                }
             }
 
             if (link && copyInChildren) {
