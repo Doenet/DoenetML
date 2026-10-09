@@ -225,14 +225,23 @@ function newComponentIndicesForAttributes(
                 attribute.primitive = { type: "number", value: newIdx };
                 idxMap[originalIdx] = newIdx;
             }
+        } else if (attribute.type === "expression") {
+            // Its slots are its own, as a reference's resolution is, so that
+            // `remapRefResolutions` renumbers them and not those of what was
+            // copied, which may be copied again (a repeat's template).
+            (newAttributes[attrName] as any) = {
+                ...attribute,
+                slots: (attribute as any).slots.map((slot: any) => ({
+                    ...slot,
+                    refResolution: structuredClone(slot.refResolution),
+                })),
+            };
         } else if (
             attribute.type === "variableRef" ||
-            attribute.type === "literal" ||
-            attribute.type === "expression"
+            attribute.type === "literal"
         ) {
-            // a reference to a component outside what is being copied, a
-            // value, or text and references (whose resolutions
-            // `remapRefResolutions` renumbers): no component to number
+            // a reference to a component outside what is being copied, or a
+            // value: no component to number
         } else {
             console.error("Found invalid attribute", attribute);
             throw Error("Found invalid attribute");
@@ -784,14 +793,23 @@ function newComponentIndicesForAttributesFromSerialized(
                 attribute.primitive.value = newIdx;
                 idxMap[originalIdx] = newIdx;
             }
+        } else if (attribute.type === "expression") {
+            // Its slots are its own, as a reference's resolution is, so that
+            // `remapRefResolutions` renumbers them and not those of what was
+            // copied, which may be copied again (a repeat's template).
+            (newAttributes[attrName] as any) = {
+                ...attribute,
+                slots: (attribute as any).slots.map((slot: any) => ({
+                    ...slot,
+                    refResolution: structuredClone(slot.refResolution),
+                })),
+            };
         } else if (
             attribute.type === "variableRef" ||
-            attribute.type === "literal" ||
-            attribute.type === "expression"
+            attribute.type === "literal"
         ) {
-            // a reference to a component outside what is being copied, a
-            // value, or text and references (whose resolutions
-            // `remapRefResolutions` renumbers): no component to number
+            // a reference to a component outside what is being copied, or a
+            // value: no component to number
         } else {
             console.error("Found invalid attribute", attribute);
             throw Error("Found invalid attribute");

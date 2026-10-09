@@ -9,6 +9,8 @@ import {
     updateMathInputValue,
 } from "../utils/actions";
 import { setExpressionAttributesEnabled } from "../../utils/dast/expressionAttributes";
+import { createNewComponentIndices } from "../../utils/componentIndices";
+import { copyOfExpressionAttribute } from "../../utils/expressionAttributeNames";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -391,5 +393,66 @@ describe("Coordinates held by their point @group4", () => {
             reload: true,
         });
         expect(texts.p).toBe("(3, 7) (3, 7) 3");
+    });
+
+    it("renumbering a copy leaves the slots of what it copied as they were", () => {
+        const template = {
+            type: "serialized",
+            componentType: "point",
+            componentIdx: 5,
+            attributes: {
+                xs: {
+                    type: "expression",
+                    name: "xs",
+                    componentType: "mathList",
+                    template: {},
+                    slots: [
+                        {
+                            refResolution: {
+                                nodeIdx: 2,
+                                unresolvedPath: null,
+                                originalPath: [{ name: "a", index: [] }],
+                                nodesInResolvedPath: [5, 2],
+                            },
+                            readPlan: { presentedComponentType: "math" },
+                        },
+                    ],
+                },
+            },
+            doenetAttributes: {},
+            children: [],
+            state: {},
+        } as any;
+        const first = createNewComponentIndices([template], 100);
+        const second = createNewComponentIndices([template], 200);
+        const originOf = (component: any) =>
+            component.attributes.xs.slots[0].refResolution
+                .nodesInResolvedPath[0];
+        expect(originOf(template)).toBe(5);
+        expect(originOf(first.components[0])).toBe(100);
+        expect(originOf(second.components[0])).toBe(200);
+    });
+
+    it("an unlinked copy of a copy keeps the text the first copy was made with", () => {
+        const attribute = {
+            type: "expression",
+            name: "xs",
+            componentType: "mathList",
+            template: {},
+            slots: [],
+            writes: { 2: { expressionWithCodes: 7 } },
+        };
+        // nothing written to the first copy itself yet
+        expect(
+            copyOfExpressionAttribute(attribute, { essentialState: {} }).writes,
+        ).toEqual({ 2: { expressionWithCodes: 7 } });
+        // what was written to it since
+        expect(
+            copyOfExpressionAttribute(attribute, {
+                essentialState: {
+                    __xs_writes: { 2: { expressionWithCodes: 9 } },
+                },
+            }).writes,
+        ).toEqual({ 2: { expressionWithCodes: 9 } });
     });
 });

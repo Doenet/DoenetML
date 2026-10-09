@@ -37,11 +37,13 @@ export function expressionAttributeVariable(
  * attribute component held its state.
  */
 export function copyOfExpressionAttribute(attribute: any, owner: any) {
-    const { writes: _writes, ...rest } = attribute;
+    const { writes, ...rest } = attribute;
+    // what was written to it, or, while nothing has been, what it was made
+    // with (an unlinked copy's, which is its default)
     const written =
         owner.essentialState?.[
             `${expressionAttributePrefix(attribute.name)}writes`
-        ];
+        ] ?? writes;
     return {
         ...structuredClone(rest),
         ...(written && Object.keys(written).length > 0
