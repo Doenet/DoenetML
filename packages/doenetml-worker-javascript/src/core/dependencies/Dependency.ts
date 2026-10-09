@@ -190,6 +190,20 @@ export class Dependency {
         return undefined;
     }
 
+    /**
+     * The variables of `downComponent` that the variables `originalVarNames`
+     * read, where a dependency reads them under other names. `undefined`
+     * (the default) reads them as named. Overridden by
+     * `AttributeComponentDependency`, whose attribute may be a reference to
+     * another component's variable.
+     */
+    renameDownstreamVariables(
+        _downComponent: any,
+        _originalVarNames: string[],
+    ): string[] | undefined {
+        return undefined;
+    }
+
     async determineDownstreamComponents(_args?: any): Promise<any> {
         return {
             success: true,
@@ -441,6 +455,11 @@ export class Dependency {
                     });
             }
 
+            const renamedVarNames = this.renameDownstreamVariables(
+                downComponent,
+                originalVarNames,
+            );
+
             // A value reference (`_ref`) answers to the aliases of the type it
             // stands in for: `latex` asked of one presenting as a `latex` is
             // its `value`.
@@ -449,7 +468,7 @@ export class Dependency {
                       .allComponentClasses[downComponent.presentedComponentType]
                 : downComponent.constructor;
             let mappedVarNames = this.dependencyHandler.core.substituteAliases({
-                stateVariables: originalVarNames,
+                stateVariables: renamedVarNames ?? originalVarNames,
                 componentClass: aliasClass,
             });
 

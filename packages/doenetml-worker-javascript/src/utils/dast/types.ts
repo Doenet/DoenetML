@@ -4,6 +4,7 @@ import {
     isUnflattenedComponent,
     UnflattenedComponent,
 } from "./intermediateTypes";
+import type { VariableRefAttribute } from "../variableRefAttribute";
 export type { Position };
 
 /**
@@ -234,7 +235,8 @@ export type SerializedAttribute =
     | ComponentAttribute
     | PrimitiveAttribute
     | ReferencesAttribute
-    | UnresolvedAttribute;
+    | UnresolvedAttribute
+    | VariableRefAttribute;
 
 export function isSerializedAttribute(
     obj: unknown,
@@ -243,7 +245,24 @@ export function isSerializedAttribute(
         isComponentAttribute(obj) ||
         isPrimitiveAttribute(obj) ||
         isReferencesAttribute(obj) ||
-        isUnresolvedAttribute(obj)
+        isUnresolvedAttribute(obj) ||
+        isVariableRefAttribute(obj)
+    );
+}
+
+export function isVariableRefAttribute(
+    obj: unknown,
+): obj is VariableRefAttribute {
+    const typedObj = obj as VariableRefAttribute;
+    return (
+        typeof typedObj === "object" &&
+        typedObj !== null &&
+        typedObj.type === "variableRef" &&
+        typeof typedObj.name === "string" &&
+        typeof typedObj.componentIdx === "number" &&
+        typeof typedObj.stateVariable === "string" &&
+        typeof typedObj.componentType === "string" &&
+        typeof typedObj.isShadow === "boolean"
     );
 }
 
