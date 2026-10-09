@@ -246,7 +246,23 @@ export function isSerializedAttribute(
         isPrimitiveAttribute(obj) ||
         isReferencesAttribute(obj) ||
         isUnresolvedAttribute(obj) ||
-        (obj as VariableRefAttribute)?.type === "variableRef"
+        isVariableRefAttribute(obj)
+    );
+}
+
+export function isVariableRefAttribute(
+    obj: unknown,
+): obj is VariableRefAttribute {
+    const typedObj = obj as VariableRefAttribute;
+    return (
+        typeof typedObj === "object" &&
+        typedObj !== null &&
+        typedObj.type === "variableRef" &&
+        typeof typedObj.name === "string" &&
+        typeof typedObj.componentIdx === "number" &&
+        typeof typedObj.stateVariable === "string" &&
+        typeof typedObj.componentType === "string" &&
+        typeof typedObj.isShadow === "boolean"
     );
 }
 
