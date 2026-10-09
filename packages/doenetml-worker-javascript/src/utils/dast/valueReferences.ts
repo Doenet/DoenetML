@@ -22,6 +22,7 @@ import {
     planReferentAdapterReference,
     planValueReference,
     RESPONSE_MARKS,
+    separateResponseMarks,
     staticValueReferenceTarget,
 } from "../valueReference";
 import { sequenceEntryComponentType } from "../sequence";
@@ -29,8 +30,11 @@ import { sequenceEntryComponentType } from "../sequence";
 /**
  * Turn, in place, every `_copy` that can be a value reference into a `_ref`.
  *
- * A `_copy` qualifies when it is a bare reference (`$…`, not `extend` or
- * `copy`) whose referent resolved, with no attributes but the marks by which
+ * A `_copy` qualifies when it is a bare reference (`$…`, or an `extend` with
+ * nothing else on it that names the type the reference reads and does not
+ * read the value of an entry of a list, `$c[1]`; not `copy`) whose referent
+ * resolved, with no
+ * attributes but the marks by which
  * an answer records it as a response (`RESPONSE_MARKS`), the component it
  * sits in is not a composite (one that renders its children then draws the
  * reference, `parentDrawsValueReferences`), what it reads is one value of a
@@ -100,18 +104,25 @@ export function convertCopiesToValueReferences({
         betweenBrackets: boolean,
         asEntryOf?: IterationDummy,
     ): (() => void) | undefined {
+        // An `extend` with nothing written on it but the reference
+        // (`<math extend="$m"/>`) is the bare reference written out
+        // (`unadornedExtendType`), which it is planned as.
+        const extendType = unadornedExtendType(component);
         if (
             parent === undefined ||
             component.componentType !== "_copy" ||
             component.extending === undefined ||
-            !("Ref" in component.extending) ||
+            !(
+                "Ref" in component.extending ||
+                (extendType !== undefined && !betweenBrackets && !asEntryOf)
+            ) ||
             !(betweenBrackets
                 ? asksOnlyForAnInteger(component)
-                : hasOnlyResponseMarks(component))
+                : extendType !== undefined || hasOnlyResponseMarks(component))
         ) {
             return;
         }
-        const refResolution = component.extending.Ref;
+        const refResolution = unwrapSource(component.extending);
         if (refResolution.nodeIdx < 0) {
             return;
         }
@@ -194,7 +205,12 @@ export function convertCopiesToValueReferences({
         // marked by the answer already, or named by an award, whose mark it
         // is given below
         const isResponse =
-            naming.length > 0 || Object.keys(component.attributes).length > 0;
+            naming.length > 0 ||
+            Object.keys(
+                extendType === undefined
+                    ? component.attributes
+                    : separateResponseMarks(component.attributes).responseMarks,
+            ).length > 0;
 
         // the class the parent will be created as, which a list whose
         // entries' type an attribute gives decides from it
@@ -237,8 +253,34 @@ export function convertCopiesToValueReferences({
         if (!plan) {
             return;
         }
+        // An extend names a type: it is the bare reference written out only
+        // where that is the type of what the reference reads, which the
+        // parent then takes as it takes the bare reference (as itself, or
+        // through an adapter). One that names another type converts. One
+        // that reads an entry of a list (`$c[1]` of a `<collect>`) copies
+        // the entry, with how it is typeset and whether it takes clicks,
+        // which a reference to the entry does not read, so it stays a copy.
+        if (
+            extendType !== undefined &&
+            (extendType !== target.valueComponentType ||
+                target.listEntryProperty === "value")
+        ) {
+            return;
+        }
         const finalPlan = plan;
         return () => {
+            if (extendType !== undefined) {
+                // It stands where the extend was written, under its index
+                // (the one its replacement would have had), keeping only the
+                // response marks an answer gave it.
+                component.componentIdx = Number(
+                    (component.attributes.createComponentIdx as any).primitive
+                        .value,
+                );
+                component.attributes = separateResponseMarks(
+                    component.attributes,
+                ).responseMarks;
+            }
             if (isResponse) {
                 // A copy keeps its attributes as written, for its
                 // replacements; a value reference holds its response marks
@@ -723,6 +765,65 @@ function hasOnlyResponseMarks(component: SerializedComponent) {
     return Object.keys(component.attributes).every((name) =>
         RESPONSE_MARKS.has(name.toLowerCase()),
     );
+}
+
+/**
+ * The type an `extend` with nothing written on it but the reference names
+ * (`<math extend="$m"/>`), which `convertRefsToCopies` made a `_copy` with
+ * only `createComponentOfType`, `createComponentIdx`, `copyInChildren` and
+ * the name the document generated for it, and no children; `undefined` for
+ * anything else (a name the author wrote, another attribute, a child, a
+ * `copy`). The `isPotentialResponse="true"` an `<answer>` with no input
+ * gives every reference in its awards (`Answer.js`), which has no position
+ * in the source, is not written on it; a mark the author wrote is.
+ */
+function unadornedExtendType(component: SerializedComponent) {
+    if (
+        component.extending === undefined ||
+        !("ExtendAttribute" in component.extending) ||
+        component.children.length > 0
+    ) {
+        return undefined;
+    }
+    if (
+        !Object.entries(component.attributes).every(
+            ([name, attribute]) =>
+                [
+                    "createComponentOfType",
+                    "createComponentIdx",
+                    "createComponentName",
+                    "copyInChildren",
+                ].includes(name) ||
+                (name === "isPotentialResponse" &&
+                    attribute.type === "unresolved" &&
+                    attribute.position === undefined &&
+                    attribute.children.length === 1 &&
+                    attribute.children[0] === "true"),
+        )
+    ) {
+        return undefined;
+    }
+    // a name the document generated (`_math2`), not one the author wrote
+    const nameAttribute = component.attributes.createComponentName;
+    if (
+        nameAttribute !== undefined &&
+        !(
+            nameAttribute.type === "primitive" &&
+            String(nameAttribute.primitive.value).startsWith("_")
+        )
+    ) {
+        return undefined;
+    }
+    const typeAttribute = component.attributes.createComponentOfType;
+    const idxAttribute = component.attributes.createComponentIdx;
+    if (
+        typeAttribute?.type !== "primitive" ||
+        idxAttribute?.type !== "primitive" ||
+        typeof typeAttribute.primitive.value !== "string"
+    ) {
+        return undefined;
+    }
+    return typeAttribute.primitive.value;
 }
 
 /**

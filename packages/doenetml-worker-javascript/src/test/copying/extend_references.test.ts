@@ -6064,9 +6064,11 @@ describe("Extend and references tests @group2", async () => {
             stateVariables[await resolvePathToNodeIdx("pextend3")]
                 .activeChildren[0].componentIdx;
 
-        // `$mi` in a paragraph is a value reference drawn as a math
+        // `$mi` in a paragraph is a value reference drawn as a math, and
+        // so is the extend written out with nothing else on it
         expect(typeAsPresented(core, stateVariables, macrom1Name)).eq("math");
-        expect(stateVariables[extendm1Name].componentType).eq("math");
+        expect(stateVariables[extendm1Name].componentType).eq("_ref");
+        expect(typeAsPresented(core, stateVariables, extendm1Name)).eq("math");
         expect(stateVariables[extendm2Name].componentType).eq("math");
         expect(stateVariables[extendmi3Name].componentType).eq("mathInput");
         expect(stateVariables[macrom1Name].stateValues.value.tree).eqls([
