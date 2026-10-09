@@ -134,7 +134,15 @@ export class ProcessQueue {
                 } else if (nextUpdateInfo.type === "recordEvent") {
                     result = await this.core.performRecordEvent(nextUpdateInfo);
                 } else if (nextUpdateInfo.type === "exclusive") {
-                    result = await nextUpdateInfo.run();
+                    // Its errors are its caller's to report (a save's), not a
+                    // failed request's: they reject only it, and do not stop
+                    // the document.
+                    try {
+                        result = await nextUpdateInfo.run();
+                    } catch (e) {
+                        nextUpdateInfo.reject(e);
+                        continue;
+                    }
                 } else {
                     throw Error(
                         `Unrecognized process type: ${(nextUpdateInfo as any).type}`,
