@@ -1,6 +1,6 @@
 /**
  * The pass that holds a point's coordinates, written as text and references
- * (`<point>($a, 2$a)</point>`), in the point itself rather than in an
+ * (`<point>($a, 2$a)</point>`, or a vector's), in the point itself rather than in an
  * attribute component (Doenet/DoenetML#2252, B4; see
  * `docs/b4-coordinate-attributes.md`).
  *
@@ -18,9 +18,7 @@
  * number and have no components between the brackets of their path
  * (`$l[$i]`). Anything else keeps the attribute component. So does the
  * template of a repeat made a list (`utils/dast/repeatLists.ts`), whose
- * references read entries of lists, and a component made after the resolver
- * was given the document, whose index it does not have to resolve a slot
- * from.
+ * references read entries of lists.
  *
  * It runs last among the passes that read attribute components, after the
  * value references, which make the `_ref`s.
@@ -31,6 +29,7 @@ import { unwrapSource } from "./convertNormalizedDast";
 /** The owner types and attributes the pass holds. */
 const EXPRESSION_ATTRIBUTES: Record<string, Set<string>> = {
     point: new Set(["xs"]),
+    vector: new Set(["xs"]),
 };
 
 /** The types a reference in an expression attribute can be read as. */
@@ -55,12 +54,11 @@ export function setExpressionAttributesEnabled(enabled: boolean) {
 }
 
 /**
- * Hold the attributes of `serializedComponents` that qualify. `numResolverNodes`
- * is the number of nodes the resolver was given (`normalized_root.nodes`):
- * a component made after it, by sugar or for an attribute (the points of a
- * polygon's `vertices`, a label's `anchor`), has an index the resolver does
- * not know, which a slot could not resolve from, so its references keep
- * their own.
+ * Hold the attributes of `serializedComponents` that qualify.
+ * `numResolverNodes` is the number of nodes the resolver was given
+ * (`normalized_root.nodes`): a component made after it, by sugar for an
+ * attribute (the points of a polygon's `vertices`, a label's `anchor`), has
+ * an index the resolver does not know, which a slot cannot resolve from.
  */
 export function convertExpressionAttributes(
     serializedComponents: (SerializedComponent | string)[],
@@ -77,10 +75,7 @@ export function convertExpressionAttributes(
         if (component.doenetAttributes?.repeatTemplate) {
             continue;
         }
-        const names =
-            component.componentIdx < numResolverNodes
-                ? EXPRESSION_ATTRIBUTES[component.componentType]
-                : undefined;
+        const names = EXPRESSION_ATTRIBUTES[component.componentType];
         for (const [name, attribute] of Object.entries(
             component.attributes ?? {},
         )) {
@@ -88,7 +83,12 @@ export function convertExpressionAttributes(
                 continue;
             }
             const held = names?.has(name)
-                ? expressionAttributeOf(name, attribute.component, component)
+                ? expressionAttributeOf(
+                      name,
+                      attribute.component,
+                      component,
+                      component.componentIdx < numResolverNodes,
+                  )
                 : undefined;
             if (held) {
                 component.attributes[name] = held;
@@ -111,6 +111,7 @@ function expressionAttributeOf(
     name: string,
     component: SerializedComponent,
     owner: SerializedComponent,
+    ownerIsResolverNode: boolean,
 ): ExpressionAttribute | undefined {
     if (
         component.componentType !== "mathList" ||
@@ -141,7 +142,7 @@ function expressionAttributeOf(
                 content.push(piece);
                 continue;
             }
-            const slot = slotOf(piece, owner);
+            const slot = slotOf(piece, owner, ownerIsResolverNode);
             if (!slot) {
                 return undefined;
             }
@@ -206,11 +207,19 @@ function expressionAttributeOf(
 
 /**
  * The slot of the value reference `piece` in an attribute of `owner`: its
- * `refResolution`, resolved from `owner` (whose index a copy renumbers, as it
- * renumbered the reference's), and how it is read. `undefined` for anything
- * else, or a reference the pass does not hold.
+ * `refResolution` and how it is read. It resolves from `owner` when the
+ * resolver has a node for it (`ownerIsResolverNode`), and otherwise, for an
+ * owner sugar made after the resolver was given the document (a point of a
+ * polygon's `vertices`), from where the reference was written, as the
+ * reference did. A copy of the owner, which the resolver is given, resolves
+ * it from the copy (`remapRefResolutions`). `undefined` for anything else, or
+ * a reference the pass does not hold.
  */
-function slotOf(piece: SerializedComponent, owner: SerializedComponent) {
+function slotOf(
+    piece: SerializedComponent,
+    owner: SerializedComponent,
+    ownerIsResolverNode: boolean,
+) {
     if (
         piece.componentType !== "_ref" ||
         !piece.extending ||
@@ -241,6 +250,8 @@ function slotOf(piece: SerializedComponent, owner: SerializedComponent) {
     ) {
         return undefined;
     }
-    refResolution.nodesInResolvedPath[0] = owner.componentIdx;
+    if (ownerIsResolverNode) {
+        refResolution.nodesInResolvedPath[0] = owner.componentIdx;
+    }
     return { refResolution, readPlan };
 }

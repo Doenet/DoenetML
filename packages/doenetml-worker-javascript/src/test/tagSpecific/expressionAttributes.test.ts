@@ -28,12 +28,15 @@ describe("Coordinates held by their point @group4", () => {
         doenetML,
         names,
         held = [],
+        numHeld,
         act,
         reload = false,
     }: {
         doenetML: string;
         names: string[];
         held?: string[];
+        /** For points with no name: how many hold their coordinates. */
+        numHeld?: number;
         act?: (core: any, resolvePathToNodeIdx: any) => Promise<void>;
         reload?: boolean;
     }) {
@@ -51,7 +54,9 @@ describe("Coordinates held by their point @group4", () => {
                     heldNow.push(component.componentIdx);
                 }
             }
-            if (enabled) {
+            if (enabled && numHeld !== undefined) {
+                expect(heldNow.length).toBe(numHeld);
+            } else if (enabled) {
                 const expected = [];
                 for (const name of held) {
                     expected.push(await resolvePathToNodeIdx(name));
@@ -200,22 +205,54 @@ describe("Coordinates held by their point @group4", () => {
         expect(texts.p).toBe("(1, 2) (2, 4) (3, 6) (1, 6) (2, 0) (1, 6)");
     });
 
+    it("points made for an attribute: a polygon's vertices and a label's anchor", async () => {
+        // their references resolve from where they were written, and a copy
+        // of them from the copy
+        const texts = await compare({
+            doenetML: `
+<number name="a">2</number>
+<point name="P0">(0.6, 0.8)</point>
+<graph>
+  <polygon name="pg" vertices="($a, 1) (3, $a) ($P0.x, $P0.y)" />
+  <label name="L" anchor="($P0.x/2, $a)">x</label>
+  <vector name="v">($a, $P0.y)</vector>
+</graph>
+<repeatForSequence name="r" from="1" to="2" valueName="i">
+  <graph><polygon vertices="($i, 0) (0, $i) (1, 1)" /></graph>
+</repeatForSequence>
+<p name="p">$pg.vertices $L.anchor $v $r[1] $r[2] $a</p>
+`,
+            names: ["p"],
+            // the polygons' vertices with references, the anchor's point and
+            // the vector
+            numHeld: 9,
+            act: async (core, resolvePathToNodeIdx) => {
+                await core.requestAction({
+                    componentIdx: await resolvePathToNodeIdx("pg"),
+                    actionName: "movePolygon",
+                    args: { pointCoords: { 1: [5, 4] } },
+                });
+            },
+            reload: true,
+        });
+        // the vertex's `3` takes the drag's 5, and `a` its 4
+        expect(texts.p).toBe(
+            "(4, 1), (5, 4), (0.6, 0.8) (0.3, 4) (4, 0.8)   4",
+        );
+    });
+
     it("keeps the attribute component where a slot cannot stand in for a reference", async () => {
-        // a label's anchor, a point that is itself an attribute component;
         // a reference with a component between the brackets of its path; a
-        // reference read as something other than a math or number; a
         // coordinate with an attribute
         await compare({
             doenetML: `
 <number name="a">2</number>
 <numberList name="l">1 2</numberList>
-<point name="P0">(0.6, 0.8)</point>
 <graph>
-  <label name="L" anchor="($P0.x/2, $a)">x</label>
   <repeatForSequence name="r" from="1" to="2" indexName="i"><point>($l[$i], $l[$i+0])</point></repeatForSequence>
   <point name="Q">(<math simplify>$a+$a</math>, 1)</point>
 </graph>
-<p name="p">$L.anchor $r $Q</p>
+<p name="p">$r $Q</p>
 `,
             names: ["p"],
             held: [],

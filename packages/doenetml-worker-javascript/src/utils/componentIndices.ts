@@ -429,10 +429,15 @@ function remapRefResolutions(
             } else if (attribute.type === "unresolved") {
                 remapUnflattenedRefResolutions(attribute.children, idxMap);
             } else if (attribute.type === "expression") {
-                // the references the component resolves itself, each from
-                // the component (`utils/dast/expressionAttributes.ts`)
+                // The references the component resolves itself
+                // (`utils/dast/expressionAttributes.ts`), each from the copy,
+                // which the resolver is given with the rest of what is
+                // copied, also when the original resolved them from where
+                // they were written.
                 for (const slot of (attribute as any).slots) {
                     remapRefResolution(slot.refResolution, idxMap);
+                    slot.refResolution.nodesInResolvedPath[0] =
+                        component.componentIdx;
                 }
             }
         }
