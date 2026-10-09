@@ -15,8 +15,9 @@ import { measureDrag, type DragMeasurement } from "./drag-timing";
 // Load-time bench of the performance harness (Doenet/DoenetML#2126). For each
 // fixture it loads the document once and records the census, the wall-clock
 // load time, the core's per-phase timings and the resolver's call timings; for
-// the drag fixture (the 50-point dot plot from `drag-bench.test.ts`) it then
-// drags the point it names and records the median cost of one `movePoint`.
+// the drag fixtures (the 50-point dot plot from `drag-bench.test.ts`, and the
+// discrete SIR simulation) it then drags the point each names and records the
+// median cost of one `movePoint`.
 //
 //   PERFBENCH_RESULT=/tmp/perf-bench.json \
 //       npm run test -w @doenet/doenetml-worker-javascript -- --run src/test/perf/perf-bench.test.ts
@@ -33,7 +34,7 @@ import { measureDrag, type DragMeasurement } from "./drag-timing";
 // minutes measuring something no assertion depends on. Times are reported,
 // never asserted. The run fails only when a fixture fails to load, loads as
 // `_error` components, or the instrumentation comes back blank (a phase
-// missing, no resolver calls counted, no drag measured on the drag fixture, or
+// missing, no resolver calls counted, no drag measured on a drag fixture, or
 // a drag whose point did not move); the
 // census snapshot in `census.test.ts` is the gate.
 
@@ -105,7 +106,7 @@ async function measureFixture(fixture: Fixture): Promise<FixtureResult> {
         const census = censusOfCore(measurement.core.core);
         let drag: DragMeasurement | undefined;
         if (fixture.drag) {
-            drag = await measureDrag(measurement.core, fixture.drag.target);
+            drag = await measureDrag(measurement.core, fixture.drag);
         }
         return {
             ...base,
@@ -234,7 +235,7 @@ function summaryMarkdown(results: FixtureResult[]): string {
     return [
         "## Performance harness",
         "",
-        `Node ${process.version}, ${new Date().toISOString()}. Load is wall-clock milliseconds of \`createTestCore\` in node; drag is the median wall-clock milliseconds of one awaited transient \`movePoint\` over 25 moves of the fixture's named point (the deferred renderer remainder excluded). Compare ratios across runs on the same machine, not absolutes.`,
+        `Node ${process.version}, ${new Date().toISOString()}. Load is wall-clock milliseconds of \`createTestCore\` in node; drag is the median wall-clock milliseconds of one awaited transient \`movePoint\` over the fixture's drag, 25 moves unless the fixture sets another count (the deferred renderer remainder excluded). Compare ratios across runs on the same machine, not absolutes.`,
         "",
         censusMarkdownTable(rows),
         "",

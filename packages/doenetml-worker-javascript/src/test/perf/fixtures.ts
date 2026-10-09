@@ -7,12 +7,13 @@
  *   deliberate snapshot update.
  * - `benchFixtures()`: the documents whose load time matters. The dot plot
  *   is the Doenet/DoenetML#2023 document at a chosen number of plots; the
- *   drag dot plot is the 50-point document `drag-bench.test.ts` drags, and is
- *   the one fixture that is also dragged; the repeat document is the
+ *   drag dot plot is the 50-point document `drag-bench.test.ts` drags, and
+ *   is dragged here too; the repeat document is the
  *   shadow-heavy one from `memory-bench.test.ts`; the slow examples are the
  *   author-reported documents from Doenet/DoenetML#2101, checked in under
- *   `fixtures/`.
+ *   `fixtures/`, as is the discrete SIR simulation, which is also dragged.
  */
+import type { DragSpec } from "./drag-timing";
 import fs from "node:fs";
 
 export type Fixture = {
@@ -25,7 +26,7 @@ export type Fixture = {
      * be wrong here, since a hidden line segment's `endpoints` attribute
      * creates points too.
      */
-    drag?: { target: string };
+    drag?: DragSpec;
 };
 
 function micro(name: string, doenetML: string): Fixture {
@@ -75,6 +76,13 @@ export const MICRO_DOCUMENTS: Fixture[] = [
     micro(
         "repeatForSequence literal x4",
         `<repeatForSequence from="1" to="4" valueName="i"><number>7</number></repeatForSequence>`,
+    ),
+    // A repeat's value indexed (`$x[1]`, as the discrete SIR simulation
+    // reads each component of its iterates) keeps the repeat a composite
+    // with a `_copy` per reference; `<math>$x</math>` makes it a list.
+    micro(
+        "repeat for mathList $x[1] x2",
+        `<mathList name="l">(1,2) (3,4)</mathList><repeat for="$l" valueName="x"><math>$x[1]</math></repeat>`,
     ),
     micro(
         "answer when $mi=x",
@@ -246,10 +254,31 @@ export const SLOW_EXAMPLE_NAMES = [
 export type SlowExampleName = (typeof SLOW_EXAMPLE_NAMES)[number];
 
 export function slowExampleDocument(name: SlowExampleName): string {
+    return fixtureFile(name);
+}
+
+/** The document checked in as `fixtures/<name>.doenet`. */
+function fixtureFile(name: string): string {
     return fs.readFileSync(
         new URL(`./fixtures/${name}.doenet`, import.meta.url),
         "utf8",
     );
+}
+
+/**
+ * A discrete SIR infectious disease simulation: `<functionIterates>` makes
+ * 200 iterates of a vector, and four `<repeat>`s over them make three
+ * polylines of points (`$x[1]`, `$x[2]`, `$x[3]`) and a spreadsheet of rows.
+ * Its author first wrote it in 0.6 with two components made for it,
+ * `<discreteSimulationResultPolyline>` and `<discreteSimulationResultList>`,
+ * because the maps were too slow to use; this is its 0.7 version with those
+ * replaced by repeats. A drag of the point at (0, S0) changes the initial
+ * value, so every iterate, point and cell is computed again. The points have
+ * no names, so the drag names the graph and its first point; it sweeps y,
+ * since x is fixed, and makes few moves, since each takes seconds.
+ */
+export function discreteSirDocument(): string {
+    return fixtureFile("discrete-sir");
 }
 
 export function benchFixtures(): Fixture[] {
@@ -269,5 +298,18 @@ export function benchFixtures(): Fixture[] {
             doenetML: slowExampleDocument(name),
             kind: "bench" as const,
         })),
+        {
+            name: "discrete-sir",
+            doenetML: discreteSirDocument(),
+            kind: "bench",
+            drag: {
+                target: "plot",
+                pointChild: 1,
+                axis: "y",
+                from: 9000,
+                to: 5000,
+                numDrags: 5,
+            },
+        },
     ];
 }
