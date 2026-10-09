@@ -1,6 +1,11 @@
 import { describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
-import { updateBooleanInputValue } from "../utils/actions";
+import {
+    submitAnswer,
+    updateBooleanInputValue,
+    updateMathInputValue,
+    updateTextInputValue,
+} from "../utils/actions";
 
 const Mock = vi.fn();
 vi.stubGlobal("postMessage", Mock);
@@ -150,5 +155,84 @@ describe("A bare reference and the extend written out @group4", () => {
                     stateVariables[child.componentIdx].componentType,
             ),
         ).eqls(["point", "point"]);
+    });
+    it("are the same in an answer that records the references in its awards", async () => {
+        // An answer with no input of its own marks every reference in its
+        // awards as a potential response, which an extend with nothing else
+        // on it takes as the bare reference does. One whose mark the author
+        // wrote stays a component.
+        const award = (mi: string, ti: string) =>
+            `<award><when>${mi} = x and ${ti} = hello</when></award>`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <mathInput name="mi" /> <textInput name="ti" />
+    <answer name="bare">${award("$mi", "$ti")}</answer>
+    <answer name="extend">${award('<math extend="$mi" />', '<text extend="$ti" />')}</answer>
+    <answer name="marked">${award('<math extend="$mi" isResponse />', "$ti")}</answer>
+    `,
+        });
+
+        async function answer(name: string) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const ans = stateVariables[await resolvePathToNodeIdx(name)];
+            const when =
+                stateVariables[
+                    stateVariables[ans.activeChildren[0].componentIdx]
+                        .activeChildren[0].componentIdx
+                ];
+            const references = when.activeChildren
+                .filter((child: any) => typeof child === "object")
+                .map((child: any) => stateVariables[child.componentIdx]);
+            return {
+                types: references.map((c: any) => c.componentType),
+                marks: references.map((c: any) => [
+                    c.stateValues.isResponse,
+                    c.stateValues.isPotentialResponse,
+                ]),
+                responses: ans.stateValues.submittedResponses.map((r: any) =>
+                    r?.tree !== undefined ? r.tree : r,
+                ),
+                responseTypes: ans.stateValues.submittedResponsesComponentType,
+                credit: ans.stateValues.creditAchieved,
+            };
+        }
+
+        expect((await answer("bare")).types).eqls(["_ref", "_ref"]);
+        expect((await answer("extend")).types).eqls(["_ref", "_ref"]);
+        expect((await answer("marked")).types).eqls(["math", "_ref"]);
+
+        await updateMathInputValue({
+            latex: "x",
+            componentIdx: await resolvePathToNodeIdx("mi"),
+            core,
+        });
+        await updateTextInputValue({
+            text: "hello",
+            componentIdx: await resolvePathToNodeIdx("ti"),
+            core,
+        });
+        for (const name of ["bare", "extend", "marked"]) {
+            await submitAnswer({
+                componentIdx: await resolvePathToNodeIdx(name),
+                core,
+            });
+        }
+        const bare = await answer("bare");
+        expect(bare.marks).eqls([
+            [false, true],
+            [false, true],
+        ]);
+        expect(bare.responses).eqls(["x", "hello"]);
+        expect(bare.responseTypes).eqls(["math", "text"]);
+        expect(bare.credit).eq(1);
+        expect(await answer("extend")).eqls(bare);
+        const marked = await answer("marked");
+        // what the author marks a response is the only one recorded
+        expect(marked.marks[0][0]).eq(true);
+        expect(marked.responses).eqls(["x"]);
+        expect(marked.credit).eq(1);
     });
 });

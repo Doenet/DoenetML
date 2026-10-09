@@ -22,6 +22,7 @@ import {
     planReferentAdapterReference,
     planValueReference,
     RESPONSE_MARKS,
+    separateResponseMarks,
     staticValueReferenceTarget,
 } from "../valueReference";
 import { sequenceEntryComponentType } from "../sequence";
@@ -205,8 +206,11 @@ export function convertCopiesToValueReferences({
         // is given below
         const isResponse =
             naming.length > 0 ||
-            (extendType === undefined &&
-                Object.keys(component.attributes).length > 0);
+            Object.keys(
+                extendType === undefined
+                    ? component.attributes
+                    : separateResponseMarks(component.attributes).responseMarks,
+            ).length > 0;
 
         // the class the parent will be created as, which a list whose
         // entries' type an attribute gives decides from it
@@ -267,12 +271,15 @@ export function convertCopiesToValueReferences({
         return () => {
             if (extendType !== undefined) {
                 // It stands where the extend was written, under its index
-                // (the one its replacement would have had).
+                // (the one its replacement would have had), keeping only the
+                // response marks an answer gave it.
                 component.componentIdx = Number(
                     (component.attributes.createComponentIdx as any).primitive
                         .value,
                 );
-                component.attributes = {};
+                component.attributes = separateResponseMarks(
+                    component.attributes,
+                ).responseMarks;
             }
             if (isResponse) {
                 // A copy keeps its attributes as written, for its
@@ -766,7 +773,9 @@ function hasOnlyResponseMarks(component: SerializedComponent) {
  * only `createComponentOfType`, `createComponentIdx`, `copyInChildren` and
  * the name the document generated for it, and no children; `undefined` for
  * anything else (a name the author wrote, another attribute, a child, a
- * `copy`).
+ * `copy`). The response marks an `<answer>` gives every reference in its
+ * awards (`Answer.js`), which have no position in the source, are not
+ * written on it; a mark the author wrote is.
  */
 function unadornedExtendType(component: SerializedComponent) {
     if (
@@ -776,15 +785,18 @@ function unadornedExtendType(component: SerializedComponent) {
     ) {
         return undefined;
     }
-    const names = Object.keys(component.attributes);
     if (
-        !names.every((name) =>
-            [
-                "createComponentOfType",
-                "createComponentIdx",
-                "createComponentName",
-                "copyInChildren",
-            ].includes(name),
+        !Object.entries(component.attributes).every(
+            ([name, attribute]) =>
+                [
+                    "createComponentOfType",
+                    "createComponentIdx",
+                    "createComponentName",
+                    "copyInChildren",
+                ].includes(name) ||
+                (RESPONSE_MARKS.has(name.toLowerCase()) &&
+                    attribute.type === "unresolved" &&
+                    attribute.position === undefined),
         )
     ) {
         return undefined;
