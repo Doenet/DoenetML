@@ -2187,9 +2187,10 @@ async function serializeShadowedAttributes({
     // (`pastedShadowSource`)
     const visited = new Set([component]);
     for (
-        let from = component, comp = pastedShadowSource(component, components);
+        let from = component,
+            comp = await pastedShadowSource(component, components);
         comp && !visited.has(comp);
-        from = comp, comp = pastedShadowSource(comp, components)
+        from = comp, comp = await pastedShadowSource(comp, components)
     ) {
         visited.add(comp);
         // past a list made by an `extend` of what it names, which may not

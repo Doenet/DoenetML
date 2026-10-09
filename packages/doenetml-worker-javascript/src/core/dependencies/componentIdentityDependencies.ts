@@ -276,6 +276,39 @@ export class AttributeComponentDependency extends Dependency {
                         downstreamComponentTypes: [],
                     };
                 }
+                if (await copyComposite.stateValues.usedReplacements) {
+                    // A copy of a composite other than a list (`<mathList
+                    // copy="$g"/>` of a `<group>`) copies what the composite
+                    // stands for, its replacements, not the composite. The
+                    // list takes the composite's attributes, as an extend of
+                    // it does.
+                    const named = (await copyComposite.stateValues
+                        .extendedComponent) as { componentIdx: number } | null;
+                    const namedComponent =
+                        named &&
+                        this.dependencyHandler._components[named.componentIdx];
+                    if (
+                        !namedComponent ||
+                        visited.has(namedComponent.componentIdx)
+                    ) {
+                        break;
+                    }
+                    comp = namedComponent;
+                    visited.add(comp.componentIdx);
+                    attribute = comp.attributes[this.attributeName];
+                    if (attribute?.component) {
+                        return {
+                            success: true,
+                            downstreamComponentIndices: [
+                                attribute.component.componentIdx,
+                            ],
+                            downstreamComponentTypes: [
+                                attribute.component.componentType,
+                            ],
+                        };
+                    }
+                    continue;
+                }
                 const copied = copyComposite.replacements?.find(
                     (replacement: any) => typeof replacement === "object",
                 );

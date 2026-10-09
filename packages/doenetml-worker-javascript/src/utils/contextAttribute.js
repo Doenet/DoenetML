@@ -282,12 +282,13 @@ export function addContextAttributeDefinitions({
  * (a shadow, not of a prop), or the list it names, when it is a list made by
  * an `extend` of a list (`extendsList`), or the unlinked copy of the list it
  * names, when it is a list made by a `copy` of a list (`copyListViaComposite`),
- * so that a copy of it, pasted as the DoenetML it is linked to, takes the
- * attributes written there; otherwise `undefined`. An extend of a list that
+ * or the composite it names, when that copy copied the composite's
+ * replacements, so that a copy of it, pasted as the DoenetML it is linked
+ * to, takes the attributes written there; otherwise `undefined`. An extend of a list that
  * names itself makes this a cycle (reported as circular elsewhere), so a walk
  * along it stops at a component it has seen.
  */
-export function pastedShadowSource(component, components) {
+export async function pastedShadowSource(component, components) {
     const shadows = component?.shadows;
     if (!shadows) {
         // a list made by an `extend` of a list (`convertToCopy`) stands for
@@ -298,10 +299,17 @@ export function pastedShadowSource(component, components) {
         }
         // a list made by a `copy` of a list stands for the unlinked copy of
         // that list its `_copy` makes, which has the list's attributes as
-        // pasted (`AttributeComponentDependency`)
-        const copyIdx = component?.doenetAttributes?.copyListViaComposite;
-        if (copyIdx !== undefined) {
-            return components?.[copyIdx]?.replacements?.find(
+        // pasted, or, when the `_copy` copied the replacements of a
+        // composite (`<mathList copy="$g"/>` of a `<group>`), for that
+        // composite (`AttributeComponentDependency`)
+        const copyComposite =
+            components?.[component?.doenetAttributes?.copyListViaComposite];
+        if (copyComposite) {
+            if (await copyComposite.stateValues.usedReplacements) {
+                const named = await copyComposite.stateValues.extendedComponent;
+                return named ? components[named.componentIdx] : undefined;
+            }
+            return copyComposite.replacements?.find(
                 (replacement) => typeof replacement === "object",
             );
         }
@@ -329,7 +337,7 @@ async function writtenAttributeComponent(component, attributeName, components) {
     for (
         let comp = component;
         comp && !visited.has(comp);
-        comp = pastedShadowSource(comp, components)
+        comp = await pastedShadowSource(comp, components)
     ) {
         visited.add(comp);
         const attribute = comp.attributes?.[attributeName]?.component;

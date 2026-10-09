@@ -263,6 +263,33 @@ describe("Attributes of an extend or copy of a list @group4", () => {
         await check(false);
     });
 
+    it("a copy as a list of a group takes the group's attributes, as an extend does", async () => {
+        // the copy holds copies of the group's children, but takes the
+        // attributes of the group, not of its first child
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+    <group name="g"><math hide displayDigits="2">1.2345</math><math>2.3456</math></group>
+    <mathList extend="$g" name="e" />
+    <mathList copy="$g" name="c" />
+    <mathList copy="$c" name="cc" />
+    <group name="gh" hide><math>1</math></group>
+    <mathList extend="$gh" name="eh" />
+    <mathList copy="$gh" name="ch" />
+    <mathList copy="$ch" name="cch" />
+    `,
+        });
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        const sv = async (name: string) =>
+            stateVariables[await resolvePathToNodeIdx(name)].stateValues;
+        for (const name of ["e", "c", "cc"]) {
+            expect((await sv(name)).hidden, name).eq(false);
+            expect((await sv(name)).displayDigits, name).eq(3);
+        }
+        for (const name of ["eh", "ch", "cch"]) {
+            expect((await sv(name)).hidden, name).eq(true);
+        }
+    });
+
     it("an extend of a list that names itself is reported as circular", async () => {
         await expect(
             createTestCore({
