@@ -138,7 +138,7 @@ describe("A bare reference and the extend written out @group4", () => {
         expect(await firstChildType("p9")).eq("math");
         expect(
             stateVariables[await resolvePathToNodeIdx("p9")].stateValues.text,
-        ).not.eq("1.5");
+        ).eq("1.5 * 2");
         // a copy of a list's entry, typeset as the entry is, which a
         // reference to the entry is not
         expect(await firstChildType("p7")).eq("math");
