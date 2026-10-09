@@ -27,8 +27,11 @@ import { serializedAttributeComponent } from "../literalAttribute";
  *   - its value or index, read as an entry of the list the repeat holds them
  *     in (`_repeatValues`, `_repeatIndices`; the value-reference pass made
  *     them lists only when nothing else reads them);
- *   - the value of a `<repeat>` whose `for` is one list (`for="$l"`), read
- *     as `$l[$i]`;
+ *   - the value of a `<repeat>` whose `for` is one list (`for="$l"`), or a
+ *     property whose value is one (`for="$it.allIteratesWithInitial"`,
+ *     which the reference makes as that list), read as `$l[$i]`, or one
+ *     coordinate of it (`$x[2]`, an index written as a positive integer),
+ *     read as `$l[$i][2]`, of a list of maths;
  *   - an entry of a list at the iteration's index (`$l[$i]`);
  *   - a value that is the same in every iteration, which becomes a child of
  *     the list;

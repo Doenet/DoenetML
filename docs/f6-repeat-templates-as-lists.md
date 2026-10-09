@@ -77,7 +77,8 @@ The rule is applied to the document by a pass in the style of F4's `utils/dast/l
 - A nested component is named.
 - The template references itself, like `$P` or `$dragPoint.x` inside its own label.
 - An index is computed: `$l[$i+1]` or `$l[$perm[$i]]`. This could be added later with per-key dynamic dependencies. No qualifying fixture needs it.
-- The template reads the value of a `<repeat>` whose `for` is not one list. #2171 keeps that value as a component of each iteration, because it is a copy of an item, not a value.
+- The template reads the value of a `<repeat>` whose `for` is not one list, or a property whose value is one (step 7). #2171 keeps that value as a component of each iteration, because it is a copy of an item, not a value.
+- The template reads the value through a path other than one coordinate written as a positive integer (`$x[$i]`, `$x[1][1]`, `$x.x`), or a coordinate of a value that is not a math (step 7).
 - The template contains a math operator other than `<abs>`, `<round>` and `<evaluate>` (step 6).
 - The template contains a random sampler. See [Randomness](#randomness).
 - The template contains a point in a sticky group, or a point with `link="false"`. The latter is a free point with state of its own, not an expression.
@@ -254,7 +255,8 @@ Not relevant to F6: #2179 (a standalone `<vector>`), #2182 (an authored child's 
 | 5. `_repeatPointList` for point templates | #2172 | `RepeatPointList.js`, `abstract/repeatList.js`, `GraphicalValueList.js` | done |
 | 5b. Vector templates | step 5 | the same, on `VectorList` | when evidence asks |
 | 6. The math operators `<abs>`, `<round>` and `<evaluate>` (including `$$f(…)`) | step 5 | `utils/repeatTemplate.js`, `utils/dast/repeatLists.ts`, `abstract/repeatList.js`, `RepeatPointList.js`, `utils/valueFunctions/mathOperators.js` | done |
-| later | evidence | samplers, per-entry attributes, computed indices, the values of a `<repeat>` over anything but one list, the other math operators | — |
+| 7. A `<repeat>` over a property whose value is a list, and a coordinate of its value (`$x[1]`) | step 5 | `utils/dast/repeatLists.ts`, `utils/repeatTemplate.js`, `abstract/repeatList.js`, `RepeatPointList.js`, `core/EssentialValueWriter.ts` | done |
+| later | evidence | samplers, per-entry attributes, computed indices, the values of a `<repeat>` over anything but one list or such a property, the other math operators | — |
 
 **Step 1, pinning tests.** These all pass on `main`. Each records today's behaviour for a qualifying template:
 - the values and the rendered text;
@@ -376,6 +378,11 @@ Step 4 alone reaches the number and math fixtures (the unit-circle boolean's nes
 
   Every repeat made a list resolves one more state variable, `evaluateSymbolically`, and 4 more dependencies, also when its template has no `<evaluate>`. A list of values has one more, on `templateAnalysis`, for its `displayDigits`. So `repeatForSequence $i^2 x4` goes from 277 to 282 dependencies, and `repeatForSequence literal x4` from 256 to 261.
 - **`<collect componentType="abs">`** (or `"round"`, `"evaluate"`) of a section holding such a repeat collected each iteration's operator from the composite. The list has no such component, so that collect is empty, as for step 4's `<math>` in a `<number>`; `componentType="math"` collects the entries as before.
+
+**Step 7, as built.** The discrete-sir fixture (#2251) plots each component of a `<functionIterates>`'s iterates with `<repeat for="$iteration.allIteratesWithInitial" valueName="x" indexName="i"><point>($i-1, $x[1])</point></repeat>`. Either of two things kept such a repeat a composite.
+- **A `for` that is a property whose value is a list.** When the `for` is one reference to a property (`$it.allIteratesWithInitial`) whose type, read from the document (`staticValueReferenceTarget`), is a list whose entries qualify, the pass gives the reference the index of the list it makes (`createComponentOfType`, `createComponentIdx`, as an `extend` has), and the template reads entry k of that list as it reads `$l[$i]`. A property that is an array of values (`$it.iterates`) makes one component per value, not a list, and still keeps the composite.
+- **A coordinate of the value** (`$x[2]`, an index written as a positive integer, of a list of maths) is read as `$l[$i][2]`: the entry property `x2` the list computes for each entry (`ValueListComponent.derivedEntryProperty`), which a write reaches through `entryCoordinateWrites`, so writes to two coordinates of one entry are taken together. The template's analysis keys each entry code by its list and coordinate (`entryCoordinates`), and the list reads a coordinate through a `stateVariableFromUnresolvedPath` dependency (`entryCodeDependency`), which makes the entry property's array when first read. `EssentialValueWriter` now takes a write through that dependency type as through a `stateVariable` one; before, such a write was dropped.
+- **One difference from the composite.** A coordinate past the value's dimensions (`$x[2]` of `5`) is a blank, as `$m[2]` of a `<math>` reads outside a repeat. The composite's copy of it had nothing to copy and left its place empty (`+ 1` for `$x[2] + 1`).
 
 ## Decisions to settle
 
