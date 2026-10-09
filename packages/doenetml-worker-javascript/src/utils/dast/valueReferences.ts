@@ -773,9 +773,9 @@ function hasOnlyResponseMarks(component: SerializedComponent) {
  * only `createComponentOfType`, `createComponentIdx`, `copyInChildren` and
  * the name the document generated for it, and no children; `undefined` for
  * anything else (a name the author wrote, another attribute, a child, a
- * `copy`). The response marks an `<answer>` gives every reference in its
- * awards (`Answer.js`), which have no position in the source, are not
- * written on it; a mark the author wrote is.
+ * `copy`). The `isPotentialResponse="true"` an `<answer>` with no input
+ * gives every reference in its awards (`Answer.js`), which has no position
+ * in the source, is not written on it; a mark the author wrote is.
  */
 function unadornedExtendType(component: SerializedComponent) {
     if (
@@ -794,9 +794,11 @@ function unadornedExtendType(component: SerializedComponent) {
                     "createComponentName",
                     "copyInChildren",
                 ].includes(name) ||
-                (RESPONSE_MARKS.has(name.toLowerCase()) &&
+                (name === "isPotentialResponse" &&
                     attribute.type === "unresolved" &&
-                    attribute.position === undefined),
+                    attribute.position === undefined &&
+                    attribute.children.length === 1 &&
+                    attribute.children[0] === "true"),
         )
     ) {
         return undefined;
