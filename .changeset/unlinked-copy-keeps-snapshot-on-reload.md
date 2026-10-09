@@ -6,4 +6,4 @@
 "doenet-vscode-extension": patch
 ---
 
-An unlinked copy (`copy="$m"`) now keeps the value it was made with, and whether it was fixed, after the page is reloaded, even when its source has changed since; before, a reload made it again from its source as it was then. Saved state grows mostly for copies whose source has changed.
+An unlinked copy (`copy="$m"`) now keeps the value it was made with after the page is reloaded, even when its source has changed since; before, a reload made it again from its source as it was then. Its `fixed` and `fixLocation`, copied as written on its source, are made again on reload as before. Saved state grows mostly for copies whose source has changed.
