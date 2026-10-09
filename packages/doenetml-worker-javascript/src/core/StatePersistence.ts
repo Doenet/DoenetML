@@ -448,15 +448,16 @@ export class StatePersistence {
 
         // Making the copies again evaluates their sources over many steps,
         // so it waits for the update in progress and holds the next one
-        // back (`runExclusive`).
-        if (this.unlinkedCopies().length > 0) {
-            await core.processQueue.runExclusive(() =>
-                this.recordCopySnapshots(this.unlinkedCopies()),
-            );
-        }
-
+        // back (`runExclusive`). The payload is built in the same turn, so
+        // that no request runs between the snapshots it holds and the state
+        // they are compared with.
         const { payload, coreStateString, rendererStateString } =
-            this.buildDocStatePayload(onSubmission);
+            this.unlinkedCopies().length > 0
+                ? await core.processQueue.runExclusive(async () => {
+                      await this.recordCopySnapshots(this.unlinkedCopies());
+                      return this.buildDocStatePayload(onSubmission);
+                  })
+                : this.buildDocStatePayload(onSubmission);
 
         // The credit that goes with this payload, resolved here so the pair
         // travels together from here on. Skipped when there is no host to
