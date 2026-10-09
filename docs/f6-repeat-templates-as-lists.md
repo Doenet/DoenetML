@@ -82,6 +82,8 @@ The rule is applied to the document by a pass in the style of F4's `utils/dast/l
 - The template contains a random sampler. See [Randomness](#randomness).
 - The template contains a point in a sticky group, or a point with `link="false"`. The latter is a free point with state of its own, not an expression.
 - The repeat is referenced in a way the pass cannot see statically, such as `<group extend="$Ps[2]">` followed by `$g.P`. This is the same guard #2171 uses for `$g.i`.
+- The repeat has a `fixed` attribute of its own. Its iterations keep their own `fixed` behavior. With `fixed="false"`, a drag changes an iteration's value and index (#2228).
+- The template reads the repeat's value or index and has a `fixed` other than `true`. The template's `fixed` becomes the list's, and the lists that hold the values and indices would take it as the repeat's: `<point fixed="false">($v, 1)</point>` would let a drag change `$v`, which it does not as a composite (#2228). The values and indices take a drag when the repeat is under an ancestor with `fixed="false"`, as a list or not.
 
 **Per-entry renderer attributes are left out.** These are templates like `<math anchor="($i,0)">`, or `<point styleNumber="$i"><label>$i</label>`. The survey finds 1 in the docs and 1 in real content, so they are not worth the per-entry machinery yet. F5's `listEntryChildRendererVariables` is where they would go.
 

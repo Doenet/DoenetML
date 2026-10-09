@@ -353,6 +353,20 @@ export function convertRepeatsToLists({
         if (listType === undefined) {
             return;
         }
+        // The template's `fixed` becomes the list's, which the lists holding
+        // the iteration values and indices would read as the repeat's: a
+        // `fixed="false"` would let the template's writes change them, which
+        // the composite's iterations did not.
+        if (
+            iterationLists.size > 0 &&
+            Object.entries(template.attributes).some(
+                ([name, attribute]) =>
+                    name.toLowerCase() === "fixed" &&
+                    !isPlainTrueLiteral(attribute),
+            )
+        ) {
+            return;
+        }
         // An iteration's math or number in a graph was placed at an anchor
         // of its own, which an entry of the list has none of; a point's own
         // coordinates place it.
@@ -1366,6 +1380,33 @@ function isPlainBooleanLiteral(attribute: SerializedAttribute): boolean {
         .trim()
         .toLowerCase();
     return text === "" || text === "true" || text === "false";
+}
+
+/** Whether `attribute` is written as `true`, or with no value. */
+function isPlainTrueLiteral(attribute: SerializedAttribute): boolean {
+    if (attribute.type === "primitive") {
+        return attribute.primitive.value === true;
+    }
+    if (attribute.type !== "component") {
+        return false;
+    }
+    const value = attribute.component.state?.value;
+    if (typeof value === "boolean") {
+        return value;
+    }
+    if (
+        attribute.component.extending !== undefined ||
+        !attribute.component.children.every(
+            (child) => typeof child === "string",
+        )
+    ) {
+        return false;
+    }
+    const text = (attribute.component.children as string[])
+        .join("")
+        .trim()
+        .toLowerCase();
+    return text === "" || text === "true";
 }
 
 /**

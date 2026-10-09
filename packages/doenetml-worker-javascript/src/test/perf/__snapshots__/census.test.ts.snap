@@ -323,10 +323,10 @@ exports[`component census of the micro-documents > repeatForSequence $i^2 x4 1`]
   },
   "components": 7,
   "copies": 0,
-  "dependencies": 280,
+  "dependencies": 301,
   "shadows": 0,
-  "stateVariables": 325,
-  "stateVariablesResolved": 127,
+  "stateVariables": 332,
+  "stateVariablesResolved": 133,
 }
 `;
 
