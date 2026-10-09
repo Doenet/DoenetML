@@ -268,6 +268,54 @@ describe("Repeats whose template is one point @group4", () => {
         ]);
     });
 
+    it("a drag through a coordinate past an entry's dimensions writes it, as of a list outside", async () => {
+        // The composite's copy of `$x[2]` of `3` has nothing to write to, and
+        // its point leaves the list; the list writes the entry as
+        // `$l[2][2]` outside a repeat does.
+        const doenetML = `
+<mathList name="l">(1,2) 3</mathList>
+<graph name="g">
+  <repeat name="r" for="$l" valueName="x"><point>($x[2], $x[1])</point></repeat>
+</graph>
+<mathList name="l2">(1,2) 3</mathList>
+<graph name="g2"><point name="P">($l2[2][2], $l2[2][1])</point></graph>
+<p name="pl">$l</p>
+<p name="pl2">$l2</p>
+`;
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        expect(
+            core.core!._components[await resolvePathToNodeIdx("r")]
+                .componentType,
+        ).toBe("_repeatPointList");
+        await dragPoint({
+            core,
+            resolvePathToNodeIdx,
+            graph: "g",
+            index: 1,
+            x: 7,
+            y: 8,
+        });
+        await movePoint({
+            componentIdx: await resolvePathToNodeIdx("P"),
+            x: 7,
+            y: 8,
+            core,
+        });
+        expect(
+            await textsOf(core, resolvePathToNodeIdx, ["pl", "pl2"]),
+        ).toEqual({ pl: "(1, 2), (8, 7)", pl2: "(1, 2), (8, 7)" });
+        expect(
+            (await pointsDrawnIn(core, resolvePathToNodeIdx, "g")).map(
+                (p) => p.coords,
+            ),
+        ).toEqual([
+            [2, 1],
+            [7, 8],
+        ]);
+    });
+
     it("points of a property whose value is a list, as a simulation plots its iterates", async () => {
         // discrete-sir's: a polyline through points of one coordinate of
         // each iterate

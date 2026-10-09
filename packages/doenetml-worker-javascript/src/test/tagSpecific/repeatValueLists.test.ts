@@ -253,6 +253,32 @@ describe("Repeats whose template is one value @group4", () => {
         });
     });
 
+    it("a repeat over a property, in each iteration of another repeat", async () => {
+        // the list the `for` makes resolves `$it` from each iteration, as
+        // the reference it replaces did
+        const doenetML = `
+<function name="f" variables="u v">(u+1, 2v)</function>
+<p name="p"><repeat name="o" for="1 2" valueName="k">
+  <functionIterates name="it" function="$f" initialValue="($k,1)" numIterates="2" />
+  <repeat name="r" for="$it.allIteratesWithInitial" valueName="x"><math>$x[1]</math></repeat>
+</repeat></p>
+`;
+        const texts = await compare({
+            doenetML,
+            names: ["p"],
+            repeatName: "o",
+            becomesList: false,
+        });
+        const { core } = await load(doenetML, true);
+        expect(
+            Object.values(core.core!._components).filter(
+                (component: any) =>
+                    component?.componentType === "_repeatValueList",
+            ).length,
+        ).toBe(2);
+        expect(texts.p.replace(/\s+/g, " ").trim()).toBe("1, 2, 3, 2, 3, 4");
+    });
+
     it("a sum of a repeat over a list of numbers", async () => {
         const texts = await compare({
             doenetML: `

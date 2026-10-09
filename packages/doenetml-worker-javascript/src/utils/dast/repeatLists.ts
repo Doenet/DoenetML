@@ -592,10 +592,14 @@ export function convertRepeatsToLists({
         return (nComponents: number) => {
             // A `for` that is a property (`$it.allIteratesWithInitial`) is
             // the list it makes, given an index here so the entries can name
-            // it.
+            // it. As for an `extend`, the list takes the reference's index
+            // and the reference a new one: the reference resolves from its
+            // index (`nodesInResolvedPath[0]`), which, when a repeat's
+            // template holding it is copied, is that of what it makes.
             let forListIdx = forList?.nodeIdx;
             if (forList?.copy) {
-                forListIdx = nComponents++;
+                forListIdx = forList.copy.componentIdx;
+                forList.copy.componentIdx = nComponents++;
                 forList.copy.attributes = {
                     createComponentOfType: {
                         type: "primitive",
