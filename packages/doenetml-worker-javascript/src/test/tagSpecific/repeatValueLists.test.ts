@@ -343,6 +343,32 @@ describe("Repeats whose template is one value @group4", () => {
         });
     });
 
+    it("a template around one value alone shows it with that value's display settings", async () => {
+        const texts = await compare({
+            doenetML: `
+<mathList name="l" displayDigits="2">1.23456 2.34567</mathList>
+<mathList name="le"><math displayDigits="5">1.23456</math><math displayDecimals="1">2.34567</math></mathList>
+<p name="p"><repeat name="r" for="$l" valueName="x"><math><math>$x</math></math></repeat></p>
+<p name="p2"><repeat name="r2" for="$l" valueName="x"><math><abs>$x</abs></math></repeat></p>
+<p name="p3"><repeat name="r3" for="$l" valueName="x"><abs><math>$x</math></abs></repeat></p>
+<p name="p4"><repeat name="r4" for="$l" valueName="x"><math><round numDecimals="3">$x</round></math></repeat></p>
+<p name="p5"><repeat name="r5" for="$l" valueName="x"><abs><round numDecimals="3">$x</round></abs></repeat></p>
+<p name="p6"><repeat name="r6" for="$le" valueName="x"><math><abs>$x</abs></math></repeat></p>
+<p name="p7"><repeat name="r7" for="$l" valueName="x"><math><math>2$x</math></math></repeat></p>
+`,
+            names: ["p", "p2", "p3", "p4", "p5", "p6", "p7"],
+        });
+        expect(texts).toEqual({
+            p: "1.2, 2.3",
+            p2: "1.2, 2.3",
+            p3: "1.2, 2.3",
+            p4: "1.235, 2.346",
+            p5: "1.235, 2.346",
+            p6: "1.2346, 2.3",
+            p7: "2 * 1.23, 2 * 2.35",
+        });
+    });
+
     it("a sum of a repeat over a list of numbers", async () => {
         const texts = await compare({
             doenetML: `

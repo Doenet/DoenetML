@@ -101,9 +101,11 @@ const PARSE_SETTINGS = {
  * operator, also has its `codePre`, `expressionWithCodes` and `numStrings`; a
  * `<round>` its `numDecimals` and `numDigits`; a number node the `string` it
  * reads when its one child is text. A math or number node, other than a
- * `<round>`, whose content is one entry or constant code alone has it as its
- * `singleCode`. An `<evaluate>` node's codes are its inputs, and it has the
- * constant its function is (`function`) and its `forceSymbolic` and
+ * `<round>`, whose content is one entry or constant code alone, or one nested
+ * node that has one, has it as its `singleCode`; a `<round>`, or a node whose
+ * content is one alone, shows the round's digits (`showsRoundDigits`,
+ * `singleChildOf`). An `<evaluate>` node's codes are its inputs, and it has
+ * the constant its function is (`function`) and its `forceSymbolic` and
  * `forceNumeric`.
  */
 export function analyzeRepeatTemplate(template) {
@@ -191,8 +193,10 @@ export function analyzeRepeatTemplate(template) {
             }
             node.numStrings = strings.length;
             // a `<round>` shows its own digits, not its child's
-            if (node.type !== "round") {
-                node.singleCode = singleCodeOf(node.codes, strings);
+            if (node.type === "round") {
+                node.showsRoundDigits = true;
+            } else {
+                Object.assign(node, singleChildOf(node.codes, strings, nodes));
             }
             node.codePre = mathCodePre(strings);
             node.expressionWithCodes = mathExpressionWithCodes({
@@ -209,7 +213,7 @@ export function analyzeRepeatTemplate(template) {
                 node.string = child;
             } else if (child !== undefined) {
                 node.codes.push(codeOf(child));
-                node.singleCode = singleCodeOf(node.codes, []);
+                Object.assign(node, singleChildOf(node.codes, [], nodes));
             }
         }
         return ind;
@@ -252,20 +256,30 @@ export function analyzeRepeatTemplate(template) {
 }
 
 /**
- * The one entry or constant code that is the whole content of a node, with
- * no text around it (`<math>$x</math>`, `<number>$l[$i]</number>`): the
- * single child whose display settings a `<math>` or `<number>` takes as its
- * defaults. `undefined` for any other content.
+ * What a node whose content is `codes` and `strings` takes its display
+ * settings from, as a `<math>`, `<number>` or `<abs>` takes those of its
+ * single child as its defaults: when its content is one entry or constant
+ * code alone (`<math>$x</math>`, `<number>$l[$i]</number>`), that code
+ * (`singleCode`); when it is one nested node of `nodes` alone
+ * (`<math><abs>$x</abs></math>`), what that node takes its settings from, a
+ * `<round>`'s own digits (`showsRoundDigits`) included. Nothing for any other
+ * content, or an `<evaluate>`, which takes those of its function.
  */
-function singleCodeOf(codes, strings) {
-    if (
-        codes.length !== 1 ||
-        codes[0].node !== undefined ||
-        strings.some((string) => string.trim() !== "")
-    ) {
-        return undefined;
+function singleChildOf(codes, strings, nodes) {
+    if (codes.length !== 1 || strings.some((string) => string.trim() !== "")) {
+        return {};
     }
-    return codes[0];
+    const code = codes[0];
+    if (code.node === undefined) {
+        return { singleCode: code };
+    }
+    const nested = nodes[code.node];
+    if (nested.showsRoundDigits) {
+        return { showsRoundDigits: true };
+    }
+    return nested.singleCode === undefined
+        ? {}
+        : { singleCode: nested.singleCode };
 }
 
 /**

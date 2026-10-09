@@ -186,9 +186,10 @@ export default class RepeatValueList extends ValueListComponent {
             settingsDependencies,
         });
 
-        // A `<round>` template shows 14 digits by default, as `<round>`
-        // does. It stays a default, so what reads the list
-        // (`<mathList>$r</mathList>`) shows its own.
+        // A `<round>` template, or one around a `<round>` alone
+        // (`showsRoundDigits`), shows 14 digits by default, as `<round>` does
+        // and passes to its parent. It stays a default, so what reads the
+        // list (`<mathList>$r</mathList>`) shows its own.
         const displayDigits = stateVariableDefinitions.displayDigits;
         stateVariableDefinitions.displayDigits = {
             ...displayDigits,
@@ -196,7 +197,7 @@ export default class RepeatValueList extends ValueListComponent {
             returnDependencies(args) {
                 const dependencies = displayDigits.returnDependencies(args);
                 if (
-                    args.stateValues.templateAnalysis.nodes[0]?.type === "round"
+                    args.stateValues.templateAnalysis.nodes[0]?.showsRoundDigits
                 ) {
                     dependencies.roundTemplate = {
                         dependencyType: "value",
