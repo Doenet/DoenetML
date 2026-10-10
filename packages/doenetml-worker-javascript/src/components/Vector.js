@@ -49,6 +49,10 @@ export default class Vector extends GraphicalComponent {
     static canBeInList = true;
 
     static primaryStateVariableForDefinition = "displacementShadow";
+
+    // The attributes that define the value an unlinked copy of a reference
+    // to this component computes rather than holds (`BaseComponent.serialize`)
+    static attributesDefiningPrimaryValue = ["xs"];
     static variableForIndexAsProp = "displacement";
 
     static createAttributesObject() {

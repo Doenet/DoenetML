@@ -52,6 +52,10 @@ export default class Point extends GraphicalComponent {
     // Instead have a public array state variable of maths for each component
     // and use wrapping components to create points from those
     static primaryStateVariableForDefinition = "coordsShadow";
+
+    // The attributes that define the value an unlinked copy of a reference
+    // to this component computes rather than holds (`BaseComponent.serialize`)
+    static attributesDefiningPrimaryValue = ["xs"];
     static stateVariableToBeShadowed = "coords";
     static variableForIndexAsProp = "xs";
 

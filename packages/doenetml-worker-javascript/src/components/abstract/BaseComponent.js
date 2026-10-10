@@ -1694,9 +1694,21 @@ export default class BaseComponent {
             ];
         }
 
+        // An unlinked copy of a reference (`copyPrimaryEssentialIfShadow`)
+        // holds the referent's value as it is, unless it was given an
+        // attribute of the referent's that defines that value
+        // (`attributesDefiningPrimaryValue`, the `xs` of
+        // `<point>($a, 0)</point>`): pasted as the referent's DoenetML, it
+        // computes the value from that attribute, as the referent does.
+        const definedByAttribute =
+            this.constructor.attributesDefiningPrimaryValue?.some(
+                (name) => serializedComponent.attributes?.[name],
+            );
         if (
             parameters.copyPrimaryEssential ||
-            (parameters.copyPrimaryEssentialIfShadow && this.shadows)
+            (parameters.copyPrimaryEssentialIfShadow &&
+                this.shadows &&
+                !definedByAttribute)
         ) {
             let primaryEssentialStateVariable = "value";
             if (this.constructor.primaryEssentialStateVariable) {
@@ -1746,16 +1758,21 @@ export default class BaseComponent {
             (parameters.copyEssentialStateIfShadow && this.shadows)
         ) {
             for (let varName in this.state) {
+                let stateVar = this.state[varName];
+                // held under the name its essential value has, which may
+                // be another variable's own name (a vector's `tail` array
+                // holds its essential value as `tail2`, as `tailShadow`
+                // holds its own as `tail`)
+                const essentialName = stateVar?.essentialVarName ?? varName;
                 if (
-                    !(varName in serializedComponent.state) &&
+                    !(essentialName in serializedComponent.state) &&
                     // carried by the literals (above)
                     varName !== "literalAttributeWrites"
                 ) {
-                    let stateVar = this.state[varName];
                     if (stateVar.hasEssential) {
                         const value = await this.stateValues[varName];
                         if (!stateVar.usedDefault) {
-                            serializedComponent.state[varName] = value;
+                            serializedComponent.state[essentialName] = value;
                         }
                     }
                 }
@@ -2304,7 +2321,11 @@ async function serializeShadowedAttributes({
         for (const attrName in comp.attributes) {
             const attribute = comp.attributes[attrName];
             if (
-                !(attribute.component || attribute.type === "literal") ||
+                !(
+                    attribute.component ||
+                    attribute.type === "literal" ||
+                    attribute.type === "expression"
+                ) ||
                 (onlyOwnAttributes && !(attrName in attributesObj)) ||
                 written.has(attrName) ||
                 componentSourceAttributesToIgnore.includes(attrName)
@@ -2316,6 +2337,13 @@ async function serializeShadowedAttributes({
                 // it, as an attribute component is copied with its state
                 serializedComponent.attributes[attrName] =
                     copyOfLiteralAttribute(attribute, comp);
+                continue;
+            }
+            if (attribute.type === "expression") {
+                // text and references held by `comp`, with the text written
+                // to it, its references resolved from the copy
+                serializedComponent.attributes[attrName] =
+                    copyOfExpressionAttribute(attribute, comp);
                 continue;
             }
             serializedComponent.attributes[attrName] = {
