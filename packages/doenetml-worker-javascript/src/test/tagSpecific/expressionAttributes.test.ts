@@ -167,6 +167,38 @@ describe("Coordinates held by their point @group4", () => {
         expect(texts.p).toBe("(6, 5, 4) 6");
     });
 
+    it("the text of two coordinates written by a vector's drag, or through another point", async () => {
+        const texts = await compare({
+            doenetML: `
+<number name="a">1</number>
+<vector name="v">($a, 2, 3)</vector>
+<point name="P">($a, 2, 3)</point>
+<point name="Q">($P.y, $P.z, 0)</point>
+<p name="p">$v $P $Q $a</p>
+`,
+            names: ["p"],
+            held: ["v", "P", "Q"],
+            act: async (core, resolvePathToNodeIdx) => {
+                await moveVector({
+                    componentIdx: await resolvePathToNodeIdx("v"),
+                    headcoords: [4, 5, 6],
+                    tailcoords: [0, 0, 0],
+                    core,
+                });
+                // writes the text of `P`'s `y` and `z` in one request
+                await movePoint({
+                    componentIdx: await resolvePathToNodeIdx("Q"),
+                    x: 7,
+                    y: 8,
+                    z: 9,
+                    core,
+                });
+            },
+            reload: true,
+        });
+        expect(texts.p).toBe("(4, 5, 6) (4, 7, 8) (7, 8, 9) 4");
+    });
+
     it("a drag writes through linked copies, to a point holding its coordinates", async () => {
         const texts = await compare({
             doenetML: `
