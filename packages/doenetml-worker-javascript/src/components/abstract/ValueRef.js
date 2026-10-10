@@ -5,7 +5,6 @@ import {
     referenceSlotDefinitions,
     emptyValueOfType,
     referentOrFallback,
-    targetDependencies,
     unorderedDefinition,
     valueMissingDefinition,
 } from "./referenceSlotDefinitions";
