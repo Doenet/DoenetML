@@ -1,6 +1,12 @@
 import { afterEach, describe, expect, it, vi } from "vitest";
 import { createTestCore } from "../utils/test-core";
-import { movePoint, updateMathInputValue } from "../utils/actions";
+import {
+    moveRay,
+    moveVector,
+    movePoint,
+    updateBooleanInputValue,
+    updateMathInputValue,
+} from "../utils/actions";
 import { setExpressionAttributesEnabled } from "../../utils/dast/expressionAttributes";
 
 const Mock = vi.fn();
@@ -204,6 +210,52 @@ describe("An unlinked copy of an extend @group4", () => {
                 expect(await tree("s3", "through")).eqls([3, 5]);
                 expect(await tree("t3", "endpoint")).eqls([1, 2]);
                 expect(await tree("t3", "through")).eqls([2, 3]);
+            },
+        );
+    });
+
+    it("a copy of a repeat of vectors and rays builds, with the values they were moved to", async () => {
+        // a `<repeat copy>` takes the essential state of each replacement
+        // (`copyStateFromUnlinkedSource`), held under the same names
+        await bothWays(
+            `
+<booleanInput name="b" />
+<graph>
+  <repeat name="r" for="1 2" valueName="t">
+    <vector name="v" />
+    <ray name="w" endpoint="(1,2)" through="(3,5)" />
+  </repeat>
+</graph>
+<conditionalContent name="cc" condition="$b">
+  <graph><repeat name="r2" copy="$r" /></graph>
+</conditionalContent>
+`,
+            async (core, resolvePathToNodeIdx) => {
+                const tree = (name: string, variable: string) =>
+                    treeOf(core, resolvePathToNodeIdx, name, variable);
+                await moveVector({
+                    componentIdx: await resolvePathToNodeIdx("r[1].v"),
+                    headcoords: [6, 7],
+                    tailcoords: [3, 3],
+                    core,
+                });
+                await moveRay({
+                    componentIdx: await resolvePathToNodeIdx("r[1].w"),
+                    endpointcoords: [-1, -1],
+                    throughcoords: [4, 0],
+                    core,
+                });
+                await updateBooleanInputValue({
+                    boolean: true,
+                    componentIdx: await resolvePathToNodeIdx("b"),
+                    core,
+                });
+                expect(await tree("cc.r2[1].v", "tail")).eqls([3, 3]);
+                expect(await tree("cc.r2[1].v", "head")).eqls([6, 7]);
+                expect(await tree("cc.r2[1].w", "endpoint")).eqls([-1, -1]);
+                expect(await tree("cc.r2[1].w", "through")).eqls([4, 0]);
+                expect(await tree("cc.r2[2].v", "head")).eqls([1, 0]);
+                expect(await tree("cc.r2[2].w", "through")).eqls([3, 5]);
             },
         );
     });
