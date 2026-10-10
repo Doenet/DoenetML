@@ -176,4 +176,35 @@ describe("An unlinked copy of an extend @group4", () => {
             },
         );
     });
+
+    it("a copy of a linked copy of a ray builds, with the endpoint and through point it has", async () => {
+        // a ray's `direction` and `endpoint` hold their essential values as
+        // `direction2` and `endpoint2`, as `directionShadow` and
+        // `endpointShadow` hold theirs as `direction` and `endpoint`
+        await bothWays(
+            `
+<graph>
+  <ray name="r" endpoint="(1,2)" through="(3,5)" />
+  <ray name="r2" extend="$r" />
+  <ray name="r3" copy="$r2" />
+  <ray name="s" through="(3,5)" direction="(1,1)" />
+  <ray name="s2" extend="$s" />
+  <ray name="s3" copy="$s2" />
+  <ray name="t" endpoint="(1,2)" direction="(1,1)" />
+  <ray name="t2" extend="$t" />
+  <ray name="t3" copy="$t2" />
+</graph>
+`,
+            async (core, resolvePathToNodeIdx) => {
+                const tree = (name: string, variable: string) =>
+                    treeOf(core, resolvePathToNodeIdx, name, variable);
+                expect(await tree("r3", "endpoint")).eqls([1, 2]);
+                expect(await tree("r3", "through")).eqls([3, 5]);
+                expect(await tree("s3", "endpoint")).eqls([2, 4]);
+                expect(await tree("s3", "through")).eqls([3, 5]);
+                expect(await tree("t3", "endpoint")).eqls([1, 2]);
+                expect(await tree("t3", "through")).eqls([2, 3]);
+            },
+        );
+    });
 });
