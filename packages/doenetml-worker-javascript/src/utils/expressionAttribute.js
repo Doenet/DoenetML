@@ -8,7 +8,9 @@
  * - `template`: what the attribute component held, with each reference
  *   replaced by a constant code (`repeatTemplateConstant`), as a template of
  *   a repeat made a list holds a value it reads at every index; for `xs`, a
- *   point whose coordinates those are;
+ *   point whose coordinates those are; for a reference to a list of values
+ *   (an `<indexOf>`'s `target`), which has no template, an empty
+ *   `_componentListWithSelectableType`;
  * - `slots`: for each reference, its `refResolution` and how it is read
  *   (`readPlan`), resolved and read by the slot's state variables
  *   (`referenceSlotDefinitions`);
@@ -19,8 +21,9 @@
  * `expressionAttributeDefinitions` makes, under `__<name>_`: one slot per
  * reference, the template's analysis, the text written to its nodes, and
  * what readers of the attribute component read (`numComponents` and
- * `math1`, `math2`, … of `xs`), which the `attributeComponent` dependency
- * reads in their place (`expressionAttributeVariable`).
+ * `math1`, `math2`, … of `xs`; `values` of a `target`), which the
+ * `attributeComponent` dependency reads in their place
+ * (`expressionAttributeVariable`).
  */
 import me from "math-expressions";
 import { expressionAttributePrefix } from "./expressionAttributeNames";
@@ -36,6 +39,7 @@ import {
     valueMissingDefinition,
 } from "../components/abstract/referenceSlotDefinitions";
 import { buildParsedExpression } from "./booleanLogic";
+import { convertValueToType } from "./selectableType";
 import { booleanValueFromCodes } from "./valueFunctions/boolean";
 import { normalizeArrayStateVariableDefaults } from "../core/StateVariableInitializer";
 
@@ -58,9 +62,13 @@ function slotNames(name, k) {
 
 /**
  * The state variables of a component for its expression attribute
- * `attribute` (of type `mathList`, the coordinates of a point).
+ * `attribute`: coordinates (`mathList`), a `math` or `boolean` expression,
+ * or a reference to a list of values (`valueListDefinitions`).
  */
 export function expressionAttributeDefinitions(attribute) {
+    if (attribute.componentType === "_componentListWithSelectableType") {
+        return valueListDefinitions(attribute);
+    }
     const name = attribute.name;
     const prefix = expressionAttributePrefix(name);
     const definitions = {};
@@ -153,9 +161,16 @@ export function expressionAttributeDefinitions(attribute) {
         addBooleanDefinitions(definitions, name, attribute.slots.length);
     }
 
-    // as the definitions of a class are (`getClassStateVariableDefinitions`,
-    // `returnNormalizedStateVariableDefinitions`): each variable a definition
-    // also defines has an entry of its own, defined with it
+    return normalizedDefinitions(definitions);
+}
+
+/**
+ * `definitions` normalized as the definitions of a class are
+ * (`getClassStateVariableDefinitions`,
+ * `returnNormalizedStateVariableDefinitions`): each variable a definition
+ * also defines has an entry of its own, defined with it.
+ */
+function normalizedDefinitions(definitions) {
     for (const [varName, definition] of Object.entries(definitions)) {
         normalizeArrayStateVariableDefaults(definition, varName);
         for (const [ind, other] of (
@@ -173,8 +188,84 @@ export function expressionAttributeDefinitions(attribute) {
             };
         }
     }
-
     return definitions;
+}
+
+/**
+ * The state variables of a component for its expression attribute
+ * `attribute` that is one reference to the whole of a value list (an
+ * `<indexOf>`'s `target="$l"`): the variables that resolve the reference,
+ * and `values`, the list's values (`readPlan.listVariable`) as the type the
+ * component reads them as, its `type` or `number`, as the attribute
+ * component (`_componentListWithSelectableType`) held them, one for each
+ * entry of the list it made. No values while the reference names nothing,
+ * or a withheld replacement of a composite, as a slot reads none
+ * (`targetDependencies`); there the attribute component kept what the
+ * list's remaining entries held, which, withheld with it, nothing reads.
+ */
+function valueListDefinitions(attribute) {
+    const name = attribute.name;
+    const names = slotNames(name, 0);
+    const slotDefinitions = referenceSlotDefinitions({
+        names,
+        slot: { attributeName: name, index: 0 },
+        fixedReferentOf: () => undefined,
+        readPlanOf: (component) => component.attributes[name].slots[0].readPlan,
+        emptyValueOf: () => null,
+    });
+    // only those that resolve the reference: the list is read whole, which
+    // a `referent` dependency does not read
+    const definitions = {};
+    for (const variable of [
+        names.refResolutionIndexDependencies,
+        names.refResolutionIndexDependencyValues,
+        names.extendIdx,
+    ]) {
+        definitions[variable] = slotDefinitions[variable];
+    }
+
+    const valuesName = `${expressionAttributePrefix(name)}values`;
+    definitions[valuesName] = {
+        stateVariablesDeterminingDependencies: [names.extendIdx],
+        returnDependencies({ stateValues }) {
+            const dependencies = {
+                type: { dependencyType: "stateVariable", variableName: "type" },
+            };
+            const extendIdx = stateValues[names.extendIdx];
+            if (extendIdx != null && extendIdx !== -1) {
+                dependencies.list = {
+                    dependencyType: "stateVariable",
+                    componentIdx: extendIdx,
+                    variableName:
+                        this.svComponent.attributes[name].slots[0].readPlan
+                            .listVariable,
+                    variablesOptional: true,
+                };
+                dependencies.listInactive = {
+                    dependencyType: "stateVariable",
+                    componentIdx: extendIdx,
+                    variableName: "isInactiveCompositeReplacement",
+                    variablesOptional: true,
+                };
+            }
+            return dependencies;
+        },
+        definition({ dependencyValues }) {
+            const type = dependencyValues.type || "number";
+            const list = dependencyValues.listInactive
+                ? null
+                : dependencyValues.list;
+            return {
+                setValue: {
+                    [valuesName]: (list ?? []).map((value) =>
+                        convertValueToType(value, type),
+                    ),
+                },
+            };
+        },
+    };
+
+    return normalizedDefinitions(definitions);
 }
 
 /**

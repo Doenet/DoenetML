@@ -687,3 +687,287 @@ describe("Coordinates held by their point @group4", () => {
         ).toBe(false);
     });
 });
+
+/**
+ * An `<indexOf>` or `<searchSorted>` whose `target` is one reference to the
+ * whole of a value list (`target="$l"`) reads the list's values itself,
+ * with no attribute component and none of the components it made for each
+ * entry (Doenet/DoenetML#2253, `valueListOf` in
+ * `utils/dast/expressionAttributes.ts`). Each document is checked against
+ * itself with the attribute components.
+ */
+describe("Lists held by what searches for them @group4", () => {
+    afterEach(() => setExpressionAttributesEnabled(true));
+
+    /**
+     * Load `doenetML` with and without expression attributes; check that
+     * the components named in `held` hold their `target`, and no others,
+     * then, after each of `acts` (and before the first), that the targets
+     * and the indices found of each of `names` are the same.
+     */
+    async function compare({
+        doenetML,
+        names,
+        held,
+        acts = [],
+    }: {
+        doenetML: string;
+        names: string[];
+        held: string[];
+        acts?: ((core: any, resolvePathToNodeIdx: any) => Promise<void>)[];
+    }) {
+        const results: Record<string, any>[][] = [];
+        for (const enabled of [true, false]) {
+            setExpressionAttributesEnabled(enabled);
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            setExpressionAttributesEnabled(true);
+            const heldNow: number[] = [];
+            for (const component of Object.values<any>(
+                core.core!._components,
+            )) {
+                if (component?.attributes?.target?.type === "expression") {
+                    heldNow.push(component.componentIdx);
+                }
+            }
+            const expected: number[] = [];
+            if (enabled) {
+                for (const name of held) {
+                    expected.push(await resolvePathToNodeIdx(name));
+                }
+            }
+            expect(heldNow.sort()).toEqual(expected.sort());
+
+            const read = async () => {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const values: Record<string, any> = {};
+                for (const name of names) {
+                    const { stateValues } =
+                        stateVariables[await resolvePathToNodeIdx(name)];
+                    values[name] = {
+                        targets: stateValues.comparableTargets?.map(
+                            (target: any) => target.textValue,
+                        ),
+                        text: stateValues.text,
+                    };
+                }
+                return values;
+            };
+            const steps = [await read()];
+            for (const act of acts) {
+                await act(core, resolvePathToNodeIdx);
+                steps.push(await read());
+            }
+            results.push(steps);
+        }
+        expect(results[0]).toEqual(results[1]);
+        return results[0];
+    }
+
+    it("the values of a list of each type, as the type it is searched as", async () => {
+        const [values] = await compare({
+            doenetML: `
+<sequence name="indices" from="1" to="3" />
+<numberList name="perm">2 3 1</numberList>
+<indexOf name="sp" target="$indices">$perm</indexOf>
+<searchSorted name="ss" target="$perm">1 2 3</searchSorted>
+<indexOf name="ofOperator" target="$sp">1 2 3</indexOf>
+<textList name="tl">b c</textList>
+<indexOf name="asText" type="text" target="$tl">a b c</indexOf>
+<indexOf name="textAsNumbers" target="$tl">a b c</indexOf>
+<mathList name="ml">x 2</mathList>
+<indexOf name="asMath" type="math" target="$ml">2 x</indexOf>
+<booleanList name="bl">true false</booleanList>
+<indexOf name="asBoolean" type="boolean" target="$bl">false true</indexOf>
+<sequence name="letters" type="letters" from="b" to="d" />
+<indexOf name="ofLetters" type="text" target="$letters">a b c d</indexOf>
+<numberList name="extended" extend="$indices" />
+<indexOf name="ofExtended" target="$extended">3</indexOf>
+<numberList name="capped" maxNumber="2">3 1 2</numberList>
+<indexOf name="ofCapped" target="$capped">1 2 3</indexOf>
+`,
+            names: [
+                "sp",
+                "ss",
+                "ofOperator",
+                "asText",
+                "textAsNumbers",
+                "asMath",
+                "asBoolean",
+                "ofLetters",
+                "ofExtended",
+                "ofCapped",
+            ],
+            held: [
+                "sp",
+                "ss",
+                "ofOperator",
+                "asText",
+                "textAsNumbers",
+                "asMath",
+                "asBoolean",
+                "ofLetters",
+                "ofExtended",
+                "ofCapped",
+            ],
+        });
+        expect(values.sp.targets).toEqual(["1", "2", "3"]);
+        expect(values.ofOperator.targets).toEqual(["3", "1", "2"]);
+        expect(values.asText.targets).toEqual(["b", "c"]);
+        expect(values.textAsNumbers.targets).toEqual(["NaN", "NaN"]);
+        expect(values.asMath.targets).toEqual(["x", "2"]);
+        expect(values.ofLetters.targets).toEqual(["b", "c", "d"]);
+        expect(values.ofCapped.targets).toEqual(["3", "1"]);
+    });
+
+    it("follows the list as it changes, and as its referent is shown and withheld", async () => {
+        const steps = await compare({
+            doenetML: `
+<mathInput name="mi" prefill="3" />
+<numberList name="dyn">1 $mi</numberList>
+<indexOf name="ofDyn" target="$dyn">1 2 3 4 5</indexOf>
+<booleanInput name="bi" />
+<conditionalContent name="cc" condition="$bi">
+  <numberList name="shown">4 5</numberList>
+</conditionalContent>
+<indexOf name="ofShown" target="$cc.shown">4 5</indexOf>
+<number name="n">2</number>
+<repeatForSequence name="r" from="1" to="$n" valueName="v">
+  <numberList name="q">$v 9</numberList>
+</repeatForSequence>
+<indexOf name="ofIteration" target="$r[2].q">9 2</indexOf>
+<repeat name="rp" for="1 2" valueName="v">
+  <numberList name="inner">$v 7</numberList>
+  <indexOf name="ri" target="$inner">7 1 2</indexOf>
+</repeat>
+`,
+            names: ["ofDyn", "ofShown", "ofIteration", "rp[1].ri", "rp[2].ri"],
+            // a path through a composite (`$cc.shown`) is left to resolve
+            // on it, which keeps the attribute component
+            held: ["ofDyn", "rp[1].ri", "rp[2].ri"],
+            acts: [
+                async (core, resolvePathToNodeIdx) => {
+                    await updateMathInputValue({
+                        latex: "5",
+                        componentIdx: await resolvePathToNodeIdx("mi"),
+                        core,
+                    });
+                    await updateBooleanInputValue({
+                        boolean: true,
+                        componentIdx: await resolvePathToNodeIdx("bi"),
+                        core,
+                    });
+                },
+                async (core, resolvePathToNodeIdx) => {
+                    await updateBooleanInputValue({
+                        boolean: false,
+                        componentIdx: await resolvePathToNodeIdx("bi"),
+                        core,
+                    });
+                },
+            ],
+        });
+        expect(steps[0].ofDyn.targets).toEqual(["1", "3"]);
+        expect(steps[1].ofDyn.targets).toEqual(["1", "5"]);
+        expect(steps[0].ofShown.targets).toEqual([]);
+        expect(steps[1].ofShown.targets).toEqual(["4", "5"]);
+        expect(steps[2].ofShown.targets).toEqual([]);
+        expect(steps[0].ofIteration.targets).toEqual(["2", "9"]);
+        expect(steps[0]["rp[1].ri"].targets).toEqual(["1", "7"]);
+        expect(steps[0]["rp[2].ri"].targets).toEqual(["2", "7"]);
+    });
+
+    it("reads no values of a list withheld with the iteration that holds it", async () => {
+        const doenetML = `
+<mathInput name="mi" prefill="2" />
+<repeatForSequence name="r" from="1" to="$mi" valueName="v">
+  <numberList name="q">$v 9</numberList>
+  <indexOf name="io" target="$q">9 1 2</indexOf>
+</repeatForSequence>
+<number name="x" extend="$r[2].io" />
+`;
+        const setTo =
+            (latex: string) => async (core: any, resolvePathToNodeIdx: any) =>
+                updateMathInputValue({
+                    latex,
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+        const steps = await compare({
+            doenetML,
+            names: ["r[1].io", "x"],
+            held: ["r[1].io", "r[2].io"],
+            acts: [setTo("1"), setTo("2")],
+        });
+        expect(steps.map((step) => step.x.text)).toEqual(["3", "NaN", "3"]);
+
+        // while the iteration is withheld, the `<indexOf>` in it reads no
+        // values of its list (the attribute component kept those of the
+        // list's entries that remained), which no reader sees
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        await setTo("1")(core, resolvePathToNodeIdx);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("r[2].io")].stateValues
+                .comparableTargets,
+        ).toEqual([]);
+    });
+
+    it("copies of what holds the list resolve it from where they are", async () => {
+        const [values] = await compare({
+            doenetML: `
+<numberList name="l">3 1</numberList>
+<indexOf name="io" target="$l">1 2 3</indexOf>
+<indexOf name="linked" extend="$io" />
+<indexOf name="unlinked" copy="$io" />
+<repeat name="rp" for="1 2" valueName="v">
+  <numberList name="l">$v 5</numberList>
+  <indexOf name="copied" copy="$io" />
+</repeat>
+`,
+            names: ["io", "linked", "unlinked", "rp[1].copied", "rp[2].copied"],
+            held: ["io", "unlinked", "rp[1].copied", "rp[2].copied"],
+        });
+        expect(values.linked.targets).toEqual(["3", "1"]);
+        expect(values.unlinked.targets).toEqual(["3", "1"]);
+        // pasted in an iteration, `$l` names the iteration's list
+        expect(values["rp[1].copied"].targets).toEqual(["1", "5"]);
+        expect(values["rp[2].copied"].targets).toEqual(["2", "5"]);
+    });
+
+    it("keeps the attribute component of a target that is not one whole value list", async () => {
+        await compare({
+            doenetML: `
+<numberList name="l">3 1</numberList>
+<number name="i">2</number>
+<graph><point name="P">(1, 2)</point></graph>
+<repeat name="r" for="1 2" valueName="v"><number>$v</number></repeat>
+<indexOf name="entry" target="$l[2]">1 2 3</indexOf>
+<indexOf name="indexed" target="$l[$i]">1 2 3</indexOf>
+<indexOf name="withText" target="2 $l">1 2 3</indexOf>
+<indexOf name="twoLists" target="$l $l">1 2 3</indexOf>
+<indexOf name="point" target="$P">1 2 3</indexOf>
+<indexOf name="composite" target="$r">1 2 3</indexOf>
+<indexOf name="literal" target="2">1 2 3</indexOf>
+<indexOf name="missing" target="$nothing">1 2 3</indexOf>
+`,
+            names: [
+                "entry",
+                "indexed",
+                "withText",
+                "twoLists",
+                "point",
+                "composite",
+                "literal",
+                "missing",
+            ],
+            held: [],
+        });
+    });
+});

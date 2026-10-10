@@ -21,19 +21,27 @@
  * attribute component. So does the template of a repeat made a list
  * (`utils/dast/repeatLists.ts`), whose references read entries of lists.
  *
+ * The same holds a `target` of an `<indexOf>` or `<searchSorted>` that is
+ * one reference to the whole of a value list (`target="$l"`), whose
+ * attribute component made a component for each entry: the owner reads the
+ * list's values itself (`valueListOf`, Doenet/DoenetML#2253).
+ *
  * It runs last among the passes that read attribute components, after the
  * value references, which make the `_ref`s.
  */
 import type { ExpressionAttribute, SerializedComponent } from "./types";
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import { unwrapSource } from "./convertNormalizedDast";
+import { documentReferents } from "./valueReferences";
 
 /**
  * The attributes the pass holds, by owner type (`*` for any), and the type
- * of the attribute component each is: coordinates (`mathList`), or one
- * `math` or `boolean` expression. Each is read only through what
+ * of the attribute component each is: coordinates (`mathList`), one `math`
+ * or `boolean` expression, or a reference to a list of values
+ * (`valueList`). Each is read only through what
  * `expressionAttributeVariable` names (`xs.numComponents`, `xs.math2`,
- * `hide.value`), or for being there (a line's `equation`).
+ * `hide.value`, `target.values`), or for being there (a line's
+ * `equation`).
  */
 const EXPRESSION_ATTRIBUTES: Record<string, Record<string, string>> = {
     "*": { hide: "boolean" },
@@ -44,7 +52,21 @@ const EXPRESSION_ATTRIBUTES: Record<string, Record<string, string>> = {
     case: { condition: "boolean" },
     conditionalContent: { condition: "boolean" },
     feedback: { condition: "boolean" },
+    indexOf: { target: "valueList" },
+    searchSorted: { target: "valueList" },
 };
+
+/**
+ * The type of the attribute component of a `valueList` attribute: the
+ * `target` of `<indexOf>` and `<searchSorted>`.
+ */
+const VALUE_LIST_COMPONENT_TYPE = "_componentListWithSelectableType";
+
+/**
+ * The types of entries of a value list that a `valueList` attribute reads
+ * as its attribute component read them, one entry per value.
+ */
+const VALUE_LIST_ENTRY_TYPES = ["math", "number", "integer", "text", "boolean"];
 
 /**
  * The types a reference in an expression attribute can be read as, by the
@@ -101,12 +123,23 @@ export function convertExpressionAttributes(
     context: {
         numResolverNodes: number;
         componentInfoObjects: ComponentInfoObjects;
+        /** The document, and the types of what references in it name. */
+        document?: (SerializedComponent | string)[];
+        referents?: ReturnType<typeof documentReferents>;
     },
 ) {
-    const { numResolverNodes } = context;
     if (!expressionAttributesEnabled) {
         return;
     }
+    // the document is what this is first called on; the types of what its
+    // references name are worked out when first asked
+    context.document ??= serializedComponents;
+    const { numResolverNodes } = context;
+    const referentsOf = () =>
+        (context.referents ??= documentReferents({
+            serializedComponents: context.document!,
+            componentInfoObjects: context.componentInfoObjects,
+        }));
     for (const component of serializedComponents) {
         if (typeof component === "string") {
             continue;
@@ -131,22 +164,24 @@ export function convertExpressionAttributes(
                 isResolverNode: component.componentIdx < numResolverNodes,
             };
             const held =
-                kind === "mathList"
-                    ? expressionAttributeOf(
-                          name,
-                          attribute.component,
-                          owner,
-                          context.componentInfoObjects,
-                      )
-                    : kind !== undefined
-                      ? singleExpressionOf(
+                kind === "valueList"
+                    ? valueListOf(name, attribute.component, owner, referentsOf)
+                    : kind === "mathList"
+                      ? expressionAttributeOf(
                             name,
-                            kind,
                             attribute.component,
                             owner,
                             context.componentInfoObjects,
                         )
-                      : undefined;
+                      : kind !== undefined
+                        ? singleExpressionOf(
+                              name,
+                              kind,
+                              attribute.component,
+                              owner,
+                              context.componentInfoObjects,
+                          )
+                        : undefined;
             if (held) {
                 component.attributes[name] = held;
             } else {
@@ -361,6 +396,124 @@ function expressionAttributeOf(
 }
 
 /**
+ * The expression attribute `name` of `owner` that `component`, the
+ * attribute component of a `valueList` attribute (`<indexOf
+ * target="$l">`), stands for: one reference to the whole of a value list
+ * whose entries are of a type in `VALUE_LIST_ENTRY_TYPES`, which the owner
+ * reads as one array (`listVariable`, the list's `listValuesArrayName`),
+ * where the attribute component made a component for each entry.
+ * `undefined` if it does not qualify.
+ */
+function valueListOf(
+    name: string,
+    component: SerializedComponent,
+    owner: Owner,
+    referentsOf: () => ReturnType<typeof documentReferents>,
+): ExpressionAttribute | undefined {
+    if (
+        component.componentType !== VALUE_LIST_COMPONENT_TYPE ||
+        component.extending !== undefined ||
+        Object.keys(component.attributes ?? {}).length > 0
+    ) {
+        return undefined;
+    }
+    const pieces = component.children.filter(
+        (piece) => typeof piece !== "string" || piece.trim() !== "",
+    );
+    const piece = pieces[0];
+    if (
+        pieces.length !== 1 ||
+        typeof piece === "string" ||
+        piece.componentType !== "_copy" ||
+        !piece.extending ||
+        !("Ref" in piece.extending) ||
+        Object.keys(piece.attributes ?? {}).length > 0
+    ) {
+        return undefined;
+    }
+    const refResolution = structuredClone(unwrapSource(piece.extending));
+    if (
+        refResolution.unresolvedPath != null ||
+        refResolution.nodeIdx < 0 ||
+        !resolvesFromOrigin(refResolution)
+    ) {
+        return undefined;
+    }
+    const referents = referentsOf();
+    const referentType = referents.referentType(refResolution.nodeIdx);
+    const listClass =
+        referentType === undefined
+            ? undefined
+            : referents.referentClass(refResolution.nodeIdx, referentType);
+    if (
+        !isValueListClass(listClass) ||
+        !VALUE_LIST_ENTRY_TYPES.includes(listClass.listEntryComponentType)
+    ) {
+        return undefined;
+    }
+    if (owner.isResolverNode) {
+        refResolution.nodesInResolvedPath[0] = owner.component.componentIdx;
+    }
+    return {
+        type: "expression",
+        name,
+        componentType: VALUE_LIST_COMPONENT_TYPE,
+        template: {
+            type: "serialized",
+            componentType: VALUE_LIST_COMPONENT_TYPE,
+            componentIdx: -1,
+            attributes: {},
+            doenetAttributes: {},
+            children: [],
+            state: {},
+        } as SerializedComponent,
+        slots: [
+            {
+                refResolution,
+                readPlan: { listVariable: listClass.listValuesArrayName },
+            },
+        ],
+        ...(component.position !== undefined
+            ? { position: component.position }
+            : {}),
+        ...(component.sourceDoc !== undefined
+            ? { sourceDoc: component.sourceDoc }
+            : {}),
+    };
+}
+
+/**
+ * Whether `componentClass` is a value list (`ValueListComponent`), which
+ * the component types do not name as a base type.
+ */
+function isValueListClass(componentClass: any) {
+    for (let c = componentClass; c; c = Object.getPrototypeOf(c)) {
+        if (c.componentType === "_valueList") {
+            return true;
+        }
+    }
+    return false;
+}
+
+/**
+ * Whether a slot can resolve `refResolution` from its owner, or from where
+ * it was written: its path starts with a name and has no components between
+ * its brackets (`$l[$i]`). A path that starts with no name resolves from its
+ * origin itself (`setUnflattenedReferenceOrigins`), which is only the
+ * reference.
+ */
+function resolvesFromOrigin(refResolution: any) {
+    const hasIndexComponents = refResolution.originalPath.some((part: any) =>
+        part.index.some((index: any) => typeof index.value[0] !== "string"),
+    );
+    return (
+        !hasIndexComponents &&
+        Boolean(refResolution.originalPath[0]?.name) &&
+        refResolution.nodesInResolvedPath.length > 0
+    );
+}
+
+/**
  * The slot of the value reference `piece` in an attribute of `owner`: its
  * `refResolution` and how it is read. It resolves from `owner` when the
  * resolver has a node for it (`owner.isResolverNode`), and otherwise, for an
@@ -403,16 +556,7 @@ function slotOf(
         return undefined;
     }
     const refResolution = structuredClone(unwrapSource(piece.extending));
-    const hasIndexComponents = refResolution.originalPath.some((part) =>
-        part.index.some((index) => typeof index.value[0] !== "string"),
-    );
-    // A path that starts with no name resolves from its origin itself
-    // (`setUnflattenedReferenceOrigins`), which is only the reference.
-    if (
-        hasIndexComponents ||
-        !refResolution.originalPath[0]?.name ||
-        refResolution.nodesInResolvedPath.length === 0
-    ) {
+    if (!resolvesFromOrigin(refResolution)) {
         return undefined;
     }
     if (owner.isResolverNode) {
