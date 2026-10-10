@@ -163,4 +163,78 @@ describe("Array freshness tests @group4", async () => {
             Array.from({ length: 20 }, (_, i) => [i + 1, 3 * (i + 1)]),
         );
     });
+
+    it("a key a definition returns outside the array's size is not counted", async () => {
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<setup>
+  <math name="a">1</math>
+  <repeatForSequence name="Ps" from="1" to="4" indexName="i">
+    <point>($i, $a $i)</point>
+  </repeatForSequence>
+</setup>
+<mathInput name="ai" bindValueTo="$a" />
+<graph><polyline name="pl" vertices="$Ps" /></graph>
+`,
+        });
+        const pl = core.core!.components![await resolvePathToNodeIdx("pl")];
+        const vertices = pl.state.vertices;
+
+        // the definition also returns a value for "99,0", outside the
+        // polyline's 4 by 2 vertices
+        const arrayDefinitionByKey = vertices.arrayDefinitionByKey;
+        vertices.arrayDefinitionByKey = function (args: any) {
+            const result = arrayDefinitionByKey.call(this, args);
+            if (result.setValue?.vertices) {
+                result.setValue.vertices["99,0"] = 0;
+            }
+            return result;
+        };
+        await updateMathInputValue({
+            latex: "2",
+            componentIdx: await resolvePathToNodeIdx("ai"),
+            core,
+        });
+        expect(await pl.stateValues.numericalVertices).toEqual([
+            [1, 2],
+            [2, 4],
+            [3, 6],
+            [4, 8],
+        ]);
+
+        const freshnessInfo = vertices.freshnessInfo;
+        expect(freshnessInfo.freshByKey["99,0"]).toBeUndefined();
+        expect(freshnessInfo.numFreshKeys).toBe(8);
+
+        // As vertex coordinates go stale one at a time, the array's
+        // freshness (the 8 coordinates and the size) drops by one each time,
+        // both as read before marking a coordinate stale and as returned by
+        // marking it stale.
+        const arraySize = [4, 2];
+        const freshness: any[] = [];
+        for (const arrayKey of ["0,0", "0,1", "1,0"]) {
+            freshness.push(
+                vertices.getCurrentFreshness({ freshnessInfo, arraySize }),
+            );
+            freshness.push(
+                vertices.markStale({
+                    freshnessInfo,
+                    changes: {
+                        [`__${arrayKey}_unconstrainedVertex`]: {
+                            valuesChanged: {},
+                        },
+                    },
+                    arraySize,
+                }),
+            );
+        }
+        expect(freshness).toEqual([
+            { fresh: { vertices: true } },
+            { partiallyFresh: { vertices: 8 } },
+            { partiallyFresh: { vertices: 8 } },
+            { partiallyFresh: { vertices: 7 } },
+            { partiallyFresh: { vertices: 7 } },
+            { partiallyFresh: { vertices: 6 } },
+        ]);
+    });
 });

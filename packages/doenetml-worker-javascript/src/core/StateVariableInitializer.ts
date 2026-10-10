@@ -617,15 +617,40 @@ function numArrayKeys(arraySize: number[] | undefined) {
 }
 
 /**
+ * Whether `arrayKey` is one of the keys `getAllArrayKeys(arraySize)` returns:
+ * one index for each dimension of `arraySize`, each a whole number below that
+ * dimension's size.
+ */
+function isArrayKeyInSize(arrayKey: string, arraySize: number[] | undefined) {
+    if (!arraySize || arraySize.length === 0) {
+        return false;
+    }
+    const indices = arrayKey.split(",");
+    if (indices.length !== arraySize.length) {
+        return false;
+    }
+    return indices.every((index, dim) => {
+        const ind = Number(index);
+        return (
+            Number.isInteger(ind) &&
+            ind >= 0 &&
+            ind < arraySize[dim] &&
+            String(ind) === index
+        );
+    });
+}
+
+/**
  * How fresh the array is at `arrayKeys`, or, when they are `undefined`, at
  * all of its keys: `fresh` when the size and every key are fresh,
  * `partiallyFresh` with the number of them that are (the size counting as
  * one) when only some are, and not `fresh` when none are.
  *
  * For the whole array, the count of fresh keys is compared with the number of
- * keys. A key marked fresh outside the array's current size would make that
- * count too high, so a count that reaches the number of keys is confirmed key
- * by key before the array is reported fresh.
+ * keys. Keys a definition returns beyond those asked for are marked fresh only
+ * when they are within the array's size (see `arrayDefinition`), so the count
+ * is of the array's own keys. A count that reaches the number of keys is
+ * still confirmed key by key before the array is reported fresh.
  */
 function arrayFreshnessResult({
     arrayStateVarObj,
@@ -892,21 +917,29 @@ function arrayDefinition(this: any, args: any) {
             result = arrayStateVarObj.arrayDefinitionByKey(args);
 
             // in case definition returns additional array entries,
-            // mark all array keys received as fresh as well
-            if (result.setValue && result.setValue[arrayVarName]) {
-                for (let arrayKey in result.setValue[arrayVarName]) {
-                    markArrayKeyFresh(args.freshnessInfo, arrayKey);
+            // mark all array keys received as fresh as well, if they are
+            // within the array's size, so that the count of fresh keys
+            // counts only keys of the array
+            const markReturnedKeysFresh = (valuesByKey: any) => {
+                for (let arrayKey in valuesByKey) {
+                    if (
+                        !args.freshnessInfo.freshByKey[arrayKey] &&
+                        isArrayKeyInSize(arrayKey, args.arraySize)
+                    ) {
+                        markArrayKeyFresh(args.freshnessInfo, arrayKey);
+                    }
                 }
+            };
+            if (result.setValue && result.setValue[arrayVarName]) {
+                markReturnedKeysFresh(result.setValue[arrayVarName]);
             }
             if (
                 result.useEssentialOrDefaultValue &&
                 result.useEssentialOrDefaultValue[arrayVarName]
             ) {
-                for (let arrayKey in result.useEssentialOrDefaultValue[
-                    arrayVarName
-                ]) {
-                    markArrayKeyFresh(args.freshnessInfo, arrayKey);
-                }
+                markReturnedKeysFresh(
+                    result.useEssentialOrDefaultValue[arrayVarName],
+                );
             }
         }
 
