@@ -584,9 +584,22 @@ async function arrayReturnDependencies(this: any, args: any) {
  * the freshness of the whole array is read without building its keys (Doenet/DoenetML#2261).
  * Mark keys fresh and stale only through these helpers, which keep the two in
  * step.
+ *
+ * `markArrayKeyFresh` marks a key fresh only when it is within `arraySize`,
+ * and a change of size marks every key stale (`arrayMarkStale`), so
+ * `freshByKey` holds, and `numFreshKeys` counts, only keys of the array at its
+ * current size. A key asked for outside the size stays unmarked and is
+ * recomputed whenever it is asked for.
  */
-function markArrayKeyFresh(freshnessInfo: any, arrayKey: string) {
-    if (!freshnessInfo.freshByKey[arrayKey]) {
+function markArrayKeyFresh(
+    freshnessInfo: any,
+    arrayKey: string,
+    arraySize: number[] | undefined,
+) {
+    if (
+        !freshnessInfo.freshByKey[arrayKey] &&
+        isArrayKeyInSize(arrayKey, arraySize)
+    ) {
         freshnessInfo.freshByKey[arrayKey] = true;
         freshnessInfo.numFreshKeys++;
     }
@@ -646,13 +659,10 @@ function isArrayKeyInSize(arrayKey: string, arraySize: number[] | undefined) {
  * `partiallyFresh` with the number of them that are (the size counting as
  * one) when only some are, and not `fresh` when none are.
  *
- * For the whole array, the count of fresh keys is compared with the number of
- * keys. Keys a definition returns beyond those asked for are marked fresh only
- * when they are within the array's size (see `arrayDefinition`). An array
- * entry can still mark a key outside the size fresh when its component gives
- * it keys without regard to the size (a function's `globalMinimumLocation`
- * when the function has no global minimum), so a count that reaches the
- * number of keys is confirmed key by key before the array is reported fresh.
+ * For the whole array, the count of fresh keys, which are all within the
+ * array's size when they are marked (see `markArrayKeyFresh`), is compared
+ * with the number of keys. A count that reaches the number of keys is still
+ * confirmed key by key before the array is reported fresh.
  */
 function arrayFreshnessResult({
     arrayStateVarObj,
@@ -796,7 +806,7 @@ function arrayFreshenOnNoChanges(
     }
 
     for (let arrayKey of arrayKeys) {
-        markArrayKeyFresh(freshnessInfo, arrayKey);
+        markArrayKeyFresh(freshnessInfo, arrayKey, arraySize);
     }
 }
 
@@ -899,7 +909,7 @@ function arrayDefinition(this: any, args: any) {
                 !freshByKey[arrayKey] &&
                 foundAllDependencyValuesForKey[arrayKey]
             ) {
-                markArrayKeyFresh(args.freshnessInfo, arrayKey);
+                markArrayKeyFresh(args.freshnessInfo, arrayKey, args.arraySize);
                 arrayKeysToRecalculate.push(arrayKey);
             }
         }
@@ -919,17 +929,14 @@ function arrayDefinition(this: any, args: any) {
             result = arrayStateVarObj.arrayDefinitionByKey(args);
 
             // in case definition returns additional array entries,
-            // mark all array keys received as fresh as well, if they are
-            // within the array's size, so that they add to the count of
-            // fresh keys only when they are keys of the array
+            // mark all array keys received as fresh as well
             const markReturnedKeysFresh = (valuesByKey: any) => {
                 for (let arrayKey in valuesByKey) {
-                    if (
-                        !args.freshnessInfo.freshByKey[arrayKey] &&
-                        isArrayKeyInSize(arrayKey, args.arraySize)
-                    ) {
-                        markArrayKeyFresh(args.freshnessInfo, arrayKey);
-                    }
+                    markArrayKeyFresh(
+                        args.freshnessInfo,
+                        arrayKey,
+                        args.arraySize,
+                    );
                 }
             };
             if (result.setValue && result.setValue[arrayVarName]) {

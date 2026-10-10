@@ -131,6 +131,49 @@ describe("Array freshness tests @group4", async () => {
         await check(7, 12);
     });
 
+    it("a key an array entry asks for outside the array's size is not counted", async () => {
+        // A function with no global minimum (or maximum) has that array at
+        // size 0, while its location and value entries still ask for keys
+        // "0" and "1".
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML: `
+<mathInput name="ai" prefill="1" />
+<function name="f">$ai x^2</function>
+<p name="p">$f.globalMinimumLocation, $f.globalMinimumValue, $f.globalMaximumLocation, $f.globalMaximumValue</p>
+`,
+        });
+        const components = core.core!.components!;
+        const p = components[await resolvePathToNodeIdx("p")];
+        const f = components[await resolvePathToNodeIdx("f")];
+
+        /** The extrema, and the keys marked fresh in each extremum array. */
+        async function check(text: string) {
+            expect(await p.stateValues.text).toBe(text);
+            for (const varName of ["globalMinimum", "globalMaximum"]) {
+                const stateVarObj = f.state[varName];
+                const arraySize = await stateVarObj.arraySize;
+                const freshnessInfo = stateVarObj.freshnessInfo;
+                const keys = Object.keys(freshnessInfo.freshByKey);
+                expect(
+                    keys.filter(
+                        (key) =>
+                            !stateVarObj
+                                .getAllArrayKeys(arraySize)
+                                .includes(key),
+                    ),
+                ).toEqual([]);
+                expect(freshnessInfo.numFreshKeys).toBe(keys.length);
+            }
+        }
+
+        await check("0, 0, , ");
+        const aiIdx = await resolvePathToNodeIdx("ai");
+        await updateMathInputValue({ latex: "-1", componentIdx: aiIdx, core });
+        await check(", , 0, 0");
+        await updateMathInputValue({ latex: "2", componentIdx: aiIdx, core });
+        await check("0, 0, , ");
+    });
+
     it("invalidating an array entry by entry does not build its keys each time", async () => {
         const { core, resolvePathToNodeIdx } = await createTestCore({
             doenetML,
