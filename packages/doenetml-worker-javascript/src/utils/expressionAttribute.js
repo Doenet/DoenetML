@@ -199,7 +199,9 @@ function normalizedDefinitions(definitions) {
  * component reads them as, its `type` or `number`, as the attribute
  * component (`_componentListWithSelectableType`) held them, one for each
  * entry of the list it made. No values while the reference names nothing,
- * or a withheld replacement of a composite, of which it made no entry.
+ * or a withheld replacement of a composite, as a slot reads none
+ * (`targetDependencies`); there the attribute component kept what the
+ * list's remaining entries held, which, withheld with it, nothing reads.
  */
 function valueListDefinitions(attribute) {
     const name = attribute.name;

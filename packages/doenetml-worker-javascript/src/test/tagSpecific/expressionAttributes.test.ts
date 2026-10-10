@@ -881,6 +881,44 @@ describe("Lists held by what searches for them @group4", () => {
         expect(steps[0]["rp[2].ri"].targets).toEqual(["2", "7"]);
     });
 
+    it("reads no values of a list withheld with the iteration that holds it", async () => {
+        const doenetML = `
+<mathInput name="mi" prefill="2" />
+<repeatForSequence name="r" from="1" to="$mi" valueName="v">
+  <numberList name="q">$v 9</numberList>
+  <indexOf name="io" target="$q">9 1 2</indexOf>
+</repeatForSequence>
+<number name="x" extend="$r[2].io" />
+`;
+        const setTo =
+            (latex: string) => async (core: any, resolvePathToNodeIdx: any) =>
+                updateMathInputValue({
+                    latex,
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+        const steps = await compare({
+            doenetML,
+            names: ["r[1].io", "x"],
+            held: ["r[1].io", "r[2].io"],
+            acts: [setTo("1"), setTo("2")],
+        });
+        expect(steps.map((step) => step.x.text)).toEqual(["3", "NaN", "3"]);
+
+        // while the iteration is withheld, the `<indexOf>` in it reads no
+        // values of its list (the attribute component kept those of the
+        // list's entries that remained), which no reader sees
+        const { core, resolvePathToNodeIdx } = await createTestCore({
+            doenetML,
+        });
+        await setTo("1")(core, resolvePathToNodeIdx);
+        const stateVariables = await core.returnAllStateVariables(false, true);
+        expect(
+            stateVariables[await resolvePathToNodeIdx("r[2].io")].stateValues
+                .comparableTargets,
+        ).toEqual([]);
+    });
+
     it("copies of what holds the list resolve it from where they are", async () => {
         const [values] = await compare({
             doenetML: `
