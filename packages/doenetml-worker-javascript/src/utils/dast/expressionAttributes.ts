@@ -14,17 +14,18 @@
  * slots read, with no components.
  *
  * An `xs` qualifies when its `mathList` and `<math>`s have no attributes and
- * each `<math>` holds only text and value references that read a math or a
- * number, whose path starts with a name and has no components between its
- * brackets (`$l[$i]`). Anything else keeps the attribute component, a
- * reference to a `<max>`, which reads it as a `max`, among them. So does the
- * template of a repeat made a list (`utils/dast/repeatLists.ts`), whose
- * references read entries of lists.
+ * each `<math>` holds only text and value references read as a math or a
+ * number, or a type that is one (a reference to a `<max>` is read as a
+ * `max`, a math operator), whose path starts with a name and has no
+ * components between its brackets (`$l[$i]`). Anything else keeps the
+ * attribute component. So does the template of a repeat made a list
+ * (`utils/dast/repeatLists.ts`), whose references read entries of lists.
  *
  * It runs last among the passes that read attribute components, after the
  * value references, which make the `_ref`s.
  */
 import type { ExpressionAttribute, SerializedComponent } from "./types";
+import type { ComponentInfoObjects } from "../componentInfoObjects";
 import { unwrapSource } from "./convertNormalizedDast";
 
 /** The owner types and attributes the pass holds. */
@@ -33,8 +34,12 @@ const EXPRESSION_ATTRIBUTES: Record<string, Set<string>> = {
     vector: new Set(["xs"]),
 };
 
-/** The types a reference in an expression attribute can be read as. */
-const SLOT_TYPES = new Set(["math", "number"]);
+/**
+ * The types a reference in an expression attribute can be read as: a math or
+ * a number, or a type that is one (`<max>`, a math operator), whose `value`
+ * the coordinate reads as a math's.
+ */
+const SLOT_BASE_TYPES = ["math", "number"];
 
 /**
  * How a value reference was planned to be read
@@ -56,15 +61,19 @@ export function setExpressionAttributesEnabled(enabled: boolean) {
 
 /**
  * Hold the attributes of `serializedComponents` that qualify.
- * `numResolverNodes` is the number of nodes the resolver was given
+ * `context.numResolverNodes` is the number of nodes the resolver was given
  * (`normalized_root.nodes`): a component made after it, by sugar for an
  * attribute (the points of a polygon's `vertices`, a label's `anchor`), has
  * an index the resolver does not know, which a slot cannot resolve from.
  */
 export function convertExpressionAttributes(
     serializedComponents: (SerializedComponent | string)[],
-    numResolverNodes: number,
+    context: {
+        numResolverNodes: number;
+        componentInfoObjects: ComponentInfoObjects;
+    },
 ) {
+    const { numResolverNodes } = context;
     if (!expressionAttributesEnabled) {
         return;
     }
@@ -89,18 +98,16 @@ export function convertExpressionAttributes(
                       attribute.component,
                       component,
                       component.componentIdx < numResolverNodes,
+                      context.componentInfoObjects,
                   )
                 : undefined;
             if (held) {
                 component.attributes[name] = held;
             } else {
-                convertExpressionAttributes(
-                    [attribute.component],
-                    numResolverNodes,
-                );
+                convertExpressionAttributes([attribute.component], context);
             }
         }
-        convertExpressionAttributes(component.children ?? [], numResolverNodes);
+        convertExpressionAttributes(component.children ?? [], context);
     }
 }
 
@@ -113,6 +120,7 @@ function expressionAttributeOf(
     component: SerializedComponent,
     owner: SerializedComponent,
     ownerIsResolverNode: boolean,
+    componentInfoObjects: ComponentInfoObjects,
 ): ExpressionAttribute | undefined {
     if (
         component.componentType !== "mathList" ||
@@ -143,13 +151,18 @@ function expressionAttributeOf(
                 content.push(piece);
                 continue;
             }
-            const slot = slotOf(piece, owner, ownerIsResolverNode);
+            const slot = slotOf(
+                piece,
+                owner,
+                ownerIsResolverNode,
+                componentInfoObjects,
+            );
             if (!slot) {
                 return undefined;
             }
             content.push({
                 type: "serialized",
-                componentType: slot.readPlan.presentedComponentType,
+                componentType: "math",
                 componentIdx: -1,
                 attributes: {},
                 doenetAttributes: { repeatTemplateConstant: slots.length },
@@ -220,6 +233,7 @@ function slotOf(
     piece: SerializedComponent,
     owner: SerializedComponent,
     ownerIsResolverNode: boolean,
+    componentInfoObjects: ComponentInfoObjects,
 ) {
     if (
         piece.componentType !== "_ref" ||
@@ -235,7 +249,16 @@ function slotOf(
             readPlan[key] = piece.doenetAttributes[key];
         }
     }
-    if (!SLOT_TYPES.has(readPlan.presentedComponentType)) {
+    const presented = readPlan.presentedComponentType;
+    if (
+        typeof presented !== "string" ||
+        !SLOT_BASE_TYPES.some((baseComponentType) =>
+            componentInfoObjects.isInheritedComponentType({
+                inheritedComponentType: presented,
+                baseComponentType,
+            }),
+        )
+    ) {
         return undefined;
     }
     const refResolution = structuredClone(unwrapSource(piece.extending));

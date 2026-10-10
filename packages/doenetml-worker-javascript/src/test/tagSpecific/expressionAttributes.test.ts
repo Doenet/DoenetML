@@ -199,6 +199,22 @@ describe("Coordinates held by their point @group4", () => {
         expect(texts.p).toBe("(4, 5, 6) (4, 7, 8) (7, 8, 9) 4");
     });
 
+    it("coordinates that read a math operator, as `$m` of a `<max>`", async () => {
+        const texts = await compare({
+            doenetML: `
+<numberList name="l">3 8 5</numberList>
+<max name="m">$l</max>
+<min name="n">$l</min>
+<graph><point name="P">($n, $m - 1)</point></graph>
+<p name="p">$P</p>
+`,
+            names: ["p"],
+            held: ["P"],
+            act: drag("P", 6, 2),
+        });
+        expect(texts.p).toBe("(3, 7)");
+    });
+
     it("a drag writes through linked copies, to a point holding its coordinates", async () => {
         const texts = await compare({
             doenetML: `
