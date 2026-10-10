@@ -4,6 +4,8 @@ import {
     moveLine,
     moveLineSegment,
     movePoint,
+    movePolygon,
+    movePolyline,
     moveThroughPoint,
     moveVector,
     updateBooleanInputValue,
@@ -692,7 +694,7 @@ describe("Coordinates held by their point @group4", () => {
  * An `<indexOf>` or `<searchSorted>` whose `target` is one reference to the
  * whole of a value list (`target="$l"`) reads the list's values itself,
  * with no attribute component and none of the components it made for each
- * entry (Doenet/DoenetML#2253, `valueListOf` in
+ * entry (Doenet/DoenetML#2253, `wholeListOf` in
  * `utils/dast/expressionAttributes.ts`). Each document is checked against
  * itself with the attribute components.
  */
@@ -965,6 +967,305 @@ describe("Lists held by what searches for them @group4", () => {
                 "point",
                 "composite",
                 "literal",
+                "missing",
+            ],
+            held: [],
+        });
+    });
+});
+
+/**
+ * A `<polyline>` or `<polygon>` whose `vertices` is one reference to the
+ * whole of a list of points (`vertices="$points"`, a `<pointList>` or a
+ * repeat of points made a list) reads the list itself, with no attribute
+ * component and no linked copy of the list (Doenet/DoenetML#2253,
+ * `wholeListOf` in `utils/dast/expressionAttributes.ts`). Each document is
+ * checked against itself with the attribute components.
+ */
+describe("Lists of points held by a polyline @group4", () => {
+    afterEach(() => setExpressionAttributesEnabled(true));
+
+    /**
+     * Load `doenetML` with and without expression attributes; check that
+     * the components named in `held` hold their `vertices`, and no others,
+     * then, after each of `acts` (and before the first), that the vertices
+     * of each of `names` are the same.
+     */
+    async function compare({
+        doenetML,
+        names,
+        held,
+        acts = [],
+    }: {
+        doenetML: string;
+        names: string[];
+        held: string[];
+        acts?: ((core: any, resolvePathToNodeIdx: any) => Promise<void>)[];
+    }) {
+        const results: Record<string, any>[][] = [];
+        for (const enabled of [true, false]) {
+            setExpressionAttributesEnabled(enabled);
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            setExpressionAttributesEnabled(true);
+            const heldNow: number[] = [];
+            for (const component of Object.values<any>(
+                core.core!._components,
+            )) {
+                if (component?.attributes?.vertices?.type === "expression") {
+                    heldNow.push(component.componentIdx);
+                }
+            }
+            const expected: number[] = [];
+            if (enabled) {
+                for (const name of held) {
+                    expected.push(await resolvePathToNodeIdx(name));
+                }
+            }
+            expect(heldNow.sort()).toEqual(expected.sort());
+
+            const read = async () => {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                const values: Record<string, any> = {};
+                for (const name of names) {
+                    const { stateValues } =
+                        stateVariables[await resolvePathToNodeIdx(name)];
+                    values[name] = (
+                        stateValues.vertices ?? stateValues.points
+                    ).map((vertex: any[]) => vertex.map((x) => x.tree));
+                }
+                return values;
+            };
+            const steps = [await read()];
+            for (const act of acts) {
+                await act(core, resolvePathToNodeIdx);
+                steps.push(await read());
+            }
+            results.push(steps);
+        }
+        expect(results[0]).toEqual(results[1]);
+        return results[0];
+    }
+
+    it("reads a list of points, and a drag writes it", async () => {
+        const steps = await compare({
+            doenetML: `
+<graph>
+  <pointList name="L">(1,2) (3,4) (5,6)</pointList>
+  <polygon name="pg" vertices="$L" />
+  <polyline name="pl" vertices="$L" />
+  <pointList name="L3">(1,2,3) (3,4,5)</pointList>
+  <polyline name="three" vertices="$L3" />
+  <pointList name="L1">(1) (3)</pointList>
+  <polyline name="one" vertices="$L1" />
+  <pointList name="Le"></pointList>
+  <polyline name="empty" vertices="$Le" />
+  <pointList name="Lf" fixed>(1,2) (3,4)</pointList>
+  <polyline name="ofFixed" vertices="$Lf" />
+  <pointList name="Lfl" fixLocation>(1,2) (3,4)</pointList>
+  <polyline name="ofFixLocation" vertices="$Lfl" />
+</graph>
+`,
+            names: [
+                "L",
+                "pg",
+                "pl",
+                "three",
+                "one",
+                "empty",
+                "ofFixed",
+                "ofFixLocation",
+            ],
+            held: [
+                "pg",
+                "pl",
+                "three",
+                "one",
+                "empty",
+                "ofFixed",
+                "ofFixLocation",
+            ],
+            acts: [
+                async (core, resolvePathToNodeIdx) => {
+                    await movePolygon({
+                        componentIdx: await resolvePathToNodeIdx("pg"),
+                        pointCoords: { 0: [20, 21], 1: [22, 23], 2: [24, 25] },
+                        core,
+                    });
+                },
+                async (core, resolvePathToNodeIdx) => {
+                    await movePolyline({
+                        componentIdx: await resolvePathToNodeIdx("pl"),
+                        pointCoords: { 1: [7, 8] },
+                        core,
+                    });
+                    for (const name of ["ofFixed", "ofFixLocation", "three"]) {
+                        await movePolyline({
+                            componentIdx: await resolvePathToNodeIdx(name),
+                            pointCoords: { 0: [9, 9] },
+                            core,
+                        });
+                    }
+                },
+            ],
+        });
+        expect(steps[0].pg).toEqual([
+            [1, 2],
+            [3, 4],
+            [5, 6],
+        ]);
+        expect(steps[0].three).toEqual([
+            [1, 2, 3],
+            [3, 4, 5],
+        ]);
+        expect(steps[0].empty).toEqual([]);
+        expect(steps[1].L).toEqual([
+            [20, 21],
+            [22, 23],
+            [24, 25],
+        ]);
+        expect(steps[2].L[1]).toEqual([7, 8]);
+        expect(steps[2].pg[1]).toEqual([7, 8]);
+        expect(steps[2].ofFixed).toEqual([
+            [1, 2],
+            [3, 4],
+        ]);
+        expect(steps[2].ofFixLocation).toEqual([
+            [1, 2],
+            [3, 4],
+        ]);
+    });
+
+    it("follows a repeat of points made a list as it grows and shrinks", async () => {
+        const steps = await compare({
+            doenetML: `
+<mathInput name="mi" prefill="3" />
+<number name="n">$mi</number>
+<graph>
+  <repeatForSequence name="S" from="1" to="$n" valueName="v">
+    <point>($v, $v^2)</point>
+  </repeatForSequence>
+  <polyline name="pl" vertices="$S" />
+</graph>
+`,
+            names: ["pl"],
+            held: ["pl"],
+            acts: [
+                async (core, resolvePathToNodeIdx) => {
+                    await updateMathInputValue({
+                        latex: "4",
+                        componentIdx: await resolvePathToNodeIdx("mi"),
+                        core,
+                    });
+                },
+                async (core, resolvePathToNodeIdx) => {
+                    await updateMathInputValue({
+                        latex: "1",
+                        componentIdx: await resolvePathToNodeIdx("mi"),
+                        core,
+                    });
+                },
+            ],
+        });
+        expect(steps[1].pl).toEqual([
+            [1, 1],
+            [2, 4],
+            [3, 9],
+            [4, 16],
+        ]);
+        expect(steps[2].pl).toEqual([[1, 1]]);
+    });
+
+    it("reads the points a `<collect>` made a list holds, which are dragged as their sources", async () => {
+        const steps = await compare({
+            doenetML: `
+<graph name="g1">
+  <point name="A">(1,2)</point>
+  <point name="B">(3,4)</point>
+</graph>
+<graph name="g2">
+  <collect componentType="point" from="$g1" name="c" />
+  <polygon name="pg" vertices="$c" />
+</graph>
+`,
+            names: ["pg"],
+            held: ["pg"],
+            acts: [
+                async (core, resolvePathToNodeIdx) => {
+                    await movePolygon({
+                        componentIdx: await resolvePathToNodeIdx("pg"),
+                        pointCoords: { 0: [5, 6], 1: [7, 8] },
+                        core,
+                    });
+                },
+            ],
+        });
+        // `numPoints` of a collected list is read as `numComponents`: an
+        // alias is looked up by type, which every collected list shares
+        expect(steps[0].pg).toEqual([
+            [1, 2],
+            [3, 4],
+        ]);
+        expect(steps[1].pg).toEqual([
+            [5, 6],
+            [7, 8],
+        ]);
+    });
+
+    it("copies of what holds the list resolve it from where they are", async () => {
+        const [values] = await compare({
+            doenetML: `
+<graph>
+  <pointList name="L">(1,2) (3,4)</pointList>
+  <polygon name="pg" vertices="$L" />
+  <polygon name="linked" extend="$pg" />
+  <polygon name="unlinked" copy="$pg" />
+</graph>
+<repeat name="rp" for="1 2" valueName="v">
+  <graph>
+    <pointList name="L">($v,0) (0,$v)</pointList>
+    <polygon name="copied" copy="$pg" />
+  </graph>
+</repeat>
+`,
+            names: ["linked", "unlinked", "rp[1].copied", "rp[2].copied"],
+            held: ["pg", "unlinked", "rp[1].copied", "rp[2].copied"],
+        });
+        expect(values.unlinked).toEqual([
+            [1, 2],
+            [3, 4],
+        ]);
+        // pasted in an iteration, `$L` names the iteration's list
+        expect(values["rp[2].copied"]).toEqual([
+            [2, 0],
+            [0, 2],
+        ]);
+    });
+
+    it("keeps the attribute component of vertices that are not one whole list of points", async () => {
+        await compare({
+            doenetML: `
+<graph>
+  <point name="A">(7,7)</point>
+  <point name="B">(8,9)</point>
+  <pointList name="L">(1,2) (3,4)</pointList>
+  <repeat name="r" for="1 2" valueName="v"><point>($v, 1)</point><point>(1, $v)</point></repeat>
+  <polyline name="points" vertices="$A $B" />
+  <polyline name="literal" vertices="(0,0) (1,1)" />
+  <polyline name="listAndPoint" vertices="$L $A" />
+  <polyline name="composite" vertices="$r" />
+  <polyline name="missing" vertices="$nothing" />
+</graph>
+`,
+            names: [
+                "points",
+                "literal",
+                "listAndPoint",
+                "composite",
                 "missing",
             ],
             held: [],
