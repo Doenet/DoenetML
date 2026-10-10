@@ -13,19 +13,25 @@ export function expressionAttributePrefix(name: string) {
 
 /**
  * The state variable of the component holding the expression attribute
- * `name` that a reader's `variableName` of the attribute component reads,
- * or `undefined` for one it has no state variable for.
+ * `attribute` that a reader's `variableName` of the attribute component
+ * reads, or `undefined` for one it has no state variable for: of a `mathList`
+ * (a point's `xs`), `numComponents` and `math1`, `math2`, …; of a `math` or
+ * `boolean`, `value`.
  */
 export function expressionAttributeVariable(
-    name: string,
+    attribute: { name: string; componentType: string },
     variableName: string,
 ) {
+    const prefix = expressionAttributePrefix(attribute.name);
+    if (attribute.componentType !== "mathList") {
+        return variableName === "value" ? `${prefix}value` : undefined;
+    }
     if (variableName === "numComponents") {
-        return `${expressionAttributePrefix(name)}numComponents`;
+        return `${prefix}numComponents`;
     }
     const match = /^math([1-9]\d*)$/.exec(variableName);
     if (match) {
-        return `${expressionAttributePrefix(name)}math${match[1]}`;
+        return `${prefix}math${match[1]}`;
     }
     return undefined;
 }

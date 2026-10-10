@@ -274,6 +274,8 @@ export type ExpressionAttribute = {
     }[];
     /** The text written to the template's nodes, by node, of a copy. */
     writes?: Record<string, any>;
+    /** Where the author wrote it, for diagnostics about the attribute. */
+    position?: any;
     sourceDoc?: number;
 };
 

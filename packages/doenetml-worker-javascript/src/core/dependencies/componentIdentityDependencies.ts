@@ -18,6 +18,7 @@ import {
     type LiteralAttribute,
 } from "../../utils/literalAttribute";
 import { expressionAttributeVariable } from "../../utils/expressionAttributeNames";
+import type { ExpressionAttribute } from "../../utils/dast/types";
 
 /**
  * Whether `attribute` is one the dependency reads: a component, a reference
@@ -515,7 +516,7 @@ export class AttributeComponentDependency extends Dependency {
         ) {
             return originalVarNames.map((name) => {
                 const variable = expressionAttributeVariable(
-                    this.expression.name,
+                    this.expression,
                     name,
                 );
                 if (variable === undefined) {
@@ -565,6 +566,24 @@ export class AttributeComponentDependency extends Dependency {
         const literal: LiteralAttribute | undefined = this.literal;
         if (literal) {
             return this.literalResult(literal, result);
+        }
+
+        // where the author wrote an expression attribute, as its attribute
+        // component had, for a diagnostic about the attribute (a
+        // `<conditionalContent>`'s ignored `condition`), not its owner's
+        const expression: ExpressionAttribute | undefined = this.expression;
+        if (expression && result.value) {
+            const { position, sourceDoc, ...value } = result.value;
+            result.value = expression.position
+                ? {
+                      ...value,
+                      position: this.dependencyHandler.frozenPositionCopy(
+                          expression.position,
+                      ),
+                      sourceDoc: expression.sourceDoc,
+                  }
+                : value;
+            return result;
         }
 
         // a reference that is the attribute component (`condition="$c"`,

@@ -372,7 +372,10 @@ export async function normalizedDastToSerializedComponents(
 
     // After the literal attributes, an attribute that is text and value
     // references is held by its component (`expressionAttributes.ts`).
-    convertExpressionAttributes([document], normalized_root.nodes.length);
+    convertExpressionAttributes([document], {
+        numResolverNodes: normalized_root.nodes.length,
+        componentInfoObjects,
+    });
 
     // Last, so that the walk sees the final tree -- after references became
     // copies, after attributes became components, and after sugar added

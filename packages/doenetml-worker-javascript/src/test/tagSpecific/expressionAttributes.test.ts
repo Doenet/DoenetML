@@ -6,7 +6,9 @@ import {
     movePoint,
     moveThroughPoint,
     moveVector,
+    updateBooleanInputValue,
     updateMathInputValue,
+    updateTextInputValue,
 } from "../utils/actions";
 import { setExpressionAttributesEnabled } from "../../utils/dast/expressionAttributes";
 import { createNewComponentIndices } from "../../utils/componentIndices";
@@ -60,7 +62,11 @@ describe("Coordinates held by their point @group4", () => {
             for (const component of Object.values<any>(
                 core.core!._components,
             )) {
-                if (component?.attributes?.xs?.type === "expression") {
+                if (
+                    Object.values<any>(component?.attributes ?? {}).some(
+                        (attribute) => attribute?.type === "expression",
+                    )
+                ) {
                     heldNow.push(component.componentIdx);
                 }
             }
@@ -197,6 +203,22 @@ describe("Coordinates held by their point @group4", () => {
             reload: true,
         });
         expect(texts.p).toBe("(4, 5, 6) (4, 7, 8) (7, 8, 9) 4");
+    });
+
+    it("coordinates that read a math operator, as `$m` of a `<max>`", async () => {
+        const texts = await compare({
+            doenetML: `
+<numberList name="l">3 8 5</numberList>
+<max name="m">$l</max>
+<min name="n">$l</min>
+<graph><point name="P">($n, $m - 1)</point></graph>
+<p name="p">$P</p>
+`,
+            names: ["p"],
+            held: ["P"],
+            act: drag("P", 6, 2),
+        });
+        expect(texts.p).toBe("(3, 7)");
     });
 
     it("a drag writes through linked copies, to a point holding its coordinates", async () => {
@@ -428,6 +450,118 @@ describe("Coordinates held by their point @group4", () => {
         expect(texts.p).toBe("(1, 0) (2, 6) (3, 8)");
     });
 
+    it("boolean expressions: a hide and a case's condition, as their references change", async () => {
+        const texts = await compare({
+            doenetML: `
+<booleanInput name="bi" />
+<mathInput name="mi" prefill="1" />
+<number name="a">$mi</number>
+<text name="t">x</text>
+<graph><point name="P" hide="not $bi">(1, 2)</point></graph>
+<p name="q" hide="$t = y or $a < 0">shown</p>
+<conditionalContent name="cc">
+  <case condition="$a > 2"><p name="big">big</p></case>
+  <else><p name="small">small</p></else>
+</conditionalContent>
+<p name="p">$P.hidden $q.hidden</p>
+`,
+            names: ["p"],
+            // `P`'s and `q`'s `hide`, and the case's `condition`
+            numHeld: 3,
+            act: async (core, resolvePathToNodeIdx) => {
+                await updateBooleanInputValue({
+                    boolean: true,
+                    componentIdx: await resolvePathToNodeIdx("bi"),
+                    core,
+                });
+                await updateMathInputValue({
+                    latex: "-3",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+            },
+            reload: true,
+        });
+        expect(texts.p).toBe("false true");
+    });
+
+    it("math expressions: a line's equation and a curve's parMin and parMax", async () => {
+        const texts = await compare({
+            doenetML: `
+<mathInput name="mi" prefill="1" />
+<number name="a">$mi</number>
+<graph>
+  <line name="l" equation="y = $a x + 1" />
+  <curve name="c" parMin="$a - 4" parMax="2 $a">(t, t^2)</curve>
+</graph>
+<p name="p">$l.equation $c.parMin $c.parMax $l.slope</p>
+`,
+            names: ["p"],
+            held: ["l", "c"],
+            act: async (core, resolvePathToNodeIdx) => {
+                await updateMathInputValue({
+                    latex: "3",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+            },
+            reload: true,
+        });
+        expect(texts.p).toBe("y = 3 x + 1 -1 6 3");
+    });
+
+    it("boolean expressions compare as a `<boolean>` does: a missing reference, an unordered math, a text, and a feedback's condition", async () => {
+        const texts = await compare({
+            doenetML: `
+<numberList name="l">1 2</numberList>
+<math name="u" unordered>(1, 2)</math>
+<textInput name="ti" prefill="x" />
+<mathInput name="mi" prefill="1" />
+<p name="p1" hide="$l[3] + 1 = 1 + $l[3]">one</p>
+<p name="p2" hide="$u = (2, 1) and $mi > 0">two</p>
+<p name="p3" hide="$ti = y">three</p>
+<feedback name="fb" condition="$mi > 2"><p>big</p></feedback>
+<p name="p">$p1.hidden $p2.hidden $p3.hidden $fb.hidden</p>
+`,
+            names: ["p"],
+            held: ["p1", "p2", "p3", "fb"],
+            act: async (core, resolvePathToNodeIdx) => {
+                await updateMathInputValue({
+                    latex: "3",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+                await updateTextInputValue({
+                    text: "y",
+                    componentIdx: await resolvePathToNodeIdx("ti"),
+                    core,
+                });
+            },
+            reload: true,
+        });
+        expect(texts.p).toBe("false true true false");
+    });
+
+    it("keeps the attribute component of an expression it does not hold", async () => {
+        // one reference alone, which is the attribute component itself; a
+        // reference with a component between the brackets of its path; a
+        // math expression of an owner other than a line or curve
+        await compare({
+            doenetML: `
+<boolean name="b">true</boolean>
+<booleanList name="bl">true false</booleanList>
+<number name="a">2</number>
+<number name="i">2</number>
+<p name="p1" hide="$b">one</p>
+<p name="p2" hide="not $bl[$i]">two</p>
+<function name="f" domain="(0, $a + 1)">x^2</function>
+<p name="p">$p1.hidden $p2.hidden $f.domain</p>
+`,
+            names: ["p"],
+            held: [],
+        });
+    });
+
     it("a drag of a linked copy writes the text of its source's coordinate, which the copy does not hold", async () => {
         // the source's `__xs_writes`, which the copy reads through its
         // source and does not have (`EssentialValueWriter` skips it)
@@ -446,6 +580,27 @@ describe("Coordinates held by their point @group4", () => {
             reload: true,
         });
         expect(texts.p).toBe("(3, 7) (3, 7) 3");
+    });
+
+    it("a diagnostic about an expression attribute is placed where it is written", async () => {
+        // a `<conditionalContent>` with cases ignores its `condition`
+        const doenetML = `
+<number name="a">1</number>
+<conditionalContent condition="$a > 0"><case condition="$a > 0"><p>x</p></case></conditionalContent>
+`;
+        const positions = [];
+        for (const enabled of [true, false]) {
+            setExpressionAttributesEnabled(enabled);
+            const { core } = await createTestCore({ doenetML });
+            setExpressionAttributesEnabled(true);
+            const warnings = core.core!.diagnostics.filter(
+                (diagnostic: any) => diagnostic.code === "doenet-w0079",
+            );
+            expect(warnings.length).toBe(1);
+            positions.push(warnings[0].position.start);
+        }
+        expect(positions[0]).toEqual(positions[1]);
+        expect(positions[0]).toMatchObject({ line: 3, column: 21 });
     });
 
     it("renumbering a copy leaves the slots of what it copied as they were", () => {

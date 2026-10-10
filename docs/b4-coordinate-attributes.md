@@ -1,6 +1,6 @@
 # B4 design: coordinates and expressions over references without attribute components
 
-Design for #2252, step B4 of stream B (#2129) of #2125. Status: shape and order settled 2026-10-09; steps 1 to 3 built. Measured on `main` at b27371d73 (#2255). Paths are under `packages/doenetml-worker-javascript/src/` unless they start with `packages/`.
+Design for #2252, step B4 of stream B (#2129) of #2125. Status: shape and order settled 2026-10-09; steps 1 to 4 built. Measured on `main` at b27371d73 (#2255). Paths are under `packages/doenetml-worker-javascript/src/` unless they start with `packages/`.
 
 ## Summary
 
@@ -80,7 +80,7 @@ Parsing once across owners is possible: on repeat-150, 150 points parse the same
 1. **Reference slots, behavior unchanged.** Done. `ValueRef`'s chain, its `canBeModified` included, is `referenceSlotDefinitions` (`components/abstract/referenceSlotDefinitions.js`); `ValueRef` calls it with its own names. The two dependencies take a slot (`refResolutionAt`, `utils/referenceSlot.ts`).
 2. **A `point.xs` held by its point.** Done, for every qualifying point, not only one; see below.
 3. **The rest of `xs`:** a `<vector>`'s, and a point made after the resolver was given the document (the points of a polygon's `vertices`, a label's `anchor`). Done; see below.
-4. **Boolean and math expressions** (`hide`, `condition`, `equation`), with a boolean node in `utils/repeatTemplate.js`, which F6's step 4b needs too.
+4. **Boolean and math expressions** (`hide`, `condition`, `equation`, `parMin`, `parMax`), and coordinates whose references read a math operator (`$m` of a `<max>`). Done; see below.
 
 **Step 2, as built.**
 - **The pass** (`utils/dast/expressionAttributes.ts`) runs after the literal attributes. It replaces the `xs` of a `<point>` whose `mathList` and `<math>`s have no attributes, and whose `<math>`s hold only text and `_ref`s read as a math or number, with no component in their path and a path that starts with a name. A slot keeps its `_ref`'s `refResolution` and read plan, and resolves from the point (`nodesInResolvedPath[0]`).
@@ -103,7 +103,34 @@ Parsing once across owners is possible: on repeat-150, 150 points parse the same
   | unit-circle-labeling | 732 → 725 | 20,468 → 20,378 | 9,920 → 9,887 | 950 → 910 |
 
   One `xs` of repeat-150 now costs about 28 dependencies, against 124. Measures-of-spread holds only 42 of its 84 points, the 42 that read `$mean` and `$std`, which save 64 dependencies each. The other 42 read `$min` or `$max`, and a reference to a `<min>` or `<max>` is read as that component (`presentedComponentType` `max`), not as a math or number, so they keep their components. The other fixtures are unchanged: their points are in repeats made lists or have no references.
-- **Still held as components:** a reference with a component between the brackets of its path (`$l[$i]`), a coordinate with attributes or a named or other component in it, and a reference read as other than a math or number.
+- **Still held as components:** a reference with a component between the brackets of its path (`$l[$i]`), a coordinate with attributes or a named or other component in it, and a reference read as other than a math or number (or, from step 4, a type that is one).
+
+**Step 4, as built.**
+- **References read as a type that is a math or number.** A reference to a `<max>` or `<min>` is read as that operator, which is a `<math>`. The pass took only a reference read as `math` or `number`, so measures-of-spread's 42 points that read `$min` or `$max` kept their components. It now takes any type that inherits from either, read as a math.
+- **The attributes held** (`EXPRESSION_ATTRIBUTES`, `utils/dast/expressionAttributes.ts`), each when its attribute component is text and value references alone, at least one of each, the text more than spaces (one reference alone is the attribute component itself, from B2; `$a $b` keeps its component):
+  - `hide` of any component, and the `condition` of a `<case>`, `<conditionalContent>` or `<feedback>`, which are `boolean`;
+  - a `<line>`'s `equation` and a `<curve>`'s `parMin` and `parMax`, which are `math`.
+
+  Each is read only through `value` (`expressionAttributeVariable`), or for being there (a line reads its `equation`'s identity only to know whether it has one).
+- **A `math` expression** is the template's one `<math>` node, computed and inverted as a coordinate is (`evaluateRepeatTemplate`, `invertRepeatTemplate`), with a `<math>`'s defaults (`simplify="none"`). An owner with a parse setting a `<math>` would take from it (`MATH_PARSE_SETTINGS`) keeps its component; a `<line>` and a `<curve>` have none.
+- **A `boolean` expression** is parsed once (`buildParsedExpression`, from the type each reference is read as) and evaluated with `booleanValueFromCodes`, as a `<boolean>` evaluates its children. It reads of each reference what a `<boolean>` reads of a child:
+  - `value`;
+  - `valueMissing`, which makes a missing reference a blank math;
+  - `unordered`;
+  - `inUnorderedList`, `false` for a reference in an attribute;
+  - `fractionSatisfied` is read only under `matchPartial`, which an attribute's `<boolean>` does not have.
+
+  The compare settings are a `<boolean>`'s defaults, which an attribute's `<boolean>` has, since it takes none from its parent. It takes no value written to it, as a `<boolean>` of more than one child takes none.
+- **Slots** gain `valueMissing` and `unordered` (`valueMissingDefinition`, `unorderedDefinition` in `components/abstract/referenceSlotDefinitions.js`), the factories a `_ref` uses for its own.
+- **Measured,** branch against `main` (which has steps 1 to 3):
+
+  | fixture | components | dependencies | state variables resolved |
+  |---|--:|--:|--:|
+  | measures-of-spread | 3,325 → 2,933 | 105,872 → 99,892 | 49,397 → 46,733 |
+  | unit-circle-labeling | 725 → 701 | 20,378 → 20,030 | 9,887 → 9,721 |
+  | hardware-assignment-2 | 4,936 → 4,916 | 162,074 → 161,724 | 77,699 → 77,519 |
+
+  Load times changed within their noise, measures-of-spread's too: a median of 4,133 and 4,331 ms against 4,289 and 4,349 ms on `main`, in two runs of 7 to 9 loads each.
 
 ## Alternatives considered
 
