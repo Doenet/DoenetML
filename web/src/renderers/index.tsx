@@ -10,6 +10,11 @@ import { BooleanInput } from "./BooleanInput";
 import { MathView } from "./Math";
 import { Circle, Line, Polygon } from "./Shapes";
 import { CaseView, ChoiceView, SectionView, TextView } from "./Choice";
+import { RENDERER } from "./kind";
+import { JsxGraph } from "./jsxgraph/Board";
+import { JxCircle, JxLine, JxPoint, JxPolygon } from "./jsxgraph/elements";
+
+const JSX = RENDERER !== "svg";
 
 export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
   const store = useStore();
@@ -17,9 +22,9 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
     case "document":
       return <div className="doc"><Children idx={idx} inGraph={false} /></div>;
     case "graph":
-      return <Graph idx={idx} />;
+      return JSX ? <JsxGraph idx={idx} /> : <Graph idx={idx} />;
     case "point":
-      return <Point idx={idx} inGraph={inGraph} />;
+      return JSX && inGraph ? <JxPoint idx={idx} /> : <Point idx={idx} inGraph={inGraph} />;
     case "number":
       return <NumberView idx={idx} />;
     case "numberInput":
@@ -33,17 +38,18 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
     case "mathInput":
       return <NumberInput idx={idx} />;
     case "line":
-      return inGraph ? <Line idx={idx} segment={false} /> : null;
+      return !inGraph ? null : JSX ? <JxLine idx={idx} segment={false} /> : <Line idx={idx} segment={false} />;
     case "lineSegment":
-      return inGraph ? <Line idx={idx} segment={true} /> : null;
+      return !inGraph ? null : JSX ? <JxLine idx={idx} segment={true} /> : <Line idx={idx} segment={true} />;
     case "circle":
-      return inGraph ? <Circle idx={idx} /> : null;
+      return !inGraph ? null : JSX ? <JxCircle idx={idx} /> : <Circle idx={idx} />;
     case "polygon":
-      return inGraph ? <Polygon idx={idx} /> : null;
+      return !inGraph ? null : JSX ? <JxPolygon idx={idx} /> : <Polygon idx={idx} />;
     // A point list's children are points aliasing a shape's own points.
     case "pointList":
     case "p":
     case "group":
+    case "stickyGroup":
       return <Children idx={idx} inGraph={inGraph} />;
     case "text":
       return <TextView idx={idx} />;

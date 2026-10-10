@@ -19,6 +19,14 @@
       svg.graph { display: block; margin: 8px 0; border: 1px solid #999; background: #fff; touch-action: none; }
       .doc { line-height: 1.6; }
       input.numberInput { width: 6em; }
+      /* JSXGraph boards (plan 7): Doenet's light theme and its .jxgbox and
+         navigation rules (packages/doenetml/src/DoenetML.css). */
+      :root { --canvas: white; --canvasText: black; --mainGray: #e3e3e3; --lightBlue: hsl(209, 54%, 82%); }
+      .jxgbox { position: relative; overflow: hidden; background-color: #fff; border-style: solid; border-width: 1px; border-color: #356aa0; border-radius: 10px; margin: 0; -ms-touch-action: none; }
+      .jxgbox svg text { cursor: default; user-select: none; }
+      .JXGtext { font-family: Courier, monospace; background-color: transparent; padding: 0; margin: 0; }
+      .JXG_navigation { position: absolute; right: 5px; bottom: 5px; z-index: 100; background-color: transparent; padding: 2px; font-size: 14px; cursor: pointer; }
+      .JXG_navigation_button { color: #666; }
     </style>
   </head>
   <body>

@@ -38,6 +38,10 @@ export interface TickSample {
   commit: number;
   /** ms from request start until the next animation frame */
   frame: number;
+  /** ms from request start until a task after that frame's callbacks, which
+   * runs once the browser has painted it: unlike `frame`, this includes the
+   * style, layout and paint cost of the tick's own DOM changes */
+  paint: number;
   changed: number;
 }
 
@@ -137,7 +141,8 @@ export class CellStore {
   private listeners: (Set<Listener> | undefined)[];
   private anyListeners = new Set<Listener>();
   private structureListeners = new Set<Listener>();
-  /** Incremented when a tick rebuilt the document; the renderer remounts. */
+  private tickEndListeners = new Set<Listener>();
+  /** Incremented when a tick rebuilt the document; the renderer re-reads the table. */
   structureVersion = 0;
   samples: TickSample[] = [];
   /** Incremented on every applied tick; lets a component re-render per tick. */
@@ -176,6 +181,13 @@ export class CellStore {
     return () => this.structureListeners.delete(fn);
   }
 
+  /** Called once per applied tick, after every per-cell listener: a
+   * renderer that batches its drawing redraws here, once per tick. */
+  subscribeTickEnd(fn: Listener): () => void {
+    this.tickEndListeners.add(fn);
+    return () => this.tickEndListeners.delete(fn);
+  }
+
   setEvaluator(name: string) {
     this.backend.setEvaluator(name);
   }
@@ -199,7 +211,7 @@ export class CellStore {
     const start = performance.now();
     const cells = new Uint32Array(pairs.map((p) => p[0]));
     const values = new Float64Array(pairs.map((p) => p[1]));
-    const sample: TickSample = { core: NaN, rebuilt: false, roundTrip: NaN, commit: NaN, frame: NaN, changed: 0 };
+    const sample: TickSample = { core: NaN, rebuilt: false, roundTrip: NaN, commit: NaN, frame: NaN, paint: NaN, changed: 0 };
     this.samples.push(sample);
     const apply = ({ changed, rebuilt, columns }: TickResult) => {
       sample.roundTrip = performance.now() - start;
@@ -209,11 +221,14 @@ export class CellStore {
       this.version++;
       requestAnimationFrame(() => {
         sample.frame = performance.now() - start;
+        const ch = new MessageChannel();
+        ch.port1.onmessage = () => (sample.paint = performance.now() - start);
+        ch.port2.postMessage(null);
       });
       if (rebuilt) {
         // Every cell index and component index is new: replace the table,
-        // drop per-cell subscriptions (their components are about to
-        // unmount) and tell the renderer to remount from the root.
+        // drop per-cell subscriptions (their components re-subscribe) and
+        // tell the renderer to update from the root.
         this.comps = new ComponentTable(columns!);
         this.listeners = new Array(this.comps.nCells);
         this.structureVersion++;
@@ -224,6 +239,7 @@ export class CellStore {
           if (set) for (const fn of set) fn();
         }
       }
+      for (const fn of this.tickEndListeners) fn();
       for (const fn of this.anyListeners) fn();
     };
     const r = this.backend.request(cells, values, (ms) => (sample.core = ms), points);

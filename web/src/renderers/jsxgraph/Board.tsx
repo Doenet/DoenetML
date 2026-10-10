@@ -1,0 +1,314 @@
+// A graph drawn by JSXGraph with Doenet's look (plan 7). React mounts the
+// board and its children; after that, each child's JSXGraph element reads
+// its cells directly and never re-renders through React. A tick marks the
+// elements whose cells changed, and the board redraws once at the end of
+// the tick (`CellStore.subscribeTickEnd`).
+//
+// `?jsxupdate=element` reproduces Doenet's own update pattern instead: every
+// element keeps JSXGraph's regular updates, a changed element redraws the
+// whole board on its own, and visibility goes through `setAttribute`.
+import { createContext, useContext, useLayoutEffect, useRef, useState } from "react";
+import JXG from "jsxgraph";
+import type { CellStore } from "../../core";
+import { useStore } from "../../hooks";
+import { Children } from "../index";
+import { JSX_UPDATE, RENDERER } from "../kind";
+import { addNavigationButtons, createAxes, GRAPH_SIZE, initBoardOptions } from "./doenet";
+
+export interface BoardElement {
+  /** The cells this element reads, in the order `sync` receives them. */
+  cells: number[];
+  /** The values of the last sync. A rebuild re-binds every element to new
+   * cell indices; an element whose values did not change is not redrawn. */
+  last?: number[];
+  /** Bring the JSXGraph objects up to date with these cell values. */
+  sync(values: number[]): void;
+  remove(): void;
+  /** The JSXGraph objects `sync` updates, to redraw just those. */
+  objects(): any[];
+  /** Client coordinates of the element's drag target, for tests. */
+  locate?(): [number, number] | null;
+}
+
+/** Every mounted board, so tests can find an element's screen position. */
+export const boards = new Set<BoardHandle>();
+
+/** performance.now() of the latest board redraw. Elements are created a
+ * commit after the board, so first-render timing waits for this too. */
+export let lastBoardFlushAt = 0;
+
+export class BoardHandle {
+  readonly elements = new Set<BoardElement>();
+  /** Component index to element, for `locate`. Re-registered on rebuild. */
+  readonly byComp = new Map<number, BoardElement>();
+  /** Doenet's per-element pattern (`?jsxupdate=element`). */
+  readonly perElement = JSX_UPDATE === "element";
+  private pending = new Set<BoardElement>();
+  private scheduled = false;
+
+  constructor(readonly board: any, readonly store: CellStore) {}
+
+  /** Attributes every element is created with. In tick mode JSXGraph's own
+   * board updates (one per pointer move) skip our elements: they are
+   * redrawn only when their cells change. */
+  get attrs(): Record<string, any> {
+    return this.perElement ? {} : { needsRegularUpdate: false };
+  }
+
+  /** Queue an element to re-read its cells. A tick flushes at its end;
+   * anything marked outside a tick (a mount, a rebuild) is flushed in a
+   * microtask, still before the frame. */
+  mark(e: BoardElement) {
+    this.pending.add(e);
+    if (!this.scheduled) {
+      this.scheduled = true;
+      queueMicrotask(() => this.flush());
+    }
+  }
+
+  flush() {
+    this.scheduled = false;
+    if (this.pending.size === 0 && !this.redrawAll) return;
+    const cells = this.store.cells();
+    const b = this.board;
+    // SVG redraws only the changed elements' objects; the canvas renderer
+    // repaints everything, and only clears inside suspendRedraw.
+    const whole = this.perElement || b.renderer.type === "canvas" || this.redrawAll;
+    this.redrawAll = false;
+    b.renderer.suspendRedraw(b);
+    for (const e of this.pending) {
+      const values = e.cells.map((c) => cells[c]);
+      if (e.last && values.every((v, i) => Object.is(v, e.last![i]))) continue;
+      e.last = values;
+      e.sync(values);
+      if (this.perElement) b.updateRenderer();
+      else if (!whole) for (const o of e.objects()) o.updateRenderer();
+    }
+    this.pending.clear();
+    if (whole && !this.perElement) b.updateRenderer();
+    b.renderer.unsuspendRedraw();
+    lastBoardFlushAt = performance.now();
+  }
+
+  /** Re-read one element even if its cells did not change: after a drag
+   * request the core may have refused, so the objects JSXGraph moved need
+   * putting back. Queued, so the many objects a pointer event reaches at
+   * once (overlapping points all get `up`) share one redraw. */
+  resync(e: BoardElement) {
+    e.last = undefined;
+    this.mark(e);
+  }
+
+  /** Visibility without `setAttribute`, which runs a full board update. */
+  setVisible(el: any, visible: boolean) {
+    if (this.perElement) {
+      const changed = el.visProp.visible !== visible;
+      el.visProp.visible = visible;
+      el.visPropCalc.visible = visible;
+      if (changed) el.setAttribute({ visible });
+    } else if (el.visPropCalc.visible !== visible || el.visProp.visible !== visible) {
+      el.visProp.visible = visible;
+      el.visPropCalc.visible = visible;
+      el.setDisplayRendNode(visible);
+    }
+  }
+
+  /** A point's marker shape changed (an off-graph indicator came or went). */
+  setFace(el: any, face: string) {
+    if (el.visProp.face === face) return;
+    if (this.perElement) el.setAttribute({ face });
+    else {
+      el.visProp.face = face;
+      this.board.renderer.changePointStyle(el);
+    }
+  }
+
+  /** Remove objects from the board. `removeObject` runs a full board
+   * update per call; in tick mode that is skipped (the objects' own DOM
+   * nodes go with them) and the canvas renderer gets a redraw instead. */
+  removeObjects(objs: any[]) {
+    const b = this.board;
+    if (this.perElement) {
+      for (const o of objs) b.removeObject(o);
+      return;
+    }
+    const suspended = b.isSuspendedUpdate;
+    b.isSuspendedUpdate = true;
+    for (const o of objs) b.removeObject(o);
+    b.isSuspendedUpdate = suspended;
+    if (b.renderer.type === "canvas") this.redrawSoon();
+  }
+
+  private redrawAll = false;
+  private redrawSoon() {
+    this.redrawAll = true;
+    if (!this.scheduled) {
+      this.scheduled = true;
+      queueMicrotask(() => this.flush());
+    }
+  }
+
+  /** Client coordinates of a screen-coordinate pair on this board. */
+  toClient(scr: number[]): [number, number] {
+    const c = this.board.containerObj as HTMLElement;
+    const r = c.getBoundingClientRect();
+    return [r.left + c.clientLeft + scr[1], r.top + c.clientTop + scr[2]];
+  }
+}
+
+export const BoardContext = createContext<BoardHandle | null>(null);
+export const useBoard = () => useContext(BoardContext)!;
+
+let nextBoardId = 0;
+
+export function JsxGraph({ idx }: { idx: number }) {
+  const store = useStore();
+  const container = useRef<HTMLDivElement>(null);
+  const [id] = useState(() => `cells-board-${nextBoardId++}`);
+  const [handle, setHandle] = useState<BoardHandle | null>(null);
+  const settingBBox = useRef(false);
+  const bboxCells = () => ["xmin", "ymax", "xmax", "ymin"].map((p) => store.comps.cell(idx, p));
+
+  useLayoutEffect(() => {
+    const cells = store.cells();
+    const bbox = bboxCells().map((c) => cells[c]);
+    JXG.Options.layer.numlayers = 100;
+    (JXG.Options as any).navbar.highlightFillColor = "var(--canvasText)";
+    (JXG.Options as any).navbar.strokeColor = "var(--canvasText)";
+    const board = (JXG.JSXGraph as any).initBoard(id, initBoardOptions(bbox, false, RENDERER === "jsxgraph-canvas" ? "canvas" : "svg"));
+    // JSXGraph clips its SVG root with `overflow: hidden`; with that, Chrome
+    // re-layerizes every object on the board whenever a node is removed
+    // (about 20 ms per frame at 8,000 objects). `clip-path` clips the same
+    // pixels without it.
+    const svgRoot = board.renderer.svgRoot as SVGSVGElement | undefined;
+    if (svgRoot) {
+      svgRoot.style.overflow = "visible";
+      svgRoot.style.clipPath = "inset(0)";
+    }
+    createAxes(board);
+    addNavigationButtons(board, container.current!);
+    const h = new BoardHandle(board, store);
+    boards.add(h);
+    setHandle(h);
+    return () => {
+      boards.delete(h);
+      (JXG.JSXGraph as any).freeBoard(board);
+      container.current?.querySelector(".JXG_navigation")?.remove();
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, []);
+
+  // The bounding box is four cells: pan and zoom request them, and a
+  // change from the core (or a refused request) moves the board.
+  useLayoutEffect(() => {
+    if (!handle) return;
+    const board = handle.board;
+    const cells = bboxCells();
+    const apply = () => {
+      const v = store.cells();
+      const want = cells.map((c) => v[c]);
+      const have = board.getBoundingBox();
+      if (want.every((w, i) => Math.abs(w - have[i]) <= 1e-12 * Math.abs(want[2] - want[0]))) return;
+      settingBBox.current = true;
+      board.setBoundingBox(want);
+      settingBBox.current = false;
+      // Points far outside the new box become indicators, and back.
+      const cv = store.cells();
+      for (const e of handle.elements) e.sync((e.last = e.cells.map((c) => cv[c])));
+      board.fullUpdate();
+    };
+    const onBBox = () => {
+      if (settingBBox.current) return;
+      // Same order as the cells: xmin, ymax, xmax, ymin.
+      const bbox: number[] = board.getBoundingBox();
+      store.request(cells.map((c, i) => [c, bbox[i]]));
+      if (store.kind === "main") apply();
+    };
+    board.on("boundingbox", onBBox);
+    const unsubs = cells.map((c) => store.subscribe(c, apply));
+    apply();
+    return () => {
+      board.off("boundingbox", onBBox);
+      unsubs.forEach((u) => u());
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [handle, store, store.comps, idx]);
+
+  useLayoutEffect(() => {
+    if (!handle) return;
+    return store.subscribeTickEnd(() => handle.flush());
+  }, [handle, store]);
+
+  return (
+    <>
+      <div
+        id={id}
+        ref={container}
+        className="jxgbox"
+        dir="ltr"
+        data-comp={idx}
+        data-name={store.comps.name(idx) ?? undefined}
+        style={{ width: `${GRAPH_SIZE}px`, aspectRatio: "1", maxWidth: "100%", border: "2px solid var(--canvasText)", marginTop: "12px", marginBottom: "12px", backgroundColor: "var(--canvas)", color: "var(--canvasText)" }}
+      />
+      {handle && (
+        <BoardContext.Provider value={handle}>
+          {/* Graph children draw into the board; anything else they render is not shown. */}
+          <div style={{ display: "none" }}>
+            <Children idx={idx} inGraph={true} />
+          </div>
+        </BoardContext.Provider>
+      )}
+    </>
+  );
+}
+
+/** Mount a board element for the component's lifetime and keep it bound to
+ * the component's current cells: after a rebuild the indices change, the
+ * element stays. */
+export function useBoardElement(idx: number, props: readonly string[], make: (h: BoardHandle) => BoardElement) {
+  const store = useStore();
+  const h = useBoard();
+  const el = useRef<BoardElement | null>(null);
+  useLayoutEffect(() => {
+    const e = make(h);
+    el.current = e;
+    h.elements.add(e);
+    return () => {
+      h.elements.delete(e);
+      e.remove();
+      el.current = null;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [h]);
+  const cells = props.map((p) => store.comps.cell(idx, p));
+  const key = cells.join(",");
+  // A rebuild drops every per-cell subscription, so the table is a
+  // dependency too: indices that came out the same still re-subscribe.
+  useLayoutEffect(() => {
+    const e = el.current!;
+    e.cells = cells;
+    h.byComp.set(idx, e);
+    h.mark(e);
+    const mark = () => h.mark(e);
+    const unsubs = cells.map((c) => store.subscribe(c, mark));
+    return () => {
+      unsubs.forEach((u) => u());
+      if (h.byComp.get(idx) === e) h.byComp.delete(idx);
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [h, store, store.comps, idx, key]);
+}
+
+/** Where to press to drag the named component, for tests. */
+export function locate(store: CellStore, name: string): [number, number] | null {
+  const c = store.comps.byName(name);
+  if (c === null) return null;
+  for (const h of boards) {
+    const e = h.byComp.get(c);
+    if (e?.locate) {
+      (h.board.containerObj as HTMLElement).scrollIntoView({ block: "center" });
+      return e.locate();
+    }
+  }
+  return null;
+}

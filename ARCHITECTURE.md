@@ -161,7 +161,12 @@ point groups together is `tick/invert.rs`.
 
 **Change what a renderer reads.** The wasm binding is
 `crates/cells-wasm/src/lib.rs` (zero-copy views of the cells and component
-table, ADR 0001); the React side is `web/src/`.
+table, ADR 0001); the React side is `web/src/`. Graphs have two renderers,
+chosen in `web/src/renderers/kind.ts`: the SVG component renderers in
+`web/src/renderers/`, and JSXGraph boards in `web/src/renderers/jsxgraph/`,
+whose elements read cells directly and redraw once per tick
+(`CellStore.subscribeTickEnd`); Doenet's styling is copied into
+`jsxgraph/doenet.ts`.
 
 ## The other crates
 

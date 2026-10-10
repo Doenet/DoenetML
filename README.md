@@ -19,8 +19,8 @@ list of operators with inverses.
 - `crates/cells-wasm`: the browser binding.
 - `crates/cells-docgen`: synthetic DoenetML for fixtures and benchmarks.
 - `crates/cells-bench`: benches, the `stats` binary, and measurement examples.
-- `web/`: the Vite + React renderer and the Playwright end-to-end
-  measurement.
+- `web/`: the Vite + React renderer (graphs drawn by JSXGraph with Doenet's
+  look, or by plain SVG) and the Playwright end-to-end measurement.
 - `scripts/`: the DAST parser wrapper (`parse-dast.mjs`) and binary encoder
   (`cdast-encode.mjs`), fixture generation (`gen-fixtures.sh`), the
   refactoring checks (`golden-diff.sh`, `perf-diff.sh`), and
@@ -55,6 +55,12 @@ scripts/perf-diff.sh [rev]      # quick perf check: regress on 10 fixtures, base
 
 Restrict a run with `CELLS_FIXTURES=chain-1000,points-100 cargo bench ...` or
 `CELLS_E2E_FIXTURES=... CELLS_E2E_EVALS=full CELLS_E2E_BACKENDS=main CELLS_E2E_FORMATS=cdast,json pnpm e2e`.
+Graphs are drawn by JSXGraph by default; `?renderer=svg|jsxgraph|jsxgraph-canvas`
+picks one in the viewer, `CELLS_E2E_RENDERERS=svg,jsxgraph,...` in the e2e run
+(default `svg`), and `jsxupdate=element` / `CELLS_E2E_JSXUPDATE=element`
+switches JSXGraph boards to Doenet's own update pattern. Side-by-side
+screenshots against the current viewer: `cd web && pnpm build && pnpm preview`,
+then `node baseline/screenshots.mjs` (writes `results/screenshots/`).
 The current-core baseline is `cd web && node baseline/measure.mjs`; the slider
 differential test against the current core is `cd web && node baseline/slider-diff.mjs`
 (after `cargo build --release -p cells-bench --example scenario_run`).

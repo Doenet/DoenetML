@@ -12,6 +12,10 @@ const SPECS = (process.env.CELLS_E2E_FIXTURES ?? "points-100,points-1000,points-
 const EVALUATORS = (process.env.CELLS_E2E_EVALS ?? "dirty-closure,full").split(",");
 const BACKENDS = (process.env.CELLS_E2E_BACKENDS ?? "main,worker-sab,worker-msg").split(",");
 const FORMATS = (process.env.CELLS_E2E_FORMATS ?? "cdast").split(",");
+/** Plan 7: which renderer draws graphs (svg, jsxgraph, jsxgraph-canvas). */
+const RENDERERS = (process.env.CELLS_E2E_RENDERERS ?? "svg").split(",");
+/** "element" makes JSXGraph boards update the way Doenet's renderers do. */
+const JSX_UPDATE = process.env.CELLS_E2E_JSXUPDATE ?? "tick";
 /** "1" makes a rebuild remount the React tree instead of updating it in place. */
 const REMOUNT = process.env.CELLS_E2E_REMOUNT ?? "0";
 const STEPS = 120;
@@ -21,7 +25,14 @@ function dragTarget(spec: string): string {
   if (shape === "chain" || shape === "intchain" || shape === "mathchain" || shape === "aliases" || shape.startsWith("slider")) return "p";
   if (shape === "repeat") return "q";
   if (shape === "recur") return "p";
+  if (shape === "circles3") return "k0";
   return "p0";
+}
+
+/** Fixtures whose drag target is a shape, not a point. */
+function shapeTarget(spec: string): boolean {
+  const shape = spec.split("-")[0];
+  return shape === "circles3" || shape === "sticky" || shape === "stickyfree";
 }
 
 /** Fixtures whose `n` input drives a repeat: changing it rebuilds the document. */
@@ -53,21 +64,23 @@ test.afterAll(() => {
   let merged = results;
   if (existsSync(file)) {
     const prev = JSON.parse(readFileSync(file, "utf8")).results as any[];
-    const key = (r: any) => `${r.spec}|${r.fmt ?? "json"}|${r.backend ?? "main"}|${r.evaluator}`;
+    const key = (r: any) => `${r.spec}|${r.fmt ?? "json"}|${r.backend ?? "main"}|${r.evaluator}|${r.renderer ?? "svg"}|${r.jsxUpdate ?? "tick"}`;
     const fresh = new Set(results.map(key));
     merged = [...prev.filter((r) => !fresh.has(key(r))), ...results];
   }
   writeFileSync(file, JSON.stringify({ date: stamp, steps: STEPS, results: merged }, null, 1));
 });
 
+for (const renderer of RENDERERS) {
 for (const spec of SPECS) {
   for (const fmt of FORMATS) {
   for (const backend of BACKENDS) {
   for (const evaluator of EVALUATORS) {
-    test(`${spec} [${fmt}] [${backend}] [${evaluator}]`, async ({ page }) => {
+    const label = `${spec} [${fmt}] [${backend}] [${evaluator}] [${renderer}${renderer === "svg" ? "" : `/${JSX_UPDATE}`}]`;
+    test(label, async ({ page }) => {
       page.on("console", (m) => { if (m.type() === "error" || m.type() === "warning") console.log(`[browser ${m.type()}] ${m.text()}`); });
       page.on("pageerror", (e) => console.log(`[pageerror] ${e.message}`));
-      await page.goto(`/?doc=${spec}&eval=${evaluator}&backend=${backend}&fmt=${fmt}&remount=${REMOUNT}`);
+      await page.goto(`/?doc=${spec}&eval=${evaluator}&backend=${backend}&fmt=${fmt}&remount=${REMOUNT}&renderer=${renderer}&jsxupdate=${JSX_UPDATE}`);
       await waitReady(page);
       const load = await page.evaluate(() => {
         const s = window.__cells!.store!;
@@ -75,12 +88,20 @@ for (const spec of SPECS) {
       });
 
       // Repeat fixtures render one circle per iteration under the same
-      // name (and the collect's copies); drag the first.
-      const circle = page.locator(`circle[data-name="${dragTarget(spec)}"]`).first();
-      await expect(circle).toHaveCount(1);
-      await circle.scrollIntoViewIfNeeded();
-      const box = (await circle.boundingBox())!;
-      const cx = box.x + box.width / 2, cy = box.y + box.height / 2;
+      // name (and the collect's copies); drag the first. A JSXGraph board
+      // has no element per component to find, so it reports where to press.
+      let cx: number, cy: number;
+      if (renderer === "svg") {
+        const target = page.locator(`${shapeTarget(spec) ? "" : "circle"}[data-name="${dragTarget(spec)}"]`).first();
+        await expect(target).toHaveCount(1);
+        await target.scrollIntoViewIfNeeded();
+        const box = (await target.boundingBox())!;
+        [cx, cy] = [box.x + box.width / 2, box.y + box.height / 2];
+      } else {
+        const at = await page.evaluate((name) => window.__cells!.locate(name), dragTarget(spec));
+        expect(at).not.toBeNull();
+        [cx, cy] = at!;
+      }
       await page.evaluate(() => { window.__cells!.store!.samples.length = 0; });
       await page.mouse.move(cx, cy);
       await page.mouse.down();
@@ -97,12 +118,13 @@ for (const spec of SPECS) {
       expect(samples.length).toBeGreaterThan(10);
 
       const r: any = {
-        spec, fmt, backend, evaluator, remount: REMOUNT === "1", ...load,
+        spec, fmt, backend, evaluator, renderer, jsxUpdate: renderer === "svg" ? undefined : JSX_UPDATE, remount: REMOUNT === "1", ...load,
         tick: {
           core: stats(samples.map((s: any) => s.core)),
           roundTrip: stats(samples.map((s: any) => s.roundTrip)),
           commit: stats(samples.map((s: any) => s.commit)),
           frame: stats(samples.map((s: any) => s.frame)),
+          paint: stats(samples.map((s: any) => s.paint)),
           changed: stats(samples.map((s: any) => s.changed)),
         },
       };
@@ -125,6 +147,7 @@ for (const spec of SPECS) {
           core: stats(toggles.map((s: any) => s.core)),
           commit: stats(toggles.map((s: any) => s.commit)),
           frame: stats(toggles.map((s: any) => s.frame)),
+          paint: stats(toggles.map((s: any) => s.paint)),
           changed: stats(toggles.map((s: any) => s.changed)),
         };
       }
@@ -154,6 +177,7 @@ for (const spec of SPECS) {
           core: stats(flips.map((s: any) => s.core)),
           commit: stats(flips.map((s: any) => s.commit)),
           frame: stats(flips.map((s: any) => s.frame)),
+          paint: stats(flips.map((s: any) => s.paint)),
           changed: stats(flips.map((s: any) => s.changed)),
         };
       }
@@ -177,19 +201,35 @@ for (const spec of SPECS) {
           return s.samples;
         }, REBUILD_STEPS);
         expect(rebuildSamples.every((s: any) => s.rebuilt)).toBe(true);
+        if (renderer !== "svg") {
+          // A JSXGraph element must still redraw after rebuilds re-bound its
+          // cells (even to the same indices): move the target, see it move.
+          const moved = await page.evaluate(async (name) => {
+            const s = window.__cells!.store!;
+            const c = s.comps.byName(name)!;
+            const before = window.__cells!.locate(name);
+            s.request([[s.comps.cell(c, "x"), s.get(s.comps.cell(c, "x")) + 2], [s.comps.cell(c, "y"), s.get(s.comps.cell(c, "y")) + 1]]);
+            await new Promise((ok) => requestAnimationFrame(() => ok(null)));
+            const after = window.__cells!.locate(name);
+            return before && after ? Math.hypot(after[0] - before[0], after[1] - before[1]) : 0;
+          }, dragTarget(spec));
+          expect(moved).toBeGreaterThan(10);
+        }
         r.rebuild = {
           core: stats(rebuildSamples.map((s: any) => s.core)),
           roundTrip: stats(rebuildSamples.map((s: any) => s.roundTrip)),
           commit: stats(rebuildSamples.map((s: any) => s.commit)),
           frame: stats(rebuildSamples.map((s: any) => s.frame)),
+          paint: stats(rebuildSamples.map((s: any) => s.paint)),
         };
       }
       results.push(r);
       const fl = r.flip ? ` flip core p50=${r.flip.core.p50.toFixed(2)}ms commit p50=${r.flip.commit.p50.toFixed(1)}ms frame p50=${r.flip.frame.p50.toFixed(1)}ms` : "";
-      const rb = r.rebuild ? ` rebuild core p50=${r.rebuild.core.p50.toFixed(2)}ms commit p50=${r.rebuild.commit.p50.toFixed(1)}ms frame p50=${r.rebuild.frame.p50.toFixed(1)}ms` : r.toggle ? ` toggle core p50=${r.toggle.core.p50.toFixed(2)}ms commit p50=${r.toggle.commit.p50.toFixed(1)}ms frame p50=${r.toggle.frame.p50.toFixed(1)}ms changed=${r.toggle.changed.p50}` : "";
-      console.log(`${spec} [${fmt}] [${backend}] [${evaluator}] cells=${load.nCells} core p50=${r.tick.core.p50.toFixed(3)}ms rt p50=${r.tick.roundTrip.p50.toFixed(2)}ms commit p50=${r.tick.commit.p50.toFixed(2)}ms frame p50=${r.tick.frame.p50.toFixed(2)}ms first render=${load.timings?.firstRender?.toFixed(1)}ms${rb}${fl}`);
+      const rb = r.rebuild ? ` rebuild core p50=${r.rebuild.core.p50.toFixed(2)}ms commit p50=${r.rebuild.commit.p50.toFixed(1)}ms frame p50=${r.rebuild.frame.p50.toFixed(1)}ms paint p50=${r.rebuild.paint.p50.toFixed(1)}ms` : r.toggle ? ` toggle core p50=${r.toggle.core.p50.toFixed(2)}ms commit p50=${r.toggle.commit.p50.toFixed(1)}ms frame p50=${r.toggle.frame.p50.toFixed(1)}ms paint p50=${r.toggle.paint.p50.toFixed(1)}ms changed=${r.toggle.changed.p50}` : "";
+      console.log(`${label} cells=${load.nCells} core p50=${r.tick.core.p50.toFixed(3)}ms rt p50=${r.tick.roundTrip.p50.toFixed(2)}ms commit p50=${r.tick.commit.p50.toFixed(2)}ms frame p50=${r.tick.frame.p50.toFixed(2)}ms p90=${r.tick.frame.p90.toFixed(2)}ms paint p50=${r.tick.paint.p50.toFixed(2)}ms p90=${r.tick.paint.p90.toFixed(2)}ms first render=${load.timings?.firstRender?.toFixed(1)}ms${rb}${fl}`);
     });
   }
   }
   }
+}
 }

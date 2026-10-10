@@ -3,6 +3,8 @@ import { CellStore, loadDocument, type BackendKind, type LoadTimings } from "./c
 import { StoreContext } from "./hooks";
 import { CommitReporter, Component } from "./renderers";
 import { parseDoenetML } from "./parse";
+import { RENDERER } from "./renderers/kind";
+import { lastBoardFlushAt, locate } from "./renderers/jsxgraph/Board";
 
 const FIXTURES = [
   "points-10", "points-100", "points-1000", "points-10000", "points-50000",
@@ -42,6 +44,11 @@ declare global {
       timings: Partial<LoadTimings> | null;
       ready: boolean;
       load: (spec: string) => Promise<void>;
+      /** Parse and load DoenetML text (the screenshot script). */
+      loadSource: (text: string) => Promise<void>;
+      /** Client coordinates to press to drag a named component on a
+       * JSXGraph board, scrolling the board into view first. */
+      locate: (name: string) => [number, number] | null;
     };
   }
 }
@@ -70,7 +77,9 @@ export function App() {
           requestAnimationFrame(waitCommit);
           return;
         }
-        t.firstRender = s.firstCommitAt - t0;
+        // JSXGraph boards create their elements a commit after the first
+        // and draw them in a microtask, both before this frame callback.
+        t.firstRender = Math.max(s.firstCommitAt, lastBoardFlushAt) - t0;
         setTimings({ ...t });
         window.__cells!.timings = t;
         window.__cells!.store = s;
@@ -93,19 +102,23 @@ export function App() {
     await loadBytes(bytes, t);
   }
 
-  async function loadSource() {
+  async function loadSource(text = source) {
     const t: Partial<LoadTimings> = {};
     const t0 = performance.now();
-    const bytes = await parseDoenetML(source.replace(/<\/?p>/g, ""));
+    const bytes = await parseDoenetML(text.replace(/<\/?p>/g, ""));
     t.fetch = performance.now() - t0; // parse + encode time stands in for fetch here
     await loadBytes(bytes, t);
   }
 
   useEffect(() => {
-    window.__cells = { store: null, timings: null, ready: false, load: loadFixture };
+    window.__cells = {
+      store: null, timings: null, ready: false, load: loadFixture,
+      loadSource: (text) => { setSource(text); return loadSource(text); },
+      locate: (name) => (window.__cells!.store ? locate(window.__cells!.store, name) : null),
+    };
     const doc = params.get("doc");
     if (doc) loadFixture(doc);
-    else loadSource();
+    else if (params.get("blank") !== "1") loadSource();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
@@ -127,6 +140,22 @@ export function App() {
           </select>
         </label>
         <label>
+          Renderer:{" "}
+          <select
+            value={RENDERER}
+            onChange={(e) => {
+              // The renderer is fixed per page load; reload with the new choice.
+              const p = new URLSearchParams(location.search);
+              p.set("renderer", e.target.value);
+              location.search = p.toString();
+            }}
+          >
+            <option value="jsxgraph">JSXGraph (Doenet's look)</option>
+            <option value="jsxgraph-canvas">JSXGraph canvas</option>
+            <option value="svg">plain SVG</option>
+          </select>
+        </label>
+        <label>
           Backend:{" "}
           <select value={backend} onChange={(e) => setBackend(e.target.value as BackendKind)}>
             <option value="main">main thread</option>
@@ -140,7 +169,7 @@ export function App() {
         <section className="pane source-pane">
           <div className="pane-header">
             <span>DoenetML source</span>
-            <button onClick={loadSource}>Load source (Ctrl+Enter)</button>
+            <button onClick={() => loadSource()}>Load source (Ctrl+Enter)</button>
           </div>
           <textarea
             value={source}

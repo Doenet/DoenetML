@@ -8,6 +8,9 @@ importers:
 
   .:
     dependencies:
+      jsxgraph:
+        specifier: 1.12.2
+        version: 1.12.2
       react:
         specifier: ^19.1.0
         version: 19.3.0
@@ -550,6 +553,10 @@ packages:
     engines: {node: '>=6'}
     hasBin: true
 
+  jsxgraph@1.12.2:
+    resolution: {integrity: sha512-7kTscexFVBHirsBrxZFQg2hA6Mf/Pa2piojNgxHZ9i/rQfxDAaq7p8oD9/009clQTFQ9fNLUpmDKwV+84zA2Gg==}
+    engines: {node: '>=0.6.0'}
+
   lru-cache@5.1.1:
     resolution: {integrity: sha512-KpNARQA3Iwv+jTA0utUVVbrh+Jlrr1Fv0e56GGzAFOXN7dk/FviaDW8LHmK52DlcH4WP2n6gI8vN1aesBFgo9w==}
 
@@ -1085,6 +1092,8 @@ snapshots:
   jsesc@3.1.0: {}
 
   json5@2.2.3: {}
+
+  jsxgraph@1.12.2: {}
 
   lru-cache@5.1.1:
     dependencies:

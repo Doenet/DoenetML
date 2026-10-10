@@ -42,8 +42,26 @@ def collect_latest(pattern):
         return None
     return json.loads(files[-1].read_text())
 
+def renderer(r):
+    """The graph renderer a browser row was measured with (plan 7); rows
+    from before plan 7 have none and used the SVG renderer."""
+    name = r.get("renderer", "svg")
+    return name + ("/element" if r.get("jsxUpdate") == "element" else "")
+
 def collect_e2e():
-    return collect_latest("e2e-*.json")
+    """Every e2e run merged by configuration, the newest run winning, so a
+    partial sweep (one renderer, a few fixtures) does not hide the rest."""
+    files = sorted(RAW.glob("e2e-*.json"))
+    if not files:
+        return None
+    rows, steps, date = {}, None, None
+    for f in files:
+        d = json.loads(f.read_text())
+        steps, date = d.get("steps", steps), d["date"]
+        for r in d["results"]:
+            key = (r["spec"], r.get("fmt", "json"), r.get("backend", "main"), r["evaluator"], renderer(r), r.get("remount", False))
+            rows[key] = {**r, "date": d["date"]}
+    return {"date": date, "steps": steps, "results": list(rows.values())}
 
 def cpu_name():
     try:
@@ -156,49 +174,54 @@ def main():
     e2e = collect_e2e()
     if e2e:
         md.append("## Browser end to end (headless Chromium, Playwright)\n")
-        md.append(f"Measured on {e2e['date']}: load the fixture, then drag the target point for {e2e['steps']} pointer moves. Startup here includes fetching the JSON, wasm instantiation, the core stages, manifest construction and React's first render.\n")
+        md.append(f"Measured between {min(r['date'] for r in e2e['results'])} and {e2e['date']} (each row is the latest run of its configuration): load the fixture, then drag the target point for {e2e['steps']} pointer moves. Startup here includes fetching the JSON, wasm instantiation, the core stages, manifest construction and React's first render.\n")
         md.append("Startup is shown for the `full` evaluator only (the evaluator does not affect loading). *worker* is spawn, module load and the document transfer into the worker; *tables* is creating the component-table views (main thread) or copying the columns out of the worker.\n")
-        md.append("| fixture | format | backend | cells | components | fetch | worker | wasm init | core total | tables | first render | total (ms) |")
-        md.append("|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
-        for r in sorted(e2e["results"], key=lambda r: (spec_key(r["spec"]), r.get("fmt", "json"), r.get("backend", "main"))):
-            if r["evaluator"] != "full":
+        md.append("Plan 7 rows (a renderer other than `svg`, or `svg` measured with `paint`) were run with `dirty-closure` only and are shown under that evaluator.\n")
+        md.append("| fixture | renderer | format | backend | cells | components | fetch | worker | wasm init | core total | tables | first render | total (ms) |")
+        md.append("|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
+        plan7 = lambda r: "renderer" in r
+        for r in sorted(e2e["results"], key=lambda r: (spec_key(r["spec"]), renderer(r), r.get("fmt", "json"), r.get("backend", "main"))):
+            if r["evaluator"] != ("dirty-closure" if plan7(r) else "full"):
                 continue
             t = r["timings"] or {}
             num = lambda x: x if isinstance(x, (int, float)) and x == x else 0.0
             manifest = num(t.get("manifest")) + num(t.get("manifestTransfer"))
             parts = [t.get("fetch"), t.get("workerSpawn"), t.get("wasmInit"), t.get("coreTotal"), manifest, t.get("firstRender")]
             total = sum(num(x) for x in parts)
-            md.append(f"| {r['spec']} | {r.get('fmt', 'json')} | {r.get('backend', 'main')} | {r['nCells']} | {r['nComponents']} | " + " | ".join(f"{x:.1f}" if isinstance(x, (int, float)) and x == x else "–" for x in parts) + f" | {total:.1f} |")
+            md.append(f"| {r['spec']} | {renderer(r)} | {r.get('fmt', 'json')} | {r.get('backend', 'main')} | {r['nCells']} | {r['nComponents']} | " + " | ".join(f"{x:.1f}" if isinstance(x, (int, float)) and x == x else "–" for x in parts) + f" | {total:.1f} |")
         md.append("")
         md.append("Per drag step, in ms. *Core* is the time inside the wasm request call, measured where the core runs. *Round trip* is until the changed cells are readable on the main thread. *Commit* is until React committed the resulting DOM updates. *Frame* is until the next animation frame.\n")
         md.append("Tick timings are independent of the wire format, so only the binary-format runs are shown.\n")
-        md.append("| fixture | backend | evaluator | changed cells | core p50 | round trip p50 | commit p50 | commit p90 | frame p50 | frame p90 | frame max |")
-        md.append("|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|")
-        for r in sorted(e2e["results"], key=lambda r: (spec_key(r["spec"]), r.get("backend", "main"), r["evaluator"])):
+        md.append("*Renderer* is how graphs are drawn (plan 7): `svg` is the hand-drawn SVG renderer every row before plan 7 used; `jsxgraph` and `jsxgraph-canvas` are JSXGraph with Doenet's look; `/element` is Doenet's own update pattern. *Paint* (plan 7 rows only) is until a task after that frame, so it includes the browser's style, layout and paint of the tick's DOM changes.\n")
+        md.append("| fixture | renderer | backend | evaluator | changed cells | core p50 | round trip p50 | commit p50 | commit p90 | frame p50 | frame p90 | frame max | paint p50 | paint p90 |")
+        md.append("|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
+        nan = {"p50": float("nan"), "p90": float("nan")}
+        for r in sorted(e2e["results"], key=lambda r: (spec_key(r["spec"]), renderer(r), r.get("backend", "main"), r["evaluator"])):
             if r.get("fmt", "cdast") != "cdast":
                 continue
             k = r["tick"]
             rt = k.get("roundTrip", {}).get("p50", float("nan"))
-            md.append(f"| {r['spec']} | {r.get('backend', 'main')} | {r['evaluator']} | {k['changed']['p50']:.0f} | {k['core']['p50']:.3f} | {rt:.2f} | {k['commit']['p50']:.2f} | {k['commit']['p90']:.2f} | {k['frame']['p50']:.2f} | {k['frame']['p90']:.2f} | {k['frame']['max']:.2f} |")
+            pt = k.get("paint", nan)
+            md.append(f"| {r['spec']} | {renderer(r)} | {r.get('backend', 'main')} | {r['evaluator']} | {k['changed']['p50']:.0f} | {k['core']['p50']:.3f} | {rt:.2f} | {k['commit']['p50']:.2f} | {k['commit']['p90']:.2f} | {k['frame']['p50']:.2f} | {k['frame']['p90']:.2f} | {k['frame']['max']:.2f} | {pt['p50']:.2f} | {pt['p90']:.2f} |".replace("nan", "–"))
         md.append("")
 
         rebuilds = [r for r in e2e["results"] if r.get("rebuild") and r.get("fmt", "cdast") == "cdast"]
         if rebuilds:
             md.append("Structural ticks: the repeat's `length` input is changed by one, 20 times, so every request rebuilds the document in the core and the renderer re-reads the component table. *Core* includes the rebuild. *Remount* rows throw the React tree away and rebuild it; the others key children by stable component identity and update in place.\n")
-            md.append("| fixture | backend | remount | cells | components | core p50 | round trip p50 | commit p50 | commit p90 | frame p50 | frame p90 |")
-            md.append("|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|")
-            for r in sorted(rebuilds, key=lambda r: (spec_key(r["spec"]), r.get("backend", "main"), r.get("remount", False))):
+            md.append("| fixture | renderer | backend | remount | cells | components | core p50 | round trip p50 | commit p50 | commit p90 | frame p50 | frame p90 | paint p50 |")
+            md.append("|---|---|---|---|---:|---:|---:|---:|---:|---:|---:|---:|---:|")
+            for r in sorted(rebuilds, key=lambda r: (spec_key(r["spec"]), renderer(r), r.get("backend", "main"), r.get("remount", False))):
                 k = r["rebuild"]
-                md.append(f"| {r['spec']} | {r.get('backend', 'main')} | {'yes' if r.get('remount') else 'no'} | {r['nCells']} | {r['nComponents']} | {k['core']['p50']:.2f} | {k['roundTrip']['p50']:.2f} | {k['commit']['p50']:.1f} | {k['commit']['p90']:.1f} | {k['frame']['p50']:.1f} | {k['frame']['p90']:.1f} |")
+                md.append(f"| {r['spec']} | {renderer(r)} | {r.get('backend', 'main')} | {'yes' if r.get('remount') else 'no'} | {r['nCells']} | {r['nComponents']} | {k['core']['p50']:.2f} | {k['roundTrip']['p50']:.2f} | {k['commit']['p50']:.1f} | {k['commit']['p90']:.1f} | {k['frame']['p50']:.1f} | {k['frame']['p90']:.1f} | {k.get('paint', nan)['p50']:.1f} |".replace("nan", "–"))
             md.append("")
         toggles = [r for r in e2e["results"] if r.get("toggle") and r.get("fmt", "cdast") == "cdast"]
         if toggles:
             md.append("Boolean toggles: one `booleanInput` bound to every point's `hide`, flipped 20 times. The 0/1 cell is an ordinary `f64` cell; the cost is the renderer mounting and unmounting N circles.\n")
-            md.append("| fixture | backend | changed cells | core p50 | commit p50 | frame p50 | frame p90 |")
-            md.append("|---|---|---:|---:|---:|---:|---:|")
-            for r in sorted(toggles, key=lambda r: (spec_key(r["spec"]), r.get("backend", "main"))):
+            md.append("| fixture | renderer | backend | changed cells | core p50 | commit p50 | frame p50 | frame p90 | paint p50 |")
+            md.append("|---|---|---|---:|---:|---:|---:|---:|---:|")
+            for r in sorted(toggles, key=lambda r: (spec_key(r["spec"]), renderer(r), r.get("backend", "main"))):
                 k = r["toggle"]
-                md.append(f"| {r['spec']} | {r.get('backend', 'main')} | {k['changed']['p50']:.0f} | {k['core']['p50']:.3f} | {k['commit']['p50']:.1f} | {k['frame']['p50']:.1f} | {k['frame']['p90']:.1f} |")
+                md.append(f"| {r['spec']} | {renderer(r)} | {r.get('backend', 'main')} | {k['changed']['p50']:.0f} | {k['core']['p50']:.3f} | {k['commit']['p50']:.1f} | {k['frame']['p50']:.1f} | {k['frame']['p90']:.1f} | {k.get('paint', nan)['p50']:.1f} |".replace("nan", "–"))
             md.append("")
 
     base = collect_latest("baseline-*.json")
