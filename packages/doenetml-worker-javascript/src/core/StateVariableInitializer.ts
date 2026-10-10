@@ -578,28 +578,86 @@ async function arrayReturnDependencies(this: any, args: any) {
     return dependencies;
 }
 
-function arrayGetCurrentFreshness(
-    this: any,
-    { freshnessInfo, arrayKeys, arraySize }: any,
-) {
-    const arrayStateVarObj = resolveArrayStateVarObj(this);
-    const arrayVarName = arrayStateVarObj.svVarName;
-
-    if (arrayKeys === undefined) {
-        arrayKeys = arrayStateVarObj.getAllArrayKeys(arraySize);
+/**
+ * The keys of an array marked fresh are the keys of
+ * `freshnessInfo.freshByKey`, and `freshnessInfo.numFreshKeys` counts them, so
+ * the freshness of the whole array is read without building its keys (Doenet/DoenetML#2261).
+ * Mark keys fresh and stale only through these helpers, which keep the two in
+ * step.
+ */
+function markArrayKeyFresh(freshnessInfo: any, arrayKey: string) {
+    if (!freshnessInfo.freshByKey[arrayKey]) {
+        freshnessInfo.freshByKey[arrayKey] = true;
+        freshnessInfo.numFreshKeys++;
     }
+}
 
-    let freshByKey = freshnessInfo.freshByKey;
+function markArrayKeyStale(freshnessInfo: any, arrayKey: string) {
+    if (freshnessInfo.freshByKey[arrayKey]) {
+        delete freshnessInfo.freshByKey[arrayKey];
+        freshnessInfo.numFreshKeys--;
+    }
+}
+
+function markAllArrayKeysStale(freshnessInfo: any) {
+    freshnessInfo.freshByKey = {};
+    freshnessInfo.numFreshKeys = 0;
+}
+
+/** The number of keys `getAllArrayKeys(arraySize)` returns. */
+function numArrayKeys(arraySize: number[] | undefined) {
+    if (!arraySize || arraySize.length === 0) {
+        return 0;
+    }
+    let numKeys = 1;
+    for (const size of arraySize) {
+        numKeys *= size;
+    }
+    return numKeys;
+}
+
+/**
+ * How fresh the array is at `arrayKeys`, or, when they are `undefined`, at
+ * all of its keys: `fresh` when the size and every key are fresh,
+ * `partiallyFresh` with the number of them that are (the size counting as
+ * one) when only some are, and not `fresh` when none are.
+ *
+ * For the whole array, the count of fresh keys is compared with the number of
+ * keys. A key marked fresh outside the array's current size would make that
+ * count too high, so a count that reaches the number of keys is confirmed key
+ * by key before the array is reported fresh.
+ */
+function arrayFreshnessResult({
+    arrayStateVarObj,
+    freshnessInfo,
+    arrayKeys,
+    arraySize,
+}: any) {
+    const arrayVarName = arrayStateVarObj.svVarName;
+    const freshByKey = freshnessInfo.freshByKey;
 
     let numberFresh = freshnessInfo.freshArraySize ? 1 : 0;
-    for (let arrayKey of arrayKeys) {
-        if (freshByKey[arrayKey]) {
-            numberFresh += 1;
+    let numKeys: number;
+
+    if (arrayKeys === undefined) {
+        numKeys = numArrayKeys(arraySize);
+        if (freshnessInfo.numFreshKeys < numKeys) {
+            numberFresh += freshnessInfo.numFreshKeys;
+        } else {
+            arrayKeys = arrayStateVarObj.getAllArrayKeys(arraySize);
+        }
+    }
+    if (arrayKeys !== undefined) {
+        numKeys = arrayKeys.length;
+        for (const arrayKey of arrayKeys) {
+            if (freshByKey[arrayKey]) {
+                numberFresh += 1;
+            }
         }
     }
 
     if (numberFresh > 0) {
-        if (numberFresh === arrayKeys.length + 1) {
+        if (numberFresh === numKeys! + 1) {
             return { fresh: { [arrayVarName]: true } };
         } else {
             return { partiallyFresh: { [arrayVarName]: numberFresh } };
@@ -607,6 +665,18 @@ function arrayGetCurrentFreshness(
     } else {
         return { fresh: { [arrayVarName]: false } };
     }
+}
+
+function arrayGetCurrentFreshness(
+    this: any,
+    { freshnessInfo, arrayKeys, arraySize }: any,
+) {
+    return arrayFreshnessResult({
+        arrayStateVarObj: resolveArrayStateVarObj(this),
+        freshnessInfo,
+        arrayKeys,
+        arraySize,
+    });
 }
 
 function arrayMarkStale(
@@ -618,29 +688,25 @@ function arrayMarkStale(
 
     let result: any = {};
 
-    if (arrayKeys === undefined) {
-        arrayKeys = arrayStateVarObj.getAllArrayKeys(arraySize);
-    }
-
     if (arrayStateVarObj.markStaleByKey) {
-        result = arrayStateVarObj.markStaleByKey({ arrayKeys, changes });
+        result = arrayStateVarObj.markStaleByKey({
+            arrayKeys: arrayKeys ?? arrayStateVarObj.getAllArrayKeys(arraySize),
+            changes,
+        });
     }
-
-    let freshByKey = freshnessInfo.freshByKey;
 
     if (changes.__array_size) {
         freshnessInfo.freshArraySize = false;
         // everything is stale
-        freshnessInfo.freshByKey = {};
+        markAllArrayKeysStale(freshnessInfo);
         result.fresh = { [arrayVarName]: false };
         return result;
     }
 
-    if (Object.keys(freshByKey).length === 0) {
+    if (freshnessInfo.numFreshKeys === 0) {
         // everything is stale, except possibly array size
         // (check for nothing fresh as a shortcut, as mark stale could
         // be called repeated if size doesn't change, given that it's partially fresh)
-        freshnessInfo.freshByKey = {};
         if (freshnessInfo.freshArraySize) {
             result.partiallyFresh = { [arrayVarName]: 1 };
             return result;
@@ -650,10 +716,13 @@ function arrayMarkStale(
         }
     }
 
+    const numKeysAsked =
+        arrayKeys === undefined ? numArrayKeys(arraySize) : arrayKeys.length;
+
     for (let changeName in changes) {
         if (arrayStateVarObj.dependencyNames.global.includes(changeName)) {
             // everything is stale, except possible array size
-            freshnessInfo.freshByKey = {};
+            markAllArrayKeysStale(freshnessInfo);
             if (freshnessInfo.freshArraySize) {
                 result.partiallyFresh = { [arrayVarName]: 1 };
                 return result;
@@ -665,38 +734,28 @@ function arrayMarkStale(
 
         if (
             arrayStateVarObj.basedOnArrayKeyStateVariables &&
-            arrayKeys.length > 1
+            numKeysAsked > 1
         ) {
-            delete freshByKey[changeName];
+            markArrayKeyStale(freshnessInfo, changeName);
         } else {
             for (let key of arrayStateVarObj.dependencyNames.keysByName[
                 changeName
             ]) {
-                delete freshByKey[key];
+                markArrayKeyStale(freshnessInfo, key);
             }
         }
     }
 
     // check if the array keys requested are fresh
-    let numberFresh = freshnessInfo.freshArraySize ? 1 : 0;
-    for (let arrayKey of arrayKeys) {
-        if (freshByKey[arrayKey]) {
-            numberFresh += 1;
-        }
-    }
-
-    if (numberFresh > 0) {
-        if (numberFresh === arrayKeys.length + 1) {
-            result.fresh = { [arrayVarName]: true };
-            return result;
-        } else {
-            result.partiallyFresh = { [arrayVarName]: numberFresh };
-            return result;
-        }
-    } else {
-        result.fresh = { [arrayVarName]: false };
-        return result;
-    }
+    return Object.assign(
+        result,
+        arrayFreshnessResult({
+            arrayStateVarObj,
+            freshnessInfo,
+            arrayKeys,
+            arraySize,
+        }),
+    );
 }
 
 function arrayFreshenOnNoChanges(
@@ -704,14 +763,13 @@ function arrayFreshenOnNoChanges(
     { arrayKeys, freshnessInfo, arraySize }: any,
 ) {
     const arrayStateVarObj = resolveArrayStateVarObj(this);
-    let freshByKey = freshnessInfo.freshByKey;
 
     if (arrayKeys === undefined) {
         arrayKeys = arrayStateVarObj.getAllArrayKeys(arraySize);
     }
 
     for (let arrayKey of arrayKeys) {
-        freshByKey[arrayKey] = true;
+        markArrayKeyFresh(freshnessInfo, arrayKey);
     }
 }
 
@@ -814,7 +872,7 @@ function arrayDefinition(this: any, args: any) {
                 !freshByKey[arrayKey] &&
                 foundAllDependencyValuesForKey[arrayKey]
             ) {
-                freshByKey[arrayKey] = true;
+                markArrayKeyFresh(args.freshnessInfo, arrayKey);
                 arrayKeysToRecalculate.push(arrayKey);
             }
         }
@@ -837,7 +895,7 @@ function arrayDefinition(this: any, args: any) {
             // mark all array keys received as fresh as well
             if (result.setValue && result.setValue[arrayVarName]) {
                 for (let arrayKey in result.setValue[arrayVarName]) {
-                    freshByKey[arrayKey] = true;
+                    markArrayKeyFresh(args.freshnessInfo, arrayKey);
                 }
             }
             if (
@@ -847,7 +905,7 @@ function arrayDefinition(this: any, args: any) {
                 for (let arrayKey in result.useEssentialOrDefaultValue[
                     arrayVarName
                 ]) {
-                    freshByKey[arrayKey] = true;
+                    markArrayKeyFresh(args.freshnessInfo, arrayKey);
                 }
             }
         }
@@ -1725,7 +1783,9 @@ async function initializeArrayStateVariable({
     // - freshnessInfo: this object can be used to track information about the
     //   freshness of the array entries or other array features, such as size.
     //   freshnessInfo is prepopulated with
-    //     - a freshByKey object for tracking by key
+    //     - a freshByKey object for tracking by key, with numFreshKeys
+    //       counting its keys (change it through markArrayKeyFresh and
+    //       markArrayKeyStale, which keep the two in step)
     //     - a freshArraySize for tracking array size
     //   To take advantage of this object, a component can read and modify
     //   freshnessInfo (as core will pass it in as an argument) in
@@ -1940,7 +2000,7 @@ async function initializeArrayStateVariable({
     // to the same object, as they will share the same freshnessinfo
     // TODO: a better idea?  This seems like it could lead to confusion.
     if (!stateVarObj.freshnessInfo) {
-        stateVarObj.freshnessInfo = { freshByKey: {} };
+        stateVarObj.freshnessInfo = { freshByKey: {}, numFreshKeys: 0 };
         if (stateVarObj.additionalStateVariablesDefined) {
             for (let vName of stateVarObj.additionalStateVariablesDefined) {
                 if (!component.state[vName]) {
