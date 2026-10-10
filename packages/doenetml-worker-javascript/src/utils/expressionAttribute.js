@@ -100,15 +100,33 @@ export function expressionAttributeDefinitions(attribute) {
         definition: () => ({
             useEssentialOrDefaultValue: { [`${prefix}writes`]: true },
         }),
-        inverseDefinition: ({ desiredStateVariableValues }) => ({
-            success: true,
-            instructions: [
-                {
-                    setEssentialValue: `${prefix}writes`,
-                    value: desiredStateVariableValues[`${prefix}writes`],
-                },
-            ],
-        }),
+        // A value written is the text of the nodes it changes. The writes
+        // of one request are taken together (`workspace`): a drag of a point
+        // in space writes its `y` and its `z` through separate inverses.
+        async inverseDefinition({
+            desiredStateVariableValues,
+            stateValues,
+            workspace,
+        }) {
+            if (!workspace.writes) {
+                workspace.writes = {
+                    ...(await stateValues[`${prefix}writes`]),
+                };
+            }
+            Object.assign(
+                workspace.writes,
+                desiredStateVariableValues[`${prefix}writes`],
+            );
+            return {
+                success: true,
+                instructions: [
+                    {
+                        setEssentialValue: `${prefix}writes`,
+                        value: { ...workspace.writes },
+                    },
+                ],
+            };
+        },
     };
 
     definitions[`${prefix}numComponents`] = {
@@ -198,6 +216,8 @@ export function expressionAttributeDefinitions(attribute) {
         }) {
             const { analysis } = globalDependencyValues;
             let writes = globalDependencyValues.writes;
+            // the text of the nodes this write changes
+            const newTexts = {};
             const instructions = [];
             for (const arrayKey in desiredStateVariableValues[arrayName]) {
                 const dependencyValues = dependencyValuesByKey[arrayKey];
@@ -227,6 +247,7 @@ export function expressionAttributeDefinitions(attribute) {
                 }
                 if (Object.keys(inverse.texts).length > 0) {
                     writes = { ...writes, ...inverse.texts };
+                    Object.assign(newTexts, inverse.texts);
                 }
                 for (const { code, desiredValue } of inverse.writes) {
                     instructions.push({
@@ -238,10 +259,10 @@ export function expressionAttributeDefinitions(attribute) {
                     });
                 }
             }
-            if (writes !== globalDependencyValues.writes) {
+            if (Object.keys(newTexts).length > 0) {
                 instructions.push({
                     setDependency: "writes",
-                    desiredValue: writes,
+                    desiredValue: newTexts,
                 });
             }
             return { success: true, instructions };
