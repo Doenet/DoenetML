@@ -6,6 +6,7 @@ import {
     movePoint,
     moveThroughPoint,
     moveVector,
+    updateBooleanInputValue,
     updateMathInputValue,
 } from "../utils/actions";
 import { setExpressionAttributesEnabled } from "../../utils/dast/expressionAttributes";
@@ -60,7 +61,11 @@ describe("Coordinates held by their point @group4", () => {
             for (const component of Object.values<any>(
                 core.core!._components,
             )) {
-                if (component?.attributes?.xs?.type === "expression") {
+                if (
+                    Object.values<any>(component?.attributes ?? {}).some(
+                        (attribute) => attribute?.type === "expression",
+                    )
+                ) {
                     heldNow.push(component.componentIdx);
                 }
             }
@@ -442,6 +447,86 @@ describe("Coordinates held by their point @group4", () => {
         // `x` reads the iteration's value; the `0` takes each drag's `y`,
         // kept by the iterations withheld while the repeat is shorter
         expect(texts.p).toBe("(1, 0) (2, 6) (3, 8)");
+    });
+
+    it("boolean expressions: a hide and a case's condition, as their references change", async () => {
+        const texts = await compare({
+            doenetML: `
+<booleanInput name="bi" />
+<mathInput name="mi" prefill="1" />
+<number name="a">$mi</number>
+<text name="t">x</text>
+<graph><point name="P" hide="not $bi">(1, 2)</point></graph>
+<p name="q" hide="$t = y or $a < 0">shown</p>
+<conditionalContent name="cc">
+  <case condition="$a > 2"><p name="big">big</p></case>
+  <else><p name="small">small</p></else>
+</conditionalContent>
+<p name="p">$P.hidden $q.hidden</p>
+`,
+            names: ["p"],
+            // `P`'s and `q`'s `hide`, and the case's `condition`
+            numHeld: 3,
+            act: async (core, resolvePathToNodeIdx) => {
+                await updateBooleanInputValue({
+                    boolean: true,
+                    componentIdx: await resolvePathToNodeIdx("bi"),
+                    core,
+                });
+                await updateMathInputValue({
+                    latex: "-3",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+            },
+            reload: true,
+        });
+        expect(texts.p).toBe("false true");
+    });
+
+    it("math expressions: a line's equation and a curve's parMax", async () => {
+        const texts = await compare({
+            doenetML: `
+<mathInput name="mi" prefill="1" />
+<number name="a">$mi</number>
+<graph>
+  <line name="l" equation="y = $a x + 1" />
+  <curve name="c" parMin="0" parMax="2 $a">(t, t^2)</curve>
+</graph>
+<p name="p">$l.equation $c.parMax $l.slope</p>
+`,
+            names: ["p"],
+            held: ["l", "c"],
+            act: async (core, resolvePathToNodeIdx) => {
+                await updateMathInputValue({
+                    latex: "3",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+            },
+            reload: true,
+        });
+        expect(texts.p).toBe("y = 3 x + 1 6 3");
+    });
+
+    it("keeps the attribute component of an expression it does not hold", async () => {
+        // one reference alone, which is the attribute component itself; a
+        // reference with a component between the brackets of its path; a
+        // math expression of an owner other than a line or curve
+        await compare({
+            doenetML: `
+<boolean name="b">true</boolean>
+<booleanList name="bl">true false</booleanList>
+<number name="a">2</number>
+<number name="i">2</number>
+<p name="p1" hide="$b">one</p>
+<p name="p2" hide="not $bl[$i]">two</p>
+<function name="f" domain="(0, $a + 1)">x^2</function>
+<p name="p">$p1.hidden $p2.hidden $f.domain</p>
+`,
+            names: ["p"],
+            held: [],
+        });
     });
 
     it("a drag of a linked copy writes the text of its source's coordinate, which the copy does not hold", async () => {

@@ -515,7 +515,7 @@ export class AttributeComponentDependency extends Dependency {
         ) {
             return originalVarNames.map((name) => {
                 const variable = expressionAttributeVariable(
-                    this.expression.name,
+                    this.expression,
                     name,
                 );
                 if (variable === undefined) {

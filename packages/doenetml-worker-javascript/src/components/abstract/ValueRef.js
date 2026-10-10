@@ -6,6 +6,8 @@ import {
     emptyValueOfType,
     referentOrFallback,
     targetDependencies,
+    unorderedDefinition,
+    valueMissingDefinition,
 } from "./referenceSlotDefinitions";
 import { currentReferentValue } from "../../utils/referentDescription";
 import { LIST_ENTRY_PREFIX } from "../../utils/listEntryReference";
@@ -420,10 +422,7 @@ export default class ValueRef extends BaseComponent {
 
         // A `math` with no `unordered` attribute and no math children is
         // ordered.
-        stateVariableDefinitions.unordered = referentOrFallback({
-            stateVariable: "unordered",
-            fallback: () => false,
-        });
+        stateVariableDefinitions.unordered = unorderedDefinition();
 
         // `Math.js`: whether the value is a finite number.
         stateVariableDefinitions.isNumber = referentOrFallback({
@@ -907,61 +906,6 @@ const REFERENT_ACTIONS = {
     math: ["mathClicked", "mathFocused"],
     text: ["textClicked", "textFocused"],
 };
-
-/**
- * The definition of `valueMissing`, made on demand for a reference that
- * resolves itself: whether it has nothing to read where the copy it replaced
- * made no component at all. That is so with no referent (an index past the
- * end of a list), a referent without the variable (`$P.z` of a point in the
- * plane, a `<choiceInput>`'s `selectedIndex` before a choice), or a withheld
- * referent (a sample a `<sampleRandomNumbers>` withholds once its
- * `numSamples` drops). Its `value` is then the empty value of the type it
- * presents as (`NaN`, `""`, `false`, `＿`), and an empty value alone cannot
- * say so, since a referent can hold `NaN` or `""` too. A variable that holds
- * `null`, such as an attribute with no default (an `<award>`'s
- * `feedbackText`), is not missing: the copy made a component for it, holding
- * the empty value `value` also holds. One case differs from the copy: an
- * array entry whose key is there but that holds no value is missing, where
- * the copy made a component holding the empty value. The known such entries
- * are those of a function's global minimum, maximum, infimum or supremum
- * when none is found (`$f.globalMinimumLocation` of `x`, any of them for a
- * function of two variables), whose arrays keep their keys when empty
- * (`Function.js`).
- *
- * The parents for which a copy that made nothing gave a different result
- * ask for it. That copy gave a blank math in a comparison
- * (`returnChildrenByCodeStateVariableDefinitions` in `utils/booleanLogic.js`)
- * and nothing at all among the operands of a math or boolean operator
- * (`MathBaseOperator.js`, `BooleanBaseOperator.js`). So do an `<answer>`, of
- * every reference in its awards, and a `<considerAsResponses>`, of its
- * children, through `valueAsResponse` and `componentTypeAsResponse`: the
- * answer records such a reference as a blank math. Nothing else asks, and
- * there the reference holds the empty value of the presented type.
- *
- * A reference a copy made at run time (`fixedReferent`) has no
- * `valueMissing`. The copy makes no reference for an entry that is not
- * there (`Copy.js`), and a reference it made stands for the component it
- * made before value references, which held the empty value of its type once
- * its variable held no value (`$c.selectedValue` after the selected choice
- * is withheld).
- */
-function valueMissingDefinition() {
-    return {
-        stateVariablesDeterminingDependencies: ["referentInfo"],
-        returnDependencies({ stateValues }) {
-            return targetDependencies(undefined, stateValues.referentInfo);
-        },
-        definition({ dependencyValues }) {
-            return {
-                setValue: {
-                    valueMissing:
-                        dependencyValues.target === undefined ||
-                        Boolean(dependencyValues.targetInactive),
-                },
-            };
-        },
-    };
-}
 
 /**
  * The definition of `pastEndOfList`, made on demand for a reference that

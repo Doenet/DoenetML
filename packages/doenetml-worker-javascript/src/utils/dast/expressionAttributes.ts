@@ -28,18 +28,48 @@ import type { ExpressionAttribute, SerializedComponent } from "./types";
 import type { ComponentInfoObjects } from "../componentInfoObjects";
 import { unwrapSource } from "./convertNormalizedDast";
 
-/** The owner types and attributes the pass holds. */
-const EXPRESSION_ATTRIBUTES: Record<string, Set<string>> = {
-    point: new Set(["xs"]),
-    vector: new Set(["xs"]),
+/**
+ * The attributes the pass holds, by owner type (`*` for any), and the type
+ * of the attribute component each is: coordinates (`mathList`), or one
+ * `math` or `boolean` expression. Each is read only through what
+ * `expressionAttributeVariable` names (`xs.numComponents`, `xs.math2`,
+ * `hide.value`), or for being there (a line's `equation`).
+ */
+const EXPRESSION_ATTRIBUTES: Record<string, Record<string, string>> = {
+    "*": { hide: "boolean" },
+    point: { xs: "mathList" },
+    vector: { xs: "mathList" },
+    line: { equation: "math" },
+    curve: { parMin: "math", parMax: "math" },
+    case: { condition: "boolean" },
+    conditionalContent: { condition: "boolean" },
+    feedback: { condition: "boolean" },
 };
 
 /**
- * The types a reference in an expression attribute can be read as: a math or
- * a number, or a type that is one (`<max>`, a math operator), whose `value`
- * the coordinate reads as a math's.
+ * The types a reference in an expression attribute can be read as, by the
+ * attribute's type: a math or a number, or a type that is one (`<max>`, a
+ * math operator), whose `value` a math reads as a math's; in a boolean, also
+ * a boolean or a text, which it compares as a `<boolean>` does.
  */
-const SLOT_BASE_TYPES = ["math", "number"];
+const SLOT_BASE_TYPES: Record<string, string[]> = {
+    mathList: ["math", "number"],
+    math: ["math", "number"],
+    boolean: ["math", "number", "boolean", "text"],
+};
+
+/**
+ * The variables a `<math>` takes from its parent when it has none of its own
+ * (`fallBackToParentStateVariable`, `Math.js`), which change how it parses.
+ * A `math` expression of an owner that has any of them keeps its attribute
+ * component.
+ */
+const MATH_PARSE_SETTINGS = [
+    "functionSymbols",
+    "referencesAreFunctionSymbols",
+    "splitSymbols",
+    "parseScientificNotation",
+];
 
 /**
  * How a value reference was planned to be read
@@ -85,22 +115,38 @@ export function convertExpressionAttributes(
         if (component.doenetAttributes?.repeatTemplate) {
             continue;
         }
-        const names = EXPRESSION_ATTRIBUTES[component.componentType];
+        const kinds = {
+            ...EXPRESSION_ATTRIBUTES["*"],
+            ...EXPRESSION_ATTRIBUTES[component.componentType],
+        };
         for (const [name, attribute] of Object.entries(
             component.attributes ?? {},
         )) {
             if (attribute.type !== "component") {
                 continue;
             }
-            const held = names?.has(name)
-                ? expressionAttributeOf(
-                      name,
-                      attribute.component,
-                      component,
-                      component.componentIdx < numResolverNodes,
-                      context.componentInfoObjects,
-                  )
-                : undefined;
+            const kind = kinds[name];
+            const owner = {
+                component,
+                isResolverNode: component.componentIdx < numResolverNodes,
+            };
+            const held =
+                kind === "mathList"
+                    ? expressionAttributeOf(
+                          name,
+                          attribute.component,
+                          owner,
+                          context.componentInfoObjects,
+                      )
+                    : kind !== undefined
+                      ? singleExpressionOf(
+                            name,
+                            kind,
+                            attribute.component,
+                            owner,
+                            context.componentInfoObjects,
+                        )
+                      : undefined;
             if (held) {
                 component.attributes[name] = held;
             } else {
@@ -111,6 +157,96 @@ export function convertExpressionAttributes(
     }
 }
 
+/** A component holding an attribute, and whether the resolver has it. */
+type Owner = { component: SerializedComponent; isResolverNode: boolean };
+
+/**
+ * The expression attribute `name` of `owner` that `component`, a `math` or
+ * `boolean` attribute component (`kind`), stands for: its content is text
+ * and value references alone, at least one of each (one reference alone is
+ * the attribute component itself, `referenceAttributeComponent`). The
+ * template is `component` with each reference replaced by a code. A `math`
+ * whose owner has a parse setting it would take keeps its component
+ * (`MATH_PARSE_SETTINGS`). `undefined` if it does not qualify.
+ */
+function singleExpressionOf(
+    name: string,
+    kind: string,
+    component: SerializedComponent,
+    owner: Owner,
+    componentInfoObjects: ComponentInfoObjects,
+): ExpressionAttribute | undefined {
+    if (
+        component.componentType !== kind ||
+        component.extending !== undefined ||
+        Object.keys(component.attributes ?? {}).length > 0
+    ) {
+        return undefined;
+    }
+    if (kind === "math") {
+        const ownerVariables = (componentInfoObjects.stateVariableInfo as any)[
+            owner.component.componentType
+        ]?.stateVariableDescriptions;
+        if (
+            !ownerVariables ||
+            MATH_PARSE_SETTINGS.some((variable) => variable in ownerVariables)
+        ) {
+            return undefined;
+        }
+    }
+    const slots: any[] = [];
+    const content: (SerializedComponent | string)[] = [];
+    let hasText = false;
+    for (const piece of component.children) {
+        if (typeof piece === "string") {
+            hasText ||= piece.trim() !== "";
+            content.push(piece);
+            continue;
+        }
+        const slot = slotOf(
+            piece,
+            owner,
+            SLOT_BASE_TYPES[kind],
+            componentInfoObjects,
+        );
+        if (!slot) {
+            return undefined;
+        }
+        content.push({
+            type: "serialized",
+            // a boolean parses a reference by the type it is read as
+            componentType: slot.readPlan.presentedComponentType,
+            componentIdx: -1,
+            attributes: {},
+            doenetAttributes: { repeatTemplateConstant: slots.length },
+            children: [],
+            state: {},
+        } as SerializedComponent);
+        slots.push(slot);
+    }
+    if (slots.length === 0 || !hasText) {
+        return undefined;
+    }
+    return {
+        type: "expression",
+        name,
+        componentType: kind,
+        template: {
+            type: "serialized",
+            componentType: kind,
+            componentIdx: -1,
+            attributes: {},
+            doenetAttributes: {},
+            children: content,
+            state: {},
+        } as SerializedComponent,
+        slots,
+        ...(component.sourceDoc !== undefined
+            ? { sourceDoc: component.sourceDoc }
+            : {}),
+    };
+}
+
 /**
  * The expression attribute `name` of `owner` that the `mathList`
  * `component` stands for, or `undefined` if it does not qualify.
@@ -118,8 +254,7 @@ export function convertExpressionAttributes(
 function expressionAttributeOf(
     name: string,
     component: SerializedComponent,
-    owner: SerializedComponent,
-    ownerIsResolverNode: boolean,
+    owner: Owner,
     componentInfoObjects: ComponentInfoObjects,
 ): ExpressionAttribute | undefined {
     if (
@@ -154,7 +289,7 @@ function expressionAttributeOf(
             const slot = slotOf(
                 piece,
                 owner,
-                ownerIsResolverNode,
+                SLOT_BASE_TYPES.mathList,
                 componentInfoObjects,
             );
             if (!slot) {
@@ -222,7 +357,7 @@ function expressionAttributeOf(
 /**
  * The slot of the value reference `piece` in an attribute of `owner`: its
  * `refResolution` and how it is read. It resolves from `owner` when the
- * resolver has a node for it (`ownerIsResolverNode`), and otherwise, for an
+ * resolver has a node for it (`owner.isResolverNode`), and otherwise, for an
  * owner sugar made after the resolver was given the document (a point of a
  * polygon's `vertices`), from where the reference was written, as the
  * reference did. A copy of the owner, which the resolver is given, resolves
@@ -231,8 +366,8 @@ function expressionAttributeOf(
  */
 function slotOf(
     piece: SerializedComponent,
-    owner: SerializedComponent,
-    ownerIsResolverNode: boolean,
+    owner: Owner,
+    baseTypes: string[],
     componentInfoObjects: ComponentInfoObjects,
 ) {
     if (
@@ -252,7 +387,7 @@ function slotOf(
     const presented = readPlan.presentedComponentType;
     if (
         typeof presented !== "string" ||
-        !SLOT_BASE_TYPES.some((baseComponentType) =>
+        !baseTypes.some((baseComponentType) =>
             componentInfoObjects.isInheritedComponentType({
                 inheritedComponentType: presented,
                 baseComponentType,
@@ -274,8 +409,8 @@ function slotOf(
     ) {
         return undefined;
     }
-    if (ownerIsResolverNode) {
-        refResolution.nodesInResolvedPath[0] = owner.componentIdx;
+    if (owner.isResolverNode) {
+        refResolution.nodesInResolvedPath[0] = owner.component.componentIdx;
     }
     return { refResolution, readPlan };
 }
