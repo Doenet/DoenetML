@@ -8,6 +8,7 @@ import {
     moveVector,
     updateBooleanInputValue,
     updateMathInputValue,
+    updateTextInputValue,
 } from "../utils/actions";
 import { setExpressionAttributesEnabled } from "../../utils/dast/expressionAttributes";
 import { createNewComponentIndices } from "../../utils/componentIndices";
@@ -484,16 +485,16 @@ describe("Coordinates held by their point @group4", () => {
         expect(texts.p).toBe("false true");
     });
 
-    it("math expressions: a line's equation and a curve's parMax", async () => {
+    it("math expressions: a line's equation and a curve's parMin and parMax", async () => {
         const texts = await compare({
             doenetML: `
 <mathInput name="mi" prefill="1" />
 <number name="a">$mi</number>
 <graph>
   <line name="l" equation="y = $a x + 1" />
-  <curve name="c" parMin="0" parMax="2 $a">(t, t^2)</curve>
+  <curve name="c" parMin="$a - 4" parMax="2 $a">(t, t^2)</curve>
 </graph>
-<p name="p">$l.equation $c.parMax $l.slope</p>
+<p name="p">$l.equation $c.parMin $c.parMax $l.slope</p>
 `,
             names: ["p"],
             held: ["l", "c"],
@@ -506,7 +507,39 @@ describe("Coordinates held by their point @group4", () => {
             },
             reload: true,
         });
-        expect(texts.p).toBe("y = 3 x + 1 6 3");
+        expect(texts.p).toBe("y = 3 x + 1 -1 6 3");
+    });
+
+    it("boolean expressions compare as a `<boolean>` does: a missing reference, an unordered math, a text, and a feedback's condition", async () => {
+        const texts = await compare({
+            doenetML: `
+<numberList name="l">1 2</numberList>
+<math name="u" unordered>(1, 2)</math>
+<textInput name="ti" prefill="x" />
+<mathInput name="mi" prefill="1" />
+<p name="p1" hide="$l[3] + 1 = 1 + $l[3]">one</p>
+<p name="p2" hide="$u = (2, 1) and $mi > 0">two</p>
+<p name="p3" hide="$ti = y">three</p>
+<feedback name="fb" condition="$mi > 2"><p>big</p></feedback>
+<p name="p">$p1.hidden $p2.hidden $p3.hidden $fb.hidden</p>
+`,
+            names: ["p"],
+            held: ["p1", "p2", "p3", "fb"],
+            act: async (core, resolvePathToNodeIdx) => {
+                await updateMathInputValue({
+                    latex: "3",
+                    componentIdx: await resolvePathToNodeIdx("mi"),
+                    core,
+                });
+                await updateTextInputValue({
+                    text: "y",
+                    componentIdx: await resolvePathToNodeIdx("ti"),
+                    core,
+                });
+            },
+            reload: true,
+        });
+        expect(texts.p).toBe("false true true false");
     });
 
     it("keeps the attribute component of an expression it does not hold", async () => {

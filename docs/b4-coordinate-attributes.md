@@ -107,7 +107,7 @@ Parsing once across owners is possible: on repeat-150, 150 points parse the same
 
 **Step 4, as built.**
 - **References read as a type that is a math or number.** A reference to a `<max>` or `<min>` is read as that operator, which is a `<math>`. The pass took only a reference read as `math` or `number`, so measures-of-spread's 42 points that read `$min` or `$max` kept their components. It now takes any type that inherits from either, read as a math.
-- **The attributes held** (`EXPRESSION_ATTRIBUTES`, `utils/dast/expressionAttributes.ts`), each when its attribute component is text and value references alone, at least one of each (one reference alone is the attribute component itself, from B2):
+- **The attributes held** (`EXPRESSION_ATTRIBUTES`, `utils/dast/expressionAttributes.ts`), each when its attribute component is text and value references alone, at least one of each, the text more than spaces (one reference alone is the attribute component itself, from B2; `$a $b` keeps its component):
   - `hide` of any component, and the `condition` of a `<case>`, `<conditionalContent>` or `<feedback>`, which are `boolean`;
   - a `<line>`'s `equation` and a `<curve>`'s `parMin` and `parMax`, which are `math`.
 
@@ -130,7 +130,7 @@ Parsing once across owners is possible: on repeat-150, 150 points parse the same
   | unit-circle-labeling | 725 → 701 | 20,378 → 20,030 | 9,887 → 9,721 |
   | hardware-assignment-2 | 4,936 → 4,916 | 162,074 → 161,724 | 77,699 → 77,519 |
 
-  Measures-of-spread loaded in 4,467 ms against 4,994; the other fixtures' load times changed within their noise.
+  Load times changed within their noise, measures-of-spread's too: a median of 4,133 and 4,331 ms against 4,289 and 4,349 ms on `main`, in two runs of 7 to 9 loads each.
 
 ## Alternatives considered
 

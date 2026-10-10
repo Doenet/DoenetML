@@ -532,11 +532,12 @@ export function emptyValueOfType(componentType, componentInfoObjects) {
 }
 
 /**
- * The definition of `valueMissing` (named `names.valueMissing`), made on
- * demand for a reference that resolves itself, and for each slot of an
- * attribute a component holds (`utils/expressionAttribute.js`): whether it
- * has nothing to read where the copy it replaced made no component at all. That is so with no referent (an index past the
- * end of a list), a referent without the variable (`$P.z` of a point in the
+ * The definition of `valueMissing` (named `names.valueMissing`) of a
+ * reference that resolves itself, which makes it on demand, and of each slot
+ * of an attribute a component holds (`utils/expressionAttribute.js`):
+ * whether it has nothing to read where the copy it replaced made no
+ * component at all. That is so with no referent (an index past the end of a
+ * list), a referent without the variable (`$P.z` of a point in the
  * plane, a `<choiceInput>`'s `selectedIndex` before a choice), or a withheld
  * referent (a sample a `<sampleRandomNumbers>` withholds once its
  * `numSamples` drops). Its `value` is then the empty value of the type it
