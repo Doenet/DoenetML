@@ -1,5 +1,27 @@
 # @doenet/v06-to-v07
 
+## 0.8.0
+
+### Patch Changes
+
+- 6f5107c: Keep every entry when converting a copy of a whole array prop. `<copy prop="vertices" source="poly" />`
+  now becomes `$poly.vertices`, or `<pointList extend="$poly.vertices" />` when the copy has other
+  attributes, instead of a single `<point>`. A `<map>` whose sources are only references now
+  iterates over them directly (`<repeat for="$c.iterateValues">`). References with attributes to a
+  map's alias or index, such as `$(x{displayDigits="5"})`, now convert when the type of the values
+  is known: from a single list or array prop, or from a `<sequence>`. The copy made for a macro with
+  attributes inside an attribute value, such as `x="$(a{link='false'})"`, now goes inside the
+  enclosing `<module>` or `<repeat>`, where it can see the same names.
+- 947b866: Convert more v0.6 `<copy>` and `<map>` forms:
+    - `propIndex` and `componentIndex` on a `<copy>` become indices in the reference, e.g. `$poly.vertices[2][1]` and `$g[2]`.
+    - `$(a{assignNames='b'})` inside an attribute value names its copy `b`.
+    - A `<map>` with several `<sources>` becomes nested repeats. With `behavior="parallel"` or `assignNames` it is left with a diagnostic.
+    - An inner `<map>` whose sources refer to the outer map's alias converts.
+    - A map's alias is typed when all its values share one type, including written components.
+    - A `<sequence>` next to other sources is no longer dropped.
+    - A `<map>` placed before a module's `<setup>` no longer breaks the module's attributes.
+    - A `<sources>`'s `alias` and `indexAlias`, and a `<sequence>`'s `type`, are recognized however they are capitalized.
+
 ## 0.7.27
 
 ### Patch Changes
