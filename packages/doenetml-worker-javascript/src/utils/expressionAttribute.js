@@ -63,11 +63,15 @@ function slotNames(name, k) {
 /**
  * The state variables of a component for its expression attribute
  * `attribute`: coordinates (`mathList`), a `math` or `boolean` expression,
- * or a reference to a list of values (`valueListDefinitions`).
+ * or a reference to a list of values (`valueListDefinitions`) or of points
+ * (`pointListDefinitions`).
  */
 export function expressionAttributeDefinitions(attribute) {
     if (attribute.componentType === "_componentListWithSelectableType") {
         return valueListDefinitions(attribute);
+    }
+    if (attribute.componentType === "pointList") {
+        return pointListDefinitions(attribute);
     }
     const name = attribute.name;
     const prefix = expressionAttributePrefix(name);
@@ -192,19 +196,16 @@ function normalizedDefinitions(definitions) {
 }
 
 /**
- * The state variables of a component for its expression attribute
- * `attribute` that is one reference to the whole of a value list (an
- * `<indexOf>`'s `target="$l"`): the variables that resolve the reference,
- * and `values`, the list's values (`readPlan.listVariable`) as the type the
- * component reads them as, its `type` or `number`, as the attribute
- * component (`_componentListWithSelectableType`) held them, one for each
- * entry of the list it made. No values while the reference names nothing,
- * or a withheld replacement of a composite, as a slot reads none
- * (`targetDependencies`); there the attribute component kept what the
- * list's remaining entries held, which, withheld with it, nothing reads.
+ * The state variables that resolve the one reference of the expression
+ * attribute `name`, a reference to the whole of a list (`WHOLE_LISTS`,
+ * `utils/dast/expressionAttributes.ts`), and `list`, the list it names:
+ * its index, or `null` while it names nothing, or a withheld replacement of
+ * a composite, which a slot reads nothing of (`targetDependencies`). A
+ * slot's `referentInfo` and `value` are not among them: the list is read
+ * whole, or by its own variables, which a `referent` dependency does not
+ * read.
  */
-function valueListDefinitions(attribute) {
-    const name = attribute.name;
+function wholeListDefinitions(name) {
     const names = slotNames(name, 0);
     const slotDefinitions = referenceSlotDefinitions({
         names,
@@ -213,8 +214,6 @@ function valueListDefinitions(attribute) {
         readPlanOf: (component) => component.attributes[name].slots[0].readPlan,
         emptyValueOf: () => null,
     });
-    // only those that resolve the reference: the list is read whole, which
-    // a `referent` dependency does not read
     const definitions = {};
     for (const variable of [
         names.refResolutionIndexDependencies,
@@ -224,27 +223,75 @@ function valueListDefinitions(attribute) {
         definitions[variable] = slotDefinitions[variable];
     }
 
+    const listName = `${expressionAttributePrefix(name)}list`;
+    definitions[listName] = {
+        stateVariablesDeterminingDependencies: [names.extendIdx],
+        returnDependencies({ stateValues }) {
+            const extendIdx = stateValues[names.extendIdx];
+            if (extendIdx == null || extendIdx === -1) {
+                return {};
+            }
+            return {
+                listInactive: {
+                    dependencyType: "stateVariable",
+                    componentIdx: extendIdx,
+                    variableName: "isInactiveCompositeReplacement",
+                    variablesOptional: true,
+                },
+                extendIdx: {
+                    dependencyType: "stateVariable",
+                    variableName: names.extendIdx,
+                },
+            };
+        },
+        definition({ dependencyValues }) {
+            const extendIdx = dependencyValues.extendIdx;
+            return {
+                setValue: {
+                    [listName]:
+                        extendIdx == null ||
+                        extendIdx === -1 ||
+                        dependencyValues.listInactive
+                            ? null
+                            : extendIdx,
+                },
+            };
+        },
+    };
+    return { definitions, listName };
+}
+
+/**
+ * The state variables of a component for its expression attribute
+ * `attribute` that is one reference to the whole of a value list (an
+ * `<indexOf>`'s `target="$l"`): those that resolve the reference
+ * (`wholeListDefinitions`), and `values`, the list's values
+ * (`readPlan.listVariable`) as the type the component reads them as, its
+ * `type` or `number`, as the attribute component
+ * (`_componentListWithSelectableType`) held them, one for each entry of the
+ * list it made. No values while the reference names no list; withheld with
+ * the list, the attribute component kept what its remaining entries held,
+ * which nothing reads.
+ */
+function valueListDefinitions(attribute) {
+    const name = attribute.name;
+    const { definitions, listName } = wholeListDefinitions(name);
+
     const valuesName = `${expressionAttributePrefix(name)}values`;
     definitions[valuesName] = {
-        stateVariablesDeterminingDependencies: [names.extendIdx],
+        stateVariablesDeterminingDependencies: [listName],
         returnDependencies({ stateValues }) {
             const dependencies = {
                 type: { dependencyType: "stateVariable", variableName: "type" },
             };
-            const extendIdx = stateValues[names.extendIdx];
-            if (extendIdx != null && extendIdx !== -1) {
+            const list = stateValues[listName];
+            if (list !== null) {
                 dependencies.list = {
                     dependencyType: "stateVariable",
-                    componentIdx: extendIdx,
+                    componentIdx: list,
                     variableName:
                         this.svComponent.attributes[name].slots[0].readPlan
                             .listVariable,
-                    variablesOptional: true,
-                };
-                dependencies.listInactive = {
-                    dependencyType: "stateVariable",
-                    componentIdx: extendIdx,
-                    variableName: "isInactiveCompositeReplacement",
                     variablesOptional: true,
                 };
             }
@@ -252,16 +299,142 @@ function valueListDefinitions(attribute) {
         },
         definition({ dependencyValues }) {
             const type = dependencyValues.type || "number";
-            const list = dependencyValues.listInactive
-                ? null
-                : dependencyValues.list;
             return {
                 setValue: {
-                    [valuesName]: (list ?? []).map((value) =>
+                    [valuesName]: (dependencyValues.list ?? []).map((value) =>
                         convertValueToType(value, type),
                     ),
                 },
             };
+        },
+    };
+
+    return normalizedDefinitions(definitions);
+}
+
+/**
+ * The state variables of a component for its expression attribute
+ * `attribute` that is one reference to the whole of a list of points (a
+ * `<polyline>`'s `vertices="$points"`): those that resolve the reference
+ * (`wholeListDefinitions`), and what a reader of a `<pointList>` reads,
+ * read from the list: `numPoints`, `numDimensions`, and each coordinate of
+ * each point, `pointX1_1`, `pointX1_2`, …, whose inverse writes the
+ * list's, as the attribute component's linked copy of the list wrote it.
+ * No points while the reference names no list.
+ */
+function pointListDefinitions(attribute) {
+    const name = attribute.name;
+    const prefix = expressionAttributePrefix(name);
+    const { definitions, listName } = wholeListDefinitions(name);
+
+    // `numPoints` read as the variable it is an alias of, which every list
+    // of points has: an alias is looked up by the list's type, and the
+    // types of a `<collect>` made a list share one
+    for (const [variable, listVariable] of [
+        ["numPoints", "numComponents"],
+        ["numDimensions", "numDimensions"],
+    ]) {
+        definitions[`${prefix}${variable}`] = {
+            stateVariablesDeterminingDependencies: [listName],
+            returnDependencies({ stateValues }) {
+                const list = stateValues[listName];
+                return list === null
+                    ? {}
+                    : {
+                          fromList: {
+                              dependencyType: "stateVariable",
+                              componentIdx: list,
+                              variableName: listVariable,
+                              variablesOptional: true,
+                          },
+                      };
+            },
+            definition: ({ dependencyValues }) => ({
+                setValue: {
+                    [`${prefix}${variable}`]: dependencyValues.fromList ?? 0,
+                },
+            }),
+        };
+    }
+
+    const arrayName = `${prefix}points`;
+    const entryPrefix = `${prefix}pointX`;
+    definitions[arrayName] = {
+        isArray: true,
+        isLocation: true,
+        numDimensions: 2,
+        entryPrefixes: [entryPrefix],
+        // `pointX1_2` is the second coordinate of the first point
+        getArrayKeysFromVarName({ varEnding, arraySize }) {
+            const indices = varEnding.split("_").map((x) => Number(x) - 1);
+            if (
+                indices.length !== 2 ||
+                !indices.every((x) => Number.isInteger(x) && x >= 0) ||
+                (arraySize && !indices.every((x, i) => x < arraySize[i]))
+            ) {
+                return [];
+            }
+            return [String(indices)];
+        },
+        returnArraySizeDependencies: () => ({
+            numPoints: {
+                dependencyType: "stateVariable",
+                variableName: `${prefix}numPoints`,
+            },
+            numDimensions: {
+                dependencyType: "stateVariable",
+                variableName: `${prefix}numDimensions`,
+            },
+        }),
+        returnArraySize: ({ dependencyValues }) => [
+            dependencyValues.numPoints,
+            dependencyValues.numDimensions,
+        ],
+        stateVariablesDeterminingDependencies: [listName],
+        returnArrayDependenciesByKey({ arrayKeys, stateValues }) {
+            const list = stateValues[listName];
+            const dependenciesByKey = {};
+            for (const arrayKey of arrayKeys) {
+                const [pointInd, dim] = arrayKey.split(",").map(Number);
+                dependenciesByKey[arrayKey] =
+                    list === null
+                        ? {}
+                        : {
+                              coordinate: {
+                                  dependencyType: "stateVariable",
+                                  componentIdx: list,
+                                  variableName: `pointX${pointInd + 1}_${dim + 1}`,
+                                  variablesOptional: true,
+                              },
+                          };
+            }
+            return { dependenciesByKey };
+        },
+        arrayDefinitionByKey({ dependencyValuesByKey, arrayKeys }) {
+            const points = {};
+            for (const arrayKey of arrayKeys) {
+                points[arrayKey] = dependencyValuesByKey[arrayKey].coordinate;
+            }
+            return { setValue: { [arrayName]: points } };
+        },
+        inverseArrayDefinitionByKey({
+            desiredStateVariableValues,
+            dependencyNamesByKey,
+        }) {
+            const instructions = [];
+            for (const arrayKey in desiredStateVariableValues[arrayName]) {
+                const dependencyName =
+                    dependencyNamesByKey[arrayKey]?.coordinate;
+                if (dependencyName === undefined) {
+                    return { success: false };
+                }
+                instructions.push({
+                    setDependency: dependencyName,
+                    desiredValue:
+                        desiredStateVariableValues[arrayName][arrayKey],
+                });
+            }
+            return { success: true, instructions };
         },
     };
 

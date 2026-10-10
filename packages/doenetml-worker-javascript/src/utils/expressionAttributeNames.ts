@@ -17,7 +17,8 @@ export function expressionAttributePrefix(name: string) {
  * reads, or `undefined` for one it has no state variable for: of a `mathList`
  * (a point's `xs`), `numComponents` and `math1`, `math2`, …; of a `math` or
  * `boolean`, `value`; of a list of values (an `<indexOf>`'s `target`),
- * `values`.
+ * `values`; of a list of points (a `<polyline>`'s `vertices`), `numPoints`,
+ * `numDimensions` and `pointX1_1`, `pointX1_2`, ….
  */
 export function expressionAttributeVariable(
     attribute: { name: string; componentType: string },
@@ -26,6 +27,13 @@ export function expressionAttributeVariable(
     const prefix = expressionAttributePrefix(attribute.name);
     if (attribute.componentType === "_componentListWithSelectableType") {
         return variableName === "values" ? `${prefix}values` : undefined;
+    }
+    if (attribute.componentType === "pointList") {
+        return variableName === "numPoints" ||
+            variableName === "numDimensions" ||
+            /^pointX[1-9]\d*_[1-9]\d*$/.test(variableName)
+            ? `${prefix}${variableName}`
+            : undefined;
     }
     if (attribute.componentType !== "mathList") {
         return variableName === "value" ? `${prefix}value` : undefined;

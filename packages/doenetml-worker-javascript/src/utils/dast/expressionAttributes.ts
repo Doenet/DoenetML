@@ -21,10 +21,13 @@
  * attribute component. So does the template of a repeat made a list
  * (`utils/dast/repeatLists.ts`), whose references read entries of lists.
  *
- * The same holds a `target` of an `<indexOf>` or `<searchSorted>` that is
- * one reference to the whole of a value list (`target="$l"`), whose
- * attribute component made a component for each entry: the owner reads the
- * list's values itself (`valueListOf`, Doenet/DoenetML#2253).
+ * The same holds an attribute that is one reference to the whole of a list
+ * (`wholeListOf`, Doenet/DoenetML#2253): a `target` of an `<indexOf>` or
+ * `<searchSorted>` naming a value list (`target="$l"`), whose attribute
+ * component made a component for each entry, and the `vertices` of a
+ * `<polyline>` or `<polygon>` naming a list of points
+ * (`vertices="$points"`), whose attribute component passed on a linked copy
+ * of the list. The owner reads the list itself.
  *
  * It runs last among the passes that read attribute components, after the
  * value references, which make the `_ref`s.
@@ -37,11 +40,11 @@ import { documentReferents } from "./valueReferences";
 /**
  * The attributes the pass holds, by owner type (`*` for any), and the type
  * of the attribute component each is: coordinates (`mathList`), one `math`
- * or `boolean` expression, or a reference to a list of values
- * (`valueList`). Each is read only through what
+ * or `boolean` expression, or a reference to a whole list (`valueList`,
+ * `pointList`, `WHOLE_LISTS`). Each is read only through what
  * `expressionAttributeVariable` names (`xs.numComponents`, `xs.math2`,
- * `hide.value`, `target.values`), or for being there (a line's
- * `equation`).
+ * `hide.value`, `target.values`, `vertices.pointX2_1`), or for being there
+ * (a line's `equation`).
  */
 const EXPRESSION_ATTRIBUTES: Record<string, Record<string, string>> = {
     "*": { hide: "boolean" },
@@ -54,19 +57,50 @@ const EXPRESSION_ATTRIBUTES: Record<string, Record<string, string>> = {
     feedback: { condition: "boolean" },
     indexOf: { target: "valueList" },
     searchSorted: { target: "valueList" },
+    polyline: { vertices: "pointList" },
+    polygon: { vertices: "pointList" },
 };
-
-/**
- * The type of the attribute component of a `valueList` attribute: the
- * `target` of `<indexOf>` and `<searchSorted>`.
- */
-const VALUE_LIST_COMPONENT_TYPE = "_componentListWithSelectableType";
 
 /**
  * The types of entries of a value list that a `valueList` attribute reads
  * as its attribute component read them, one entry per value.
  */
 const VALUE_LIST_ENTRY_TYPES = ["math", "number", "integer", "text", "boolean"];
+
+/**
+ * The attributes that are one reference to the whole of a list, by kind:
+ * the type of their attribute component, and how a list of `listClass` is
+ * read, or `undefined` for a list the attribute does not hold.
+ * - `valueList` (an `<indexOf>`'s `target`): a value list
+ *   (`ValueListComponent`) whose entries are of a type in
+ *   `VALUE_LIST_ENTRY_TYPES`, read as one array (`listVariable`, the
+ *   list's `listValuesArrayName`), where the attribute component made a
+ *   component for each entry;
+ * - `pointList` (a `<polyline>`'s `vertices`): a list of points
+ *   (`PointList`), read through the variables a `<pointList>` has, where
+ *   the attribute component passed on a linked copy of it.
+ */
+const WHOLE_LISTS: Record<
+    string,
+    {
+        componentType: string;
+        readPlanOf: (listClass: any) => Record<string, any> | undefined;
+    }
+> = {
+    valueList: {
+        componentType: "_componentListWithSelectableType",
+        readPlanOf: (listClass) =>
+            inheritsFrom(listClass, "_valueList") &&
+            VALUE_LIST_ENTRY_TYPES.includes(listClass.listEntryComponentType)
+                ? { listVariable: listClass.listValuesArrayName }
+                : undefined,
+    },
+    pointList: {
+        componentType: "pointList",
+        readPlanOf: (listClass) =>
+            inheritsFrom(listClass, "pointList") ? {} : undefined,
+    },
+};
 
 /**
  * The types a reference in an expression attribute can be read as, by the
@@ -164,8 +198,14 @@ export function convertExpressionAttributes(
                 isResolverNode: component.componentIdx < numResolverNodes,
             };
             const held =
-                kind === "valueList"
-                    ? valueListOf(name, attribute.component, owner, referentsOf)
+                kind in WHOLE_LISTS
+                    ? wholeListOf(
+                          name,
+                          kind,
+                          attribute.component,
+                          owner,
+                          referentsOf,
+                      )
                     : kind === "mathList"
                       ? expressionAttributeOf(
                             name,
@@ -397,21 +437,20 @@ function expressionAttributeOf(
 
 /**
  * The expression attribute `name` of `owner` that `component`, the
- * attribute component of a `valueList` attribute (`<indexOf
- * target="$l">`), stands for: one reference to the whole of a value list
- * whose entries are of a type in `VALUE_LIST_ENTRY_TYPES`, which the owner
- * reads as one array (`listVariable`, the list's `listValuesArrayName`),
- * where the attribute component made a component for each entry.
- * `undefined` if it does not qualify.
+ * attribute component of an attribute of `kind` (`WHOLE_LISTS`), stands
+ * for: one reference to the whole of a list of a class that `kind` reads,
+ * with how it reads it (`readPlan`). `undefined` if it does not qualify.
  */
-function valueListOf(
+function wholeListOf(
     name: string,
+    kind: string,
     component: SerializedComponent,
     owner: Owner,
     referentsOf: () => ReturnType<typeof documentReferents>,
 ): ExpressionAttribute | undefined {
+    const { componentType, readPlanOf } = WHOLE_LISTS[kind];
     if (
-        component.componentType !== VALUE_LIST_COMPONENT_TYPE ||
+        component.componentType !== componentType ||
         component.extending !== undefined ||
         Object.keys(component.attributes ?? {}).length > 0
     ) {
@@ -445,10 +484,8 @@ function valueListOf(
         referentType === undefined
             ? undefined
             : referents.referentClass(refResolution.nodeIdx, referentType);
-    if (
-        !isValueListClass(listClass) ||
-        !VALUE_LIST_ENTRY_TYPES.includes(listClass.listEntryComponentType)
-    ) {
+    const readPlan = readPlanOf(listClass);
+    if (readPlan === undefined) {
         return undefined;
     }
     if (owner.isResolverNode) {
@@ -457,22 +494,17 @@ function valueListOf(
     return {
         type: "expression",
         name,
-        componentType: VALUE_LIST_COMPONENT_TYPE,
+        componentType,
         template: {
             type: "serialized",
-            componentType: VALUE_LIST_COMPONENT_TYPE,
+            componentType,
             componentIdx: -1,
             attributes: {},
             doenetAttributes: {},
             children: [],
             state: {},
         } as SerializedComponent,
-        slots: [
-            {
-                refResolution,
-                readPlan: { listVariable: listClass.listValuesArrayName },
-            },
-        ],
+        slots: [{ refResolution, readPlan }],
         ...(component.position !== undefined
             ? { position: component.position }
             : {}),
@@ -483,12 +515,13 @@ function valueListOf(
 }
 
 /**
- * Whether `componentClass` is a value list (`ValueListComponent`), which
- * the component types do not name as a base type.
+ * Whether `componentClass` is, or extends, the class of `componentType`,
+ * read from the class chain: the component types do not name every class
+ * as a base type (`_valueList`, of `ValueListComponent`).
  */
-function isValueListClass(componentClass: any) {
+function inheritsFrom(componentClass: any, componentType: string) {
     for (let c = componentClass; c; c = Object.getPrototypeOf(c)) {
-        if (c.componentType === "_valueList") {
+        if (c.componentType === componentType) {
             return true;
         }
     }
