@@ -123,7 +123,7 @@ describe("An unlinked copy of an extend @group4", () => {
         );
     });
 
-    it("a vector's coordinates read references, which the copy follows", async () => {
+    it("a vector's coordinates read references, which the copy follows and writes", async () => {
         await bothWays(
             `
 <mathInput name="mi" prefill="3" />
@@ -135,17 +135,35 @@ describe("An unlinked copy of an extend @group4", () => {
 </graph>
 `,
             async (core, resolvePathToNodeIdx) => {
-                expect(
-                    await treeOf(core, resolvePathToNodeIdx, "X", "head"),
-                ).eqls([3, 2]);
+                const head = (name: string) =>
+                    treeOf(core, resolvePathToNodeIdx, name, "head");
+
+                expect(await head("X")).eqls([3, 2]);
                 await updateMathInputValue({
                     latex: "5",
                     componentIdx: await resolvePathToNodeIdx("mi"),
                     core,
                 });
-                expect(
-                    await treeOf(core, resolvePathToNodeIdx, "X", "head"),
-                ).eqls([5, 2]);
+                expect(await head("X")).eqls([5, 2]);
+
+                // the text `V` writes to its `2` is `V`'s: the copy was
+                // made before, as `($a, 2)`
+                await moveVector({
+                    componentIdx: await resolvePathToNodeIdx("V"),
+                    headcoords: [5, 7],
+                    core,
+                });
+                expect(await head("V")).eqls([5, 7]);
+                expect(await head("X")).eqls([5, 2]);
+
+                // the copy's `$a` writes `a`, as a pasted `($a, 2)` does
+                await moveVector({
+                    componentIdx: await resolvePathToNodeIdx("X"),
+                    headcoords: [9, 4],
+                    core,
+                });
+                expect(await head("X")).eqls([9, 4]);
+                expect(await head("V")).eqls([9, 7]);
             },
         );
     });

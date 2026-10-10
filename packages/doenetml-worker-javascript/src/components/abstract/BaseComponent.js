@@ -1694,9 +1694,10 @@ export default class BaseComponent {
             ];
         }
 
-        // An unlinked copy of a reference holds the referent's value as it
-        // is, unless it was given an attribute of the referent's that
-        // defines that value (`attributesDefiningPrimaryValue`, the `xs` of
+        // An unlinked copy of a reference (`copyPrimaryEssentialIfShadow`)
+        // holds the referent's value as it is, unless it was given an
+        // attribute of the referent's that defines that value
+        // (`attributesDefiningPrimaryValue`, the `xs` of
         // `<point>($a, 0)</point>`): pasted as the referent's DoenetML, it
         // computes the value from that attribute, as the referent does.
         const definedByAttribute =
