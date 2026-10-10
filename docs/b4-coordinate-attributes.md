@@ -132,6 +132,20 @@ Parsing once across owners is possible: on repeat-150, 150 points parse the same
 
   Load times changed within their noise, measures-of-spread's too: a median of 4,133 and 4,331 ms against 4,289 and 4,349 ms on `main`, in two runs of 7 to 9 loads each.
 
+**A reference to a whole list (#2253, kind 1), as built.**
+- **What is held:** the `target` of an `<indexOf>` or `<searchSorted>` whose attribute component (`_componentListWithSelectableType`) holds one reference and nothing else, no attributes on either, to the whole of a value list (`ValueListComponent`, read from the class chain since `_valueList` is not a registered type) whose entries are math, number, integer, text or boolean (`valueListOf`). The path has the same limits as a slot's. A path left to resolve at runtime (`$cc.shown`, `$r[2].q` through a composite) is not a reference to a whole list when the document is converted, and keeps its component.
+- **The owner's variables** (`valueListDefinitions`, `utils/expressionAttribute.js`): the slot's variables that resolve the reference, up to `extendIdx`, and `__target_values`, the list's array of values (`readPlan.listVariable`, the class's `listValuesArrayName`) converted to the owner's `type`, or `number` (`convertValueToType`, now `utils/selectableType.js`). The attribute component made a component for each entry and read its `value`; the array holds the same values. No values while the reference names nothing or a withheld replacement of a composite. A slot's `referentInfo` and `value` are not used: a `referent` dependency does not read a whole array.
+- **Not held:** `vertices` of a `<polyline>` or `<polygon>`. On the fixtures it names a `<repeat>`, which is not a list, and whose points the attribute component reads one by one.
+- **Measured,** branch against `main`:
+
+  | fixture | components | dependencies | state variables resolved |
+  |---|--:|--:|--:|
+  | dot-plot-1 | 174 → 162 | 5,589 → 4,964 | 2,055 → 1,904 |
+  | dot-plot-4 | 516 → 486 | 19,739 → 17,497 | 6,799 → 6,342 |
+  | measures-of-spread | 2,933 → 2,849 | 99,892 → 96,822 | 46,733 → 45,805 |
+
+  Load times changed within their noise.
+
 ## Alternatives considered
 
 - **One light component per attribute,** holding the `_ref`s as children. That removes the `mathList` and the `<math>`s, 90% of the cost, but leaves a component and the `_ref`s, and is a second way of holding an attribute beside the literals.

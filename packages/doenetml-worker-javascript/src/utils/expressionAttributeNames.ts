@@ -16,13 +16,17 @@ export function expressionAttributePrefix(name: string) {
  * `attribute` that a reader's `variableName` of the attribute component
  * reads, or `undefined` for one it has no state variable for: of a `mathList`
  * (a point's `xs`), `numComponents` and `math1`, `math2`, …; of a `math` or
- * `boolean`, `value`.
+ * `boolean`, `value`; of a list of values (an `<indexOf>`'s `target`),
+ * `values`.
  */
 export function expressionAttributeVariable(
     attribute: { name: string; componentType: string },
     variableName: string,
 ) {
     const prefix = expressionAttributePrefix(attribute.name);
+    if (attribute.componentType === "_componentListWithSelectableType") {
+        return variableName === "values" ? `${prefix}values` : undefined;
+    }
     if (attribute.componentType !== "mathList") {
         return variableName === "value" ? `${prefix}value` : undefined;
     }
