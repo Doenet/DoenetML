@@ -241,6 +241,9 @@ function singleExpressionOf(
             state: {},
         } as SerializedComponent,
         slots,
+        ...(component.position !== undefined
+            ? { position: component.position }
+            : {}),
         ...(component.sourceDoc !== undefined
             ? { sourceDoc: component.sourceDoc }
             : {}),
@@ -348,6 +351,9 @@ function expressionAttributeOf(
             state: {},
         },
         slots,
+        ...(component.position !== undefined
+            ? { position: component.position }
+            : {}),
         ...(component.sourceDoc !== undefined
             ? { sourceDoc: component.sourceDoc }
             : {}),

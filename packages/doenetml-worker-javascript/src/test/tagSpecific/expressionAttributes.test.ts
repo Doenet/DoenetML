@@ -549,6 +549,27 @@ describe("Coordinates held by their point @group4", () => {
         expect(texts.p).toBe("(3, 7) (3, 7) 3");
     });
 
+    it("a diagnostic about an expression attribute is placed where it is written", async () => {
+        // a `<conditionalContent>` with cases ignores its `condition`
+        const doenetML = `
+<number name="a">1</number>
+<conditionalContent condition="$a > 0"><case condition="$a > 0"><p>x</p></case></conditionalContent>
+`;
+        const positions = [];
+        for (const enabled of [true, false]) {
+            setExpressionAttributesEnabled(enabled);
+            const { core } = await createTestCore({ doenetML });
+            setExpressionAttributesEnabled(true);
+            const warnings = core.core!.diagnostics.filter(
+                (diagnostic: any) => diagnostic.code === "doenet-w0079",
+            );
+            expect(warnings.length).toBe(1);
+            positions.push(warnings[0].position.start);
+        }
+        expect(positions[0]).toEqual(positions[1]);
+        expect(positions[0]).toMatchObject({ line: 3, column: 21 });
+    });
+
     it("renumbering a copy leaves the slots of what it copied as they were", () => {
         const template = {
             type: "serialized",
