@@ -648,9 +648,11 @@ function isArrayKeyInSize(arrayKey: string, arraySize: number[] | undefined) {
  *
  * For the whole array, the count of fresh keys is compared with the number of
  * keys. Keys a definition returns beyond those asked for are marked fresh only
- * when they are within the array's size (see `arrayDefinition`), so the count
- * is of the array's own keys. A count that reaches the number of keys is
- * still confirmed key by key before the array is reported fresh.
+ * when they are within the array's size (see `arrayDefinition`). An array
+ * entry can still mark a key outside the size fresh when its component gives
+ * it keys without regard to the size (a function's `globalMinimumLocation`
+ * when the function has no global minimum), so a count that reaches the
+ * number of keys is confirmed key by key before the array is reported fresh.
  */
 function arrayFreshnessResult({
     arrayStateVarObj,
@@ -918,8 +920,8 @@ function arrayDefinition(this: any, args: any) {
 
             // in case definition returns additional array entries,
             // mark all array keys received as fresh as well, if they are
-            // within the array's size, so that the count of fresh keys
-            // counts only keys of the array
+            // within the array's size, so that they add to the count of
+            // fresh keys only when they are keys of the array
             const markReturnedKeysFresh = (valuesByKey: any) => {
                 for (let arrayKey in valuesByKey) {
                     if (
@@ -1817,8 +1819,10 @@ async function initializeArrayStateVariable({
     //   freshness of the array entries or other array features, such as size.
     //   freshnessInfo is prepopulated with
     //     - a freshByKey object for tracking by key, with numFreshKeys
-    //       counting its keys (change it through markArrayKeyFresh and
-    //       markArrayKeyStale, which keep the two in step)
+    //       counting its keys (core changes them only through
+    //       markArrayKeyFresh, markArrayKeyStale and markAllArrayKeysStale,
+    //       which keep the two in step; anything else that changes
+    //       freshByKey must change numFreshKeys with it)
     //     - a freshArraySize for tracking array size
     //   To take advantage of this object, a component can read and modify
     //   freshnessInfo (as core will pass it in as an argument) in
