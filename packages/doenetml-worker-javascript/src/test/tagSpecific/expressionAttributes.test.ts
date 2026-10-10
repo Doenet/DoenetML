@@ -147,6 +147,26 @@ describe("Coordinates held by their point @group4", () => {
         expect(texts.p).toBe("(3, 7) 3");
     });
 
+    it("a drag that changes the text of two coordinates keeps both, as in space", async () => {
+        const texts = await compare({
+            doenetML: `
+<number name="a">1</number>
+<point name="P">($a, 2, 3)</point>
+<p name="p">$P $a</p>
+`,
+            names: ["p"],
+            held: ["P"],
+            act: async (core, resolvePathToNodeIdx) => {
+                const componentIdx = await resolvePathToNodeIdx("P");
+                await movePoint({ componentIdx, x: 7, y: 8, z: 9, core });
+                // a later drag starts from the text as the first left it
+                await movePoint({ componentIdx, x: 6, y: 5, z: 4, core });
+            },
+            reload: true,
+        });
+        expect(texts.p).toBe("(6, 5, 4) 6");
+    });
+
     it("a drag writes through linked copies, to a point holding its coordinates", async () => {
         const texts = await compare({
             doenetML: `
