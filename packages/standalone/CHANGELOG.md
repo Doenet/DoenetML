@@ -1,5 +1,490 @@
 # @doenet/doenetml
 
+## 0.8.0
+
+### Minor Changes
+
+- 904279a: Replace the JavaScript `math-expressions` library with the Rust core compiled to WASM.
+
+    Everything DoenetML does with mathematics — parsing what a student types, deciding whether an
+    answer is equivalent to the expected one, simplifying, differentiating, rendering a `<math>` — now
+    runs through the Rust engine reached by its `math-expressions-js-compat` drop-in, rather than
+    through the legacy JavaScript library. The API is unchanged, so authored documents need no edits,
+    but the engine is a different implementation and some results differ:
+
+    - **Text rendering of containers is no longer padded.** A point that read `( 0, 0 )` now reads
+      `(0, 0)`; the same for intervals, vectors and matrices. LaTeX is unchanged except that a
+      compound `\frac` operand no longer carries interior spaces (`\frac{\partial f}{\partial x}`
+      rather than `\frac{ \partial f }{ \partial x }`), which renders identically.
+    - **Simplification is stronger.** Identities the old engine could not reach, such as
+      `exp(ln x) → x`, `cos(pi/3) → 1/2` and `log_2(2^3) → 3`, now fold. Because equality testing
+      evaluates exact constants, expressions the old engine called different can now compare equal,
+      which can change whether a student's answer is marked correct.
+    - **Inverse trigonometric notation parses correctly.** `sin^(-1)(1)` is read as the inverse
+      function; the old engine read it as `(1/sin)(1)`.
+    - **A value that is not a number now reads as `NaN` rather than as zero.** An expression with no
+      numeric value — a free variable, a blank, a matrix — reports `NaN` from every path, uniformly,
+      and `NaN` propagates through arithmetic and falsifies every comparison. Where a numeric state
+      variable used to take it — `<numberList>` over a
+      symbolic child, `<clampNumber>` of a free variable, a `<curve>` whose `parMin` does not evaluate,
+      a `<line>` through an undefined point, a `<rectangle>` or `<regularPolygon>` on symbolic
+      vertices, a `<circle>` with a symbolic radius, a `<curve>` whose `<bezierControls>` are symbolic,
+      a `<function>` with a symbolic domain endpoint, a `<polygon>` or `<polyline>` with a symbolic
+      vertex, a `<vector>` with a symbolic head or tail, a `<ray>` with a symbolic endpoint, an
+      `<angle>` through a symbolic point, a `<math>` or `<cell>` whose content is not a number — the
+      result is `NaN`, so an undefined point is
+      not drawn at the origin, a
+      rectangle on symbolic corners does not report a width of exactly zero, a polygon on symbolic
+      corners does not report a centroid pulled towards the origin, and an unclampable value
+      does not report as the lower bound. `±Infinity` is still a value and still clamps. A shape in a
+      `<stickyGroup>` with such a vertex can still be dragged: the constraint machinery reduces the
+      vertex to `NaN` rather than dropping the whole drag.
+    - **Odd roots of negative numbers now grade consistently, in every spelling.** `\sqrt[3]{-2}`,
+      `-\sqrt[3]{2}`, `(-2)^{1/3}` and the decimal `-1.2599…` are all read as the same number — the
+      real cube root of −2. The old engine's grading was non-transitive here: it accepted
+      `(-2)^{1/3}` for `\sqrt[3]{-2}` but rejected `-\sqrt[3]{2}` and the decimal for `\sqrt[3]{-2}`,
+      because its simplifier read a cube root on the real branch while its numeric evaluator read it
+      as the principal complex value. Everything the old engine accepted is still accepted, and the
+      spellings it wrongly rejected now earn credit. Even roots are unchanged (`\sqrt{-4}` is still
+      the imaginary `2i`), as is a fractional power whose denominator is even — `(-8)^{0.3333}` is
+      `3333/10000`, not a cube root. A related plotting change: `<function>cbrt(x)</function>` and
+      `<function>nthroot(x,3)</function>` now draw for negative inputs instead of stopping at the
+      origin. Writing the same function as `x^(1/3)` still leaves that gap — the evaluator behind
+      plotting takes the principal complex branch for a fractional power, as it did before, so a
+      `<function>` and an `<answer>` can disagree about `x^(1/3)` at a negative input.
+    - **A `<function>` no longer reports an extremum beside a pole, and its extrema are exact where
+      the engine can be exact.** Where a function's derivative is a rational function, the engine now
+      gives every one of its roots exactly, so the reported locations no longer carry the round-off
+      left by refining a bracket — and, because that list is _complete_, a place where the derivative
+      flips sign without being on it can be recognized as a pole and left alone. That removes a
+      long-standing spurious extremum: `(x+8)(x-8)/((x-2)(x+4)(x-5)^2)` reported a minimum at
+      `4.999999948`, beside its double pole at `x = 5` (issue #940), and now reports only its four
+      real extrema. Moving the pole off the sampling grid — `(x-5.1)^2` — used to bring the spurious
+      minimum back; it no longer does, and neither does putting a genuine extremum and a pole in the
+      same sampling cell (`(x-5)^2/(x-5.1)^2` reported a maximum of 3e10 beside its pole and now
+      reports only the minimum at `5`). Functions whose derivative is not rational (anything with a
+      `sin`, a `log`, an absolute value) are unchanged, and still search numerically.
+    - **`<round>` rounds exact fractions.** `<round numDecimals="3">1/3</round>` answers `0.333`; it
+      had stopped rounding anything the engine holds exactly. The trade-off is that a decimal literal
+      with more than about seventeen significant digits now goes through a double on the way in, so its
+      last digits can move.
+    - **`<line>`'s coefficients follow the equation as written.** `coeffvar1`, `coeffvar2` and `coeff0`
+      are now the coefficients of _left-hand side minus right-hand side_ for every spelling; they
+      previously came out negated for whichever spellings the simplifier did not reorder. A line's
+      direction is also canonicalized, so `5x-2y=3` and `2y-5x=-3` now point the same way and
+      `<angle betweenLines>` draws the same ray for both.
+    - **A `<video>` that changes source resets its playback state.** `time` and `segmentsWatched`
+      describe one particular video, so a new source starts from zero instead of inheriting the old
+      video's position and having the player seek into the middle of a video nobody has watched.
+
+    **If you install `@doenet/doenetml` rather than building this repository, you now need one more
+    package.** The engine used to be bundled invisibly inside the library; it is now a peer dependency,
+    so that an application embedding several `@doenet/*` libraries resolves one copy of it rather than
+    one per library:
+
+    ```
+    npm install math-expressions@^3.0.0-alpha.1
+    ```
+
+    That is the whole of it — no code, and no initialization step. `@doenet/doenetml` brings the engine
+    up itself and waits for it before rendering, and your bundler emits the WASM binary as an ordinary
+    asset beside your other chunks (Vite and webpack 5 both recognize the pattern the engine's loader
+    uses). The one thing to know is that the binary is fetched rather than inlined on this path, so a
+    host that cannot make a same-origin request for it — a `srcdoc` or blob-URL document, for instance
+    — should use `@doenet/standalone` instead, which carries everything in one file.
+
+    In `@doenet/standalone`, and in anything built from this repository, the engine's WASM is inlined
+    into the bundle rather than fetched, so no extra network request is made, but the bundle carries
+    it: the engine is 2.38 MiB uncompressed and 777 kB gzipped, against roughly 1 MiB (about 290 kB
+    gzipped) for the JavaScript library it replaces.
+
+    Building DoenetML from source needs no toolchain it did not need before. The engine arrives
+    prebuilt in the `math-expressions` package, so nothing here compiles it: `npm run build` still
+    reaches `wasm-pack` for `packages/doenetml-worker-rust`, DoenetML's own core, exactly as it always
+    has, and `wasm-pack` brings its own wasm target and bindgen. The bytes the bundle inlines are
+    therefore the ones the lockfile pins, so a local build and a CI build now carry an identical
+    engine — they did not while it was compiled here from source.
+
+### Patch Changes
+
+- 85cdeeb: An action that moves a component placed at an `anchor` but gives only some coordinates (only `y`, say) now moves it there and keeps its other coordinates, where it used to leave it in place.
+- c6083f6: Changes that reach a long list of computed values respond faster, such as dragging a point that sets the start of a simulation drawn as a polyline through hundreds of points or shown in a large table. When one entry of a list stopped being current, core rebuilt and checked every entry of the list to tally how many were still current; it now keeps a running count. What documents compute and display is unchanged.
+- d42615a: An answer whose award credits add up to 1, such as six awards of `credit="1/6"`, now counts as correct when all of them are earned. Floating-point round-off used to leave the total just short of 1, so the check-work button showed an orange "100% Correct" instead of a green "Correct", and the submission counted as incorrect.
+- 64763a0: Large documents load a little faster. While a document is built, core checks that what each part waits on never loops back on itself; that check now keeps an ordering it updates as it goes instead of searching again each time. What documents compute and display is unchanged.
+- fda1f9a: Large documents load about 5 to 8% faster, and dragging in them responds a little faster. While a document is built, core keeps a record of what each part of it is still waiting on; that record is now kept in maps, and the source position a value carries for warnings is copied once instead of on every read. What documents compute and display is unchanged.
+- 30239c0: Viewer: clicking the space between a boolean input's label and its checkbox now toggles the checkbox.
+
+    The space between them used to be margin on both sides, so a click there landed on neither and did nothing. The label now carries that space as padding, so its clickable area runs right up to the checkbox. The visible spacing is unchanged. An end label that follows a check-work button or description keeps its old spacing.
+
+- ae9fbc5: Viewer: keep an input's eagerly shown value on screen until core answers the action that set it.
+
+    Inputs put the reader's change on screen right away and let core confirm it afterwards. Clicking a boolean input sends core two actions, though — `focusChanged` first, then the change itself — and core answers the first while the second is still in flight. That answer carries the value from before the click, so the renderer took the reader's check mark back off and then put it on again once core caught up: a visible flash, and a long one in a document where the change sets off an expensive recompute.
+
+    An update that arrives for a component while one of that component's own actions is still in flight now leaves the base state variable alone, since core built it before it had processed the action. Core's answer to the action itself is still taken as it always was, so a value the document refuses — a `bindValueTo` that can't be updated, say — still snaps back.
+
+- 127ed24: Viewer: a boolean input's label now lines up with the text in neighboring table cells.
+
+    The checkbox had a 4px bottom margin that hung below the line of text. A table cell centers its content vertically, so a cell holding a boolean input sat 2px higher than a cell holding plain text. The margin is gone, so a line or table row holding a boolean input is now 4px shorter, unless something taller on it, such as an answer's check-work button, sets its height. Boolean inputs on consecutive lines, such as one per list item, now have their checkboxes touching instead of 4px apart.
+
+- a9be373: `<cascade>` now only reveals its children step by step; it is no longer a section.
+
+    A cascade keeps everything about the reveal: `numCompleted`, `hideFutureSections`, `revealAll`, `boxAll`, `<cascadeMessage>`, nested cascades, the step colors (`completedColor`, `inProgressColor`, `notStartedColor` and their dark-mode variants, and `completedColorRequiresCredit`), and numbering the problems inside it as items of a `<problems>`.
+
+    What it no longer has is everything that made it a section. It has no title, number or heading, and it no longer changes the heading level of the sections inside it, so a section in a cascade is drawn at the same level as the sections beside it. It has no box and cannot be collapsed. It has no score of its own — no `weight`, `sectionWideCheckWork` or check-work button, and no `creditAchieved` — and a section around it is now scored on the steps inside it directly. A cascade nested directly in another cascade no longer counts as a single step toward the score of a section around them; each of its own steps counts instead, which changes the weights. It no longer seeds variants, so random values inside a cascade may differ from before. Section attributes written on a cascade, such as `level`, `includeAutoName`, `includeAutoNumber`, `noAutoTitle`, `renameTo`, `boxed`, `collapsible`, `startOpen`, `weight` and `asList`, are now ignored with a warning, and `<styleDefinition>`, `<stylePalette>` and `<feedbackDefinition>` children are gone from it too.
+
+    To keep any of those, wrap the cascade in a `<section>` (or another division) and give the section the title, `boxed`, `collapsible`, scoring attributes or `<variantControl>`. A `<title>` written directly in a `<cascade>` is no longer shown, and a warning suggests moving it to an enclosing `<section>`.
+
+    List items are now numbered in one sequence through a cascade. In `<problems><cascade><problem/><problem/></cascade><problem/></problems>` the problems are 1, 2, 3 rather than 1, 2, 2, and the same holds for `<exercises>`, for the `<part>`s and `<task>`s of a problem, for any section with `asList`, and for cascades nested in cascades. Items after a `<repeatForSequence>` whose length changes while the document runs are also renumbered to follow it. An `<ol>` inside a cascade in a list item, such as a problem in a `<problems>`, now takes the same marker style as one directly in the list item.
+
+- 4219229: Large documents load a little faster. The check for circular dependencies among computed values now skips the many dependencies that cannot form a loop, such as one on a value that depends on nothing else. What documents compute and display is unchanged.
+- abe089c: A circular dependency that a reader's action creates in a document that loaded fine, such as a `<conditionalContent>` switching on content that refers to itself, is now reported in place of the document. The document used to keep running until it ran out of memory and stopped responding.
+- 4d2d5ce: `triggerWhenObjectsClicked` now works for a `<text>`, `<number>`, `<label>`, or `<image>` outside a graph. The clicked object is shown with a dotted underline (a dotted outline for an image), and readers can also reach it with the Tab key and activate it with Enter or Space.
+- 81d4578: A `<collect>` of numbers, maths, texts, booleans, intervals, points or vectors, and a `<sort>` or `<shuffle>` whose values are all numbers, all maths, all texts, all booleans, all points or all vectors, now keep their values in one component, drawn as before, instead of making a copy of each value. A value written as text, as in `<sort>3 1 2</sort>`, makes no component at all. Such documents create fewer components, and a change that reorders a `<sort>`, such as typing into an input it sorts, is faster. Each value is still shown as its source shows it (its display settings, style, label, `renderMode`, whether it can be dragged, and hidden when its source is), a property of one such as `$c[2].anchor` is its source's, and a value written to one, as through `<mathInput bindValueTo="$s[1]"/>` or by dragging a collected or sorted point or vector, goes to its source. A `<sort>` orders points and vectors by a coordinate as before (`sortByComponent`, and `sortVectorsBy`), and a `<shuffle>` gives the same order for each variant as before. A `<sort>` mixing numbers and maths, or a `<sort>` or `<shuffle>` of components of a type built on one of these, such as `<interval>` or `<integer>`, makes copies as before. Some uses differ. A list among the components a `<collect>` gathers counts as its values, one by one, for `maxNumber` and for an index such as `$c[3]`; it counted as one item. `<collect extend="$c"/>` now shows the collected values; it showed nothing. These components now have the properties `numComponents` and `numValues`, the number of values. A `<collect componentType="math">` (or `number`, `text`) that gathers an `<interval>`, `<integer>` or other component built on that type holds it as a value of the type collected, so a `<collect componentType="interval">` of it finds nothing. A reference to one collected or sorted math shown with `renderMode="display"`, such as `$c[1]`, is shown inline. What is typed into `<mathInput bindValueTo="$s[$k]"/>` with `$k` past the last value is not kept, as for a `<numberList>`. Collected or sorted points, or vectors, share one number of dimensions, as in a `<pointList>`: among points in the plane, a point on a line is given a second coordinate of 0, and a coordinate past the dimensions of all of them, such as `$c.y` of points on a line, is blank for each point; it read nothing. A collected or sorted point or vector read by itself, such as `$c[1]` or `<vector extend="$c[1]"/>`, does not take its source's label, `fixed` or `draggable`, and a tail written to such a vector, as through `<mathInput bindValueTo="$c[1].tail"/>`, keeps its displacement, as for an entry of a `<pointList>` or `<vectorList>`. An `<updateValue>` whose target is a whole list, such as `target="$nl"`, or `target="$pl.x"` or `target="$pl.xs[2]"` of a `<pointList>`, writes each entry; it changed nothing.
+- 81142bf: References in a copy's attributes now resolve as they would outside the copy.
+
+    Previously, `$h` in `<section copy="$S" hide="$h" name="S2" />` found the `h` inside the copied section, not the `h` where the copy is written. To reach a component inside the copy, reference it through the copy's name, as in `hide="$S2.h"`.
+
+- 736b9d1: A `variable` or `derivVariable` written on a copy now replaces the source's `variables` or `derivVariables`, as it already did on an extend: `<function copy="$f" variable="t"/>` of a function of x and y is a function of t. Likewise, a `displayDecimals` or `displayDigits` written on a copy of a prop or a list entry (`<math copy="$P.x" displayDecimals="1"/>`) now replaces the other as given by the source, as on an extend.
+
+    A `<module>` copy that writes `displayDigits` or `displayDecimals` no longer discards the other as written on its source: on a module they are two independent attributes.
+
+- 9c6388a: A `copy` of an `extend` of a point or vector whose coordinates are written with references, such as `<point copy="$Q"/>` where `<point name="Q" extend="$P"/>` and `<point name="P">($a, 0)</point>`, now behaves as the DoenetML of `P` pasted in its place: it follows `$a`, and dragging it changes `a`. It used to hold the coordinates `P` had when it was copied. A `copy` of an `extend` of a vector or a ray, of an entry of a `<sort>` of vectors, or of a `<repeat>` of vectors or rays, no longer fails to load.
+- 72758dd: A `copy` of one point or vector of a `<pointList>`, `<vectorList>`, `<collect>`, `<sort>` or `<shuffle>`, such as `<point copy="$pl[1]"/>`, now starts at that entry's coordinates (and a vector at its tail) instead of at the origin. It also has the label of the point or vector it comes from, and a vector keeps its `headDraggable` and `tailDraggable`. As with any `copy`, it then moves independently of the list.
+- b9df465: Graph a function taken from a `<curve>`'s `fs` without crashing the document.
+
+    A function from a curve, such as `$c.f1`, `$c.fs` or `<function extend="$c.f1" />`, took down the whole document when it was in a `<graph>`, and reading its `minima` or `maxima` threw. The same happened with `<equilibriumCurve>`. Its `domain` is now the curve's parameter interval, as for any other function of one input, so it graphs and reading its `minima` or `maxima` no longer throws.
+
+    Closes #2075.
+
+- a155e20: New `<delete>` and `<insert>` paragraph markup, named to match PreTeXt, for showing an edit: `<delete>` text is struck through and `<insert>` text is underlined. Both export to PreTeXt unchanged.
+- 5bb26c6: Viewer: put a list item's number beside the first row of a displayed equation that leads it.
+
+    A list item whose content opens with a displayed equation of several rows — an `<md>`, an `<mdn>`, or an `<me>` that is nothing but an `array` or `aligned` — showed its number beside the equation's middle row. This held for an `<li>` in an `<ol>` or `<ul>`, and for a `<part>`, a `<task>`, or a `<problem>` or `<exercise>` in a list of them. The number now sits beside the first row, as it sits beside the first line of a paragraph. The equation itself is drawn exactly where it was.
+
+- b28649b: Number `<problems>` and `<exercises>` among the divisions, and stop the containers that show no number from taking one.
+
+    A document numbers its figures and tables in one sequence and its divisions in another. Five components were taking a number out of the figure-and-table sequence: `<problems>` and `<exercises>`, which showed the number they took, and `<cascade>`, `<externalContent>` and `<standinForFutureLayoutTag>`, which had no use for one and left a gap. The first figure inside a `<cascade>` read "Figure 2", and every figure and table after any of the five was one too high.
+
+    `<problems>` and `<exercises>` now number themselves among their sibling divisions, the way `<section>` and `<problem>` already did — a `<problems>` between two `<section>`s is "Problems 2", not a number out of the figure sequence, and the `<section>` after it is now Section 3. They keep `renameTo`, which the divisions they group do not have, and they gain `includeParentNumber`, which those divisions do have.
+
+    The three containers now take no number at all, and pass the enclosing section's enumeration through in place of one. A figure that is the first numbered thing in a document is Figure 1 however many containers enclose it, and a division written inside one with `includeParentNumber` (the default for `<section>`) is prefixed with the number of the section its author sees around the container rather than with a number the container had taken. Sections in a `<cascade>` that wraps the document are numbered 1, 2, … rather than 1.1, 1.2, ….
+
+- 11b14ea: Number the divisions inside a `<div>` or `<cascade>` along with the divisions beside it.
+
+    A division inside a `<div>`, `<cascade>`, `<introduction>`, `<conclusion>` or `<statement>`, or inside the container an external copy arrives in, is numbered in sequence with the divisions around the container, and the divisions after the container continue the count: in `<section><subsection/><div><subsection/></div><subsection/></section>` the subsections are 1.1, 1.2 and 1.3, and top-level sections with one inside a `<cascade>` are 1, 2 and 3. The number in the heading, `sectionNumber`, and the text of a `<ref>` all agree. A counter set with `initializeCounters` applies to the top-level divisions inside these containers too.
+
+    Divisions after a `<repeatForSequence>` or `<conditionalContent>` are renumbered when it changes how many divisions it holds while the document runs.
+
+- f4d27d3: Make evaluating a function, such as `$$f(0.3)`, faster when the function is evaluated in many places and changes often, as in an animation. With `symbolic="false"`, evaluating it is about as fast as writing its formula out.
+
+    The function is computed once each time it changes rather than once for every place it is evaluated, and only in the form (symbolic or numerical) it is evaluated in.
+
+- addadf9: Make a function written in terms of another function, such as `<function>$$normalpdf(x, 0, 1)</function>`, faster and as accurate as one whose formula is written out.
+
+    Its minima and maxima come back in milliseconds rather than tens of seconds, and it no longer reports minima it does not have: out in the tails, where its values are tiny, they were computed imprecisely enough to look like dips. When the inner function has no domain, dragging on a graph that uses such a function is as responsive as dragging with the formula written directly.
+
+    When the inner function has a domain, the function still gives no value where its input falls outside that domain.
+
+    A graph drawn with `renderer="prefigure"` now includes such a function when the inner function has no domain; it previously skipped it with a warning.
+
+- 41599fc: An attribute written as an expression over references, such as `hide="not $b"`, a case's `condition="$x > 9"`, a line's `equation="y = $a x + 1"` or a curve's `parMax="2 $a"`, is now held by its component instead of creating a component for the expression. So is a point whose coordinates read a `<max>` or `<min>`. Documents with many such attributes create fewer components. What documents compute and display is unchanged.
+- fbac867: An `extend` with nothing written on it but the reference (`<math extend="$m"/>`) is now made the same way as the bare reference `$m`, so the two behave the same wherever they are written; an `extend` that changes the type, adds a name, another attribute or a child, or reads an entry of a list (`$c[1]`), is unchanged.
+- a813866: An `extend` of a composite or a list, such as `<sequence extend="$s" to="5"/>` or `<repeat extend="$r">…</repeat>`, shows the same content as the component it extends. The attributes that would change that content, such as `to` on a `<sequence>`, `for` on a `<repeat>` or `numToSelect` on a `<select>`, and children written inside the extend of a `<repeat>`, `<repeatForSequence>` or other composite, were ignored without a word. They are still ignored, and DoenetML now warns about each one. Such an attribute is also no longer set on the extend at all, so `type` on `<sequence extend="$s" type="letters"/>` no longer makes the extend of a sequence of numbers show nothing: it shows the numbers of `s`. `asList`, `hide`, the number display attributes such as `displayDigits`, and children written inside a `<group extend>` apply as before, without a warning.
+
+    `fixLocation="false"` written on an `extend` or `copy` of a point with `fixLocation`, as in `<point copy="$F" fixLocation="false"/>`, now applies, as `fixed="false"` does. The copy can then be dragged. As on a point written directly, a `fixLocation` written on a copy or extend also takes precedence over the `fixLocation` of a component it is inside, such as a `<group fixLocation>`. A drag of an `extend` still moves the point it extends, so that point's own `fixLocation` still refuses it.
+
+- 1982df9: Documents with many references load faster. While a document is built, core checks for circular dependencies each time a state variable starts depending on another; on large documents those checks took about a seventh of the load time, about half of it spent rebuilding key strings and copying path arrays on every step. The checks now keep their bookkeeping in maps and reuse one path stack, and do the same searches as before, so which cycles are reported, and how, is unchanged.
+- 1e61082: A `<shuffle>` no longer loses a copy of an award's feedback, such as `<feedback extend="$award.feedback" />`, when that feedback appears or disappears. A `<sort>` no longer loses a child such as `<math extend="$ans.submittedResponse1" />` on the first submission, or fails when it then reorders. A `copy` of an award's feedback that has nothing to show is now hidden rather than an empty box.
+- 8af2d80: A copied `<feedback>` no longer stops the whole document from rendering. This happened to a `<feedback>` inside a `<shuffle>`, such as in shuffled problems that give feedback, and to one copied with `extend`. Such a copy now shows or hides according to its condition, and a copy of an award's feedback stays hidden while the award has none.
+- 4bb6235: `fixLocation` now keeps only a component's location from changing: where it is drawn in a graph, a point's coordinates, a line's equation. A `<math>` with `fixLocation`, or inside a `<graph fixLocation>`, can now have its value changed, for example through `<mathInput bindValueTo="$m"/>`; only its anchor stays put. The same holds for a `<math>` holding a reference to a text or number with `fixLocation`. A point with `fixLocation` whose coordinate is a `<math>` of its own, as in `<point fixLocation>(<math name="a">1</math>, 2)</point>`, still cannot be dragged, but it moves when `a` is changed, as it does when anything else its coordinates depend on changes.
+- 6470708: A point or vector taken on its own from a `<collect>`, `<sort>`, `<shuffle>`, `<pointList>` or `<vectorList>`, such as `<point extend="$c[1]"/>`, is now fixed when it is placed in a fixed graph, so dragging it no longer moves the point or vector it comes from. It also has `fixLocation` when that point or vector has it, so the graph no longer offers a drag that does nothing. A point or vector taken from a `<sort fixed>` or `<shuffle fixed>` is now fixed, and dragging it no longer moves the point it was sorted from. A copy, made with `extend`, of a point or other component fixed by its graph or group is now also shown as fixed; dragging or changing it already did nothing.
+- b1f8676: A point or vector taken from a `<collect>`, `<sort>`, `<shuffle>`, `<pointList>` or `<vectorList>` on its own, such as `$c[1]` in a graph or `<point extend="$c[1]"/>`, now has the label of the point or vector it comes from, is fixed when that one is fixed, and cannot be dragged when that one cannot (including a vector's `headDraggable` and `tailDraggable`). Its own label or attributes, when given, are used instead.
+- 039f178: A reference to one entry of a list, such as `$pl[2]` of a `<pointList>`, works as a target: in `triggerWhenObjectsClicked` and `triggerWhenObjectsFocused`, in a legend's `<label forObject>`, as a PreFigure `<annotation ref>`, as the `to` of a `<ref>` and as the `target` of a `<callAction>`. An index that changes, as in `$pl[$i]`, follows its value. An entry of a `<mathList>`, `<numberList>`, `<textList>` or `<intervalList>` in a graph can be clicked and focused, firing what names the entry or the list. A reference to the whole list, such as `triggerWhenObjectsClicked="$pl"`, fires on a click of any of its entries, including one from an authored `<point>`; an action that names both the list and one of its entries fires once per click.
+- dceca95: An `extend` or `copy` of a list (`<mathList extend="$ml"/>`, `<mathList copy="$ml"/>`) now takes the list's attributes it does not set itself, as an `extend` or `copy` of any other component does: a hidden list's extend or copy is hidden, and it has the list's display settings and style. The list's `maxNumber` now also limits entries written inside it, and the list's `splitSymbols`, `functionSymbols` and `parseScientificNotation` apply to text written inside it. An extend is fixed when the list is or where it sits is. A copy behaves as if the list's DoenetML were pasted there: it has the list's attributes, `fixed` included, as its own, an attribute the list gives by a reference, `unordered="$u"` included, keeps following it, and a later change to the list's own attributes does not reach the copy. An `extend` as a list of something that is not a list, such as `<mathList extend="$P"/>` of a point, likewise takes that component's attributes of the same names, such as `hide`.
+- ba129da: The list operators `<sortIndices>`, `<tally>`, `<binCounts>`, `<indexOf>`, `<searchSorted>`, `<cumulativeSum>`, `<cumulativeProduct>`, `<cumulativeMin>`, `<cumulativeMax>` and `<differences>` now keep their results in one component, drawn as before, in a paragraph or a graph, instead of making one `<math>` or `<number>` component per result, and a reference to the whole result, such as `$which`, is one component as well. Documents that compute with these operators, such as dot plots, load faster and use less memory, and dragging a point of a dot plot is faster. Wherever the results are used, they read as before: in a `<p>`, a `<math>`, a `<text>`, a `<sum>`, a `<numberList>`, a `<mathList>`, a `<point>`, another list operator, a `<sort>`, a `<repeat for>` or a `<collect>`, through an index such as `$which[2]` or `$pop[$which]`, as their number changes, and with `asList` and the display settings. The display settings (`displayDigits`, `displayDecimals`, `displaySmallAsZero`, `padZeros`, `avoidScientificNotation`) are now attributes of each operator with their types, `<sortIndices>` takes them as well, and each operator has the properties `hidden`, `disabled`, `fixed`, `fixLocation` and the display settings. A property of one result, such as `$cum[2].text`, `$cum[$i].displayDigits` or `$cum[2].numDimensions`, or of every result, such as `$cum.text` or `$cum.fixed` (one value per result), reads as it did. A copy of the whole result, such as `<cumulativeSum copy="$cum"/>`, now shows the operator's display settings, and follows them when they are given as references, as a copy of one result does; it used to show the results unrounded. Four uses differ. A `<collect>` with `maxNumber` counts an operator's results as one item, so `maxNumber="2"` no longer stops partway through them. An index past the items of a `<group>` that holds an operator, such as `$g[4]` of a group holding a three-result `<cumulativeSum>` and a `<math>`, now reads that operator's result at the index, as it already did for a `<point>` in a group, where it used to read nothing. Writing to a result through a reference, such as `<mathInput bindValueTo="$cum[2]"/>`, is refused even when the operator has `fixed="false"`, since the results are computed. A `<collect componentType="cumulativeSum">` now collects a reference to an operator, such as the `$cum` in `<p>$cum</p>`, as it collects the operator itself.
+- 6414226: The `target` of an `<indexOf>` or `<searchSorted>` that names a whole list, such as `target="$indices"`, is now read by the operator instead of creating a component for each entry of the list. Documents that search lists this way create fewer components. What documents compute and display is unchanged.
+- df13719: Documents load faster and use less memory when their attributes are written out as plain values, such as `hide`, `displayDigits="3"`, `simplify` or `xMin="-4"`. Each such attribute used to be built as a small component of its own; it is now kept as the value the author wrote. What documents compute and display is unchanged, including a reader's changes to such an attribute (a toggled `hide`, a rescaled graph), which are still saved and restored.
+- 143797d: `<sampleRandomNumbers>` and `<selectRandomNumbers>` can draw from a log-normal distribution.
+
+    `type="logNormal"` raises `e` to the power of a normal variable, so every value is positive and the distribution is skewed to the right — the shape that fits quantities such as incomes, particle sizes, or times to finish a task, none of which the existing `gaussian` type describes.
+
+    Its parameters are the center and spread of the normal distribution being exponentiated rather than of the values themselves, so they are named apart from the gaussian's: `logMean` (default 0) and either `logStandardDeviation` (default 1) or `logVariance`, exactly as `standardDeviation` and `variance` pair up for the `gaussian` type. Reusing `mean` would have meant `mean="0"` producing values averaging about 1.65, and the reported `mean` disagreeing with the attribute of the same name.
+
+    The reported `mean`, `variance` and `standardDeviation` are those of the values, computed from the parameters: a `logStandardDeviation` large enough reports `Infinity` for moments genuinely beyond what a number can hold, and a value past about `e^709` comes back as `Infinity` for the same reason, while one below about `e^-745` rounds to 0 — the only way a value can fail to be strictly positive. Parameters that describe no distribution — an infinite center, or a negative or infinite spread — give `NaN` values and `NaN` moments together, with a warning naming what to change, which is what the gaussian and the discrete distributions already do.
+
+    The reference pages for both components also gained the grouping the schema drives. Neither highlighted anything, so every section rendered closed and a reader met a wall of headings; `type` and the count are now highlighted, and the fifteen distribution parameters are sorted into a group per distribution — uniform and discrete-uniform, gaussian and Poisson, log-normal, hypergeometric and binomial — with the reported `mean`, `variance` and `standardDeviation` highlighted and grouped as moments. The five number-display attributes had been losing their `number-display` group where this component redeclares them, and now keep it.
+
+- 560f294: Viewer: show a `<mathInput>`'s empty slots in dark mode.
+
+    When a `<mathInput>` is prefilled with a template that has empty slots — an empty fraction, say, or an empty exponent — each slot is drawn as a shaded box showing the reader where to type. The box was a fixed translucent black, which disappeared against the dark canvas. It is now tinted with the text color, so it shows in both themes. In light mode it looks almost as it did before, only slightly darker.
+
+- 0075492: References in a `<module>`'s attributes now resolve where the module is written, not inside the module.
+
+    Previously, `<module copy="$graphModule" xmin="$xmin" />` found the module's own `xmin` instead of the `xmin` next to it. The result was a circular-dependency error. A reference to any other name the module defines was captured the same way, and got the module's value in place of the author's.
+
+- 3f84059: `<sampleRandomNumbers>` and `<selectRandomNumbers>` can draw from a mixture of normal distributions.
+
+    `type="normalMixture"` draws each value from one of several normal distributions, choosing a component at random and taking the value from that component alone. It describes a population made of distinct groups, and it is the only type here that can produce a bimodal sample — a single `gaussian` cannot.
+
+    The components are given as lists: `means` (which has no default, and whose length is how many components there are), `standardDeviations` or `variances`, and `weights`. Weights are relative and need not add up to 1. A list holding a single value applies to every component, which is how the defaults — a spread of 1, and equal weights — are written, so `standardDeviations="2"` beside three means gives all three a spread of 2.
+
+    The reported `mean` is the weighted average of the component means; the reported `variance` adds to the weighted average of the component variances the spread of the components' own centers about that mean, which is positive unless every component carrying weight shares one center. Both are computed in a form that holds its accuracy for components far from the origin, where the textbook `E[X²] - E[X]²` loses the answer to cancellation. Parameters that describe no distribution — a list of the wrong length, a negative spread or weight, weights that are all zero or that do not add up to a finite total — give `NaN` values and `NaN` moments together, with a warning naming what to change, as the other distributions already do.
+
+- b99e69e: Graphs with many labels, maths, numbers or texts placed by an `anchor` written as numbers, such as `anchor="(2,3)"`, load faster and use far less memory. Such an anchor used to be built as a point holding a list of two maths; it is now kept as the coordinates the author wrote. Dragging the anchored item, and saving and restoring where it was dragged, work as before.
+- 59861b5: Keep typing and dragging responsive on long documents by updating content that is out of view only when there is time to spare.
+
+    After a keystroke, or after you move a point, a slider or anything else you drag, what is on screen, and just beyond its edges, updates right away. Content further up or down the page that depends on the change updates moments later, a little at a time, as fast as the page can draw it, and gives way to the next keystroke or click. Math you can see is redrawn first; math elsewhere on the page is redrawn while the page is otherwise idle, nearest first, and gives way as soon as you type or click again. Scrolling to content brings it up to date first.
+
+    On a document with 600 maths computed from one input, the math beside the input now shows each keystroke in about a third of a second; before, it could take several seconds, and a second keystroke typed soon after took far longer.
+
+    Answer checking and saved work are unaffected: they always use the current values, whatever is on screen.
+
+- ad9897e: Add `<page>`, which marks the content of one printed page.
+
+    On screen a `<page>` is an unformatted container. The sections and problems inside it are numbered along with the ones beside it, and inside a `<problems>` the problems on each page stay items of the list, so `<problems><page><problem/></page><page><problem/></page></problems>` numbers its problems 1 and 2 as before. Exported to PreTeXt and printed, each page starts on a new sheet.
+
+- 2e38500: The `credit` of an `<award>` or a `<choice>` is now capped to 0 to 1, and `$aw.credit` and `$choice.credit` report the capped value. A credit above 1 counts as 1, and a negative or non-numeric credit as 0.
+
+    - Selecting a `<choice credit="2">` now gives the answer a credit of 1, where it used to give 2.
+    - In a `selectMultiple` choice input, a choice with credit above 1 now counts as one of the correct choices.
+    - With `colorInputsSeparately`, an input answered by an award with credit above 1 is now colored as fully correct, not partly correct.
+    - Submitting a choice with a negative credit now shows that choice's own feedback, where before the previous submission's feedback stayed in place.
+    - With `disableWrongChoices`, a submitted choice with non-numeric credit is now disabled like any other wrong choice.
+    - An award with no `credit` attribute whose credit is set by `<updateValue>` now grants that credit, where before it granted 0.
+
+- 904279a: Stop a piecewise function whose pieces are bounded by a free variable from taking the document down when it is used as another function's body.
+
+    A `<piecewiseFunction>` whose pieces have symbolic domains — `<function domain="(-infinity, q)">` — has no numeric domain, and reports so as `domain: null`. A `<function>` wrapping it stores that in an array state variable of one interval per input, which turns "no domain" into an array that is present but empty. The piecewise extrema search then read the first interval off that array and threw, and the thrown error out of a state-variable definition took the whole document with it — a blank page rather than a graph.
+
+    The array is now tested entry by entry, the way `find_effective_domain` alongside it already did, and an empty one falls back to the real line.
+
+    This is easiest to hit through a field, whose sugar wraps whatever is written inside it in a `<function>`: `<slopeField>$g</slopeField>` naming such a piecewise function was enough.
+
+- 1854a0e: A point or vector whose coordinates are written with references, such as `<point>($i, 2$i)</point>` or the vertices of `<polygon vertices="($a, 1) (3, $a)"/>`, now usually holds its coordinates itself instead of creating a component for each coordinate and for the list of them. Documents with many such points create fewer components and load faster: a page of 150 such points in a repeat loads about 10% faster. What documents compute and display is unchanged, and a dragged point writes each coordinate where it wrote before.
+- 684a8be: Dragging a point or vector in space whose coordinates are written with references and numbers, such as `<point>($a, 2, 3)</point>`, again moves every coordinate. One of its coordinates had stayed where it was.
+- ca9f506: `<pointList>` and `<vectorList>` now keep their points and vectors in one component, each drawn and dragged on its own as before, instead of making one `<point>` or `<vector>` component per item. Points and vectors written as text, such as `<pointList>(1,2) (3,4)</pointList>`, make no component at all. A `<point>` or `<vector>` written among the items, or a reference such as `$P`, is now drawn with its own label and style, and whether it is hidden or draggable, and an authored `<vector>` keeps its own tail. A constraint among the children of a `<pointList>`, such as `<constrainToGrid/>`, now constrains every point in the list. All the items of a list have the same number of coordinates, and an item with fewer now has 0 in the ones it lacks, where it used to be blank. A coordinate past the items' dimensions, such as `$pl.xs[3]` of points in the plane, reads a blank for each item, where it used to read nothing. A drag of an item written as text is saved with the list; a state saved before this change does not restore it.
+- e2421e8: An attribute given by one reference of its own type, such as `hide="$b"` for a boolean `b` or `xMin="$n"` for a number `n`, now creates one small component instead of two. What documents compute and display is unchanged, and a value written through such an attribute still lands on what it references.
+- c5cad00: A reference is now fixed, or has `fixLocation`, the same way whatever its form (`$P`, `$m.value`, `$P.x`, `$l[1]` or `extend`): when it says so itself, or otherwise when its source is or where it sits is, including a `<group>`. A `fixed="false"` on its source or on where it sits no longer unfixes it; `fixed="false"` on the reference itself still does. An unlinked copy (`copy`) behaves as if its source's DoenetML were pasted there: it takes the `fixed` and `fixLocation` written on its source, or on what its source references, as its own, so one given by a reference (`fixed="$b"`) keeps following it, and is otherwise fixed only by where it sits. A copy of a list entry takes them as written on the list or, for a list of points or vectors, on the entry's source, and a copy of a prop such as `$P.x` takes neither. Other attributes a reference takes from its source, such as `hide="$h"`, likewise carry to a copy of the reference. A copy of an `extend` of a `<repeat>` now repeats its template, where before it was empty, and a copy of an `extend` of a `<repeatForSequence>` whose template has a component with an attribute no longer reports a circular dependency.
+- 753c2de: Children written inside a `copy=` of a `<repeat>` or `<repeatForSequence>`, such as `<repeatForSequence copy="$r"><text>x</text></repeatForSequence>`, no longer stop the document from loading. They are added to each iteration after the copied template, as children written inside a `copy=` of a `<group>` or `<p>` are added to the copy.
+
+    Closes #2176.
+
+- 682ff8f: The `indexName` of a `<repeat>` or `<repeatForSequence>`, and the `valueName` of a `<repeatForSequence>`, no longer make a component in every iteration, nor a `<setup>` to hold it, when every use of the name in the template reads its value, such as `$i` in `<number>$i^2</number>`, in `$l[$i]`, in an attribute or in the text of a paragraph. The repeat holds those values or indices once, and each iteration reads its own; such a name the template never uses costs nothing. Documents with many repeat iterations, such as dot plots, create fewer components, and the ones with the most iterations load faster. What the iterations show and compute is unchanged, including as `from`, `step` or the length change, in an iteration a shorter repeat withholds and shows again, and in an answer submitted in an iteration. The `valueName` of a `<repeat>`, a name used another way, such as `<integer extend="$i"/>`, and a name reached from outside the repeat, such as `$r[2].i`, are still a component of each iteration, as before.
+- b27371d: A `<repeat>` whose template is one `<math>`, `<number>` or `<point>` now keeps its values in one component in two more cases: when it repeats over a property whose value is a list, such as `for="$it.allIteratesWithInitial"` of a `<functionIterates>`, and when its template reads one coordinate of the value, such as `<point>($i, $x[1])</point>`. A simulation that plots its iterates with such repeats creates far fewer components and loads faster. A value written to such a coordinate lands on that coordinate of the list's entry, as before. A coordinate past the value's dimensions now reads as a blank, as `$m[2]` of a single `<math>` does, instead of being left out, and a value written to it extends the entry, as a write to `$l[2][2]` does. A template that is one value alone, such as `<math>$x</math>` or `<math>$x[1]</math>`, again shows it with the display settings (`displayDigits`, `displayDecimals`, …) of the list it reads, or of the entry it reads when that entry sets its own, as does a reference to the repeat.
+- 4b7edc3: A `<repeat>` or `<repeatForSequence>` whose template is, or holds, an `<abs>`, a `<round>` or a function evaluated with `<evaluate>` or `$$f(…)`, such as a Riemann sum's terms `<math>$$p($$ldeltat($i-1+$side))*$deltat</math>` or the points of a function's graph `<point>($v, $$f($v))</point>`, now keeps its values or points in one component, shown and drawn as before, instead of making a copy of its template for each one. This applies when the function is one reference to a function outside the repeat, and what a `<round>` rounds to is written as an integer; otherwise the repeat works as before. A value written to an `<abs>` or a `<round>` goes where it went before, and a function's value is still not written to.
+- 9b49697: `<repeat for="$g">` over a `<group>` now gives each iteration the right value when the group mixes written components with references to a list, as in `<group name="g"><math>7</math>$l</group>`, or holds a list, sequence, repeat or group written inside it. The repeat already had the right number of iterations, but the values were out of order or blank. It now shows the items in the order `$g` displays them, and keeps them in step as the group's contents change.
+
+    The same fix covers a `<repeat>` over a `<group>` or `<sort>` whose items contain references, as in `<group name="g"><math>$a</math><math>$b</math></group>`, which showed only the first value and warned that it found no referent. Indexing into a group whose contents are a reference to a group that mixes components with references, or whose items contain references, such as `$h[2]` for `<group name="h">$g</group>`, now also finds the right item.
+
+    Closes #2073.
+
+- 1323ff6: A `<repeat>` or `<repeatForSequence>` whose template is one `<point>`, such as the points of a dot plot, now keeps its points in one component, drawn and dragged point by point as before, instead of making a copy of its template for each point. Documents with such repeats create far fewer components and load faster: a dot plot of 50 points is about a tenth of the components it was. This applies when the point's coordinates read the repeat's value or index, an entry of a list at the index (`$l[$i]`), the value of a `<repeat for="$l">` over one list, or values outside the repeat, and its attributes and constraints are the same for every point; otherwise the repeat works as before. A point dragged writes each coordinate where it wrote before. A trigger, a legend's label, a `<ref>`, a `<callAction>` or a PreFigure annotation that names one point (`$Ps[2].P`) finds it as before, and one that names an iteration (`$Ps[2]`) or the whole repeat (`$Ps`), which used to find nothing, now finds that point or each point, as for a `<pointList>`.
+- 1220077: A `<repeat>` or `<repeatForSequence>` whose template is one `<math>` or `<number>`, such as `<repeatForSequence from="1" to="$n" valueName="i"><number>$i^2</number></repeatForSequence>`, now keeps its values in one component, shown as before, instead of making a copy of its template for each value. Such documents create fewer components. This applies when what the template reads is the repeat's value or index, an entry of a list at the index (`$l[$i]`), the value of a `<repeat for="$l">` over one list, or a value outside the repeat; otherwise the repeat works as before. A value written to one of its values, as through `<mathInput bindValueTo="$r[2]"/>`, goes where it went before: to what the template reads, or to that value's own copy of the template's text. One thing differs: `<collect componentType="math">` no longer finds, in such a repeat of `<number>`s, the `<math>` that a `<number>` like `<number>$v+1</number>` makes around its content, so it collects nothing there; `componentType="number"` collects the values as before.
+- bb2ce8d: A `<repeatForSequence>` with `fixed="false"`, its own or an ancestor's, again lets a reader change each iteration's `valueName` and `indexName`. For example, dragging a point at `($v, $$f($v))` moves it along the function's graph, as in earlier versions. A value dragged to an iteration's value is kept while the repeat's `from`, `step`, `type` and `exclude` stay the same, as for a `<sequence fixed="false">`. A value dragged to an iteration's index is kept from then on. Both are saved, and both are kept while the iteration is hidden because the repeat has fewer iterations, and shown again with it. The same goes for the `indexName` of a `<repeat>`.
+
+    With `fixed="false"`, a coordinate that reads the value together with another value that can change, such as the first coordinate of `($v + $a, 1)` with a `<number name="a">`, no longer passes a drag to `$a`: both could take it, so neither does, as for an entry of a `<sequence fixed="false">`. The same goes for a value typed into a `<mathInput>` bound to a `<math>$v + $a</math>`.
+
+- e0007bd: Large documents load a little faster. Registering the names of content that copies, repeats and conditional content create during a load now takes time in proportion to that content, not to the whole document. What documents compute and display is unchanged.
+- 6814328: Keep a dragged object tracking the pointer on documents where moving it changes much of the page.
+
+    While a drag is in progress, every graph on screen redraws with each step: the dragged object, and everything on a visible graph that the move changed, such as a line through a dragged point or a second graph that follows the first. Everything else the move changed, such as readouts, a table of tallied values, or graphs out of view, follows once the drag pauses or ends. Previously each intermediate position redrew everything the move touched before the dragged object itself could appear, so on a document whose components depend on one another the object trailed the pointer by a noticeable fraction of a second.
+
+    Positions on a visible graph are computed on every step, not estimated, so constraints and snapping still apply as you drag. What waits is the redrawing of what is off the visible graphs, and the recomputation that redrawing drives. Everything on screen is complete on release, and what is out of view follows moments later, so nothing is left stale.
+
+    This applies to every dragged object in a graph, to sliders, and to dragging the points of a number line (`<subsetOfRealsInput>`). Typing is deliberately left alone: what an input shows, and the feedback beside it, still keep up with every keystroke.
+
+- 0c6ba64: The labels of inputs, answers, buttons, and sliders now show the markup inside them, such as `<em>`, `<c>`, `<delete>`, and `<insert>`, instead of only their text. A `<label>` on its own in the text shows its markup, too, and printed copies keep the markup in the labels of inputs and answers. Labels drawn in a graph still show only their text and math.
+- bdc1dd5: Load large documents faster by no longer recomputing every component's name each time a composite expands.
+
+    Each time a composite such as `<repeat>` or a copied `<module>` expanded, the document recomputed the name of every component and sent the whole list from the Rust core to JavaScript. Loading a document triggers many expansions, so this cost grew with the square of the document's size. On a page with four 50-point dot plots, it took about 5.8 s of the load time. Now only the names that change are sent, and when components are added, only the new components' names are found. On that page, the time spent on names fell to under 0.1 s.
+
+    Closes #2023.
+
+- 585511e: `<sequence>`, `<selectFromSequence>`, `<selectRandomNumbers>`, `<sampleRandomNumbers>`, `<selectPrimeNumbers>`, `<samplePrimeNumbers>` and `<sampleMultivariateRandomNumber>` now keep their values in one component, drawn as before, instead of making one `<number>`, `<math>` or `<text>` component per value, and a reference to all of them, such as `$s`, is one component as well. Documents built on random values and sequences, such as dot plots, create fewer components and use a little less memory. The values read as before wherever they are used: as children, through an index such as `$s[2]` or `$l[$n]`, in an attribute such as `displayDigits="$n"`, as their number changes, and in a `<repeat>`, a `<shuffle>` or an index into a `<group>` that holds a reference to them. A variant draws the same values as before. With `fixed="false"`, a value written to an entry, such as by dragging a point at `$ns[2]`, is kept for that entry and saved, until a sampler draws again or a `<sequence>` computes its values from another `from`, `step` or `exclude`; it is kept when a `<sequence>` only grows, and dropped from an entry it shortens past. `<selectPrimeNumbers>` and `<samplePrimeNumbers>` now take the display settings (`displayDigits`, `displayDecimals`, `displaySmallAsZero`, `padZeros`, `avoidScientificNotation`), as the other components do. Four uses differ. A `<numberList>` or `<mathList>` holding a reference to all of the values, such as `<numberList>$s</numberList>`, shows them with the display settings of the component, as a `<p>` does, where it used to show them with its own defaults. A selection that cannot be made shows its error after the select rather than in its place. A `<text extend="$s">` of a one-value `<selectFromSequence>` is a text holding the selection, which is not itself fixed; a write through it is still refused unless the selection has `fixed="false"`. An input bound past the last value of a `<sequence>`, such as `bindValueTo="$s[2]"` of a one-value sequence, shows nothing, as one bound past the end of a `<numberList>` does.
+- 9ad0771: **Breaking:** a reader's saved state is keyed by where a component sits in the document, and state saved by 0.7 is not read.
+
+    Saved state was keyed by each component's index in the build. An index is a position in the build, so it moved whenever anything ahead of it changed — and a reader's values then came back on the wrong components, silently. Adding a paragraph above a graph was enough: a point dragged to (3, −5) reloaded at (−5, 1).
+
+    Every component a reader can put work into now carries an identifier derived from the document instead:
+
+    | what                                                                | key                                                                                         |
+    | ------------------------------------------------------------------- | ------------------------------------------------------------------------------------------- |
+    | a named component                                                   | `~P`, hung off the nearest _named_ ancestor, so unnamed wrappers between them do not matter |
+    | an unnamed component                                                | its position under its parent                                                               |
+    | a component built from an attribute                                 | `@x`, `@y` — **by attribute name**                                                          |
+    | a composite's replacement                                           | its composite's key, plus which replacement it is                                           |
+    | a component Doenet inserts to adapt another to where it was written | the adapted component's key, plus which adapter it is                                       |
+
+    Keying attributes by name is what closes the last of #1944: `x` and `y` can no longer be handed each other's identifiers, whatever order they are visited in. Hanging a named component off its nearest named ancestor is what lets an author edit elsewhere in a document without discarding the work readers have already done in it.
+
+    That last row is worth spelling out, because it is the one a reader can see. A component written where its own type does not fit is shown through one Doenet inserts to adapt it: a `<boolean>` put in a `<graph>` is drawn as a piece of text, and a piece of text in a graph is something the reader can drag. Where they drag it to is their work, and it is saved. Doenet builds that stand-in while the document runs rather than while reading it, so until now it fell back to a build index — and a paragraph added above the graph put the label back where it started. It is now keyed by the component it stands in for.
+
+    Two consequences worth stating plainly:
+
+    - **Reader state saved by 0.7 is not read by 0.8.** The keys no longer denote the same components, and 0.7's keys were not assigned reliably enough to translate. A reader with an attempt in progress at the upgrade sees that document open fresh. Credit already recorded is unaffected — score is reported separately from state.
+    - An author _renaming_ a component still discards the state saved under the old name, as does any other edit to the document text, because saved state is already gated on a hash of that text.
+
+    One piece of dead code went with it. When an update named a component that was not in the tree, `EssentialValueWriter` filed the write against that component's index, to be replayed when it appeared. Nothing replayed it — the map it went into is drained by the new identifier, and the two only ever coincided while that identifier was the index. Nor was there anything to replay onto: every index in such a batch is read off a live component, so the situation the code described could not arise. It now reports a broken invariant on the console and moves on, so that if it ever is reached we hear about it instead of writing to a key nothing reads.
+
+    Refs #1944, #1947.
+
+- 9ad0771: Saved reader state now says which format it is in, and state a viewer cannot read is discarded with a notice rather than misapplied.
+
+    The payload a host stores carried no version. Hosts are told to keep it opaque and hand it back unread, so state written by an older version of Doenet arrived looking exactly like current state — and 0.8 changed how that state is keyed, which meant a reader's values would have been applied to components they no longer denote. Silently, and with no way to tell the two apart.
+
+    `data_format_version` now travels _inside_ the payload, alongside `cid`, where it survives that round trip; a field beside it would not. On load, a payload whose version this viewer does not recognise is discarded and the document starts fresh, with a notice beside it saying the work was saved by an earlier version. Credit already recorded is unaffected, since score is reported separately from the state.
+
+    A page can hold more than one answerer for the same request — under the standalone coordinator an in-page warehouse answers while a persistence host answers out of durable storage — and an answer in a format this viewer cannot read restores nothing, so it does not shut out an answerer that still has readable work. The reader is told either way, and a later answerer that does restore clears the notice.
+
+    The same field already guarded locally cached state in IndexedDB and is unchanged there. It is bumped to `0.8.0`, which also clears that cache.
+
+    For hosts: nothing to change. The payload stays opaque and is still stored and returned as-is.
+
+- 9ad0771: A reader's saved state is the work they did, not a copy of the document around it.
+
+    Every essential value an ordinary definition computed was recorded alongside the reader's own writes, and the reader's first interaction anywhere flushed that whole document-wide record into the saved state. So working one exercise on a page persisted state for every other exercise: the function's expression over again, entries whose value was `null`, and the placeholder from each `<choice><math>?</math></choice>` — none of it the reader's, and all of it recomputed identically on a fresh load of the same document under the same variant.
+
+    Measured on one _Active Calculus_ exercise, after a single drag of a constrained point: **1322 bytes across 21 entries becomes 160 bytes across 2** — the two being the point's position, which is the only thing in there the reader chose. With five independent exercises on a page and only the first worked, the saved state is now the same size as it is for one exercise; before, it grew with every exercise present.
+
+    The values are still recorded internally, because a partial write to an array merges into whatever entry is already there and the definition path is what puts that base in place. What changed is what leaves the worker.
+
+    One thing a definition computes is still saved: the draws of `<sampleRandomNumbers>`, `<samplePrimeNumbers>` and `<sampleMultivariateRandomNumber>`. Their `variantDeterminesSeed` is false by default, so they sample from a generator seeded by the clock and no rebuild reproduces them — the saved state is the only place those numbers exist. Dropping them would have changed the numbers under a reader who reloaded, turning the question they were part-way through answering into a different one. `<selectRandomNumbers>`, which draws from the variant's own generator, still costs nothing.
+
+    Also fixed, in the same code: when a composite deleted one of its replacements during the same update that wrote to it — `<sort>` does this on every reorder — merging the update's changes threw on the missing component. Because the throw was caught upstream, it silently took the rest of the update with it: the writes not yet merged, and the save that update would have scheduled. Typing into a `<sort>` reorders it, and the reorder corrects the input to whatever now sits in the position it is bound to — a correction on the far side of the throw, so the reader reloaded to find the box showing a value they were no longer looking at.
+
+    Closes #1940.
+
+- 9ad0771: Saved reader state is keyed by an identifier a rebuild reproduces, so a reload no longer restores values into the wrong components.
+
+    Saved state is keyed by each component's `stateId`, which for most components was simply its position in the build. Two things made that position move between builds of the same document:
+
+    - An element's attributes were walked in the iteration order of a Rust `HashMap`, which Rust deliberately randomizes. The indices minted along that walk went to the components built from the attributes, so `<point x="0" y="1" />` handed `x` and `y` different identifiers from one build to the next. A point the reader had dragged came back with its coordinates swapped roughly a third of the time — silently, with no error. Attributes are now walked in the order they were written.
+    - `<sort>`, `<shuffle>` and `<collect>` were the only composites that did not give their replacements an identifier of their own, so those also fell back to a build position. They now mint one the way every other composite already does.
+
+    Any element with two or more attributes that become components could have its saved values swapped this way; a point is simply the case where a reader can see it.
+
+    Reader state already saved under the old identifiers is not migrated. In practice there is nothing to migrate: the identifiers that move are exactly the ones that were never assigned reliably.
+
+    Closes #1944.
+
+- a8327c7: `<searchSorted>` can search a list that is not sorted.
+
+    `<searchSorted>` answers where a value belongs in a list that is already in
+    ascending order, and declines a list that is not. An author whose list is
+    unsorted had to sort it first and hand the result over:
+
+    ```doenet
+    <sort name="sorted">$values</sort>
+    <searchSorted target="$targets">$sorted</searchSorted>
+    ```
+
+    Writing `allowUnsorted` on the operator says the same thing in one step:
+
+    ```doenet
+    <searchSorted allowUnsorted target="$targets">$values</searchSorted>
+    ```
+
+    The answers are the same either way, and `side` still chooses which end of a
+    run of equal values is reported. The values themselves stay in the order they
+    were written: `allowUnsorted` says where the target belongs, not what the list
+    looks like. Without the attribute nothing changes.
+
+    In a document where the values move — points a reader drags, numbers they
+    type — the shorter form is also much quicker, because the separate `<sort>`
+    produced a component for every value and everything reading it had to follow
+    them.
+
+    One difference worth knowing: where the values are compared as numbers, one
+    that is not a number at all takes no part in the ordering. Without `allowUnsorted` it
+    keeps its place in the list and the answer counts around it; with `allowUnsorted` it is
+    left out, since a value with no place in the order has no place to keep.
+
+- 6c32285: `<selectRandomNumbers>` freezes `exclude` with the rest of its distribution.
+
+    A selection is drawn once and stays put, and every parameter describing the distribution it was drawn from is held fixed alongside it so that the reported `mean`, `variance` and `standardDeviation` keep describing that distribution. `exclude` was the one parameter still following its reference.
+
+    Because the moments are computed on demand, this showed whenever an `exclude` reference changed before anything had read them: the numbers on the page came from the original exclusion set while the moments described the new one. With `from="1" to="5" exclude="$e"` and `$e` moving from 3 to 5, the numbers on the page contained a 5 that the reported distribution excludes, and omitted a 3 that it includes. Where the change also altered how many values survived, the reported mean belonged to no set of values at all, because the count it divides by was frozen while the exclusions it sums over were not.
+
+    `<sampleRandomNumbers>` is unaffected: it freezes nothing, and its moments and values both follow the reference, which is what that component is for.
+
+- 43061ac: Say that `<selectRandomNumbers>` has no `resample` action instead of throwing when one is asked for.
+
+    `<selectRandomNumbers>` draws its numbers once, so that the same document under the same variant shows the same numbers; resampling is what `<sampleRandomNumbers>` is for. It nonetheless inherited a `resample` action, and `<callAction actionName="resample">` aimed at one threw a `TypeError` into the console — the author saw a button that did nothing and no explanation. The throw also abandoned whatever else that button was still going to do: the rest of a `<triggerSet>`, and anything chained with `triggerWith`, never ran.
+
+    `<callAction>` now reports that the action is unavailable, naming the reference as the author wrote it, and the actions sharing its trigger run as usual.
+
+- 9f64e3e: Documents that reference a property of a component, such as `<math extend="$P.x" displayDigits="2"/>` or `$mi` inside a `<textList>`, use less memory. Such a reference, or one to an entry of a list, used to make a small component for each display setting and other attribute (such as `hide`) it takes from its source; it now reads them from the source directly. What documents compute and display is unchanged.
+- 848d4f3: A copy no longer saves its own duplicate of the state belonging to what it copies.
+
+    `<mathInput extend="$mi" />`, and every replacement a composite makes of something it copies, _shadows_ the component it came from. A write into a shadow ends up recorded against its source either way — redirected there outright for a variable the copy shadows, and otherwise recorded on the copy and then walked up to the source — and from there mirrored back down onto every shadow. Both ended up in the saved state, so a copy carried an entry of its own repeating what had already been recorded under the component it copies: a copy of an input the reader types into, of an `<answer>` they submit through, of a `<number>` or `<text>` an `<updateValue>` rewrites, or of a point, vector, line or other graph object they drag that was written without coordinate attributes.
+
+    The copy keeps whatever state really is its own. A few things a copy holds are never mirrored from what it copies — a revealed `<hint>` stays revealed only on the copy the reader opened, and a `<choice>` inside a `<shuffle>` records that it was submitted on the shuffled copy rather than on the choice as written — and those are saved as before. So is everything an unlinked `copy` holds, which is tied to its source in neither direction.
+
+    Not every copy duplicated something, and most documents' payloads do not change at all. A point written as `<point x="1" y="2" />` and dragged records the drag against the `x` and `y` it was written with rather than against the point itself, so a copy of it never had an entry to drop; the same document saves the same bytes as before.
+
+    Nothing a reader can see changes here — the copy is restored from its source's entry, as it already was — but the payload a host stores is smaller where a reader types into, submits through, or drags a copy that duplicated something — the cases named above, not every copy.
+
+    It also removes a defect that has been in the way of `<sort>` and the composites after it. The duplicate entries are restored independently, and nothing makes the order they land in agree with the order a composite hands its replacements out. A composite that rebuilds its replacements on every change hides that, because deleting a replacement drops its entry too; one that _keeps_ them keeps the stale duplicate, and it is applied over the value restored to the source. A reader's answer comes back on a different element of a sorted list from the one they typed it into. That is what #1949 measured and could not fix at the keying layer, and what would have met each of #1947's composites in turn as they were converted.
+
+    Refs #1947, #1949.
+
+- dc5704a: `<sort>` no longer rebuilds its results every time its input changes order.
+
+    A `<sort>` over values that a reader can change — points they drag, numbers they
+    type — threw away everything it had produced and built it again whenever the
+    order changed, and everything reading the sorted list had to find its components
+    afresh. It now moves the results it already has into their new order, which it
+    can do whenever the same things are being sorted. In a document that sorts forty
+    dragged values, a drag that carries one of them past its neighbor costs a
+    fraction of what it did, and the more of the document reads the sorted list the
+    larger that difference is.
+
+    A value that lands most of the way across the list in a single step is the
+    exception, and `<sort>` takes the old route for it: what a rearrangement saves
+    is the results that stay where they are, so once most of them would move there
+    is nothing left to save and rebuilding is the cheaper of the two.
+
+    Sorting a changed set of values — one added, one removed — rebuilds as before.
+
+- bac2faf: A `<spreadsheet>` can set the width of its columns, written the same way as in a `<tabular>`: `<col width="…">` components, one per column, or a `width` attribute on a `<column>`. Each width is a percentage of the width of the spreadsheet, so a column left empty for students to type into no longer has to be drawn narrow. Percentage widths carry over when the page is converted to PreTeXt, so a printed spreadsheet keeps its proportions.
+- ffc2916: A `<tabular>`'s column widths now take effect when the page is converted to PreTeXt for printing, keeping the proportions the table has on screen. Before, PreTeXt ignored them for cells of plain text, and widths adding up to more than 100% stopped the conversion.
+- 694c0f8: `<tabular>` accepts `<col>` components, which set a column's width, alignment, and borders.
+
+    A `<tabular>` divided its width evenly among its columns and gave an author no way to say otherwise, so a column of two-digit numbers was drawn as wide as a column of sentences. `<col>` is the same answer PreTeXt gives, with the same four settings: `width`, `halign`, `topBorder`, and `endBorder`. The `<col>` components go before the rows, one per column, left to right; a table may declare fewer than it has columns, and the columns past the last one are left alone.
+
+    A column's `width` is a percentage of the width of the `<tabular>`. A number of pixels works in the viewer, but only a percentage means anything to PreTeXt, so a percentage is what the documentation asks for.
+
+    `halign` and `endBorder` are overrides rather than defaults for the whole table, and they resolve the way PreTeXt resolves them: a `<cell>` uses its own setting first, then its `<row>`'s, then its column's, then the `<tabular>`'s — skipping the row for `endBorder`, which a `<row>` has no setting for. (`topBorder` has no `<cell>` or `<row>` setting at all; a column's is simply drawn across the top of that column.) So a `<col halign="end">` right-aligns a column of numbers without touching the rest of the table, and a single `<cell endBorder="none">` still leaves a gap in a rule its column drew. A `<cell colSpan="…">` covers more than one column, so it aligns with the first column it covers and takes its `endBorder` from the last, where its trailing edge actually falls.
+
+    Conversion to PreTeXt now carries the whole of a `<tabular>` across, not only its contents. Before this, `<tabular>`, `<row>` and `<cell>` reached the exporter through the pass-through fallback, which dropped every attribute: width, alignment, header rows, `colSpan` and all four borders were lost. They are now written in PreTeXt's own spelling — the borders as `top`/`bottom`/`left`/`right`, `halign="start"`/`"end"` as `"left"`/`"right"` — with each setting emitted on the element that established it rather than repeated on everything beneath it. Two things still do not cross: a `<tabular height>`, which PreTeXt has no attribute for, and a width given in pixels rather than as a percentage.
+
+- cd31dc8: Tabular cells in narrow columns now shrink their side padding so their content stays between the column rules.
+
+    A cell's side padding is 15% of the width of the columns it covers, at most the usual 10px, and follows the table's width as it changes. A table with many narrow columns, such as a row of single letters under `<col endBorder="minor" />` settings, now shows each letter centered between its rules instead of spilling past the right one. Columns of an ordinary width keep the full padding.
+
+- 7207a18: An unlinked copy (`copy="$m"`) now keeps the value it was made with after the page is reloaded, even when its source has changed since; before, a reload made it again from its source as it was then. Its `fixed` and `fixLocation`, copied as written on its source, are made again on reload as before. Saved state grows mostly for copies whose source has changed.
+- 5022751: Each value of a `<numberList>`, `<mathList>`, `<textList>` or `<intervalList>` drawn in a `<graph>` is now drawn where the component it comes from is anchored, as `x` is at `(4,5)` in `<mathList><math anchor="(4,5)">x</math></mathList>`, with that component's `positionFromAnchor` and `layer`, and dragging it moves that component, unless the component or the list is fixed, its location is fixed, or it is not `draggable`. The values were all drawn at the origin, and dragging one moved nothing. This holds for a value from a reference to a component, such as `$m`, and from a list inside the list. A property of one value, such as `$l[1].anchor` or `$l[1].draggable`, is that component's, and `$l[1].fixed` is true when that component or the list is fixed. A value written as text, such as the `3` of `<numberList><number anchor="(1,2)">5</number> 3</numberList>`, or a reference to a property, such as `$m.x`, is drawn at the origin and cannot be dragged. In a graph, a `<collect>` of numbers, maths, texts, booleans or intervals, and a `<sort>` or `<shuffle>` of numbers, maths, texts or booleans, now keeps its values in one component, as it does outside a graph. Its numbers, maths, texts and intervals are drawn and dragged in the same way.
+- f79190b: `<numberList>`, `<mathList>`, `<textList>`, `<booleanList>` and `<intervalList>` now keep their values in one component, drawn as before, instead of making one `<number>`, `<math>`, `<text>`, `<boolean>` or `<interval>` component per value. The values written out as text, such as `<numberList>1 2 3</numberList>`, make no component at all, and a reference such as `$a` among the values reads the value of `a` without copying it. A reference to all of a list, such as `$l`, is one component, and so is a reference to all of the values of a property, such as `$P.xs` of a point or `$l.text` of a list, where it is shown or held in a list. Documents with many lists, such as dot plots, create fewer components and load faster. The values read as before wherever they are used: as children, through an index such as `$l[2]` or `$l[$n]`, as a coordinate of an item such as `$l[2][1]`, as the coordinates of a point or the vertices of a polygon, in an attribute such as `xs="$l"`, with `mergeMathLists` and `maxNumber`, in a comparison of unordered lists, and in an input bound to one of them, such as `<mathInput bindValueTo="$l[2]"/>`, which writes to the value, or to the child it comes from. A list of one value is that value (`<math>2 $l</math>`), and an empty list is nothing, as before. A value written to an item of a list that was written as text is saved with the list; a state saved before this change does not restore it. Four uses differ. Text among the values that a `<group>`, `<repeat>` or `<conditionalContent>` gives, as in `<numberList>5 <group>6 7</group> 8</numberList>`, now gives values, as does text beside an `<interval>` in an `<intervalList>`; both used to be left out. An item written as its own component, such as `<math displayDigits="5">pi</math>` in a `<mathList>`, is shown with the display settings it sets, and with the list's for the ones it does not set, in the list, through an index such as `$l[1]` and in a property such as `$l[1].number`; the list's settings used to apply to every item. An index past the last value of a list, such as `$l[$n]` with `n` too large, reads nothing without a warning, as for the other components that hold a list of values, and among the values of another list it adds none, as before; a value another component does not have, such as `<numberList>$P.xs[3] 5</numberList>` or `$P.z` for a point in the plane, or a `<choiceInput>`'s `selectedIndex` before a choice is selected, is there a blank value (`NaN`, `＿` or an empty text), where it used to add none. `$l.isResponse` is one value for the whole list, where it used to be one per value; the five lists now list it among their properties, with `hidden`, `fixed`, `disabled` and `fixLocation`, and a `<numberList>`, `<mathList>` and `<intervalList>` the display settings (`displayDigits`, …), which read each item's own settings (`$l[1].displayDigits` is that of an item that sets its own, where it used to be the list's).
+- 4102fd3: A reference shown in the text of a paragraph, label, table cell, section or the document, such as `$n` in `<p>The value is $n.</p>`, now creates one small component that the viewer draws, in place of a full copy of the referenced component and the shadow attribute components that came with it. Documents with many such references load faster and use less memory. What the reader sees is unchanged: the value is shown with the referenced component's display settings, and `$t` of a component with `hide`, style or typesetting settings is hidden, styled and typeset as it is (as before, `$t.value` is not). A reference with nothing to read shows nothing, and a click on a reference to a click target still counts as a click on it. A `<collect>` still finds such a reference, as a component of its type, with the referenced value and settings, and does not find one with nothing to read. An index written as an element inside a math, such as `<math>$l[<indexOf target="3">$l</indexOf>]</math>`, no longer stops the document with a circular dependency.
+- c89822f: A reference to one entry of a list used only for its value, such as `$l[$i]` inside `<math>$l[$i]+1</math>` or inside a `<repeatForSequence>`, now resolves its own reference instead of being made by a copy component. This applies to lists whose entries always have one type: `<numberList>`, `<mathList>`, `<tupleList>`, the `<row>` and `<column>` of a `<matrix>`, `<textList>`, `<booleanList>`, `<sampleRandomNumbers>`, `<selectRandomNumbers>`, and the list operators `<sortIndices>`, `<tally>`, `<binCounts>`, `<indexOf>`, `<searchSorted>`, `<cumulativeSum>`, `<cumulativeProduct>`, `<cumulativeMin>`, `<cumulativeMax>` and `<differences>`. A reference written between the brackets of any reference, such as the `$i` of `$l[$i]` or of `$s[$i]` into a `<sequence>`, is also one small component when it refers to a number, where it used to be a copy and an integer. Documents that index lists inside a repeat, such as dot plots, load faster and use less memory. What the reference shows is unchanged as the index changes and as the list grows or shrinks, and a write through it still reaches the list. A reference to an entry past the end of such a list no longer reports a "Could not find prop" message beside its "No referent found" warning, and a value written through such a reference, as into `<mathInput bindValueTo="$l[5]"/>` on a three-entry list, is no longer kept: the input goes on showing nothing, as one bound to `$P.xs[$i]` past a point's last coordinate already did. A `copy` of a component holding such a reference, as `<p copy="$p"/>` of a `<p>` holding `<math>$l[5]+1</math>`, now shows the reference empty, as the original does, where it used to leave it out. A reference to an entry past the end, such as `$l[5]` of a three-entry `<numberList>`, gives a `<function>` the formula `＿` where it used to give `0`, and shows `＿` in a `<latex>` where it used to show nothing. Inside a repeat iteration, a `<group>` or an unlinked copy, `!=` between such a reference and a text, as `$tl[$v] != $ti` with a blank `<textInput>`, is now false, as it is elsewhere; it used to be true there. An index that reads the component holding the reference, or a component containing it, as in `<number name="i">$l[$i]</number>` or `<number name="i">$s[$i]</number>`, is now reported as a circular dependency that stops the document, as `<number name="n">$n</number>` already was.
+- 111f2ea: A reference used only for its value, such as `$n` inside `<math>$n+1</math>`, `$i` inside a `<repeatForSequence>`, or `$P.x` inside a `<number>`, now resolves its own reference instead of being made by a copy component that resolved it for it. When the document already says what the reference reads (a number, math, text or boolean: a component's own value, or a prop or coordinate such as `$P.x` or `$mi.immediateValue`), the reference is one component with a handful of state variables, and the copy component with its dozens of state variables and dependencies is not created. Documents with many such references load faster and use less memory. What the reference shows is unchanged, and a write through it still reaches the referenced component. A reference whose referent or type is only known once the document runs, such as `$l[2]` into a list or the value of a `<repeat>` over a list, is still resolved by a copy. In a repeat iteration, a `<group>` or an unlinked copy, such a reference with nothing to read (an index that is not a number or is out of range, a referent that failed to build) shows `＿` as it does elsewhere, where it used to show nothing. `<function>$P.z</function>`, for a point in the plane, now has the formula `＿` where it used to have `0`, and `<latex>$P.z</latex>` shows `＿` where it used to show nothing. A reference to a `<function>`'s global minimum, maximum, infimum or supremum when none is found, such as `$f.globalMinimumLocation` for the function `x`, or any of them for a function of two variables, now has nothing to read: two such references are not equal, and a math operator such as `<sum>` leaves it out. A circular-dependency error through a reference that resolves itself no longer lists an internal `<_copy>` among the components involved. Such a reference to a component that is itself an error (for example, one whose `copy` attribute is invalid) shows an empty value, and the error is no longer reported a second time at the reference.
+- e76047a: Answers that check inputs placed elsewhere in the document, as assignments that put their inputs in the text do, load faster and use less memory. The saving is in the references inside an `<award>` that its `<answer>` records as responses: those in `<answer><award><when>$mi = x</when></award></answer>` when the answer has no input of its own, and those an award names in `referencesAreResponses`. In one such assignment, loading took 12% less time, and the loaded document 18% less memory.
+
+    Answers award the same credit, and record the same responses with the same types, with three exceptions. An answer that records as a response a reference to an entry that is not there, such as `$l[$i]` with `$i` past the end of a `<numberList>` or a `<choiceInput>`'s `selectedIndex` before a choice, now always records it as one empty response, so the number of responses no longer depends on where the answer is or on whether the entry is there. Before, it recorded nothing inside a `<group>`, a repeat or a copy, nor for a reference directly in an `<award>`, among the children of a `<considerAsResponses>` or in an operator such as `<sum>` or `<and>`, and recorded an empty text for one in a `<text>`. This holds for most lists whose entries always have one type, such as `<numberList>`, `<mathList>` and `<textList>`; some entries are recorded as before, such as those of a `<pointList>`, a `<split>`, a `<sequence>`, a `<collect>` or a list in a copied `<module>`. Second, a reference to a `<function>`'s global minimum, maximum, infimum or supremum when none is found, such as `$f.globalMinimumLocation` for the function `x`, now has nothing to read. An answer records it as an empty response where it recorded `NaN`, `$f.globalMinimumLocation = $g.globalMinimumLocation` for two such functions now gives no credit, and `<sum>$f.globalMinimumValue 5</sum> = 5` gives full credit. The third exception is rare. An `<award extend>` whose own `referencesAreResponses` names an entry its source award reads by an index that changes (`$l[$i]`) now ignores that name throughout, as it already did when the source answer had an input of its own. Before, the answer began recording only that entry once the index changed.
+
+- 4bb6235: A reference to a whole point, line, angle, function or other component that has no value of its own, where only its value is read, such as `$P` in `<boolean>$P = (1,2)</boolean>` or `<math>2$P</math>`, now creates one small component that reads the point's coordinates (or the line's equation, the angle's radians, …), in place of a full copy of the point and the copies of everything it holds, such as a `<constrainTo>`'s targets. Documents that compare a point many times load faster and use less memory. Values, and values written back through such a reference, are unchanged. A `<collect>` from the component holding such a reference, such as `<collect componentType="point" from="$b"/>` for a `<boolean name="b">` holding `$P`, no longer finds a copy of the point in it. A reference that an `<answer>` with no input of its own records as a response, or one shown in a paragraph or placed in a graph, is a copy as before. `<answer>$P</answer>` inside `P`'s own label now compares the answer to `P`'s coordinates, where before it stopped the document with a circular dependency.
+- a54b457: A reference used only for its value, such as `$n` inside `<math>$n+1</math>` or in an attribute like `displayDigits="$n"`, now creates one small component in place of a full copy of the referenced component and the shadow attribute components that came with it. Documents with many such references load faster and use less memory. What the reference shows is unchanged, and a write through it still reaches the referenced component. A reference now agrees with the component it refers to on whether that component can be changed and whether it is unordered, which an author can see in two ways. A `<mathInput>` bound to an expression such as `$r + $w` now changes `w` in some cases where `r` cannot be changed and the write used to be refused, such as when `r` is a fixed `<mathInput>` or a `<math>` holding only a fixed component. And a comparison with a reference to a math that is unordered because of what it holds, such as `$m = (2,1)` with `<math name="m">$u</math>` and `u` unordered, is now true. One more visible difference: a `<collect>` no longer gathers the component such a reference used to create, so `<collect componentType="number">` over a section containing `<math>$n+1</math>` or `<text>$n</text>` no longer lists a second copy of `n`.
+- 78249a8: The `vertices` of a `<polyline>` or `<polygon>` that names a whole list of points, such as `vertices="$points"`, is now read by the polyline or polygon instead of through a copy of the list. Documents that draw lists of points this way do less work. What documents compute and display, and how their vertices drag, is unchanged.
+- 00a3551: Editor: Cmd/Ctrl+clicking a line near the end of a document no longer scrolls the whole editor page along with the viewer, which used to leave a blank band below the editor.
+
+    Visually-hidden text in the viewer, such as an input's short description, was positioned relative to the page instead of the viewer. Far down a long document it made the page taller than the editor, so scrolling the viewer to an element scrolled the page too. That text now stays inside the viewer's scroll area.
+
+    Also in the editor, clicking a link to another part of the document now scrolls its target into view; it used to land above the top of the viewer, out of sight.
+
+    Viewer: clicking a `<subsetOfRealsInput>` number line now adds the point under the pointer even when the page is scrolled sideways or the input sits inside a positioned element; such clicks used to land at the wrong value.
+
+- 28649e7: A YouTube `<video>` that resumes from a saved position, such as when a student comes back to an assignment, now shows the video ready to play at that point. Before, it could be left as a black box with no controls, so the video could not be restarted. A saved position is also no longer reset to the start while the video is still loading.
+
 ## 0.7.27
 
 ### Patch Changes
