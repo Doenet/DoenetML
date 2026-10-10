@@ -18,6 +18,7 @@ import { upgradeAttributeSyntax } from "./upgrade-attribute-syntax";
 import {
     inlineMapSourceGroups,
     upgradeMapElement,
+    warnAboutMixedSourceGroups,
 } from "./upgrade-map-element";
 import { upgradeModuleElement } from "./upgrade-module-element";
 import { renameAttrInPlace } from "./rename-attr-in-place";
@@ -87,8 +88,9 @@ export async function updateSyntaxFromV06toV07_root(
         processor = processor.use(upgradeCopySyntax, assignNamesContext);
     } else {
         // Sources that were references to begin with still fold into the `for`.
-        processor = processor.use(() => (tree: DastRoot) => {
+        processor = processor.use(() => (tree: DastRoot, file: VFile) => {
             inlineMapSourceGroups(tree, assignNamesContext);
+            warnAboutMixedSourceGroups(assignNamesContext, file);
         });
     }
 
