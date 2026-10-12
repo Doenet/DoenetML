@@ -14,6 +14,8 @@ The **worker** (`packages/doenetml-worker`) runs in a Web Worker and manages doc
 - **JavaScript logic** (`packages/doenetml-worker-javascript`) for component evaluation, dependency tracking, and state updates
 - **Rust/WASM logic** (`packages/doenetml-worker-rust/lib-js-wasm-binding`). Reference-resolution paths run in Rust today; the rest of the worker is slowly being transitioned over.
 
+A third core is in development beside these: **`@doenet/doenetml-worker-cells`** (`packages/doenetml-worker-cells`), a Rust core organized around a flat array of `f64` cells, with math-expressions-rs as its symbolic engine. It is meant to replace both the JavaScript and the Rust core once it reaches feature parity; nothing uses it yet. It has its own Cargo workspace (`crates/`) and a Vite + React test renderer (`web/`, the `@doenet/doenetml-worker-cells-web` workspace). Build it with `npm run build -w @doenet/doenetml-worker-cells` and test it with `npm run test -w @doenet/doenetml-worker-cells`; it is not in CI. Start with its `README.md` and `ARCHITECTURE.md`; `CONTEXT.md`, `docs/adr/`, `docs/history/` and `RESULTS.md` are its design record from before it moved into this repository.
+
 Communication between main thread and worker uses structured messages. The worker is responsible for evaluating components, tracking dependencies (DAG), and managing variants.
 
 ### Layer 3: UI (Viewer/Editor)
