@@ -21,8 +21,8 @@ list of operators with inverses.
 - `crates/cells-bench`: benches, the `stats` binary, and measurement examples.
 - `web/`: the Vite + React renderer (graphs drawn by JSXGraph with Doenet's
   look, or by plain SVG) and the Playwright end-to-end measurement.
-- `scripts/`: the DAST parser wrapper (`parse-dast.mjs`) and binary encoder
-  (`cdast-encode.mjs`), fixture generation (`gen-fixtures.sh`), the
+- `scripts/`: the DAST parser wrapper (`parse-dast.mjs`; the binary encoder
+  it calls is `encodeBinaryDast` in `@doenet/parser`), fixture generation (`gen-fixtures.sh`), the
   refactoring checks (`golden-diff.sh`, `perf-diff.sh`), and
   `render-results.py`, which regenerates `RESULTS.md`.
 

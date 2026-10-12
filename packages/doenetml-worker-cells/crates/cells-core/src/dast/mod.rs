@@ -3,7 +3,8 @@
 //! lives once in a shared [`StringTable`]. Two loaders fill the same
 //! structure: [`Dast::from_json`] (`json.rs`) for the JSON emitted by
 //! `@doenet/parser`, and [`Dast::from_binary`] (`binary.rs`) for the compact
-//! wire format written by `scripts/cdast-encode.mjs` (see
+//! wire format written by `encodeBinaryDast` in `@doenet/parser`
+//! (`packages/parser/src/cdast-encode`; see
 //! `docs/adr/0002-binary-wire-format.md`).
 //!
 //! Node 0 is a synthetic root element whose children are the document's

@@ -17,6 +17,7 @@ export { toXml } from "./dast-to-xml/dast-util-to-xml";
 export { lezerToDast, stringToLezer } from "./lezer-to-dast/lezer-to-dast";
 export { filterPositionInfo } from "./dast-to-xml/utils";
 export { normalizeDocumentDast } from "./dast-normalize/normalize-dast";
+export { encodeBinaryDast } from "./cdast-encode";
 export { expandExternalReferences } from "./expand-external-references";
 // `findBareAttributeValuePairs` is intentionally not re-exported: the
 // parser layer now strips bare-value pairs from `node.attributes` itself

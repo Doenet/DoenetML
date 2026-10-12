@@ -1,12 +1,15 @@
 // Parse a DoenetML source file into a normalized DAST and print it as JSON.
 // Usage: node scripts/parse-dast.mjs [-i input.doenet] [--positions] [--binary]
 // Reads stdin when -i is omitted. Positions are stripped unless --positions.
-// --binary writes the compact wire format (scripts/cdast-encode.mjs) instead.
+// --binary writes the compact wire format (encodeBinaryDast in @doenet/parser) instead.
 // The parser is the workspace's @doenet/parser; build it first
 // (`npm run build -w @doenet/parser`).
 import { readFileSync } from "node:fs";
-import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
-import { encodeDast } from "./cdast-encode.mjs";
+import {
+  encodeBinaryDast,
+  lezerToDast,
+  normalizeDocumentDast,
+} from "@doenet/parser";
 
 const args = process.argv.slice(2);
 let input = null;
@@ -32,5 +35,5 @@ function strip(o) {
   }
   return o;
 }
-if (binary) process.stdout.write(encodeDast(dast));
+if (binary) process.stdout.write(encodeBinaryDast(dast));
 else process.stdout.write(JSON.stringify(keepPositions ? dast : strip(dast)));

@@ -1,5 +1,6 @@
 //! The binary wire format (`CDST`, little-endian; see
-//! `docs/adr/0002-binary-wire-format.md` and `scripts/cdast-encode.mjs`).
+//! `docs/adr/0002-binary-wire-format.md` and `encodeBinaryDast` in
+//! `@doenet/parser`, `packages/parser/src/cdast-encode`).
 
 use super::{Dast, NodeKind, StringTable};
 
