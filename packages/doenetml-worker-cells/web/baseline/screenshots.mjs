@@ -3,7 +3,7 @@
 // each prototype renderer, and write one side-by-side PNG per document to
 // results/screenshots/. Judged by eye; nothing here asserts.
 //
-// Run from web/ with the prototype served (pnpm build && pnpm preview):
+// Run from web/ with the prototype served (npm run build && npm run preview):
 //   node baseline/screenshots.mjs [name,name,...]
 // CELLS_URL overrides the prototype's address (default http://localhost:4173).
 import { chromium } from "@playwright/test";
@@ -14,7 +14,8 @@ import { fileURLToPath } from "node:url";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, "../..");
-const doenetml = process.env.DOENETML_DIR ?? resolve(repo, "../../ml");
+// The DoenetML monorepo this package lives in.
+const doenetml = process.env.DOENETML_DIR ?? resolve(repo, "../..");
 const standalone = resolve(doenetml, "packages/standalone/dist");
 const cellsUrl = process.env.CELLS_URL ?? "http://localhost:4173";
 const RENDERERS = (process.env.CELLS_RENDERERS ?? "svg,jsxgraph,jsxgraph-canvas").split(",");

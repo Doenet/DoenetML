@@ -32,6 +32,7 @@
         "./packages/docs-nextra",
         "./packages/vscode-extension/extension",
         "./packages/docs-cypress",
+        "./packages/doenetml-worker-cells/web",
         "./packages/*"
     ],
     "scripts": {

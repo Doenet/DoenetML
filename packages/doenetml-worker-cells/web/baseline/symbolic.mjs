@@ -23,7 +23,8 @@ import { execFileSync } from "node:child_process";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, "../..");
-const doenetml = process.env.DOENETML_DIR ?? resolve(repo, "../../ml");
+// The DoenetML monorepo this package lives in.
+const doenetml = process.env.DOENETML_DIR ?? resolve(repo, "../..");
 const standalone = resolve(doenetml, "packages/standalone/dist");
 const docgen = resolve(repo, "target/release/cells-docgen");
 const SPECS = (process.argv[2] ?? "answers-10,answers-100,curves-10,curves-100,symchain-10,symchain-100").split(",");

@@ -10,14 +10,17 @@ set -euo pipefail
 repo=$(cd "$(dirname "$0")/.." && pwd)
 base=${1:-HEAD}
 out="$repo/results/raw/golden"
-# A sibling of the repo, so relative path dependencies still resolve.
-wt="$repo/../.cells-prototype-golden"
-export DOENETML_DIR=${DOENETML_DIR:-$(cd "$repo/../../ml" && pwd)}
+# The base is a worktree of the whole DoenetML monorepo, beside it; it shares
+# the monorepo's node_modules so that scripts/parse-dast.mjs finds @doenet/parser.
+root=$(git -C "$repo" rev-parse --show-toplevel)
+wtroot="$root/../.cells-golden"
+wt="$wtroot/${repo#"$root"/}"
 
 rm -rf "$out/base" "$out/head" "$out/base.programs" "$out/head.programs"
-git -C "$repo" worktree remove --force "$wt" 2>/dev/null || true
-git -C "$repo" worktree add --detach --quiet "$wt" "$base"
-trap 'git -C "$repo" worktree remove --force "$wt"' EXIT
+git -C "$repo" worktree remove --force "$wtroot" 2>/dev/null || true
+git -C "$repo" worktree add --detach --quiet "$wtroot" "$base"
+trap 'git -C "$repo" worktree remove --force "$wtroot"' EXIT
+ln -s "$root/node_modules" "$wtroot/node_modules"
 if [[ "${GOLDEN_OWN:-0}" != 1 ]]; then
   cp "$repo/crates/cells-bench/examples/golden.rs" "$wt/crates/cells-bench/examples/"
   rm -rf "$wt/crates/cells-bench/golden"

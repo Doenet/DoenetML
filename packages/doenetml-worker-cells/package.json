@@ -1,9 +1,46 @@
 {
-  "name": "cells-prototype",
-  "private": true,
-  "license": "AGPL-3.0-or-later",
-  "type": "module",
-  "scripts": {
-    "parse": "node scripts/parse-dast.mjs"
-  }
+    "name": "@doenet/doenetml-worker-cells",
+    "type": "module",
+    "description": "Prototype DoenetML core organized around a flat list of f64 cells (Rust, compiled to WASM)",
+    "version": "*",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": true,
+    "repository": "github:Doenet/DoenetML",
+    "scripts": {
+        "build": "wireit",
+        "build:wasm": "wireit",
+        "test": "npm run test:before && cargo test --workspace && echo 'tests complete (keep this message at the end of the tests)'",
+        "test:before": "wireit",
+        "parse": "node scripts/parse-dast.mjs"
+    },
+    "wireit": {
+        "build": {
+            "dependencies": [
+                "build:wasm",
+                "./web:build"
+            ]
+        },
+        "build:wasm": {
+            "command": "npx wasm-pack build crates/cells-wasm --target web --release --out-dir ../../web/src/wasm --out-name cells_wasm",
+            "files": [
+                "crates/**/*.rs",
+                "crates/**/Cargo.toml",
+                "Cargo.toml",
+                "Cargo.lock"
+            ],
+            "output": [
+                "web/src/wasm/**"
+            ]
+        },
+        "test:before": {
+            "//": "cargo test parses DoenetML through scripts/parse-dast.mjs, which needs the built parser.",
+            "dependencies": [
+                "../parser:build"
+            ]
+        }
+    },
+    "dependencies": {
+        "@doenet/parser": "*"
+    }
 }

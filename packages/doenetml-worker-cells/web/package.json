@@ -1,27 +1,58 @@
 {
-  "name": "cells-web",
-  "private": true,
-  "license": "AGPL-3.0-or-later",
-  "type": "module",
-  "scripts": {
-    "wasm": "wasm-pack build ../crates/cells-wasm --target web --release --out-dir ../../web/src/wasm --out-name cells_wasm",
-    "dev": "vite",
-    "build": "vite build",
-    "preview": "vite preview --port 4173",
-    "e2e": "playwright test"
-  },
-  "dependencies": {
-    "jsxgraph": "1.12.2",
-    "react": "^19.1.0",
-    "react-dom": "^19.1.0"
-  },
-  "devDependencies": {
-    "@playwright/test": "^1.55.0",
-    "@types/node": "^26.6.3",
-    "@types/react": "^19.1.0",
-    "@types/react-dom": "^19.1.0",
-    "@vitejs/plugin-react": "^4.5.0",
-    "typescript": "^5.8.0",
-    "vite": "^6.3.0"
-  }
+    "name": "@doenet/doenetml-worker-cells-web",
+    "type": "module",
+    "description": "Vite + React renderer and browser measurements for the cells prototype",
+    "version": "*",
+    "license": "AGPL-3.0-or-later",
+    "private": true,
+    "repository": "github:Doenet/DoenetML",
+    "scripts": {
+        "dev": "wireit",
+        "build": "wireit",
+        "preview": "vite preview --port 4173",
+        "e2e": "playwright test"
+    },
+    "wireit": {
+        "dev": {
+            "command": "vite",
+            "service": true,
+            "dependencies": [
+                "..:build:wasm",
+                "../../parser:build"
+            ]
+        },
+        "build": {
+            "command": "vite build",
+            "files": [
+                "src/**/*.ts",
+                "src/**/*.tsx",
+                "index.html",
+                "tsconfig.json",
+                "vite.config.ts",
+                "../scripts/*.mjs"
+            ],
+            "output": [
+                "dist/**"
+            ],
+            "dependencies": [
+                "..:build:wasm",
+                "../../parser:build"
+            ]
+        }
+    },
+    "dependencies": {
+        "@doenet/parser": "*",
+        "jsxgraph": "1.12.2",
+        "react": "^19.2.7",
+        "react-dom": "^19.2.7"
+    },
+    "devDependencies": {
+        "@playwright/test": "~1.61.1",
+        "@types/node": "^25.9.4",
+        "@types/react": "^19.2.17",
+        "@types/react-dom": "^19.2.3",
+        "@vitejs/plugin-react": "^5.2.0",
+        "typescript": "^5.9.3",
+        "vite": "^7.3.6"
+    }
 }

@@ -14,7 +14,8 @@ import { execFileSync } from "node:child_process";
 
 const here = dirname(fileURLToPath(import.meta.url));
 const repo = resolve(here, "../..");
-const doenetml = process.env.DOENETML_DIR ?? resolve(repo, "../../ml");
+// The DoenetML monorepo this package lives in.
+const doenetml = process.env.DOENETML_DIR ?? resolve(repo, "../..");
 const standalone = resolve(doenetml, "packages/standalone/dist");
 const runner = resolve(repo, "target/release/examples/scenario_run");
 if (!existsSync(resolve(standalone, "doenet-standalone.js"))) {

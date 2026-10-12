@@ -10,7 +10,8 @@ cells-sym = { path = "../cells-sym" }
 # The engine the current DoenetML core calls through wasm. Note: it enables
 # serde_json's `arbitrary_precision`, which feature unification spreads to any
 # binary that links this crate (DAST loading in those binaries only).
-math-expressions = { path = "../../../../math-expressions/packages/math-expressions-rs" }
+# Pinned to Doenet/math-expressions main; bump the rev to pick up engine changes.
+math-expressions = { git = "https://github.com/Doenet/math-expressions", rev = "13543bf1ce6c986f8b554b6a2cc20644a34319d9" }
 num-complex = "0.4"
 
 [dev-dependencies]

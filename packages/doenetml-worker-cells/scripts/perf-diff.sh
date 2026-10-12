@@ -5,11 +5,13 @@
 # The base gets this tree's cells-bench src/lib.rs and regress.rs.
 set -e
 repo=$(cd "$(dirname "$0")/.." && pwd); S="$repo/results/raw/perf"; mkdir -p "$S"
-base=${1:-HEAD}; wt=$repo/../.cells-prototype-perf
+# The base is a worktree of the whole DoenetML monorepo, beside it.
+root=$(git -C "$repo" rev-parse --show-toplevel)
+base=${1:-HEAD}; wtroot=$root/../.cells-perf; wt=$wtroot/${repo#"$root"/}
 cd $repo
-git worktree remove --force $wt 2>/dev/null || true
-git worktree add --detach --quiet $wt $base
-trap 'git -C $repo worktree remove --force $wt' EXIT
+git worktree remove --force $wtroot 2>/dev/null || true
+git worktree add --detach --quiet $wtroot $base
+trap 'git -C $repo worktree remove --force $wtroot' EXIT
 # The base binary reads fixtures from its own tree; the generated ones are gitignored.
 rm -rf $wt/fixtures && ln -s $repo/fixtures $wt/fixtures
 cp crates/cells-bench/src/lib.rs $wt/crates/cells-bench/src/lib.rs

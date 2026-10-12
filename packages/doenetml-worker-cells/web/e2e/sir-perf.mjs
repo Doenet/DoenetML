@@ -2,7 +2,7 @@
 // drag of the initial-infectives point, typing a parameter, changing the
 // number of iterates (a rebuild) and the reset button, per backend.
 //
-// Run from web/ with the prototype served (pnpm build && pnpm preview):
+// Run from web/ with the prototype served (npm run build && npm run preview):
 //   node e2e/sir-perf.mjs
 // CELLS_URL overrides the address (default http://localhost:4173);
 // CELLS_CHROMIUM the browser (default /opt/pw-browsers/chromium, else

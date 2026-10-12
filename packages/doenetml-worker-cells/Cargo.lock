@@ -296,6 +296,7 @@ checksum = "ce5d3ddc6d3fa000eb1536d85e147bfe31aacaba692ed6a876f95cb7c855be78"
 [[package]]
 name = "math-expressions"
 version = "0.1.0"
+source = "git+https://github.com/Doenet/math-expressions?rev=13543bf1ce6c986f8b554b6a2cc20644a34319d9#13543bf1ce6c986f8b554b6a2cc20644a34319d9"
 dependencies = [
  "num-bigint",
  "num-complex",

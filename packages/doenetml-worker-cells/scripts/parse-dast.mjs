@@ -2,18 +2,11 @@
 // Usage: node scripts/parse-dast.mjs [-i input.doenet] [--positions] [--binary]
 // Reads stdin when -i is omitted. Positions are stripped unless --positions.
 // --binary writes the compact wire format (scripts/cdast-encode.mjs) instead.
-// The parser is imported straight from a DoenetML checkout so that its own
-// workspace dependencies resolve. Set DOENETML_DIR to point at the checkout;
-// it defaults to ../../ml relative to this repository.
+// The parser is the workspace's @doenet/parser; build it first
+// (`npm run build -w @doenet/parser`).
 import { readFileSync } from "node:fs";
-import { resolve, dirname } from "node:path";
-import { fileURLToPath, pathToFileURL } from "node:url";
+import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
 import { encodeDast } from "./cdast-encode.mjs";
-
-const here = dirname(fileURLToPath(import.meta.url));
-const doenetmlDir = process.env.DOENETML_DIR ?? resolve(here, "../../../ml");
-const parserEntry = resolve(doenetmlDir, "packages/parser/dist/index.js");
-const { lezerToDast, normalizeDocumentDast } = await import(pathToFileURL(parserEntry).href);
 
 const args = process.argv.slice(2);
 let input = null;
