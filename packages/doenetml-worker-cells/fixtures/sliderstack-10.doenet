@@ -1,0 +1,11 @@
+<slider name="s0" from="-9" to="9" step="0.25" initialValue="1"/>
+<slider name="s1" from="-9" to="9" step="0.5" bindValueTo="$s0"/>
+<slider name="s2" from="-9" to="9" step="0.25" bindValueTo="$s1"/>
+<slider name="s3" from="-9" to="9" step="0.5" bindValueTo="$s2"/>
+<slider name="s4" from="-9" to="9" step="0.25" bindValueTo="$s3"/>
+<slider name="s5" from="-9" to="9" step="0.5" bindValueTo="$s4"/>
+<slider name="s6" from="-9" to="9" step="0.25" bindValueTo="$s5"/>
+<slider name="s7" from="-9" to="9" step="0.5" bindValueTo="$s6"/>
+<slider name="s8" from="-9" to="9" step="0.25" bindValueTo="$s7"/>
+<slider name="s9" from="-9" to="9" step="0.5" bindValueTo="$s8"/>
+<graph name="g"><point name="p" x="$s9" y="0"/></graph>

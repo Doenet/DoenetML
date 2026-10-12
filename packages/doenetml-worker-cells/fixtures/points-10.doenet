@@ -1,0 +1,12 @@
+<graph name="g">
+  <point name="p0" x="0" y="0"/>
+  <point name="p1" x="1" y="7"/>
+  <point name="p2" x="2" y="14"/>
+  <point name="p3" x="3" y="1"/>
+  <point name="p4" x="4" y="8"/>
+  <point name="p5" x="5" y="15"/>
+  <point name="p6" x="6" y="2"/>
+  <point name="p7" x="7" y="9"/>
+  <point name="p8" x="8" y="16"/>
+  <point name="p9" x="9" y="3"/>
+</graph>

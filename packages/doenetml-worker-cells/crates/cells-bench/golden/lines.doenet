@@ -1,0 +1,7 @@
+<mathInput name="m" prefill="1"/>
+<graph name="g"><point name="a">(1,2)</point><point name="b">(4,7)</point>
+<line name="l" through="$a $b"/><pointList extend="$l.points" name="Ps"/>
+<line name="l2" through="$a" slope="$m"/>
+<lineSegment name="ls" endpoints="$a (3,-1)"/>
+<point name="c" x="2" y="0" constrainTo="$l"/>
+</graph>

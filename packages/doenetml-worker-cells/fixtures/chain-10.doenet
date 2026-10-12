@@ -1,0 +1,12 @@
+<numberInput name="n" value="1"/>
+<op name="c0" kind="offset" k="1" args="$n"/>
+<op name="c1" kind="scale" k="1.0001" args="$c0"/>
+<op name="c2" kind="negate" args="$c1"/>
+<op name="c3" kind="offset" k="1" args="$c2"/>
+<op name="c4" kind="scale" k="1.0001" args="$c3"/>
+<op name="c5" kind="negate" args="$c4"/>
+<op name="c6" kind="offset" k="1" args="$c5"/>
+<op name="c7" kind="scale" k="1.0001" args="$c6"/>
+<op name="c8" kind="negate" args="$c7"/>
+<op name="c9" kind="clamp" lo="-9" hi="9" args="$c8"/>
+<graph name="g"><point name="p" x="$c9" y="$n"/></graph>

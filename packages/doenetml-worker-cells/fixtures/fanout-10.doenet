@@ -1,0 +1,13 @@
+<numberInput name="n" value="1"/>
+<graph name="g">
+  <op name="o0" kind="scale" k="1" args="$n"/><point name="p0" x="$o0" y="0"/>
+  <op name="o1" kind="scale" k="1.1" args="$n"/><point name="p1" x="$o1" y="1"/>
+  <op name="o2" kind="scale" k="1.2" args="$n"/><point name="p2" x="$o2" y="2"/>
+  <op name="o3" kind="scale" k="1.3" args="$n"/><point name="p3" x="$o3" y="3"/>
+  <op name="o4" kind="scale" k="1.4" args="$n"/><point name="p4" x="$o4" y="4"/>
+  <op name="o5" kind="scale" k="1.5" args="$n"/><point name="p5" x="$o5" y="5"/>
+  <op name="o6" kind="scale" k="1.6" args="$n"/><point name="p6" x="$o6" y="6"/>
+  <op name="o7" kind="scale" k="1.7" args="$n"/><point name="p7" x="$o7" y="7"/>
+  <op name="o8" kind="scale" k="1.8" args="$n"/><point name="p8" x="$o8" y="8"/>
+  <op name="o9" kind="scale" k="1.9" args="$n"/><point name="p9" x="$o9" y="9"/>
+</graph>

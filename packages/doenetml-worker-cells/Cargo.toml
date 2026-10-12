@@ -1,0 +1,15 @@
+[workspace]
+resolver = "3"
+members = ["crates/cells-sym", "crates/cells-sym-mer", "crates/cells-core", "crates/cells-docgen", "crates/cells-bench", "crates/cells-wasm"]
+
+[workspace.package]
+edition = "2024"
+license = "AGPL-3.0-or-later"
+
+[workspace.dependencies]
+serde = { version = "1", features = ["derive"] }
+serde_json = "1"
+thiserror = "2"
+
+[profile.release]
+debug = 1

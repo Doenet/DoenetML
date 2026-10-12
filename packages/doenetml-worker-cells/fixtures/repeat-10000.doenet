@@ -1,0 +1,9 @@
+<numberInput name="n" value="10000"/>
+<graph name="g">
+<repeatForSequence name="r" from="-9" step="0.0018" length="$n" maxNumber="20000" valueName="v">
+<op name="h" kind="scale" k="0.5" args="$v"/>
+<point name="p" x="$v" y="$h"/>
+<point name="q" x="0" y="0"/>
+</repeatForSequence>
+</graph>
+<graph name="g2"><collect name="c" componentType="point" from="$g"/></graph>

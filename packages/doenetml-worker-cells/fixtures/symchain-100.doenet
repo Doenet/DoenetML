@@ -1,0 +1,235 @@
+<mathInput name="mi" prefill="x^2+1"/>
+<numberInput name="t" value="1"/>
+<math name="m0" simplify>$mi + 1 x</math>
+<math name="m1" simplify>$m0 - 2 x</math>
+<evaluate name="e2" function="$m1" input="$t"/>
+<math name="m2" simplify>$m1 + 0.001 $e2</math>
+<math name="m3" simplify>$m2 + 4 x</math>
+<math name="m4" simplify>$m3 - 5 x</math>
+<evaluate name="e5" function="$m4" input="$t"/>
+<math name="m5" simplify>$m4 + 0.001 $e5</math>
+<math name="m6" simplify>$m5 + 2 x</math>
+<math name="m7" simplify>$m6 - 3 x</math>
+<evaluate name="e8" function="$m7" input="$t"/>
+<math name="m8" simplify>$m7 + 0.001 $e8</math>
+<math name="m9" simplify>$m8 + 5 x</math>
+<math name="m10" simplify>$m9 - 1 x</math>
+<evaluate name="e11" function="$m10" input="$t"/>
+<math name="m11" simplify>$m10 + 0.001 $e11</math>
+<math name="m12" simplify>$m11 + 3 x</math>
+<math name="m13" simplify>$m12 - 4 x</math>
+<evaluate name="e14" function="$m13" input="$t"/>
+<math name="m14" simplify>$m13 + 0.001 $e14</math>
+<math name="m15" simplify>$m14 + 1 x</math>
+<math name="m16" simplify>$m15 - 2 x</math>
+<evaluate name="e17" function="$m16" input="$t"/>
+<math name="m17" simplify>$m16 + 0.001 $e17</math>
+<math name="m18" simplify>$m17 + 4 x</math>
+<math name="m19" simplify>$m18 - 5 x</math>
+<evaluate name="e20" function="$m19" input="$t"/>
+<math name="m20" simplify>$m19 + 0.001 $e20</math>
+<math name="m21" simplify>$m20 + 2 x</math>
+<math name="m22" simplify>$m21 - 3 x</math>
+<evaluate name="e23" function="$m22" input="$t"/>
+<math name="m23" simplify>$m22 + 0.001 $e23</math>
+<math name="m24" simplify>$m23 + 5 x</math>
+<math name="m25" simplify>$m24 - 1 x</math>
+<evaluate name="e26" function="$m25" input="$t"/>
+<math name="m26" simplify>$m25 + 0.001 $e26</math>
+<math name="m27" simplify>$m26 + 3 x</math>
+<math name="m28" simplify>$m27 - 4 x</math>
+<evaluate name="e29" function="$m28" input="$t"/>
+<math name="m29" simplify>$m28 + 0.001 $e29</math>
+<math name="m30" simplify>$m29 + 1 x</math>
+<math name="m31" simplify>$m30 - 2 x</math>
+<evaluate name="e32" function="$m31" input="$t"/>
+<math name="m32" simplify>$m31 + 0.001 $e32</math>
+<math name="m33" simplify>$m32 + 4 x</math>
+<math name="m34" simplify>$m33 - 5 x</math>
+<evaluate name="e35" function="$m34" input="$t"/>
+<math name="m35" simplify>$m34 + 0.001 $e35</math>
+<math name="m36" simplify>$m35 + 2 x</math>
+<math name="m37" simplify>$m36 - 3 x</math>
+<evaluate name="e38" function="$m37" input="$t"/>
+<math name="m38" simplify>$m37 + 0.001 $e38</math>
+<math name="m39" simplify>$m38 + 5 x</math>
+<math name="m40" simplify>$m39 - 1 x</math>
+<evaluate name="e41" function="$m40" input="$t"/>
+<math name="m41" simplify>$m40 + 0.001 $e41</math>
+<math name="m42" simplify>$m41 + 3 x</math>
+<math name="m43" simplify>$m42 - 4 x</math>
+<evaluate name="e44" function="$m43" input="$t"/>
+<math name="m44" simplify>$m43 + 0.001 $e44</math>
+<math name="m45" simplify>$m44 + 1 x</math>
+<math name="m46" simplify>$m45 - 2 x</math>
+<evaluate name="e47" function="$m46" input="$t"/>
+<math name="m47" simplify>$m46 + 0.001 $e47</math>
+<math name="m48" simplify>$m47 + 4 x</math>
+<math name="m49" simplify>$m48 - 5 x</math>
+<evaluate name="e50" function="$m49" input="$t"/>
+<math name="m50" simplify>$m49 + 0.001 $e50</math>
+<math name="m51" simplify>$m50 + 2 x</math>
+<math name="m52" simplify>$m51 - 3 x</math>
+<evaluate name="e53" function="$m52" input="$t"/>
+<math name="m53" simplify>$m52 + 0.001 $e53</math>
+<math name="m54" simplify>$m53 + 5 x</math>
+<math name="m55" simplify>$m54 - 1 x</math>
+<evaluate name="e56" function="$m55" input="$t"/>
+<math name="m56" simplify>$m55 + 0.001 $e56</math>
+<math name="m57" simplify>$m56 + 3 x</math>
+<math name="m58" simplify>$m57 - 4 x</math>
+<evaluate name="e59" function="$m58" input="$t"/>
+<math name="m59" simplify>$m58 + 0.001 $e59</math>
+<math name="m60" simplify>$m59 + 1 x</math>
+<math name="m61" simplify>$m60 - 2 x</math>
+<evaluate name="e62" function="$m61" input="$t"/>
+<math name="m62" simplify>$m61 + 0.001 $e62</math>
+<math name="m63" simplify>$m62 + 4 x</math>
+<math name="m64" simplify>$m63 - 5 x</math>
+<evaluate name="e65" function="$m64" input="$t"/>
+<math name="m65" simplify>$m64 + 0.001 $e65</math>
+<math name="m66" simplify>$m65 + 2 x</math>
+<math name="m67" simplify>$m66 - 3 x</math>
+<evaluate name="e68" function="$m67" input="$t"/>
+<math name="m68" simplify>$m67 + 0.001 $e68</math>
+<math name="m69" simplify>$m68 + 5 x</math>
+<math name="m70" simplify>$m69 - 1 x</math>
+<evaluate name="e71" function="$m70" input="$t"/>
+<math name="m71" simplify>$m70 + 0.001 $e71</math>
+<math name="m72" simplify>$m71 + 3 x</math>
+<math name="m73" simplify>$m72 - 4 x</math>
+<evaluate name="e74" function="$m73" input="$t"/>
+<math name="m74" simplify>$m73 + 0.001 $e74</math>
+<math name="m75" simplify>$m74 + 1 x</math>
+<math name="m76" simplify>$m75 - 2 x</math>
+<evaluate name="e77" function="$m76" input="$t"/>
+<math name="m77" simplify>$m76 + 0.001 $e77</math>
+<math name="m78" simplify>$m77 + 4 x</math>
+<math name="m79" simplify>$m78 - 5 x</math>
+<evaluate name="e80" function="$m79" input="$t"/>
+<math name="m80" simplify>$m79 + 0.001 $e80</math>
+<math name="m81" simplify>$m80 + 2 x</math>
+<math name="m82" simplify>$m81 - 3 x</math>
+<evaluate name="e83" function="$m82" input="$t"/>
+<math name="m83" simplify>$m82 + 0.001 $e83</math>
+<math name="m84" simplify>$m83 + 5 x</math>
+<math name="m85" simplify>$m84 - 1 x</math>
+<evaluate name="e86" function="$m85" input="$t"/>
+<math name="m86" simplify>$m85 + 0.001 $e86</math>
+<math name="m87" simplify>$m86 + 3 x</math>
+<math name="m88" simplify>$m87 - 4 x</math>
+<evaluate name="e89" function="$m88" input="$t"/>
+<math name="m89" simplify>$m88 + 0.001 $e89</math>
+<math name="m90" simplify>$m89 + 1 x</math>
+<math name="m91" simplify>$m90 - 2 x</math>
+<evaluate name="e92" function="$m91" input="$t"/>
+<math name="m92" simplify>$m91 + 0.001 $e92</math>
+<math name="m93" simplify>$m92 + 4 x</math>
+<math name="m94" simplify>$m93 - 5 x</math>
+<evaluate name="e95" function="$m94" input="$t"/>
+<math name="m95" simplify>$m94 + 0.001 $e95</math>
+<math name="m96" simplify>$m95 + 2 x</math>
+<math name="m97" simplify>$m96 - 3 x</math>
+<evaluate name="e98" function="$m97" input="$t"/>
+<math name="m98" simplify>$m97 + 0.001 $e98</math>
+<math name="m99" simplify>$m98 + 5 x</math>
+<math name="f0" simplify>1 $mi + x</math>
+<math name="f1" simplify>2 $mi + x</math>
+<math name="f2" simplify>3 $mi + x</math>
+<math name="f3" simplify>4 $mi + x</math>
+<math name="f4" simplify>5 $mi + x</math>
+<math name="f5" simplify>6 $mi + x</math>
+<math name="f6" simplify>7 $mi + x</math>
+<math name="f7" simplify>8 $mi + x</math>
+<math name="f8" simplify>9 $mi + x</math>
+<math name="f9" simplify>1 $mi + x</math>
+<math name="f10" simplify>2 $mi + x</math>
+<math name="f11" simplify>3 $mi + x</math>
+<math name="f12" simplify>4 $mi + x</math>
+<math name="f13" simplify>5 $mi + x</math>
+<math name="f14" simplify>6 $mi + x</math>
+<math name="f15" simplify>7 $mi + x</math>
+<math name="f16" simplify>8 $mi + x</math>
+<math name="f17" simplify>9 $mi + x</math>
+<math name="f18" simplify>1 $mi + x</math>
+<math name="f19" simplify>2 $mi + x</math>
+<math name="f20" simplify>3 $mi + x</math>
+<math name="f21" simplify>4 $mi + x</math>
+<math name="f22" simplify>5 $mi + x</math>
+<math name="f23" simplify>6 $mi + x</math>
+<math name="f24" simplify>7 $mi + x</math>
+<math name="f25" simplify>8 $mi + x</math>
+<math name="f26" simplify>9 $mi + x</math>
+<math name="f27" simplify>1 $mi + x</math>
+<math name="f28" simplify>2 $mi + x</math>
+<math name="f29" simplify>3 $mi + x</math>
+<math name="f30" simplify>4 $mi + x</math>
+<math name="f31" simplify>5 $mi + x</math>
+<math name="f32" simplify>6 $mi + x</math>
+<math name="f33" simplify>7 $mi + x</math>
+<math name="f34" simplify>8 $mi + x</math>
+<math name="f35" simplify>9 $mi + x</math>
+<math name="f36" simplify>1 $mi + x</math>
+<math name="f37" simplify>2 $mi + x</math>
+<math name="f38" simplify>3 $mi + x</math>
+<math name="f39" simplify>4 $mi + x</math>
+<math name="f40" simplify>5 $mi + x</math>
+<math name="f41" simplify>6 $mi + x</math>
+<math name="f42" simplify>7 $mi + x</math>
+<math name="f43" simplify>8 $mi + x</math>
+<math name="f44" simplify>9 $mi + x</math>
+<math name="f45" simplify>1 $mi + x</math>
+<math name="f46" simplify>2 $mi + x</math>
+<math name="f47" simplify>3 $mi + x</math>
+<math name="f48" simplify>4 $mi + x</math>
+<math name="f49" simplify>5 $mi + x</math>
+<math name="f50" simplify>6 $mi + x</math>
+<math name="f51" simplify>7 $mi + x</math>
+<math name="f52" simplify>8 $mi + x</math>
+<math name="f53" simplify>9 $mi + x</math>
+<math name="f54" simplify>1 $mi + x</math>
+<math name="f55" simplify>2 $mi + x</math>
+<math name="f56" simplify>3 $mi + x</math>
+<math name="f57" simplify>4 $mi + x</math>
+<math name="f58" simplify>5 $mi + x</math>
+<math name="f59" simplify>6 $mi + x</math>
+<math name="f60" simplify>7 $mi + x</math>
+<math name="f61" simplify>8 $mi + x</math>
+<math name="f62" simplify>9 $mi + x</math>
+<math name="f63" simplify>1 $mi + x</math>
+<math name="f64" simplify>2 $mi + x</math>
+<math name="f65" simplify>3 $mi + x</math>
+<math name="f66" simplify>4 $mi + x</math>
+<math name="f67" simplify>5 $mi + x</math>
+<math name="f68" simplify>6 $mi + x</math>
+<math name="f69" simplify>7 $mi + x</math>
+<math name="f70" simplify>8 $mi + x</math>
+<math name="f71" simplify>9 $mi + x</math>
+<math name="f72" simplify>1 $mi + x</math>
+<math name="f73" simplify>2 $mi + x</math>
+<math name="f74" simplify>3 $mi + x</math>
+<math name="f75" simplify>4 $mi + x</math>
+<math name="f76" simplify>5 $mi + x</math>
+<math name="f77" simplify>6 $mi + x</math>
+<math name="f78" simplify>7 $mi + x</math>
+<math name="f79" simplify>8 $mi + x</math>
+<math name="f80" simplify>9 $mi + x</math>
+<math name="f81" simplify>1 $mi + x</math>
+<math name="f82" simplify>2 $mi + x</math>
+<math name="f83" simplify>3 $mi + x</math>
+<math name="f84" simplify>4 $mi + x</math>
+<math name="f85" simplify>5 $mi + x</math>
+<math name="f86" simplify>6 $mi + x</math>
+<math name="f87" simplify>7 $mi + x</math>
+<math name="f88" simplify>8 $mi + x</math>
+<math name="f89" simplify>9 $mi + x</math>
+<math name="f90" simplify>1 $mi + x</math>
+<math name="f91" simplify>2 $mi + x</math>
+<math name="f92" simplify>3 $mi + x</math>
+<math name="f93" simplify>4 $mi + x</math>
+<math name="f94" simplify>5 $mi + x</math>
+<math name="f95" simplify>6 $mi + x</math>
+<math name="f96" simplify>7 $mi + x</math>
+<math name="f97" simplify>8 $mi + x</math>
+<math name="f98" simplify>9 $mi + x</math>
+<math name="f99" simplify>1 $mi + x</math>

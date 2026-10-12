@@ -1,0 +1,203 @@
+<numberInput name="a" value="1"/>
+<numberInput name="b0" value="0"/>
+<numberInput name="b1" value="1"/>
+<numberInput name="b2" value="2"/>
+<numberInput name="b3" value="3"/>
+<numberInput name="b4" value="4"/>
+<numberInput name="b5" value="0"/>
+<numberInput name="b6" value="1"/>
+<numberInput name="b7" value="2"/>
+<numberInput name="b8" value="3"/>
+<numberInput name="b9" value="4"/>
+<numberInput name="b10" value="0"/>
+<numberInput name="b11" value="1"/>
+<numberInput name="b12" value="2"/>
+<numberInput name="b13" value="3"/>
+<numberInput name="b14" value="4"/>
+<numberInput name="b15" value="0"/>
+<numberInput name="b16" value="1"/>
+<numberInput name="b17" value="2"/>
+<numberInput name="b18" value="3"/>
+<numberInput name="b19" value="4"/>
+<numberInput name="b20" value="0"/>
+<numberInput name="b21" value="1"/>
+<numberInput name="b22" value="2"/>
+<numberInput name="b23" value="3"/>
+<numberInput name="b24" value="4"/>
+<numberInput name="b25" value="0"/>
+<numberInput name="b26" value="1"/>
+<numberInput name="b27" value="2"/>
+<numberInput name="b28" value="3"/>
+<numberInput name="b29" value="4"/>
+<numberInput name="b30" value="0"/>
+<numberInput name="b31" value="1"/>
+<numberInput name="b32" value="2"/>
+<numberInput name="b33" value="3"/>
+<numberInput name="b34" value="4"/>
+<numberInput name="b35" value="0"/>
+<numberInput name="b36" value="1"/>
+<numberInput name="b37" value="2"/>
+<numberInput name="b38" value="3"/>
+<numberInput name="b39" value="4"/>
+<numberInput name="b40" value="0"/>
+<numberInput name="b41" value="1"/>
+<numberInput name="b42" value="2"/>
+<numberInput name="b43" value="3"/>
+<numberInput name="b44" value="4"/>
+<numberInput name="b45" value="0"/>
+<numberInput name="b46" value="1"/>
+<numberInput name="b47" value="2"/>
+<numberInput name="b48" value="3"/>
+<numberInput name="b49" value="4"/>
+<numberInput name="b50" value="0"/>
+<numberInput name="b51" value="1"/>
+<numberInput name="b52" value="2"/>
+<numberInput name="b53" value="3"/>
+<numberInput name="b54" value="4"/>
+<numberInput name="b55" value="0"/>
+<numberInput name="b56" value="1"/>
+<numberInput name="b57" value="2"/>
+<numberInput name="b58" value="3"/>
+<numberInput name="b59" value="4"/>
+<numberInput name="b60" value="0"/>
+<numberInput name="b61" value="1"/>
+<numberInput name="b62" value="2"/>
+<numberInput name="b63" value="3"/>
+<numberInput name="b64" value="4"/>
+<numberInput name="b65" value="0"/>
+<numberInput name="b66" value="1"/>
+<numberInput name="b67" value="2"/>
+<numberInput name="b68" value="3"/>
+<numberInput name="b69" value="4"/>
+<numberInput name="b70" value="0"/>
+<numberInput name="b71" value="1"/>
+<numberInput name="b72" value="2"/>
+<numberInput name="b73" value="3"/>
+<numberInput name="b74" value="4"/>
+<numberInput name="b75" value="0"/>
+<numberInput name="b76" value="1"/>
+<numberInput name="b77" value="2"/>
+<numberInput name="b78" value="3"/>
+<numberInput name="b79" value="4"/>
+<numberInput name="b80" value="0"/>
+<numberInput name="b81" value="1"/>
+<numberInput name="b82" value="2"/>
+<numberInput name="b83" value="3"/>
+<numberInput name="b84" value="4"/>
+<numberInput name="b85" value="0"/>
+<numberInput name="b86" value="1"/>
+<numberInput name="b87" value="2"/>
+<numberInput name="b88" value="3"/>
+<numberInput name="b89" value="4"/>
+<numberInput name="b90" value="0"/>
+<numberInput name="b91" value="1"/>
+<numberInput name="b92" value="2"/>
+<numberInput name="b93" value="3"/>
+<numberInput name="b94" value="4"/>
+<numberInput name="b95" value="0"/>
+<numberInput name="b96" value="1"/>
+<numberInput name="b97" value="2"/>
+<numberInput name="b98" value="3"/>
+<numberInput name="b99" value="4"/>
+<graph name="g" xmin="-5" xmax="5">
+  <function name="f0">$a x^2 + $b0 x + 0</function><derivative name="df0">$f0</derivative>
+  <function name="f1">$a x^2 + $b1 x + 1</function><derivative name="df1">$f1</derivative>
+  <function name="f2">$a x^2 + $b2 x + 2</function><derivative name="df2">$f2</derivative>
+  <function name="f3">$a x^2 + $b3 x + 3</function><derivative name="df3">$f3</derivative>
+  <function name="f4">$a x^2 + $b4 x + 4</function><derivative name="df4">$f4</derivative>
+  <function name="f5">$a x^2 + $b5 x + 5</function><derivative name="df5">$f5</derivative>
+  <function name="f6">$a x^2 + $b6 x + 6</function><derivative name="df6">$f6</derivative>
+  <function name="f7">$a x^2 + $b7 x + 0</function><derivative name="df7">$f7</derivative>
+  <function name="f8">$a x^2 + $b8 x + 1</function><derivative name="df8">$f8</derivative>
+  <function name="f9">$a x^2 + $b9 x + 2</function><derivative name="df9">$f9</derivative>
+  <function name="f10">$a x^2 + $b10 x + 3</function><derivative name="df10">$f10</derivative>
+  <function name="f11">$a x^2 + $b11 x + 4</function><derivative name="df11">$f11</derivative>
+  <function name="f12">$a x^2 + $b12 x + 5</function><derivative name="df12">$f12</derivative>
+  <function name="f13">$a x^2 + $b13 x + 6</function><derivative name="df13">$f13</derivative>
+  <function name="f14">$a x^2 + $b14 x + 0</function><derivative name="df14">$f14</derivative>
+  <function name="f15">$a x^2 + $b15 x + 1</function><derivative name="df15">$f15</derivative>
+  <function name="f16">$a x^2 + $b16 x + 2</function><derivative name="df16">$f16</derivative>
+  <function name="f17">$a x^2 + $b17 x + 3</function><derivative name="df17">$f17</derivative>
+  <function name="f18">$a x^2 + $b18 x + 4</function><derivative name="df18">$f18</derivative>
+  <function name="f19">$a x^2 + $b19 x + 5</function><derivative name="df19">$f19</derivative>
+  <function name="f20">$a x^2 + $b20 x + 6</function><derivative name="df20">$f20</derivative>
+  <function name="f21">$a x^2 + $b21 x + 0</function><derivative name="df21">$f21</derivative>
+  <function name="f22">$a x^2 + $b22 x + 1</function><derivative name="df22">$f22</derivative>
+  <function name="f23">$a x^2 + $b23 x + 2</function><derivative name="df23">$f23</derivative>
+  <function name="f24">$a x^2 + $b24 x + 3</function><derivative name="df24">$f24</derivative>
+  <function name="f25">$a x^2 + $b25 x + 4</function><derivative name="df25">$f25</derivative>
+  <function name="f26">$a x^2 + $b26 x + 5</function><derivative name="df26">$f26</derivative>
+  <function name="f27">$a x^2 + $b27 x + 6</function><derivative name="df27">$f27</derivative>
+  <function name="f28">$a x^2 + $b28 x + 0</function><derivative name="df28">$f28</derivative>
+  <function name="f29">$a x^2 + $b29 x + 1</function><derivative name="df29">$f29</derivative>
+  <function name="f30">$a x^2 + $b30 x + 2</function><derivative name="df30">$f30</derivative>
+  <function name="f31">$a x^2 + $b31 x + 3</function><derivative name="df31">$f31</derivative>
+  <function name="f32">$a x^2 + $b32 x + 4</function><derivative name="df32">$f32</derivative>
+  <function name="f33">$a x^2 + $b33 x + 5</function><derivative name="df33">$f33</derivative>
+  <function name="f34">$a x^2 + $b34 x + 6</function><derivative name="df34">$f34</derivative>
+  <function name="f35">$a x^2 + $b35 x + 0</function><derivative name="df35">$f35</derivative>
+  <function name="f36">$a x^2 + $b36 x + 1</function><derivative name="df36">$f36</derivative>
+  <function name="f37">$a x^2 + $b37 x + 2</function><derivative name="df37">$f37</derivative>
+  <function name="f38">$a x^2 + $b38 x + 3</function><derivative name="df38">$f38</derivative>
+  <function name="f39">$a x^2 + $b39 x + 4</function><derivative name="df39">$f39</derivative>
+  <function name="f40">$a x^2 + $b40 x + 5</function><derivative name="df40">$f40</derivative>
+  <function name="f41">$a x^2 + $b41 x + 6</function><derivative name="df41">$f41</derivative>
+  <function name="f42">$a x^2 + $b42 x + 0</function><derivative name="df42">$f42</derivative>
+  <function name="f43">$a x^2 + $b43 x + 1</function><derivative name="df43">$f43</derivative>
+  <function name="f44">$a x^2 + $b44 x + 2</function><derivative name="df44">$f44</derivative>
+  <function name="f45">$a x^2 + $b45 x + 3</function><derivative name="df45">$f45</derivative>
+  <function name="f46">$a x^2 + $b46 x + 4</function><derivative name="df46">$f46</derivative>
+  <function name="f47">$a x^2 + $b47 x + 5</function><derivative name="df47">$f47</derivative>
+  <function name="f48">$a x^2 + $b48 x + 6</function><derivative name="df48">$f48</derivative>
+  <function name="f49">$a x^2 + $b49 x + 0</function><derivative name="df49">$f49</derivative>
+  <function name="f50">$a x^2 + $b50 x + 1</function><derivative name="df50">$f50</derivative>
+  <function name="f51">$a x^2 + $b51 x + 2</function><derivative name="df51">$f51</derivative>
+  <function name="f52">$a x^2 + $b52 x + 3</function><derivative name="df52">$f52</derivative>
+  <function name="f53">$a x^2 + $b53 x + 4</function><derivative name="df53">$f53</derivative>
+  <function name="f54">$a x^2 + $b54 x + 5</function><derivative name="df54">$f54</derivative>
+  <function name="f55">$a x^2 + $b55 x + 6</function><derivative name="df55">$f55</derivative>
+  <function name="f56">$a x^2 + $b56 x + 0</function><derivative name="df56">$f56</derivative>
+  <function name="f57">$a x^2 + $b57 x + 1</function><derivative name="df57">$f57</derivative>
+  <function name="f58">$a x^2 + $b58 x + 2</function><derivative name="df58">$f58</derivative>
+  <function name="f59">$a x^2 + $b59 x + 3</function><derivative name="df59">$f59</derivative>
+  <function name="f60">$a x^2 + $b60 x + 4</function><derivative name="df60">$f60</derivative>
+  <function name="f61">$a x^2 + $b61 x + 5</function><derivative name="df61">$f61</derivative>
+  <function name="f62">$a x^2 + $b62 x + 6</function><derivative name="df62">$f62</derivative>
+  <function name="f63">$a x^2 + $b63 x + 0</function><derivative name="df63">$f63</derivative>
+  <function name="f64">$a x^2 + $b64 x + 1</function><derivative name="df64">$f64</derivative>
+  <function name="f65">$a x^2 + $b65 x + 2</function><derivative name="df65">$f65</derivative>
+  <function name="f66">$a x^2 + $b66 x + 3</function><derivative name="df66">$f66</derivative>
+  <function name="f67">$a x^2 + $b67 x + 4</function><derivative name="df67">$f67</derivative>
+  <function name="f68">$a x^2 + $b68 x + 5</function><derivative name="df68">$f68</derivative>
+  <function name="f69">$a x^2 + $b69 x + 6</function><derivative name="df69">$f69</derivative>
+  <function name="f70">$a x^2 + $b70 x + 0</function><derivative name="df70">$f70</derivative>
+  <function name="f71">$a x^2 + $b71 x + 1</function><derivative name="df71">$f71</derivative>
+  <function name="f72">$a x^2 + $b72 x + 2</function><derivative name="df72">$f72</derivative>
+  <function name="f73">$a x^2 + $b73 x + 3</function><derivative name="df73">$f73</derivative>
+  <function name="f74">$a x^2 + $b74 x + 4</function><derivative name="df74">$f74</derivative>
+  <function name="f75">$a x^2 + $b75 x + 5</function><derivative name="df75">$f75</derivative>
+  <function name="f76">$a x^2 + $b76 x + 6</function><derivative name="df76">$f76</derivative>
+  <function name="f77">$a x^2 + $b77 x + 0</function><derivative name="df77">$f77</derivative>
+  <function name="f78">$a x^2 + $b78 x + 1</function><derivative name="df78">$f78</derivative>
+  <function name="f79">$a x^2 + $b79 x + 2</function><derivative name="df79">$f79</derivative>
+  <function name="f80">$a x^2 + $b80 x + 3</function><derivative name="df80">$f80</derivative>
+  <function name="f81">$a x^2 + $b81 x + 4</function><derivative name="df81">$f81</derivative>
+  <function name="f82">$a x^2 + $b82 x + 5</function><derivative name="df82">$f82</derivative>
+  <function name="f83">$a x^2 + $b83 x + 6</function><derivative name="df83">$f83</derivative>
+  <function name="f84">$a x^2 + $b84 x + 0</function><derivative name="df84">$f84</derivative>
+  <function name="f85">$a x^2 + $b85 x + 1</function><derivative name="df85">$f85</derivative>
+  <function name="f86">$a x^2 + $b86 x + 2</function><derivative name="df86">$f86</derivative>
+  <function name="f87">$a x^2 + $b87 x + 3</function><derivative name="df87">$f87</derivative>
+  <function name="f88">$a x^2 + $b88 x + 4</function><derivative name="df88">$f88</derivative>
+  <function name="f89">$a x^2 + $b89 x + 5</function><derivative name="df89">$f89</derivative>
+  <function name="f90">$a x^2 + $b90 x + 6</function><derivative name="df90">$f90</derivative>
+  <function name="f91">$a x^2 + $b91 x + 0</function><derivative name="df91">$f91</derivative>
+  <function name="f92">$a x^2 + $b92 x + 1</function><derivative name="df92">$f92</derivative>
+  <function name="f93">$a x^2 + $b93 x + 2</function><derivative name="df93">$f93</derivative>
+  <function name="f94">$a x^2 + $b94 x + 3</function><derivative name="df94">$f94</derivative>
+  <function name="f95">$a x^2 + $b95 x + 4</function><derivative name="df95">$f95</derivative>
+  <function name="f96">$a x^2 + $b96 x + 5</function><derivative name="df96">$f96</derivative>
+  <function name="f97">$a x^2 + $b97 x + 6</function><derivative name="df97">$f97</derivative>
+  <function name="f98">$a x^2 + $b98 x + 0</function><derivative name="df98">$f98</derivative>
+  <function name="f99">$a x^2 + $b99 x + 1</function><derivative name="df99">$f99</derivative>
+</graph>

@@ -1,0 +1,23 @@
+<numberInput name="a" value="1"/>
+<numberInput name="b0" value="0"/>
+<numberInput name="b1" value="1"/>
+<numberInput name="b2" value="2"/>
+<numberInput name="b3" value="3"/>
+<numberInput name="b4" value="4"/>
+<numberInput name="b5" value="0"/>
+<numberInput name="b6" value="1"/>
+<numberInput name="b7" value="2"/>
+<numberInput name="b8" value="3"/>
+<numberInput name="b9" value="4"/>
+<graph name="g" xmin="-5" xmax="5">
+  <function name="f0">$a x^2 + $b0 x + 0</function><derivative name="df0">$f0</derivative>
+  <function name="f1">$a x^2 + $b1 x + 1</function><derivative name="df1">$f1</derivative>
+  <function name="f2">$a x^2 + $b2 x + 2</function><derivative name="df2">$f2</derivative>
+  <function name="f3">$a x^2 + $b3 x + 3</function><derivative name="df3">$f3</derivative>
+  <function name="f4">$a x^2 + $b4 x + 4</function><derivative name="df4">$f4</derivative>
+  <function name="f5">$a x^2 + $b5 x + 5</function><derivative name="df5">$f5</derivative>
+  <function name="f6">$a x^2 + $b6 x + 6</function><derivative name="df6">$f6</derivative>
+  <function name="f7">$a x^2 + $b7 x + 0</function><derivative name="df7">$f7</derivative>
+  <function name="f8">$a x^2 + $b8 x + 1</function><derivative name="df8">$f8</derivative>
+  <function name="f9">$a x^2 + $b9 x + 2</function><derivative name="df9">$f9</derivative>
+</graph>

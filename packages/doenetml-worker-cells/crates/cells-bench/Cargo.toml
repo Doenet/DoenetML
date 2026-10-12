@@ -1,0 +1,26 @@
+[package]
+name = "cells-bench"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+description = "Criterion benches and stats for the cells core"
+
+[dependencies]
+cells-core = { path = "../cells-core" }
+cells-sym = { path = "../cells-sym" }
+serde_json.workspace = true
+
+[dev-dependencies]
+criterion = { version = "0.5", default-features = false, features = ["cargo_bench_support"] }
+
+[[bench]]
+name = "startup"
+harness = false
+
+[[bench]]
+name = "tick"
+harness = false
+
+[[bench]]
+name = "rebuild"
+harness = false

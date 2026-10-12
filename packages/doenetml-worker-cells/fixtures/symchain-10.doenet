@@ -1,0 +1,25 @@
+<mathInput name="mi" prefill="x^2+1"/>
+<numberInput name="t" value="1"/>
+<math name="m0" simplify>$mi + 1 x</math>
+<math name="m1" simplify>$m0 - 2 x</math>
+<evaluate name="e2" function="$m1" input="$t"/>
+<math name="m2" simplify>$m1 + 0.001 $e2</math>
+<math name="m3" simplify>$m2 + 4 x</math>
+<math name="m4" simplify>$m3 - 5 x</math>
+<evaluate name="e5" function="$m4" input="$t"/>
+<math name="m5" simplify>$m4 + 0.001 $e5</math>
+<math name="m6" simplify>$m5 + 2 x</math>
+<math name="m7" simplify>$m6 - 3 x</math>
+<evaluate name="e8" function="$m7" input="$t"/>
+<math name="m8" simplify>$m7 + 0.001 $e8</math>
+<math name="m9" simplify>$m8 + 5 x</math>
+<math name="f0" simplify>1 $mi + x</math>
+<math name="f1" simplify>2 $mi + x</math>
+<math name="f2" simplify>3 $mi + x</math>
+<math name="f3" simplify>4 $mi + x</math>
+<math name="f4" simplify>5 $mi + x</math>
+<math name="f5" simplify>6 $mi + x</math>
+<math name="f6" simplify>7 $mi + x</math>
+<math name="f7" simplify>8 $mi + x</math>
+<math name="f8" simplify>9 $mi + x</math>
+<math name="f9" simplify>1 $mi + x</math>

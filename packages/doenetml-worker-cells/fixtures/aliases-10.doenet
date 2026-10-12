@@ -1,0 +1,13 @@
+<graph name="g">
+  <point name="p" x="1" y="2"/>
+  $p
+  $p
+  $p
+  $p
+  $p
+  $p
+  $p
+  $p
+  $p
+  $p
+</graph>

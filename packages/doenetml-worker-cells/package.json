@@ -1,0 +1,9 @@
+{
+  "name": "cells-prototype",
+  "private": true,
+  "license": "AGPL-3.0-or-later",
+  "type": "module",
+  "scripts": {
+    "parse": "node scripts/parse-dast.mjs"
+  }
+}

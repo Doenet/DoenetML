@@ -1,0 +1,69 @@
+{
+  "_comment": "Per-operation bench corpus (Plan 5), read by examples/ops_bench.rs (engines A and R natively) and bench/ops-node.mjs (R through @doenet/math). Small = what a student types or a <math> holds; medium = a function with several terms.",
+  "parse": [
+    "x+1",
+    "3x^2-2x+5",
+    "(x+1)^2",
+    "sin(x)^2+cos(x)^2",
+    "(2x-3)(x+4)/(x-1)",
+    "a x^2+b x+c",
+    "e^(2x) sin(3x)+ln(x^2+1)",
+    "x^5-4x^4+3x^3-2x^2+x-7+sqrt(x+1)/(x^2+1)"
+  ],
+  "simplify": [
+    "3x+2x",
+    "x+1+x^2+2",
+    "2(x+1)-2x",
+    "x^2 x^3",
+    "x y z + z y x",
+    "a x+b x+3a x-b x",
+    "2x^2+3x-x^2+4-x+1+x^2",
+    "(x y)^2/x"
+  ],
+  "expand": [
+    "(x+1)^2",
+    "(x+y)(x-y)",
+    "(2x-3)^3",
+    "x(x+1)(x+2)",
+    "(a+b)^2-(a-b)^2",
+    "(x+1)^5"
+  ],
+  "derivative": [
+    "x^3+2x",
+    "sin(x^2)",
+    "x sin(x)",
+    "e^(2x)",
+    "ln(x^2+1)",
+    "cos(3x)/x",
+    "a x^2+b x+c",
+    "x^5-4x^4+3x^3-2x^2+x-7"
+  ],
+  "equals": [
+    ["(x+1)^2", "x^2+2x+1"],
+    ["sin(x)^2+cos(x)^2", "1"],
+    ["2x+3", "3+2x"],
+    ["(x-1)(x+1)", "x^2-1"],
+    ["x^2", "x^3"],
+    ["3x", "3y"],
+    ["x^2-y^2", "(x-y)(x+y)"],
+    ["e^(2x) sin(3x)", "sin(3x) e^(x) e^(x)"]
+  ],
+  "equals_syntax": [
+    ["2x+3", "3+2x"],
+    ["x y", "y x"],
+    ["(x+1)^2", "x^2+2x+1"],
+    ["a b c", "c b a"]
+  ],
+  "evaluate": [
+    "x^3+2x",
+    "sin(x^2)",
+    "e^(2x) sin(3x)+ln(x^2+1)",
+    "x^5-4x^4+3x^3-2x^2+x-7"
+  ],
+  "sample200": [
+    "x^3+2x",
+    "sin(x^2)",
+    "e^(2x) sin(3x)+ln(x^2+1)",
+    "x^5-4x^4+3x^3-2x^2+x-7"
+  ]
+}

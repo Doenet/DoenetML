@@ -1,0 +1,7 @@
+<graph name="g1">
+  <point name="p1">(3,7)</point><point name="p2">(-4,-1)</point><point name="p3">(8,2)</point><point name="p4">(-3,4)</point>
+  <polygon vertices="$p1 $p2 $p3 $p4" name="pg" rigid/>
+</graph>
+<graph name="g2"><polygon extend="$g1.pg" name="pg"/><pointList extend="$pg.vertices" name="vs"/></graph>
+<graph extend="$g2" name="g3"/>
+<graph><polygon name="q" vertices="(1,2) (3,4) (-5,6) ($q.vertex3[1]+$q.vertex2[1]-$q.vertex1[1], $q.vertex3[2]+$q.vertex2[2]-$q.vertex1[2])"/></graph>

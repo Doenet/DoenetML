@@ -1,0 +1,19 @@
+[package]
+name = "cells-sym-mer"
+version = "0.1.0"
+edition.workspace = true
+license.workspace = true
+description = "Engine R: math-expressions-rs behind the cells-sym interface (baseline and oracle)"
+
+[dependencies]
+cells-sym = { path = "../cells-sym" }
+# The engine the current DoenetML core calls through wasm. Note: it enables
+# serde_json's `arbitrary_precision`, which feature unification spreads to any
+# binary that links this crate (DAST loading in those binaries only).
+math-expressions = { path = "../../../../math-expressions/packages/math-expressions-rs" }
+num-complex = "0.4"
+
+[dev-dependencies]
+cells-core = { path = "../cells-core" }
+cells-docgen = { path = "../cells-docgen" }
+serde_json.workspace = true

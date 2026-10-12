@@ -1,0 +1,9 @@
+<numberInput name="n" value="1000"/>
+<numberInput name="seed" value="1"/>
+<graph name="g">
+<repeatForSequence name="r" length="$n" maxNumber="20000" indexName="i">
+<op name="prev" kind="default" args="$r[$i-2].x $seed"/>
+<op name="x" kind="scale" k="1.001" args="$prev"/>
+<point name="p" x="$x" y="0"/>
+</repeatForSequence>
+</graph>
