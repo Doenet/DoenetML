@@ -44,9 +44,15 @@ pub struct SymStats {
 /// Bits no computation produces: a memo that has never run matches no input.
 const NEVER: f64 = f64::from_bits(0x7ff8_dead_beef_0001);
 
+/// The symbolic engine a document uses unless its `LoadOptions` name one:
+/// engine R, math-expressions-rs.
+pub fn default_engine() -> Box<dyn SymEngine> {
+    Box::new(cells_sym_mer::Mer::new())
+}
+
 impl Default for Sym {
     fn default() -> Self {
-        Sym::new(Box::new(cells_sym::flat::Flat::new()))
+        Sym::new(default_engine())
     }
 }
 

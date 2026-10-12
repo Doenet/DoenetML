@@ -1,5 +1,6 @@
 //! Engine R: math-expressions-rs, the engine the current DoenetML core uses
-//! through wasm, linked natively behind [`SymEngine`]. Each handle is one
+//! through wasm, linked natively behind [`SymEngine`]. It is the symbolic
+//! engine of the cells core too (ADR 0010). Each handle is one
 //! boxed `Expr` tree; nothing is shared or deduplicated, so a recomputed
 //! expression always gets a new handle. Cell leaves are symbols named
 //! `cellN<i>` (numeric) or `cellM<i>` (math), replaced by `substitute`.
@@ -41,6 +42,17 @@ impl Mer {
     fn push(&mut self, e: Expr) -> Handle {
         self.exprs.push(e);
         (self.exprs.len() - 1) as Handle
+    }
+
+    /// Push an expression computed from `from` (its simplification,
+    /// expansion or derivative), which keeps `from`'s cell leaves, so that
+    /// instantiating it substitutes them.
+    fn push_derived(&mut self, from: Handle, e: Expr) -> Handle {
+        let h = self.push(e);
+        if let Some(leaves) = self.leaves.get(&from).cloned() {
+            self.leaves.insert(h, leaves);
+        }
+        h
     }
 
     fn convert(&self, t: &Tree, leaves: &mut Vec<(u32, bool)>) -> Expr {
@@ -132,21 +144,26 @@ impl SymEngine for Mer {
 
     fn simplify(&mut self, h: Handle) -> Handle {
         let e = me::simplify(&self.exprs[h as usize]);
-        self.push(e)
+        self.push_derived(h, e)
     }
 
     fn expand(&mut self, h: Handle) -> Handle {
         let e = me::expand(&self.exprs[h as usize]);
-        self.push(e)
+        self.push_derived(h, e)
     }
 
     fn derivative(&mut self, h: Handle, var: &str) -> Handle {
         let e = me::derivative(&self.exprs[h as usize], var);
-        self.push(e)
+        self.push_derived(h, e)
     }
 
     fn evaluate(&mut self, h: Handle, var: Option<(&str, f64)>) -> f64 {
         let e = &self.exprs[h as usize];
+        // A bare number is its value; math-expressions evaluates a
+        // non-finite one (an infinite slope written back) to no value.
+        if let Expr::Num(n) = e {
+            return n.to_f64();
+        }
         match var {
             Some((name, x)) => {
                 let mut b = HashMap::with_capacity(1);

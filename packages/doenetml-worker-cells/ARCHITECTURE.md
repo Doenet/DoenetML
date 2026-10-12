@@ -69,7 +69,7 @@ component table (`document/sticky.rs`).
 | `ComponentTable` | `document/table.rs` | Components in columns: component type, name, parent, children, and each one's prop cells. What references and the renderer read. |
 | `Request`, `PointRequest`, `TickOutcome` | `tick/` | A tick's input (set a cell; move points together) and its result. |
 | `Evaluator` | `tick/eval.rs` | A recompute strategy: `FullRecompute` runs every instruction; `DirtyClosure` only those downstream of a changed cell. |
-| `SymEngine` | `crates/cells-sym` | The symbolic math engine behind math cells (ADR 0008). A math cell holds a handle into it. |
+| `SymEngine` | `crates/cells-sym` | The symbolic math engine behind math cells (ADR 0008). A math cell holds a handle into it. The core uses engine R, math-expressions-rs (`crates/cells-sym-mer`, ADR 0010). |
 
 ## What happens when…
 
@@ -170,10 +170,14 @@ whose elements read cells directly and redraw once per tick
 
 ## The other crates
 
-- `crates/cells-sym`: symbolic math engine A (a flat hash-consed arena) and
-  compiled curve tapes, behind the `SymEngine` trait.
-- `crates/cells-sym-mer`: engine R, wrapping math-expressions-rs, used as
-  engine A's behavior oracle.
+- `crates/cells-sym-mer`: engine R, wrapping math-expressions-rs behind the
+  `SymEngine` trait. It is the engine the core uses
+  (`program::default_engine`, ADR 0010).
+- `crates/cells-sym`: the `SymEngine` trait, the parser for math written in
+  the document, compiled curve tapes, and symbolic engine A (a flat
+  hash-consed arena), which is no longer the default but stays for
+  comparison; `LoadOptions::engine` or the wasm `Core.with_engine(bytes, "A")`
+  selects it.
 - `crates/cells-wasm`: the browser binding.
 - `crates/cells-docgen`: the synthetic DoenetML generator behind the
   fixtures and benchmarks.

@@ -14,8 +14,11 @@ list of operators with inverses.
 ## Layout
 
 - `crates/cells-core`: the core (see `ARCHITECTURE.md`).
-- `crates/cells-sym`, `crates/cells-sym-mer`: the symbolic math engines
-  (A, and R, its oracle).
+- `crates/cells-sym-mer`: engine R, math-expressions-rs behind the
+  `SymEngine` interface; the symbolic engine the core uses (ADR 0010).
+- `crates/cells-sym`: the `SymEngine` interface, the build's math parser, the
+  compiled curve tapes, and engine A, the prototype's own engine, kept for
+  comparison.
 - `crates/cells-wasm`: the browser binding.
 - `crates/cells-docgen`: synthetic DoenetML for fixtures and benchmarks.
 - `crates/cells-bench`: benches, the `stats` binary, and measurement examples.

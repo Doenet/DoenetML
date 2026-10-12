@@ -1,9 +1,9 @@
 // Plan 5: the symbolic fixtures' ticks in wasm (Node), engines A and R,
 // with the same interactions and method as examples/sym_tick.rs.
 //
-// Build the package first (engine R is a feature of cells-wasm):
+// Build the package first:
 //   (cd crates/cells-wasm && wasm-pack build --target nodejs --release \
-//      --out-dir ../../target/wasm-sym --out-name cells_wasm -- --features engine-r)
+//      --out-dir ../../target/wasm-sym --out-name cells_wasm)
 //   node crates/cells-sym-mer/bench/sym-wasm.mjs [spec ...]
 
 import { readFileSync, writeFileSync } from "node:fs";

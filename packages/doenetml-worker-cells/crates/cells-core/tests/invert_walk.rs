@@ -3,8 +3,28 @@
 //! resolve exactly as it does alone, for every cell of documents that use
 //! every kind of inverse.
 
-use cells_core::Request;
 use cells_core::testing::test_utils::load;
+use cells_core::{Document, Request};
+
+/// Writes with each math cell's handle replaced by its expression's text:
+/// engine R gives every new expression a new handle, so the walk and the
+/// queue can write equal expressions under different handles. A value
+/// requested straight onto a math cell is not a handle and stays a number.
+fn written(doc: &Document, writes: &[(u32, f64)]) -> Vec<(u32, String)> {
+    let engine = doc.program.sym.engine.borrow();
+    writes
+        .iter()
+        .map(|&(c, v)| {
+            let handle = v >= 0.0 && v.fract() == 0.0 && (v as usize) < engine.len();
+            let shown = if doc.program.is_math[c as usize] && handle {
+                engine.text(v as u32)
+            } else {
+                format!("{v:?}")
+            };
+            (c, shown)
+        })
+        .collect()
+}
 
 const DOCS: &[&str] = &[
     r#"<numberInput name="n" value="1"/><op name="a" kind="offset" k="1" args="$n"/><op name="b" kind="scale" k="2" args="$a"/><op name="c" kind="negate" args="$b"/><op name="d" kind="clamp" lo="-9" hi="9" args="$c"/><op name="e" kind="round" args="$d"/><op name="f" kind="add" args="$e $n"/><op name="g" kind="div" args="$f $b"/><op name="h" kind="default" args="$g $n"/><op name="i" kind="lerp" t="0.25" args="$h $a"/><graph><point name="p" x="$i" y="$e"/></graph>"#,
@@ -36,7 +56,8 @@ fn the_walk_matches_the_queue() {
                     &[],
                 );
                 assert_eq!(
-                    alone.writes, twice.writes,
+                    written(&doc, &alone.writes),
+                    written(&doc, &twice.writes),
                     "cell {cell} <- {value} in {src}"
                 );
                 assert_eq!(

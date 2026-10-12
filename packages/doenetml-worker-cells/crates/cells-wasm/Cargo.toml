@@ -12,15 +12,10 @@ crate-type = ["cdylib", "rlib"]
 web-time = "1"
 cells-core = { path = "../cells-core" }
 cells-sym = { path = "../cells-sym" }
-cells-sym-mer = { path = "../cells-sym-mer", optional = true }
+cells-sym-mer = { path = "../cells-sym-mer" }
 wasm-bindgen = "0.2"
 serde_json.workspace = true
 console_error_panic_hook = "0.1"
-
-[features]
-# Engine R in wasm, for Plan 5's benches only: it adds math-expressions-rs
-# to the binary (and serde_json's arbitrary_precision with it).
-engine-r = ["dep:cells-sym-mer"]
 
 # The locally installed wasm-pack 0.10 bundles a wasm-opt that corrupts the
 # function table of current wasm-bindgen output ("WebAssembly.Table.grow()

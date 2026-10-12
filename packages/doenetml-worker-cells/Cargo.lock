@@ -56,6 +56,7 @@ name = "cells-core"
 version = "0.1.0"
 dependencies = [
  "cells-sym",
+ "cells-sym-mer",
  "serde",
  "serde_json",
  "thiserror",

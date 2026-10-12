@@ -13,6 +13,18 @@ fn text(doc: &Document, name: &str) -> String {
     doc.math_text(doc.cell(name, "expr").unwrap())
 }
 
+fn load_with_engine_a(source: &str) -> Document {
+    Document::load(
+        cells_core::testing::test_utils::dast_json(source).as_bytes(),
+        cells_core::LoadOptions {
+            engine: Some(Box::new(cells_sym::flat::Flat::new())),
+            ..Default::default()
+        },
+    )
+    .unwrap()
+    .0
+}
+
 /// Type `s` into a mathInput.
 fn runs(doc: &Document) -> u64 {
     doc.program.sym.stats.get().runs
@@ -131,7 +143,12 @@ fn symbolic_instructions_are_gated_on_their_inputs() {
 #[test]
 fn equal_handles_stop_downstream_reruns() {
     // `0 $n` vanishes under simplify, so m's expression does not change.
-    let mut doc = load(r#"<numberInput name="n" value="2"/><math name="m" simplify>0 $n + x</math><math name="m2" simplify>$m + 1</math>"#).unwrap();
+    // Engine A only: its arena is hash-consed, so an unchanged expression
+    // keeps its handle. Engine R, the default, gives every recomputed
+    // expression a new handle (cells-sym-mer/tests/core_r.rs).
+    let mut doc = load_with_engine_a(
+        r#"<numberInput name="n" value="2"/><math name="m" simplify>0 $n + x</math><math name="m2" simplify>$m + 1</math>"#,
+    );
     let before = runs(&doc);
     let tick = doc.request(&[req(&doc, "n", "value", 3.0)]);
     assert_eq!(

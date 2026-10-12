@@ -2,9 +2,10 @@
 //!
 //! A math cell is an `f64` cell holding a [`Handle`]; the core never looks
 //! inside an expression, it only calls the operations of [`SymEngine`]. Two
-//! engines implement it: [`flat::Flat`] (engine A, a flat hash-consed arena
-//! written for this prototype) and, in `cells-sym-mer`, math-expressions-rs
-//! (engine R), which is also the behavior oracle. See `docs/history/plan-5.md`.
+//! engines implement it: math-expressions-rs (engine R, in `cells-sym-mer`),
+//! which the core uses (ADR 0010), and [`flat::Flat`] (engine A, a flat
+//! hash-consed arena written for this prototype), kept for comparison. See
+//! `docs/history/plan-5.md`.
 
 pub mod flat;
 pub mod parse;

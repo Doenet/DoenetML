@@ -7,6 +7,8 @@ description = "Prototype DoenetML core organized around a flat list of f64 cells
 
 [dependencies]
 cells-sym = { path = "../cells-sym" }
+# Engine R, math-expressions-rs: the symbolic engine the core uses.
+cells-sym-mer = { path = "../cells-sym-mer" }
 serde.workspace = true
 serde_json.workspace = true
 thiserror.workspace = true

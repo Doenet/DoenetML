@@ -127,10 +127,7 @@ impl BuildOutput {
         engine: &mut Box<dyn SymEngine>,
     ) -> Result<Document> {
         let n = self.cells.len();
-        let sym = Sym::new(std::mem::replace(
-            engine,
-            Box::new(cells_sym::flat::Flat::new()),
-        ));
+        let sym = Sym::new(std::mem::replace(engine, crate::program::default_engine()));
         let program = match Program::schedule(self.instrs, n, sym, self.operands, self.is_math) {
             Ok(mut p) => {
                 p.tapes = self.tapes;

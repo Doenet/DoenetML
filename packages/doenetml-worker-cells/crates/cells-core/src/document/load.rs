@@ -3,10 +3,10 @@
 
 use super::*;
 
-/// How to load a document. The default: engine A, seed 0, curves compiled.
+/// How to load a document. The default: engine R, seed 0, curves compiled.
 #[derive(Default)]
 pub struct LoadOptions {
-    /// The symbolic engine; engine A when None.
+    /// The symbolic engine; engine R (`program::default_engine`) when None.
     pub engine: Option<Box<dyn SymEngine>>,
     /// The document seed load-time choices draw from (ADR 0009): one seed
     /// gives one variant of the document.
@@ -55,7 +55,7 @@ impl Document {
     ) -> crate::Result<Document> {
         let mut engine = options
             .engine
-            .unwrap_or_else(|| Box::new(cells_sym::flat::Flat::new()));
+            .unwrap_or_else(crate::program::default_engine);
         let mut carryover = crate::build::Carryover::new(options.seed, options.sample_with_engine);
         for _ in 0..MAX_PASSES {
             let clock = web_time::Instant::now();

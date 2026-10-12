@@ -25,26 +25,25 @@ impl Core {
     /// detected by content) and compute its initial values.
     #[wasm_bindgen(constructor)]
     pub fn new(dast: &[u8]) -> Result<Core, JsError> {
-        Core::with_engine(dast, "A")
+        Core::with_engine(dast, "R")
     }
 
-    /// Load with a named symbolic engine: "A" (this prototype's), or "R"
-    /// (math-expressions-rs) when built with the `engine-r` feature.
+    /// Load with a named symbolic engine: "R" (math-expressions-rs, the
+    /// default) or "A" (the prototype's own, kept for comparison).
     pub fn with_engine(dast: &[u8], engine: &str) -> Result<Core, JsError> {
         Core::with_engine_seeded(dast, engine, 0.0)
     }
 
     /// Load with the document seed load-time choices draw from (ADR 0009).
     pub fn with_seed(dast: &[u8], seed: f64) -> Result<Core, JsError> {
-        Core::with_engine_seeded(dast, "A", seed)
+        Core::with_engine_seeded(dast, "R", seed)
     }
 
     fn with_engine_seeded(dast: &[u8], engine: &str, seed: f64) -> Result<Core, JsError> {
         console_error_panic_hook::set_once();
         let engine: Box<dyn cells_sym::SymEngine> = match engine {
-            "A" => Box::new(cells_sym::flat::Flat::new()),
-            #[cfg(feature = "engine-r")]
             "R" => Box::new(cells_sym_mer::Mer::new()),
+            "A" => Box::new(cells_sym::flat::Flat::new()),
             other => {
                 return Err(JsError::new(&format!(
                     "no symbolic engine '{other}' in this build"
