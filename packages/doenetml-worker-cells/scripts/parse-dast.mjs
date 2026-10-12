@@ -6,9 +6,9 @@
 // (`npm run build -w @doenet/parser`).
 import { readFileSync } from "node:fs";
 import {
-  encodeBinaryDast,
-  lezerToDast,
-  normalizeDocumentDast,
+    encodeBinaryDast,
+    lezerToDast,
+    normalizeDocumentDast,
 } from "@doenet/parser";
 
 const args = process.argv.slice(2);
@@ -16,24 +16,24 @@ let input = null;
 let keepPositions = false;
 let binary = false;
 for (let i = 0; i < args.length; i++) {
-  if (args[i] === "-i") input = args[++i];
-  else if (args[i] === "--positions") keepPositions = true;
-  else if (args[i] === "--binary") binary = true;
+    if (args[i] === "-i") input = args[++i];
+    else if (args[i] === "--positions") keepPositions = true;
+    else if (args[i] === "--binary") binary = true;
 }
 const source = readFileSync(input ?? 0, "utf8");
 const dast = normalizeDocumentDast(lezerToDast(source));
 
 function strip(o) {
-  if (Array.isArray(o)) return o.map(strip);
-  if (o && typeof o === "object") {
-    const r = {};
-    for (const [k, v] of Object.entries(o)) {
-      if (k === "position" || k === "sources") continue;
-      r[k] = strip(v);
+    if (Array.isArray(o)) return o.map(strip);
+    if (o && typeof o === "object") {
+        const r = {};
+        for (const [k, v] of Object.entries(o)) {
+            if (k === "position" || k === "sources") continue;
+            r[k] = strip(v);
+        }
+        return r;
     }
-    return r;
-  }
-  return o;
+    return o;
 }
 if (binary) process.stdout.write(encodeBinaryDast(dast));
 else process.stdout.write(JSON.stringify(keepPositions ? dast : strip(dast)));

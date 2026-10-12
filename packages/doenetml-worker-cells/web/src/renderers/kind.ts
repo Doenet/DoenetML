@@ -6,8 +6,12 @@ export type RendererKind = "svg" | "jsxgraph" | "jsxgraph-canvas";
 
 const params = new URLSearchParams(location.search);
 
-export const RENDERER: RendererKind = (["svg", "jsxgraph", "jsxgraph-canvas"] as const).find((k) => k === params.get("renderer")) ?? "jsxgraph";
+export const RENDERER: RendererKind =
+    (["svg", "jsxgraph", "jsxgraph-canvas"] as const).find(
+        (k) => k === params.get("renderer"),
+    ) ?? "jsxgraph";
 
 /** How JSXGraph elements redraw: "tick" (one board redraw per tick) or
  * "element" (Doenet's pattern, a board redraw per changed element). */
-export const JSX_UPDATE: "tick" | "element" = params.get("jsxupdate") === "element" ? "element" : "tick";
+export const JSX_UPDATE: "tick" | "element" =
+    params.get("jsxupdate") === "element" ? "element" : "tick";

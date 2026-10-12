@@ -276,9 +276,9 @@ describe("Plan 6 rewrites of banned tests", async () => {
         });
 
         const sv = await core.returnAllStateVariables(false, true);
-        expect(
-            sv[await resolvePathToNodeIdx("animal")].stateValues.value,
-        ).eq("mouse");
+        expect(sv[await resolvePathToNodeIdx("animal")].stateValues.value).eq(
+            "mouse",
+        );
         expect(sv[await resolvePathToNodeIdx("plant")].stateValues.value).eq(
             "bush",
         );
@@ -461,9 +461,7 @@ describe("Plan 6 rewrites of banned tests", async () => {
     // Banned: `numToSelect="$n"`, a reference resolved through a chain of
     // other components. Rewrite: the literal it resolves to.
     it("select multiple maths, initially unresolved", async () => {
-        const valid = ["u", "v", "w", "x", "y", "z"].map((v) =>
-            me.fromText(v),
-        );
+        const valid = ["u", "v", "w", "x", "y", "z"].map((v) => me.fromText(v));
         for (let i = 0; i < 10; i++) {
             const { core, resolvePathToNodeIdx } = await createTestCore({
                 doenetML: `
@@ -510,9 +508,7 @@ describe("Plan 6 rewrites of banned tests", async () => {
             );
         }
         for (const num of results) {
-            expect([175, 176, 177, 178, 179, 180, 181].includes(num)).eq(
-                true,
-            );
+            expect([175, 176, 177, 178, 179, 180, 181].includes(num)).eq(true);
         }
         expect(new Set(results).size).eq(5);
         expect(sv[await resolvePathToNodeIdx("p2")].stateValues.text).eq(
