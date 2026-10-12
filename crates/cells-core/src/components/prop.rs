@@ -6,5 +6,5 @@
 pub use super::containers::{document, graph, section, sticky_group};
 pub use super::geometry::{circle, line, point, polygon, segment};
 pub use super::inputs::math_input;
-pub use super::structure::{case, conditional_content};
-pub use super::values::{answer, math, text};
+pub use super::structure::{case, conditional_content, function_iterates};
+pub use super::values::{answer, math, text, tuple, update_value};

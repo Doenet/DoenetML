@@ -31,8 +31,9 @@ impl<'c, 'a> Builder<'c, 'a> {
                 )
             })?,
             Arg::Ref(p, Sel::Coord(j)) => {
+                // A point's coordinates, or a tuple's entries.
                 let targets = self.resolve_ref(p, scope, Some(2))?;
-                if targets.len() != 2 {
+                if targets.len() < 2 || targets.len() <= j as usize {
                     return Err(Error::ArityMismatch {
                         component_type: component_type.tag().into(),
                         prop: "coords".into(),
@@ -89,7 +90,7 @@ impl<'c, 'a> Builder<'c, 'a> {
                         Resolved::Missing => Resolved::Missing,
                         Resolved::Iter(..) => return Err(Error::NotIndexable(p.display.clone())),
                         Resolved::Comp(c) => match self.components.component_type[c as usize] {
-                            ComponentType::RepeatForSequence => {
+                            _ if self.comp_repeat[c as usize] != NONE => {
                                 let r = &self.repeats[self.comp_repeat[c as usize] as usize];
                                 if k < 1 || k > r.iterations as i64 {
                                     Resolved::Missing
@@ -97,13 +98,15 @@ impl<'c, 'a> Builder<'c, 'a> {
                                     Resolved::Iter(c, r.iter_scopes[(k - 1) as usize])
                                 }
                             }
-                            ComponentType::Collect => match self.collected.get(&c) {
-                                Some(items) if k >= 1 && (k as usize) <= items.len() => {
-                                    Resolved::Comp(items[(k - 1) as usize])
+                            ComponentType::Collect | ComponentType::Polyline => {
+                                match self.collected.get(&c) {
+                                    Some(items) if k >= 1 && (k as usize) <= items.len() => {
+                                        Resolved::Comp(items[(k - 1) as usize])
+                                    }
+                                    Some(_) => Resolved::Missing,
+                                    None => return Err(Error::NotIndexable(p.display.clone())),
                                 }
-                                Some(_) => Resolved::Missing,
-                                None => return Err(Error::NotIndexable(p.display.clone())),
-                            },
+                            }
                             ComponentType::PointList => {
                                 let (s, n) = (
                                     self.components.child_start[c as usize] as usize,
@@ -251,6 +254,20 @@ impl<'c, 'a> Builder<'c, 'a> {
             })?;
         Ok(self.slot(comp, pi))
     }
+}
+
+/// `arity_error` for prop `pi` of a component type.
+pub(in crate::build) fn arity_error_for(
+    e: Error,
+    component_type: ComponentType,
+    pi: usize,
+) -> Error {
+    let prop = component_type
+        .prop_defs()
+        .get(pi)
+        .map(|d| d.name)
+        .unwrap_or("args");
+    arity_error(e, component_type, prop)
 }
 
 /// Fill in the type and prop of an arity error raised by `resolve_one`.

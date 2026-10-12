@@ -109,7 +109,10 @@ impl<'a> Compiler<'a> {
                 (None, PropFrom::Planned)
                     if matches!(
                         component_type,
-                        ComponentType::Document | ComponentType::Section | ComponentType::MathInput
+                        ComponentType::Document
+                            | ComponentType::Section
+                            | ComponentType::MathInput
+                            | ComponentType::FunctionIterates
                     ) =>
                 {
                     SourcePlan::Fixed(f64::NAN)
@@ -177,12 +180,27 @@ impl<'a> Compiler<'a> {
     /// A mathInput bound to a cell (a reference child or `bindValueTo`)
     /// stays a numeric input. Unbound, its `expr` is an essential math cell
     /// holding the prefill (or its children's text) and `value` evaluates it.
+    /// A `prefill="$n"` is not a binding: the expression starts as `$n`'s
+    /// value when the input is first built.
     pub(super) fn plan_math_input(
         &mut self,
         el: NodeId,
         props: &mut [Option<SourcePlan>],
     ) -> Result<()> {
         let d = self.compiled.dast;
+        if d.attr(el, "bindValueTo").is_none()
+            && d.children(el).iter().all(|&n| self.is_blank(n))
+            && let Some(a) = d.attr(el, "prefill")
+            && self.single_macro(a).is_some()
+            && let Some(SourcePlan::Alias(Arg::Ref(p, Sel::Whole))) = props[math_input::VALUE]
+        {
+            props[math_input::EXPR] = Some(SourcePlan::MathEssentialFrom(p));
+            props[math_input::VALUE] = Some(SourcePlan::computed(
+                OpSpec::Sym(SymKind::Evaluate),
+                vec![math_input::EXPR],
+            ));
+            return Ok(());
+        }
         let nodes = match d.attr(el, "prefill") {
             Some(a) => d.attr_children(a),
             None => d.children(el),
@@ -228,8 +246,19 @@ impl<'a> Compiler<'a> {
             ..
         } = self.compiled.templates[t].elems[e];
         let nodes: Vec<NodeId> = d.children(el).to_vec();
-        let id = self.plan_sym_math(t, scope, &nodes)?;
         let mut plan = ElemPlan::new(component_type.prop_defs().len());
+        if component_type == ComponentType::Function && self.is_vector_function(t, scope, el)? {
+            // Not a curve and not a math cell: a function of several
+            // variables, or one returning a tuple, is only iterated
+            // (`plan_function_iterates` reads its text).
+            plan.set(0, SourcePlan::Fixed(f64::NAN));
+            plan.set(1, SourcePlan::Fixed(-10.0));
+            plan.set(2, SourcePlan::Fixed(10.0));
+            plan.set(3, SourcePlan::Fixed(f64::NAN));
+            self.compiled.templates[t].elems[e].props = plan.finish();
+            return Ok(());
+        }
+        let id = self.plan_sym_math(t, scope, &nodes)?;
         match component_type {
             ComponentType::Function | ComponentType::Derivative => {
                 if component_type == ComponentType::Function {
@@ -295,6 +324,17 @@ impl<'a> Compiler<'a> {
         }
         self.compiled.templates[t].elems[e].props = plan.finish();
         Ok(())
+    }
+
+    /// Whether a `<function>` takes several variables or returns a tuple.
+    fn is_vector_function(&mut self, t: TemplateId, scope: ElemId, el: NodeId) -> Result<bool> {
+        if self.function_variables(el).len() > 1 {
+            return Ok(true);
+        }
+        let nodes: Vec<NodeId> = self.compiled.dast.children(el).to_vec();
+        let (toks, _) = self.math_tokens(t, scope, &nodes)?;
+        Ok(super::expr::unwrap_parens(&toks)
+            .is_some_and(|inner| super::expr::split_top(inner, &Token::Comma).len() > 1))
     }
 
     /// `<text>`: literal text is a fixed cell holding its string id; a lone

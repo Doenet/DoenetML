@@ -174,6 +174,7 @@ impl<'c, 'a> Builder<'c, 'a> {
                 | ComponentType::Select
                 | ComponentType::Group
                 | ComponentType::RepeatForSequence
+                | ComponentType::RepeatFor
                 | ComponentType::Collect => self.number_sections(k, gate, counter),
                 ComponentType::Section => {
                     let number = match counter.before {

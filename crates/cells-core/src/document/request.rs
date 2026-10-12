@@ -78,3 +78,87 @@ impl Document {
         tick
     }
 }
+
+impl Document {
+    /// Press a `<triggerSet>` (or a lone `<updateValue>`): every
+    /// `<updateValue>` under it requests its `newValue`'s current value on
+    /// its target's cell, all in one tick, in document order.
+    pub fn trigger(&mut self, comp: crate::document::CompIdx) -> TickOutcome {
+        use crate::components::{ComponentType, prop::update_value};
+        let mut requests = Vec::new();
+        let mut stack = vec![comp];
+        while let Some(c) = stack.pop() {
+            if self.component_type(c) == ComponentType::UpdateValue {
+                let cells = self.comp_cells(c);
+                requests.push(Request {
+                    cell: cells[update_value::TARGET],
+                    value: self.cells[cells[update_value::NEW_VALUE] as usize],
+                });
+            }
+            let kids: Vec<_> = self
+                .children(c)
+                .filter_map(|k| match k {
+                    crate::document::Child::Component(k) => Some(k),
+                    _ => None,
+                })
+                .collect();
+            stack.extend(kids.into_iter().rev());
+        }
+        self.request(&requests)
+    }
+
+    /// The text of a literal attribute of the element a component was made
+    /// from: presentation the core does not keep as state (a style number,
+    /// decimals to display, a width). None for a copy, which has no
+    /// element, and for an attribute holding a reference.
+    pub fn attr_text(&self, comp: crate::document::CompIdx, name: &str) -> Option<String> {
+        use crate::dast::NodeKind;
+        let node = self.components.dast_node[comp as usize];
+        if node == crate::document::NONE {
+            return None;
+        }
+        let a = self.dast.attr(node, name)?;
+        let mut s = String::new();
+        for &n in self.dast.attr_children(a) {
+            match self.dast.kind(n) {
+                NodeKind::Text => s.push_str(self.dast.str(n)),
+                NodeKind::Macro => return None,
+                _ => {}
+            }
+        }
+        Some(s)
+    }
+
+    /// Every literal attribute of every element (`name` aside), keyed by
+    /// DAST node, for a renderer that reads presentation once per build
+    /// instead of asking per component (`attr_text`).
+    pub fn literal_attrs(&self) -> Vec<(crate::dast::NodeId, Vec<(&str, String)>)> {
+        use crate::dast::NodeKind;
+        let d = &self.dast;
+        let mut out = Vec::new();
+        for n in 0..d.len() as crate::dast::NodeId {
+            if d.kind(n) != NodeKind::Element || d.attrs(n).is_empty() {
+                continue;
+            }
+            let attrs: Vec<(&str, String)> = d
+                .attrs(n)
+                .filter(|&a| !d.attr_name(a).eq_ignore_ascii_case("name"))
+                .filter_map(|a| {
+                    let mut s = String::new();
+                    for &c in d.attr_children(a) {
+                        match d.kind(c) {
+                            NodeKind::Text => s.push_str(d.str(c)),
+                            NodeKind::Macro => return None,
+                            _ => {}
+                        }
+                    }
+                    Some((d.attr_name(a), s))
+                })
+                .collect();
+            if !attrs.is_empty() {
+                out.push((n, attrs));
+            }
+        }
+        out
+    }
+}

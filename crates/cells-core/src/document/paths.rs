@@ -53,7 +53,7 @@ impl Document {
                     continue;
                 }
                 match self.component_type(c) {
-                    ComponentType::RepeatForSequence => {
+                    ct if ct.count_prop().is_some() => {
                         let r = self.structure.repeats.iter().find(|r| r.comp == c)?;
                         iteration = Some(*r.iter_scopes.get(k.checked_sub(1)?)?);
                     }
@@ -143,7 +143,7 @@ impl Document {
             if Some(pc) == scope {
                 return true;
             }
-            if self.component_type(pc) == ComponentType::RepeatForSequence {
+            if self.component_type(pc).count_prop().is_some() {
                 return false;
             }
             // A built case that is not the active one is not there.

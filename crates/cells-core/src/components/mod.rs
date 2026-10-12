@@ -28,6 +28,7 @@ mod values;
 
 pub use containers::SECTION_TAGS;
 pub use geometry::MAX_VERTICES;
+pub use values::MAX_TUPLE;
 
 /// Declares every component type from one list: the `ComponentType` enum,
 /// `ComponentType::ALL`, and `COMPONENT_TYPES`, all in list order. Each
@@ -115,6 +116,50 @@ component_types! {
     Group => containers::GROUP,
     /// `<section>` and its kin (`<problem>`, `<exercise>`, ...).
     Section => containers::SECTION,
+    /// `<title>`.
+    Title => containers::TITLE,
+    /// `<ref>`.
+    Ref => containers::REF,
+    /// `<ul>`.
+    List => containers::LIST,
+    /// `<li>`.
+    ListItem => containers::LIST_ITEM,
+    /// `<m>`.
+    InlineMath => containers::INLINE_MATH,
+    /// `<md>` and `<me>`.
+    DisplayMath => containers::DISPLAY_MATH,
+    /// `<mrow>`.
+    MathRow => containers::MATH_ROW,
+    /// `<aside>`.
+    Aside => containers::ASIDE,
+    /// `<sideBySide>`.
+    SideBySide => containers::SIDE_BY_SIDE,
+    /// `<stack>`.
+    Stack => containers::STACK,
+    /// `<tabular>`.
+    Tabular => containers::TABULAR,
+    /// `<spreadsheet>`.
+    Spreadsheet => containers::SPREADSHEET,
+    /// `<row>`.
+    Row => containers::ROW,
+    /// `<cell>`.
+    Cell => containers::CELL,
+    /// `<legend>`.
+    Legend => containers::LEGEND,
+    /// `<triggerSet>`.
+    TriggerSet => containers::TRIGGER_SET,
+    /// `<updateValue>`.
+    UpdateValue => values::UPDATE_VALUE,
+    /// `<clampNumber>`.
+    ClampNumber => values::CLAMP_NUMBER,
+    /// A tuple of three or more numbers (a `<math>`, an iterate).
+    Tuple => values::TUPLE,
+    /// `<repeat>`.
+    RepeatFor => structure::REPEAT_FOR,
+    /// `<functionIterates>`.
+    FunctionIterates => structure::FUNCTION_ITERATES,
+    /// `<polyline>`.
+    Polyline => geometry::POLYLINE,
 }
 
 /// What the core knows about a type apart from how it is planned and
@@ -125,8 +170,8 @@ pub struct ComponentTypeInfo {
     pub props: &'static [PropDef],
     /// The prop a bare `$name` reference resolves to.
     pub default_prop: Option<&'static str>,
-    /// Point-valued props that are views over two single-cell props.
-    pub views: &'static [(&'static str, [&'static str; 2])],
+    /// Point- and tuple-valued props that are views over single-cell props.
+    pub views: &'static [(&'static str, &'static [&'static str])],
     /// Array props whose items are points.
     pub arrays: &'static [ArrayProp],
     /// The current core's spellings of a few props, accepted in references
@@ -205,7 +250,7 @@ impl ComponentType {
     pub fn virtual_prop(self, name: &str) -> Option<&'static [&'static str]> {
         let info = self.info();
         if let Some((_, parts)) = info.views.iter().find(|(v, _)| *v == name) {
-            return Some(parts);
+            return Some(*parts);
         }
         info.arrays.iter().find_map(|a| {
             let k: usize = name.strip_prefix(a.item)?.parse().ok()?;
@@ -250,6 +295,17 @@ impl ComponentType {
     /// Function, derivative and answer: planned as math cells.
     pub fn symbolic(self) -> bool {
         self.info().flags & SYMBOLIC != 0
+    }
+
+    /// The structural cell of a type built like a repeat (one scope per
+    /// iteration): its `count` prop.
+    pub fn count_prop(self) -> Option<usize> {
+        match self {
+            ComponentType::RepeatForSequence
+            | ComponentType::RepeatFor
+            | ComponentType::FunctionIterates => self.prop_index("count"),
+            _ => None,
+        }
     }
 
     pub fn sticky_layout(self) -> Option<(crate::tick::snap::Shape, usize, usize)> {

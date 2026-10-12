@@ -50,6 +50,7 @@ impl ComponentTable {
                 }
                 match self.component_type[k as usize] {
                     ComponentType::RepeatForSequence
+                    | ComponentType::RepeatFor
                     | ComponentType::Collect
                     | ComponentType::Group
                     | ComponentType::Select

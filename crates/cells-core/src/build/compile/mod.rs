@@ -11,6 +11,7 @@ mod copies;
 pub(in crate::build) mod expr;
 mod fix;
 mod geometry;
+mod iterates;
 pub(in crate::build) mod plan;
 mod planner;
 mod refs;
@@ -220,15 +221,33 @@ impl<'a> Compiler<'a> {
         let child_scope = e;
         let _ = name_scope;
         match component_type {
-            ComponentType::RepeatForSequence => {
+            ComponentType::FunctionIterates => {
+                // One hidden tuple per iteration, planned with the element
+                // (`plan_function_iterates`); it is element 0 of the body.
+                let sub = self.compiled.templates.len();
+                self.compiled.templates.push(Template {
+                    parent: Some((t, e)),
+                    ..Default::default()
+                });
+                let it = self.add_synthetic(sub, ComponentType::Tuple, NONE);
+                self.compiled.templates[sub].children = vec![Child::Elem(it)];
+                self.compiled.templates[t].elems[e].body = Body::Repeat { template: sub };
+            }
+            ComponentType::RepeatForSequence | ComponentType::RepeatFor => {
                 let sub = self.compiled.templates.len();
                 self.compiled.templates.push(Template {
                     parent: Some((t, e)),
                     ..Default::default()
                 });
                 // Hidden iteration components first, so `$v` and `$i` resolve
-                // anywhere inside the template.
-                if let Some(vn) = self.attr_name_str(el, "valueName") {
+                // anywhere inside the template. A `<repeat>`'s item is a
+                // tuple, element 0 of the body, planned with the repeat
+                // (`plan_repeat_for`).
+                if component_type == ComponentType::RepeatFor {
+                    if let Some(vn) = self.attr_name_str(el, "valueName") {
+                        self.add_synthetic(sub, ComponentType::Tuple, vn);
+                    }
+                } else if let Some(vn) = self.attr_name_str(el, "valueName") {
                     let v = self.add_synthetic(sub, ComponentType::SequenceValue, vn);
                     // from and step alias the repeat's own props (one hop up);
                     // k is the iteration position; the rest is the type's chain.
@@ -346,7 +365,8 @@ impl<'a> Compiler<'a> {
     }
 
     /// `<math>`. A tuple-valued math (`<math>(a, b)</math>`) is a point for
-    /// the cells core: two cells, draggable as a direction source.
+    /// the cells core: two cells, draggable as a direction source. With
+    /// three or more entries it is a tuple, one cell per entry.
     fn plan_math_elem(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let d = self.compiled.dast;
         let Elem {
@@ -355,7 +375,7 @@ impl<'a> Compiler<'a> {
             ..
         } = self.compiled.templates[t].elems[e];
         let nodes: Vec<NodeId> = d.children(el).to_vec();
-        let (toks, _) = self.math_tokens(t, scope, &nodes)?;
+        let (toks, text) = self.math_tokens(t, scope, &nodes)?;
         if let Some(inner) = expr::unwrap_parens(&toks)
             && expr::split_top(inner, &Token::Comma).len() == 2
         {
@@ -363,6 +383,30 @@ impl<'a> Compiler<'a> {
             let hide = ComponentType::Point.prop_defs()[prop::point::HIDE].default;
             self.compiled.templates[t].elems[e].component_type = ComponentType::Point;
             self.compiled.templates[t].elems[e].props = vec![x, y, SourcePlan::Default(hide)];
+            return Ok(());
+        }
+        if let Some(inner) = expr::unwrap_parens(&toks)
+            && expr::split_top(inner, &Token::Comma).len() > 2
+        {
+            let parts = expr::split_top(inner, &Token::Comma);
+            if parts.len() > crate::components::MAX_TUPLE {
+                return Err(Error::Unsupported(format!(
+                    "a tuple of {} entries (at most {})",
+                    parts.len(),
+                    crate::components::MAX_TUPLE
+                )));
+            }
+            let mut props = vec![SourcePlan::Fixed(parts.len() as f64)];
+            for part in &parts {
+                let id = self.parse_tokens(part, &text)?;
+                props.push(self.plan_from_expr(id));
+            }
+            props.resize(
+                1 + crate::components::MAX_TUPLE,
+                SourcePlan::Fixed(f64::NAN),
+            );
+            self.compiled.templates[t].elems[e].component_type = ComponentType::Tuple;
+            self.compiled.templates[t].elems[e].props = props;
             return Ok(());
         }
         let id = self.plan_sym_math(t, scope, &nodes)?;

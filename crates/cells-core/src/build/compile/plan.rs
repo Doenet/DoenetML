@@ -63,6 +63,14 @@ pub(in crate::build) enum SourcePlan {
     /// An essential math cell (an unbound mathInput's `expr`, an answer's
     /// `submitted`) holding this expression, or blank (NaN).
     MathEssential(Option<Tree>),
+    /// An essential math cell whose initial expression is the value the
+    /// reference names when the cell is first built (a mathInput's
+    /// `prefill="$n"`): a seed, not a binding.
+    MathEssentialFrom(RefId),
+    /// `first` in the first iteration of the enclosing repeat, `rest` in
+    /// the others (a function iterate: the initial value, else `f` of the
+    /// previous iterate). Chosen per instance, like `IterIndex`.
+    FirstIteration(Box<SourcePlan>, Box<SourcePlan>),
     /// Output `k` of the vector instruction headed at own slot `head`
     /// (an `Op(OpSpec::Vec(..))`, which is output 0).
     VecOut(u8, u8),

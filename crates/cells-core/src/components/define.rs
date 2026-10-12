@@ -205,7 +205,7 @@ impl ComponentTypeInfo {
     }
     pub(super) const fn views(
         mut self,
-        views: &'static [(&'static str, [&'static str; 2])],
+        views: &'static [(&'static str, &'static [&'static str])],
     ) -> Self {
         self.views = views;
         self

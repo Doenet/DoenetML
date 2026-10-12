@@ -202,6 +202,25 @@ impl Core {
         self.doc.strings.bytes.len()
     }
 
+    /// Literal attributes per DAST node, JSON `{node: {attr: text}}`: the
+    /// presentation a renderer reads by a component's node (style numbers,
+    /// decimals, widths), which is not state.
+    pub fn node_attrs_json(&self) -> String {
+        let map: serde_json::Map<String, serde_json::Value> = self
+            .doc
+            .literal_attrs()
+            .into_iter()
+            .map(|(n, attrs)| {
+                let obj: serde_json::Map<String, serde_json::Value> = attrs
+                    .into_iter()
+                    .map(|(k, v)| (k.to_string(), serde_json::Value::String(v)))
+                    .collect();
+                (n.to_string(), serde_json::Value::Object(obj))
+            })
+            .collect();
+        serde_json::Value::Object(map).to_string()
+    }
+
     /// Apply cell-addressed requests. Returns the changed cell indices. When
     /// the tick rebuilt the document (`last_rebuilt`), the list is empty and
     /// every pointer and length above must be re-read.

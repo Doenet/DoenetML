@@ -127,9 +127,10 @@ impl Document {
 
     /// The iteration count a repeat's `count` cell currently asks for.
     pub fn repeat_count(&self, r: &Repeat) -> u32 {
-        let pi = ComponentType::RepeatForSequence
-            .prop_index("count")
-            .unwrap();
+        let pi = self
+            .component_type(r.comp)
+            .count_prop()
+            .expect("a repeat has a count");
         let v = self.cells[self.comp_cells(r.comp)[pi] as usize];
         if v.is_nan() || v < 0.0 {
             0

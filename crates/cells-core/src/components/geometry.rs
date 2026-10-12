@@ -14,7 +14,7 @@ pub const MAX_VERTICES: usize = 16;
 pub(super) const POINT: ComponentTypeInfo = info(&["point"], POINT_PROPS)
     .copyable()
     .default_prop("coords")
-    .views(&[("coords", ["x", "y"])])
+    .views(&[("coords", &["x", "y"])])
     .sticky(Shape::Point, point::X, 1);
 
 // `hide` is a boolean in the current core; here it is a 0/1 cell.
@@ -35,8 +35,8 @@ pub mod point {
 pub(super) const CIRCLE: ComponentTypeInfo = info(&["circle"], CIRCLE_PROPS)
     .copyable()
     .views(&[
-        ("center", ["centerX", "centerY"]),
-        ("numericalCenter", ["cx", "cy"]),
+        ("center", &["centerX", "centerY"]),
+        ("numericalCenter", &["cx", "cy"]),
     ])
     .arrays(&[ArrayProp {
         names: &["throughPoints"],
@@ -213,3 +213,11 @@ pub mod polygon {
 /// `<pointList extend="$l.points">`: its children are points aliasing the
 /// items of an array prop.
 pub(super) const POINT_LIST: ComponentTypeInfo = info(&["pointList"], &[]);
+
+/// `<polyline vertices="$r">`: its children are copies of the points
+/// `vertices` names (a repeat's points, gathered as a `<collect>` does),
+/// so its length follows the repeat. `numVertices` counts them. Only
+/// drawn: dragging a polyline is not supported.
+pub(super) const POLYLINE: ComponentTypeInfo = info(&["polyline"], POLYLINE_PROPS).copyable();
+
+const POLYLINE_PROPS: &[PropDef] = &props([planned("numVertices")]);

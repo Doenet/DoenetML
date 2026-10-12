@@ -112,3 +112,65 @@ pub mod answer {
     pub const CREDIT: usize = at(ANSWER_PROPS, "credit");
     pub const WEIGHT: usize = at(ANSWER_PROPS, "weight");
 }
+
+/// `<clampNumber lowerValue="0" upperValue="1">x</clampNumber>`: its
+/// children held between the bounds. A request on `value` inverts through
+/// the bounds' projections to the unclamped number.
+pub(super) const CLAMP_NUMBER: ComponentTypeInfo = info(&["clampNumber"], CLAMP_NUMBER_PROPS)
+    .copyable()
+    .default_prop("value");
+
+const CLAMP_NUMBER_PROPS: &[PropDef] = &props([
+    children("unclamped"),
+    attr("lowerValue", 0.0),
+    attr("upperValue", 1.0),
+    computed("atLeastLower", OpSpec::Max, &["unclamped", "lowerValue"]),
+    computed("value", OpSpec::Min, &["atLeastLower", "upperValue"]),
+]);
+
+/// Most entries a tuple holds.
+pub const MAX_TUPLE: usize = 8;
+
+/// A tuple of numbers: a `<math>` that is `(a, b, c)` with three or more
+/// entries (two make a point), and the iterates of a `<functionIterates>`.
+/// `n` is how many entries it has; `x1`, ... the entries, unused ones NaN.
+/// `coords` is the view over the entries, so `$t[2]` is `x2`.
+pub(super) const TUPLE: ComponentTypeInfo = info(&["tuple"], TUPLE_PROPS)
+    .copyable()
+    .internal()
+    .default_prop("coords")
+    .views(&[("coords", &TUPLE_ENTRIES)]);
+
+const TUPLE_ENTRIES: [&str; MAX_TUPLE] = ["x1", "x2", "x3", "x4", "x5", "x6", "x7", "x8"];
+
+const TUPLE_PROPS: &[PropDef] = &props({
+    let mut out = [planned(""); 1 + MAX_TUPLE];
+    out[0] = planned("n");
+    let mut i = 0;
+    while i < MAX_TUPLE {
+        out[1 + i] = planned(TUPLE_ENTRIES[i]);
+        i += 1;
+    }
+    out
+});
+
+pub mod tuple {
+    use super::*;
+    pub const N: usize = at(TUPLE_PROPS, "n");
+    /// The first entry; entry k (0-based) is at `X1 + k`.
+    pub const X1: usize = at(TUPLE_PROPS, "x1");
+}
+
+/// `<updateValue target="$a" newValue="$b"/>`: `target` aliases the
+/// target's value cell, so performing it (`Document::trigger`) is a request
+/// on that cell for `newValue`'s current value.
+pub(super) const UPDATE_VALUE: ComponentTypeInfo = info(&["updateValue"], UPDATE_VALUE_PROPS);
+
+const UPDATE_VALUE_PROPS: &[PropDef] =
+    &props([attr("target", f64::NAN), attr("newValue", f64::NAN)]);
+
+pub mod update_value {
+    use super::*;
+    pub const TARGET: usize = at(UPDATE_VALUE_PROPS, "target");
+    pub const NEW_VALUE: usize = at(UPDATE_VALUE_PROPS, "newValue");
+}

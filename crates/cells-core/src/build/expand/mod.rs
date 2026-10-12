@@ -112,6 +112,9 @@ pub(in crate::build) struct Builder<'c, 'a> {
     pub(in crate::build) choice_insts: Vec<ChoiceInst>,
     pub(in crate::build) comp_choice: HashMap<CompIdx, usize>,
     pub(in crate::build) missing: Option<SlotId>,
+    /// Essential math slots seeded from another slot's value when first
+    /// built (`SourcePlan::MathEssentialFrom`): (slot, source slot).
+    pub(in crate::build) seeds: Vec<(SlotId, SlotId)>,
     pub(in crate::build) arena: Arena,
     pub(in crate::build) root: CompIdx,
 }
@@ -166,6 +169,7 @@ impl<'c, 'a> Builder<'c, 'a> {
             choice_insts: Vec::new(),
             comp_choice: HashMap::new(),
             missing: None,
+            seeds: Vec::new(),
             arena: Arena::default(),
             root: 0,
         }
@@ -717,7 +721,18 @@ impl<'c, 'a> Builder<'c, 'a> {
             // `self.compiled` is a shared borrow independent of `self`'s own fields,
             // so plans are read in place while sources are written.
             let c: &'c Compiled<'a> = self.compiled;
-            let source = match &c.templates[inst.template].elems[inst.elem].props[pi] {
+            let plan = match &c.templates[inst.template].elems[inst.elem].props[pi] {
+                SourcePlan::FirstIteration(first, rest) => {
+                    if self.scopes[inst.scope].2 == 1 {
+                        &**first
+                    } else {
+                        &**rest
+                    }
+                }
+                plan => plan,
+            };
+            let source = match plan {
+                SourcePlan::FirstIteration(..) => unreachable!("nested FirstIteration"),
                 SourcePlan::Literal(v) => Source::Literal(*v),
                 SourcePlan::Default(v) => Source::Default(*v),
                 SourcePlan::Inherit => {
@@ -779,12 +794,19 @@ impl<'c, 'a> Builder<'c, 'a> {
                         None => Source::Literal(f64::NAN),
                     }
                 }
+                SourcePlan::MathEssentialFrom(p) => {
+                    self.math_slots.push(s);
+                    let from = self
+                        .resolve_one(*p, inst.scope)
+                        .map_err(|e| resolve::arity_error_for(e, component_type, pi))?;
+                    self.seeds.push((s, from));
+                    Source::Literal(f64::NAN)
+                }
                 SourcePlan::VecOut(head, k) => Source::VecOut(self.slot(comp, *head as usize), *k),
             };
-            if let (Source::Fixed(h), SourcePlan::MathHandle(..) | SourcePlan::SymExpr(..)) = (
-                &source,
-                &c.templates[inst.template].elems[inst.elem].props[pi],
-            ) && !h.is_nan()
+            if let (Source::Fixed(h), SourcePlan::MathHandle(..) | SourcePlan::SymExpr(..)) =
+                (&source, plan)
+                && !h.is_nan()
             {
                 self.math_slots.push(s);
             }

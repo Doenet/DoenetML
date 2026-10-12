@@ -40,6 +40,22 @@ impl<'a> Compiler<'a> {
             K::Group => Props,
             K::StickyGroup => Props,
             K::Section => PropsThen(Self::plan_section_flags),
+            K::Title => Props,
+            K::Ref => Props,
+            K::List => Props,
+            K::ListItem => Props,
+            K::InlineMath => Props,
+            K::DisplayMath => Props,
+            K::MathRow => Props,
+            K::Aside => Props,
+            K::SideBySide => Props,
+            K::Stack => Props,
+            K::Tabular => Props,
+            K::Spreadsheet => Props,
+            K::Row => Props,
+            K::Cell => Props,
+            K::Legend => Props,
+            K::TriggerSet => Props,
             // Geometry
             K::Point => Geometric(Self::plan_point),
             K::Circle => Geometric(Self::plan_circle),
@@ -47,13 +63,17 @@ impl<'a> Compiler<'a> {
             K::LineSegment => Geometric(Self::plan_segment),
             K::Polygon => Geometric(Self::plan_polygon),
             K::PointList => Whole(Self::reject_point_list),
+            K::Polyline => Whole(Self::plan_polyline),
             // Inputs
             K::NumberInput => Props,
             K::BooleanInput => Props,
             K::MathInput => PropsThen(Self::plan_math_input),
             K::Slider => Props,
+            K::UpdateValue => Props,
             // Values
             K::Number => Props,
+            K::ClampNumber => Props,
+            K::Tuple => Whole(Self::reject_tuple),
             K::Text => Whole(Self::plan_text_elem),
             K::Op => Props,
             K::Math => Whole(Self::plan_math_elem),
@@ -63,6 +83,8 @@ impl<'a> Compiler<'a> {
             K::Answer => Whole(Self::plan_symbolic),
             // Structure
             K::RepeatForSequence => Props,
+            K::RepeatFor => Whole(Self::plan_repeat_for),
+            K::FunctionIterates => Whole(Self::plan_function_iterates),
             K::SequenceValue => Props,
             K::Collect => Whole(Self::plan_collect),
             K::ConditionalContent => Whole(Self::plan_choice_elem),
@@ -78,6 +100,11 @@ impl<'a> Compiler<'a> {
             attr: "extend".into(),
             text: "<pointList> needs extend=\"$shape.points\"".into(),
         })
+    }
+
+    /// A tuple is made from a `<math>` or by the builder, never by a tag.
+    fn reject_tuple(&mut self, _: TemplateId, _: ElemId) -> Result<()> {
+        Err(Error::Unsupported("extending a tuple".into()))
     }
 
     /// A `<text>` that extends another is planned from its prop table.

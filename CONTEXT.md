@@ -139,6 +139,19 @@ and the result is requested of the input. See ADR 0003.
 **Iteration** — One expansion of a repeat's template, identified by its
 1-based position. An iteration's essential keys include that position.
 
+**Tuple** — A value of three or more numbers, one cell per entry: a
+`<math>` written `(a, b, c)` (two entries make a point) or one iterate of a
+`<functionIterates>`. `$t[k]` is entry `k`.
+
+**Function iterates** — A function applied repeatedly to an initial value,
+built as a repeat whose iteration `k` holds one tuple: the initial value
+for `k = 1`, else the function lowered over iteration `k - 1`'s cells. The
+number of iterates is its structural cell.
+
+**Seed** — The value an essential cell takes when it is first built, read
+from another cell (a mathInput's `prefill="$n"`). Unlike an alias, it does
+not bind the two afterwards.
+
 **Iteration count** — The structural cell holding how many iterations a repeat
 has: the floor of its driving value, clamped to zero and the repeat's cap, with
 a non-number counting as zero.

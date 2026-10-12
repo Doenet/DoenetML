@@ -111,6 +111,7 @@ impl<'c, 'a> Builder<'c, 'a> {
             cell_def_slot[(head_cell + k as CellIdx) as usize] = s as SlotId;
         }
         let slot_to_cell: Vec<CellIdx> = roots.iter().map(|&r| slot_cell[r as usize]).collect();
+        self.seed_cells(&mut cells, &slot_to_cell, n_essential + n_fixed)?;
         lap("number cells");
 
         let mut instrs = Vec::with_capacity(derived_defs.len());
@@ -314,6 +315,50 @@ impl<'c, 'a> Builder<'c, 'a> {
         h
     }
 
+    /// Give each seeded essential math cell (`SourcePlan::MathEssentialFrom`)
+    /// its first expression: the source cell's value, unless the cell
+    /// carried a value over from an earlier build. The source must be
+    /// essential or fixed, so its value is known before anything computes.
+    fn seed_cells(
+        &mut self,
+        cells: &mut [f64],
+        slot_to_cell: &[CellIdx],
+        n_known: usize,
+    ) -> Result<()> {
+        let math_cells: std::collections::HashSet<CellIdx> = self
+            .math_slots
+            .iter()
+            .map(|&s| slot_to_cell[s as usize])
+            .collect();
+        for &(s, from) in &self.seeds {
+            let (scope, tslot) = self.template_slot(s);
+            let carried = self
+                .carryover
+                .structure
+                .essential_values
+                .get(scope as usize)
+                .and_then(|row| row.get(tslot as usize).copied().flatten())
+                .is_some();
+            if carried {
+                continue;
+            }
+            let src = slot_to_cell[from as usize];
+            if src as usize >= n_known {
+                return Err(Error::Unsupported(format!(
+                    "prefill=\"${}\": a prefill reference must name a value that is not computed",
+                    self.slot_label(from)
+                )));
+            }
+            let v = cells[src as usize];
+            cells[slot_to_cell[s as usize] as usize] = if math_cells.contains(&src) || v.is_nan() {
+                v
+            } else {
+                self.engine.import(&Tree::Num(v)) as f64
+            };
+        }
+        Ok(())
+    }
+
     /// The (scope, template slot) an essential slot's value is saved under.
     /// Only template elements have essential slots; copies alias theirs.
     pub(in crate::build) fn template_slot(&self, slot: SlotId) -> (ScopeId, u32) {
@@ -331,9 +376,6 @@ impl<'c, 'a> Builder<'c, 'a> {
     /// one; a count that reads a cell inside another repeat's iterations adds
     /// one, and is flagged (`cross`) since authors can avoid it.
     pub(in crate::build) fn structural_depths(&self) -> (Vec<u32>, Vec<bool>) {
-        let count_pi = ComponentType::RepeatForSequence
-            .prop_index("count")
-            .unwrap();
         let mut owner: HashMap<ScopeId, usize> = HashMap::new();
         for (ri, r) in self.repeats.iter().enumerate() {
             for &s in &r.iter_scopes {
@@ -362,6 +404,9 @@ impl<'c, 'a> Builder<'c, 'a> {
                 reads[ri].push(o);
             }
             stack.clear();
+            let count_pi = self.components.component_type[r.comp as usize]
+                .count_prop()
+                .expect("a repeat has a count");
             stack.push(self.slot(r.comp, count_pi));
             touched.clear();
             while let Some(sl) = stack.pop() {
