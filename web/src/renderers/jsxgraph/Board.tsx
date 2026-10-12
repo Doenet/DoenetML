@@ -13,7 +13,7 @@ import type { CellStore } from "../../core";
 import { useStore } from "../../hooks";
 import { Children } from "../index";
 import { JSX_UPDATE, RENDERER } from "../kind";
-import { addNavigationButtons, createAxes, GRAPH_SIZE, initBoardOptions } from "./doenet";
+import { addNavigationButtons, createAxes, GRAPH_SIZE, initBoardOptions, styleFor } from "./doenet";
 
 export interface BoardElement {
   /** The cells this element reads, in the order `sync` receives them. */
@@ -219,8 +219,14 @@ export function JsxGraph({ idx }: { idx: number }) {
     };
     const onBBox = () => {
       if (settingBBox.current) return;
-      // Same order as the cells: xmin, ymax, xmax, ymin.
+      // Same order as the cells: xmin, ymax, xmax, ymin. A box that only
+      // differs by rounding (JSXGraph recomputes it from its origin and
+      // units) is not a pan: requesting it would write 49.999... into
+      // inputs the bounds are bound to.
       const bbox: number[] = board.getBoundingBox();
+      const v = store.cells();
+      const tol = 1e-9 * Math.max(Math.abs(v[cells[2]] - v[cells[0]]), Math.abs(v[cells[1]] - v[cells[3]]));
+      if (cells.every((c, i) => Math.abs(bbox[i] - v[c]) <= tol)) return;
       store.request(cells.map((c, i) => [c, bbox[i]]));
       if (store.kind === "main") apply();
     };
@@ -240,7 +246,7 @@ export function JsxGraph({ idx }: { idx: number }) {
   }, [handle, store]);
 
   return (
-    <>
+    <div style={{ position: "relative", width: `${GRAPH_SIZE}px`, maxWidth: "100%" }}>
       <div
         id={id}
         ref={container}
@@ -258,7 +264,36 @@ export function JsxGraph({ idx }: { idx: number }) {
           </div>
         </BoardContext.Provider>
       )}
-    </>
+      <GraphLegend idx={idx} />
+    </div>
+  );
+}
+
+/** Graph children a legend's labels describe, in order (Doenet's legend
+ * skips points). */
+const CURVE_TYPES = new Set(["polyline", "line", "lineSegment", "circle", "polygon", "function"]);
+
+/** `<legend>`: its k-th label beside a swatch of the graph's k-th curve,
+ * in the board's upper right. */
+function GraphLegend({ idx }: { idx: number }) {
+  const store = useStore();
+  const kids = store.comps.children(idx).filter((ch): ch is { c: number } => "c" in ch).map((ch) => ch.c);
+  const legend = kids.find((c) => store.comps.componentType(c) === "legend");
+  if (legend === undefined) return null;
+  const curves = kids.filter((c) => CURVE_TYPES.has(store.comps.componentType(c)));
+  const labels = store.comps.children(legend).filter((ch): ch is { c: number } => "c" in ch).map((ch) => ch.c);
+  return (
+    <div className="legend" data-comp={legend} style={{ position: "absolute", top: "20px", right: "8px", background: "var(--canvas)", border: "1px solid var(--canvasText)", padding: "4px 8px", fontSize: "13px", zIndex: 10 }}>
+      {labels.map((l, i) => {
+        const style = styleFor(curves[i] !== undefined ? store.comps.attr(curves[i], "styleNumber") : null);
+        return (
+          <div key={l} style={{ display: "flex", alignItems: "center", gap: "6px" }}>
+            <svg width="24" height="10" aria-hidden><line x1="0" y1="5" x2="24" y2="5" stroke={style.lineColor} strokeOpacity={style.lineOpacity} strokeWidth={style.lineWidth} /></svg>
+            <Children idx={l} inGraph={false} />
+          </div>
+        );
+      })}
+    </div>
   );
 }
 
@@ -266,6 +301,13 @@ export function JsxGraph({ idx }: { idx: number }) {
  * the component's current cells: after a rebuild the indices change, the
  * element stays. */
 export function useBoardElement(idx: number, props: readonly string[], make: (h: BoardHandle) => BoardElement) {
+  const store = useStore();
+  useBoardElementCells(idx, () => props.map((p) => store.comps.cell(idx, p)), make);
+}
+
+/** `useBoardElement` over any cells, not only the component's own props
+ * (a polyline reads its vertices' cells). */
+export function useBoardElementCells(idx: number, cellsOf: () => number[], make: (h: BoardHandle) => BoardElement) {
   const store = useStore();
   const h = useBoard();
   const el = useRef<BoardElement | null>(null);
@@ -280,7 +322,7 @@ export function useBoardElement(idx: number, props: readonly string[], make: (h:
     };
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, [h]);
-  const cells = props.map((p) => store.comps.cell(idx, p));
+  const cells = cellsOf();
   const key = cells.join(",");
   // A rebuild drops every per-cell subscription, so the table is a
   // dependency too: indices that came out the same still re-subscribe.
@@ -299,9 +341,10 @@ export function useBoardElement(idx: number, props: readonly string[], make: (h:
   }, [h, store, store.comps, idx, key]);
 }
 
-/** Where to press to drag the named component, for tests. */
-export function locate(store: CellStore, name: string): [number, number] | null {
-  const c = store.comps.byName(name);
+/** Where to press to drag the named component (or the component with
+ * that index), for tests. */
+export function locate(store: CellStore, name: string | number): [number, number] | null {
+  const c = typeof name === "number" ? name : store.comps.byName(name);
   if (c === null) return null;
   for (const h of boards) {
     const e = h.byComp.get(c);

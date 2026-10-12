@@ -13,8 +13,20 @@
 //   packages/doenetml/src/Viewer/renderers/JSXGraphRenderer.tsx   initBoard options
 // Re-sync by diffing those files; the copied bodies keep Doenet's structure.
 
-// Style 1 of the default palette: the only style the prototype has.
-export const STYLE = {
+export interface Style {
+  lineOpacity: number;
+  lineWidth: number;
+  markerOpacity: number;
+  markerStyle: string;
+  markerSize: number;
+  fillOpacity: number;
+  lineColor: string;
+  markerColor: string;
+  fillColor: string;
+}
+
+// Style 1 of the default palette.
+export const STYLE: Style = {
   lineOpacity: 0.7,
   lineWidth: 4,
   markerOpacity: 0.7,
@@ -24,7 +36,20 @@ export const STYLE = {
   lineColor: "#1f5dff",
   markerColor: "#1f5dff",
   fillColor: "#1f5dff",
-} as const;
+};
+
+/** Styles 1 to 3 of the default palette (packages/utils/src/style/palettes/default.ts),
+ * light mode; `styleNumber` picks one. */
+const STYLES: Record<number, Style> = {
+  1: STYLE,
+  2: { lineOpacity: 0.7, lineWidth: 2, markerOpacity: 0.7, markerStyle: "square", markerSize: 5, fillOpacity: 0.3, lineColor: "#D4042D", markerColor: "#D4042D", fillColor: "#D4042D" },
+  3: { lineOpacity: 0.7, lineWidth: 3, markerOpacity: 0.7, markerStyle: "triangle", markerSize: 5, fillOpacity: 0.3, lineColor: "#a6510c", markerColor: "#a6510c", fillColor: "#a6510c" },
+};
+
+/** The style an element's `styleNumber` attribute names (style 1 otherwise). */
+export function styleFor(styleNumber: string | null): Style {
+  return STYLES[Number(styleNumber)] ?? STYLE;
+}
 
 export const HANDLE_COLOR = "#404040";
 
@@ -55,20 +80,20 @@ export function normalizePointStyle(style: string, offGraphIndicatorSides: [numb
   else return style;
 }
 
-export function pointAttributes(sides: [number, number]): Record<string, any> {
+export function pointAttributes(sides: [number, number], style: Style = STYLE): Record<string, any> {
   return {
     name: "",
     withlabel: false,
     fixed: true,
     layer: POINT_LAYER_OFFSET,
-    fillColor: STYLE.markerColor,
+    fillColor: style.markerColor,
     strokeColor: "none",
-    strokeOpacity: STYLE.markerOpacity,
-    fillOpacity: STYLE.markerOpacity,
+    strokeOpacity: style.markerOpacity,
+    fillOpacity: style.markerOpacity,
     highlightFillColor: "var(--mainGray)",
     highlightStrokeColor: "var(--lightBlue)",
-    size: normalizePointSize(STYLE.markerSize, STYLE.markerStyle),
-    face: normalizePointStyle(STYLE.markerStyle, sides),
+    size: normalizePointSize(style.markerSize, style.markerStyle),
+    face: normalizePointStyle(style.markerStyle, sides),
     highlight: true,
     showInfoBox: false,
   };
@@ -92,15 +117,15 @@ function baseAttributes(layerOffset: number): Record<string, any> {
   return { name: "", visible: true, withlabel: false, fixed: false, layer: layerOffset, highlight: true };
 }
 
-export function lineLikeAttributes(layerOffset: number): Record<string, any> {
+export function lineLikeAttributes(layerOffset: number, style: Style = STYLE): Record<string, any> {
   return {
     ...baseAttributes(layerOffset),
-    strokeColor: STYLE.lineColor,
-    strokeOpacity: STYLE.lineOpacity,
-    highlightStrokeColor: STYLE.lineColor,
-    highlightStrokeOpacity: STYLE.lineOpacity * 0.5,
-    strokeWidth: STYLE.lineWidth,
-    highlightStrokeWidth: STYLE.lineWidth,
+    strokeColor: style.lineColor,
+    strokeOpacity: style.lineOpacity,
+    highlightStrokeColor: style.lineColor,
+    highlightStrokeOpacity: style.lineOpacity * 0.5,
+    strokeWidth: style.lineWidth,
+    highlightStrokeWidth: style.lineWidth,
     dash: 0,
   };
 }

@@ -12,7 +12,10 @@ import { Circle, Line, Polygon } from "./Shapes";
 import { CaseView, ChoiceView, SectionView, TextView } from "./Choice";
 import { RENDERER } from "./kind";
 import { JsxGraph } from "./jsxgraph/Board";
-import { JxCircle, JxLine, JxPoint, JxPolygon } from "./jsxgraph/elements";
+import { JxCircle, JxLine, JxPoint, JxPolygon, JxPolyline } from "./jsxgraph/elements";
+import {
+  Aside, Cell, DisplayMath, InlineMath, List, ListItem, NumberText, Ref, Row, SideBySide, Stack, Table, Title, TriggerSet, TupleView,
+} from "./Text";
 
 const JSX = RENDERER !== "svg";
 
@@ -26,7 +29,43 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
     case "point":
       return JSX && inGraph ? <JxPoint idx={idx} /> : <Point idx={idx} inGraph={inGraph} />;
     case "number":
-      return <NumberView idx={idx} />;
+    case "clampNumber":
+      return store.comps.attr(idx, "displayDecimals") !== null ? <NumberText idx={idx} /> : <NumberView idx={idx} />;
+    case "tuple":
+      return <TupleView idx={idx} />;
+    case "polyline":
+      return !inGraph ? null : JSX ? <JxPolyline idx={idx} /> : null;
+    case "title":
+      return <Title idx={idx} />;
+    case "ref":
+      return <Ref idx={idx} />;
+    case "ul":
+      return <List idx={idx} />;
+    case "li":
+      return <ListItem idx={idx} />;
+    case "m":
+      return <InlineMath idx={idx} />;
+    case "md":
+      return <DisplayMath idx={idx} />;
+    case "aside":
+      return <Aside idx={idx} />;
+    case "sideBySide":
+      return <SideBySide idx={idx} />;
+    case "stack":
+      return <Stack idx={idx} />;
+    case "tabular":
+      return <Table idx={idx} spreadsheet={false} />;
+    case "spreadsheet":
+      return <Table idx={idx} spreadsheet={true} />;
+    case "row":
+      return <Row idx={idx} />;
+    case "cell":
+      return <Cell idx={idx} />;
+    case "triggerSet":
+      return inGraph ? null : <TriggerSet idx={idx} />;
+    // Drawn by the graph itself (`GraphLegend`).
+    case "legend":
+      return null;
     case "numberInput":
       return <NumberInput idx={idx} />;
     case "slider":
@@ -37,6 +76,9 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
       return <MathView idx={idx} />;
     case "mathInput":
       return <NumberInput idx={idx} />;
+    case "functionIterates":
+    case "updateValue":
+      return null;
     case "line":
       return !inGraph ? null : JSX ? <JxLine idx={idx} segment={false} /> : <Line idx={idx} segment={false} />;
     case "lineSegment":
@@ -67,6 +109,7 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
     // A repeat's children are every iteration's expanded template; a
     // collect's are copies of what it gathered. Both render inline.
     case "repeatForSequence":
+    case "repeat":
     case "collect":
       return <Children idx={idx} inGraph={inGraph} />;
     case "sequenceValue":
@@ -85,6 +128,11 @@ export function Children({ idx, inGraph }: { idx: number; inGraph: boolean }) {
   const store = useStore();
   // The table is replaced by a rebuild; `structureVersion` re-reads it.
   const items = useMemo(() => store.comps.children(idx), [store, store.comps, idx]);
+  return <ChildRange items={items} from={0} to={items.length} inGraph={inGraph} />;
+}
+
+/** A list of children taken from a component's (some left out). */
+export function ChildItems({ items, inGraph }: { items: Child[]; inGraph: boolean }) {
   return <ChildRange items={items} from={0} to={items.length} inGraph={inGraph} />;
 }
 

@@ -22,6 +22,9 @@ export interface ComponentColumns {
   scope: Uint32Array;
   stringOffsets: Uint32Array;
   stringBytes: Uint8Array;
+  /** Literal attributes per DAST node: presentation (style numbers,
+   * decimals, widths), read once per build. */
+  nodeAttrs: Record<string, Record<string, string>>;
 }
 
 export const NONE = 0xffffffff;
@@ -82,6 +85,19 @@ export class ComponentTable {
     return this.cols.propCells[this.cols.propBase[c] + i];
   }
 
+  /** A literal attribute of the element the component was made from
+   * (attribute names ignore case), or null. Copies have no element. */
+  attr(c: number, name: string): string | null {
+    const n = this.cols.node[c];
+    if (n === NONE) return null;
+    const attrs = this.cols.nodeAttrs[n];
+    if (!attrs) return null;
+    if (name in attrs) return attrs[name];
+    const lower = name.toLowerCase();
+    for (const k in attrs) if (k.toLowerCase() === lower) return attrs[k];
+    return null;
+  }
+
   /** A key that identifies the component across rebuilds. Synthesized
    * components (copies made by `$ref` children or collects) have no DAST
    * node, so they are keyed by their position under the parent instead. */
@@ -132,6 +148,7 @@ export function columnsFromCore(core: any, memory: WebAssembly.Memory, copy: boo
     scope: u32(core.comp_scope_ptr(), n),
     stringOffsets: u32(core.string_offsets_ptr(), nStrings + 1),
     stringBytes: u8(core.string_bytes_ptr(), core.string_bytes_len()),
+    nodeAttrs: JSON.parse(core.node_attrs_json()),
   };
   if (copy) {
     for (const k of ["componentType", "name", "parent", "propBase", "propCells", "childStart", "childCount", "childList", "node", "scope", "stringOffsets", "stringBytes"] as const) {

@@ -14,6 +14,7 @@ const FIXTURES = [
   "sliderchain-10", "sliderchain-1000", "sliderchain-100000", "sliderstack-10", "sliderstack-1000",
   "repeat-100", "repeat-1000", "repeat-10000", "repeat-50000", "recur-100", "recur-1000", "recur-10000",
   "intchain-1000", "intchain-100000", "mathchain-1000", "mathchain-100000", "hidden-1000",
+  "sir",
 ];
 
 const SAMPLE = `<graph name="g">
@@ -48,7 +49,7 @@ declare global {
       loadSource: (text: string) => Promise<void>;
       /** Client coordinates to press to drag a named component on a
        * JSXGraph board, scrolling the board into view first. */
-      locate: (name: string) => [number, number] | null;
+      locate: (name: string | number) => [number, number] | null;
     };
   }
 }

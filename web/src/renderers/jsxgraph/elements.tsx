@@ -8,10 +8,12 @@
 // back where the core says after every move. The pointer position becomes a
 // request; the drawn position is always the core's answer.
 import JXG from "jsxgraph";
-import { useBoardElement, type BoardElement, type BoardHandle } from "./Board";
+import { useStore } from "../../hooks";
+import { useBoardElement, useBoardElementCells, type BoardElement, type BoardHandle } from "./Board";
 import {
-  characterizeOffGraphPoint, dragHandleAttributes, lineLikeAttributes, LINE_LAYER_OFFSET, normalizePointStyle,
-  pointAttributes, pointerEventToUserCoords, POINTER_DRAG_THRESHOLD, shadowPointAttributes, STYLE, unfilledShapeAttributes, VERTEX_LAYER_OFFSET,
+  characterizeOffGraphPoint, dragHandleAttributes, lineLikeAttributes, LINE_LAYER_OFFSET, normalizePointStyle, POINT_LAYER_OFFSET,
+  pointAttributes, pointerEventToUserCoords, POINTER_DRAG_THRESHOLD, shadowPointAttributes, styleFor, unfilledShapeAttributes, VERTEX_LAYER_OFFSET,
+  type Style,
 } from "./doenet";
 
 const USER = (JXG as any).COORDS_BY_USER;
@@ -50,9 +52,13 @@ const finite = (...v: number[]) => v.every(Number.isFinite);
 
 const POINT_PROPS = ["x", "y", "hide"] as const;
 
-function pointElement(h: BoardHandle): BoardElement {
+/** JSXGraph layer of an element with Doenet's `layer` attribute: ten
+ * layers per DoenetML layer, above the type's offset (point.tsx). */
+const layerOf = (layer: string | null, offset: number) => 10 * (Number(layer) || 0) + offset;
+
+function pointElement(h: BoardHandle, style: Style, layer: number): BoardElement {
   const board = h.board;
-  const attrs = { ...pointAttributes([0, 0]), ...h.attrs };
+  const attrs = { ...pointAttributes([0, 0], style), layer, ...h.attrs };
   const shadow = board.create("point", [0, 0], shadowPointAttributes(attrs));
   const pt = board.create("point", [0, 0], attrs);
   let dragging = false;
@@ -71,7 +77,7 @@ function pointElement(h: BoardHandle): BoardElement {
       if (!dragging) shadow.coords.setCoordinates(USER, at);
       h.setVisible(pt, visible);
       h.setVisible(shadow, visible);
-      const face = normalizePointStyle(STYLE.markerStyle, sides);
+      const face = normalizePointStyle(style.markerStyle, sides);
       h.setFace(pt, face);
       h.setFace(shadow, face);
       pt.needsUpdate = true;
@@ -122,7 +128,10 @@ function pointElement(h: BoardHandle): BoardElement {
 }
 
 export function JxPoint({ idx }: { idx: number }) {
-  useBoardElement(idx, POINT_PROPS, pointElement);
+  const store = useStore();
+  const style = styleFor(store.comps.attr(idx, "styleNumber"));
+  const layer = layerOf(store.comps.attr(idx, "layer"), POINT_LAYER_OFFSET);
+  useBoardElement(idx, POINT_PROPS, (h) => pointElement(h, style, layer));
   return null;
 }
 
@@ -338,5 +347,55 @@ function polygonElement(h: BoardHandle): BoardElement {
 
 export function JxPolygon({ idx }: { idx: number }) {
   useBoardElement(idx, POLYGON_PROPS, polygonElement);
+  return null;
+}
+
+// ---------------------------------------------------------------- polyline
+
+/** A polyline through its vertices: one JSXGraph curve whose data arrays
+ * are refilled from the cells. Not draggable (the core does not support
+ * dragging a polyline), so there are no handles. */
+function polylineElement(h: BoardHandle, style: Style, layer: number): BoardElement {
+  const board = h.board;
+  let xs: number[] = [], ys: number[] = [];
+  const curve = board.create("curve", [[], []], { ...lineLikeAttributes(layer, style), fixed: true, highlight: false, ...h.attrs });
+  curve.updateDataArray = function (this: any) {
+    this.dataX = xs;
+    this.dataY = ys;
+  };
+  const e: BoardElement = {
+    cells: [],
+    sync(values) {
+      // Cells are `x0, y0, x1, y1, ...`; a non-finite vertex breaks the line.
+      const n = values.length / 2;
+      xs = new Array(n);
+      ys = new Array(n);
+      for (let i = 0; i < n; i++) {
+        const [x, y] = [values[2 * i], values[2 * i + 1]];
+        const ok = finite(x, y);
+        xs[i] = ok ? x : NaN;
+        ys[i] = ok ? y : NaN;
+      }
+      curve.needsUpdate = true;
+      curve.update();
+    },
+    objects: () => [curve],
+    remove() {
+      h.removeObjects([curve]);
+    },
+  };
+  return e;
+}
+
+export function JxPolyline({ idx }: { idx: number }) {
+  const store = useStore();
+  const style = styleFor(store.comps.attr(idx, "styleNumber"));
+  const layer = layerOf(store.comps.attr(idx, "layer"), LINE_LAYER_OFFSET);
+  // The vertices are the polyline's children: copies of the points it gathered.
+  useBoardElementCells(
+    idx,
+    () => store.comps.children(idx).flatMap((ch) => ("c" in ch ? [store.comps.cell(ch.c, "x"), store.comps.cell(ch.c, "y")] : [])),
+    (h) => polylineElement(h, style, layer),
+  );
   return null;
 }
