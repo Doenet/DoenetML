@@ -33,7 +33,13 @@ Tags the core understands: `document`, `graph`, `point`, `number`,
 `function`, `derivative`, `answer`, `conditionalContent` (`case`, `else`),
 `select` (`option`), `group` (and `label`), literal `text`, the sections
 (`section`, `subsection`, `subsubsection`, `problem`, `exercise`, `example`),
-and the prototype-only `op`.
+`functionIterates`, `repeat` (over a function's iterates), `clampNumber`,
+`polyline`, `triggerSet` and `updateValue`, the text and layout containers
+`title`, `ref`, `ul`, `li`, `m`, `md`, `mrow`, `aside`, `sideBySide`,
+`stack`, `tabular`, `spreadsheet`, `row`, `cell` and `legend`, and the
+prototype-only `op`. A `<math>` tuple of three or more entries is a tuple
+(`$t[2]`); a function of several variables or with a tuple value is only
+iterated. `fixtures/sir.doenet` is a document using most of these.
 
 ## Running
 
@@ -48,6 +54,8 @@ CELLS_BUILD_PROFILE=1 cargo run --release -p cells-bench --example rebuild_loop 
 
 cd web && pnpm install && pnpm wasm && pnpm dev     # interactive renderer at :5173
 cd web && pnpm e2e                                  # headless drag measurement
+cargo run --release -p cells-bench --example sir_perf          # the SIR document, native
+cd web && pnpm build && pnpm preview & node e2e/sir-perf.mjs   # the SIR document, in Chromium
 scripts/render-results.py                           # regenerate RESULTS.md
 scripts/golden-diff.sh [rev]    # behavior dump of every golden document vs a base commit (default HEAD)
 scripts/perf-diff.sh [rev]      # quick perf check: regress on 10 fixtures, base commit vs working tree (~2 min)

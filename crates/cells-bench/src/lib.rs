@@ -103,6 +103,8 @@ pub fn drag_target(doc: &cells_core::Document, spec: &str) -> Option<cells_core:
         "curves" => doc.cell("a", "value").unwrap(),
         // The evaluation point the chain's evaluates read.
         "symchain" => doc.cell("t", "value").unwrap(),
+        // The SIR simulation's initial infectives: every iterate follows.
+        "sir" => doc.cell("I0", "value").unwrap(),
         // Shapes with nothing to drag (load-time choices, answers) have no p0.
         _ => return doc.cell("p0", "x"),
     })

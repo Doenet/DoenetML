@@ -421,3 +421,75 @@ generated at 692f7b6 (plan 2). Between the two, during plans 3–6, the
 tick grew: chain-100000's full recompute 637 → 1,542 µs (criterion mean),
 an aliases document's tick 0.02 → 0.18 µs. That growth is not from this
 pass and was not investigated; it is an open item.
+
+## The SIR simulation (October 2026)
+
+`fixtures/sir.doenet`, a real course document: a discrete SIR model
+iterated 200 steps by `<functionIterates>`, three `<repeat for>`s turning
+the iterates into points, three polylines, three draggable initial-value
+points on a grid, a 201-row spreadsheet of the iterates, and inputs for
+the parameters, the number of iterates and the graph's bounds, with a
+reset button. Supporting it added these, each as data in the existing
+pipeline:
+
+- **`<functionIterates>` is a repeat.** Its body template holds one hidden
+  tuple; iteration `k`'s entries are the initial value when `k` is 1
+  (`SourcePlan::FirstIteration`, chosen per instance like `IterIndex`) and
+  otherwise the function's text with each variable replaced by a
+  reference to entry `j` of iteration `k - 1` (an index plan `Iter(0) - 1`),
+  lowered to numeric operators. `count = floor(numIterates) + 1` is its
+  structural cell, so changing the number of iterates is a rebuild, as for
+  any repeat. The function itself (several variables, a tuple value) gets
+  no math cell; its references resolve from the `<functionIterates>`.
+- **`<repeat for>`** takes a `<functionIterates>`' list: `count` aliases its
+  length and the item `$x` is a tuple aliasing iteration `k`'s. Repeat
+  counts are now looked up per type (`ComponentType::count_prop`).
+- **Tuples** of three or more entries (a `<math>`, an iterate) are a
+  component type with a `coords` view over up to eight entries, so `$x[2]`
+  and `Sel::Coord` work as they do for points.
+- **`prefill="$n"`** on a mathInput is a seed, not a binding: the essential
+  expression starts as `$n`'s value when first built (emit fills it from the
+  source cell, which must be essential or fixed) and carries over rebuilds.
+  Before, it bound the input to the number, so typing was dropped.
+- **`<clampNumber>`** is a prop table (max then min, projection inverses);
+  **`<polyline>`** gathers points as a `<collect>` does; **`<triggerSet>`**
+  is one request per `<updateValue>` (`Document::trigger`; the renderer
+  sends the same requests). Text and layout containers are plain container
+  types; their presentation (`styleNumber`, `displayDecimals`, `layer`,
+  widths) is read by the renderer from the element's literal attributes
+  (`Document::attr_text`, `literal_attrs`), not kept as state.
+- The test oracle (`testing/reference.rs`) now memoizes: recursion without
+  it is exponential on an iteration chain where each step reads the last
+  one several times.
+
+`scripts/golden-diff.sh` showed every existing document unchanged.
+
+**Size.** 5,488 cells (622 essential, 2,037 fixed), 2,829 instructions,
+4,952 components (1,209 points, 1,006 tuples); two build passes on load.
+
+**Native** (`sir_perf`, release, this container; 50 loads, 200 ticks):
+load from bytes p50 2.4 ms (build 3.2 ms for both passes on the first
+load); dragging the infectives' point changes 2,004 cells in 0.009 ms
+(full recompute) or 0.025 ms (dirty closure); typing `b` 0.03 ms;
+typing the number of iterates (200 ↔ 199, a rebuild) 1.9 ms; the reset
+button from 100 to 200 iterates 1.8 ms.
+
+**Chromium** (`web/e2e/sir-perf.mjs`, JSXGraph renderer, asides open so
+the spreadsheet is in the DOM; p50, ms; `results/raw/e2e-sir-2026-10-12.json`):
+
+| | main thread | worker (SAB) |
+|---|---|---|
+| load: core (2 passes) | 7.5 | 4.9 |
+| load: first render | 62 | 63 |
+| drag tick: core | 0.11 | 0.13 |
+| drag tick: commit / frame / painted | 4.8 / 5.9 / 20 | 7.5 / 21 / 25 |
+| type `b` (2,000 cells): commit / painted | 3.8 / 17 | 6.5 / 20 |
+| type iterates 200↔199 (rebuild): core / painted | 3.2 / 20 | 3.8 / 24 |
+| reset 100→200 (rebuild): core / painted | 3.2 / 38 | 4.1 / 42 |
+
+The core is under 0.2 ms of a drag tick; the rest is React (the 603
+spreadsheet numbers and the polylines' 1,200 vertex cells) and the
+browser's paint. A rebuild costs about 3 ms in the core; the reset is
+slower than a ±1 change because 100 iterations' rows and points mount.
+The renderer's first try dragged the wrong point: R₀ and I₀ sit 0.3 px
+apart and only `layer="1"` puts I₀ on top, so `layer` is now honored.

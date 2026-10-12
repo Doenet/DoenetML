@@ -7,9 +7,11 @@ cargo build -q --release -p cells-docgen
 DOCGEN=target/release/cells-docgen
 mkdir -p fixtures
 specs=("$@")
-if [ ${#specs[@]} -eq 0 ]; then mapfile -t specs < <($DOCGEN --sweep); fi
+# Hand-written fixtures: parsed, not generated.
+HANDWRITTEN=(sir)
+if [ ${#specs[@]} -eq 0 ]; then mapfile -t specs < <($DOCGEN --sweep); specs+=("${HANDWRITTEN[@]}"); fi
 for spec in "${specs[@]}"; do
-  $DOCGEN "$spec" > "fixtures/$spec.doenet"
+  if [[ ! " ${HANDWRITTEN[*]} " =~ " $spec " ]]; then $DOCGEN "$spec" > "fixtures/$spec.doenet"; fi
   start=$(date +%s%N)
   node --max-old-space-size=8192 --stack-size=65500 scripts/parse-dast.mjs -i "fixtures/$spec.doenet" > "fixtures/$spec.json"
   ms=$(( ($(date +%s%N) - start) / 1000000 ))
