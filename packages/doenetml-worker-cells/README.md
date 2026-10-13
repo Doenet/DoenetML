@@ -63,7 +63,8 @@ and a built `@doenet/parser`; the `web` ones run from `web/`):
 cargo test
 echo '<point name="p" x="1"/>' | node scripts/parse-dast.mjs
 
-scripts/gen-fixtures.sh         # ~1 minute; writes fixtures/*.{doenet,json,cdast}
+scripts/gen-fixtures.sh         # ~1 minute; writes fixtures/*.{doenet,json,cdast} (gitignored)
+scripts/gen-fixtures.sh choicesweep-100x100   # specs outside the default sweep, by name
 cargo bench -p cells-bench      # ~2.5 hours for the full sweep over 93 fixtures (startup, tick, rebuild)
 cargo run --release -p cells-bench --bin stats > results/raw/stats.jsonl
 CELLS_BUILD_PROFILE=1 cargo run --release -p cells-bench --example rebuild_loop -- repeat-10000 3   # per-phase build timings

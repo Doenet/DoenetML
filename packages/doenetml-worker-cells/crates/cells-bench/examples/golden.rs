@@ -6,8 +6,10 @@
 //! shows up. Usage: `golden <out-dir>`; program fingerprints go to
 //! `<out-dir>.programs`.
 //!
-//! Documents: `crates/cells-bench/golden/*.doenet` plus the smallest fixture
-//! of each shape in `fixtures/`.
+//! Documents: `crates/cells-bench/golden/*.doenet` plus `fixtures/sir.doenet`.
+//! The `fixture-<spec>.doenet` ones there are the smallest generated fixture
+//! of each shape (`cells-docgen <spec>`), committed so that both sides of a
+//! golden diff run the same text even if the docgen changes.
 use cells_core::components::ComponentType;
 use cells_core::{Child, CompIdx, Document, PointRequest, Request, TickOutcome};
 use std::collections::BTreeMap;
@@ -228,26 +230,8 @@ fn sources(root: &Path) -> Vec<(String, PathBuf)> {
             out.push((p.file_stem().unwrap().to_string_lossy().to_string(), p));
         }
     }
-    // The smallest fixture of each shape.
-    let mut smallest: BTreeMap<String, (String, PathBuf)> = BTreeMap::new();
-    for e in std::fs::read_dir(root.join("fixtures")).unwrap().flatten() {
-        let p = e.path();
-        if p.extension().is_some_and(|x| x == "doenet") {
-            let spec = p.file_stem().unwrap().to_string_lossy().to_string();
-            let key = cells_bench::spec_key(&spec);
-            if smallest
-                .get(&key.0)
-                .is_none_or(|(s, _)| cells_bench::spec_key(s) > key)
-            {
-                smallest.insert(key.0.clone(), (spec, p));
-            }
-        }
-    }
-    out.extend(
-        smallest
-            .into_values()
-            .map(|(s, p)| (format!("fixture-{s}"), p)),
-    );
+    // The hand-written SIR simulation, which `fixtures/` keeps for its own tests.
+    out.push(("fixture-sir".to_string(), root.join("fixtures/sir.doenet")));
     out.sort();
     out
 }
