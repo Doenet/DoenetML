@@ -1,0 +1,13 @@
+<numberInput name="n" value="0"/>
+<graph name="g">
+  <point name="a0" x="$n" y="-8"/><point name="b0" x="-7" y="-8"/><point name="c0" x="-8" y="-7"/><circle name="k0" through="$a0 $b0 $c0"/>
+  <point name="a1" x="$n" y="-1"/><point name="b1" x="-6" y="-1"/><point name="c1" x="-7" y="0"/><circle name="k1" through="$a1 $b1 $c1"/>
+  <point name="a2" x="$n" y="6"/><point name="b2" x="-5" y="6"/><point name="c2" x="-6" y="7"/><circle name="k2" through="$a2 $b2 $c2"/>
+  <point name="a3" x="$n" y="-4"/><point name="b3" x="-4" y="-4"/><point name="c3" x="-5" y="-3"/><circle name="k3" through="$a3 $b3 $c3"/>
+  <point name="a4" x="$n" y="3"/><point name="b4" x="-3" y="3"/><point name="c4" x="-4" y="4"/><circle name="k4" through="$a4 $b4 $c4"/>
+  <point name="a5" x="$n" y="-7"/><point name="b5" x="-2" y="-7"/><point name="c5" x="-3" y="-6"/><circle name="k5" through="$a5 $b5 $c5"/>
+  <point name="a6" x="$n" y="0"/><point name="b6" x="-1" y="0"/><point name="c6" x="-2" y="1"/><circle name="k6" through="$a6 $b6 $c6"/>
+  <point name="a7" x="$n" y="7"/><point name="b7" x="0" y="7"/><point name="c7" x="-1" y="8"/><circle name="k7" through="$a7 $b7 $c7"/>
+  <point name="a8" x="$n" y="-3"/><point name="b8" x="1" y="-3"/><point name="c8" x="0" y="-2"/><circle name="k8" through="$a8 $b8 $c8"/>
+  <point name="a9" x="$n" y="4"/><point name="b9" x="2" y="4"/><point name="c9" x="1" y="5"/><circle name="k9" through="$a9 $b9 $c9"/>
+</graph>

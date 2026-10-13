@@ -1,0 +1,12 @@
+<numberInput name="n" value="1"/>
+<graph name="g"><point name="p0" x="1" y="2"/></graph>
+<p>Positive: <math name="m0">1x+1</math> and <number name="k0">0</number>. Negative: <math name="mn0">x-1</math> and <number name="kn0">-0</number>. Zero: <math name="mz0">0</math> and <number name="kz0">0</number>.</p><p>$m0, $k0</p>
+<p>Positive: <math name="m1">2x+1</math> and <number name="k1">1</number>. Negative: <math name="mn1">x-2</math> and <number name="kn1">-1</number>. Zero: <math name="mz1">0</math> and <number name="kz1">0</number>.</p><p>$m1, $k1</p>
+<p>Positive: <math name="m2">3x+1</math> and <number name="k2">2</number>. Negative: <math name="mn2">x-3</math> and <number name="kn2">-2</number>. Zero: <math name="mz2">0</math> and <number name="kz2">0</number>.</p><p>$m2, $k2</p>
+<p>Positive: <math name="m3">4x+1</math> and <number name="k3">3</number>. Negative: <math name="mn3">x-4</math> and <number name="kn3">-3</number>. Zero: <math name="mz3">0</math> and <number name="kz3">0</number>.</p><p>$m3, $k3</p>
+<p>Positive: <math name="m4">5x+1</math> and <number name="k4">4</number>. Negative: <math name="mn4">x-5</math> and <number name="kn4">-4</number>. Zero: <math name="mz4">0</math> and <number name="kz4">0</number>.</p><p>$m4, $k4</p>
+<p>Positive: <math name="m5">6x+1</math> and <number name="k5">5</number>. Negative: <math name="mn5">x-6</math> and <number name="kn5">-5</number>. Zero: <math name="mz5">0</math> and <number name="kz5">0</number>.</p><p>$m5, $k5</p>
+<p>Positive: <math name="m6">7x+1</math> and <number name="k6">6</number>. Negative: <math name="mn6">x-7</math> and <number name="kn6">-6</number>. Zero: <math name="mz6">0</math> and <number name="kz6">0</number>.</p><p>$m6, $k6</p>
+<p>Positive: <math name="m7">8x+1</math> and <number name="k7">7</number>. Negative: <math name="mn7">x-8</math> and <number name="kn7">-7</number>. Zero: <math name="mz7">0</math> and <number name="kz7">0</number>.</p><p>$m7, $k7</p>
+<p>Positive: <math name="m8">9x+1</math> and <number name="k8">8</number>. Negative: <math name="mn8">x-9</math> and <number name="kn8">-8</number>. Zero: <math name="mz8">0</math> and <number name="kz8">0</number>.</p><p>$m8, $k8</p>
+<p>Positive: <math name="m9">1x+1</math> and <number name="k9">9</number>. Negative: <math name="mn9">x-1</math> and <number name="kn9">-9</number>. Zero: <math name="mz9">0</math> and <number name="kz9">0</number>.</p><p>$m9, $k9</p>

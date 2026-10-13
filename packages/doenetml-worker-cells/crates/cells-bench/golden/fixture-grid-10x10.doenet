@@ -1,0 +1,122 @@
+<numberInput name="n0" value="0"/>
+<op name="c0_0" kind="offset" k="1" args="$n0"/>
+<op name="c0_1" kind="negate" args="$c0_0"/>
+<op name="c0_2" kind="offset" k="1" args="$c0_1"/>
+<op name="c0_3" kind="negate" args="$c0_2"/>
+<op name="c0_4" kind="offset" k="1" args="$c0_3"/>
+<op name="c0_5" kind="negate" args="$c0_4"/>
+<op name="c0_6" kind="offset" k="1" args="$c0_5"/>
+<op name="c0_7" kind="negate" args="$c0_6"/>
+<op name="c0_8" kind="offset" k="1" args="$c0_7"/>
+<op name="c0_9" kind="negate" args="$c0_8"/>
+<numberInput name="n1" value="1"/>
+<op name="c1_0" kind="offset" k="1" args="$n1"/>
+<op name="c1_1" kind="negate" args="$c1_0"/>
+<op name="c1_2" kind="offset" k="1" args="$c1_1"/>
+<op name="c1_3" kind="negate" args="$c1_2"/>
+<op name="c1_4" kind="offset" k="1" args="$c1_3"/>
+<op name="c1_5" kind="negate" args="$c1_4"/>
+<op name="c1_6" kind="offset" k="1" args="$c1_5"/>
+<op name="c1_7" kind="negate" args="$c1_6"/>
+<op name="c1_8" kind="offset" k="1" args="$c1_7"/>
+<op name="c1_9" kind="negate" args="$c1_8"/>
+<numberInput name="n2" value="2"/>
+<op name="c2_0" kind="offset" k="1" args="$n2"/>
+<op name="c2_1" kind="negate" args="$c2_0"/>
+<op name="c2_2" kind="offset" k="1" args="$c2_1"/>
+<op name="c2_3" kind="negate" args="$c2_2"/>
+<op name="c2_4" kind="offset" k="1" args="$c2_3"/>
+<op name="c2_5" kind="negate" args="$c2_4"/>
+<op name="c2_6" kind="offset" k="1" args="$c2_5"/>
+<op name="c2_7" kind="negate" args="$c2_6"/>
+<op name="c2_8" kind="offset" k="1" args="$c2_7"/>
+<op name="c2_9" kind="negate" args="$c2_8"/>
+<numberInput name="n3" value="3"/>
+<op name="c3_0" kind="offset" k="1" args="$n3"/>
+<op name="c3_1" kind="negate" args="$c3_0"/>
+<op name="c3_2" kind="offset" k="1" args="$c3_1"/>
+<op name="c3_3" kind="negate" args="$c3_2"/>
+<op name="c3_4" kind="offset" k="1" args="$c3_3"/>
+<op name="c3_5" kind="negate" args="$c3_4"/>
+<op name="c3_6" kind="offset" k="1" args="$c3_5"/>
+<op name="c3_7" kind="negate" args="$c3_6"/>
+<op name="c3_8" kind="offset" k="1" args="$c3_7"/>
+<op name="c3_9" kind="negate" args="$c3_8"/>
+<numberInput name="n4" value="4"/>
+<op name="c4_0" kind="offset" k="1" args="$n4"/>
+<op name="c4_1" kind="negate" args="$c4_0"/>
+<op name="c4_2" kind="offset" k="1" args="$c4_1"/>
+<op name="c4_3" kind="negate" args="$c4_2"/>
+<op name="c4_4" kind="offset" k="1" args="$c4_3"/>
+<op name="c4_5" kind="negate" args="$c4_4"/>
+<op name="c4_6" kind="offset" k="1" args="$c4_5"/>
+<op name="c4_7" kind="negate" args="$c4_6"/>
+<op name="c4_8" kind="offset" k="1" args="$c4_7"/>
+<op name="c4_9" kind="negate" args="$c4_8"/>
+<numberInput name="n5" value="5"/>
+<op name="c5_0" kind="offset" k="1" args="$n5"/>
+<op name="c5_1" kind="negate" args="$c5_0"/>
+<op name="c5_2" kind="offset" k="1" args="$c5_1"/>
+<op name="c5_3" kind="negate" args="$c5_2"/>
+<op name="c5_4" kind="offset" k="1" args="$c5_3"/>
+<op name="c5_5" kind="negate" args="$c5_4"/>
+<op name="c5_6" kind="offset" k="1" args="$c5_5"/>
+<op name="c5_7" kind="negate" args="$c5_6"/>
+<op name="c5_8" kind="offset" k="1" args="$c5_7"/>
+<op name="c5_9" kind="negate" args="$c5_8"/>
+<numberInput name="n6" value="6"/>
+<op name="c6_0" kind="offset" k="1" args="$n6"/>
+<op name="c6_1" kind="negate" args="$c6_0"/>
+<op name="c6_2" kind="offset" k="1" args="$c6_1"/>
+<op name="c6_3" kind="negate" args="$c6_2"/>
+<op name="c6_4" kind="offset" k="1" args="$c6_3"/>
+<op name="c6_5" kind="negate" args="$c6_4"/>
+<op name="c6_6" kind="offset" k="1" args="$c6_5"/>
+<op name="c6_7" kind="negate" args="$c6_6"/>
+<op name="c6_8" kind="offset" k="1" args="$c6_7"/>
+<op name="c6_9" kind="negate" args="$c6_8"/>
+<numberInput name="n7" value="7"/>
+<op name="c7_0" kind="offset" k="1" args="$n7"/>
+<op name="c7_1" kind="negate" args="$c7_0"/>
+<op name="c7_2" kind="offset" k="1" args="$c7_1"/>
+<op name="c7_3" kind="negate" args="$c7_2"/>
+<op name="c7_4" kind="offset" k="1" args="$c7_3"/>
+<op name="c7_5" kind="negate" args="$c7_4"/>
+<op name="c7_6" kind="offset" k="1" args="$c7_5"/>
+<op name="c7_7" kind="negate" args="$c7_6"/>
+<op name="c7_8" kind="offset" k="1" args="$c7_7"/>
+<op name="c7_9" kind="negate" args="$c7_8"/>
+<numberInput name="n8" value="8"/>
+<op name="c8_0" kind="offset" k="1" args="$n8"/>
+<op name="c8_1" kind="negate" args="$c8_0"/>
+<op name="c8_2" kind="offset" k="1" args="$c8_1"/>
+<op name="c8_3" kind="negate" args="$c8_2"/>
+<op name="c8_4" kind="offset" k="1" args="$c8_3"/>
+<op name="c8_5" kind="negate" args="$c8_4"/>
+<op name="c8_6" kind="offset" k="1" args="$c8_5"/>
+<op name="c8_7" kind="negate" args="$c8_6"/>
+<op name="c8_8" kind="offset" k="1" args="$c8_7"/>
+<op name="c8_9" kind="negate" args="$c8_8"/>
+<numberInput name="n9" value="9"/>
+<op name="c9_0" kind="offset" k="1" args="$n9"/>
+<op name="c9_1" kind="negate" args="$c9_0"/>
+<op name="c9_2" kind="offset" k="1" args="$c9_1"/>
+<op name="c9_3" kind="negate" args="$c9_2"/>
+<op name="c9_4" kind="offset" k="1" args="$c9_3"/>
+<op name="c9_5" kind="negate" args="$c9_4"/>
+<op name="c9_6" kind="offset" k="1" args="$c9_5"/>
+<op name="c9_7" kind="negate" args="$c9_6"/>
+<op name="c9_8" kind="offset" k="1" args="$c9_7"/>
+<op name="c9_9" kind="negate" args="$c9_8"/>
+<graph name="g">
+  <point name="p0" x="$c0_9" y="0"/>
+  <point name="p1" x="$c1_9" y="1"/>
+  <point name="p2" x="$c2_9" y="2"/>
+  <point name="p3" x="$c3_9" y="3"/>
+  <point name="p4" x="$c4_9" y="4"/>
+  <point name="p5" x="$c5_9" y="5"/>
+  <point name="p6" x="$c6_9" y="6"/>
+  <point name="p7" x="$c7_9" y="7"/>
+  <point name="p8" x="$c8_9" y="8"/>
+  <point name="p9" x="$c9_9" y="9"/>
+</graph>

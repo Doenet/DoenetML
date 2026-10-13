@@ -1,0 +1,12 @@
+<numberInput name="n" value="1"/>
+<math name="c0">$n + 1</math>
+<math name="c1">1.0001 $c0</math>
+<math name="c2">-$c1</math>
+<math name="c3">$c2 + 1</math>
+<math name="c4">1.0001 $c3</math>
+<math name="c5">-$c4</math>
+<math name="c6">$c5 + 1</math>
+<math name="c7">1.0001 $c6</math>
+<math name="c8">-$c7</math>
+<op name="c9" kind="clamp" lo="-9" hi="9" args="$c8"/>
+<graph name="g"><point name="p" x="$c9" y="$n"/></graph>

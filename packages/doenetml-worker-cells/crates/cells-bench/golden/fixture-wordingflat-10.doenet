@@ -1,0 +1,12 @@
+<numberInput name="n" value="1"/>
+<graph name="g"><point name="p0" x="1" y="2"/></graph>
+<p>Positive: <math name="m0">1x+1</math> and <number name="k0">0</number>.</p><p>$m0, $k0</p>
+<p>Positive: <math name="m1">2x+1</math> and <number name="k1">1</number>.</p><p>$m1, $k1</p>
+<p>Positive: <math name="m2">3x+1</math> and <number name="k2">2</number>.</p><p>$m2, $k2</p>
+<p>Positive: <math name="m3">4x+1</math> and <number name="k3">3</number>.</p><p>$m3, $k3</p>
+<p>Positive: <math name="m4">5x+1</math> and <number name="k4">4</number>.</p><p>$m4, $k4</p>
+<p>Positive: <math name="m5">6x+1</math> and <number name="k5">5</number>.</p><p>$m5, $k5</p>
+<p>Positive: <math name="m6">7x+1</math> and <number name="k6">6</number>.</p><p>$m6, $k6</p>
+<p>Positive: <math name="m7">8x+1</math> and <number name="k7">7</number>.</p><p>$m7, $k7</p>
+<p>Positive: <math name="m8">9x+1</math> and <number name="k8">8</number>.</p><p>$m8, $k8</p>
+<p>Positive: <math name="m9">1x+1</math> and <number name="k9">9</number>.</p><p>$m9, $k9</p>

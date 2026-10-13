@@ -1,6 +1,6 @@
-<numberInput name="n" value="100"/>
+<numberInput name="n" value="10"/>
 <graph name="g">
-<repeatForSequence name="r" from="-9" step="0.18" length="$n" maxNumber="20000" valueName="v">
+<repeatForSequence name="r" from="-9" step="1.8" length="$n" maxNumber="20000" valueName="v">
 <op name="h" kind="scale" k="0.5" args="$v"/>
 <point name="p" x="$v" y="$h"/>
 <point name="q" x="0" y="0"/>

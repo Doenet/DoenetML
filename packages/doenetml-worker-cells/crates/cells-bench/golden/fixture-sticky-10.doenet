@@ -1,0 +1,14 @@
+<graph name="g">
+<stickyGroup name="sg">
+  <polygon name="p0" vertices="(1,0) (0,1) (-1,0) (0,-1)"/>
+  <polygon name="p1" vertices="(4,0) (3.31,0.95) (2.19,0.59) (2.19,-0.59) (3.31,-0.95)"/>
+  <polygon name="p2" vertices="(7,0) (6.5,0.87) (5.5,0.87) (5,0) (5.5,-0.87) (6.5,-0.87)"/>
+  <polygon name="p3" vertices="(10,0) (9,1) (8,0) (9,-1)" rigid/>
+  <polygon name="p4" vertices="(1,3) (0.31,3.95) (-0.81,3.59) (-0.81,2.41) (0.31,2.05)"/>
+  <polygon name="p5" vertices="(4,3) (3.5,3.87) (2.5,3.87) (2,3) (2.5,2.13) (3.5,2.13)"/>
+  <polygon name="p6" vertices="(7,3) (6,4) (5,3) (6,2)"/>
+  <polygon name="p7" vertices="(10,3) (9.31,3.95) (8.19,3.59) (8.19,2.41) (9.31,2.05)" rigid/>
+  <polygon name="p8" vertices="(1,6) (0.5,6.87) (-0.5,6.87) (-1,6) (-0.5,5.13) (0.5,5.13)"/>
+  <polygon name="p9" vertices="(4,6) (3,7) (2,6) (3,5)"/>
+</stickyGroup>
+</graph>

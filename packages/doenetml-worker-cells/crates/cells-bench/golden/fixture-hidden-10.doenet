@@ -1,0 +1,13 @@
+<booleanInput name="b" value="false"/>
+<graph name="g">
+  <point name="p0" x="-8" y="-8" hide="$b"/>
+  <point name="p1" x="-7" y="-1" hide="$b"/>
+  <point name="p2" x="-6" y="6" hide="$b"/>
+  <point name="p3" x="-5" y="-4" hide="$b"/>
+  <point name="p4" x="-4" y="3" hide="$b"/>
+  <point name="p5" x="-3" y="-7" hide="$b"/>
+  <point name="p6" x="-2" y="0" hide="$b"/>
+  <point name="p7" x="-1" y="7" hide="$b"/>
+  <point name="p8" x="0" y="-3" hide="$b"/>
+  <point name="p9" x="1" y="4" hide="$b"/>
+</graph>

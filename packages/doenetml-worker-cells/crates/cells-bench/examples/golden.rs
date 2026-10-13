@@ -7,9 +7,10 @@
 //! `<out-dir>.programs`.
 //!
 //! Documents: `crates/cells-bench/golden/*.doenet` plus `fixtures/sir.doenet`.
-//! The `fixture-<spec>.doenet` ones there are the smallest generated fixture
-//! of each shape (`cells-docgen <spec>`), committed so that both sides of a
-//! golden diff run the same text even if the docgen changes.
+//! The `fixture-<spec>.doenet` ones there are one small generated document of
+//! each shape (`cells-docgen <spec>`, size 10 where the shape takes a size),
+//! committed so that both sides of a golden diff run the same text even if
+//! the docgen changes.
 use cells_core::components::ComponentType;
 use cells_core::{Child, CompIdx, Document, PointRequest, Request, TickOutcome};
 use std::collections::BTreeMap;

@@ -1,0 +1,12 @@
+<numberInput name="n" value="1"/>
+<op name="c0" kind="offset" k="0.5" args="$n"/>
+<op name="c1" kind="round" args="$c0"/>
+<op name="c2" kind="offset" k="0.5" args="$c1"/>
+<op name="c3" kind="round" args="$c2"/>
+<op name="c4" kind="offset" k="0.5" args="$c3"/>
+<op name="c5" kind="round" args="$c4"/>
+<op name="c6" kind="offset" k="0.5" args="$c5"/>
+<op name="c7" kind="round" args="$c6"/>
+<op name="c8" kind="offset" k="0.5" args="$c7"/>
+<op name="c9" kind="clamp" lo="-9" hi="9" args="$c8"/>
+<graph name="g"><point name="p" x="$c9" y="$n"/></graph>
