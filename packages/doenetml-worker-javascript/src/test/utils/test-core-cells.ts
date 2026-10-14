@@ -348,7 +348,7 @@ export async function createTestCoreCells({
     const mod = await import(
         pathToFileURL(path.join(wasmDir, "cells_wasm.js")).href
     );
-    await mod.default(
+    const wasm = await mod.default(
         fs.readFileSync(path.join(wasmDir, "cells_wasm_bg.wasm")),
     );
 
@@ -745,6 +745,8 @@ export async function createTestCoreCells({
         core: withJavascriptOnlyGaps(core),
         cells,
         resolvePathToNodeIdx,
+        /** Bytes of wasm linear memory; the benchmark's memory column. */
+        wasmMemoryBytes: () => wasm.memory.buffer.byteLength as number,
         scoreState: unreported("scoreState"),
         pendingReports: unreported("pendingReports"),
         lastStateReport: unreported("lastStateReport"),

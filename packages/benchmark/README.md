@@ -56,6 +56,34 @@ reads the same text.
 documents, `rust-thousand-chain` and `rust-thousand-star`, so it has rows it
 can run.
 
+## The Node driver
+
+```bash
+npm run node -- --cores=javascript,rust,cells --fixtures=homework,chain-100
+```
+
+`src/run.mjs` runs every (core, fixture) in its own process with a 60 s
+budget and appends one JSON line per measurement to
+`results/raw/node-<date>.jsonl`. The process is `src/measure-one.ts` under
+vite-node from `packages/doenetml-worker-javascript`, whose test utilities
+give the three cores one interface (`DOENET_TEST_CORE` selects the core;
+the Rust and cells adapters are `test-core-rust.ts` and
+`test-core-cells.ts` there).
+
+| Field | Meaning |
+|---|---|
+| `status` | `ok`; `unsupported` (the adapter refused the document or an action: a gap, not a failure); `timeout` with the `stage` reached (`parse`, `load`, `errors`, `steps`, `structural`); `error`. |
+| `parse_ms` | DoenetML text to normalized DAST, by `@doenet/parser` alone. |
+| `load_ms` | `createTestCore` on the text: parse, core construction and the first state. Includes the parse, so `load_ms - parse_ms` is the core's own share. |
+| `heap_bytes` | JS heap growth across the load after a forced GC on each side. |
+| `wasm_bytes` | Wasm linear memory after the load. The JS core's figure is the Rust binding its worker holds for DAST normalization. |
+| `error_components` | Error components in the loaded document, where the core can report them (`null` otherwise). A document with errors is not a valid measurement. |
+| `steps`, `structural` | Per step label, `n` samples and `p50_ms`, `p90_ms`, `max_ms`. Steps cycle for 20 rounds or 20 s, structural steps for 10 rounds. |
+
+Each run is one vite-node process, which costs about ten seconds of
+startup per measurement; that is harness overhead and appears only in
+`wall_ms`.
+
 ## Reference budgets
 
 | Measurement | Budget |

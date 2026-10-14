@@ -9,6 +9,7 @@
     "repository": "github:Doenet/DoenetML",
     "scripts": {
         "fixtures": "node scripts/list-fixtures.mjs",
-        "test": "echo \"No tests\""
+        "test": "echo \"No tests\"",
+        "node": "node src/run.mjs"
     }
 }
