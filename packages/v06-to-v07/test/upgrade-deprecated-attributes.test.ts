@@ -1,11 +1,27 @@
 import { describe, expect, it } from "vitest";
 import { updateSyntaxFromV06toV07 } from "../src/index";
 
-async function convert(source: string) {
+async function convert(
+    source: string,
+    externalDocuments?: Record<string, string>,
+) {
     const { xml, vfile } = await updateSyntaxFromV06toV07(source, {
         doNotUpgradeCopyTags: true,
+        fetchExternalDoenetML:
+            externalDocuments && fetchFrom(externalDocuments),
     });
     return { xml, ruleIds: vfile.messages.map((m) => m.ruleId) };
+}
+
+/** A `fetchExternalDoenetML` that serves `documents`, keyed by id. */
+function fetchFrom(documents: Record<string, string>) {
+    return async (uri: string) => {
+        const id = uri.match(/^doenet:(\w+)$/)?.[1];
+        if (id === undefined || !(id in documents)) {
+            throw Error(`No document "${uri}"`);
+        }
+        return documents[id];
+    };
 }
 
 describe("deprecated attribute upgrades", () => {
@@ -119,11 +135,25 @@ describe("deprecated attribute upgrades", () => {
         expect(result.ruleIds).toEqual(["deprecated/link"]);
     });
 
-    it("keeps GeoGebra embeds untouched but flags them", async () => {
-        const source = `<embed width="100" encodedGeogebraContent="UEsD" />`;
-        const result = await convert(source);
-        expect(result.xml).toEqual(source);
+    it("comments out GeoGebra embeds, keeping them for whoever rebuilds them", async () => {
+        const result = await convert(
+            `<p>Before</p><embed width="100" encodedGeogebraContent="UEsD" /><p>After</p>`,
+        );
+        expect(result.xml).toEqual(
+            `<p>Before</p><!-- TODO: GeoGebra applets are not supported in DoenetML 0.7. Rebuild this one as a DoenetML widget. The v0.6 element was:
+<embed width="100" encodedGeogebraContent="UEsD" />
+--><p>After</p>`,
+        );
         expect(result.ruleIds).toEqual(["no-v07-equivalent/embed-geogebra"]);
+    });
+
+    it("keeps a commented-out embed a valid comment", async () => {
+        const result = await convert(
+            `<embed title="a -- b"><p>c -- d</p></embed>`,
+        );
+        expect(result.xml.startsWith("<!--")).toBe(true);
+        expect(result.xml.endsWith("-->")).toBe(true);
+        expect(result.xml.slice(4, -3)).not.toContain("--");
     });
 
     it("is idempotent: converting already-converted output changes nothing", async () => {
@@ -191,14 +221,122 @@ describe("external content references", () => {
         ]);
     });
 
-    it("flags a <ref> that points at a v0.6 activity", async () => {
-        const result = await convert(
+    it("rewrites a <ref> to another document in the form v0.7 reads", async () => {
+        // v0.7 recognizes only `doenet:<id>`; anything else is a dead link.
+        let result = await convert(
             `<ref uri="doenet:activityId=7LcTY65nnUMEoyV5Usapwz">link</ref>`,
         );
         expect(result.xml).toEqual(
-            `<ref to="doenet:activityId=7LcTY65nnUMEoyV5Usapwz">link</ref>`,
+            `<ref to="doenet:7LcTY65nnUMEoyV5Usapwz">link</ref>`,
         );
-        expect(result.ruleIds).toEqual(["external-ref/needs-new-content-id"]);
+        expect(result.ruleIds).toEqual(["external-ref/assumed-content-id"]);
+
+        // A `cid` pinned a version, which v0.7 has no way to say; a fragment is kept.
+        result = await convert(
+            `<ref uri="doenet:doenetId=abc&amp;cid=bafkre#page2">link</ref>`,
+        );
+        expect(result.xml).toEqual(`<ref to="doenet:abc#page2">link</ref>`);
+        expect(result.ruleIds).toEqual(["external-ref/assumed-content-id"]);
+    });
+
+    it("leaves a <ref> it cannot rewrite faithfully, and says so", async () => {
+        for (const uri of [
+            // A legacy id is not one v0.7 can look up.
+            "doenet:doenetId=_kMXUsu8hjrTM7gR",
+            // Dropping the `pageId` would link to the whole activity.
+            "doenet:doenetId=abc&amp;pageId=def",
+            // A `cid` alone names no document.
+            "doenet:cid=bafkre",
+        ]) {
+            const result = await convert(`<ref uri="${uri}">link</ref>`);
+            expect(result.xml).toEqual(`<ref to="${uri}">link</ref>`);
+            expect(result.ruleIds).toEqual([
+                "external-ref/needs-new-content-id",
+            ]);
+        }
+    });
+
+    it("keeps the other document when a <ref> also names a component in it", async () => {
+        // `target` and `uri` both become `to`; the target used to win, linking to a
+        // name this document does not have.
+        const result = await convert(
+            `<ref uri="doenet:activityId=abc" page="2" target="eq">6</ref>`,
+        );
+        expect(result.xml).toEqual(`<ref to="doenet:abc">6</ref>`);
+        expect(result.ruleIds).toEqual([
+            "deprecated/ref-page",
+            "external-ref/target-dropped",
+            "external-ref/assumed-content-id",
+        ]);
+    });
+
+    it("rewrites a <copy uri> to the id-only form", async () => {
+        const result = await convert(
+            `<copy uri="doenet:activityId=abc&amp;cid=bafkre" vmin="-1" assignNames="a" />`,
+        );
+        expect(result.xml).toEqual(
+            `<module copy="doenet:abc" vmin="-1" name="a" />`,
+        );
+        expect(result.ruleIds).toEqual(["external-copy/assumed-content-id"]);
+    });
+
+    it("gives an external copy the type of the document it loads", async () => {
+        const documents = {
+            mod: `<module><setup><customAttribute componentType="number" name="vmin" defaultValue="0" /></setup><number name="v">$vmin</number></module>`,
+            prob: `\n<problem><p>Q</p></problem>\n`,
+            wrapped: `<document><problem><p>Q</p></problem></document>`,
+        };
+        let result = await convert(
+            `<copy uri="doenet:activityId=mod&amp;cid=bafkre" vmin="-1" assignNames="a" />`,
+            documents,
+        );
+        expect(result.xml).toEqual(
+            `<module copy="doenet:mod" vmin="-1" name="a" />`,
+        );
+        expect(result.ruleIds).toEqual([]);
+
+        // With nothing passed, nothing in this document said the type.
+        result = await convert(
+            `<copy uri="doenet:doenetId=prob" assignNames="a" />`,
+            documents,
+        );
+        expect(result.xml).toEqual(`<problem copy="doenet:prob" name="a" />`);
+        expect(result.ruleIds).toEqual([]);
+
+        result = await convert(
+            `<copy uri="doenet:doenetId=wrapped" />`,
+            documents,
+        );
+        expect(result.xml).toEqual(`<problem copy="doenet:wrapped" />`);
+        expect(result.ruleIds).toEqual([]);
+    });
+
+    it("leaves an external copy of a document v0.7 cannot load as one component", async () => {
+        const documents = {
+            several: `<p>One</p><p>Two</p>`,
+            doc: `<document><title>T</title><p>One</p></document>`,
+        };
+        for (const id of Object.keys(documents)) {
+            const source = `<copy uri="doenet:doenetId=${id}" />`;
+            const result = await convert(source, documents);
+            expect(result.xml).toEqual(source);
+            expect(result.ruleIds).toEqual(["external-copy/unusable-target"]);
+        }
+    });
+
+    it("falls back to a module when the external document cannot be loaded", async () => {
+        let result = await convert(
+            `<copy uri="doenet:activityId=missing" vmin="1" />`,
+            {},
+        );
+        expect(result.xml).toEqual(`<module copy="doenet:missing" vmin="1" />`);
+        expect(result.ruleIds).toEqual(["external-copy/assumed-content-id"]);
+
+        result = await convert(`<copy uri="doenet:activityId=missing" />`, {});
+        expect(result.xml).toEqual(`<copy uri="doenet:activityId=missing" />`);
+        expect(result.ruleIds).toEqual([
+            "external-copy/unknown-component-type",
+        ]);
     });
 
     it("leaves an ordinary <ref> alone", async () => {

@@ -14,7 +14,10 @@ import {
 import { VFile } from "vfile";
 import { renameAttrInPlace } from "./rename-attr-in-place";
 import { reparseAttribute } from "./reparse-attribute";
-import { determinePropType } from "./core-info/determine-prop-type";
+import {
+    determinePropType,
+    isComponentType,
+} from "./core-info/determine-prop-type";
 import {
     AssignNamesContext,
     namespaceChainOf,
@@ -103,7 +106,7 @@ export const upgradeCollectElement: Plugin<
         //   </setup>
         //   <mathList name="points" extend="$collect_points.x" />
         // ```
-        replaceNode(tree, (node) => {
+        replaceNode(tree, (node, info) => {
             if (!isDastElement(node) || node.name !== "collect") {
                 return;
             }
@@ -157,7 +160,30 @@ export const upgradeCollectElement: Plugin<
                 name: "name",
                 children: [{ type: "text", value: collectName }],
             };
-            let listType = determinePropType(componentType, propName);
+            // Some props, such as a `<choiceInput>`'s `selectedValue`, have no fixed
+            // type, and `determinePropType` throws for them. The list the `<collect>`
+            // was written in, `<textList><collect prop="selectedValue" ... /></textList>`,
+            // says what the author expected, so that is the next best answer.
+            let listType: string | undefined;
+            try {
+                listType = determinePropType(componentType, propName);
+            } catch (e) {
+                listType = undefined;
+            }
+            if (!listType) {
+                const parent = info.parents[0];
+                const parentItemType =
+                    parent && isDastElement(parent)
+                        ? parent.name.replace(/List$/, "")
+                        : undefined;
+                if (
+                    parentItemType &&
+                    parentItemType !== parent.name &&
+                    isComponentType(parentItemType)
+                ) {
+                    listType = parentItemType;
+                }
+            }
             if (!listType) {
                 file.message(
                     `Could not determine type for prop "${propName}" of component type "${componentType}". Using "math" as default.`,

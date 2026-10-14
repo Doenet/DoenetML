@@ -117,14 +117,6 @@ const ELEMENT_RULES: Record<string, ElementRules> = {
             because: "v0.7 <conditionalContent> always shows one case",
         },
     },
-    embed: {
-        encodedgeogebracontent: {
-            kind: "unsupported",
-            because:
-                "v0.7 has no <embed> element and no GeoGebra support; this content must be replaced by hand",
-            ruleId: "no-v07-equivalent/embed-geogebra",
-        },
-    },
     point: {
         link: {
             kind: "remove",
