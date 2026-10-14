@@ -45,8 +45,15 @@ pub struct Document {
     pub n_fixed: usize,
     pub program: Program,
     pub components: ComponentTable,
-    /// Names and text, shared with the DAST they came from.
+    /// Names and text: the DAST's table, then the strings the build added
+    /// (`Compiled::extra_strings`), then those interned since load.
     pub strings: StringTable,
+    /// How many of `strings` every build of this document produces (the
+    /// DAST's and the build's): ids from here on were interned at runtime
+    /// and are carried across rebuilds (`Carryover`).
+    pub n_static_strings: usize,
+    /// Each string's canonical id, built on first `intern`.
+    interned: Option<HashMap<String, StrId>>,
     /// Index of the root `<document>` component.
     pub root: CompIdx,
     pub structure: Structure,
@@ -69,6 +76,7 @@ impl Document {
         structure: Structure,
         dast: Arc<Dast>,
     ) -> Self {
+        let n_static_strings = strings.len();
         let mut doc = Document {
             cells,
             n_essential,
@@ -76,6 +84,8 @@ impl Document {
             program,
             components,
             strings,
+            n_static_strings,
+            interned: None,
             root,
             structure,
             dast,
@@ -89,6 +99,29 @@ impl Document {
     /// request on a mathInput's `expr` cell.
     pub fn parse_math(&self, text: &str) -> std::result::Result<f64, String> {
         Ok(self.program.sym.engine.borrow_mut().parse(text)? as f64)
+    }
+
+    /// The id of `text` in the string table, as a cell value: the value to
+    /// request on a text cell (a `<textInput>`'s). Interns the text if the
+    /// table does not have it yet; equal text gets equal ids.
+    pub fn intern(&mut self, text: &str) -> f64 {
+        let strings = &mut self.strings;
+        let ids = self.interned.get_or_insert_with(|| {
+            let mut ids = HashMap::new();
+            for i in (0..strings.len() as StrId).rev() {
+                ids.insert(strings.get(i).to_string(), i);
+            }
+            ids
+        });
+        let id = match ids.get(text) {
+            Some(&id) => id,
+            None => {
+                let id = strings.push(text);
+                ids.insert(text.to_string(), id);
+                id
+            }
+        };
+        id as f64
     }
 
     /// The expression a math cell holds, as text; empty when blank.

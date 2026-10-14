@@ -315,8 +315,9 @@ impl<'a> Compiler<'a> {
             .is_some_and(|inner| super::expr::split_top(inner, &Token::Comma).len() > 1))
     }
 
-    /// `<text>`: literal text is a fixed cell holding its string id; a lone
-    /// reference aliases another text's value.
+    /// `<text>`: literal text (or nothing) is an essential cell holding its
+    /// string id, since DoenetML's text value is state (a bound `<textInput>`
+    /// writes it); a lone reference aliases another text's value.
     pub(in crate::build) fn plan_text(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let d = self.compiled.dast;
         let Elem {
@@ -330,11 +331,14 @@ impl<'a> Compiler<'a> {
             .copied()
             .filter(|&n| !self.is_blank(n))
             .collect();
-        let plan = match nodes.as_slice() {
-            [] => SourcePlan::Fixed(f64::NAN),
-            [n] if d.kind(*n) == NodeKind::Text => SourcePlan::Fixed(d.str_id(*n) as f64),
+        let mut plan = ElemPlan::new(1);
+        match nodes.as_slice() {
+            [] => plan.set_essential(0, "value", self.intern_literal("") as f64),
+            [n] if d.kind(*n) == NodeKind::Text => {
+                plan.set_essential(0, "value", d.str_id(*n) as f64)
+            }
             [n] if d.kind(*n) == NodeKind::Macro => {
-                SourcePlan::reference(self.plan_ref(t, scope, *n)?)
+                plan.set(0, SourcePlan::reference(self.plan_ref(t, scope, *n)?))
             }
             _ => {
                 return Err(Error::Unsupported(
@@ -342,8 +346,99 @@ impl<'a> Compiler<'a> {
                 ));
             }
         };
-        self.compiled.templates[t].elems[e].props = vec![plan];
+        self.compiled.templates[t].elems[e].props = plan.finish();
         Ok(())
+    }
+
+    /// `<textInput>`: `value` aliases what a lone `$ref` child names, else
+    /// what `bindValueTo` names (a child wins, as in DoenetML); otherwise it
+    /// is an essential cell holding the id of its `prefill` text (or of "").
+    pub(in crate::build) fn plan_text_input(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
+        let d = self.compiled.dast;
+        let Elem {
+            node: el,
+            name_scope: scope,
+            ..
+        } = self.compiled.templates[t].elems[e];
+        let nodes: Vec<NodeId> = d
+            .children(el)
+            .iter()
+            .copied()
+            .filter(|&n| !self.is_blank(n))
+            .collect();
+        let mut plan = ElemPlan::new(1);
+        match (nodes.as_slice(), d.attr(el, "bindValueTo")) {
+            ([n], _) if d.kind(*n) == NodeKind::Macro => {
+                plan.set(0, SourcePlan::reference(self.plan_ref(t, scope, *n)?))
+            }
+            ([], Some(a)) => {
+                let m = self.single_macro(a).ok_or_else(|| Error::BadValue {
+                    attr: "bindValueTo".into(),
+                    text: self.attr_text(a).unwrap_or_default(),
+                })?;
+                plan.set(0, SourcePlan::reference(self.plan_ref(t, scope, m)?));
+            }
+            ([], None) => {
+                let text = match d.attr(el, "prefill") {
+                    Some(a) => self.attr_text(a).unwrap_or_default(),
+                    None => String::new(),
+                };
+                let id = self.intern_literal(&text);
+                plan.set_essential(0, "value", id as f64);
+            }
+            _ => {
+                return Err(Error::Unsupported(
+                    "<textInput> with content other than one reference".into(),
+                ));
+            }
+        }
+        self.compiled.templates[t].elems[e].props = plan.finish();
+        Ok(())
+    }
+
+    /// The canonical string id of `text`: the DAST's if it has one (its
+    /// table is deduplicated), else from `extra_strings`, appended after
+    /// the DAST's in every build. Two text cells holding equal text hold
+    /// equal ids, so text equality is `Eq` on ids (`plan_text_condition`).
+    pub(in crate::build) fn intern_literal(&mut self, text: &str) -> StrId {
+        let d = self.compiled.dast;
+        let ids = self.string_ids.get_or_insert_with(|| {
+            let mut ids = HashMap::new();
+            for i in (0..d.strings.len() as StrId).rev() {
+                ids.insert(d.strings.get(i).to_string(), i);
+            }
+            ids
+        });
+        if let Some(&id) = ids.get(text) {
+            return id;
+        }
+        let id = (d.strings.len() + self.compiled.extra_strings.len()) as StrId;
+        self.compiled.extra_strings.push(text.to_string());
+        ids.insert(text.to_string(), id);
+        id
+    }
+
+    /// Whether `m` is a reference to a text value: `$t`, `$ti`, `$t.value`
+    /// on a `<text>` or `<textInput>`. Decided from the referent's type at
+    /// plan time, so a text cell never reaches a numeric comparison.
+    pub(in crate::build) fn macro_is_text(&self, t: TemplateId, scope: ElemId, m: NodeId) -> bool {
+        let d = self.compiled.dast;
+        let names = d.macro_path(m);
+        let parts = names.len();
+        if parts > 2 || parts == 2 && d.strings.get(names[1]).trim() != "value" {
+            return false;
+        }
+        let Ok(Some((hops, e))) = self.lookup(t, scope, d.strings.get(names[0])) else {
+            return false;
+        };
+        let mut cur_t = t;
+        for _ in 0..hops {
+            cur_t = self.compiled.templates[cur_t].parent.unwrap().0;
+        }
+        matches!(
+            self.compiled.templates[cur_t].elems[e].component_type,
+            ComponentType::Text | ComponentType::TextInput
+        )
     }
 
     /// An on/off attribute that may also take a value: present and not
@@ -551,6 +646,13 @@ impl<'a> Compiler<'a> {
                 NodeKind::Macro => {
                     text.push('$');
                     text.push_str(&d.macro_display(n));
+                    // A text cell holds a string id, which is not a number.
+                    if self.macro_is_text(t, scope, n) {
+                        return Err(Error::Unsupported(format!(
+                            "a text value (${}) inside math",
+                            d.macro_display(n)
+                        )));
+                    }
                     let p = self.plan_ref(t, scope, n)?;
                     // Spaces keep `2$a` from reading as one token.
                     sym.push_str(&format!(

@@ -6,6 +6,7 @@ import { useMemo, useSyncExternalStore, type ReactNode } from "react";
 import { useCell, useStore } from "../hooks";
 import type { CellStore } from "../core";
 import { Children, ChildItems, Component } from "./index";
+import { TextView } from "./Choice";
 import { fmt } from "./Number";
 
 /** A number with `displayDecimals`, else as the other number views. */
@@ -100,6 +101,7 @@ function MathValue({ idx }: { idx: number }) {
     ) {
         return <ValueText idx={idx} />;
     }
+    if (type === "text" || type === "textInput") return <TextView idx={idx} />;
     return <Children idx={idx} inGraph={false} />;
 }
 

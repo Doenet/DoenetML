@@ -159,6 +159,10 @@ pub struct Carryover {
     /// `essential_values` every essential value it held.
     structure: Structure,
     counts: HashMap<(ScopeId, NodeId), u32>,
+    /// Strings interned since load (`Document::intern`), appended again
+    /// after the new build's static table so the ids text cells hold stay
+    /// valid; see `Document::n_static_strings`.
+    runtime_strings: Vec<String>,
 }
 
 impl Carryover {
@@ -171,6 +175,7 @@ impl Carryover {
                 ..Structure::default()
             },
             counts: HashMap::new(),
+            runtime_strings: Vec::new(),
         }
     }
 
@@ -198,11 +203,26 @@ impl Carryover {
             }
             row[slot as usize] = Some(v);
         }
-        Carryover { structure, counts }
+        let runtime_strings = (doc.n_static_strings..doc.strings.len())
+            .map(|i| doc.strings.get(i as StrId).to_string())
+            .collect();
+        Carryover {
+            structure,
+            counts,
+            runtime_strings,
+        }
     }
 
     pub fn restore(self, doc: &mut Document) {
         doc.structure = self.structure;
+    }
+
+    /// Append the runtime strings to a freshly built document's table, so
+    /// an interned id means the same text it did before the rebuild.
+    pub fn restore_strings(&self, doc: &mut Document) {
+        for s in &self.runtime_strings {
+            doc.strings.push(s);
+        }
     }
 }
 

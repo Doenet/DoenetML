@@ -147,6 +147,9 @@ impl Document {
             ComponentType::Text => {
                 out.push_str(&self.text_value(self.comp_cells(c)[prop::text::VALUE]))
             }
+            ComponentType::TextInput => {
+                out.push_str(&self.text_value(self.comp_cells(c)[prop::text_input::VALUE]))
+            }
             ComponentType::Number | ComponentType::NumberInput | ComponentType::Slider => {
                 out.push_str(&format_number(value("value").unwrap_or(f64::NAN)))
             }

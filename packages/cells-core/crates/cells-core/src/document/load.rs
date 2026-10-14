@@ -60,6 +60,7 @@ impl Document {
 
             let clock = web_time::Instant::now();
             let mut doc = built.schedule(dast.clone(), &mut engine)?;
+            carryover.restore_strings(&mut doc);
             t.schedule += clock.elapsed();
 
             let clock = web_time::Instant::now();
@@ -157,6 +158,7 @@ impl Document {
                 }
                 let clock = web_time::Instant::now();
                 let mut doc = built.schedule(dast.clone(), &mut engine)?;
+                carryover.restore_strings(&mut doc);
                 if profile {
                     eprintln!(
                         "rebuild/schedule: {:.2?} (creation order valid: {})",

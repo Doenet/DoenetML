@@ -2,7 +2,8 @@ import { useMemo, useSyncExternalStore } from "react";
 import { useCell, useStore } from "../hooks";
 import { Children } from "./index";
 
-/** A `<text>`: its value cell holds a string id. */
+/** A `<text>`, or a textInput's value shown as text: the value cell holds
+ * a string id. */
 export function TextView({ idx }: { idx: number }) {
     const store = useStore();
     const v = useCell(store.comps.cell(idx, "value"));

@@ -127,6 +127,13 @@ export class CellStore {
         this.send(pairs, false);
     }
 
+    /** Write text to a text cell (a textInput's `value`): the text is
+     * interned in the core's string table and its id requested. */
+    requestText(cell: number, text: string): void {
+        const id = this.core.intern(text);
+        this.request([[cell, id]]);
+    }
+
     /** Points dragged together: `[xCell, yCell, x, y]` per point. The core
      * keeps them a translation apart if one of them is constrained. */
     requestPoints(points: [number, number, number, number][]): void {
@@ -199,6 +206,8 @@ export class CellStore {
             this.structureVersion++;
             for (const fn of this.structureListeners) fn();
         } else {
+            // A tick that interned text grew the string table.
+            this.comps.syncStrings(this.core, wasmMemory!);
             for (let i = 0; i < changed.length; i++) {
                 const set = this.listeners[changed[i]];
                 if (set) for (const fn of set) fn();

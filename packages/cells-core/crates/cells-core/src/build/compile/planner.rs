@@ -68,6 +68,7 @@ impl<'a> Compiler<'a> {
             K::NumberInput => Props,
             K::BooleanInput => Props,
             K::MathInput => PropsThen(Self::plan_math_input),
+            K::TextInput => Whole(Self::plan_text_input_elem),
             K::Slider => Props,
             K::UpdateValue => Props,
             // Values
@@ -121,6 +122,14 @@ impl<'a> Compiler<'a> {
         match self.compiled.templates[t].elems[e].extend {
             Some(p) => self.plan_attrs(t, e, Some(p)),
             None => self.plan_text(t, e),
+        }
+    }
+
+    /// A `<textInput>` that extends another is planned from its prop table.
+    fn plan_text_input_elem(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
+        match self.compiled.templates[t].elems[e].extend {
+            Some(p) => self.plan_attrs(t, e, Some(p)),
+            None => self.plan_text_input(t, e),
         }
     }
 

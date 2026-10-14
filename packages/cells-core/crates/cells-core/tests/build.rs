@@ -225,7 +225,7 @@ fn error_cases() {
         Error::UncopyableType(_)
     ));
     assert!(matches!(
-        load(r#"<textInput/>"#).unwrap_err(),
+        load(r#"<codeEditor/>"#).unwrap_err(),
         Error::UnsupportedTag(_)
     ));
 }

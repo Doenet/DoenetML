@@ -169,6 +169,8 @@ component_types! {
     When => values::WHEN,
     /// One submitted response of an answer with awards.
     Response => values::RESPONSE,
+    /// `<textInput>`.
+    TextInput => inputs::TEXT_INPUT,
 }
 
 /// What the core knows about a type apart from how it is planned and

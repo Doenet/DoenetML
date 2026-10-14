@@ -125,6 +125,32 @@ export class ComponentTable {
         return out;
     }
 
+    /** The string table grows when text is interned (`CellStore.requestText`)
+     * and may move when wasm memory does: re-view it when the core's table
+     * is not the one viewed. Ids are stable, so the cache stays. */
+    syncStrings(core: any, memory: WebAssembly.Memory) {
+        const n = core.n_strings();
+        const { stringOffsets: o, stringBytes: b } = this.cols;
+        if (
+            o.buffer === memory.buffer &&
+            o.byteOffset === core.string_offsets_ptr() &&
+            o.length === n + 1 &&
+            b.byteOffset === core.string_bytes_ptr() &&
+            b.length === core.string_bytes_len()
+        )
+            return;
+        this.cols.stringOffsets = new Uint32Array(
+            memory.buffer,
+            core.string_offsets_ptr(),
+            n + 1,
+        );
+        this.cols.stringBytes = new Uint8Array(
+            memory.buffer,
+            core.string_bytes_ptr(),
+            core.string_bytes_len(),
+        );
+    }
+
     /** First component with this name, for tests and tooling. */
     byName(name: string): number | null {
         for (let c = 0; c < this.length; c++)

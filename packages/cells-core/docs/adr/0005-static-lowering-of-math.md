@@ -45,3 +45,10 @@ chain of `<math>` elements equals the same chain of `<op>` elements.
   The real parser lives with the future Rust expression library; the arena
   interface (flat nodes, cell leaves, evaluate, substitute) is what the core
   needs from it.
+- Found 2026-10-14 through the DoenetML test suite: `symbolicEquality`
+  against a lowered math has nothing to compare. `<math name="m">1+3</math>`
+  is the number 4 by the time the engine sees it, so an answer checking
+  `$resp = $m` under `symbolicEquality` accepts `4` where DoenetML expects
+  the form `1+3`. A math that a `symbolicEquality` comparison names must
+  keep its written form; the lowering would need to see that use before
+  deciding.

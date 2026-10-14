@@ -58,3 +58,10 @@ change. The bench set keeps a symbolic family so growth stays visible.
   unification spreads to the whole wasm binary.
 - The build-time numeric parser in `build/compile/expr.rs` (the parse arena,
   ADR 0005) is still the core's own; it is the remaining parser to unify.
+- Found 2026-10-14 through the DoenetML test suite: DoenetML's
+  `simplifyOnCompare` has levels (`numbers`, `numbersPreserveOrder`,
+  `normalizeOrder`, `full`) that are distinct normal forms of its
+  JavaScript engine. The core maps every level to the engine's one
+  `simplify`, so comparisons that depend on a lesser level (`normalizeOrder`
+  accepting `(x-1)(x+1)` against `(x-$a)(x+$a)`) differ. Whether the Rust
+  engine should grow those levels is a question for math-expressions-rs.

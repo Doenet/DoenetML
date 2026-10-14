@@ -40,8 +40,83 @@ impl<'a> Compiler<'a> {
         plan: &mut ElemPlan,
         nodes: &[NodeId],
     ) -> Result<usize> {
+        if let Some(slot) = self.plan_text_condition(t, e, nodes, plan)? {
+            return Ok(slot);
+        }
         let (toks, text) = self.math_tokens(t, e, nodes)?;
         self.plan_condition_tokens(plan, &toks, &text, Compare::default())
+    }
+
+    /// A condition over a text value: `$t = rain`, `rain != $t`, `$t = $ti`,
+    /// one `=` or `!=` with a lone text reference or literal text on each
+    /// side. Equal text holds equal string ids (`intern_literal`,
+    /// `Document::intern`), so it is `Eq` on the two cells, the literal
+    /// side a fixed cell with its id. `None` when no text value is
+    /// involved; any other use of one is refused by name, so a text cell
+    /// never compares as a number.
+    fn plan_text_condition(
+        &mut self,
+        t: TemplateId,
+        scope: ElemId,
+        nodes: &[NodeId],
+        plan: &mut ElemPlan,
+    ) -> Result<Option<usize>> {
+        let d = self.compiled.dast;
+        // Each reference spelled as a placeholder, so the sides can be split
+        // on the text as written.
+        let mut spelled = String::new();
+        let mut refs = Vec::new();
+        for &n in nodes {
+            match d.kind(n) {
+                NodeKind::Text => spelled.push_str(d.str(n)),
+                NodeKind::Macro => {
+                    spelled.push_str(&format!("\u{0}{}\u{0}", refs.len()));
+                    refs.push(n);
+                }
+                _ => {}
+            }
+        }
+        if !refs.iter().any(|&m| self.macro_is_text(t, scope, m)) {
+            return Ok(None);
+        }
+        let refuse = |what: &str| {
+            Error::Unsupported(format!(
+                "{what}: a text value compares only as `$t = text`, `$t != text` or `$t = $u`"
+            ))
+        };
+        let Some((lhs, rhs, negate)) = split_equality(&spelled) else {
+            return Err(refuse(
+                "a text value in a condition that is not one `=` or `!=`",
+            ));
+        };
+        let mut side = |cp: &mut Self, s: &str| -> Result<usize> {
+            let lone = s
+                .strip_prefix('\u{0}')
+                .and_then(|r| r.strip_suffix('\u{0}'))
+                .and_then(|k| k.parse::<usize>().ok());
+            match lone {
+                Some(k) if cp.macro_is_text(t, scope, refs[k]) => {
+                    let p = cp.plan_ref(t, scope, refs[k])?;
+                    Ok(plan.hidden(SourcePlan::reference(p)))
+                }
+                Some(_) => Err(refuse("a text value compared with a number")),
+                None if s.contains('\u{0}') => {
+                    Err(refuse("a text value inside a larger expression"))
+                }
+                None => {
+                    let id = cp.intern_literal(s);
+                    Ok(plan.hidden(SourcePlan::Fixed(id as f64)))
+                }
+            }
+        };
+        let a = side(self, &lhs)?;
+        let b = side(self, &rhs)?;
+        let eq = plan.hidden(SourcePlan::computed(OpSpec::Eq, vec![a, b]));
+        Ok(Some(if negate {
+            plan.hidden(SourcePlan::computed(OpSpec::Not, vec![eq]))
+        } else {
+            eq
+        }))
     }
 
     /// A condition from tokens already made (`math_tokens`), with a say in
@@ -78,6 +153,9 @@ impl<'a> Compiler<'a> {
         compare: Compare,
         plan: &mut ElemPlan,
     ) -> Result<usize> {
+        if let Some(slot) = self.plan_text_condition(t, scope, nodes, plan)? {
+            return Ok(slot);
+        }
         match self.math_tokens(t, scope, nodes) {
             Ok((toks, text)) => self.plan_condition_tokens(plan, &toks, &text, compare),
             Err(Error::BadMath { text, reason }) => {

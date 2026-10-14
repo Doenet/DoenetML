@@ -267,6 +267,14 @@ const STATE: Record<string, Record<string, Reader>> = {
         value: (_g, x) => x.cells.text_value(x.cell("value")!).trim(),
         text: (_g, x) => x.cells.text_value(x.cell("value")!).trim(),
     },
+    // `immediateValue` is the same cell as `value` in the cells core: a
+    // typed-but-uncommitted text is kept here (`rawValues`) until
+    // `updateValue`, so the two never differ.
+    textInput: {
+        value: (_g, x) => x.cells.text_value(x.cell("value")!),
+        immediateValue: (_g, x) => x.cells.text_value(x.cell("value")!),
+        text: (_g, x) => x.cells.text_value(x.cell("value")!),
+    },
     p: containerReaders,
     group: containerReaders,
     document: containerReaders,
@@ -645,6 +653,10 @@ export async function createTestCoreCells({
                     );
                     return;
                 case "updateImmediateValue":
+                    if (componentType === "textInput") {
+                        rawValues.set(componentIdx, String(args.text ?? ""));
+                        return;
+                    }
                     rawValues.set(
                         componentIdx,
                         String(
@@ -655,6 +667,18 @@ export async function createTestCoreCells({
                     );
                     return;
                 case "updateValue": {
+                    if (componentType === "textInput") {
+                        // The text is interned in the core's string table
+                        // and its id requested on the value cell.
+                        const text = rawValues.get(componentIdx) ?? "";
+                        request([
+                            [
+                                propCells(componentIdx, "value")[0],
+                                cells.intern(text),
+                            ],
+                        ]);
+                        return;
+                    }
                     const latex = rawValues.get(componentIdx) ?? "";
                     // An unbound mathInput holds an expression (plan 5):
                     // what was typed goes to its essential `expr` cell.

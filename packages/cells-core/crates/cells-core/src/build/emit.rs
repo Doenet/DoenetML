@@ -251,6 +251,10 @@ impl<'c, 'a> Builder<'c, 'a> {
             }
         });
 
+        let mut strings = self.compiled.dast.strings.clone();
+        for s in &self.compiled.extra_strings {
+            strings.push(s);
+        }
         let mut components = self.components;
         components.component_type.shrink_to_fit();
         components.name.shrink_to_fit();
@@ -267,7 +271,7 @@ impl<'c, 'a> Builder<'c, 'a> {
             n_fixed,
             instrs,
             components,
-            strings: self.compiled.dast.strings.clone(),
+            strings,
             root: self.root,
             structure,
             operands,

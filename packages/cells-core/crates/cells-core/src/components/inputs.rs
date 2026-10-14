@@ -1,5 +1,5 @@
-//! Number input, boolean input, math input and slider: types whose value a
-//! user sets. Each value is an essential cell unless bound to another.
+//! Number input, boolean input, math input, text input and slider: types
+//! whose value a user sets. Each value is an essential cell unless bound to another.
 
 use super::define::*;
 use super::{ComponentTypeInfo, PropDef};
@@ -86,3 +86,20 @@ const SLIDER_PROPS: &[PropDef] = &props([
     computed("scaled", OpSpec::Mul, &["index", "step"]),
     computed("value", OpSpec::Add, &["scaled", "from"]),
 ]);
+
+/// `<textInput>`: `value` is an essential cell holding a string id (the
+/// `prefill`'s, or ""'s), unless `bindValueTo` or a `$ref` child binds it
+/// to another text cell. Typing interns the text (`Document::intern`) and
+/// requests the id. Planned by `plan_text_input`; `immediateValue` is the
+/// same cell.
+pub(super) const TEXT_INPUT: ComponentTypeInfo = info(&["textInput"], TEXT_INPUT_PROPS)
+    .copyable()
+    .default_prop("value");
+
+const TEXT_INPUT_PROPS: &[PropDef] =
+    &props([children("value").attribute("prefill").bind("bindValueTo")]);
+
+pub mod text_input {
+    use super::*;
+    pub const VALUE: usize = at(TEXT_INPUT_PROPS, "value");
+}

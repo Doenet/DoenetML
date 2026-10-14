@@ -470,9 +470,13 @@ impl<'c, 'a> Builder<'c, 'a> {
             }
             (_, Some(prop)) => {
                 let targets = self.targets_of(target, Some(prop), plan, Some(1))?;
-                // A text's value is a string id: it shows as a text.
+                // A text's or textInput's value is a string id: it shows
+                // as a text.
                 let is_text = self.single_component(target, plan).is_ok_and(|c| {
-                    self.components.component_type[c as usize] == ComponentType::Text
+                    matches!(
+                        self.components.component_type[c as usize],
+                        ComponentType::Text | ComponentType::TextInput
+                    )
                 }) && prop == "value";
                 self.components.component_type[idx as usize] = if is_text {
                     ComponentType::Text

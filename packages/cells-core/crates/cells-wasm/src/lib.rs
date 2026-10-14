@@ -58,6 +58,13 @@ impl Core {
         self.doc.parse_math(text).map_err(|e| JsError::new(&e))
     }
 
+    /// The string id of `text` as a cell value, interning it if new: the
+    /// value to request on a text cell (a `<textInput>`'s). After a call
+    /// that interned, `n_strings` and the string pointers must be re-read.
+    pub fn intern(&mut self, text: &str) -> f64 {
+        self.doc.intern(text)
+    }
+
     /// Symbolic instructions that called the engine since load.
     pub fn sym_runs(&self) -> f64 {
         self.doc.program.sym.stats.get().runs as f64

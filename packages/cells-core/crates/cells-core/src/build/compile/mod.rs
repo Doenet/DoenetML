@@ -30,6 +30,9 @@ pub(in crate::build) struct Compiler<'a> {
     /// Macro nodes whose reference is already planned: `$mi` inside an
     /// answer's `<when>` is its submitted response (`plan_answer`).
     pub(in crate::build) ref_subst: HashMap<NodeId, RefId>,
+    /// Every string's canonical id, over the DAST table (built when first
+    /// needed) and then `extra_strings`: see `intern_literal`.
+    pub(in crate::build) string_ids: Option<HashMap<String, StrId>>,
 }
 
 /// The ways an element is planned; see `Compiler::elem_shape`.
@@ -52,10 +55,12 @@ impl<'a> Compiler<'a> {
                 arena: Arena::default(),
                 sym_text: HashMap::new(),
                 choices: Vec::new(),
+                extra_strings: Vec::new(),
             },
             pending_elems: Vec::new(),
             pending_macros: Vec::new(),
             ref_subst: HashMap::new(),
+            string_ids: None,
         };
         // Template 0 is the document: its one child is the root component.
         let doc_el = dast
