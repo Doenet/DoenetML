@@ -1,0 +1,35 @@
+{
+    "name": "repeat-100",
+    "tier": "synthetic",
+    "mechanism": "rebuild: a repeat whose length is an input",
+    "source": {
+        "generate": "repeat-100"
+    },
+    "steps": [
+        {
+            "action": "movePoint",
+            "target": "r[1].q",
+            "x": 1,
+            "y": 1
+        },
+        {
+            "action": "movePoint",
+            "target": "r[1].q",
+            "x": 2,
+            "y": 2
+        }
+    ],
+    "structural": [
+        {
+            "action": "updateValue",
+            "target": "n",
+            "value": "99"
+        },
+        {
+            "action": "updateValue",
+            "target": "n",
+            "value": "100"
+        }
+    ],
+    "notes": "r[1].q is the fixed point in the first iteration. The structural change alternates the count between N-1 and N so every step rebuilds."
+}

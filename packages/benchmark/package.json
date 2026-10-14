@@ -1,0 +1,14 @@
+{
+    "name": "@doenet/benchmark",
+    "type": "module",
+    "description": "Performance suite comparing the JS, Rust and cells cores: update time, load time, memory, state storage size, bundle size",
+    "version": "*",
+    "license": "AGPL-3.0-or-later",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "private": true,
+    "repository": "github:Doenet/DoenetML",
+    "scripts": {
+        "fixtures": "node scripts/list-fixtures.mjs",
+        "test": "echo \"No tests\""
+    }
+}

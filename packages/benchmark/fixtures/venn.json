@@ -1,0 +1,16 @@
+{
+    "name": "venn",
+    "tier": "real",
+    "mechanism": "graph with answers: shaded Venn regions, eight toggles behind a button, eight answers",
+    "source": {
+        "path": "packages/doenetml-worker-javascript/src/test/memory-bench-doc.xml"
+    },
+    "steps": [
+        {
+            "action": "triggerActions",
+            "target": "flip_btn"
+        }
+    ],
+    "structural": null,
+    "notes": "The JS core's memory-bench document. The button flips all eight region toggles, which re-derives the shading."
+}

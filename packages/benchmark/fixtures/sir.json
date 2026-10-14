@@ -1,0 +1,35 @@
+{
+    "name": "sir",
+    "tier": "real",
+    "mechanism": "simulation: function iterates feeding three polylines and a table; parameters bound to inputs",
+    "source": {
+        "file": "sir.doenet"
+    },
+    "steps": [
+        {
+            "action": "movePoint",
+            "target": "Ipt",
+            "x": 0,
+            "y": 20
+        },
+        {
+            "action": "movePoint",
+            "target": "Ipt",
+            "x": 0,
+            "y": 30
+        }
+    ],
+    "structural": [
+        {
+            "action": "updateValue",
+            "target": "nIterates",
+            "value": "99"
+        },
+        {
+            "action": "updateValue",
+            "target": "nIterates",
+            "value": "100"
+        }
+    ],
+    "notes": "Copied from packages/cells-core/fixtures/sir.doenet with the three initial-condition points named (Spt, Ipt, Rpt) so the manifest can address them. Changing nIterates changes the number of iterates, which is the repeat's length."
+}
