@@ -542,11 +542,14 @@ function onlySaysWhatItCopies(node: DastElement, consumedKeys: string[]) {
  *
  * Only an unindexed path of legal names to a non-composite element is answered, and
  * only when every name is unique where it is looked for: anything else could be a different component
- * from the one v0.7 would resolve.
+ * from the one v0.7 would resolve. A name inside a repeat is not looked for from outside
+ * it, where each iteration's copy of it needs an index to be found.
  */
 function findNamedElement(
     tree: DastRoot,
     path: DastMacroPathPart[],
+    /** The ancestors of the reference. */
+    referenceParents: DastElement[],
 ): { componentType: string; partsUsed: number } | undefined {
     let scope: DastNodes = tree;
     let found: DastElement | undefined;
@@ -557,11 +560,17 @@ function findNamedElement(
             return undefined;
         }
         const matches: DastElement[] = [];
-        visit(scope, (node) => {
+        visit(scope, (node, info) => {
             if (
                 isDastElement(node) &&
                 node !== scope &&
-                toXml(node.attributes["name"]?.children).trim() === part.name
+                toXml(node.attributes["name"]?.children).trim() === part.name &&
+                !info.parents.some(
+                    (parent) =>
+                        (parent.name === "repeat" ||
+                            parent.name === "repeatForSequence") &&
+                        !referenceParents.includes(parent),
+                )
             ) {
                 matches.push(node);
             }
@@ -711,7 +720,7 @@ async function findReferentType(
     // One the core found but could not type — an `_error`, say, from an illegal name —
     // is not second-guessed.
     if (referentType === undefined && !alias && !coreFoundReferent && tree) {
-        const found = findNamedElement(tree, path);
+        const found = findNamedElement(tree, path, parents);
         if (found) {
             referentType = found.componentType;
             unresolvedProps = path.slice(found.partsUsed);

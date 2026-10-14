@@ -2242,6 +2242,19 @@ describe("regressions found by the second review pass", () => {
         ]);
     });
 
+    it("types a copy by a name in a repeat only from inside that repeat", async () => {
+        // Each iteration has its own `a`, so `$a` finds one only from inside the repeat;
+        // from outside it finds nothing, and that is for the author to see.
+        source = `<map><template newNamespace><math name="a">$v+1</math><copy source="a" /></template><sources alias="v"><number>1</number></sources></map><copy source="a" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<setup><group name="group"><number>1</number></group></setup><repeat for="$group" valueName="v"><math name="a">$v+1</math><math extend="$a" /></repeat><copy source="a" />`,
+        );
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "copy/unresolved-referent",
+        ]);
+    });
+
     it("turns a copy of a prop with no single type into a bare reference", async () => {
         // An `<answer>`'s `submittedResponse` can be any type, so no element can stand
         // for it; a `<copy>` that says nothing else is the v0.6 `$a.submittedResponse`.
