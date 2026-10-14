@@ -105,3 +105,6 @@ packages/cells-core/pkg/
 packages/cells-core/fixtures/*
 !packages/cells-core/fixtures/sir.doenet
 packages/cells-viewer/test-results/
+# The cells core has a `build/` module and a committed Cargo.lock.
+!packages/cells-core/crates/cells-core/src/build/
+!packages/cells-core/Cargo.lock
