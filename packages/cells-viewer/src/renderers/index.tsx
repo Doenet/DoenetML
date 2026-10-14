@@ -5,6 +5,7 @@ import { NumberView, PointText } from "./Number";
 import { NumberInput } from "./NumberInput";
 import { Slider } from "./Slider";
 import { BooleanInput } from "./BooleanInput";
+import { BooleanView } from "./Boolean";
 import { MathView } from "./Math";
 import { CaseView, ChoiceView, SectionView, TextView } from "./Choice";
 import { JsxGraph } from "./jsxgraph/Board";
@@ -94,6 +95,8 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
             return <Slider idx={idx} />;
         case "booleanInput":
             return <BooleanInput idx={idx} />;
+        case "boolean":
+            return <BooleanView idx={idx} />;
         case "math":
             return <MathView idx={idx} />;
         case "mathInput":

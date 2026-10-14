@@ -193,6 +193,10 @@ const STATE: Record<string, Record<string, Reader>> = {
     numberInput: valueReaders,
     slider: valueReaders,
     booleanInput: { value: (g) => g("value") !== 0 },
+    boolean: {
+        value: (g) => g("value") !== 0,
+        text: (g) => (g("value") !== 0 ? "true" : "false"),
+    },
 };
 
 function stripPositions(o: any): any {

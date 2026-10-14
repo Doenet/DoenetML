@@ -160,6 +160,20 @@ impl Engine {
         self.push(e)
     }
 
+    /// Parse math text with no cell leaves to a stored expression: what a
+    /// template's text becomes when it says something a tree cannot (a
+    /// relation, a tuple, a function of several arguments) but reads no
+    /// cell, so it never has to be instantiated.
+    pub fn parse_fixed(&mut self, text: &str) -> Result<Handle, String> {
+        let e = self.convert_text(text)?;
+        if !cell_leaves(&e).is_empty() {
+            return Err(format!(
+                "'{text}' is not supported in a math cell with references (a relation, tuple or multi-argument function)"
+            ));
+        }
+        Ok(self.push(e))
+    }
+
     pub fn simplify(&mut self, h: Handle) -> Handle {
         let e = me::simplify(&self.exprs[h as usize]);
         self.push(e)

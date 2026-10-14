@@ -11,12 +11,13 @@ pub(super) const NUMBER_INPUT: ComponentTypeInfo = info(&["numberInput"], NUMBER
 
 const NUMBER_INPUT_PROPS: &[PropDef] = &props([attr("value", f64::NAN)]);
 
-/// A checkbox: its value cell holds 0 or 1 like any other `f64` cell.
+/// A checkbox: its value cell holds 0 or 1 like any other `f64` cell,
+/// essential unless `bindValueTo` names another (a `<boolean>`'s).
 pub(super) const BOOLEAN_INPUT: ComponentTypeInfo = info(&["booleanInput"], BOOLEAN_INPUT_PROPS)
     .copyable()
     .default_prop("value");
 
-const BOOLEAN_INPUT_PROPS: &[PropDef] = &props([attr("value", 0.0)]);
+const BOOLEAN_INPUT_PROPS: &[PropDef] = &props([attr("value", 0.0).bind("bindValueTo")]);
 
 /// `<mathInput>`: bound to another cell by a child reference or
 /// `bindValueTo`, it is a numeric input (`expr` NaN). Unbound, its `expr`

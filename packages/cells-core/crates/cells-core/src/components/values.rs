@@ -1,4 +1,4 @@
-//! Number, text, op, math, evaluate, function, derivative and answer:
+//! Number, boolean, text, op, math, evaluate, function, derivative and answer:
 //! types that hold a value, numeric or symbolic. Function, derivative and
 //! answer are `symbolic`: the builder plans them as math cells
 //! (`plan_symbolic`).
@@ -13,6 +13,17 @@ pub(super) const NUMBER: ComponentTypeInfo = info(&["number"], NUMBER_PROPS)
     .default_prop("value");
 
 const NUMBER_PROPS: &[PropDef] = &props([children("value")]);
+
+/// `<boolean>`: `value` is a 0/1 cell. Literal content (`true`, `false`,
+/// nothing) makes it essential; a lone `$ref` aliases the referent; a
+/// condition or a comparison of expressions makes it derived
+/// (`plan_boolean`). The compare attributes `symbolicEquality`,
+/// `simplifyOnCompare` and `expandOnCompare` are read at plan time.
+pub(super) const BOOLEAN: ComponentTypeInfo = info(&["boolean"], BOOLEAN_PROPS)
+    .copyable()
+    .default_prop("value");
+
+const BOOLEAN_PROPS: &[PropDef] = &props([children("value")]);
 
 /// `<text>` with literal content: `value` is a fixed cell holding the
 /// string id of its text (ADR 0009). A cell's meaning is a property of

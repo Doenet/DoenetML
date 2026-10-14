@@ -5,6 +5,7 @@
 use super::*;
 
 mod attrs;
+mod boolean;
 mod choice;
 mod condition;
 mod copies;

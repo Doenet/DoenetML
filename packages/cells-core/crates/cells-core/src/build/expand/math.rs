@@ -28,23 +28,26 @@ impl<'c, 'a> Builder<'c, 'a> {
                 reason: "round, floor, min, max and clamp are for numeric math only".into(),
             });
         }
-        let tree = self
-            .engine
-            .parse_tree(text)
-            .map_err(|reason| Error::BadMath {
-                text: text.clone(),
-                reason,
-            })?;
+        let tree = match self.engine.parse_tree(text) {
+            Ok(tree) => tree,
+            // A relation, tuple or multi-argument function with no cell
+            // leaves is a fixed expression all the same (a `<boolean>`
+            // comparing `(a, b)` with `(a, b)`).
+            Err(reason) => match self.engine.parse_fixed(text) {
+                Ok(h) => return Ok(Source::Fixed(self.post(h, post) as f64)),
+                Err(_) => {
+                    return Err(Error::BadMath {
+                        text: text.clone(),
+                        reason,
+                    });
+                }
+            },
+        };
         let mut leaves = Vec::new();
         let tree = self.bind_leaves(&tree, scope, &mut leaves)?;
         if leaves.is_empty() {
             let h = self.engine.import(&tree);
-            let h = match post {
-                Post::None => h,
-                Post::Simplify => self.engine.simplify(h),
-                Post::Expand => self.engine.expand(h),
-            };
-            return Ok(Source::Fixed(h as f64));
+            return Ok(Source::Fixed(self.post(h, post) as f64));
         }
         if let (Tree::Cell { cell, math: true }, Post::None) = (&tree, post) {
             return Ok(Source::Alias(*cell));
@@ -59,6 +62,19 @@ impl<'c, 'a> Builder<'c, 'a> {
             OpSpec::Sym(SymKind::Instantiate { template, post }),
             &leaves,
         ))
+    }
+
+    /// `post` applied to a fixed expression at build time.
+    fn post(&mut self, h: crate::sym::Handle, post: Post) -> crate::sym::Handle {
+        match post {
+            Post::None => h,
+            Post::Simplify => self.engine.simplify(h),
+            Post::Expand => self.engine.expand(h),
+            Post::SimplifyExpand => {
+                let h = self.engine.simplify(h);
+                self.engine.expand(h)
+            }
+        }
     }
 
     /// Rebind a parsed template's `cellN<plan>` leaves to slots: a math leaf where

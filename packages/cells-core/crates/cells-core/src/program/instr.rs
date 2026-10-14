@@ -45,6 +45,9 @@ pub enum Post {
     None,
     Simplify,
     Expand,
+    /// Simplified, then expanded (a `<boolean simplifyOnCompare
+    /// expandOnCompare>`): the engine's expand does not simplify first.
+    SimplifyExpand,
 }
 
 impl SymKind {

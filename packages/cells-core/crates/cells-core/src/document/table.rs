@@ -150,6 +150,11 @@ impl Document {
             ComponentType::Number | ComponentType::NumberInput | ComponentType::Slider => {
                 out.push_str(&format_number(value("value").unwrap_or(f64::NAN)))
             }
+            ComponentType::Boolean => out.push_str(if value("value") == Some(1.0) {
+                "true"
+            } else {
+                "false"
+            }),
             ComponentType::Math | ComponentType::MathInput => {
                 let expr = self.prop_cells(c, "expr").map(|cells| cells[0]);
                 match expr {

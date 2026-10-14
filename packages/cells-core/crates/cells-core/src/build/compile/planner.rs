@@ -75,6 +75,7 @@ impl<'a> Compiler<'a> {
             K::ClampNumber => Props,
             K::Tuple => Whole(Self::reject_tuple),
             K::Text => Whole(Self::plan_text_elem),
+            K::Boolean => Whole(Self::plan_boolean_elem),
             K::Op => Props,
             K::Math => Whole(Self::plan_math_elem),
             K::Evaluate => Props,

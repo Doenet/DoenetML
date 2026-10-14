@@ -161,6 +161,8 @@ component_types! {
     FunctionIterates => structure::FUNCTION_ITERATES,
     /// `<polyline>`.
     Polyline => geometry::POLYLINE,
+    /// `<boolean>`.
+    Boolean => values::BOOLEAN,
 }
 
 /// What the core knows about a type apart from how it is planned and

@@ -370,6 +370,10 @@ fn run_sym(engine: &mut Engine, kind: SymKind, cells: &[f64], inputs: &[CellIdx]
                 crate::program::Post::None => h,
                 crate::program::Post::Simplify => engine.simplify(h),
                 crate::program::Post::Expand => engine.expand(h),
+                crate::program::Post::SimplifyExpand => {
+                    let h = engine.simplify(h);
+                    engine.expand(h)
+                }
             };
             out[0] = h as f64;
         }
