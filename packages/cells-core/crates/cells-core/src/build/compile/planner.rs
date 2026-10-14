@@ -81,7 +81,10 @@ impl<'a> Compiler<'a> {
             K::Evaluate => Props,
             K::Function => Whole(Self::plan_symbolic),
             K::Derivative => Whole(Self::plan_symbolic),
-            K::Answer => Whole(Self::plan_symbolic),
+            K::Answer => Whole(Self::plan_answer),
+            K::Award => Whole(Self::plan_award_elem),
+            K::When => Whole(Self::plan_when_elem),
+            K::Response => Whole(Self::reject_response),
             // Structure
             K::RepeatForSequence => Props,
             K::RepeatFor => Whole(Self::plan_repeat_for),
@@ -106,6 +109,11 @@ impl<'a> Compiler<'a> {
     /// A tuple is made from a `<math>` or by the builder, never by a tag.
     fn reject_tuple(&mut self, _: TemplateId, _: ElemId) -> Result<()> {
         Err(Error::Unsupported("extending a tuple".into()))
+    }
+
+    /// A response is made by an answer's planner, never by a tag.
+    fn reject_response(&mut self, _: TemplateId, _: ElemId) -> Result<()> {
+        Err(Error::Unsupported("extending a response".into()))
     }
 
     /// A `<text>` that extends another is planned from its prop table.

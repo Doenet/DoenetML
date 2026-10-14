@@ -163,6 +163,12 @@ component_types! {
     Polyline => geometry::POLYLINE,
     /// `<boolean>`.
     Boolean => values::BOOLEAN,
+    /// `<award>`.
+    Award => values::AWARD,
+    /// `<when>`.
+    When => values::WHEN,
+    /// One submitted response of an answer with awards.
+    Response => values::RESPONSE,
 }
 
 /// What the core knows about a type apart from how it is planned and

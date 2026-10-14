@@ -79,14 +79,96 @@ const valueReaders: Record<string, Reader> = {
     valueForDisplay: (g) => M(g("value")),
 };
 
+/** The blank expression the current core shows for an empty input. */
+const BLANK = "\uff3f";
+
+/** The expression a math cell holds; blank when the handle is NaN. */
+const exprOf = (cells: any, cell: number) =>
+    Number.isNaN(cells.cell_value(cell))
+        ? me.fromAst(BLANK)
+        : me.fromText(cells.expr_text(cell));
+
 /** A math's value: its expression when it is a math cell (plan 5), else
- * the number its lowered chain computes. */
+ * the number its lowered chain computes. An unbound mathInput's blank
+ * expression is the blank symbol. */
 const mathValue: Reader = (g, x) => {
     const e = x.cell("expr");
-    if (e !== undefined && !Number.isNaN(x.cells.cell_value(e))) {
-        return me.fromText(x.cells.expr_text(e));
+    if (e !== undefined) {
+        if (!Number.isNaN(x.cells.cell_value(e))) {
+            return me.fromText(x.cells.expr_text(e));
+        }
+        if (x.cells.cell_class(e) === "essential") return me.fromAst(BLANK);
     }
     return M(g("value"));
+};
+
+/** The live response one input holds: its expression, or a boolean. */
+function responseOf(cells: any, input: number): unknown {
+    if (cells.component_tag(input) === "booleanInput") {
+        return cells.cell_value(cells.prop_cells(input, "value")[0]) !== 0;
+    }
+    return exprOf(cells, cells.prop_cells(input, "expr")[0]);
+}
+
+/** An attribute read as a flag: present and not `false`. */
+function attrFlag(cells: any, idx: number, name: string): boolean | undefined {
+    const text = cells.attr_text(idx, name);
+    if (text === undefined || text === null) return undefined;
+    return text.trim().toLowerCase() !== "false";
+}
+
+/** Answers submitted since the last change to one of their inputs
+ * (`justSubmitted`): kept here, since the core has no cell for it. */
+const justSubmitted = new Set<number>();
+
+const answerReaders: Record<string, Reader> = {
+    creditAchieved: (g) => {
+        const c = g("credit");
+        return Number.isNaN(c) ? 0 : c;
+    },
+    numSubmissions: (g) => g("numSubmissions"),
+    justSubmitted: (_g, x) => justSubmitted.has(x.idx),
+    inputChildren: (_g, x) =>
+        Array.from(x.cells.answer_inputs(x.idx) as Uint32Array)
+            .filter((i) => x.cells.component_parent(i) === x.idx)
+            .map((i) => ({
+                componentIdx: i,
+                componentType: x.cells.component_tag(i),
+            })),
+    currentResponses: (_g, x) =>
+        Array.from(x.cells.answer_inputs(x.idx) as Uint32Array).map((i) =>
+            responseOf(x.cells, i),
+        ),
+    numResponses: (_g, x) => x.cells.answer_inputs(x.idx).length,
+    submittedResponses: (g, x) => {
+        if (g("numSubmissions") === 0) return [];
+        const inputs = Array.from(x.cells.answer_inputs(x.idx) as Uint32Array);
+        return Array.from(x.cells.answer_submitted(x.idx) as Uint32Array).map(
+            (cell, k) =>
+                x.cells.component_tag(inputs[k]) === "booleanInput"
+                    ? x.cells.cell_value(cell) !== 0
+                    : exprOf(x.cells, cell),
+        );
+    },
+    // The `showCorrectness` flag is not modelled: the attribute on the
+    // answer or its nearest ancestor giving one, else true unless the
+    // answer is hand graded.
+    showCorrectness: (_g, x) => {
+        for (let c = x.idx; c !== 0xffffffff; c = x.cells.component_parent(c)) {
+            const v = attrFlag(x.cells, c, "showCorrectness");
+            if (v !== undefined) return v;
+        }
+        return !(attrFlag(x.cells, x.idx, "handGraded") ?? false);
+    },
+    handGraded: (_g, x) => attrFlag(x.cells, x.idx, "handGraded") ?? false,
+};
+
+const awardReaders: Record<string, Reader> = {
+    creditAchieved: (g) => {
+        const c = g("awarded");
+        return Number.isNaN(c) ? 0 : c;
+    },
+    awarded: (g) => g("awarded") > 0,
 };
 const mathReaders: Record<string, Reader> = {
     value: mathValue,
@@ -197,6 +279,8 @@ const STATE: Record<string, Record<string, Reader>> = {
         value: (g) => g("value") !== 0,
         text: (g) => (g("value") !== 0 ? "true" : "false"),
     },
+    answer: answerReaders,
+    award: awardReaders,
 };
 
 function stripPositions(o: any): any {
@@ -375,6 +459,9 @@ export async function createTestCoreCells({
         const vals = new Float64Array(reqs.map((r) => r[1]));
         if (points && reqs.length % 2 === 0) cells.request_points(idx, vals);
         else cells.request(idx, vals);
+        // Any change ends an answer's `justSubmitted`, as an input's
+        // value change does in the current core.
+        justSubmitted.clear();
         if (process.env.CELLS_TRACE) {
             const after = reqs
                 .map(([c]) => `${c}=${cells.cell_value(c)}`)
@@ -608,6 +695,14 @@ export async function createTestCoreCells({
                             args.boolean ? 1 : 0,
                         ],
                     ]);
+                    return;
+                case "submitAnswer":
+                    if (componentType !== "answer")
+                        throw new CellsCoreGap(
+                            `action \`${componentType}.submitAnswer\``,
+                        );
+                    cells.submit(componentIdx);
+                    justSubmitted.add(componentIdx);
                     return;
                 default:
                     throw new CellsCoreGap(

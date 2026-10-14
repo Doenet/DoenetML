@@ -142,10 +142,25 @@ export class CellStore {
         );
     }
 
+    /** Submit an answer: its live responses become its submitted ones and
+     * credit recomputes, as one tick (`Core::submit`). */
+    submit(answer: number): void {
+        this.tick(() => this.core.submit(answer));
+    }
+
     private send(pairs: [number, number][], points: boolean): void {
-        const start = performance.now();
         const cells = new Uint32Array(pairs.map((p) => p[0]));
         const values = new Float64Array(pairs.map((p) => p[1]));
+        this.tick(() =>
+            points
+                ? this.core.request_points(cells, values)
+                : this.core.request(cells, values),
+        );
+    }
+
+    /** One tick: `run` asks the core and returns the changed cells. */
+    private tick(run: () => Uint32Array): void {
+        const start = performance.now();
         const sample: TickSample = {
             core: NaN,
             rebuilt: false,
@@ -156,9 +171,7 @@ export class CellStore {
             changed: 0,
         };
         this.samples.push(sample);
-        const changed = points
-            ? this.core.request_points(cells, values)
-            : this.core.request(cells, values);
+        const changed = run();
         sample.core = performance.now() - start;
         const rebuilt = this.core.last_rebuilt();
         const err = this.core.last_rebuild_error();

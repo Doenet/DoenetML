@@ -97,6 +97,9 @@ impl<'a> Compiler<'a> {
         scope: ElemId,
         m: NodeId,
     ) -> Result<RefId> {
+        if let Some(&p) = self.ref_subst.get(&m) {
+            return Ok(p);
+        }
         let d = self.compiled.dast;
         let display = d.macro_display(m);
         let names = d.macro_path(m);

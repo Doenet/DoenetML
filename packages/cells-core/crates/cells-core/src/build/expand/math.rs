@@ -146,6 +146,17 @@ impl<'c, 'a> Builder<'c, 'a> {
         let name = component_type.prop_defs().get(pi)?.name;
         match (component_type, name) {
             (ComponentType::Answer, "response" | "correct" | "submitted") => Some(slot),
+            // A submitted response is a math cell unless its input is a
+            // boolean input (`add_response`).
+            (ComponentType::Response, "submitted" | "value") => {
+                let i = self.instances[self.comp_instance[comp as usize] as usize];
+                matches!(
+                    self.compiled.templates[i.template].elems[i.elem].props
+                        [prop::response::SUBMITTED],
+                    SourcePlan::MathEssential(_)
+                )
+                .then(|| self.slot(comp, prop::response::SUBMITTED))
+            }
             (
                 ComponentType::Math
                 | ComponentType::MathInput

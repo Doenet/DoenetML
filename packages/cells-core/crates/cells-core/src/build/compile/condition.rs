@@ -66,6 +66,85 @@ impl<'a> Compiler<'a> {
         Ok(slot)
     }
 
+    /// A condition from an element's content nodes (a `<boolean>`'s, a
+    /// `<when>`'s) as hidden slots of `plan`; returns the slot holding 1 or
+    /// 0. Text the numeric tokenizer cannot read (`%`, `'`, `_`) can still
+    /// be one `=` between two expressions for the engine.
+    pub(in crate::build) fn plan_condition_content(
+        &mut self,
+        t: TemplateId,
+        scope: ElemId,
+        nodes: &[NodeId],
+        compare: Compare,
+        plan: &mut ElemPlan,
+    ) -> Result<usize> {
+        match self.math_tokens(t, scope, nodes) {
+            Ok((toks, text)) => self.plan_condition_tokens(plan, &toks, &text, compare),
+            Err(Error::BadMath { text, reason }) => {
+                let sym = self.sym_spelling(t, scope, nodes)?;
+                let Some((lhs, rhs, negate)) = split_equality(&sym) else {
+                    return Err(Error::BadMath { text, reason });
+                };
+                let a = self.sym_operand(plan, lhs, compare.post);
+                let b = self.sym_operand(plan, rhs, compare.post);
+                let eq = OpSpec::Sym(if compare.syntactic {
+                    SymKind::EqualsSyntax
+                } else {
+                    SymKind::Equals
+                });
+                let eq = plan.hidden(SourcePlan::computed(eq, vec![a, b]));
+                Ok(if negate {
+                    plan.hidden(SourcePlan::computed(OpSpec::Not, vec![eq]))
+                } else {
+                    eq
+                })
+            }
+            Err(e) => Err(e),
+        }
+    }
+
+    /// How `=` compares, from the first of `els` that gives each attribute
+    /// (`symbolicEquality`, `simplifyOnCompare`, `expandOnCompare`): an
+    /// award's say, then its answer's.
+    pub(in crate::build) fn compare_attrs(&self, els: &[NodeId]) -> Compare {
+        let on = |name: &str| {
+            els.iter()
+                .find(|&&el| self.compiled.dast.attr(el, name).is_some())
+                .is_some_and(|&el| self.attr_on(el, name))
+        };
+        let syntactic = on("symbolicEquality");
+        Compare {
+            syntactic,
+            post: match (syntactic, on("simplifyOnCompare"), on("expandOnCompare")) {
+                (false, ..) | (true, false, false) => Post::None,
+                (true, true, false) => Post::Simplify,
+                (true, false, true) => Post::Expand,
+                (true, true, true) => Post::SimplifyExpand,
+            },
+        }
+    }
+
+    /// The content as the engine spells it: text as written, each `$ref`
+    /// as its `cellN<plan>` leaf.
+    fn sym_spelling(&mut self, t: TemplateId, scope: ElemId, nodes: &[NodeId]) -> Result<String> {
+        let d = self.compiled.dast;
+        let mut sym = String::new();
+        for &n in nodes {
+            match d.kind(n) {
+                NodeKind::Text => sym.push_str(d.str(n)),
+                NodeKind::Macro => {
+                    let p = self.plan_ref(t, scope, n)?;
+                    sym.push_str(&format!(
+                        " {} ",
+                        crate::sym::engine::leaf_name(p as u32, false)
+                    ));
+                }
+                _ => {}
+            }
+        }
+        Ok(sym)
+    }
+
     /// A symbolic math source from the engine's spelling of an operand
     /// (each `$ref` written `cellN<plan>`), as a hidden slot of `plan`.
     pub(in crate::build) fn sym_operand(
@@ -308,6 +387,44 @@ impl CondParser<'_> {
         }
         Err(self.err("missing ')'".into()))
     }
+}
+
+/// `lhs = rhs` or `lhs != rhs` with exactly one equality outside brackets:
+/// the two sides and whether it is negated.
+fn split_equality(s: &str) -> Option<(String, String, bool)> {
+    let chars: Vec<char> = s.chars().collect();
+    let mut depth = 0i32;
+    let mut found: Option<(usize, usize, bool)> = None;
+    let mut i = 0;
+    while i < chars.len() {
+        match chars[i] {
+            '(' | '[' | '{' => depth += 1,
+            ')' | ']' | '}' => depth -= 1,
+            '!' if depth == 0 && chars.get(i + 1) == Some(&'=') => {
+                if found.is_some() {
+                    return None;
+                }
+                found = Some((i, i + 2, true));
+                i += 1;
+            }
+            '=' if depth == 0 => {
+                if found.is_some() {
+                    return None;
+                }
+                let width = if chars.get(i + 1) == Some(&'=') { 2 } else { 1 };
+                found = Some((i, i + width, false));
+                i += width - 1;
+            }
+            '<' | '>' if depth == 0 => return None,
+            _ => {}
+        }
+        i += 1;
+    }
+    let (at, after, negate) = found?;
+    let lhs: String = chars[..at].iter().collect();
+    let rhs: String = chars[after..].iter().collect();
+    (!lhs.trim().is_empty() && !rhs.trim().is_empty())
+        .then(|| (lhs.trim().to_string(), rhs.trim().to_string(), negate))
 }
 
 /// Tokens that only appear in conditions, never in their math operands.

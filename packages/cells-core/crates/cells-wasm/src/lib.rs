@@ -226,6 +226,56 @@ impl Core {
         self.apply(&[], &[pts])
     }
 
+    /// Submit an answer: copy its live responses into its submitted cells
+    /// and count the submission, as one tick. Returns the changed cells.
+    pub fn submit(&mut self, answer: u32) -> Vec<u32> {
+        if (answer as usize) >= self.doc.n_components() {
+            return Vec::new();
+        }
+        let reqs = self.doc.submit_requests(answer);
+        self.apply(&reqs, &[])
+    }
+
+    /// The inputs an answer's responses read (`Document::answer_inputs`).
+    pub fn answer_inputs(&self, answer: u32) -> Vec<u32> {
+        if (answer as usize) >= self.doc.n_components() {
+            return Vec::new();
+        }
+        self.doc.answer_inputs(answer)
+    }
+
+    /// An answer's submitted cells, one per response
+    /// (`Document::answer_responses`).
+    pub fn answer_submitted(&self, answer: u32) -> Vec<u32> {
+        if (answer as usize) >= self.doc.n_components() {
+            return Vec::new();
+        }
+        self.doc
+            .answer_responses(answer)
+            .into_iter()
+            .map(|(_, submitted)| submitted)
+            .collect()
+    }
+
+    /// A component's parent, or `u32::MAX` at the root.
+    pub fn component_parent(&self, idx: u32) -> u32 {
+        if (idx as usize) < self.doc.n_components() {
+            self.doc.parent(idx).unwrap_or(u32::MAX)
+        } else {
+            u32::MAX
+        }
+    }
+
+    /// The text of a literal attribute of a component's element
+    /// (`Document::attr_text`).
+    pub fn attr_text(&self, idx: u32, name: &str) -> Option<String> {
+        if (idx as usize) < self.doc.n_components() {
+            self.doc.attr_text(idx, name)
+        } else {
+            None
+        }
+    }
+
     fn apply(&mut self, reqs: &[Request], groups: &[Vec<PointRequest>]) -> Vec<u32> {
         let clock = web_time::Instant::now();
         let tick = self

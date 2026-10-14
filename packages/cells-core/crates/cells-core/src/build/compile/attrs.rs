@@ -238,8 +238,8 @@ impl<'a> Compiler<'a> {
         Ok(())
     }
 
-    /// `<function>`, `<derivative>`, `<answer>`. A curve samples over the
-    /// x-range of the graph it sits in, else [-10, 10].
+    /// `<function>`, `<derivative>`: a curve samples over the x-range of
+    /// the graph it sits in, else [-10, 10].
     pub(in crate::build) fn plan_symbolic(&mut self, t: TemplateId, e: ElemId) -> Result<()> {
         let d = self.compiled.dast;
         let Elem {
@@ -297,31 +297,6 @@ impl<'a> Compiler<'a> {
                         vec![Arg::Own(0), Arg::Own(1), Arg::Own(2)],
                     ),
                 );
-            }
-            ComponentType::Answer => {
-                let response = match d.attr(el, "response") {
-                    Some(a) => {
-                        self.plan_value(t, scope, "response", d.attr_children(a), Some("expr"))?
-                    }
-                    None => SourcePlan::Fixed(f64::NAN),
-                };
-                plan.set(0, response);
-                plan.set(1, SourcePlan::SymExpr(id, Post::None));
-                plan.set(2, SourcePlan::MathEssential(None));
-                let eq = if self.attr_on(el, "symbolicEquality") {
-                    SymKind::EqualsSyntax
-                } else {
-                    SymKind::Equals
-                };
-                plan.set(
-                    3,
-                    SourcePlan::Op(OpSpec::Sym(eq), vec![Arg::Own(2), Arg::Own(1)]),
-                );
-                let weight = match d.attr(el, "weight") {
-                    Some(a) => self.plan_value(t, scope, "weight", d.attr_children(a), None)?,
-                    None => SourcePlan::Fixed(1.0),
-                };
-                plan.set(4, weight);
             }
             _ => unreachable!(),
         }

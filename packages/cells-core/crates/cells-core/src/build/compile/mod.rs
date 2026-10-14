@@ -4,6 +4,7 @@
 
 use super::*;
 
+mod answer;
 mod attrs;
 mod boolean;
 mod choice;
@@ -26,6 +27,9 @@ pub(in crate::build) struct Compiler<'a> {
     /// Macro children awaiting plans: (template, owning element or None for
     /// the template's own children, index in that child list, node).
     pub(in crate::build) pending_macros: Vec<(TemplateId, Option<ElemId>, usize, NodeId)>,
+    /// Macro nodes whose reference is already planned: `$mi` inside an
+    /// answer's `<when>` is its submitted response (`plan_answer`).
+    pub(in crate::build) ref_subst: HashMap<NodeId, RefId>,
 }
 
 /// The ways an element is planned; see `Compiler::elem_shape`.
@@ -51,6 +55,7 @@ impl<'a> Compiler<'a> {
             },
             pending_elems: Vec::new(),
             pending_macros: Vec::new(),
+            ref_subst: HashMap::new(),
         };
         // Template 0 is the document: its one child is the root component.
         let doc_el = dast
@@ -279,6 +284,19 @@ impl<'a> Compiler<'a> {
             ComponentType::ConditionalContent | ComponentType::Select => {
                 self.add_choice(t, e, el)?
             }
+            // An answer's and an award's element children are components
+            // (inputs, awards, whens); their text and `$ref`s are math the
+            // answer's planner reads. A when's content is a condition.
+            ComponentType::Answer | ComponentType::Award => {
+                let mut kids = Vec::new();
+                for &n in d.children(el) {
+                    if d.kind(n) == NodeKind::Element {
+                        kids.push(Child::Elem(self.add_elem(t, n, child_scope)?));
+                    }
+                }
+                self.compiled.templates[t].elems[e].children = kids;
+            }
+            ComponentType::When => {}
             // A number's children are its value, not rendered children; the
             // geometric types read their children themselves (a line's
             // equation, a point's constraints).

@@ -1,7 +1,7 @@
-//! Number, boolean, text, op, math, evaluate, function, derivative and answer:
-//! types that hold a value, numeric or symbolic. Function, derivative and
-//! answer are `symbolic`: the builder plans them as math cells
-//! (`plan_symbolic`).
+//! Number, boolean, text, op, math, evaluate, function, derivative and
+//! answer (with its award, when and response): types that hold a value,
+//! numeric or symbolic. Function and derivative are `symbolic`: the builder
+//! plans them as math cells (`plan_symbolic`); so is answer (`plan_answer`).
 
 use super::define::*;
 use super::{ComponentTypeInfo, PropDef};
@@ -105,9 +105,11 @@ const CURVE_PROPS: &[PropDef] = &props([
     planned("samples"),
 ]);
 
-/// `<answer response="$mi">correct</answer>`: `submitted` is an
-/// essential math cell that a submit request sets to the response;
-/// `credit` compares it with `correct` (`symbolicEquality`: as written).
+/// `<answer>`: `submitted` is an essential math cell that a submit request
+/// sets to the response; `credit` compares it with `correct`
+/// (`symbolicEquality`: as written), or, with `<award>` children, is the
+/// most any award gives. `numSubmissions` counts submits. See
+/// `build/compile/answer.rs` for the forms an answer takes.
 pub(super) const ANSWER: ComponentTypeInfo = info(&["answer"], ANSWER_PROPS)
     .copyable()
     .symbolic()
@@ -119,6 +121,7 @@ const ANSWER_PROPS: &[PropDef] = &props([
     attr("submitted", f64::NAN),
     planned("credit"),
     attr("weight", 1.0),
+    attr("numSubmissions", 0.0),
 ]);
 
 pub mod answer {
@@ -127,6 +130,49 @@ pub mod answer {
     pub const SUBMITTED: usize = at(ANSWER_PROPS, "submitted");
     pub const CREDIT: usize = at(ANSWER_PROPS, "credit");
     pub const WEIGHT: usize = at(ANSWER_PROPS, "weight");
+    pub const NUM_SUBMISSIONS: usize = at(ANSWER_PROPS, "numSubmissions");
+}
+
+/// `<award credit="0.5">` inside an `<answer>`: `awarded` is `credit`
+/// when its `<when>` holds (or its content equals the submitted
+/// response), else 0. Planned with its answer (`plan_answer`).
+pub(super) const AWARD: ComponentTypeInfo = info(&["award"], AWARD_PROPS).default_prop("awarded");
+
+const AWARD_PROPS: &[PropDef] = &props([attr("credit", 1.0), planned("awarded")]);
+
+pub mod award {
+    use super::*;
+    pub const CREDIT: usize = at(AWARD_PROPS, "credit");
+    pub const AWARDED: usize = at(AWARD_PROPS, "awarded");
+}
+
+/// `<when>` inside an `<award>`: `value` is 1 while its condition holds,
+/// read against the answer's submitted responses. Planned with its answer.
+pub(super) const WHEN: ComponentTypeInfo = info(&["when"], WHEN_PROPS).default_prop("value");
+
+const WHEN_PROPS: &[PropDef] = &props([planned("value")]);
+
+pub mod when {
+    use super::*;
+    pub const VALUE: usize = at(WHEN_PROPS, "value");
+}
+
+/// One response of an answer whose awards reference an input: `response`
+/// aliases the input's live expression, `submitted` is the essential copy a
+/// submit takes, and `value` evaluates it. A `$mi` inside a `<when>`
+/// resolves here, so credit changes only on submit. Made by the builder.
+pub(super) const RESPONSE: ComponentTypeInfo = info(&["response"], RESPONSE_PROPS)
+    .internal()
+    .default_prop("value");
+
+const RESPONSE_PROPS: &[PropDef] =
+    &props([planned("response"), planned("submitted"), planned("value")]);
+
+pub mod response {
+    use super::*;
+    pub const RESPONSE: usize = at(RESPONSE_PROPS, "response");
+    pub const SUBMITTED: usize = at(RESPONSE_PROPS, "submitted");
+    pub const VALUE: usize = at(RESPONSE_PROPS, "value");
 }
 
 /// `<clampNumber lowerValue="0" upperValue="1">x</clampNumber>`: its

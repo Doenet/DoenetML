@@ -5,7 +5,6 @@
 //! comparisons and connectives over numeric math, with `=` between
 //! expressions compared in the engine under the compare attributes.
 
-use super::condition::Compare;
 use super::*;
 
 impl<'a> Compiler<'a> {
@@ -78,105 +77,10 @@ impl<'a> Compiler<'a> {
             self.compiled.templates[t].elems[e].props = vec![SourcePlan::reference(p)];
             return Ok(());
         }
-        let compare = Compare {
-            syntactic: self.attr_on(el, "symbolicEquality"),
-            post: match (
-                self.attr_on(el, "symbolicEquality"),
-                self.attr_on(el, "simplifyOnCompare"),
-                self.attr_on(el, "expandOnCompare"),
-            ) {
-                (false, ..) | (true, false, false) => Post::None,
-                (true, true, false) => Post::Simplify,
-                (true, false, true) => Post::Expand,
-                (true, true, true) => Post::SimplifyExpand,
-            },
-        };
-        let slot = match self.math_tokens(t, scope, &nodes) {
-            Ok((toks, text)) => self.plan_condition_tokens(&mut plan, &toks, &text, compare)?,
-            // Text the numeric tokenizer cannot read (`%`, `'`, `_`) can
-            // still be one `=` between two expressions for the engine.
-            Err(Error::BadMath { text, reason }) => {
-                let sym = self.sym_spelling(t, scope, &nodes)?;
-                let Some((lhs, rhs, negate)) = split_equality(&sym) else {
-                    return Err(Error::BadMath { text, reason });
-                };
-                let a = self.sym_operand(&mut plan, lhs, compare.post);
-                let b = self.sym_operand(&mut plan, rhs, compare.post);
-                let eq = OpSpec::Sym(if compare.syntactic {
-                    SymKind::EqualsSyntax
-                } else {
-                    SymKind::Equals
-                });
-                let eq = plan.hidden(SourcePlan::computed(eq, vec![a, b]));
-                if negate {
-                    plan.hidden(SourcePlan::computed(OpSpec::Not, vec![eq]))
-                } else {
-                    eq
-                }
-            }
-            Err(e) => return Err(e),
-        };
+        let compare = self.compare_attrs(&[el]);
+        let slot = self.plan_condition_content(t, scope, &nodes, compare, &mut plan)?;
         plan.set(0, SourcePlan::own(slot));
         self.compiled.templates[t].elems[e].props = plan.finish();
         Ok(())
     }
-
-    /// The content as the engine spells it: text as written, each `$ref`
-    /// as its `cellN<plan>` leaf.
-    fn sym_spelling(&mut self, t: TemplateId, scope: ElemId, nodes: &[NodeId]) -> Result<String> {
-        let d = self.compiled.dast;
-        let mut sym = String::new();
-        for &n in nodes {
-            match d.kind(n) {
-                NodeKind::Text => sym.push_str(d.str(n)),
-                NodeKind::Macro => {
-                    let p = self.plan_ref(t, scope, n)?;
-                    sym.push_str(&format!(
-                        " {} ",
-                        crate::sym::engine::leaf_name(p as u32, false)
-                    ));
-                }
-                _ => {}
-            }
-        }
-        Ok(sym)
-    }
-}
-
-/// `lhs = rhs` or `lhs != rhs` with exactly one equality outside brackets:
-/// the two sides and whether it is negated.
-fn split_equality(s: &str) -> Option<(String, String, bool)> {
-    let chars: Vec<char> = s.chars().collect();
-    let mut depth = 0i32;
-    let mut found: Option<(usize, usize, bool)> = None;
-    let mut i = 0;
-    while i < chars.len() {
-        match chars[i] {
-            '(' | '[' | '{' => depth += 1,
-            ')' | ']' | '}' => depth -= 1,
-            '!' if depth == 0 && chars.get(i + 1) == Some(&'=') => {
-                if found.is_some() {
-                    return None;
-                }
-                found = Some((i, i + 2, true));
-                i += 1;
-            }
-            '=' if depth == 0 => {
-                if found.is_some() {
-                    return None;
-                }
-                let width = if chars.get(i + 1) == Some(&'=') { 2 } else { 1 };
-                found = Some((i, i + width, false));
-                i += width - 1;
-            }
-            '<' | '>' if depth == 0 => return None,
-            _ => {}
-        }
-        i += 1;
-    }
-    let (at, after, negate) = found?;
-    let lhs: String = chars[..at].iter().collect();
-    let rhs: String = chars[after..].iter().collect();
-    (!lhs.trim().is_empty() && !rhs.trim().is_empty())
-        .then(|| (lhs.trim().to_string(), rhs.trim().to_string(), negate))
 }
