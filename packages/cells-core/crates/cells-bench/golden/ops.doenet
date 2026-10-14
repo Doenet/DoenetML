@@ -1,0 +1,6 @@
+<numberInput name="n" value="1"/><op name="a" kind="offset" k="1" args="$n"/><op name="b" kind="scale" k="2" args="$a"/><op name="c" kind="negate" args="$b"/><op name="d" kind="clamp" lo="-9" hi="9" args="$c"/><op name="e" kind="round" args="$d"/><op name="f" kind="add" args="$e $n"/><op name="g" kind="div" args="$f $b"/><op name="h" kind="default" args="$g $n"/><op name="i" kind="lerp" t="0.25" args="$h $a"/>
+<numberInput name="numValues" value="5"/><numberInput name="stored" value="2"/>
+<op name="zeroBased" kind="offset" k="-1" args="$stored"/><op name="quotient" kind="div" args="$zeroBased $numValues"/><op name="laps" kind="floor" args="$quotient"/><op name="multiple" kind="mul" args="$laps $numValues"/><op name="index" kind="sub" args="$stored $multiple"/>
+<op name="upper" kind="min" args="$stored $numValues"/><op name="w" kind="sub" args="$numValues $n"/>
+<numberInput name="fixAxes" value="0"/><op name="xMin" kind="gate" args="$n $fixAxes"/>
+<graph><point name="p" x="$i" y="$e"/><point name="q" x="$index" y="$xMin"/></graph>

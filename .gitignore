@@ -99,3 +99,9 @@ tmp/
 # (browser.screenshotFailures, on by default). They are failure artifacts,
 # not intentional snapshots, and are trivially re-created by re-running.
 **/test/__screenshots__/
+
+# Cells core and viewer: generated outputs
+packages/cells-core/pkg/
+packages/cells-core/fixtures/*
+!packages/cells-core/fixtures/sir.doenet
+packages/cells-viewer/test-results/

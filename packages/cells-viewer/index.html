@@ -1,0 +1,48 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>Cells prototype</title>
+    <style>
+      body { font-family: system-ui, sans-serif; margin: 16px; color: #222; }
+      .controls { display: flex; gap: 12px; align-items: center; flex-wrap: wrap; margin-bottom: 12px; }
+      .timings { font-family: monospace; font-size: 12px; white-space: pre; background: #f5f5f5; padding: 8px; overflow-x: auto; }
+      .split { display: grid; grid-template-columns: minmax(280px, 1fr) minmax(0, 1.4fr); gap: 16px; margin-top: 12px; align-items: stretch; }
+      @media (max-width: 900px) { .split { grid-template-columns: 1fr; } }
+      .pane { border: 1px solid #ddd; border-radius: 4px; display: flex; flex-direction: column; min-height: 480px; }
+      .pane-header { display: flex; justify-content: space-between; align-items: center; gap: 8px; padding: 6px 10px; background: #f5f5f5; border-bottom: 1px solid #ddd; font-size: 13px; font-weight: 600; }
+      .source-pane textarea { flex: 1; width: 100%; box-sizing: border-box; border: 0; resize: vertical; padding: 10px; font-family: ui-monospace, monospace; font-size: 13px; line-height: 1.45; min-height: 440px; }
+      .source-pane textarea:focus { outline: 2px solid #1f77b4; outline-offset: -2px; }
+      .doc-pane .doc, .doc-pane .error { padding: 10px; }
+      .error { color: crimson; font-family: monospace; white-space: pre-wrap; }
+      svg.graph { display: block; margin: 8px 0; border: 1px solid #999; background: #fff; touch-action: none; }
+      .doc { line-height: 1.6; }
+      input.numberInput { width: 6em; }
+      /* Text and layout containers (renderers/Text.tsx). */
+      h2.title { font-size: 1.4em; margin: 0.4em 0; }
+      .m { font-family: "Times New Roman", serif; font-style: italic; }
+      .md { font-family: "Times New Roman", serif; font-style: italic; margin: 0.5em 2em; }
+      details.aside { border: 1px solid #ccc; border-radius: 4px; padding: 4px 10px; margin: 10px 0; }
+      details.aside > summary { cursor: pointer; font-weight: 600; }
+      details.aside > summary h2.title { display: inline; font-size: 1em; }
+      .spreadsheet table, .tabular table { border-collapse: collapse; }
+      .spreadsheet td { border: 1px solid #ccc; padding: 1px 8px; text-align: right; font-variant-numeric: tabular-nums; }
+      .spreadsheet tr:first-child td { position: sticky; top: 0; background: #f0f0f0; font-weight: 600; }
+      .tabular td { padding: 2px 6px; }
+      button.triggerSet { padding: 4px 12px; }
+      /* JSXGraph boards (plan 7): Doenet's light theme and its .jxgbox and
+         navigation rules (packages/doenetml/src/DoenetML.css). */
+      :root { --canvas: white; --canvasText: black; --mainGray: #e3e3e3; --lightBlue: hsl(209, 54%, 82%); }
+      .jxgbox { position: relative; overflow: hidden; background-color: #fff; border-style: solid; border-width: 1px; border-color: #356aa0; border-radius: 10px; margin: 0; -ms-touch-action: none; }
+      .jxgbox svg text { cursor: default; user-select: none; }
+      .JXGtext { font-family: Courier, monospace; background-color: transparent; padding: 0; margin: 0; }
+      .JXG_navigation { position: absolute; right: 5px; bottom: 5px; z-index: 100; background-color: transparent; padding: 2px; font-size: 14px; cursor: pointer; }
+      .JXG_navigation_button { color: #666; }
+    </style>
+  </head>
+  <body>
+    <div id="root"></div>
+    <script type="module" src="/src/main.tsx"></script>
+  </body>
+</html>

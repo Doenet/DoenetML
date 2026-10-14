@@ -1,0 +1,33 @@
+{
+    "name": "@doenet/cells-viewer",
+    "private": true,
+    "license": "AGPL-3.0-or-later",
+    "type": "module",
+    "scripts": {
+        "dev": "vite",
+        "build": "vite build",
+        "preview": "vite preview --port 4173",
+        "e2e": "playwright test",
+        "sir-perf": "node e2e/sir-perf.mjs",
+        "typecheck": "tsc --noEmit -p ."
+    },
+    "dependencies": {
+        "@doenet/cells-core": "*",
+        "jsxgraph": "1.12.2",
+        "react": "^19.1.0",
+        "react-dom": "^19.1.0"
+    },
+    "devDependencies": {
+        "@playwright/test": "^1.55.0",
+        "@types/node": "^26.6.3",
+        "@types/react": "^19.1.0",
+        "@types/react-dom": "^19.1.0",
+        "@vitejs/plugin-react": "^4.5.0",
+        "typescript": "^5.8.0",
+        "vite": "^6.3.0"
+    },
+    "version": "0.1.0",
+    "description": "A viewer for the cells core: React for the document tree, JSXGraph for graphs, reading cells straight from wasm memory.",
+    "homepage": "https://github.com/Doenet/DoenetML#readme",
+    "repository": "github:Doenet/DoenetML"
+}

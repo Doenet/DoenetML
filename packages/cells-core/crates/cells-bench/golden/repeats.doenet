@@ -1,0 +1,12 @@
+<numberInput name="n" value="3"/>
+<graph name="g">
+<repeatForSequence name="r" from="1" step="2" length="$n" maxNumber="50" valueName="v" indexName="i">
+<op name="h" kind="scale" k="0.5" args="$v"/>
+<point name="p" x="$v" y="$h"/>
+<repeatForSequence name="inner" length="$i" maxNumber="50" indexName="j"><point name="q" x="$j" y="$i"/></repeatForSequence>
+</repeatForSequence>
+</graph>
+<graph name="g2"><collect name="c" componentType="point" from="$g"/></graph>
+<number name="second">$r[2].p.x</number>
+<setup><number name="hidden">7</number></setup>
+<p>Value <number>$hidden</number> and <text>words</text></p>

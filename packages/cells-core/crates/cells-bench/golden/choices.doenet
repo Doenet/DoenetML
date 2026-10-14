@@ -1,0 +1,29 @@
+<numberInput name="n" value="5"/>
+<conditionalContent name="cc">
+  <case condition="$n > 0"><number name="x">1</number> <numberInput name="w" value="10"/></case>
+  <case condition="$n < 0"><number name="x">-1</number> <numberInput name="w" value="20"/></case>
+  <else><number name="x">0</number> <numberInput name="w" value="30"/></else>
+</conditionalContent>
+<number name="sx">$cc.x</number>
+<number name="sw">$cc.w</number>
+<booleanInput name="b" value="true"/>
+<conditionalContent name="ct">
+  <case condition="$b"><text name="t">dog</text></case>
+  <else><text name="t">cat</text></else>
+</conditionalContent>
+<text name="copy">$ct.t</text>
+<group name="g" rendered="$b"><p>Shown <number>$n</number></p></group>
+<select name="s" numToSelect="2">
+  <option><number name="v">1</number></option>
+  <option><number name="v">2</number></option>
+  <option><number name="v">3</number></option>
+  <option><number name="v">4</number></option>
+</select>
+<number name="a">$s[1].v</number>
+<number name="bb">$s[2].v</number>
+<conditionalContent name="logic">
+  <case condition="$n > 0 and $b or $n < -3"><number name="k">1</number></case>
+  <case condition="($n < 0 && not $b) || $n = 0"><number name="k">2</number></case>
+  <case condition="$n > 1 & $n < 9 | !$b"><number name="k">3</number></case>
+  <else><number name="k">4</number></else>
+</conditionalContent>

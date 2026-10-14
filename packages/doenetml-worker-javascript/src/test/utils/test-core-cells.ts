@@ -1,13 +1,13 @@
 /**
  * A stand-in for `createTestCore` that runs the document on the cells
- * core (experiments/cells-prototype, a candidate replacement for this
- * core), so the existing worker tests measure how far it is from parity.
+ * core (`packages/cells-core`, a candidate replacement for this core), so
+ * the existing worker tests measure how far it is from parity.
  * `npm run parity:cells` runs the whole suite this way and writes the
  * gap list to `CELLS_CORE_PARITY.md`.
  *
  * Enabled by `DOENET_TEST_CORE=cells`. The wasm package is read from
- * `CELLS_WASM_DIR` (default: `packages/cells-core/pkg` of the prototype
- * checkout next to this repo, after `npm run build:rust` there).
+ * `CELLS_WASM_DIR` (default: `packages/cells-core/pkg`, written by
+ * `npm run build:rust -w @doenet/cells-core`).
  *
  * The cells core has no state variables: components own numeric cells by
  * prop name. `stateValues.<name>` is answered from a per-kind table that maps
@@ -248,10 +248,7 @@ export async function createTestCoreCells({
 
     const wasmDir =
         process.env.CELLS_WASM_DIR ??
-        path.resolve(
-            import.meta.dirname,
-            "../../../../../../experiments/cells-prototype/packages/cells-core/pkg",
-        );
+        path.resolve(import.meta.dirname, "../../../../cells-core/pkg");
     const mod = await import(
         pathToFileURL(path.join(wasmDir, "cells_wasm.js")).href
     );
