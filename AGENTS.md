@@ -110,6 +110,7 @@ Read [TEST_RUN_INSTRUCTIONS_FOR_AGENTS.md](TEST_RUN_INSTRUCTIONS_FOR_AGENTS.md) 
 - **Cypress** for e2e tests, user interactions, and full rendering (files: `cypress/e2e/*.cy.js`)
 - **Cargo** for the Rust core in `packages/doenetml-worker-rust` — reference resolution, the flattener, the resolver and the name maps (files: `lib-doenetml-core/src/**/*.test.rs`, `lib-doenetml-core/tests/`)
 - **Rust-core parity**: `npm run parity -w @doenet/rust-parity` runs the worker's Vitest suite on the Rust core (`DOENET_TEST_CORE=rust`) and writes a dashboard of what the Rust core is missing to `packages/rust-parity/out/`. See that package's README.
+- **Cells-core parity**: `npm run parity:cells -w @doenet/doenetml-worker-javascript` runs the same suite on the cells core (`DOENET_TEST_CORE=cells`, the prototype checked out next to this repo with its wasm built) and writes the gap list to `packages/doenetml-worker-javascript/CELLS_CORE_PARITY.md`. One file: `npm run test:cells-core -w @doenet/doenetml-worker-javascript -- --run src/test/tagSpecific/answer.test.ts`.
 - Tests are grouped; run by group number to parallelize CI
 
 ### Common Test Commands
