@@ -2,10 +2,11 @@ import { defineConfig } from "vite";
 import react from "@vitejs/plugin-react";
 import { viteStaticCopy } from "vite-plugin-static-copy";
 import * as path from "node:path";
+import { fileURLToPath } from "node:url";
 import { createRequire } from "module";
 import { ignoreWireitCachesPlugin } from "../../scripts/vite-plugins";
 const require = createRequire(import.meta.url);
-const __dirname = path.dirname(new URL(import.meta.url).pathname);
+const __dirname = path.dirname(fileURLToPath(import.meta.url));
 
 // https://vitejs.dev/config/
 export default defineConfig({

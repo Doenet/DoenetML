@@ -1,11 +1,14 @@
 import { glob } from "glob";
 import { describe, expect, it } from "vitest";
 import * as fs from "node:fs/promises";
+import { fileURLToPath } from "node:url";
 import { parse, showCursor } from "../src/parser";
 
 describe("Xml files parse correctly", async () => {
     const files = glob
-        .sync(new URL("./fragments/xml-*.doenet", import.meta.url).pathname)
+        .sync(
+            fileURLToPath(new URL("./fragments/xml-*.doenet", import.meta.url)),
+        )
         .filter((f) => !f.includes("-bad"));
     const fileMap: Record<string, string> = Object.fromEntries(
         files.map((f) => [f.split("/").pop(), f]),
