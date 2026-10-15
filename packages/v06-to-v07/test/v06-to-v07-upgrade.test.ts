@@ -1031,6 +1031,19 @@ describe("v06 to v07 update", () => {
         );
     });
 
+    it("converts the other copies when a copy sits inside what it copies", async () => {
+        // The copy of `t` inside `t` is circular as a reference, but not as the inert
+        // `<copy>` it is while the referents are looked up, so it costs only itself.
+        source = `<text name="t">a <copy source="t" /></text><copy source="m" /><math name="m">x</math>`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<text name="t">a <copy source="t" /></text><math extend="$m" /><math name="m">x</math>`,
+        );
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "copy/unresolved-referent",
+        ]);
+    });
+
     it("leaves slashes alone in a source attribute that is a URL", async () => {
         // `source` names a component on `<copy>`/`<collect>`/`<extract>`, but it is a URL
         // on `<image>` and `<video>`, where the slashes are path separators.
@@ -2320,6 +2333,18 @@ describe("regressions found by the second review pass", () => {
         expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
             "collect/unknown-prop-type",
         ]);
+        // A prop that does not exist is not something the list can answer, and the
+        // author has to hear about it.
+        source = `<textList><collect componentTypes="choiceInput" prop="selectedvalue" source="s" /></textList>`;
+        const invalid = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(invalid.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "collect/unknown-prop-type",
+        ]);
+        expect(invalid.vfile.messages[0].reason).toContain(
+            `"selectedvalue" is not a valid prop name`,
+        );
     });
 
     it("types a reference into what an external copy loads", async () => {

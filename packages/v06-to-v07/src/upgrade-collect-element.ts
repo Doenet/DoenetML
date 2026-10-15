@@ -17,6 +17,7 @@ import { reparseAttribute } from "./reparse-attribute";
 import {
     determinePropType,
     isComponentType,
+    VariableComponentTypeError,
 } from "./core-info/determine-prop-type";
 import {
     AssignNamesContext,
@@ -160,17 +161,22 @@ export const upgradeCollectElement: Plugin<
                 name: "name",
                 children: [{ type: "text", value: collectName }],
             };
-            // Some props, such as a `<choiceInput>`'s `selectedValue`, have no fixed
-            // type, and `determinePropType` throws for them. The list the `<collect>`
-            // was written in, `<textList><collect prop="selectedValue" ... /></textList>`,
-            // says what the author expected, so that is the next best answer.
+            // Some props, such as a `<choiceInput>`'s `selectedValue` and `values`, have
+            // no fixed type: `determinePropType` gives nothing for the first and throws
+            // for the second. The list the `<collect>` was written in,
+            // `<textList><collect prop="selectedValue" ... /></textList>`, says what the
+            // author expected, so that is the next best answer. A prop that does not
+            // exist is not answered that way: the author has to hear about it.
             let listType: string | undefined;
+            let invalidProp: string | undefined;
             try {
                 listType = determinePropType(componentType, propName);
             } catch (e) {
-                listType = undefined;
+                if (!(e instanceof VariableComponentTypeError)) {
+                    invalidProp = e instanceof Error ? e.message : String(e);
+                }
             }
-            if (!listType) {
+            if (!listType && invalidProp === undefined) {
                 const parent = info.parents[0];
                 const parentItemType =
                     parent && isDastElement(parent)
@@ -186,7 +192,7 @@ export const upgradeCollectElement: Plugin<
             }
             if (!listType) {
                 file.message(
-                    `Could not determine type for prop "${propName}" of component type "${componentType}". Using "math" as default.`,
+                    `Could not determine type for prop "${propName}" of component type "${componentType}"${invalidProp === undefined ? "" : `: ${invalidProp}`}. Using "math" as default.`,
                     {
                         place: node.position,
                         ruleId: "collect/unknown-prop-type",

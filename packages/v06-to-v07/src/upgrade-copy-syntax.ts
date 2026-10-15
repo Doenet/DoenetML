@@ -108,10 +108,21 @@ async function resolveAllCopyTags(
     for (let round = 0; ; round++) {
         let core: Awaited<ReturnType<typeof createCoreForLookup>>;
         try {
-            core = await createCoreForLookup({
-                dast: lookupTree(tree),
-                fetchExternalDoenetML,
-            });
+            try {
+                core = await createCoreForLookup({
+                    dast: lookupTree(tree),
+                    fetchExternalDoenetML,
+                });
+            } catch (e) {
+                // Standing a `<copy>` in for its reference can close a loop the
+                // document as written does not have: a `<copy source="t" />` inside `t`
+                // is inert, but `$t` there is circular. Then the document as written
+                // is still worth loading, for every other copy's sake.
+                core = await createCoreForLookup({
+                    dast: tree,
+                    fetchExternalDoenetML,
+                });
+            }
         } catch (e) {
             if (round > 0) {
                 // The previous round's document loaded; this one should too, but if it

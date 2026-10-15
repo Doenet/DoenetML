@@ -24,7 +24,7 @@ export function determinePropType(
 
 /**
  * A prop exists, but the components it gives have no single type — an `<answer>`'s
- * `submittedResponse`, say — so no one element type can stand for it.
+ * `submittedResponses`, say — so no one element type can stand for it.
  */
 export class VariableComponentTypeError extends Error {}
 
