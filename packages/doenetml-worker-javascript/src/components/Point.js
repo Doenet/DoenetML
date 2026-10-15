@@ -519,6 +519,39 @@ export default class Point extends GraphicalComponent {
             },
         };
 
+        // `dragging` is set by `movePoint` and cleared again when the move is
+        // committed or the point is clicked. It is never written into the
+        // saved document state (see `setDragging`).
+        stateVariableDefinitions.dragging = {
+            description:
+                "Whether the point is currently being dragged. It is true from the first movement of a drag until the point is released, and also while a point is being moved with the keyboard and the move has not yet been committed.",
+            public: true,
+            shadowingInstructions: {
+                createComponentOfType: "boolean",
+            },
+            defaultValue: false,
+            hasEssential: true,
+            returnDependencies: () => ({}),
+            definition() {
+                return {
+                    useEssentialOrDefaultValue: {
+                        dragging: true,
+                    },
+                };
+            },
+            inverseDefinition({ desiredStateVariableValues }) {
+                return {
+                    success: true,
+                    instructions: [
+                        {
+                            setEssentialValue: "dragging",
+                            value: Boolean(desiredStateVariableValues.dragging),
+                        },
+                    ],
+                };
+            },
+        };
+
         // coordsShadow will be null unless point was created
         // via an adapter or copy prop or from serialized state with coords value
         // In case of adapter or copy prop,
@@ -1405,6 +1438,11 @@ export default class Point extends GraphicalComponent {
             components[2] = me.fromAst(z);
         }
         if (transient) {
+            await this.setDragging({
+                dragging: true,
+                actionId,
+                sourceInformation,
+            });
             return await this.coreFunctions.performUpdate({
                 updateInstructions: [
                     {
@@ -1422,6 +1460,11 @@ export default class Point extends GraphicalComponent {
                 skipRendererUpdate,
             });
         } else {
+            await this.setDragging({
+                dragging: false,
+                actionId,
+                sourceInformation,
+            });
             return await this.coreFunctions.performUpdate({
                 updateInstructions: [
                     {
@@ -1451,6 +1494,40 @@ export default class Point extends GraphicalComponent {
         }
     }
 
+    /**
+     * Set the `dragging` state variable.
+     *
+     * The renderer sends a drag as a series of `transient` moves followed by
+     * one committing move when the point is released, so `movePoint` sets the
+     * flag on the first transient move and clears it on the commit.
+     * (A tap that moved the pointer less than the drag threshold is a click
+     * rather than a commit, so `pointClicked` clears it too.)
+     *
+     * The update is `doNotSave` and skips the renderer update. It is not a
+     * change the reader made to the document, so it should not be saved (a
+     * reload during a drag would otherwise come back with the point stuck
+     * "being dragged"). The move or click that follows sends the renderers.
+     */
+    async setDragging({ dragging, actionId, sourceInformation = {} }) {
+        if ((await this.stateValues.dragging) === dragging) {
+            return;
+        }
+        await this.coreFunctions.performUpdate({
+            updateInstructions: [
+                {
+                    updateType: "updateValue",
+                    componentIdx: this.componentIdx,
+                    stateVariable: "dragging",
+                    value: dragging,
+                },
+            ],
+            doNotSave: true,
+            skipRendererUpdate: true,
+            actionId,
+            sourceInformation,
+        });
+    }
+
     switchPoint() {}
 
     async pointClicked({
@@ -1460,6 +1537,11 @@ export default class Point extends GraphicalComponent {
         skipRendererUpdate = false,
     }) {
         if (!(await this.stateValues.fixed)) {
+            await this.setDragging({
+                dragging: false,
+                actionId,
+                sourceInformation,
+            });
             await this.coreFunctions.triggerChainedActions({
                 triggeringAction: "click",
                 componentIdx, // use componentIdx rather than this.componentIdx to get original componentIdx if adapted

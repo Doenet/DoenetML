@@ -125,6 +125,73 @@ describe("Point Tag Tests", { tags: ["@group4"] }, function () {
         cy.get("#P0a").should("have.text", "(−9.9,9.9)");
     });
 
+    it("dragging is true only while the point is being dragged", () => {
+        // A drag reaches core as a run of `transient` moves, then one move
+        // that commits it on release. Guide lines hidden by `$P.dragging`
+        // should be in the DOM only between the two.
+        cy.window().then(async (win) => {
+            win.postMessage(
+                {
+                    doenetML: `
+  <graph size="small">
+    <shortDescription>A point on x squared with guide lines to the axes</shortDescription>
+    <function name="f">x^2</function>
+    <point name="P">(0,0)<constrainTo>$f</constrainTo></point>
+    <lineSegment lineStyle="dashed" hide="not $P.dragging" endpoints="$P ($P.x, 0)"/>
+    <lineSegment lineStyle="dashed" hide="not $P.dragging" endpoints="$P (0, $P.y)"/>
+  </graph>
+  <p>dragging: <boolean name="d">$P.dragging</boolean></p>
+  <p>x: <number name="Px">$P.x</number></p>
+    `,
+                },
+                "*",
+            );
+        });
+
+        // JSXGraph draws a dashed segment as a <line> with a dash array. It is
+        // only in the DOM while the segment is shown.
+        const guideLines = ".jxgbox line[stroke-dasharray]";
+
+        cy.get("#d").should("have.text", "false");
+        cy.get(".jxgbox").should("exist");
+        cy.get(guideLines).should("have.length", 0);
+
+        cy.log("drag steps show the guide lines");
+        cy.window().then(async (win) => {
+            await win.callAction1({
+                actionName: "movePoint",
+                componentIdx: await win.resolvePath1("P"),
+                args: { x: 1, y: 1, transient: true, skippable: true },
+            });
+        });
+        cy.get("#d").should("have.text", "true");
+        cy.get("#Px").should("have.text", "1");
+        cy.get(guideLines).should("have.length", 2);
+
+        cy.window().then(async (win) => {
+            await win.callAction1({
+                actionName: "movePoint",
+                componentIdx: await win.resolvePath1("P"),
+                args: { x: 2, y: 4, transient: true, skippable: true },
+            });
+        });
+        cy.get("#Px").should("have.text", "2");
+        cy.get("#d").should("have.text", "true");
+        cy.get(guideLines).should("have.length", 2);
+
+        cy.log("releasing the point hides them");
+        cy.window().then(async (win) => {
+            await win.callAction1({
+                actionName: "movePoint",
+                componentIdx: await win.resolvePath1("P"),
+                args: { x: 2, y: 4 },
+            });
+        });
+        cy.get("#d").should("have.text", "false");
+        cy.get("#Px").should("have.text", "2");
+        cy.get(guideLines).should("have.length", 0);
+    });
+
     it("restore state with point coords depending on function", () => {
         // Note: this test makes sure that the essential state and string children
         // are restored for a case where the coords attribute depends on a function
