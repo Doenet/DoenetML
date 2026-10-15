@@ -63,11 +63,12 @@ npm run node -- --cores=javascript,rust,cells --fixtures=homework,chain-100
 
 `src/run.mjs` runs every (core, fixture) in its own process with a 60 s
 budget and appends one JSON line per measurement to
-`results/raw/node-<date>.jsonl`. The process is `src/measure-one.ts` under
-vite-node from `packages/doenetml-worker-javascript`, whose test utilities
-give the three cores one interface (`DOENET_TEST_CORE` selects the core;
-the Rust and cells adapters are `test-core-rust.ts` and
-`test-core-cells.ts` there).
+`results/raw/node-<date>.jsonl`. The process runs `src/measure-one.ts`,
+prebundled with esbuild by `scripts/bundle-driver.mjs` into
+`packages/doenetml-worker-javascript/.bench/` (rebuilt when a source is
+newer), over that package's test utilities, which give the three cores one
+interface (`DOENET_TEST_CORE` selects the core; the Rust and cells
+adapters are `test-core-rust.ts` and `test-core-cells.ts` there).
 
 | Field | Meaning |
 |---|---|
@@ -81,9 +82,8 @@ the Rust and cells adapters are `test-core-rust.ts` and
 | `state_envelope_bytes` | JS core only: the whole persistence payload a host stores, `coreInfo` included. |
 | `steps`, `structural` | Per step label, `n` samples and `p50_ms`, `p90_ms`, `max_ms`. Steps cycle for 20 rounds or 20 s, structural steps for 10 rounds. |
 
-Each run is one vite-node process, which costs about ten seconds of
-startup per measurement; that is harness overhead and appears only in
-`wall_ms`.
+Each measurement is one node process loading the bundle, about a second
+of startup; that is harness overhead and appears only in `wall_ms`.
 
 ## The browser harness
 

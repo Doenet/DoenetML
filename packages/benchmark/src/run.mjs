@@ -3,10 +3,11 @@
 //
 //   node src/run.mjs [--cores javascript,rust,cells] [--fixtures a,b] [--out file]
 import { spawn } from "node:child_process";
-import { appendFileSync, mkdirSync, realpathSync } from "node:fs";
+import { appendFileSync, mkdirSync } from "node:fs";
 import { resolve } from "node:path";
 import { execSync } from "node:child_process";
 import { listFixtures, packageRoot, repoRoot } from "./fixtures.mjs";
+import { ensureBundle } from "../scripts/bundle-driver.mjs";
 
 const TIMEOUT_MS = 60_000;
 const args = Object.fromEntries(
@@ -21,14 +22,15 @@ const out = resolve(packageRoot, args.out ?? `results/raw/node-${date}.jsonl`);
 mkdirSync(resolve(out, ".."), { recursive: true });
 const commit = execSync("git rev-parse --short HEAD", { cwd: repoRoot, encoding: "utf8" }).trim();
 const jsWorker = resolve(repoRoot, "packages/doenetml-worker-javascript");
+// One prebundled driver per sweep (scripts/bundle-driver.mjs).
+const bundle = await ensureBundle();
 
 function measure(core, fixture) {
     return new Promise((done) => {
         // Node flags go on the command line: `--stack-size` (the parser recurses
         // once per sibling) is not allowed in NODE_OPTIONS.
         const nodeFlags = ["--expose-gc", "--max-old-space-size=8192", "--stack-size=65500"];
-        const viteNode = realpathSync(resolve(repoRoot, "node_modules/.bin/vite-node"));
-        const child = spawn(process.execPath, [...nodeFlags, viteNode, "--root", ".", resolve(packageRoot, "src/measure-one.ts"), fixture], {
+        const child = spawn(process.execPath, [...nodeFlags, bundle, fixture], {
             cwd: jsWorker,
             env: { ...process.env, DOENET_TEST_CORE: core },
             stdio: ["ignore", "pipe", "pipe"],
