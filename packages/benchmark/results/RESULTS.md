@@ -1,6 +1,6 @@
 # Results
 
-Rendered by `scripts/render-results.mjs` on 2026-10-15 at commit `9df7f52e7`. CPU: Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz. Raw records: `raw/node-2026-10-15.jsonl`, `raw/browser-2026-10-15.jsonl`, `raw/bundle-2026-10-15.jsonl`, `raw/memory-*.json`.
+Rendered by `scripts/render-results.mjs` on 2026-10-15 at commit `5b704b77d`. CPU: Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz. Raw records: `raw/node-2026-10-15.jsonl`, `raw/browser-2026-10-15.jsonl`, `raw/bundle-2026-10-15.jsonl`, `raw/memory-*.json`.
 
 A decision suite comparing the JS core, the Rust core and the cells core (see `PLAN.md`). A blank or "unsupported" cell is a result: that core cannot run the document or the action. "> 60 s" is the budget per measurement.
 
@@ -23,7 +23,7 @@ _Hand-written; included verbatim by `scripts/render-results.mjs`. Numbers quoted
 
 **What the first run says.** The cells core runs every synthetic shape and two of the five real documents; the JS core runs every real document but exceeds the 60 s budget on load for every 1,000-plus repeat and fanout and for the SIR simulation; the Rust core runs seven fixtures once the driver speaks its action names (`move` for a point, `updateImmediateValue` for a text input): the `points` shape, its own two text documents, and three whose numbers are not like-for-like (see below). It has no math input, so every fixture typed into one is a gap for it, and the three 10,000-size documents trap in wasm. Where both the JS and cells cores run a document, the gap depends on the metric and its floor. Core ticks in Node are three to four orders of magnitude apart (chain-100: 320 ms against 0.15 ms; fanout-100: 341 ms against 0.37 ms), as the prototype found, and the documents that gave the prototype its largest ratios now exceed the budget in the JS core, so they yield no ratio at all. Loads are one to two orders apart (25 to 50×) because this suite's load starts from DoenetML text and the cells figure carries a fixed floor of about 100 ms (the TypeScript parser, wasm instantiation, the adapter's setup) that the prototype excluded by starting from DAST bytes. Browser step latency is floored at one vsync for the cells core and two for the JS core, so it says little; the drag lag, which has no such floor, is about 60× apart on chain-100 (181 ms against 3 ms, with the JS core answering 10 of 61 moves). Memory is about a tenth. The cells core's three real-document blanks are one unsupported tag each (`<feedback>`, `<em>`, `<styleDefinition>`), which is gap-closing input.
 
-**The Rust core, where it runs.** On the one shape all three cores run, `points`, loading 100 points takes 1.8 s in the JS core, 0.2 s in the Rust core and 0.12 s in the cells core, and 1,000 points 54 s, 3.0 s and 0.16 s; moving one point takes 5.6 ms, 0.6 ms and 0.03 ms at 100 and 25 ms, 2.6 ms and 0.05 ms at 1,000. On its own text documents, a keystroke that a thousand texts depend on costs the JS core 1.1 s and the Rust core 0.2 s (the cells core refuses a `<textInput>` with literal content). The Rust core's memory is the surprise: 308 MB for chain-1000 and 369 MB for points-1000 against 374 MB and (not measured, timed out) for the JS core and 5 MB for the cells core, nearly all of it wasm linear memory. Its rows for `chain` and `lesson` are not comparable: those documents start from a math input the Rust core does not have, so the chain it loads is broken and its "drag" sets the point's coordinates without the inversion the other two cores perform. The `points` rows are the fair ones.
+**The Rust core, where it runs.** On the one shape all three cores run, `points`, loading 100 points takes 1.9 s in the JS core, 0.2 s in the Rust core and 0.09 s in the cells core, and 1,000 points 57 s, 2.6 s and 0.16 s; moving one point takes 5.8 ms, 0.6 ms and 0.02 ms at 100 and 27 ms, 1.9 ms and 0.05 ms at 1,000. In the browser, where the Rust core has no viewer, dragging that point in a document of 100 points lags 28 ms in the JS viewer and 1.7 ms in the cells viewer; at 1,000 points the JS viewer takes 43 s to load and runs out of budget, the cells viewer lags 2.0 ms; at 10,000 the cells viewer loads in 5 s and lags 19 ms, with the JS viewer not loading within 60 s. On its own text documents, a keystroke that a thousand texts depend on costs the JS core 1.1 s and the Rust core 0.2 s (the cells core refuses a `<textInput>` with literal content). The Rust core's memory is the surprise: 308 MB for chain-1000 and 369 MB for points-1000 against 374 MB and (not measured, timed out) for the JS core and 5 MB for the cells core, nearly all of it wasm linear memory. Its rows for `chain` and `lesson` are not comparable: those documents start from a math input the Rust core does not have, so the chain it loads is broken and its "drag" sets the point's coordinates without the inversion the other two cores perform. The `points` rows are the fair ones.
 
 **Against the budgets.** In the browser the cells core meets the 16 ms tick on every document under about 1,000 components and the 50 ms rebuild up to 1,000 iterations; its loads meet the 100 ms budget only for the smallest documents, and its 10,000-size loads are seconds, which the prototype's own measurements attribute to the renderer (React's first render and JSXGraph), not the core. The JS core meets neither budget on any fixture. On memory, one more JS-core viewer on a page costs about 175 MB (430 MB for one, 949 MB for four, in iframes), one more cells viewer about 11 MB (222 MB and 254 MB), against a budget of 20 MB. On storage, the cells core's saved state for a drag, a typed expression and a submitted answer is tens of bytes; the JS core's `coreState` for the same is several hundred, and the envelope a host stores is kilobytes because `coreInfo` carries the initial render tree. On bundle size, the cells viewer build is 0.87 MB brotli against the 1 MB budget, the JS core's eager set 4.4 MB; the delta the cells core would add to standalone is not yet measurable.
 
@@ -51,9 +51,9 @@ Each core through the shared test-core interface, one process per measurement (`
 | fanout-10000 | > 60 s at load |  |  | error: unreachable |  |  | 1820 | 1.14 |  |
 | homework | 2170 | 14.6 |  | unsupported: typing into a mathInput (the Rust core has no mathInput) |  |  | unsupported: unsupported tag <feedback> |  |  |
 | lesson | 1294 | 22.1 |  | 271 | 2.60 |  | unsupported: unsupported tag <em> |  |  |
-| points-100 | 1753 | 5.58 |  | 204 | 0.61 |  | 116 | 0.03 |  |
-| points-1000 | 54174 | 25.2 |  | 2977 | 2.55 |  | 163 | 0.05 |  |
-| points-10000 | > 60 s at load |  |  | error: unreachable |  |  | 697 | 0.18 |  |
+| points-100 | 1894 | 5.82 |  | 196 | 0.59 |  | 86.3 | 0.02 |  |
+| points-1000 | 56531 | 27.2 |  | 2613 | 1.85 |  | 160 | 0.05 |  |
+| points-10000 | > 60 s at load |  |  | error: unreachable |  |  | 650 | 0.17 |  |
 | repeat-100 | 8109 | 11.0 | 387 | unsupported: typing into a mathInput (the Rust core has no mathInput) |  |  | 80.5 | 0.04 | 1.02 |
 | repeat-1000 | > 60 s at load |  |  | unsupported: typing into a mathInput (the Rust core has no mathInput) |  |  | 86.0 | 0.09 | 2.53 |
 | repeat-10000 | > 60 s at load |  |  | unsupported: typing into a mathInput (the Rust core has no mathInput) |  |  | 128 | 0.46 | 19.7 |
@@ -83,9 +83,9 @@ Each core through the shared test-core interface, one process per measurement (`
 | fanout-10000 |  |  |  |  | 39.2 | 31 B / 51 B |
 | homework | 28.3 | 642 B / 342 B (3207 B) |  |  |  |  |
 | lesson | 28.1 | 189 B / 129 B (1688 B) | 9.3 |  |  |  |
-| points-100 | 28.2 | 143 B / 98 B (988 B) | 7.8 |  | 3.5 | 47 B / 58 B |
-| points-1000 | 203.4 | 143 B / 98 B (988 B) | 368.6 |  | 4.9 | 47 B / 58 B |
-| points-10000 |  |  |  |  | 20.6 | 47 B / 58 B |
+| points-100 | 28.2 | 139 B / 96 B (984 B) | 7.8 |  | 3.5 | 45 B / 57 B |
+| points-1000 | 203.8 | 139 B / 96 B (984 B) | 368.3 |  | 5.0 | 45 B / 57 B |
+| points-10000 |  |  |  |  | 20.7 | 45 B / 57 B |
 | repeat-100 | 116.9 | 319 B / 202 B (11.4 KB) |  |  | 3.6 | 46 B / 62 B |
 | repeat-1000 |  |  |  |  | 5.2 | 46 B / 62 B |
 | repeat-10000 |  |  |  |  | 19.0 | 46 B / 62 B |
@@ -117,6 +117,9 @@ Each fixture in each core's viewer (`browser/perf.spec.ts`). *load* is DoenetML 
     at Object.load |  |  |  |
 | lesson | 3347 | 68.3 (60/61) |  |  | unsupported: page.evaluate: unsupported tag <em>
     at Object.load (eval |  |  |  |
+| points-100 | 2485 | 27.9 (59/61) |  |  | 181 | 1.71 (59/61) |  |  |
+| points-1000 | 42737 (> 60 s at steps) |  |  |  | 747 | 2.03 (59/61) |  |  |
+| points-10000 | > 60 s at load |  |  |  | 5049 | 19.1 (60/61) |  |  |
 | repeat-100 | 8701 | 55.0 (43/61) |  | 593 | 214 | 0.78 (42/61) |  | 16.6 |
 | repeat-1000 | > 60 s at load |  |  |  | 696 | 2.28 (43/61) |  | 16.5 |
 | repeat-10000 | > 60 s at load |  |  |  | 4674 | 17.6 (43/61) |  | 124 |

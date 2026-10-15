@@ -20,10 +20,21 @@ const shapes = {
         lines.push(`<graph name="g"><point name="p" x="$c${n - 1}" y="$n"/></graph>`);
         return lines.join("\n") + "\n";
     },
-    /** N free points in one graph; the first is dragged. The one shape every core can run. */
+    /**
+     * N free points in one graph; the first is dragged. The one shape every
+     * core can run. p0 sits alone at the center with nothing within 1.5
+     * units, so a pointer at it finds it; the rest fill a grid.
+     */
     points(n) {
-        const lines = ['<graph name="g">'];
-        for (let i = 0; i < n; i++) lines.push(`  <point name="p${i}" x="${(i % 19) - 9}" y="${(Math.floor(i / 19) % 19) - 9}"/>`);
+        const lines = ['<graph name="g">', '  <point name="p0" x="0" y="0"/>'];
+        const k = Math.ceil(Math.sqrt(n * 1.2)) + 1;
+        for (let i = 0, placed = 1; placed < n; i++) {
+            const x = -9 + (18 * (i % k)) / (k - 1);
+            const y = -9 + (18 * Math.floor(i / k)) / (k - 1);
+            if (Math.hypot(x, y) < 1.5) continue;
+            lines.push(`  <point name="p${placed}" x="${x.toFixed(3)}" y="${y.toFixed(3)}"/>`);
+            placed++;
+        }
         lines.push("</graph>");
         return lines.join("\n") + "\n";
     },
