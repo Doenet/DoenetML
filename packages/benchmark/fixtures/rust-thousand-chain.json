@@ -9,12 +9,14 @@
         {
             "action": "updateValue",
             "target": "n000",
-            "value": "a"
+            "value": "a",
+            "kind": "text"
         },
         {
             "action": "updateValue",
             "target": "n000",
-            "value": "b"
+            "value": "b",
+            "kind": "text"
         }
     ],
     "structural": null,

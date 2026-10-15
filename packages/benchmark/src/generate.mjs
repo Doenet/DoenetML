@@ -20,6 +20,13 @@ const shapes = {
         lines.push(`<graph name="g"><point name="p" x="$c${n - 1}" y="$n"/></graph>`);
         return lines.join("\n") + "\n";
     },
+    /** N free points in one graph; the first is dragged. The one shape every core can run. */
+    points(n) {
+        const lines = ['<graph name="g">'];
+        for (let i = 0; i < n; i++) lines.push(`  <point name="p${i}" x="${(i % 19) - 9}" y="${(Math.floor(i / 19) % 19) - 9}"/>`);
+        lines.push("</graph>");
+        return lines.join("\n") + "\n";
+    },
     /** One input read by N numbers, each positioning a point. */
     fanout(n) {
         const lines = ['<mathInput name="n" prefill="1"/>', '<graph name="g">'];

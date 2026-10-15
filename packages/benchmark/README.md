@@ -29,7 +29,7 @@ document resolves it (`p3.mi`). Actions, with the core action they map to:
 | Action | Fields | Core action |
 |---|---|---|
 | `movePoint` | `x`, `y` | `movePoint` |
-| `updateValue` | `value` | `updateRawValue` then `updateValue` on a math or text input |
+| `updateValue` | `value`, `kind` (`"text"` for a text input; a math input otherwise) | `updateRawValue` (math) or `updateImmediateValue` (text), then `updateValue` |
 | `submitAnswer` | | `submitAnswer` on an answer |
 | `triggerActions` | | `triggerActions` on a triggerSet |
 
@@ -50,8 +50,9 @@ measures something else, so only `symchain` uses `<math>`.
 
 ### Synthetic shapes
 
-`chain`, `fanout` and `repeat` at 100, 1,000 and 10,000; `symchain` and
-`answers` at 10, 100 and 1,000. Plus the Rust core's two benchmark
+`points`, `chain`, `fanout` and `repeat` at 100, 1,000 and 10,000;
+`symchain` and `answers` at 10, 100 and 1,000. `points` is the one shape
+every core runs. Plus the Rust core's two benchmark
 documents, `rust-thousand-chain` and `rust-thousand-star`, so it has rows it
 can run.
 

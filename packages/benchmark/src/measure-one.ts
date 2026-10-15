@@ -23,6 +23,8 @@ type Step = {
     x?: number;
     y?: number;
     value?: string;
+    /** "text" for a text input; a math input otherwise. */
+    kind?: "text" | "math";
 };
 
 /** The core could not name the manifest's target: a gap in that core, like the adapters' own. */
@@ -92,14 +94,19 @@ async function savedState(api: any) {
 async function runStep(api: any, s: Step) {
     const componentIdx = await api.resolvePathToNodeIdx(s.target);
     if (componentIdx === -1)
-        throw new Error(`target ${s.target} did not resolve`);
+        throw new TargetGap(`target ${s.target} did not resolve`);
     const act = (actionName: string, args: any) =>
         api.core.requestAction({ componentIdx, actionName, args });
+    if (core === "rust") return runRustStep(api, s, componentIdx, act);
     switch (s.action) {
         case "movePoint":
             return act("movePoint", { x: s.x, y: s.y });
         case "updateValue":
-            await act("updateRawValue", { rawRendererValue: s.value });
+            // A text input takes its text through updateImmediateValue; a math
+            // input takes what was typed through updateRawValue.
+            if (s.kind === "text")
+                await act("updateImmediateValue", { text: s.value });
+            else await act("updateRawValue", { rawRendererValue: s.value });
             return act("updateValue", {});
         case "submitAnswer":
             return act("submitAnswer", {});
@@ -107,6 +114,34 @@ async function runStep(api: any, s: Step) {
             return act("triggerActions", {});
         default:
             throw new Error(`unknown action ${s.action}`);
+    }
+}
+
+/**
+ * The Rust core has its own action names and arguments (its test adapter
+ * forwards whatever it is given): a point's `move` takes `{x, y}`, a
+ * textInput's `updateImmediateValue` takes `{text}` and `updateValue`
+ * nothing. It has no mathInput, so typing into one is a gap there.
+ */
+async function runRustStep(
+    api: any,
+    s: Step,
+    componentIdx: number,
+    act: (name: string, args: any) => Promise<unknown>,
+) {
+    const type = api.rustCore?.get_component_type?.(componentIdx);
+    switch (s.action) {
+        case "movePoint":
+            return act("move", { x: s.x, y: s.y });
+        case "updateValue":
+            if (type !== "textInput")
+                throw new TargetGap(
+                    `typing into a ${type ?? "component"} (the Rust core has no mathInput)`,
+                );
+            await act("updateImmediateValue", { text: s.value });
+            return act("updateValue", {});
+        default:
+            throw new TargetGap(`action ${s.action} in the Rust core`);
     }
 }
 
@@ -170,7 +205,13 @@ async function main() {
     }
 
     progress("state");
-    Object.assign(record, await savedState(api));
+    try {
+        Object.assign(record, await savedState(api));
+    } catch (e: any) {
+        // A core without saved state (the Rust core) still has its timings.
+        record.state_bytes = null;
+        record.state_note = String(e?.message ?? e).slice(0, 200);
+    }
 
     // Last: on a slow document this check costs more than the measurements,
     // so the record goes out first and again with the count if time allows.

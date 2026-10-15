@@ -9,12 +9,14 @@
         {
             "action": "updateValue",
             "target": "t",
-            "value": "a"
+            "value": "a",
+            "kind": "text"
         },
         {
             "action": "updateValue",
             "target": "t",
-            "value": "b"
+            "value": "b",
+            "kind": "text"
         }
     ],
     "structural": null,
