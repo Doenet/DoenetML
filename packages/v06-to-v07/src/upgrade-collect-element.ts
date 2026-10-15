@@ -15,6 +15,7 @@ import { VFile } from "vfile";
 import { renameAttrInPlace } from "./rename-attr-in-place";
 import { reparseAttribute } from "./reparse-attribute";
 import {
+    canonicalPropName,
     determinePropType,
     isComponentType,
     VariableComponentTypeError,
@@ -119,10 +120,10 @@ export const upgradeCollectElement: Plugin<
             const propKey = Object.keys(node.attributes).find(
                 (key) => key.toLowerCase() === "prop",
             );
-            const propName = propKey
+            const authoredPropName = propKey
                 ? toXml(node.attributes[propKey].children).trim()
                 : "";
-            if (!propName) {
+            if (!authoredPropName) {
                 return;
             }
             delete node.attributes[propKey!];
@@ -136,6 +137,8 @@ export const upgradeCollectElement: Plugin<
             const componentType = toXml(
                 node.attributes["componentType"]?.children,
             ).trim();
+            // v0.6 matched prop names however they were capitalized; v0.7 does not.
+            const propName = canonicalPropName(componentType, authoredPropName);
             // The `mathList` will have the name originally given to the `collect`
             // We need a new name for the collect.
 

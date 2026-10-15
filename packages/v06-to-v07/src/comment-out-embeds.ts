@@ -2,9 +2,10 @@ import { Plugin } from "unified";
 import { DastRoot, isDastElement, replaceNode, toXml } from "@doenet/parser";
 
 /**
- * v0.7 has no `<embed>`, which v0.6 used to show GeoGebra applets. Those are to be
- * rebuilt as DoenetML widgets; until then the element is commented out with a TODO, so
- * the document loads and the applet stays in the source for whoever rebuilds it.
+ * v0.6 used `<embed>` to show GeoGebra applets. GeoGebra support is being removed from
+ * DoenetML — v0.7 still has an `<embed>` component, but leaves it out of the schema — and
+ * the applets are to be rebuilt as DoenetML widgets. Until then the element is commented
+ * out with a TODO, so the applet stays in the source for whoever rebuilds it.
  */
 export const commentOutEmbeds: Plugin<[], DastRoot, DastRoot> = () => {
     return (tree, file) => {
@@ -16,7 +17,7 @@ export const commentOutEmbeds: Plugin<[], DastRoot, DastRoot> = () => {
                 ? toXml(node.attributes["name"].children).trim()
                 : "";
             file.message(
-                `Commented out an <embed>${name ? ` named "${name}"` : ""}: v0.7 has no <embed> element and no GeoGebra support, so the applet has to be rebuilt as a DoenetML widget.${name ? ` References to $${name} now find nothing.` : ""}`,
+                `Commented out an <embed>${name ? ` named "${name}"` : ""}: GeoGebra applets are being removed from DoenetML, so the applet has to be rebuilt as a DoenetML widget.${name ? ` References to $${name} now find nothing.` : ""}`,
                 {
                     place: node.position,
                     ruleId: "no-v07-equivalent/embed-geogebra",
@@ -27,7 +28,7 @@ export const commentOutEmbeds: Plugin<[], DastRoot, DastRoot> = () => {
             const original = toXml(node).replace(/--/g, "- -");
             return {
                 type: "comment",
-                value: ` TODO: GeoGebra applets are not supported in DoenetML 0.7. Rebuild this one as a DoenetML widget. The v0.6 element was:\n${original}\n`,
+                value: ` TODO: GeoGebra applets are being removed from DoenetML. Rebuild this one as a DoenetML widget. The v0.6 element was:\n${original}\n`,
             };
         });
     };

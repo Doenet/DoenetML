@@ -2349,7 +2349,7 @@ describe("regressions found by the second review pass", () => {
         ]);
         // A prop that does not exist is not something the list can answer, and the
         // author has to hear about it.
-        source = `<textList><collect componentTypes="choiceInput" prop="selectedvalue" source="s" /></textList>`;
+        source = `<textList><collect componentTypes="choiceInput" prop="selectedvalu" source="s" /></textList>`;
         const invalid = await updateSyntaxFromV06toV07(source, {
             doNotUpgradeCopyTags: true,
         });
@@ -2357,8 +2357,23 @@ describe("regressions found by the second review pass", () => {
             "collect/unknown-prop-type",
         ]);
         expect(invalid.vfile.messages[0].reason).toContain(
-            `"selectedvalue" is not a valid prop name`,
+            `"selectedvalu" is not a valid prop name`,
         );
+    });
+
+    it("spells a `<collect>`'s prop as v0.7 spells it", async () => {
+        // v0.6 matched prop names however they were capitalized; v0.7 does not.
+        source = `<textList name="t"><collect componentTypes="CHOICEINPUT" PROP="selectedvalue" source="s" /></textList><collect componentTypes="polygon" prop="VERTEX2" source="g" name="v" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(res.xml).toContain(
+            `<textList name="list" extend="$collect_list.selectedValue" />`,
+        );
+        expect(res.xml).toContain(
+            `<pointList name="v" extend="$collect_v.vertex2" />`,
+        );
+        expect(res.vfile.messages).toEqual([]);
     });
 
     it("types a reference into what an external copy loads", async () => {

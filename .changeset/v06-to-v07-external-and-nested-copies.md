@@ -5,7 +5,7 @@
 Convert more v0.6 documents:
 - A `<copy>` of a component that itself holds a `<copy>`, or of a named `<copy>`, converts instead of being left as a `<copy>`.
 - A `<copy>` inside the component it copies, such as `$p.x{displayDecimals="2"}` in `p`'s own label, converts.
-- A copied prop is spelled as v0.7 spells it: v0.6 matched `prop="numericalsolution"` to `numericalSolution`.
+- The prop of a `<copy>` or `<collect>` is spelled as v0.7 spells it: v0.6 matched `prop="numericalsolution"` to `numericalSolution`.
 - A `<copy>` of a component inside an unselected `<option>` or a `<case>` whose condition is false converts, when only one component has that name.
 - A `<copy>` of a prop with no single type, such as an `<answer>`'s `submittedResponse`, becomes a bare reference like `$a.submittedResponse` when it has no other attributes.
 - A `<collect>` of a prop with no fixed type, such as a `<choiceInput>`'s `selectedValue` or `values`, takes its type from the list it is written in. Before, `selectedValue` became a `<mathList>` and `values` stopped the conversion. A `<collect>` of a prop that does not exist is now reported instead of stopping the conversion.

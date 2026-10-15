@@ -140,7 +140,7 @@ describe("deprecated attribute upgrades", () => {
             `<p>Before</p><embed width="100" encodedGeogebraContent="UEsD" /><p>After</p>`,
         );
         expect(result.xml).toEqual(
-            `<p>Before</p><!-- TODO: GeoGebra applets are not supported in DoenetML 0.7. Rebuild this one as a DoenetML widget. The v0.6 element was:
+            `<p>Before</p><!-- TODO: GeoGebra applets are being removed from DoenetML. Rebuild this one as a DoenetML widget. The v0.6 element was:
 <embed width="100" encodedGeogebraContent="UEsD" />
 --><p>After</p>`,
         );
