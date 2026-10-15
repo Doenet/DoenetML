@@ -1031,6 +1031,33 @@ describe("v06 to v07 update", () => {
         );
     });
 
+    it("converts the other copies when a copy sits inside what it copies", async () => {
+        // The copy of `t` inside `t` is circular as a reference, but not as the inert
+        // `<copy>` it is while the referents are looked up, so it costs only itself.
+        source = `<text name="t">a <copy source="t" /></text><copy source="m" /><math name="m">x</math>`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<text name="t">a <copy source="t" /></text><math extend="$m" /><math name="m">x</math>`,
+        );
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "copy/unresolved-referent",
+        ]);
+    });
+
+    it("keeps a round's conversions when the next round's document does not load", async () => {
+        // Converting the copy of `b` inside `a` closes the loop `a` -> `b` -> `a`, so the
+        // second round cannot load the document. The first round's conversion stands,
+        // and the copy it could not resolve is reported as unresolved.
+        source = `<math name="a">1+<copy source="b" /></math><math name="b">2+$a</math><copy source="a" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<math name="a">1+<math extend="$b" /></math><math name="b">2+$a</math><copy source="a" />`,
+        );
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "copy/unresolved-referent",
+        ]);
+    });
+
     it("leaves slashes alone in a source attribute that is a URL", async () => {
         // `source` names a component on `<copy>`/`<collect>`/`<extract>`, but it is a URL
         // on `<image>` and `<video>`, where the slashes are path separators.
@@ -2181,6 +2208,194 @@ describe("regressions found by the second review pass", () => {
         expect(res.vfile.messages.map((m) => m.ruleId)).toContain(
             "assign-names/invalid-name",
         );
+    });
+
+    it("converts a copy of a component that itself holds a copy", async () => {
+        // The referent's type is read from the document as v0.7 loads it, and a `<math>`
+        // still holding a v0.6 `<copy>` loaded as an error, so the outer copy was left.
+        source = `<number name="n">3</number><math name="e">1-2*<copy source="n" /></math><math name="a"><copy source="e" /></math>`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<number name="n">3</number><math name="e">1-2*<number extend="$n" /></math><math name="a"><math extend="$e" /></math>`,
+        );
+        expect(res.vfile.messages).toEqual([]);
+    });
+
+    it("converts a copy of a named copy", async () => {
+        source = `<math name="m">x</math><copy source="m" name="c1" /><copy source="c1" name="c2" /><copy source="c2" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<math name="m">x</math><math extend="$m" name="c1" /><math extend="$c1" name="c2" /><math extend="$c2" />`,
+        );
+        expect(res.vfile.messages).toEqual([]);
+    });
+
+    it("reports a copy that stays unresolved once, however many rounds it took", async () => {
+        source = `<math name="m">x</math><math name="e"><copy source="m" /></math><copy source="e" /><copy source="nothing" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toContain(`<math extend="$e" />`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "copy/unresolved-referent",
+        ]);
+    });
+
+    it("converts a copy inside the component it copies", async () => {
+        // The inner `<copy>` made `p` load as an error, so it could never be typed.
+        source = `<point name="p" x="1" y="2"><label>$p.x{displayDecimals="2"}</label></point>`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<point name="p" x="1" y="2"><label><math displayDecimals="2" extend="$p.x" /></label></point>`,
+        );
+        expect(res.vfile.messages).toEqual([]);
+    });
+
+    it("types a copy of a component the document did not create", async () => {
+        // The lookup only has the components it created, and a `<case>` whose condition
+        // is false creates nothing.
+        source = `<conditionalContent condition="false"><math name="m">x</math><copy source="m" /><copy source="g.P" prop="x" /><graph name="g"><point name="P">(1,2)</point></graph></conditionalContent>`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<conditionalContent condition="false"><math name="m">x</math><math extend="$m" /><math extend="$g.P.x" /><graph name="g"><point name="P">(1,2)</point></graph></conditionalContent>`,
+        );
+        expect(res.vfile.messages).toEqual([]);
+    });
+
+    it("does not guess between two components with the same name", async () => {
+        source = `<conditionalContent condition="false"><section><math name="m">x</math></section><section><text name="m">y</text></section><copy source="m" /></conditionalContent>`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toContain(`<copy source="m" />`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "copy/unresolved-referent",
+        ]);
+    });
+
+    it("types a copy by a name in a repeat only from inside that repeat", async () => {
+        // Each iteration has its own `a`, so `$a` finds one only from inside the repeat;
+        // from outside it finds nothing, and that is for the author to see.
+        source = `<map><template newNamespace><math name="a">$v+1</math><copy source="a" /></template><sources alias="v"><number>1</number></sources></map><copy source="a" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<setup><group name="group"><number>1</number></group></setup><repeat for="$group" valueName="v"><math name="a">$v+1</math><math extend="$a" /></repeat><copy source="a" />`,
+        );
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "copy/unresolved-referent",
+        ]);
+    });
+
+    it("turns a copy of a prop with no single type into a bare reference", async () => {
+        // An `<answer>`'s `submittedResponse` can be any type, so no element can stand
+        // for it; a `<copy>` that says nothing else is the v0.6 `$a.submittedResponse`.
+        source = `<answer name="a">x</answer><copy source="a" prop="submittedResponse" /><copy source="a" prop="submittedResponse" link="true" />`;
+        let res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<answer name="a">x</answer>$a.submittedResponse$a.submittedResponse`,
+        );
+        expect(res.vfile.messages).toEqual([]);
+
+        // Anything more needs an element, and a reference is always linked.
+        for (const extra of [`displayDigits="2"`, `link="false"`]) {
+            source = `<answer name="a">x</answer><copy source="a" prop="submittedResponse" ${extra} />`;
+            res = await updateSyntaxFromV06toV07(source);
+            expect(res.xml).toContain(
+                `<copy source="a" prop="submittedResponse"`,
+            );
+            expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+                "copy/unresolved-referent",
+            ]);
+        }
+    });
+
+    it("leaves a copy of a name the document does not have", async () => {
+        // v0.6 showed nothing for it; a reference to nothing shows the reference.
+        source = `<copy source="nothing" prop="feedbacks" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(source);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "copy/unresolved-referent",
+        ]);
+    });
+
+    it("spells a copied prop the way v0.7 does", async () => {
+        // v0.6 matched prop names however they were capitalized.
+        source = `<point name="p">(1,2)</point><copy prop="X" source="p" /><copy source="p" prop="COORDS" /><polygon name="g" vertices="(0,0) (1,0) (0,1)" /><copy source="g" prop="VERTEX2" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<point name="p">(1,2)</point><math extend="$p.x" /><coords extend="$p.coords" /><polygon name="g" vertices="(0,0) (1,0) (0,1)" /><point extend="$g.vertex2" />`,
+        );
+        expect(res.vfile.messages).toEqual([]);
+    });
+
+    it("types a `<collect>` of a prop with no fixed type by the list it is in", async () => {
+        // A `<choiceInput>`'s `selectedValue` and `values` have no fixed type: the first
+        // used to become a `mathList` and the second threw, losing the whole document.
+        for (const prop of ["selectedValue", "values"]) {
+            source = `<textlist name="t"><collect componentTypes="choiceinput" prop="${prop}" source="s" /></textlist>`;
+            const res = await updateSyntaxFromV06toV07(source, {
+                doNotUpgradeCopyTags: true,
+            });
+            expect(res.xml).toContain(
+                `<textList name="list" extend="$collect_list.${prop}" />`,
+            );
+            expect(res.vfile.messages).toEqual([]);
+        }
+        // With no list around it there is still nothing to go on.
+        source = `<collect componentTypes="choiceinput" prop="values" source="s" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(res.xml).toContain(`<mathList`);
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "collect/unknown-prop-type",
+        ]);
+        // A prop that does not exist is not something the list can answer, and the
+        // author has to hear about it.
+        source = `<textList><collect componentTypes="choiceInput" prop="selectedvalu" source="s" /></textList>`;
+        const invalid = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(invalid.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "collect/unknown-prop-type",
+        ]);
+        expect(invalid.vfile.messages[0].reason).toContain(
+            `"selectedvalu" is not a valid prop name`,
+        );
+    });
+
+    it("spells a `<collect>`'s prop as v0.7 spells it", async () => {
+        // v0.6 matched prop names however they were capitalized; v0.7 does not.
+        source = `<textList name="t"><collect componentTypes="CHOICEINPUT" PROP="selectedvalue" source="s" /></textList><collect componentTypes="polygon" prop="VERTEX2" source="g" name="v" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            doNotUpgradeCopyTags: true,
+        });
+        expect(res.xml).toContain(
+            `<textList name="list" extend="$collect_list.selectedValue" />`,
+        );
+        expect(res.xml).toContain(
+            `<pointList name="v" extend="$collect_v.vertex2" />`,
+        );
+        expect(res.vfile.messages).toEqual([]);
+    });
+
+    it("types a reference into what an external copy loads", async () => {
+        // Without the external document, `cobweb.correct` is a prop of a `<module>` that
+        // does not exist.
+        const documents: Record<string, string> = {
+            applet: `<module><setup><customAttribute componentType="number" name="x0" defaultValue="0" /></setup><boolean name="correct">$x0 = 1</boolean></module>`,
+        };
+        source = `<copy uri="doenet:activityId=applet" x0="1" assignNames="cobweb" /><copy source="cobweb.correct" />`;
+        const res = await updateSyntaxFromV06toV07(source, {
+            fetchExternalDoenetML: async (uri) => {
+                const id = uri.replace(/^doenet:/, "");
+                if (!(id in documents)) {
+                    throw Error(`No document "${uri}"`);
+                }
+                return documents[id];
+            },
+        });
+        expect(res.xml).toEqual(
+            `<module copy="doenet:applet" x0="1" name="cobweb" /><boolean extend="$cobweb.correct" />`,
+        );
+        expect(res.vfile.messages).toEqual([]);
     });
 
     it("gives every diagnostic a rule name", async () => {

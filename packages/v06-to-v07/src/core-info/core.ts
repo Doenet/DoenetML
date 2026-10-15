@@ -7,7 +7,13 @@ import init, {
     IndexResolution,
     NodeList,
 } from "lib-doenetml-worker";
-import { normalizeDocumentDast, DastRoot, toXml } from "@doenet/parser";
+import {
+    normalizeDocumentDast,
+    DastRoot,
+    expandExternalReferences,
+    toXml,
+} from "@doenet/parser";
+import { FetchExternalDoenetML } from "../doenet-uri";
 import { PublicDoenetMLCore } from "@doenet/doenetml-worker-javascript";
 import { resolvePathImmediatelyToNodeIdx } from "@doenet/debug-hooks";
 
@@ -48,7 +54,17 @@ export type ResolvePathToNodeIdx = Awaited<
     ReturnType<typeof createCoreForLookup>
 >["resolvePathToNodeIdx"];
 
-export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
+export async function createCoreForLookup({
+    dast,
+    fetchExternalDoenetML,
+}: {
+    dast: DastRoot;
+    /**
+     * Loads the documents named by `copy="doenet:..."`, so that references into what
+     * they bring in resolve as they will in the viewer.
+     */
+    fetchExternalDoenetML?: FetchExternalDoenetML;
+}) {
     // Load the WASM bundle in a way that works both in the browser and in node.
     // `init` memoizes the compiled module, so the cost here is one-time; it is the
     // per-document `PublicDoenetMLCoreRust.new()` below that must be freed (see
@@ -86,7 +102,14 @@ export async function createCoreForLookup({ dast }: { dast: DastRoot }) {
 
     let normalizedRoot;
     try {
-        dast = normalizeDocumentDast(structuredClone(dast), true);
+        let expanded = structuredClone(dast);
+        if (fetchExternalDoenetML) {
+            expanded = await expandExternalReferences(
+                expanded,
+                fetchExternalDoenetML,
+            );
+        }
+        dast = normalizeDocumentDast(expanded, true);
         rustCore.set_source(dast as DastRootInCore, toXml(dast));
         normalizedRoot = rustCore.return_normalized_dast_root();
     } catch (e) {

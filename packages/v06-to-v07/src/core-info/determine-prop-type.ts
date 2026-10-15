@@ -23,6 +23,56 @@ export function determinePropType(
 }
 
 /**
+ * A prop exists, but the components it gives have no single type — an `<answer>`'s
+ * `submittedResponses`, say — so no one element type can stand for it.
+ */
+export class VariableComponentTypeError extends Error {}
+
+/**
+ * `propName` as a `componentType` spells it. v0.6 matched prop names however they were
+ * capitalized, so `prop="numericalsolution"` found `numericalSolution`; v0.7 does not.
+ * A name that starts with an array entry's prefix, however capitalized, gets that prefix
+ * spelled as v0.7 spells it (`VERTEX2` is `vertex2`), whether or not the rest names an
+ * entry. Any other name that matches nothing is returned as it is, and `describeProp`
+ * rejects it. `describeProp` does not check what follows an array entry's prefix, so
+ * a name that only starts with one, such as a point's `xylophone` (prefix `x`), is
+ * typed as that array's entry rather than rejected.
+ */
+export function canonicalPropName(
+    componentType: string,
+    propName: string,
+): string {
+    const info = componentInfoObjects.publicStateVariableInfo[componentType];
+    if (
+        !info ||
+        propName in info.aliases ||
+        propName in info.stateVariableDescriptions
+    ) {
+        return propName;
+    }
+    const lower = propName.toLowerCase();
+    for (const name of [
+        ...Object.keys(info.stateVariableDescriptions),
+        ...Object.keys(info.aliases),
+    ]) {
+        if (name.toLowerCase() === lower) {
+            return name;
+        }
+    }
+    // An array entry, such as `vertex1`, is matched by its prefix.
+    const prefixes = Object.keys(info.arrayEntryPrefixes).sort(
+        (a, b) => b.length - a.length,
+    );
+    if (prefixes.some((prefix) => propName.startsWith(prefix))) {
+        return propName;
+    }
+    const prefix = prefixes.find((prefix) =>
+        lower.startsWith(prefix.toLowerCase()),
+    );
+    return prefix ? prefix + propName.slice(prefix.length) : propName;
+}
+
+/**
  * Like `determinePropType`, but also says whether the prop copies to several components
  * rather than one.
  *
@@ -140,7 +190,7 @@ export function describeProp(
     if (!stateVarInfo.createComponentOfType) {
         // Note: there are some prop that have variable component type.
         // This script will fail in those cases
-        throw Error(
+        throw new VariableComponentTypeError(
             `Case not implemented for prop "${propName}" a component of type ${componentType} because it has a variable component type!`,
         );
     }

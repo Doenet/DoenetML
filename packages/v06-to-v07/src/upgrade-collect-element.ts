@@ -14,7 +14,12 @@ import {
 import { VFile } from "vfile";
 import { renameAttrInPlace } from "./rename-attr-in-place";
 import { reparseAttribute } from "./reparse-attribute";
-import { determinePropType } from "./core-info/determine-prop-type";
+import {
+    canonicalPropName,
+    determinePropType,
+    isComponentType,
+    VariableComponentTypeError,
+} from "./core-info/determine-prop-type";
 import {
     AssignNamesContext,
     namespaceChainOf,
@@ -103,7 +108,7 @@ export const upgradeCollectElement: Plugin<
         //   </setup>
         //   <mathList name="points" extend="$collect_points.x" />
         // ```
-        replaceNode(tree, (node) => {
+        replaceNode(tree, (node, info) => {
             if (!isDastElement(node) || node.name !== "collect") {
                 return;
             }
@@ -115,10 +120,10 @@ export const upgradeCollectElement: Plugin<
             const propKey = Object.keys(node.attributes).find(
                 (key) => key.toLowerCase() === "prop",
             );
-            const propName = propKey
+            const authoredPropName = propKey
                 ? toXml(node.attributes[propKey].children).trim()
                 : "";
-            if (!propName) {
+            if (!authoredPropName) {
                 return;
             }
             delete node.attributes[propKey!];
@@ -132,6 +137,8 @@ export const upgradeCollectElement: Plugin<
             const componentType = toXml(
                 node.attributes["componentType"]?.children,
             ).trim();
+            // v0.6 matched prop names however they were capitalized; v0.7 does not.
+            const propName = canonicalPropName(componentType, authoredPropName);
             // The `mathList` will have the name originally given to the `collect`
             // We need a new name for the collect.
 
@@ -157,10 +164,38 @@ export const upgradeCollectElement: Plugin<
                 name: "name",
                 children: [{ type: "text", value: collectName }],
             };
-            let listType = determinePropType(componentType, propName);
+            // Some props, such as a `<choiceInput>`'s `selectedValue` and `values`, have
+            // no fixed type: `determinePropType` gives nothing for the first and throws
+            // for the second. The list the `<collect>` was written in,
+            // `<textList><collect prop="selectedValue" ... /></textList>`, says what the
+            // author expected, so that is the next best answer. A prop that does not
+            // exist is not answered that way: the author has to hear about it.
+            let listType: string | undefined;
+            let invalidProp: string | undefined;
+            try {
+                listType = determinePropType(componentType, propName);
+            } catch (e) {
+                if (!(e instanceof VariableComponentTypeError)) {
+                    invalidProp = e instanceof Error ? e.message : String(e);
+                }
+            }
+            if (!listType && invalidProp === undefined) {
+                const parent = info.parents[0];
+                const parentItemType =
+                    parent && isDastElement(parent)
+                        ? parent.name.replace(/List$/, "")
+                        : undefined;
+                if (
+                    parentItemType &&
+                    parentItemType !== parent.name &&
+                    isComponentType(parentItemType)
+                ) {
+                    listType = parentItemType;
+                }
+            }
             if (!listType) {
                 file.message(
-                    `Could not determine type for prop "${propName}" of component type "${componentType}". Using "math" as default.`,
+                    `Could not determine type for prop "${propName}" of component type "${componentType}"${invalidProp === undefined ? "" : `: ${invalidProp}`}. Using "math" as default.`,
                     {
                         place: node.position,
                         ruleId: "collect/unknown-prop-type",
