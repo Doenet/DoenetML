@@ -142,7 +142,9 @@ same raise-it-in-the-diff convention.
 
 ## Results
 
-`npm run render` writes `results/RESULTS.md` from the latest raw records
+`results/RESULTS.md` opens with a one-table comparison of the three cores
+("At a glance", kept by hand in `results/NOTES.md`). `npm run render`
+writes `results/RESULTS.md` from the latest raw records
 (Node, browser, memory, bundle) with `results/NOTES.md`, the hand-written
 reading of them, at the top. Raw records are committed with each run.
 `scripts/perf-diff.sh [base] [fixtures]` compares the cells core on a base

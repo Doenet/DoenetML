@@ -1,6 +1,6 @@
 # Results
 
-Rendered by `scripts/render-results.mjs` on 2026-10-15 at commit `5b704b77d`. CPU: Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz. Raw records: `raw/node-2026-10-15.jsonl`, `raw/browser-2026-10-15.jsonl`, `raw/bundle-2026-10-15.jsonl`, `raw/memory-*.json`.
+Rendered by `scripts/render-results.mjs` on 2026-10-15 at commit `7fee8be10`. CPU: Intel(R) Core(TM) i7-10510U CPU @ 1.80GHz. Raw records: `raw/node-2026-10-15.jsonl`, `raw/browser-2026-10-15.jsonl`, `raw/bundle-2026-10-15.jsonl`, `raw/memory-*.json`.
 
 A decision suite comparing the JS core, the Rust core and the cells core (see `PLAN.md`). A blank or "unsupported" cell is a result: that core cannot run the document or the action. "> 60 s" is the budget per measurement.
 
@@ -16,6 +16,34 @@ Product goals, not gates.
 | Memory, marginal per viewer on a page | 20 MB |
 | State storage, homework page after the script | 2 KB raw |
 | Bundle, brotli, everything a page fetches | 1 MB |
+
+## At a glance
+
+The three cores on the five measurements, from the runs of 2026-10-15 (Node figures are core only through the test adapters; browser figures are end to end through each core's viewer; the Rust core has no viewer). Full tables follow; the notes below say which cells are comparable.
+
+| | JS core | Rust core | Cells core |
+|---|---|---|---|
+| **Load**, 100 free points, Node | 1.9 s | 0.20 s | 0.09 s |
+| Load, 1,000 free points, Node | 57 s | 2.6 s | 0.16 s |
+| Load, 10,000 free points, Node | > 60 s | wasm trap | 0.65 s |
+| Load, homework page, browser, text to first render | 3.7 s | no viewer | unsupported (`<feedback>`) |
+| Load, SIR simulation | > 60 s | unsupported (math input) | 0.12 s Node, 0.42 s browser |
+| **Tick**, move one of 1,000 points, Node | 27 ms | 1.9 ms | 0.05 ms |
+| Tick, drag lag in the browser, 1,000 points | out of budget after a 43 s load | no viewer | 2.0 ms |
+| Tick, drag through a chain of 1,000 numbers (inversion), Node | 3.9 s | not comparable | 0.4 ms |
+| Tick, a keystroke read by 1,000 texts, Node | 1.1 s | 0.20 s | unsupported (literal text content) |
+| Tick, type into one of 100 answers, Node | 13 ms | unsupported (math input) | 0.5 ms |
+| **Structural tick**, change a 100-iteration repeat's count, Node / browser | 387 ms / 593 ms | unsupported (repeat) | 1.0 ms / 16.6 ms |
+| **Memory** after loading 1,000 points, Node (heap + wasm) | not measured (load > 60 s) | 368 MB | 5 MB |
+| Memory after loading chain-1000, Node | 374 MB | 308 MB | 5 MB |
+| Memory per additional viewer on a page, browser (iframes, PSS) | about 175 MB | no viewer | about 11 MB |
+| **Saved state** after the script, chain-1000, raw (host envelope) | 188 B (1.1 KB) | none | 48 B |
+| Saved state, repeat-100 | 319 B (11.4 KB) | unsupported | 46 B |
+| **Bundle**, brotli, what a page fetches | 4.4 MB eager set (13.4 MB whole dist) | 0.6 MB wasm, shipped inside the JS worker | 0.9 MB viewer build |
+| **Coverage** of the 25-fixture corpus | every fixture loads or times out; all 5 real documents run | 7 fixtures, 4 comparable: points and its two text documents | all 18 synthetic shapes and 2 of 5 real documents |
+| Components | 266 | 18 partial, no math input, repeat, answer or choice | the shapes above; gaps `<feedback>`, `<em>`, `<styleDefinition>`, text with content |
+
+Reading it in one line: the Rust core is one order of magnitude faster than the JS core where it runs and uses the same memory; the cells core is one to three further orders faster, uses a hundredth of the memory, and is the only one of the three that meets the tick and rebuild budgets, while still missing tags the real documents use.
 
 ## Notes
 
