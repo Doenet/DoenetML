@@ -605,3 +605,30 @@ The `latex` property renders the latex code associated with rendering the coordi
 
 The `constraintUsed` property renders the boolean value corresponding to whether the current location of the `<point>{:dn}` is utilizing the specified constraint - in this case, an `<attractToGrid/>{:dn}` constraint.
 
+
+
+---
+
+### Property Example: dragging
+
+
+```doenet-editor-horiz
+<p>Drag the point to see the guide lines.</p>
+<graph size="small">
+  <shortDescription>A point on the graph of x squared that shows dashed guide lines to the axes while it is dragged</shortDescription>
+  <function name="f">x^2</function>
+  <point name="P">(0,0)
+    <constrainTo>$f</constrainTo>
+  </point>
+  <lineSegment lineStyle="dashed" hide="not $P.dragging" endpoints="$P ($P.x, 0)"/>
+  <lineSegment lineStyle="dashed" hide="not $P.dragging" endpoints="$P (0, $P.y)"/>
+</graph>
+
+<p><c>dragging</c> = $P.dragging</p>
+```
+
+
+
+The `dragging` property is true while the user is dragging the `<point>{:dn}` and false otherwise. It becomes true when the point starts to move and returns to false when the point is released. It is also true while the point is being moved with the keyboard, until the move is committed by pressing Enter or moving focus away.
+
+Here it is used to show the dashed guide lines only during a drag.

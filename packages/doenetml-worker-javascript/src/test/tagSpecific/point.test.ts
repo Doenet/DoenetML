@@ -7543,4 +7543,170 @@ describe("Point tag tests @group4", async () => {
         expect(reloadedTo[0]).closeTo(movedTo[0], 1e-12);
         expect(reloadedTo[1]).closeTo(movedTo[1], 1e-12);
     });
+
+    describe("dragging state variable", () => {
+        const doenetML = `
+<graph>
+  <function name="f">x^2</function>
+  <point name="P">(0,0)<constrainTo>$f</constrainTo></point>
+  <lineSegment name="L1" hide="not $P.dragging" endpoints="$P ($P.x, 0)"/>
+  <lineSegment name="L2" hide="not $P.dragging" endpoints="$P (0, $P.y)"/>
+</graph>
+`;
+
+        async function getState(
+            core: PublicDoenetMLCore,
+            resolvePathToNodeIdx: ResolvePathToNodeIdx,
+        ) {
+            const stateVariables = await core.returnAllStateVariables(
+                false,
+                true,
+            );
+            const P = stateVariables[await resolvePathToNodeIdx("P")];
+            const L1 = stateVariables[await resolvePathToNodeIdx("L1")];
+            const L2 = stateVariables[await resolvePathToNodeIdx("L2")];
+            return {
+                dragging: P.stateValues.dragging,
+                x: P.stateValues.xs[0].evaluate_to_constant(),
+                hidden: [L1.stateValues.hidden, L2.stateValues.hidden],
+            };
+        }
+
+        async function dragStep({
+            core,
+            componentIdx,
+            x,
+        }: {
+            core: PublicDoenetMLCore;
+            componentIdx: number;
+            x: number;
+        }) {
+            await core.requestAction({
+                componentIdx,
+                actionName: "movePoint",
+                args: { x, y: 0, transient: true, skippable: true },
+            });
+        }
+
+        it("is true from the first drag step until the move is committed", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const P = await resolvePathToNodeIdx("P");
+
+            expect(await getState(core, resolvePathToNodeIdx)).toMatchObject({
+                dragging: false,
+                hidden: [true, true],
+            });
+
+            await dragStep({ core, componentIdx: P, x: 1 });
+            expect(await getState(core, resolvePathToNodeIdx)).toMatchObject({
+                dragging: true,
+                x: 1,
+                hidden: [false, false],
+            });
+
+            await dragStep({ core, componentIdx: P, x: 2 });
+            expect(await getState(core, resolvePathToNodeIdx)).toMatchObject({
+                dragging: true,
+                x: 2,
+                hidden: [false, false],
+            });
+
+            await movePoint({ componentIdx: P, x: 3, y: 9, core });
+            expect(await getState(core, resolvePathToNodeIdx)).toMatchObject({
+                dragging: false,
+                x: 3,
+                hidden: [true, true],
+            });
+        });
+
+        it("a move that is not a drag leaves it false", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const P = await resolvePathToNodeIdx("P");
+
+            await movePoint({ componentIdx: P, x: 2, y: 4, core });
+            expect(await getState(core, resolvePathToNodeIdx)).toMatchObject({
+                dragging: false,
+                x: 2,
+                hidden: [true, true],
+            });
+        });
+
+        it("a click ends a drag that never committed", async () => {
+            // A pointer that moves less than the drag threshold sends
+            // transient moves but ends as a click, with no committing move.
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML,
+            });
+            const P = await resolvePathToNodeIdx("P");
+
+            await dragStep({ core, componentIdx: P, x: 0.01 });
+            expect((await getState(core, resolvePathToNodeIdx)).dragging).eq(
+                true,
+            );
+
+            await clickPoint({ componentIdx: P, core });
+            expect(await getState(core, resolvePathToNodeIdx)).toMatchObject({
+                dragging: false,
+                hidden: [true, true],
+            });
+        });
+
+        it("dragging a copy of the point sets it on the point", async () => {
+            const { core, resolvePathToNodeIdx } = await createTestCore({
+                doenetML: `
+<graph name="g1"><point name="P">(1,2)</point></graph>
+<graph name="g2"><point name="Q" extend="$P"/></graph>
+`,
+            });
+            const P = await resolvePathToNodeIdx("P");
+            const Q = await resolvePathToNodeIdx("Q");
+
+            async function dragging() {
+                const stateVariables = await core.returnAllStateVariables(
+                    false,
+                    true,
+                );
+                return [
+                    stateVariables[P].stateValues.dragging,
+                    stateVariables[Q].stateValues.dragging,
+                ];
+            }
+
+            expect(await dragging()).eqls([false, false]);
+
+            await core.requestAction({
+                componentIdx: Q,
+                actionName: "movePoint",
+                args: { x: 5, y: 6, transient: true, skippable: true },
+            });
+            expect(await dragging()).eqls([true, true]);
+
+            await movePoint({ componentIdx: Q, x: 5, y: 6, core });
+            expect(await dragging()).eqls([false, false]);
+        });
+
+        it("is not saved, so a reload mid-drag does not come back dragging", async () => {
+            const first = await createTestCore({ doenetML });
+            const P = await first.resolvePathToNodeIdx("P");
+
+            await dragStep({ core: first.core, componentIdx: P, x: 2 });
+            expect(
+                (await getState(first.core, first.resolvePathToNodeIdx))
+                    .dragging,
+            ).eq(true);
+            await first.core.saveImmediately();
+
+            const second = await createTestCore({
+                doenetML,
+                initialState: first.scoreState.state as string,
+            });
+            expect(
+                await getState(second.core, second.resolvePathToNodeIdx),
+            ).toMatchObject({ dragging: false, hidden: [true, true] });
+        });
+    });
 });

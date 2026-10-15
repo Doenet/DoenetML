@@ -85710,6 +85710,12 @@
                     "description": "Whether to suppress the off-graph indicator when out of view."
                 },
                 {
+                    "name": "dragging",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the point is currently being dragged. It is true from the first movement of a drag until the point is released, and also while a point is being moved with the keyboard and the move has not yet been committed."
+                },
+                {
                     "name": "numDimensions",
                     "type": "number",
                     "isArray": false,
@@ -107757,6 +107763,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to suppress the off-graph indicator when out of view."
+                },
+                {
+                    "name": "dragging",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the point is currently being dragged. It is true from the first movement of a drag until the point is released, and also while a point is being moved with the keyboard and the move has not yet been committed."
                 },
                 {
                     "name": "numDimensions",
@@ -160647,6 +160659,12 @@
                     "type": "boolean",
                     "isArray": false,
                     "description": "Whether to suppress the off-graph indicator when out of view."
+                },
+                {
+                    "name": "dragging",
+                    "type": "boolean",
+                    "isArray": false,
+                    "description": "Whether the point is currently being dragged. It is true from the first movement of a drag until the point is released, and also while a point is being moved with the keyboard and the move has not yet been committed."
                 },
                 {
                     "name": "numDimensions",
