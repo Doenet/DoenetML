@@ -9,6 +9,7 @@
 import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
 import { createTestCore } from "../../doenetml-worker-javascript/src/test/utils/test-core";
 import { writeSync } from "node:fs";
+import { gzipSync } from "node:zlib";
 import { fixtureText, loadFixture } from "./fixtures.mjs";
 
 const core = process.env.DOENET_TEST_CORE || "javascript";
@@ -62,6 +63,30 @@ async function wasmBytes(api: any): Promise<number> {
     } catch {
         return 0;
     }
+}
+
+/**
+ * The session's saved state after the steps: raw and gzipped bytes. The cells
+ * core serializes its changed essential cells; the JS core reports the
+ * `coreState` string of its persistence payload, and the whole payload a
+ * host actually stores (with `coreInfo`) as `state_envelope_bytes`.
+ */
+async function savedState(api: any) {
+    const bytes = (s: string) => ({
+        state_bytes: Buffer.byteLength(s),
+        state_gzip_bytes: gzipSync(s).length,
+    });
+    if (typeof api.saveState === "function") return bytes(api.saveState());
+    if (typeof api.core.saveImmediately !== "function") return {};
+    await api.core.saveImmediately();
+    const coreState: string = api.scoreState?.state ?? "";
+    const envelope = api.lastStateReport?.payload;
+    return {
+        ...bytes(coreState),
+        state_envelope_bytes: envelope
+            ? Buffer.byteLength(JSON.stringify(envelope))
+            : null,
+    };
 }
 
 async function runStep(api: any, s: Step) {
@@ -123,7 +148,11 @@ async function main() {
     gc();
     const heapBefore = process.memoryUsage().heapUsed;
     t = now();
-    const api = await createTestCore({ doenetML: text });
+    // allowSaveState makes the JS core build its persistence payload.
+    const api = await createTestCore({
+        doenetML: text,
+        flags: { allowSaveState: true },
+    });
     record.load_ms = now() - t;
     gc();
     record.heap_bytes = process.memoryUsage().heapUsed - heapBefore;
@@ -139,6 +168,9 @@ async function main() {
             Math.min(maxRounds, 10),
         );
     }
+
+    progress("state");
+    Object.assign(record, await savedState(api));
 
     // Last: on a slow document this check costs more than the measurements,
     // so the record goes out first and again with the count if time allows.

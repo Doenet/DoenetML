@@ -62,7 +62,7 @@ mod emit;
 mod expand;
 mod structure;
 
-pub use structure::{Repeat, ScopeId, ScopeTable, Structure};
+pub use structure::{EssentialKind, Repeat, ScopeId, ScopeTable, Structure};
 
 type SlotId = u32;
 type TemplateId = usize;
@@ -189,9 +189,13 @@ impl Carryover {
             .map(|r| ((r.scope, r.node), doc.repeat_count(r)))
             .collect();
         let mut structure = std::mem::take(&mut doc.structure);
-        structure
-            .essential_values
-            .resize(structure.scopes.len(), Vec::new());
+        // Never shrink: `restore_state` may have parked values for scopes
+        // the table has not made yet.
+        if structure.essential_values.len() < structure.scopes.len() {
+            structure
+                .essential_values
+                .resize(structure.scopes.len(), Vec::new());
+        }
         for (&(scope, slot), &v) in structure
             .essential_slots
             .iter()

@@ -77,6 +77,8 @@ the Rust and cells adapters are `test-core-rust.ts` and
 | `heap_bytes` | JS heap growth across the load after a forced GC on each side. |
 | `wasm_bytes` | Wasm linear memory after the load. The JS core's figure is the Rust binding its worker holds for DAST normalization. |
 | `error_components` | Error components in the loaded document, where the core can report them (`null` otherwise). A document with errors is not a valid measurement. |
+| `state_bytes`, `state_gzip_bytes` | The session's saved state after the steps, raw and gzipped. The cells core's is `save_state()` JSON: one `[scope, slot, kind, value]` entry per essential cell that differs from its default (`cells-core/src/document/state.rs`). The JS core's is the `coreState` string of its persistence payload. |
+| `state_envelope_bytes` | JS core only: the whole persistence payload a host stores, `coreInfo` included. |
 | `steps`, `structural` | Per step label, `n` samples and `p50_ms`, `p90_ms`, `max_ms`. Steps cycle for 20 rounds or 20 s, structural steps for 10 rounds. |
 
 Each run is one vite-node process, which costs about ten seconds of

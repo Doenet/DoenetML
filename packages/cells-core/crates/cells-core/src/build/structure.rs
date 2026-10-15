@@ -26,6 +26,17 @@ pub struct Repeat {
     pub iterations: u32,
 }
 
+/// What an essential cell's `f64` means: a number, a string id into the
+/// document's string table (a `<textInput>`'s value), or an expression
+/// handle in the symbolic engine (a `<mathInput>`'s `expr`, an answer's
+/// submitted response).
+#[derive(Debug, Clone, Copy, PartialEq, Eq)]
+pub enum EssentialKind {
+    Number,
+    Text,
+    Math,
+}
+
 /// Every scope a build has made: (parent scope, repeat or choice element,
 /// 1-based position) per scope, indexed by `ScopeId`; entry 0 is the
 /// document. Ids are stable across rebuilds: the table only grows.
@@ -86,6 +97,12 @@ pub struct Structure {
     /// template slot). The template slot identifies the element and prop
     /// within the scope's template. See `CONTEXT.md`, essential key.
     pub essential_slots: Vec<(ScopeId, u32)>,
+    /// Per essential cell, in cell order: what the value is, so saved state
+    /// can carry text and expressions as text (`Document::save_state`).
+    pub essential_kinds: Vec<EssentialKind>,
+    /// Per essential cell, in cell order: the value the build gives it when
+    /// nothing was carried over; saved state holds only the cells that differ.
+    pub essential_defaults: Vec<f64>,
     /// `essential_values[scope][template slot]`: the last value of every essential
     /// cell that has ever existed, so an iteration that disappears and
     /// reappears returns as it was left. Rows fill lazily.

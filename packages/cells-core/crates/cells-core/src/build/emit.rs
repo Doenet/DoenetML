@@ -3,6 +3,8 @@
 //! structural depth.
 
 use super::*;
+use crate::build::EssentialKind;
+use crate::components::ComponentType;
 
 impl<'c, 'a> Builder<'c, 'a> {
     pub(in crate::build) fn finish(mut self) -> Result<BuildOutput> {
@@ -48,6 +50,10 @@ impl<'c, 'a> Builder<'c, 'a> {
         let mut cells = Vec::with_capacity(n);
         let mut cell_def_slot: Vec<SlotId> = Vec::with_capacity(n);
         let mut essential_slots: Vec<(ScopeId, u32)> = Vec::new();
+        let mut essential_kinds: Vec<EssentialKind> = Vec::new();
+        let mut essential_defaults: Vec<f64> = Vec::new();
+        let math_slot_set: std::collections::HashSet<SlotId> =
+            self.math_slots.iter().copied().collect();
         let mut fixed_defs = Vec::new();
         let mut derived_defs = Vec::new();
         let mut outputs = Vec::new();
@@ -70,6 +76,16 @@ impl<'c, 'a> Builder<'c, 'a> {
                     cells.push(value);
                     cell_def_slot.push(s as SlotId);
                     essential_slots.push((scope, tslot));
+                    essential_kinds.push(if math_slot_set.contains(&(s as SlotId)) {
+                        EssentialKind::Math
+                    } else if self.components.component_type[self.slot_comp[s] as usize]
+                        == ComponentType::TextInput
+                    {
+                        EssentialKind::Text
+                    } else {
+                        EssentialKind::Number
+                    });
+                    essential_defaults.push(*v);
                 }
                 Source::Fixed(_) => fixed_defs.push(s),
                 Source::Op(..) => derived_defs.push(s),
@@ -111,7 +127,12 @@ impl<'c, 'a> Builder<'c, 'a> {
             cell_def_slot[(head_cell + k as CellIdx) as usize] = s as SlotId;
         }
         let slot_to_cell: Vec<CellIdx> = roots.iter().map(|&r| slot_cell[r as usize]).collect();
-        self.seed_cells(&mut cells, &slot_to_cell, n_essential + n_fixed)?;
+        self.seed_cells(
+            &mut cells,
+            &mut essential_defaults,
+            &slot_to_cell,
+            n_essential + n_fixed,
+        )?;
         lap("number cells");
 
         let mut instrs = Vec::with_capacity(derived_defs.len());
@@ -211,11 +232,15 @@ impl<'c, 'a> Builder<'c, 'a> {
 
         // The value store grows with the scope table; rows fill lazily.
         let mut values = self.carryover.structure.essential_values.clone();
-        values.resize(self.scopes.len(), Vec::new());
+        if values.len() < self.scopes.len() {
+            values.resize(self.scopes.len(), Vec::new());
+        }
 
         let structure = Structure {
             scopes: self.scopes,
             essential_slots,
+            essential_kinds,
+            essential_defaults,
             essential_values: values,
             structural_depth: depths.iter().copied().max().unwrap_or(0),
             repeat_depths: depths,
@@ -326,6 +351,7 @@ impl<'c, 'a> Builder<'c, 'a> {
     fn seed_cells(
         &mut self,
         cells: &mut [f64],
+        defaults: &mut [f64],
         slot_to_cell: &[CellIdx],
         n_known: usize,
     ) -> Result<()> {
@@ -343,9 +369,6 @@ impl<'c, 'a> Builder<'c, 'a> {
                 .get(scope as usize)
                 .and_then(|row| row.get(tslot as usize).copied().flatten())
                 .is_some();
-            if carried {
-                continue;
-            }
             let src = slot_to_cell[from as usize];
             if src as usize >= n_known {
                 return Err(Error::Unsupported(format!(
@@ -354,11 +377,17 @@ impl<'c, 'a> Builder<'c, 'a> {
                 )));
             }
             let v = cells[src as usize];
-            cells[slot_to_cell[s as usize] as usize] = if math_cells.contains(&src) || v.is_nan() {
+            let seed = if math_cells.contains(&src) || v.is_nan() {
                 v
             } else {
                 self.engine.import(&Tree::Num(v)) as f64
             };
+            // The seed is the cell's default whether or not a carried value
+            // replaces it (`Structure::essential_defaults`).
+            defaults[slot_to_cell[s as usize] as usize] = seed;
+            if !carried {
+                cells[slot_to_cell[s as usize] as usize] = seed;
+            }
         }
         Ok(())
     }

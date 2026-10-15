@@ -52,6 +52,24 @@ impl Core {
         })
     }
 
+    /// Load with a seed and saved state (`save_state`'s JSON): the document
+    /// comes back where the session left it.
+    pub fn with_seed_and_state(dast: &[u8], seed: f64, state: &str) -> Result<Core, JsError> {
+        let mut core = Core::with_seed(dast, seed)?;
+        core.doc
+            .restore_state(state)
+            .map_err(|e| JsError::new(&e.to_string()))?;
+        // The restore may have rebuilt; the evaluator's tables follow the program.
+        core.evaluator = Box::new(DirtyClosure::new(&core.doc.program, core.doc.cells.len()));
+        Ok(core)
+    }
+
+    /// The session's state as JSON: every essential cell that differs from
+    /// its default, by essential key (`Document::save_state`).
+    pub fn save_state(&self) -> String {
+        self.doc.save_state()
+    }
+
     /// Parse what a student typed into the engine: the value to request on
     /// a mathInput's `expr` cell.
     pub fn parse_math(&self, text: &str) -> Result<f64, JsError> {

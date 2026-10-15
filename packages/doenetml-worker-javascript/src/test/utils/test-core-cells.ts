@@ -44,7 +44,6 @@ const UNSUPPORTED_OPTIONS = [
     "documentLocale",
     "localeResources",
     "styleOverrides",
-    "initialState",
 ] as const;
 
 type Get = (prop: string) => number;
@@ -323,12 +322,15 @@ export async function createTestCoreCells({
     requestedVariantIndex = 1,
     externalDoenetMLs = {},
     initializeCounters = {},
+    initialState,
     ...rest
 }: {
     doenetML: string;
     requestedVariantIndex?: number;
     externalDoenetMLs?: Record<string, string>;
     initializeCounters?: Record<string, number>;
+    /** `saveState()`'s JSON from an earlier session of this document. */
+    initialState?: string;
     [key: string]: unknown;
 }) {
     for (const option of UNSUPPORTED_OPTIONS) {
@@ -357,10 +359,15 @@ export async function createTestCoreCells({
     );
     let core_: any;
     try {
-        core_ = mod.Core.with_seed(
-            new TextEncoder().encode(JSON.stringify(dast)),
-            requestedVariantIndex,
-        );
+        const bytes = new TextEncoder().encode(JSON.stringify(dast));
+        core_ =
+            initialState === undefined
+                ? mod.Core.with_seed(bytes, requestedVariantIndex)
+                : mod.Core.with_seed_and_state(
+                      bytes,
+                      requestedVariantIndex,
+                      initialState,
+                  );
     } catch (e) {
         throw new CellsCoreGap(`load: ${String(e)}`);
     }
@@ -747,6 +754,8 @@ export async function createTestCoreCells({
         resolvePathToNodeIdx,
         /** Bytes of wasm linear memory; the benchmark's memory column. */
         wasmMemoryBytes: () => wasm.memory.buffer.byteLength as number,
+        /** The session's state as JSON, for `initialState` of a later load. */
+        saveState: () => cells.save_state() as string,
         scoreState: unreported("scoreState"),
         pendingReports: unreported("pendingReports"),
         lastStateReport: unreported("lastStateReport"),

@@ -25,6 +25,7 @@ function cell(r) {
     const parts = [`load ${ms(r.load_ms)}`, step ? `tick ${ms(step.p50_ms)}` : ""];
     if (r.structural?.[0]) parts.push(`rebuild ${ms(r.structural[0].p50_ms)}`);
     parts.push(`mem ${mb(r.heap_bytes + r.wasm_bytes)}MB`);
+    if (r.state_bytes != null) parts.push(`state ${r.state_bytes}B`);
     if (r.timed_out_at) parts.push("(errors unchecked)");
     return parts.filter(Boolean).join(", ");
 }
