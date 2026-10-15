@@ -18,9 +18,7 @@
         "test": "wireit",
         "lint": "cargo fmt --all -- --check && cargo clippy --workspace --all-targets -- -D warnings",
         "fixtures": "wireit",
-        "bench": "cargo bench -p cells-bench",
         "stats": "cargo run --release -p cells-bench --bin stats",
-        "perf-diff": "scripts/perf-diff.sh",
         "golden-diff": "wireit",
         "parse": "node scripts/parse-dast.mjs"
     },

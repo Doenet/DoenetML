@@ -29,15 +29,6 @@ pub fn fixture_bytes(spec: &str) -> Vec<u8> {
     fixture_binary(spec).unwrap_or_else(|| fixture_json(spec).into_bytes())
 }
 
-/// The median of timings; NaN when there are none.
-pub fn median(mut xs: Vec<f64>) -> f64 {
-    if xs.is_empty() {
-        return f64::NAN;
-    }
-    xs.sort_by(|a, b| a.partial_cmp(b).unwrap());
-    xs[xs.len() / 2]
-}
-
 /// (spec, DAST JSON) for every fixture, sorted by spec name. Set
 /// `CELLS_FIXTURES` to a comma-separated list of specs to restrict the set.
 pub fn fixtures() -> Vec<(String, String)> {
@@ -76,41 +67,4 @@ pub fn spec_key(spec: &str) -> (String, u64, u64) {
         a.parse().unwrap_or(0),
         b.parse().unwrap_or(0),
     )
-}
-
-/// The cell a drag request would target in each fixture shape: the end of
-/// the chain, the fan-out root, or the first point's x; None for shapes
-/// with nothing to drag.
-pub fn drag_target(doc: &cells_core::Document, spec: &str) -> Option<cells_core::CellIdx> {
-    let shape = spec.split('-').next().unwrap();
-    Some(match shape {
-        "chain" | "intchain" => doc.cell("p", "x").unwrap(),
-        "hidden" => doc.cell("b", "value").unwrap(),
-        "sliderchain" => doc.cell("s", "value").unwrap(),
-        "sliderstack" => doc.cell("p", "x").unwrap(),
-        // First iteration's free point, through the collect's copy.
-        "repeat" => doc.cell("q", "x").unwrap(),
-        // The last iterate's point, so the drag inverts the whole lag chain.
-        "recur" => {
-            let n = doc.value("n", "value").unwrap() as usize;
-            let c = doc.resolve_path(&format!("r[{n}].p")).unwrap();
-            doc.prop_cells(c, "x").unwrap()[0]
-        }
-        "fanout" => doc.cell("n", "value").unwrap(),
-        // The first circle's center: a fan-out inverse onto its three points.
-        "circles3" => doc.cell("k0", "cx").unwrap(),
-        "aliases" => doc.cell("p", "x").unwrap(),
-        "grid" => doc.cell("p0", "x").unwrap(),
-        // A vertex of the first polygon: snapping against the group.
-        "sticky" => doc.cell("sg.p0", "x1").unwrap(),
-        "stickyfree" => doc.cell("p0", "x1").unwrap(),
-        // The shared coefficient: every curve resamples.
-        "curves" => doc.cell("a", "value").unwrap(),
-        // The evaluation point the chain's evaluates read.
-        "symchain" => doc.cell("t", "value").unwrap(),
-        // The SIR simulation's initial infectives: every iterate follows.
-        "sir" => doc.cell("I0", "value").unwrap(),
-        // Shapes with nothing to drag (load-time choices, answers) have no p0.
-        _ => return doc.cell("p0", "x"),
-    })
 }

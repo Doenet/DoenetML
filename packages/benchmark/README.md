@@ -139,6 +139,14 @@ In CI, `packages/standalone/bundle-budgets.json` now carries a
 and the single-file variant, enforced by the existing size check with the
 same raise-it-in-the-diff convention.
 
+## Results
+
+`npm run render` writes `results/RESULTS.md` from the latest raw records
+(Node, browser, memory, bundle) with `results/NOTES.md`, the hand-written
+reading of them, at the top. Raw records are committed with each run.
+`scripts/perf-diff.sh [base] [fixtures]` compares the cells core on a base
+commit with the working tree through the Node driver, for refactors.
+
 ## Reference budgets
 
 | Measurement | Budget |

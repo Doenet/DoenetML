@@ -9,10 +9,8 @@ read straight from wasm memory (ADR 0001).
 the wire format, `?eval=full|dirty-closure` the evaluator. The document
 box accepts DoenetML and parses it in the browser.
 
-`npm run e2e` is the headless drag measurement (`e2e/perf.spec.ts`;
-`CELLS_E2E_FIXTURES`, `CELLS_E2E_EVALS`, `CELLS_E2E_FORMATS` restrict it),
-and `npm run sir-perf` times the SIR document against a running
-`npm run preview`. Both write to the repository's `results/raw/`.
+The browser measurements are in `packages/benchmark` (`npm run browser`
+there), which drives this viewer through its `window.__cells` hook.
 
 `src/renderers/jsxgraph/doenet.ts` and the CSS in `index.html` are copied
 from `packages/doenetml`'s renderers, with the upstream files named in their

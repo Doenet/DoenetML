@@ -7,8 +7,6 @@
         "dev": "vite",
         "build": "vite build",
         "preview": "vite preview --port 4173",
-        "e2e": "playwright test",
-        "sir-perf": "node e2e/sir-perf.mjs",
         "typecheck": "tsc --noEmit -p ."
     },
     "dependencies": {
@@ -18,7 +16,6 @@
         "react-dom": "^19.1.0"
     },
     "devDependencies": {
-        "@playwright/test": "^1.55.0",
         "@types/node": "^26.6.3",
         "@types/react": "^19.1.0",
         "@types/react-dom": "^19.1.0",

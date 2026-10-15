@@ -12,7 +12,9 @@
         "test": "echo \"No tests\"",
         "node": "node src/run.mjs",
         "bundle": "node src/bundle.mjs",
-        "browser": "playwright test -c browser/playwright.config.ts"
+        "browser": "playwright test -c browser/playwright.config.ts",
+        "render": "node scripts/render-results.mjs",
+        "perf-diff": "scripts/perf-diff.sh"
     },
     "devDependencies": {
         "@playwright/test": "^1.61.1"

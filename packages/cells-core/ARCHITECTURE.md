@@ -172,11 +172,10 @@ copied into `jsxgraph/doenet.ts`.
 
 - `crates/cells-wasm`: the browser binding.
 - `crates/cells-docgen`: the synthetic DoenetML generator behind the
-  fixtures and benchmarks.
-- `crates/cells-bench`: criterion benches over the generated fixtures, the
-  `stats` binary, and three examples: `golden` dumps behavior for
-  `scripts/golden-diff.sh`, `regress` times for `scripts/perf-diff.sh`, and
-  `sir_perf` times the one hand-written document.
+  fixtures.
+- `crates/cells-bench`: fixture helpers, the `stats` binary, and the
+  `golden` example that dumps behavior for `scripts/golden-diff.sh`.
+  Performance is measured across cores by `packages/benchmark`.
 
 ## Checking a change
 
@@ -185,5 +184,5 @@ scheduled program against `testing/reference.rs`, a naive recursive
 evaluator that does not use the schedule.
 `scripts/golden-diff.sh [base]` compares every component's props, after load
 and after a fixed script of requests, against a base commit, and
-`scripts/perf-diff.sh [base]` compares speed. A refactor should leave the
-golden diff identical.
+`packages/benchmark/scripts/perf-diff.sh [base]` compares speed. A refactor
+should leave the golden diff identical.
