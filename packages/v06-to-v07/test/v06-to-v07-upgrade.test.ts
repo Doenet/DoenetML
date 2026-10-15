@@ -1044,6 +1044,20 @@ describe("v06 to v07 update", () => {
         ]);
     });
 
+    it("keeps a round's conversions when the next round's document does not load", async () => {
+        // Converting the copy of `b` inside `a` closes the loop `a` -> `b` -> `a`, so the
+        // second round cannot load the document. The first round's conversion stands,
+        // and the copy it could not resolve is reported as unresolved.
+        source = `<math name="a">1+<copy source="b" /></math><math name="b">2+$a</math><copy source="a" />`;
+        const res = await updateSyntaxFromV06toV07(source);
+        expect(res.xml).toEqual(
+            `<math name="a">1+<math extend="$b" /></math><math name="b">2+$a</math><copy source="a" />`,
+        );
+        expect(res.vfile.messages.map((m) => m.ruleId)).toEqual([
+            "copy/unresolved-referent",
+        ]);
+    });
+
     it("leaves slashes alone in a source attribute that is a URL", async () => {
         // `source` names a component on `<copy>`/`<collect>`/`<extract>`, but it is a URL
         // on `<image>` and `<video>`, where the slashes are path separators.

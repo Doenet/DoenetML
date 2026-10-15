@@ -31,7 +31,10 @@ export class VariableComponentTypeError extends Error {}
 /**
  * `propName` as a `componentType` spells it. v0.6 matched prop names however they were
  * capitalized, so `prop="numericalsolution"` found `numericalSolution`; v0.7 does not.
- * A name that matches nothing is returned as it is, for `describeProp` to reject.
+ * A name that starts with an array entry's prefix, however capitalized, gets that prefix
+ * spelled as v0.7 spells it (`VERTEX2` is `vertex2`), whether or not the rest names an
+ * entry. Any other name that matches nothing is returned as it is. Either way,
+ * `describeProp` rejects one that names no prop.
  */
 export function canonicalPropName(
     componentType: string,

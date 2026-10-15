@@ -125,8 +125,10 @@ async function resolveAllCopyTags(
             }
         } catch (e) {
             if (round > 0) {
-                // The previous round's document loaded; this one should too, but if it
-                // does not, what that round could not resolve is still the answer.
+                // The previous round's document loaded, but this round's conversions can
+                // close a loop the inert `<copy>` tags held open: `<math extend="$b" />`
+                // in `a` while `b` holds `$a`. What that round could not resolve is
+                // still the answer.
                 break;
             }
             // Resolving `<copy>` means loading the document for real, which fails on a
@@ -551,10 +553,13 @@ function onlySaysWhatItCopies(node: DastElement, consumedKeys: string[]) {
  * element with that name inside it, that element. Its tag is its component type. The
  * parts used are not props; the rest may be.
  *
- * Only an unindexed path of legal names to a non-composite element is answered, and
- * only when every name is unique where it is looked for: anything else could be a different component
- * from the one v0.7 would resolve. A name inside a repeat is not looked for from outside
- * it, where each iteration's copy of it needs an index to be found.
+ * Only a path with no index anywhere and only legal names, whose first name is that of
+ * exactly one element, to a non-composite element, is answered: anything else could be
+ * a different component from the one v0.7 would resolve. A further name that is not
+ * that of exactly one element inside is left, with the rest of the path, to be read as
+ * props, which `describeProp` rejects if they are not. A name inside a repeat is not
+ * looked for from outside it, where each iteration's copy of it needs an index to be
+ * found.
  */
 function findNamedElement(
     tree: DastRoot,

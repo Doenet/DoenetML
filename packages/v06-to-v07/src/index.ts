@@ -46,10 +46,12 @@ export type Options = {
     doNotUpgradeAttributeSyntax?: boolean;
     /**
      * How the converted document's host will load other documents, given a
-     * `doenet:<id>` URI; it should resolve to that document's v0.7 DoenetML. With it,
-     * a `<copy uri="doenet:...">` becomes an element of the type of the document's root
-     * element, and references into what it loads can be typed. Without it, a
-     * `<copy uri>` that passes parameters is assumed to load a `<module>`.
+     * `doenet:<id>` URI; it should resolve to that document's v0.7 DoenetML (see
+     * {@link FetchExternalDoenetML}). When it loads the document a
+     * `<copy uri="doenet:...">` names, the copy becomes an element of the type of that
+     * document's root element, and references into what it loads can be typed. Without
+     * it, or when the document cannot be loaded, a `<copy uri>` that passes parameters
+     * is assumed to load a `<module>`.
      */
     fetchExternalDoenetML?: FetchExternalDoenetML;
 };

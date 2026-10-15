@@ -36,21 +36,25 @@ import {
  * the host's `fetchExternalDoenetML` (see `expandExternalReferences` in `@doenet/parser`).
  *
  * The v0.7 mechanism requires the element to be the *same component type* as the single
- * top-level element of the fetched document. When the v0.6 `<copy uri>` passes extra
- * attributes, they are the `<customAttribute>`s of a `<module>` — that is the only thing
- * v0.6 let you parameterize this way — so such a copy becomes a `<module>`:
+ * top-level element of the fetched document. Given a `fetchExternalDoenetML`, the
+ * document is loaded and its root element says the type. Otherwise, when the v0.6
+ * `<copy uri>` passes extra attributes, they are the `<customAttribute>`s of a `<module>`
+ * — that is the only thing v0.6 let you parameterize this way — so such a copy becomes
+ * a `<module>`:
  *
  * ```xml
- *   <copy uri="doenet:cid=bafkre..." vmin="-1" var="u" assignNames="a" />
+ *   <copy uri="doenet:activityId=abc&amp;cid=bafkre..." vmin="-1" var="u" assignNames="a" />
  * ```
  * becomes
  * ```xml
- *   <module copy="doenet:cid=bafkre..." vmin="-1" var="u" name="a" />
+ *   <module copy="doenet:abc" vmin="-1" var="u" name="a" />
  * ```
  *
- * Two things this cannot do on its own, both of which are reported: the v0.6 identifier in
- * the URI (`cid=`/`activityId=`/`doenetId=`) is not a v0.7 content id, and a `<copy uri>`
- * that passes no attributes gives no clue what component type its target is.
+ * The URI is rewritten to `doenet:<id>` by `upgradeDoenetUri`, assuming the id is the
+ * document's doenet.org id. What this cannot do, and reports: a URI with no such id (a
+ * bare `cid`, a `pageId`, a legacy id) is kept as written; a `<copy uri>` that passes no
+ * attributes and whose document was not loaded gives no clue what component type its
+ * target is; and a loaded document that is not a single component cannot be copied.
  */
 export const upgradeCopyElements: Plugin<
     [AssignNamesContext, FetchExternalDoenetML | undefined],

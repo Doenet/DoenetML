@@ -4,7 +4,12 @@ import { DastAttribute } from "@doenet/parser";
  * The same contract as the `fetchExternalDoenetML` a host gives the viewer: given the
  * `doenet:<id>` URI of a `copy` or `extend` attribute, resolve to that document's
  * DoenetML — its v0.7 DoenetML, since that is what the converted document will be
- * served.
+ * served — or reject.
+ *
+ * Like the viewer, the converter passes it any `copy`/`extend` value starting with
+ * `doenet:`, so it is also given the v0.6 URIs the converter could not rewrite, such as
+ * `doenet:cid=...`, as `toXml` prints them (`&` as `&amp;`). Rejecting is the answer
+ * for any it cannot resolve.
  */
 export type FetchExternalDoenetML = (uri: string) => Promise<string>;
 
