@@ -34,8 +34,21 @@ operator directly. A `<math>` tuple of three or more entries is a tuple
 (`$t[2]`); a function of several variables or with a tuple value is only
 iterated. `fixtures/sir.doenet` is a document using most of these.
 
-Scripts: `npm test` (builds `@doenet/parser`, then `cargo test --workspace`;
-needs `node`), `npm run lint` (fmt and clippy, warnings denied),
-`npm run fixtures`, `npm run golden-diff -- [rev]`. Speed is measured by
-`packages/benchmark` (its `scripts/perf-diff.sh` compares a base commit
-with the working tree).
+## Running locally
+
+- `npm test`: builds `@doenet/parser`, then `cargo test --workspace`
+  (needs `node`). The tests in `crates/cells-core/tests/` load DoenetML
+  snippets with `testing::test_utils::load` and read cells by component
+  name and prop; copy one to try a document without the browser.
+- `npm run build`: compiles the core to wasm in `pkg/`, which
+  `packages/cells-viewer` serves in the browser (`npm run dev` there; see
+  its README). Rebuild after changing Rust.
+- `npm run lint`: fmt and clippy, warnings denied.
+- `npm run fixtures`, `npm run golden-diff -- [rev]`: the generated
+  documents and the refactoring guard.
+- `npm run parity:cells` in `packages/doenetml-worker-javascript` runs the
+  JavaScript core's test suite against this core and writes the gap list to
+  `CELLS_CORE_PARITY.md` there.
+
+Speed is measured by `packages/benchmark` (its `scripts/perf-diff.sh`
+compares a base commit with the working tree).
