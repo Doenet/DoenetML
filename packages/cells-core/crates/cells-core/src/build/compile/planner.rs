@@ -36,6 +36,7 @@ impl<'a> Compiler<'a> {
             K::Document => Props,
             K::Graph => Props,
             K::P => Props,
+            K::Hint => Props,
             K::Setup => Props,
             K::Group => Props,
             K::StickyGroup => Props,
@@ -68,6 +69,8 @@ impl<'a> Compiler<'a> {
             K::NumberInput => Props,
             K::BooleanInput => Props,
             K::MathInput => PropsThen(Self::plan_math_input),
+            K::ChoiceInput => PropsThen(Self::plan_choice_input),
+            K::Choice => Props,
             K::TextInput => Whole(Self::plan_text_input_elem),
             K::Slider => Props,
             K::UpdateValue => Props,
@@ -95,6 +98,7 @@ impl<'a> Compiler<'a> {
             K::ConditionalContent => Whole(Self::plan_choice_elem),
             K::Case => Props,
             K::Select => Whole(Self::plan_choice_elem),
+            K::SelectFromSequence => PropsThen(Self::plan_select_from_sequence),
         }
     }
 

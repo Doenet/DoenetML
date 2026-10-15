@@ -20,8 +20,10 @@ Tags the core understands: `document`, `graph`, `point`, `number`,
 `numberInput`, `booleanInput`, `slider` (numeric mode), `math`, `evaluate`,
 `repeatForSequence`, `collect`, `line`, `lineSegment`, `circle`, `polygon`
 (and `triangle`), `pointList`, `p`, `setup`, `stickyGroup`, `mathInput`,
-`function`, `derivative`, `answer`, `conditionalContent` (`case`, `else`),
-`select` (`option`), `group` (and `label`), literal `text`, the sections
+`function`, `derivative`, `answer` (math, `type="text"` with a `textInput`,
+or a `choiceInput` of `choice`s), `conditionalContent` (`case`, `else`) and
+`feedback`, `select` (`option`), `selectFromSequence` (literal bounds, one
+pick), `hint`, `group` (and `label`), literal `text`, the sections
 (`section`, `subsection`, `subsubsection`, `problem`, `exercise`, `example`),
 `functionIterates`, `repeat` (over a function's iterates), `clampNumber`,
 `polyline`, `triggerSet` and `updateValue`, the text and layout containers

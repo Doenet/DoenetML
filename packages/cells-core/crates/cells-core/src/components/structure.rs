@@ -69,9 +69,12 @@ const COLLECT_PROPS: &[PropDef] = &props([attr("count", 0.0)]);
 
 /// `<conditionalContent>`, a reactive choice (ADR 0009). Its `choice` cell
 /// is the 1-based position of the first case whose condition holds, or 0.
-/// Its children are `Case` components.
-pub(super) const CONDITIONAL_CONTENT: ComponentTypeInfo =
-    info(&["conditionalContent"], CONDITIONAL_CONTENT_PROPS);
+/// Its children are `Case` components. `<feedback condition>` is the same
+/// thing with one case: content shown while its condition holds.
+pub(super) const CONDITIONAL_CONTENT: ComponentTypeInfo = info(
+    &["conditionalContent", "feedback"],
+    CONDITIONAL_CONTENT_PROPS,
+);
 
 // `hide` hides what the choice shows, not copies of its names.
 const CONDITIONAL_CONTENT_PROPS: &[PropDef] = &props([planned("choice"), planned("hide")]);
@@ -91,6 +94,21 @@ const CASE_PROPS: &[PropDef] = &props([planned("active")]);
 pub mod case {
     use super::*;
     pub const ACTIVE: usize = at(CASE_PROPS, "active");
+}
+
+/// `<selectFromSequence from to step>`: one number of the sequence, drawn
+/// at load from the document seed (ADR 0009). The attributes must be
+/// literals; `numToSelect` other than 1 is not supported.
+pub(super) const SELECT_FROM_SEQUENCE: ComponentTypeInfo =
+    info(&["selectFromSequence"], SELECT_FROM_SEQUENCE_PROPS)
+        .copyable()
+        .default_prop("value");
+
+const SELECT_FROM_SEQUENCE_PROPS: &[PropDef] = &props([planned("value")]);
+
+pub mod select_from_sequence {
+    use super::*;
+    pub const VALUE: usize = at(SELECT_FROM_SEQUENCE_PROPS, "value");
 }
 
 /// `<select>`, a load-time choice: its children are the content of the

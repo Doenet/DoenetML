@@ -19,6 +19,32 @@ pub(super) const BOOLEAN_INPUT: ComponentTypeInfo = info(&["booleanInput"], BOOL
 
 const BOOLEAN_INPUT_PROPS: &[PropDef] = &props([attr("value", 0.0).bind("bindValueTo")]);
 
+/// `<choiceInput>`: `selectedIndex` is the 1-based position of the chosen
+/// `<choice>` child, 0 for none; it is the input's own state. Choices are
+/// shown in document order (`shuffleOrder` is not modelled);
+/// `selectMultiple` is refused.
+pub(super) const CHOICE_INPUT: ComponentTypeInfo = info(&["choiceInput"], CHOICE_INPUT_PROPS)
+    .copyable()
+    .default_prop("selectedIndex");
+
+const CHOICE_INPUT_PROPS: &[PropDef] = &props([attr("selectedIndex", 0.0)]);
+
+pub mod choice_input {
+    use super::*;
+    pub const SELECTED_INDEX: usize = at(CHOICE_INPUT_PROPS, "selectedIndex");
+}
+
+/// `<choice credit="1">text</choice>` inside a `<choiceInput>`: a rendered
+/// container whose `credit` is what choosing it earns.
+pub(super) const CHOICE: ComponentTypeInfo = info(&["choice"], CHOICE_PROPS).container();
+
+const CHOICE_PROPS: &[PropDef] = &props([attr("credit", 0.0)]);
+
+pub mod choice {
+    use super::*;
+    pub const CREDIT: usize = at(CHOICE_PROPS, "credit");
+}
+
 /// `<mathInput>`: bound to another cell by a child reference or
 /// `bindValueTo`, it is a numeric input (`expr` NaN). Unbound, its `expr`
 /// is an essential math cell (typing writes a parsed handle) and `value`

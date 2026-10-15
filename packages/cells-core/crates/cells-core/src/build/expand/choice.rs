@@ -85,14 +85,7 @@ impl<'c, 'a> Builder<'c, 'a> {
                 def.num_to_select
             )));
         }
-        let mut h = splitmix(self.carryover.structure.seed ^ 0x5eed_5e1e_c7ed_0001);
-        h = splitmix(h ^ node as u64);
-        let mut s = scope;
-        while s != 0 {
-            let (parent, n, k) = self.scopes[s];
-            h = splitmix(h ^ ((n as u64) << 32 | k as u64));
-            s = parent;
-        }
+        let mut h = self.seeded_stream(scope, node);
         let mut weights = def.weights.clone();
         let mut picks = Vec::with_capacity(def.num_to_select as usize);
         for _ in 0..def.num_to_select {
@@ -204,7 +197,24 @@ impl<'c, 'a> Builder<'c, 'a> {
     }
 }
 
-fn splitmix(x: u64) -> u64 {
+impl<'c, 'a> Builder<'c, 'a> {
+    /// The start of a load-time choice's stream: the document seed mixed
+    /// with the element and the iteration chain it sits in, so it draws the
+    /// same way in every build.
+    pub(super) fn seeded_stream(&self, scope: ScopeId, node: NodeId) -> u64 {
+        let mut h = splitmix(self.carryover.structure.seed ^ 0x5eed_5e1e_c7ed_0001);
+        h = splitmix(h ^ node as u64);
+        let mut s = scope;
+        while s != 0 {
+            let (parent, n, k) = self.scopes[s];
+            h = splitmix(h ^ ((n as u64) << 32 | k as u64));
+            s = parent;
+        }
+        h
+    }
+}
+
+pub(super) fn splitmix(x: u64) -> u64 {
     let mut z = x.wrapping_add(0x9e37_79b9_7f4a_7c15);
     z = (z ^ (z >> 30)).wrapping_mul(0xbf58_476d_1ce4_e5b9);
     z = (z ^ (z >> 27)).wrapping_mul(0x94d0_49bb_1331_11eb);

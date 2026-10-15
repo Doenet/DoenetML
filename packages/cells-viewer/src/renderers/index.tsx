@@ -10,6 +10,7 @@ import { BooleanView } from "./Boolean";
 import { AnswerView } from "./Answer";
 import { MathView } from "./Math";
 import { CaseView, ChoiceView, SectionView, TextView } from "./Choice";
+import { ChoiceInputView, HintView } from "./Hint";
 import { JsxGraph } from "./jsxgraph/Board";
 import {
     JxCircle,
@@ -137,6 +138,16 @@ export function Component({ idx, inGraph }: { idx: number; inGraph: boolean }) {
             return <CaseView idx={idx} inGraph={inGraph} />;
         case "section":
             return <SectionView idx={idx} inGraph={inGraph} />;
+        case "hint":
+            return <HintView idx={idx} />;
+        case "choiceInput":
+            return <ChoiceInputView idx={idx} />;
+        // Rendered by its choiceInput, beside its radio button.
+        case "choice":
+            return null;
+        // A load-time pick has no view; its value shows where it is used.
+        case "selectFromSequence":
+            return null;
         case "setup":
             return null;
         case "evaluate":

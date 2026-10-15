@@ -203,4 +203,7 @@ document avoids math inputs; a `points` shape was added as the one
 fixture every core runs. Follow-ups: the delta the cells
 core adds to standalone once wired in; state for iterations removed before
 a save; a `mod` function in cells math cells so the memory benchmark's
-repeat document loads.
+repeat document loads; the saved-state kind of a text answer's submitted
+cell (a string id saved as a number); `updateSelectedIndices` in the cells
+test adapter for choice inputs; `<em>` and `<styleDefinition>` for the
+other two real documents.

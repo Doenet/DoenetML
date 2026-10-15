@@ -83,6 +83,10 @@ component_types! {
     Evaluate => values::EVALUATE,
     /// `<mathInput>`.
     MathInput => inputs::MATH_INPUT,
+    /// `<choiceInput>`.
+    ChoiceInput => inputs::CHOICE_INPUT,
+    /// `<choice>`, inside a `<choiceInput>`.
+    Choice => inputs::CHOICE,
     /// `<circle>`.
     Circle => geometry::CIRCLE,
     /// `<line>`.
@@ -95,6 +99,8 @@ component_types! {
     PointList => geometry::POINT_LIST,
     /// `<p>`.
     P => containers::P,
+    /// `<hint>`.
+    Hint => containers::HINT,
     /// `<setup>`.
     Setup => containers::SETUP,
     /// `<stickyGroup>`.
@@ -113,6 +119,8 @@ component_types! {
     Case => structure::CASE,
     /// `<select>`.
     Select => structure::SELECT,
+    /// `<selectFromSequence>`.
+    SelectFromSequence => structure::SELECT_FROM_SEQUENCE,
     /// `<group>` and `<label>`.
     Group => containers::GROUP,
     /// `<section>` and its kin (`<problem>`, `<exercise>`, ...).

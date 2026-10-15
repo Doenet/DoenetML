@@ -113,7 +113,9 @@ const CURVE_PROPS: &[PropDef] = &props([
 pub(super) const ANSWER: ComponentTypeInfo = info(&["answer"], ANSWER_PROPS)
     .copyable()
     .symbolic()
-    .default_prop("credit");
+    .default_prop("credit")
+    // The current core's name for `credit`, so `$ans.creditAchieved` resolves.
+    .aliases(&[("creditAchieved", "credit")]);
 
 const ANSWER_PROPS: &[PropDef] = &props([
     attr("response", f64::NAN).ref_prop("expr"),

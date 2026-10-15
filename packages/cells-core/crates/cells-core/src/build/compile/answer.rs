@@ -22,7 +22,10 @@
 //! text answers, `matchPartial`, feedback) is refused, never left blank.
 
 use super::*;
-use crate::components::prop::{answer, award, math_input, response, when};
+use crate::components::prop::{answer, award, choice, choice_input, math_input, response, when};
+
+/// Most choices one `Choose` reads: the choice cell and one credit each.
+const MAX_CHOICES: usize = crate::program::MAX_VEC_IN - 1;
 
 /// An `<award>` as read from the DAST: its `<when>`, or its content.
 struct AwardForm {
@@ -40,12 +43,15 @@ impl<'a> Compiler<'a> {
             name_scope: scope,
             ..
         } = self.compiled.templates[t].elems[e];
-        self.reject_answer_attrs(el)?;
+        let text_answer = self.reject_answer_attrs(el)?;
         let mut inputs = Vec::new();
         let mut awards = Vec::new();
         for k in self.elem_children(t, e) {
             match self.compiled.templates[t].elems[k].component_type {
-                ComponentType::MathInput | ComponentType::BooleanInput => inputs.push(k),
+                ComponentType::MathInput
+                | ComponentType::BooleanInput
+                | ComponentType::TextInput
+                | ComponentType::ChoiceInput => inputs.push(k),
                 ComponentType::Award => awards.push(k),
                 other => {
                     return Err(Error::Unsupported(format!(
@@ -56,6 +62,27 @@ impl<'a> Compiler<'a> {
             }
         }
         let text_nodes = self.content_nodes(el);
+        // A choice input: the submitted index earns its choice's credit.
+        if let [ci] = inputs.as_slice()
+            && self.compiled.templates[t].elems[*ci].component_type == ComponentType::ChoiceInput
+        {
+            if !text_nodes.is_empty() || !awards.is_empty() {
+                return Err(Error::Unsupported(
+                    "an <answer> with a <choiceInput> and content or awards".into(),
+                ));
+            }
+            return self.plan_choice_answer(t, e, el, *ci);
+        }
+        if text_answer {
+            return self.plan_text_answer(t, e, el, &inputs, &awards);
+        }
+        if inputs.iter().any(|&k| {
+            self.compiled.templates[t].elems[k].component_type == ComponentType::TextInput
+        }) {
+            return Err(Error::Unsupported(
+                "a <textInput> in an <answer> that is not type=\"text\"".into(),
+            ));
+        }
         if !text_nodes.is_empty() && !awards.is_empty() {
             return Err(Error::Unsupported(
                 "an <answer> with both content and <award> children".into(),
@@ -172,17 +199,196 @@ impl<'a> Compiler<'a> {
         Ok(())
     }
 
+    /// `<answer><choiceInput>...</choiceInput></answer>`: the response is
+    /// the chosen index, the submitted copy is its own cell, and the credit
+    /// is the submitted choice's `credit` (0 while nothing is chosen).
+    fn plan_choice_answer(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        el: NodeId,
+        ci: ElemId,
+    ) -> Result<()> {
+        let d = self.compiled.dast;
+        let choices: Vec<ElemId> = self
+            .elem_children(t, ci)
+            .into_iter()
+            .filter(|&k| {
+                self.compiled.templates[t].elems[k].component_type == ComponentType::Choice
+            })
+            .collect();
+        if choices.is_empty() || choices.len() > MAX_CHOICES {
+            return Err(Error::Unsupported(format!(
+                "a <choiceInput> with {} choices",
+                choices.len()
+            )));
+        }
+        let mut plan = ElemPlan::new(ComponentType::Answer.prop_defs().len());
+        plan.set(
+            answer::RESPONSE,
+            SourcePlan::Alias(Arg::Elem(ci, own_slot(choice_input::SELECTED_INDEX))),
+        );
+        plan.set(1, SourcePlan::Fixed(f64::NAN));
+        plan.set(answer::SUBMITTED, SourcePlan::Literal(0.0));
+        let weight = match d.attr(el, "weight") {
+            Some(a) => self.plan_value(t, e, "weight", d.attr_children(a), None)?,
+            None => SourcePlan::Fixed(1.0),
+        };
+        plan.set(answer::WEIGHT, weight);
+        plan.set(answer::NUM_SUBMISSIONS, SourcePlan::Literal(0.0));
+        let mut args = vec![Arg::Own(own_slot(answer::SUBMITTED))];
+        args.extend(
+            choices
+                .iter()
+                .map(|&c| Arg::Elem(c, own_slot(choice::CREDIT))),
+        );
+        let chosen = plan.hidden(SourcePlan::Op(
+            OpSpec::Vec(VecOp::Choose {
+                n: choices.len() as u8,
+            }),
+            args,
+        ));
+        plan.set(
+            answer::CREDIT,
+            SourcePlan::computed(OpSpec::NanTo { k: 0.0 }, vec![chosen]),
+        );
+        self.compiled.templates[t].elems[e].props = plan.finish();
+        Ok(())
+    }
+
+    /// `<answer type="text">`: a `<textInput>` child's value is the
+    /// response (a string id); the submitted copy is compared with each
+    /// award's literal text, trimmed, by id.
+    fn plan_text_answer(
+        &mut self,
+        t: TemplateId,
+        e: ElemId,
+        el: NodeId,
+        inputs: &[ElemId],
+        awards: &[ElemId],
+    ) -> Result<()> {
+        let d = self.compiled.dast;
+        let ti = match inputs {
+            [ti] if self.compiled.templates[t].elems[*ti].component_type
+                == ComponentType::TextInput =>
+            {
+                *ti
+            }
+            _ => {
+                return Err(Error::Unsupported(
+                    "<answer type=\"text\"> needs one <textInput> child".into(),
+                ));
+            }
+        };
+        if awards.is_empty() {
+            return Err(Error::Unsupported(
+                "<answer type=\"text\"> without <award> children".into(),
+            ));
+        }
+        let mut plan = ElemPlan::new(ComponentType::Answer.prop_defs().len());
+        plan.set(
+            answer::RESPONSE,
+            SourcePlan::Alias(Arg::Elem(ti, own_slot(0))),
+        );
+        plan.set(1, SourcePlan::Fixed(f64::NAN));
+        plan.set(answer::SUBMITTED, SourcePlan::Literal(f64::NAN));
+        let weight = match d.attr(el, "weight") {
+            Some(a) => self.plan_value(t, e, "weight", d.attr_children(a), None)?,
+            None => SourcePlan::Fixed(1.0),
+        };
+        plan.set(answer::WEIGHT, weight);
+        plan.set(answer::NUM_SUBMISSIONS, SourcePlan::Literal(0.0));
+        let mut best = None;
+        for &a in awards {
+            let form = self.award_form(t, a)?;
+            if form.when.is_some() {
+                return Err(Error::Unsupported(
+                    "a <when> in an <award> of a text answer".into(),
+                ));
+            }
+            let mut text = String::new();
+            for &n in &form.nodes {
+                if d.kind(n) != NodeKind::Text {
+                    return Err(Error::Unsupported(
+                        "a reference in an <award> of a text answer".into(),
+                    ));
+                }
+                text.push_str(d.str(n));
+            }
+            let id = self.intern_literal(text.trim()) as f64;
+            let mut ap = ElemPlan::new(ComponentType::Award.prop_defs().len());
+            let credit = match d.attr(form.el, "credit") {
+                Some(c) => match self.plan_value(t, a, "credit", d.attr_children(c), None)? {
+                    SourcePlan::Literal(v) => SourcePlan::Fixed(v),
+                    p => p,
+                },
+                None => SourcePlan::Fixed(1.0),
+            };
+            ap.set(award::CREDIT, credit);
+            let correct = ap.hidden(SourcePlan::Fixed(id));
+            let holds = ap.hidden(SourcePlan::Op(
+                OpSpec::Eq,
+                vec![
+                    Arg::Elem(e, own_slot(answer::SUBMITTED)),
+                    Arg::Own(own_slot(correct)),
+                ],
+            ));
+            ap.set(
+                award::AWARDED,
+                SourcePlan::computed(OpSpec::Mul, vec![award::CREDIT, holds]),
+            );
+            self.compiled.templates[t].elems[a].props = ap.finish();
+            let awarded = plan.hidden(SourcePlan::Alias(Arg::Elem(a, own_slot(award::AWARDED))));
+            best = Some(match best {
+                None => awarded,
+                Some(b) => plan.hidden(SourcePlan::computed(OpSpec::Max, vec![b, awarded])),
+            });
+        }
+        plan.set(answer::CREDIT, SourcePlan::own(best.expect("an award")));
+        self.compiled.templates[t].elems[e].props = plan.finish();
+        Ok(())
+    }
+
+    /// `<choiceInput>`: its choices must be `<choice>` elements;
+    /// `selectMultiple` is refused.
+    pub(super) fn plan_choice_input(
+        &mut self,
+        el: NodeId,
+        _props: &mut [Option<SourcePlan>],
+    ) -> Result<()> {
+        let d = self.compiled.dast;
+        if self.attr_on(el, "selectMultiple") {
+            return Err(Error::Unsupported("<choiceInput selectMultiple>".into()));
+        }
+        for &n in d.children(el) {
+            match d.kind(n) {
+                NodeKind::Text if d.str(n).trim().is_empty() => {}
+                NodeKind::Other => {}
+                NodeKind::Element if d.str(n) == "choice" => {}
+                _ => {
+                    return Err(Error::Unsupported(
+                        "the children of <choiceInput> must be <choice> elements".into(),
+                    ));
+                }
+            }
+        }
+        Ok(())
+    }
+
     /// Attributes that change what an answer checks and are out of scope.
-    fn reject_answer_attrs(&self, el: NodeId) -> Result<()> {
+    /// Returns whether the answer is `type="text"`.
+    fn reject_answer_attrs(&self, el: NodeId) -> Result<bool> {
         let d = self.compiled.dast;
         self.reject_compare_attrs(el, "answer")?;
+        let mut text = false;
         if let Some(a) = d.attr(el, "type") {
             let ty = self.attr_text(a).unwrap_or_default();
-            if ty.trim() != "math" {
-                return Err(Error::Unsupported(format!(
-                    "<answer type=\"{}\">",
-                    ty.trim()
-                )));
+            match ty.trim() {
+                "math" => {}
+                "text" => text = true,
+                other => {
+                    return Err(Error::Unsupported(format!("<answer type=\"{other}\">")));
+                }
             }
         }
         if self.attr_on(el, "matchPartial") {
@@ -193,7 +399,7 @@ impl<'a> Compiler<'a> {
         {
             return Err(Error::Unsupported("<answer numAwardsCredited>".into()));
         }
-        Ok(())
+        Ok(text)
     }
 
     /// Attributes of an answer or award that change how responses compare
@@ -252,10 +458,15 @@ impl<'a> Compiler<'a> {
         }
         self.reject_compare_attrs(el, "award")?;
         let mut when = None;
+        // `<award><math>2 + $a</math></award>`: the math is the content.
+        let mut math_child = None;
         for k in self.elem_children(t, a) {
             match self.compiled.templates[t].elems[k].component_type {
                 ComponentType::When if when.is_none() => {
                     when = Some((k, self.compiled.templates[t].elems[k].node))
+                }
+                ComponentType::Math if math_child.is_none() && when.is_none() => {
+                    math_child = Some(self.compiled.templates[t].elems[k].node)
                 }
                 ComponentType::When => {
                     return Err(Error::Unsupported("two <when>s in an <award>".into()));
@@ -268,7 +479,15 @@ impl<'a> Compiler<'a> {
                 }
             }
         }
-        let nodes = self.content_nodes(el);
+        let nodes = match math_child {
+            Some(m) if self.content_nodes(el).is_empty() => self.content_nodes(m),
+            Some(_) => {
+                return Err(Error::Unsupported(
+                    "an <award> with both a <math> and text".into(),
+                ));
+            }
+            None => self.content_nodes(el),
+        };
         match (when, nodes.is_empty()) {
             (Some(_), false) => Err(Error::Unsupported(
                 "an <award> with both a <when> and content".into(),

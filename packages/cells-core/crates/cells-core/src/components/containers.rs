@@ -44,6 +44,11 @@ pub mod graph {
 /// `<p>`: a rendered container with no props of its own.
 pub(super) const P: ComponentTypeInfo = info(&["p"], &[]).container();
 
+/// `<hint>`: a container the reader opens; `open` is its own state (0 or 1).
+pub(super) const HINT: ComponentTypeInfo = info(&["hint"], HINT_PROPS).container();
+
+const HINT_PROPS: &[PropDef] = &props([attr("open", 0.0)]);
+
 /// `<setup>`: an unrendered container.
 pub(super) const SETUP: ComponentTypeInfo = info(&["setup"], &[]).container();
 

@@ -204,6 +204,20 @@ impl Compiler<'_> {
                             vec![raw_x, raw_y, c[0], c[1], c[2]],
                         );
                     }
+                    ComponentType::Function | ComponentType::Derivative => {
+                        // The point rides the curve: `x` is what was asked
+                        // and `y` is f(x). (The current core moves to the
+                        // nearest point of the curve instead.)
+                        let f = refs(self, ch, &["expr"]);
+                        ch.set(point::X, SourcePlan::own(raw_x));
+                        ch.set(
+                            point::Y,
+                            SourcePlan::Op(
+                                OpSpec::Sym(SymKind::EvalAt),
+                                vec![Arg::Own(own_slot(f[0])), Arg::Own(own_slot(raw_x))],
+                            ),
+                        );
+                    }
                     ComponentType::Line | ComponentType::LineSegment => {
                         let l = refs(self, ch, &["x1", "y1", "x2", "y2"]);
                         ch.set_vec(

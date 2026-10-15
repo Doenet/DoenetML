@@ -58,3 +58,16 @@ pub fn load_via_binary(source: &str) -> crate::Result<crate::Document> {
     let bytes = dast.to_binary();
     crate::Document::from_bytes(&bytes)
 }
+
+/// `load` with a document seed (ADR 0009), for load-time choices.
+pub fn load_with_seed(source: &str, seed: u64) -> crate::Result<crate::Document> {
+    let json = dast_json(source);
+    let (doc, _) = crate::Document::load(
+        json.as_bytes(),
+        crate::LoadOptions {
+            seed,
+            ..Default::default()
+        },
+    )?;
+    Ok(doc)
+}

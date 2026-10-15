@@ -104,8 +104,9 @@ impl<'a> Compiler<'a> {
                     }
                 }
                 (None, PropFrom::Derived) => self.plan_op(t, scope, el)?,
-                // Set below (`plan_math_input`, `plan_section_flags`) or
-                // wired once the whole tree exists (`scoring.rs`).
+                // Set below (`plan_math_input`, `plan_section_flags`,
+                // `plan_select_from_sequence`) or wired once the whole tree
+                // exists (`scoring.rs`).
                 (None, PropFrom::Planned)
                     if matches!(
                         component_type,
@@ -113,6 +114,7 @@ impl<'a> Compiler<'a> {
                             | ComponentType::Section
                             | ComponentType::MathInput
                             | ComponentType::FunctionIterates
+                            | ComponentType::SelectFromSequence
                     ) =>
                 {
                     SourcePlan::Fixed(f64::NAN)

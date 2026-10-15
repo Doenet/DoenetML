@@ -759,6 +759,12 @@ impl<'c, 'a> Builder<'c, 'a> {
                     Source::Op(*spec, start, args.len() as u8)
                 }
                 SourcePlan::IterIndex => Source::Fixed(self.scopes[inst.scope].2 as f64),
+                SourcePlan::SequencePick { from, step, count } => {
+                    let node = c.templates[inst.template].elems[inst.elem].node;
+                    let h = choice::splitmix(self.seeded_stream(inst.scope, node));
+                    let k = ((h >> 11) as f64 / (1u64 << 53) as f64 * *count as f64) as u32;
+                    Source::Fixed(from + step * k.min(count - 1) as f64)
+                }
                 SourcePlan::Math(expr) => {
                     let id = self.instantiate_expr(*expr, inst.scope)?;
                     if self.arena.is_numeric(id) {

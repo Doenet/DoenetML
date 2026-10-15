@@ -47,6 +47,13 @@ pub(in crate::build) enum SourcePlan {
     Op(OpSpec, Vec<Arg>),
     /// The 1-based position of the enclosing iteration.
     IterIndex,
+    /// A `<selectFromSequence>`'s value: `from + step * k` for a `k` below
+    /// `count` drawn per instance from the document seed (ADR 0009).
+    SequencePick {
+        from: f64,
+        step: f64,
+        count: u32,
+    },
     /// Math text: lowered to operators if numeric, else NaN.
     Math(ExprId),
     /// A `<math>`'s `expr` prop: NaN when the math is numeric (it lowers),
