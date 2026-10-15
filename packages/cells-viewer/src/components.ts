@@ -35,11 +35,27 @@ export class ComponentTable {
     private decoder = new TextDecoder();
     private strCache = new Map<number, string>();
     private propIndex: Map<string, number>[];
-
-    constructor(public cols: ComponentColumns) {
+    private _cols: ComponentColumns;
+    /**
+     * @param reload re-reads the columns from the core. The views detach
+     * when wasm memory grows (parsing typed math, interning text), which
+     * leaves their buffer with no bytes, so the table re-reads them on the
+     * next access after that.
+     */
+    constructor(
+        cols: ComponentColumns,
+        private reload?: () => ComponentColumns,
+    ) {
+        this._cols = cols;
         this.propIndex = cols.typeProps.map(
             (names) => new Map(names.map((n, i) => [n, i])),
         );
+    }
+    get cols(): ComponentColumns {
+        if (this._cols.componentType.buffer.byteLength === 0 && this.reload) {
+            this._cols = this.reload();
+        }
+        return this._cols;
     }
 
     get root() {

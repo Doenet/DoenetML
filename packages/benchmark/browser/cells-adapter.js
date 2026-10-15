@@ -43,8 +43,10 @@
         async act(step) {
             const s = store();
             const idx = resolve(step.target);
-            if (idx === null)
-                throw new Error(`target ${step.target} did not resolve`);
+            if (idx === null || idx >= s.comps.length)
+                throw new Error(
+                    `target ${step.target} did not resolve (${idx})`,
+                );
             switch (step.action) {
                 case "movePoint":
                     s.requestPoints([
@@ -57,6 +59,14 @@
                     ]);
                     return;
                 case "updateValue":
+                    try {
+                        s.comps.componentType(idx);
+                        s.comps.cell(idx, "expr");
+                    } catch (e) {
+                        throw new Error(
+                            `lookup for ${step.target} (idx ${idx}, type ${s.comps.componentType(idx)}, n ${s.comps.length}): ${e.message}`,
+                        );
+                    }
                     if (s.comps.componentType(idx) === "textInput")
                         s.requestText(s.comps.cell(idx, "value"), step.value);
                     else

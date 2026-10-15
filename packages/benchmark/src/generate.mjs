@@ -29,17 +29,21 @@ const shapes = {
         lines.push("</graph>");
         return lines.join("\n") + "\n";
     },
-    /** A repeat whose length is an input; the first iteration's q is dragged (its x; y is the iteration value). */
+    /**
+     * A repeat whose length is an input, with one free point beside it: the
+     * drag measures a tick in a document of N iterations (points inside the
+     * repeat sit too close together for a pointer to pick one by name).
+     */
     repeat(n) {
         return [
             `<mathInput name="n" prefill="${n}"/>`,
             '<graph name="g">',
+            // Off the line y = x/2 the repeat's points lie on, so a pointer
+            // at q finds q.
+            '<point name="q" x="5" y="-5"/>',
             '<repeatForSequence name="r" from="-9" step="0.18" length="$n" valueName="v">',
             '<number name="h">0.5 $v</number>',
             '<point name="p" x="$v" y="$h"/>',
-            // q's x is free to drag; its y spreads the iterations out so a
-            // drag grabs the intended one.
-            '<point name="q" x="0" y="$v"/>',
             "</repeatForSequence>",
             "</graph>",
         ].join("\n") + "\n";

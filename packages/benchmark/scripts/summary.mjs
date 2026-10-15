@@ -32,3 +32,29 @@ function cell(r) {
 console.log(`${file}\n`);
 console.log(["fixture", ...cores].join(" | "));
 for (const f of fixtures) console.log([f, ...cores.map((c) => cell(last.get(`${f}|${c}`)))].join(" | "));
+
+// The browser table, from the latest browser-<date>.jsonl, if any.
+const browserFile = readdirSync(dir).filter((f) => f.startsWith("browser-")).sort().at(-1);
+if (browserFile) {
+    const lastB = new Map();
+    for (const line of readFileSync(resolve(dir, browserFile), "utf8").split("\n").filter(Boolean)) {
+        const r = JSON.parse(line);
+        lastB.set(`${r.fixture}|${r.core}`, r);
+    }
+    const bcores = ["javascript", "cells"];
+    const bcell = (r) => {
+        if (!r) return "";
+        if (r.status !== "ok") return r.status === "timeout" ? `> 60 s (${r.stage})` : r.status;
+        const parts = [`load ${ms(r.load_ms)}`];
+        if (r.drag) parts.push(r.drag.latency.n ? `drag lag ${ms(r.drag.latency.p50_ms)} (${r.drag.frames}/${r.drag.moves} frames)` : `drag: no frames (${r.drag.moves} moves)`);
+        if (r.steps) parts.push(...r.steps.map((s) => `${s.label} ${ms(s.frame.p50_ms)}`));
+        if (r.structural?.[0]) parts.push(`rebuild ${ms(r.structural[0].frame.p50_ms)}`);
+        if (r.timed_out_at) parts.push(`(> 60 s at ${r.timed_out_at})`);
+        return parts.join(", ");
+    };
+    console.log(`\n${resolve(dir, browserFile)} (ms; drag lag is the time from the oldest unanswered pointer move to the frame that answered it)\n`);
+    console.log(["fixture", ...bcores].join(" | "));
+    for (const f of [...new Set([...lastB.values()].map((r) => r.fixture))].sort()) {
+        console.log([f, ...bcores.map((c) => bcell(lastB.get(`${f}|${c}`)))].join(" | "));
+    }
+}

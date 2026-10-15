@@ -201,6 +201,7 @@ export class CellStore {
             // tell the renderer to update from the root.
             this.comps = new ComponentTable(
                 columnsFromCore(this.core, wasmMemory!),
+                () => columnsFromCore(this.core, wasmMemory!),
             );
             this.listeners = new Array(this.comps.nCells);
             this.structureVersion++;
@@ -247,7 +248,9 @@ export async function loadDocument(
     t = performance.now();
     // Views over wasm memory: the component layer never grows after load,
     // but the cell array may be reallocated, so cells are re-viewed per read.
-    const comps = new ComponentTable(columnsFromCore(core, wasmMemory));
+    const comps = new ComponentTable(columnsFromCore(core, wasmMemory), () =>
+        columnsFromCore(core, wasmMemory!),
+    );
     timings.componentTable = performance.now() - t;
     return new CellStore(core, comps);
 }
