@@ -15,7 +15,8 @@ const args = Object.fromEntries(
 const cores = (args.cores ?? "javascript,rust,cells").split(",");
 const only = args.fixtures ? args.fixtures.split(",") : null;
 const fixtures = listFixtures().filter((m) => !only || only.includes(m.name));
-const date = new Date().toISOString().slice(0, 10);
+// Local date, so an evening run does not land on tomorrow's file.
+const date = new Date(Date.now() - new Date().getTimezoneOffset() * 60_000).toISOString().slice(0, 10);
 const out = resolve(packageRoot, args.out ?? `results/raw/node-${date}.jsonl`);
 mkdirSync(resolve(out, ".."), { recursive: true });
 const commit = execSync("git rev-parse --short HEAD", { cwd: repoRoot, encoding: "utf8" }).trim();

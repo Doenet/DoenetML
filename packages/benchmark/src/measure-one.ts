@@ -8,6 +8,7 @@
 // result so a timeout can say how far it got.
 import { lezerToDast, normalizeDocumentDast } from "@doenet/parser";
 import { createTestCore } from "../../doenetml-worker-javascript/src/test/utils/test-core";
+import { writeSync } from "node:fs";
 import { fixtureText, loadFixture } from "./fixtures.mjs";
 
 const core = process.env.DOENET_TEST_CORE || "javascript";
@@ -26,8 +27,11 @@ type Step = {
 /** The core could not name the manifest's target: a gap in that core, like the adapters' own. */
 class TargetGap extends Error {}
 
-const progress = (stage: string) =>
-    console.log(JSON.stringify({ progress: stage }));
+// Synchronous writes: stdout to a pipe is asynchronous in Node, and a long
+// synchronous stretch of core work after a console.log would hold the line
+// back until the budget killed the process.
+const emit = (o: unknown) => writeSync(1, JSON.stringify(o) + "\n");
+const progress = (stage: string) => emit({ progress: stage });
 const gc = () => (globalThis as any).gc?.();
 const now = () => performance.now();
 
@@ -125,16 +129,6 @@ async function main() {
     record.heap_bytes = process.memoryUsage().heapUsed - heapBefore;
     record.wasm_bytes = await wasmBytes(api);
 
-    progress("errors");
-    try {
-        const sv = await api.core.returnAllStateVariables(false, true);
-        record.error_components = Object.values(sv).filter(
-            (c: any) => c.componentType === "_error",
-        ).length;
-    } catch {
-        record.error_components = null;
-    }
-
     progress("steps");
     record.steps = await timeSteps(api, manifest.steps, maxRounds);
     if (manifest.structural) {
@@ -145,7 +139,20 @@ async function main() {
             Math.min(maxRounds, 10),
         );
     }
-    console.log(JSON.stringify(record));
+
+    // Last: on a slow document this check costs more than the measurements,
+    // so the record goes out first and again with the count if time allows.
+    emit({ ...record, error_components: "unchecked" });
+    progress("errors");
+    try {
+        const sv = await api.core.returnAllStateVariables(false, true);
+        record.error_components = Object.values(sv).filter(
+            (c: any) => c.componentType === "_error",
+        ).length;
+    } catch {
+        record.error_components = null;
+    }
+    emit(record);
 }
 
 // The JS core leaves timers running, so exit explicitly once the line is out.
@@ -153,13 +160,11 @@ main()
     .catch((e) => {
         const name = e?.constructor?.name ?? "";
         const status = /Gap$/.test(name) ? "unsupported" : "error";
-        console.log(
-            JSON.stringify({
-                core,
-                fixture: fixtureName,
-                status,
-                message: String(e?.message ?? e).slice(0, 500),
-            }),
-        );
+        emit({
+            core,
+            fixture: fixtureName,
+            status,
+            message: String(e?.message ?? e).slice(0, 500),
+        });
     })
     .finally(() => setTimeout(() => process.exit(0), 50));
