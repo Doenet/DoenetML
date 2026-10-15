@@ -85,6 +85,27 @@ Each run is one vite-node process, which costs about ten seconds of
 startup per measurement; that is harness overhead and appears only in
 `wall_ms`.
 
+## Bundle size
+
+```bash
+npm run build -w packages/standalone -w packages/cells-viewer
+npm run bundle
+```
+
+`src/bundle.mjs` measures everything a page fetches to render a document,
+raw and brotli (quality 11, what a CDN serves precompressed), and appends
+one record per set to `results/raw/bundle-<date>.jsonl`. The sets: the JS
+core's eager set (facade, eager chunk, stylesheet, worker, and the Rust
+wasm the worker fetches), the whole standalone dist without maps for
+context, the Rust wasm alone (it ships inside the JS core's worker), and
+the cells viewer build. The delta the cells core adds to standalone is
+measured once the wiring exists.
+
+In CI, `packages/standalone/bundle-budgets.json` now carries a
+`maxBrotliBytes` ceiling beside `maxBytes` for the eager chunk, the worker
+and the single-file variant, enforced by the existing size check with the
+same raise-it-in-the-diff convention.
+
 ## Reference budgets
 
 | Measurement | Budget |

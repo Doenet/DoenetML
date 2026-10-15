@@ -7,40 +7,50 @@
         "script is held to the ceiling individually.",
         "",
         "Growth is fine; silent growth is not. Raising a `maxBytes` in the same",
-        "commit that causes the growth is the point — it puts the increase in",
+        "commit that causes the growth is the point \u2014 it puts the increase in",
         "the diff where a reviewer can ask about it. Update `observedBytes` in",
         "the same edit so the new headroom is visible: it records the size when",
         "`maxBytes` was chosen and is documentation only, enforced by nothing.",
         "",
-        "Budgets normally sit 7–8% above the observation, and an observation",
+        "Budgets normally sit 7\u20138% above the observation, and an observation",
         "taken locally is as good as one taken on CI. That is new: the math",
         "core used to be compiled here from a git submodule, so its size was",
-        "not reproducible across machines — an optional `wasm-opt -Oz` pass",
+        "not reproducible across machines \u2014 an optional `wasm-opt -Oz` pass",
         "worth ~10-15% ran or did not depending on whether binaryen happened to",
         "be installed, and two machines disagreed by a few kB even without it.",
         "It now arrives prebuilt in the `math-expressions` package and is",
-        "inlined verbatim, so every build carries the bytes the lockfile pins."
+        "inlined verbatim, so every build carries the bytes the lockfile pins.",
+        "",
+        "`maxBrotliBytes` / `observedBrotliBytes` are the same pair for the bytes the wire",
+        "carries once a CDN has compressed the file (brotli quality 11). Compressing",
+        "takes seconds per file, so only files with a brotli ceiling are measured."
     ],
     "files": {
         "dist/doenet-standalone.js": {
             "maxBytes": 50000,
             "observedBytes": 2179,
-            "note": "A re-export facade: its one import is the chunks/index-*.js below, awaited through the version-pinning resolver, plus the render-global queueing stubs (scripts/pin-chunk-urls-plugin.ts). Carries no math core — it holds no math. Megabytes here mean code splitting got switched off."
+            "note": "A re-export facade: its one import is the chunks/index-*.js below, awaited through the version-pinning resolver, plus the render-global queueing stubs (scripts/pin-chunk-urls-plugin.ts). Carries no math core \u2014 it holds no math. Megabytes here mean code splitting got switched off."
         },
         "dist/chunks/index-*.js": {
             "maxBytes": 4870000,
             "observedBytes": 4503607,
-            "note": "The eagerly-parsed payload every embed pays (the facade's static import). Carries one inlined @doenet/math core: the main-thread renderers reach for math. The editor stack, the worker, and the lazy renderers must stay out of it. The glob also catches a few small shared chunks named index-*."
+            "note": "The eagerly-parsed payload every embed pays (the facade's static import). Carries one inlined @doenet/math core: the main-thread renderers reach for math. The editor stack, the worker, and the lazy renderers must stay out of it. The glob also catches a few small shared chunks named index-*.",
+            "maxBrotliBytes": 1065000,
+            "observedBrotliBytes": 991311
         },
         "dist/doenet-standalone-inline.js": {
             "maxBytes": 12370000,
             "observedBytes": 11454289,
-            "note": "The single-file variant for Blob/srcdoc hosts: every chunk inlined, math core included. Doubles as the total-weight ceiling for the code-split build."
+            "note": "The single-file variant for Blob/srcdoc hosts: every chunk inlined, math core included. Doubles as the total-weight ceiling for the code-split build.",
+            "maxBrotliBytes": 2361000,
+            "observedBrotliBytes": 2197047
         },
         "dist/doenetml-worker/index.js": {
             "maxBytes": 8040000,
             "observedBytes": 7441005,
-            "note": "Carries one inlined math core. The Rust *document* core is not inlined here: it is served as the sibling lib_doenetml_worker_bg.wasm, which the worker fetches at run time."
+            "note": "Carries one inlined math core. The Rust *document* core is not inlined here: it is served as the sibling lib_doenetml_worker_bg.wasm, which the worker fetches at run time.",
+            "maxBrotliBytes": 1466000,
+            "observedBrotliBytes": 1364518
         }
     }
 }

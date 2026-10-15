@@ -68,6 +68,7 @@
 import fs from "node:fs";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
+import { brotliCompressSync } from "node:zlib";
 
 const PACKAGE_ROOT = path.resolve(
     path.dirname(fileURLToPath(import.meta.url)),
@@ -427,7 +428,7 @@ export function servedCatalogProblems(sourceLocales, emittedLocales) {
  *
  * @param probes `[locale, probe]` pairs, from {@link collectCatalogProbes}.
  */
-function collectEmittedScripts(probes) {
+function collectEmittedScripts(probes, budgets = []) {
     const scripts = new Map();
     if (!fs.existsSync(DIST_DIR)) {
         return scripts;
@@ -451,6 +452,12 @@ function collectEmittedScripts(probes) {
         const binaries = countInlinedBinaries(contents);
         scripts.set(relative, {
             size: buffer.length,
+            // What the wire carries once a CDN has compressed it (quality 11,
+            // as precompression does). Seconds per file, so only for scripts
+            // that have a brotli ceiling.
+            brotliSize: hasBrotliBudget(relative, budgets)
+                ? brotliCompressSync(buffer).length
+                : undefined,
             wasmUris: contents.match(WASM_URI)?.length ?? 0,
             bigBlobs:
                 binaries.wasmUriBlobs +
@@ -465,6 +472,15 @@ function collectEmittedScripts(probes) {
         });
     }
     return scripts;
+}
+
+/** Whether some budget with a `maxBrotliBytes` matches this emitted script. */
+function hasBrotliBudget(relative, budgets) {
+    return budgets.some(
+        ([key, budget]) =>
+            budget.maxBrotliBytes !== undefined &&
+            budgetPattern(key).test(relative),
+    );
 }
 
 /**
@@ -504,6 +520,15 @@ export function loadBudgets(budgetsFile = BUDGETS_FILE) {
             throw new Error(
                 `bundle-budgets.json entry "${relative}" needs a positive numeric ` +
                     `"maxBytes"; got ${JSON.stringify(budget?.maxBytes)}.`,
+            );
+        }
+        if (
+            budget.maxBrotliBytes !== undefined &&
+            (!Number.isFinite(budget.maxBrotliBytes) || budget.maxBrotliBytes <= 0)
+        ) {
+            throw new Error(
+                `bundle-budgets.json entry "${relative}" has a "maxBrotliBytes" that is ` +
+                    `not a positive number; got ${JSON.stringify(budget.maxBrotliBytes)}.`,
             );
         }
     }
@@ -577,7 +602,13 @@ export function scriptsForBudget(relative, scripts) {
         const emitted = scripts.get(relative);
         return emitted ? [[relative, emitted]] : [];
     }
-    const pattern = new RegExp(
+    const pattern = budgetPattern(relative);
+    return [...scripts].filter(([name]) => pattern.test(name));
+}
+
+/** The budget key as a pattern: `*` matches one hashed path segment. */
+function budgetPattern(relative) {
+    return new RegExp(
         "^" +
             relative
                 .split("*")
@@ -585,7 +616,6 @@ export function scriptsForBudget(relative, scripts) {
                 .join("[^/]*") +
             "$",
     );
-    return [...scripts].filter(([name]) => pattern.test(name));
 }
 
 /**
@@ -672,6 +702,27 @@ export function findProblems(budgets, scripts) {
                     `, ${emitted.wasmUris} wasm URI(s), ${emitted.bigBlobs} inlined blob(s)`,
             );
 
+            if (budget.maxBrotliBytes !== undefined) {
+                if (emitted.brotliSize === undefined) {
+                    problems.push(
+                        `${name} has a "maxBrotliBytes" budget but its brotli size was not measured.`,
+                    );
+                } else {
+                    report.push(
+                        `      ${mib(emitted.brotliSize)} brotli of ${mib(budget.maxBrotliBytes)} budget` +
+                            `  (${((emitted.brotliSize / budget.maxBrotliBytes) * 100).toFixed(1)}%)`,
+                    );
+                    if (emitted.brotliSize > budget.maxBrotliBytes) {
+                        problems.push(
+                            `${name} is ${mib(emitted.brotliSize)} brotli (${emitted.brotliSize} bytes), over its ` +
+                                `${mib(budget.maxBrotliBytes)} brotli budget by ${mib(emitted.brotliSize - budget.maxBrotliBytes)}.\n` +
+                                `    If the growth is intended, raise "maxBrotliBytes" for this file in\n` +
+                                `    packages/standalone/bundle-budgets.json in the same commit.`,
+                        );
+                    }
+                }
+            }
+
             if (emitted.size > budget.maxBytes) {
                 problems.push(
                     `${name} is ${mib(emitted.size)} (${emitted.size} bytes), over its ` +
@@ -751,7 +802,7 @@ export function findProblems(budgets, scripts) {
 function main() {
     const budgets = loadBudgets();
     const probes = collectCatalogProbes();
-    const scripts = collectEmittedScripts(probes);
+    const scripts = collectEmittedScripts(probes, budgets);
     const { report, problems } = findProblems(budgets, scripts);
 
     // An unbuilt `dist/` has already been reported as such; only ask where

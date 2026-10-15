@@ -10,6 +10,7 @@
     "scripts": {
         "fixtures": "node scripts/list-fixtures.mjs",
         "test": "echo \"No tests\"",
-        "node": "node src/run.mjs"
+        "node": "node src/run.mjs",
+        "bundle": "node src/bundle.mjs"
     }
 }

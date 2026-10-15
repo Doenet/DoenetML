@@ -237,6 +237,30 @@ describe("findProblems", () => {
         ]);
     });
 
+    it("enforces a brotli ceiling where a budget has one", () => {
+        const scripts = healthyBuild();
+        scripts.set(WORKER_SCRIPT, { ...script(900), brotliSize: 300 });
+        const budgets = [
+            [STANDALONE, { maxBytes: 1000 }],
+            [WORKER_SCRIPT, { maxBytes: 1000, maxBrotliBytes: 250 }],
+        ];
+        const { report, problems } = findProblems(budgets, scripts);
+        expect(problems).toEqual([
+            expect.stringContaining(`${WORKER_SCRIPT} is 0.00 MiB brotli (300 bytes)`),
+        ]);
+        expect(report.join("\n")).toContain("brotli of");
+    });
+
+    it("fails a brotli budget whose script was not measured", () => {
+        const budgets = [
+            [STANDALONE, { maxBytes: 1000 }],
+            [WORKER_SCRIPT, { maxBytes: 1000, maxBrotliBytes: 250 }],
+        ];
+        expect(problemsFor(healthyBuild(), budgets)).toEqual([
+            expect.stringContaining("brotli size was not measured"),
+        ]);
+    });
+
     it("lists an unbudgeted chunk without failing on it", () => {
         const scripts = healthyBuild();
         scripts.set("dist/coordinator.js", script(11_000));
