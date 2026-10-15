@@ -10,6 +10,7 @@ import {
     returnLabelStateVariableDefinitions,
     returnRenderOnlyLabelChildDefinitions,
 } from "../utils/label";
+import { returnStatusMessageStateVariableDefinition } from "../utils/statusMessage";
 import {
     addStandardTriggeringStateVariableDefinitions,
     returnStandardTriggeringAttributes,
@@ -53,12 +54,18 @@ export default class CallAction extends InlineComponent {
         if (serializedComponent.children === undefined) {
             return [];
         } else {
+            // A `<label>` and a `<statusMessage>` describe the button rather
+            // than being handed to the action, so they become real children.
             let keepSerializedInds = [];
             for (let [ind, child] of serializedComponent.children.entries()) {
                 if (
                     !componentInfoObjects.componentIsSpecifiedType(
                         child,
                         "label",
+                    ) &&
+                    !componentInfoObjects.componentIsSpecifiedType(
+                        child,
+                        "statusMessage",
                     )
                 ) {
                     keepSerializedInds.push(ind);
@@ -127,6 +134,10 @@ export default class CallAction extends InlineComponent {
                 group: "labels",
                 componentTypes: ["label"],
             },
+            {
+                group: "statusMessages",
+                componentTypes: ["statusMessage"],
+            },
         ];
     }
 
@@ -148,6 +159,10 @@ export default class CallAction extends InlineComponent {
         Object.assign(
             stateVariableDefinitions,
             returnRenderOnlyLabelChildDefinitions(),
+        );
+        Object.assign(
+            stateVariableDefinitions,
+            returnStatusMessageStateVariableDefinition(),
         );
 
         let anchorDefinition = returnAnchorStateVariableDefinition();

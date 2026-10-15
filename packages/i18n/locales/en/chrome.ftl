@@ -93,6 +93,12 @@ slider-next = Next
 keyboard-open = Open Keyboard
 keyboard-close = Close Keyboard
 
+# Announced to a screen reader once the button of an `<updateValue>`,
+# `<callAction>` or `<triggerSet>` has done what it does, when the author gave
+# no `<statusMessage>` of their own. Never shown on screen. The button may have
+# changed anything at all, so keep it general.
+action-button-updated = Value updated
+
 # Accessible name of the button that drops one selected choice from an inline
 # `<choiceInput selectMultiple>`. The button itself is drawn as a bare cross,
 # so `$choice` — the choice's own text, which is never translated — is the

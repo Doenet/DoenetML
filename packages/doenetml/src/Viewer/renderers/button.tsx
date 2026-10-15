@@ -1,4 +1,4 @@
-import React, { useContext, useEffect, useRef } from "react";
+import React, { useContext, useEffect, useRef, useState } from "react";
 import JXG from "jsxgraph";
 import useDoenetRenderer, {
     UseDoenetRendererProps,
@@ -18,6 +18,7 @@ import {
     toNumberOrNaN,
 } from "@doenet/utils";
 import { JXGEvent, JXGObject } from "./jsxgraph-distrib/types";
+import { useT } from "../../utils/i18n";
 
 interface ButtonSVs {
     [key: string]: any;
@@ -31,6 +32,7 @@ interface ButtonSVs {
     label: string;
     labelHasLatex: boolean;
     clickAction: any;
+    statusMessage: string;
     selectedStyle: ResolvedStyleDefinition;
 }
 
@@ -85,12 +87,65 @@ export default React.memo(function ButtonComponent(
 
     let fillColor: string = SVs.selectedStyle.highContrastColor;
 
+    // What a press of the button is reported as in its live region
+    // (Doenet/DoenetML#2277): the author's `<statusMessage>`, or a default
+    // in the reader's language, since no authored prose refers to it.
+    const t = useT();
+    const statusMessage = useRef("");
+    statusMessage.current =
+        SVs.statusMessage ||
+        t("action-button-updated", undefined, "Value updated");
+    const [statusText, setStatusText] = useState("");
+    const statusTimers = useRef<ReturnType<typeof setTimeout>[]>([]);
+
+    function clearStatusTimers() {
+        statusTimers.current.forEach(clearTimeout);
+        statusTimers.current = [];
+    }
+
+    /**
+     * Carry out the button's action and, once core has finished it, announce
+     * the result. `DocViewer` puts core's updates in the store before it
+     * settles the action, so by then `statusMessage` has been recomputed
+     * from the new values: a `$n` in it names what the press changed `$n` to.
+     *
+     * The region is emptied first and filled a moment later, so that
+     * pressing twice announces twice even when the message is the same, and
+     * emptied again afterwards, so that a reader moving through the page
+     * does not come across a message that has since gone stale.
+     */
+    async function pressButton() {
+        const done = await callAction({ action: actions[SVs.clickAction] });
+        if (done !== true) {
+            return;
+        }
+        clearStatusTimers();
+        setStatusText("");
+        statusTimers.current.push(
+            setTimeout(() => setStatusText(statusMessage.current), 100),
+            setTimeout(() => setStatusText(""), 5000),
+        );
+    }
+
+    // On the page, empty, from the first render: a live region that appears
+    // with its text already in it is announced unreliably.
+    const statusRegion = (
+        <span
+            id={id + "_status"}
+            role="status"
+            className="doenet-button-status"
+        >
+            {statusText}
+        </span>
+    );
+
     useEffect(() => {
         //On unmount
         return () => {
             if (buttonJXG.current !== null) {
                 deleteButtonJXG();
             }
+            clearStatusTimers();
         };
     }, []);
 
@@ -149,12 +204,7 @@ export default React.memo(function ButtonComponent(
 
         let newButtonJXG = board.create(
             "button",
-            [
-                0,
-                0,
-                label,
-                () => callAction({ action: actions[SVs.clickAction] }),
-            ],
+            [0, 0, label, () => pressButton()],
             jsxButtonAttributes,
         );
 
@@ -448,6 +498,7 @@ export default React.memo(function ButtonComponent(
         return (
             <React.Fragment>
                 <style>{buttonCSS}</style>
+                {statusRegion}
             </React.Fragment>
         );
     }
@@ -462,7 +513,7 @@ export default React.memo(function ButtonComponent(
         <div id={id} style={{ margin: "12px 0", display: "inline-block" }}>
             <Button
                 id={id + "_button"}
-                onClick={() => callAction({ action: actions[SVs.clickAction] })}
+                onClick={() => pressButton()}
                 disabled={SVs.disabled}
                 value={renderedLabel ? undefined : label}
                 valueHasLatex={!renderedLabel && (SVs.labelHasLatex as boolean)}
@@ -470,6 +521,7 @@ export default React.memo(function ButtonComponent(
             >
                 {renderedLabel}
             </Button>
+            {statusRegion}
         </div>
     );
 });

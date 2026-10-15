@@ -8,6 +8,7 @@ import {
     returnLabelStateVariableDefinitions,
     returnRenderOnlyLabelChildDefinitions,
 } from "../utils/label";
+import { returnStatusMessageStateVariableDefinition } from "../utils/statusMessage";
 import {
     addStandardTriggeringStateVariableDefinitions,
     returnStandardTriggeringAttributes,
@@ -73,6 +74,10 @@ export default class triggerSet extends InlineComponent {
                 group: "labels",
                 componentTypes: ["label"],
             },
+            {
+                group: "statusMessages",
+                componentTypes: ["statusMessage"],
+            },
         ];
     }
 
@@ -94,6 +99,10 @@ export default class triggerSet extends InlineComponent {
         Object.assign(
             stateVariableDefinitions,
             returnRenderOnlyLabelChildDefinitions(),
+        );
+        Object.assign(
+            stateVariableDefinitions,
+            returnStatusMessageStateVariableDefinition(),
         );
 
         let anchorDefinition = returnAnchorStateVariableDefinition();

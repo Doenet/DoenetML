@@ -248,6 +248,7 @@ export default {
     stack: { title: "stack" },
     standardDeviation: { title: "standardDeviation" },
     statement: { title: "statement" },
+    statusMessage: { title: "statusMessage" },
     stickyGroup: { title: "stickyGroup" },
     styleDefinition: { title: "styleDefinition" },
     stylePalette: { title: "stylePalette" },
